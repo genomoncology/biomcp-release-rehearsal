@@ -1,9 +1,14 @@
-# Step hashes: every step of pypi-build, wheel-smoke, docs-live, and
-# version-check is pinned by SHA-256 in
-# tests/test_release_workflow_provenance.py (PINNED_STEPS, ticket
-# 1258). Any edit to those steps — run text, if:, shell:, with:,
-# continue-on-error, env: — must update the hash there in the same
-# commit; the test failure names the step and the new hash.
+# REHEARSAL COPY of genomoncology/biomcp's release workflow, from
+# the merged main of 2026-10-01 (the DDInter sync fix and the Intel
+# smoke pin are both in).
+# Stated differences from the real workflow (and nothing else):
+# 1. the container image is this repository's GHCR name, not the real one;
+# 2. pypi-publish runs `uvx twine check dist/*` instead of an upload —
+#    no registry, no credentials (Ian, 2026-10-01: rehearse without TestPyPI);
+# 3. docs-live is stubbed — it compares the real site's served revision,
+#    which can never match a scratch repository's tag;
+# 4. the CI/docs/contracts workflows are removed so the scratch repository
+#    spends minutes only on the release run.
 name: Release
 
 on:
@@ -441,64 +446,17 @@ jobs:
     permissions:
       contents: read
     env:
-      # gh reads GH_REPO, not GITHUB_REPOSITORY; with no git
-      # directory it cannot discover the repository (the fourth
-      # go-request review reproduced create-draft failing here).
-      GH_REPO: ${{ github.repository }}
       TAG: ${{ inputs.tag || github.ref_name }}
-      LIVE_REVISION_URL: https://biomcp.org/__biomcp_revision__/latest.txt
-      RETRY_WINDOW_SECONDS: "600"
-      RETRY_INTERVAL_SECONDS: "30"
     steps:
-      - name: Check out the gate helper
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-
-      - name: Resolve the tag commit
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # REHEARSAL STUB (stated difference 3): the real gate compares
+      # https://biomcp.org/__biomcp_revision__/latest.txt with the tag
+      # commit; in this scratch repository that can never match, so the
+      # job stays in the graph and succeeds immediately.
+      - name: Rehearsal stub for the live-documentation gate
         run: |
-          TAG_SHA=""
-          for attempt in 1 2 3 4 5; do
-            TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${TAG}" --jq .sha 2>/dev/null)" && break
-            sleep $(( attempt * 2 ))
-          done
-          test -n "$TAG_SHA"
-          echo "TAG_SHA=${TAG_SHA}" >> "$GITHUB_ENV"
-          echo "release tag ${TAG} resolves to ${TAG_SHA}"
-
-      - name: Require the live documentation revision to equal or descend from the tag
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          deadline=$(( $(date +%s) + RETRY_WINDOW_SECONDS ))
-          attempt=0
-          while true; do
-            attempt=$(( attempt + 1 ))
-            live_revision="$(
-              curl --fail --silent --show-error \
-                --connect-timeout 10 --max-time 30 \
-                --header 'Cache-Control: no-cache' \
-                --header 'Pragma: no-cache' \
-                --header 'User-Agent: BioMCP-docs-live-gate/1' \
-                "${LIVE_REVISION_URL}?biomcp_verify=$(date +%s%N)-${attempt}"
-            )" || live_revision=""
-            if [[ ! "$live_revision" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "attempt ${attempt}: ${LIVE_REVISION_URL} did not serve a 40-character revision"
-            elif python3 scripts/check-docs-live-revision.py \
-              --repository "$GITHUB_REPOSITORY" \
-              --tag-sha "$TAG_SHA" \
-              --live-revision "$live_revision"; then
-              echo "live documentation revision ${live_revision} is at or past ${TAG_SHA}"
-              exit 0
-            fi
-            if [ "$(date +%s)" -ge "$deadline" ]; then
-              echo "the live documentation revision did not reach ${TAG_SHA} within ${RETRY_WINDOW_SECONDS}s" >&2
-              exit 1
-            fi
-            sleep "$RETRY_INTERVAL_SECONDS"
-          done
+          echo "docs-live is stubbed in the rehearsal: the live-revision"
+          echo "gate compares the real site with this scratch tag and"
+          echo "cannot pass here; the real workflow runs it unchanged."
 
   pypi-publish:
     # PyPI last (2026-09-28 review): a version number published over
@@ -525,8 +483,13 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
 
-      - name: Publish to PyPI with trusted publishing
-        run: uv publish --trusted-publishing always dist/*
+      # REHEARSAL (stated difference 2): no registry is contacted.
+      # uv 0.8.0 has no --dry-run; twine check validates the same
+      # dist/* files an upload would carry, without credentials.
+      - name: Check the distributions without uploading
+        run: |
+          ls -l dist
+          uvx twine check dist/*
 
   homebrew-tap:
     # The tap formula points at release tarballs, so the release
@@ -679,7 +642,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/genomoncology/biomcp:${{ env.VERSION }}
+          tags: ghcr.io/${{ github.repository }}:${{ env.VERSION }}
           build-args: |
             SOURCE_SHA=${{ env.SOURCE_SHA }}
             VERSION=${{ env.VERSION }}
@@ -687,7 +650,7 @@ jobs:
 
       - name: Smoke the linux/amd64 image from the registry
         run: |
-          IMAGE="ghcr.io/genomoncology/biomcp:${VERSION}"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY}:${VERSION}"
           docker pull --platform linux/amd64 "$IMAGE"
           docker run --rm --platform linux/amd64 "$IMAGE" --version
           UID_IN_CONTAINER="$(docker run --rm --platform linux/amd64 --entrypoint id "$IMAGE" -u)"
@@ -706,7 +669,7 @@ jobs:
 
       - name: Smoke the linux/arm64 image from the registry
         run: |
-          IMAGE="ghcr.io/genomoncology/biomcp:${VERSION}"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY}:${VERSION}"
           docker pull --platform linux/arm64 "$IMAGE"
           docker run --rm --platform linux/arm64 "$IMAGE" --version
           UID_IN_CONTAINER="$(docker run --rm --platform linux/arm64 --entrypoint id "$IMAGE" -u)"
@@ -765,7 +728,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          IMAGE="ghcr.io/genomoncology/biomcp"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY}"
           VERSION="${TAG#v}"
           # A failed query must fail the job, not read as "no
           # published releases" and move latest (third go-request
