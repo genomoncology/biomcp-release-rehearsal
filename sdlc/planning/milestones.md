@@ -44,6 +44,14 @@ Serves: users move from 0.9 to 1.0 without losing an answer they rely on.
 
 Done when: the parity run shows every asserted fact that 0.9 gets right is also right in 1.0, every documented command runs against recordings with a zero exit, and Ian approves the release. The last step replaces the BioMCP repository's history with this repository's history, keeping its stars and release history.
 
+## 6. Maintenance after 1.0
+
+Delivers: the accepted findings of the 1.0 code review (m17823) that change no reply or schema: typed identifiers, one snapshot store, one NCI local-page search, a shared test-support crate with an unused-dependency check, small cleanups and module-shape checks.
+
+Serves: a codebase that stays cheap to change after the release freezes its contracts.
+
+Done when: every ticket in this milestone lands after the 1.0 publication with an empty reply diff and an unchanged schema comparison.
+
 ## Later, unordered
 
 Each waits for a consumer or for Ian. None has tickets.
