@@ -55,7 +55,18 @@ fn locked(cdx: bool) -> Result<(), String> {
             &schemas,
             &["search", "pathway", "Atlas", "--source", source],
         )?;
-        failure(&reader)?;
+        if reader.pointer("/result/isError") != Some(&json!(false))
+            || reader
+                .pointer("/result/structuredContent/result/items/0")
+                .is_none()
+            || reader
+                .pointer("/result/structuredContent/local_error")
+                .is_some()
+        {
+            return Err(format!(
+                "reader discarded fetched catalog under publication contention: {reader}"
+            ));
+        }
         if reader.pointer("/result/structuredContent/sources/0/state") != Some(&json!("ok")) {
             return Err(format!("reader lost its checked provider state: {reader}"));
         }

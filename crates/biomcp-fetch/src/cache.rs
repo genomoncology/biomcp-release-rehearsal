@@ -22,6 +22,8 @@ pub const VERSION: u32 = 5;
 /// Compatible cache namespace used by callers when naming shared cache files.
 pub const CACHE_NAMESPACE_VERSION: u32 = 1;
 const OWNER: &str = "biomcp-fetch";
+/// Retain expired replies for stale and offline fallback before automatic pruning.
+pub const STALE_GRACE_SECONDS: i64 = 30 * 24 * 60 * 60;
 const OPEN_WAIT: Duration = Duration::from_secs(5);
 
 // One connection is shared by source legs. Its lock covers only SQLite work;
@@ -289,7 +291,7 @@ impl Cache {
     ) -> Result<(), CacheError> {
         self.write_sql(deadline, |connection| {
             let tx = connection.unchecked_transaction().map_err(db_error)?;
-            tx.execute("DELETE FROM reply WHERE fresh_until<=?1", [now()]).map_err(db_error)?;
+            tx.execute("DELETE FROM reply WHERE fresh_until<=?1", [now().saturating_sub(STALE_GRACE_SECONDS)]).map_err(db_error)?;
             tx.execute(
                 "INSERT INTO reply(key,source,url,status,content_type,body,fetched_at,fresh_until,content_range,pagination) \
         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)

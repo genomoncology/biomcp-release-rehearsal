@@ -77,7 +77,18 @@ fn execute<'a>(
         None => {
             let items = create(cx, query, deadline, out)?;
             store.set_deadline(*deadline);
-            store.publish(&key, &items, &out.sources, &out.problems, out.dropped)?
+            match crate::publish::keep(
+                store
+                    .publish(&key, &items, &out.sources, &out.problems, out.dropped)
+                    .map_err(Into::into),
+                out,
+            )? {
+                Some(pool) => pool,
+                None => {
+                    super::page::fetched(super::page::Cursor::Recommend(query), items, out);
+                    return Ok(());
+                }
+            }
         }
     };
     out.sources = pool.sources.clone();

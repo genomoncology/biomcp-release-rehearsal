@@ -185,7 +185,7 @@ fn read(
         offset,
         returned,
         total: total as u64,
-        pool: Some(pool.clone()),
+        pool: pool.clone(),
         truncated: None,
     });
     {
@@ -199,7 +199,7 @@ fn read(
     {
         crate::status::item(out, true, false, true);
     }
-    if (offset + returned) < total as u32 {
+    if let Some(pool) = pool.filter(|_| (offset + returned) < total as u32) {
         out.next.push(crate::next::Step::run(
             StepKind::Page,
             &[biomcp_types::Source::UniProt],

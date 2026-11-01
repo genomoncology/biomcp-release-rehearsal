@@ -127,7 +127,10 @@ fn read(
         out.sources = saved.sources.clone();
     }
     let size = saved.rows.len() as u32;
-    let pool = source_snapshot::publish(cx, &key, &saved, size, &saved.sources, prior, deadline)?;
+    let pool = crate::publish::keep(
+        source_snapshot::publish(cx, &key, &saved, size, &saved.sources, prior, deadline),
+        out,
+    )?;
     render(cx, q, saved, pool, out);
     Ok(())
 }
@@ -189,7 +192,7 @@ fn append(q: &GwasSearch, saved: &mut Saved, page: gwas::Page) -> Result<(), Req
     }
     Ok(())
 }
-fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Pool, out: &mut Outcome) {
+fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Option<Pool>, out: &mut Outcome) {
     out.problems = saved.problems.clone();
     let items: Box<[_]> = saved
         .rows
@@ -200,13 +203,15 @@ fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Pool, out: &mut Outc
         .collect();
     let returned = items.len() as u32;
     let offset = q.offset().saturating_add(returned);
-    let continuation = (!saved.done || (offset as usize) < saved.rows.len())
-        .then(|| GwasPageQuery::Search(q.in_pool(pool.info.id.clone(), offset)));
+    let continuation = pool
+        .as_ref()
+        .filter(|_| !saved.done || (offset as usize) < saved.rows.len())
+        .map(|pool| GwasPageQuery::Search(q.in_pool(pool.info.id.clone(), offset)));
     let page = PageInfo {
         offset: q.offset(),
         returned,
         total: saved.total.unwrap_or(0),
-        pool: Some(pool.info),
+        pool: pool.map(|p| p.info),
         truncated: Some(!saved.done),
     };
     let body = GwasPage {

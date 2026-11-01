@@ -290,3 +290,30 @@ fn actions(query: Cursor<'_>, pool: &Pool, returned: u32, total: u64, out: &mut 
     }
     super::next::authors(out);
 }
+
+/// Return the checked live window when no retained collection could be written.
+pub(super) fn fetched(query: Cursor<'_>, items: Vec<biomcp_types::ArticleItem>, out: &mut Outcome) {
+    let total = items.len() as u64;
+    let items: Box<[_]> = items
+        .into_iter()
+        .skip(query.offset() as usize)
+        .take(query.limit() as usize)
+        .collect();
+    out.page = Some(PageInfo {
+        offset: query.offset(),
+        returned: items.len() as u32,
+        total,
+        pool: None,
+        truncated: None,
+    });
+    out.body = match query {
+        Cursor::Search(q) => ArticlePage {
+            items,
+            candidates: Vec::new(),
+        }
+        .with_query(q.clone()),
+        Cursor::Edges(q, _) => ArticleEdgePage { items }.with_query(q.clone()),
+        Cursor::Recommend(q) => super::recommend::body(items, total == 0).with_query(q.clone()),
+    };
+    status::item(out, true, false, false);
+}

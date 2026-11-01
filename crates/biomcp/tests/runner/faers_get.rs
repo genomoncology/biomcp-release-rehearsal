@@ -17,7 +17,7 @@ pub(super) fn trials() -> Vec<Trial> {
         ),
     ]
 }
-fn native() -> Value {
+pub(super) fn native() -> Value {
     json!(
         {"meta":{"last_updated":"2024-09-01","results":{"skip":0,"limit":5,"total":1}},"results":[{"safetyreportid":"100",
         "safetyreportversion":"1","receivedate":"20240101","receiptdate":"20240202","serious":"1","seriousnessdeath":"1",

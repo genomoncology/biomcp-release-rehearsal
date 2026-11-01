@@ -93,20 +93,25 @@ impl Saved {
             let selection = Selection::Members(query.clone());
             let key = selection.key()?;
             let saved = Self::Members(Some(complex.clone()));
-            let pool = crate::source_snapshot::intern(
-                cx,
-                &key,
-                &saved,
-                complex.members.len() as u32,
-                &out.sources,
-                deadline,
+            let pool = crate::publish::keep(
+                crate::source_snapshot::intern(
+                    cx,
+                    &key,
+                    &saved,
+                    complex.members.len() as u32,
+                    &out.sources,
+                    deadline,
+                ),
+                out,
             )?;
-            out.next.push(crate::next::Step::run(
-                StepKind::Section,
-                &[biomcp_types::Source::ComplexPortal],
-                Request::ProteinComplexMembers(query.at_page(pool.info.id, 0)),
-                false,
-            ));
+            if let Some(pool) = pool {
+                out.next.push(crate::next::Step::run(
+                    StepKind::Section,
+                    &[biomcp_types::Source::ComplexPortal],
+                    Request::ProteinComplexMembers(query.at_page(pool.info.id, 0)),
+                    false,
+                ));
+            }
         }
         Ok(())
     }

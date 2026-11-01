@@ -52,7 +52,7 @@ pub use bundle::{
     KeyKind, Keys, MAX_BUNDLE_BYTES, Row, RowFormat, SetRow, bundle_sha256, decode_bundle_document,
     encode_bundle_row,
 };
-pub use cache::{CACHE_NAMESPACE_VERSION, SchemaOwner, VERSION, check_owners};
+pub use cache::{CACHE_NAMESPACE_VERSION, STALE_GRACE_SECONDS, SchemaOwner, VERSION, check_owners};
 pub use deadline::{CommandDeadline, Deadline, LocalDeadline};
 pub use declaration::{
     Arg, Credential, Endpoint, Freshness, KeyPlace, KeyUse, PathSegment, SecretName, SourceSpec,

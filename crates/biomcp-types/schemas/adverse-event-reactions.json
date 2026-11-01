@@ -175,13 +175,19 @@
           "description": "One page of complete native rows."
         },
         "snapshot": {
-          "$ref": "#/$defs/Reply_Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Opaque retained source snapshot."
         }
       },
       "required": [
         "header",
-        "snapshot",
         "reactions"
       ],
       "type": "object"
@@ -979,7 +985,7 @@
       "type": "string"
     }
   },
-  "$id": "biomcp.adverse-event-reactions/5",
+  "$id": "biomcp.adverse-event-reactions/6",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
@@ -1035,7 +1041,7 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.adverse-event-reactions/5",
+      "const": "biomcp.adverse-event-reactions/6",
       "type": "string"
     },
     "sources": {

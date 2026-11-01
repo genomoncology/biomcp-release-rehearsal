@@ -85,16 +85,19 @@ fn execute(
         status::retain_source_state(&mut saved.source, &source);
     }
     let pool = if cached {
-        old_pool.ok_or(biomcp_fetch::CacheError::Database)?
+        Some(old_pool.ok_or(biomcp_fetch::CacheError::Database)?)
     } else {
-        snapshot::publish(
-            cx,
-            &key,
-            &saved,
-            saved.pages.iter().map(|p| p.data.len() as u32).sum(),
-            std::slice::from_ref(&saved.source),
-            old_pool,
-            deadline,
+        crate::publish::keep(
+            snapshot::publish(
+                cx,
+                &key,
+                &saved,
+                saved.pages.iter().map(|p| p.data.len() as u32).sum(),
+                std::slice::from_ref(&saved.source),
+                old_pool,
+                deadline,
+            ),
+            out,
         )?
     };
     present(q, out, saved, pool)
@@ -103,7 +106,7 @@ fn present(
     q: &AuthorPapersQuery,
     out: &mut Outcome,
     saved: super::NativePages<author::PapersPage>,
-    pool: crate::store::Pool,
+    pool: Option<crate::store::Pool>,
 ) -> Result<(), RequestError> {
     let page = saved
         .pages
@@ -126,7 +129,7 @@ fn present(
     for row in &items {
         pivot(&row.header, out);
     }
-    if let Some(offset) = page.next {
+    if let (Some(offset), Some(pool)) = (page.next, pool.as_ref()) {
         out.next.push(crate::next::Step::new(
             StepKind::Page,
             &[biomcp_types::Source::SemanticScholar],
@@ -139,7 +142,7 @@ fn present(
         offset: q.offset(),
         returned: items.len() as u32,
         total,
-        pool: Some(pool.info),
+        pool: pool.map(|p| p.info),
         truncated: None,
     });
     {

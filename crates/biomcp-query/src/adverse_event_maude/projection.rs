@@ -10,7 +10,7 @@ const NARRATIVE_PAGE_BYTES: usize = 32 * 1024;
 pub(super) fn project(
     query: &AdverseEventGet,
     report: biodata::MaudeReport,
-    snapshot: Text,
+    snapshot: Option<Text>,
     positions: Positions,
 ) -> Result<(ReplyData, u64, u32, u32), biomcp_types::QueryInvalid> {
     let header = header(&report);
@@ -63,7 +63,7 @@ fn devices(
     row: &biodata::MaudeReport,
     positions: &Positions,
     header: biomcp_types::AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
 ) -> Result<(ReplyData, u64, u32, u32), biomcp_types::QueryInvalid> {
     let offset = query.section_offset();
     let end = offset.saturating_add(query.section_limit());
@@ -103,7 +103,7 @@ fn card(
     query: &AdverseEventGet,
     row: biodata::MaudeReport,
     header: biomcp_types::AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
     positions: &Positions,
 ) -> Result<AdverseEventMaudeCard, biomcp_types::QueryInvalid> {
     let card = AdverseEventMaudeCard {

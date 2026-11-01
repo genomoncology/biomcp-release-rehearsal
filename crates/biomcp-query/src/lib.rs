@@ -39,6 +39,7 @@ mod organization;
 mod pathway;
 /// Literal phenotype discovery and exact independent source cards.
 mod phenotype;
+mod publish;
 mod source_snapshot;
 /// Stored study catalog discovery.
 mod study;

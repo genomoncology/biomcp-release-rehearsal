@@ -13,11 +13,13 @@ pub(super) fn render(
     q: &AdverseEventGet,
     r: FaersReport,
     url: Text,
-    snapshot: Text,
+    snapshot: Option<Text>,
     positions: Positions,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    let navigation = q.with_snapshot(snapshot.clone());
+    let navigation = snapshot
+        .clone()
+        .map_or_else(|| q.clone(), |t| q.with_snapshot(t));
     let header = AdverseEventHeader {
         id: r.safetyreportid.clone(),
         source: AdverseEventSource::Faers,
@@ -82,11 +84,13 @@ fn drugs(
     r: &FaersReport,
     positions: &Positions,
     header: AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
     components: Box<[biomcp_types::ComponentLabel]>,
     out: &mut Outcome,
 ) {
-    let navigation = q.with_snapshot(snapshot.clone());
+    let navigation = snapshot
+        .clone()
+        .map_or_else(|| q.clone(), |t| q.with_snapshot(t));
     let total = positions
         .drugs
         .as_ref()
@@ -157,7 +161,7 @@ fn card(
     r: FaersReport,
     url: Text,
     header: AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
     positions: &Positions,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {

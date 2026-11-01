@@ -142,10 +142,10 @@ pub(super) fn read(
         offset,
         returned,
         total,
-        pool: Some(pool.clone()),
+        pool: pool.clone(),
         truncated: None,
     });
-    if u64::from(offset + returned) < total {
+    if let Some(pool) = pool.filter(|_| u64::from(offset + returned) < total) {
         out.next.push(crate::next::Step::run(
             StepKind::Page,
             &[q.source()],
@@ -162,7 +162,7 @@ fn load(
     leg: biomcp_fetch::Leg<'_>,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<Option<(Saved, biomcp_types::PoolInfo)>, RequestError> {
+) -> Result<Option<(Saved, Option<biomcp_types::PoolInfo>)>, RequestError> {
     let (_, _, selected) = q.window();
     let key = q.key()?;
     let (saved, mismatch) = if cx.fresh {
@@ -172,7 +172,7 @@ fn load(
     };
     let loaded = if let Some((saved, pool)) = saved {
         out.sources = pool.sources;
-        (saved, pool.info)
+        (saved, Some(pool.info))
     } else {
         if selected.is_some() {
             restart(q, out, mismatch);
@@ -190,8 +190,11 @@ fn load(
             }
         };
         let size = saved.total() as u32;
-        let pool = source_snapshot::publish(cx, &key, &saved, size, &out.sources, None, deadline)?;
-        (saved, pool.info)
+        let pool = crate::publish::keep(
+            source_snapshot::publish(cx, &key, &saved, size, &out.sources, None, deadline),
+            out,
+        )?;
+        (saved, pool.map(|p| p.info))
     };
     Ok(Some(loaded))
 }

@@ -74,7 +74,18 @@ fn execute<'a>(
                 return Ok(());
             };
             store.set_deadline(*deadline);
-            store.publish(&key, &items, &out.sources, &out.problems, out.dropped)?
+            match crate::publish::keep(
+                store
+                    .publish(&key, &items, &out.sources, &out.problems, out.dropped)
+                    .map_err(Into::into),
+                out,
+            )? {
+                Some(pool) => pool,
+                None => {
+                    page::fetched(page::Cursor::Edges(query, references), items, out);
+                    return Ok(());
+                }
+            }
         }
     };
     out.sources = pool.sources.clone();

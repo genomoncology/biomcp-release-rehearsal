@@ -1,7 +1,6 @@
 //! Retained UniProt windows bind literal selectors and hide native cursors.
 use super::next;
 use crate::{Ctx, Outcome, source_snapshot, status, store::Pool};
-use biodata::Text;
 use biomcp_adapters::uniprot;
 use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::Paged;
@@ -98,8 +97,11 @@ fn read(
     out.problems = saved.problems.clone();
     out.local = error.and_then(status::local);
     let size = saved.page.items.len() as u32;
-    let pool = source_snapshot::publish(cx, &key(q)?, &saved, size, &out.sources, prior, deadline)?;
-    render(q, saved, pool.info.id.clone(), pool.info, out);
+    let pool = crate::publish::keep(
+        source_snapshot::publish(cx, &key(q)?, &saved, size, &out.sources, prior, deadline),
+        out,
+    )?;
+    render(q, saved, pool.map(|p| p.info), out);
     Ok(())
 }
 fn load(
@@ -188,8 +190,7 @@ fn extend(
 fn render(
     q: &ProteinSearch,
     saved: Saved,
-    pool: Text,
-    info: biomcp_types::PoolInfo,
+    info: Option<biomcp_types::PoolInfo>,
     out: &mut Outcome,
 ) {
     let rows: Vec<_> = saved
@@ -204,20 +205,25 @@ fn render(
     status::search(out);
     let returned = rows.len() as u32;
     let offset = q.offset().saturating_add(returned);
-    out.next = next::search(
-        q,
-        &rows,
-        pool,
-        offset,
-        returned > 0 && u64::from(offset) < saved.page.total,
-        out.status() != Status::Complete,
-        &mut out.problems,
-    );
+    out.next = info
+        .as_ref()
+        .map(|info| {
+            next::search(
+                q,
+                &rows,
+                info.id.clone(),
+                offset,
+                returned > 0 && u64::from(offset) < saved.page.total,
+                out.status() != Status::Complete,
+                &mut out.problems,
+            )
+        })
+        .unwrap_or_default();
     out.page = Some(PageInfo {
         offset: q.offset(),
         returned,
         total: saved.page.total,
-        pool: Some(info),
+        pool: info,
         truncated: Some(saved.page.cursor.is_some()),
     });
     out.body = (ProteinPage { items: rows.into() }).with_query(q.clone());

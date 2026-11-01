@@ -94,7 +94,10 @@ fn execute(
         Some(saved) => saved,
         None => fetch(cx, q, deadline, out)?,
     };
-    let pool = source_snapshot::write(cx, &key, &saved, &saved.sources, deadline)?;
+    let pool = crate::publish::keep(
+        source_snapshot::write(cx, &key, &saved, &saved.sources, deadline),
+        out,
+    )?;
     out.dropped = saved.dropped;
     out.sources = saved.sources;
     out.problems = saved.problems;
@@ -109,7 +112,7 @@ fn execute(
             run(Request::GetPathway(PathwayGet::new(row.id.clone()))),
         ));
     }
-    if let Some(offset) = body.page.next_offset {
+    if let (Some(offset), Some(pool)) = (body.page.next_offset, pool) {
         out.next.push(crate::next::Step::new(
             StepKind::Page,
             &super::next::search(q),

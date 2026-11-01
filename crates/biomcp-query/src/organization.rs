@@ -93,14 +93,17 @@ fn execute(
         }
     };
     let pool = if let Some(pool) = q.pool().filter(|_| !cx.fresh) {
-        pool.clone()
+        Some(pool.clone())
     } else {
-        snapshot::save(
-            cx,
-            "biomcp.organization-snapshot/2",
-            &q.snapshot_query(),
-            deadline,
-            &saved,
+        crate::publish::keep(
+            snapshot::save(
+                cx,
+                "biomcp.organization-snapshot/2",
+                &q.snapshot_query(),
+                deadline,
+                &saved,
+            ),
+            out,
         )?
     };
     page(q, saved, pool, out);
@@ -109,7 +112,7 @@ fn execute(
 fn page(
     q: &OrganizationSearch,
     saved: snapshot::Saved<biomcp_types::Organization>,
-    pool: biodata::Text,
+    pool: Option<biodata::Text>,
     out: &mut Outcome,
 ) {
     let total = saved.items.len() as u64;
@@ -121,7 +124,7 @@ fn page(
         .collect();
     let returned = items.len() as u32;
     let next = q.offset().saturating_add(returned);
-    if returned > 0 && u64::from(next) < total {
+    if let Some(pool) = pool.filter(|_| returned > 0 && u64::from(next) < total) {
         out.next.push(crate::next::Step::new(
             StepKind::Page,
             &[biomcp_types::Source::Nci],

@@ -110,13 +110,15 @@ pub(super) fn get(cx: &Ctx<'_>, q: &PgxGet) -> Outcome {
     let deadline = command.deadline();
     let mut out = crate::status::empty((body(q, vec![], vec![])).with_query(q.clone()));
     match super::annotations_record::load(cx, q, deadline, &mut out) {
-        Ok(Some((body, snapshot))) => match q.with_snapshot(snapshot) {
-            Ok(bound) => {
-                out.body = (slice(q, body)).with_query(q.clone());
-                out.next = next::steps(&Request::GetPgx(bound), &mut out);
+        Ok(Some((body, snapshot))) => {
+            match snapshot.map_or_else(|| Ok(q.clone()), |t| q.with_snapshot(t)) {
+                Ok(bound) => {
+                    out.body = (slice(q, body)).with_query(q.clone());
+                    out.next = next::steps(&Request::GetPgx(bound), &mut out);
+                }
+                Err(_) => out.local = Some(biomcp_fetch::InputError::Serialization.into()),
             }
-            Err(_) => out.local = Some(biomcp_fetch::InputError::Serialization.into()),
-        },
+        }
         Ok(None) => {}
         Err(error) => {
             out.local = crate::status::local(error);

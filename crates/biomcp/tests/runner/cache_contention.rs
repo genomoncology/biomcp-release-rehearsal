@@ -9,6 +9,9 @@ use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 
+mod article_publish;
+mod record_publish;
+mod retention;
 mod store_locks;
 
 pub(super) fn trials() -> Vec<Trial> {
@@ -22,7 +25,45 @@ pub(super) fn trials() -> Vec<Trial> {
             || checked_protein().map_err(Into::into),
         ),
     ];
+    trials.push(transcript_trial(
+        "cache-resilience/stale-replies-survive-unrelated-write-until-grace",
+        || retention::stale().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "article-search/current-store-opens-without-write-lock",
+        || retention::open_reader().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "adverse-event-get/late-store-lock-keeps-fetched-faers-record",
+        || record_publish::check(false, None).map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "maude-reports/late-store-lock-keeps-fetched-maude-record",
+        || record_publish::check(true, None).map_err(Into::into),
+    ));
+    for (device, section) in [
+        (false, "drugs"),
+        (false, "reactions"),
+        (false, "unii"),
+        (false, "rxcui"),
+        (false, "product-ndc"),
+        (false, "package-ndc"),
+        (false, "spl-id"),
+        (false, "spl-set-id"),
+        (false, "application-number"),
+        (true, "devices"),
+        (true, "narrative"),
+    ] {
+        trials.push(transcript_trial(
+            format!("cache-resilience/late-store-lock-keeps-fetched-{section}"),
+            move || record_publish::check(device, Some(section)).map_err(Into::into),
+        ));
+    }
     trials.extend(store_locks::trials());
+    trials.push(transcript_trial(
+        "article-search/late-store-lock-keeps-fetched-items",
+        || article_publish::check().map_err(Into::into),
+    ));
     trials
 }
 

@@ -174,7 +174,14 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             },
             "unii": {
@@ -185,7 +192,6 @@
           "required": [
             "section",
             "header",
-            "snapshot",
             "unii"
           ],
           "type": "object"
@@ -213,14 +219,20 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             }
           },
           "required": [
             "section",
             "header",
-            "snapshot",
             "rxcui"
           ],
           "type": "object"
@@ -248,14 +260,20 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             }
           },
           "required": [
             "section",
             "header",
-            "snapshot",
             "product_ndc"
           ],
           "type": "object"
@@ -283,14 +301,20 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             }
           },
           "required": [
             "section",
             "header",
-            "snapshot",
             "package_ndc"
           ],
           "type": "object"
@@ -314,7 +338,14 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             },
             "spl_id": {
@@ -325,7 +356,6 @@
           "required": [
             "section",
             "header",
-            "snapshot",
             "spl_id"
           ],
           "type": "object"
@@ -349,7 +379,14 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             },
             "spl_set_id": {
@@ -360,7 +397,6 @@
           "required": [
             "section",
             "header",
-            "snapshot",
             "spl_set_id"
           ],
           "type": "object"
@@ -388,14 +424,20 @@
               "type": "string"
             },
             "snapshot": {
-              "$ref": "#/$defs/Reply_Text",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Opaque checked report snapshot."
             }
           },
           "required": [
             "section",
             "header",
-            "snapshot",
             "application_number"
           ],
           "type": "object"
@@ -1137,7 +1179,7 @@
       "type": "string"
     }
   },
-  "$id": "biomcp.adverse-event-identifiers/3",
+  "$id": "biomcp.adverse-event-identifiers/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
@@ -1193,7 +1235,7 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.adverse-event-identifiers/3",
+      "const": "biomcp.adverse-event-identifiers/4",
       "type": "string"
     },
     "sources": {

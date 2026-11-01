@@ -36,7 +36,7 @@ pub enum Action {
 }
 /// Run one checked request through the shared query layer.
 pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
-    match request {
+    let mut out = match request {
         Request::AuthorPapers(q) => crate::author::papers(cx, q),
         Request::SearchAuthor(q) => crate::author::search(cx, q),
         Request::GetAuthor(q) => crate::author::get(cx, q),
@@ -101,5 +101,7 @@ pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
         Request::SearchArticle(query) => crate::article::search(cx, query),
         Request::GetGene(query) => gene::get::get(cx, query),
         Request::SearchGene(query) => gene::search::search(cx, query),
-    }
+    };
+    crate::publish::finish(&mut out, request);
+    out
 }

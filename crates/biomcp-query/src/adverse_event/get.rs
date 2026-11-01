@@ -68,7 +68,7 @@ fn read(
         if saved.0.safetyreportid != *q.id() || !saved.4.check(&saved.0) {
             return Err(CacheError::Database.into());
         }
-        (saved, snapshot.clone())
+        (saved, Some(snapshot.clone()))
     } else {
         let result = faers::detail::get(&leg, q.id());
         let error = result.as_ref().err().copied();
@@ -96,7 +96,10 @@ fn read(
             detail.positions,
             detail.refusals == biomcp_adapters::Refusal::Refused,
         );
-        let snapshot = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
+        let snapshot = crate::publish::keep(
+            source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline),
+            out,
+        )?;
         (saved, snapshot)
     };
     render_saved(q, saved, snapshot, out)
@@ -104,7 +107,7 @@ fn read(
 fn render_saved(
     q: &AdverseEventGet,
     saved: Saved,
-    snapshot: Text,
+    snapshot: Option<Text>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
     out.sources = saved.2.clone();

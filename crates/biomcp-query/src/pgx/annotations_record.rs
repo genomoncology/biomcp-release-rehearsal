@@ -21,7 +21,7 @@ pub(super) fn load(
     q: &PgxGet,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<Option<(PgxAnnotations, biodata::Text)>, RequestError> {
+) -> Result<Option<(PgxAnnotations, Option<biodata::Text>)>, RequestError> {
     let leg = cx.fetch.leg(&clinpgx::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::ClinPgx) {
         let error = RequestError::Source(SourceError::disabled(Source::ClinPgx));
@@ -42,7 +42,7 @@ pub(super) fn load(
             ));
             return Ok(None);
         };
-        (saved, snapshot.clone())
+        (saved, Some(snapshot.clone()))
     } else {
         let reply = match q.kind() {
             Some(PgxAnnotationKind::Clinical) => clinpgx::clinical(&leg, q).map(|rows| {
@@ -67,7 +67,10 @@ pub(super) fn load(
             out.problems.clone(),
             out.dropped,
         );
-        let snapshot = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
+        let snapshot = crate::publish::keep(
+            source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline),
+            out,
+        )?;
         (saved, snapshot)
     };
     out.sources = saved.1;

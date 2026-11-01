@@ -1,4 +1,4 @@
-//! Expiry collection shares the publishing transaction; replies require explicit cleanup.
+//! Pool expiry shares publication; reply writes retain a stale grace window until pruning or explicit cleanup.
 use super::{CacheError, Store, db};
 use biomcp_types::StoreClean;
 use rusqlite::{Transaction, params};

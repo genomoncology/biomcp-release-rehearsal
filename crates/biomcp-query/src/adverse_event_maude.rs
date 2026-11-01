@@ -14,7 +14,9 @@ pub(crate) fn get(cx: &Ctx<'_>, query: &AdverseEventGet) -> Outcome {
     let mut out = crate::status::empty(empty(query));
     match record::load(cx, query, deadline, &mut out) {
         Ok(Some((report, positions, snapshot))) => {
-            let bound = query.with_snapshot(snapshot.clone());
+            let bound = snapshot
+                .clone()
+                .map_or_else(|| query.clone(), |t| query.with_snapshot(t));
             match projection::project(query, report, snapshot, positions) {
                 Ok((body, total, returned, offset)) => {
                     out.body = body;

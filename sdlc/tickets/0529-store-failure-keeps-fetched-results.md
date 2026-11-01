@@ -1,6 +1,7 @@
 # 0529 — Keep fetched results when the store fails, and keep stale replies
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 019a93e884b5aa5396a6e80e5eb7d56ab6a37c7b
 
 Milestone: 5
 

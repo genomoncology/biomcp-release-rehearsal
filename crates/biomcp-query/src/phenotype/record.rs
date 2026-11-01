@@ -26,9 +26,12 @@ pub(super) fn get(cx: &Ctx<'_>, q: &PhenotypeGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     match load(cx, q, deadline, &mut out) {
-        Ok(Some((rows, token))) => {
-            super::sections::apply(&mut out, q, &q.with_snapshot(token), rows)
-        }
+        Ok(Some((rows, token))) => super::sections::apply(
+            &mut out,
+            q,
+            &token.map_or_else(|| q.clone(), |t| q.with_snapshot(t)),
+            rows,
+        ),
         Ok(None) => (),
         Err(error) => {
             out.local = status::local(error);
@@ -53,7 +56,7 @@ fn load(
     q: &PhenotypeGet,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<Option<(Rows, Text)>, RequestError> {
+) -> Result<Option<(Rows, Option<Text>)>, RequestError> {
     let spec = match q.source() {
         PhenotypeSource::Hpo => &hpo::SPEC,
         PhenotypeSource::Monarch => &monarch::SPEC,
@@ -79,10 +82,13 @@ fn load(
             ));
             return Ok(None);
         };
-        (saved, token.clone())
+        (saved, Some(token.clone()))
     } else {
         let saved = acquire(q, leg, out)?;
-        let token = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
+        let token = crate::publish::keep(
+            source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline),
+            out,
+        )?;
         (saved, token)
     };
     out.sources = saved.1;

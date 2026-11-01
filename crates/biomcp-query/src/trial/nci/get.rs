@@ -61,13 +61,16 @@ fn fetch(
                 let pool = if q.sections().is_empty() {
                     None
                 } else {
-                    Some(source_snapshot::write(
-                        cx,
-                        &source_snapshot::key("nci-trial", id)?,
-                        &snapshot,
-                        &snapshot.sources,
-                        deadline,
-                    )?)
+                    crate::publish::keep(
+                        source_snapshot::write(
+                            cx,
+                            &source_snapshot::key("nci-trial", id)?,
+                            &snapshot,
+                            &snapshot.sources,
+                            deadline,
+                        ),
+                        out,
+                    )?
                 };
                 items.push(page::render(q, snapshot, pool, out)?);
             }

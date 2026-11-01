@@ -59,15 +59,15 @@ fn ceiling(value: &Value, schema: &str) -> Option<(usize, usize)> {
                 crate::runner::output_limit("maude-envelope-364").ok()?,
                 crate::runner::output_limit("maude-envelope-232").ok()?,
             )),
-            "biomcp.adverse-event-maude-card/3" => Some((
+            "biomcp.adverse-event-maude-card/4" => Some((
                 crate::runner::output_limit("maude-envelope-472").ok()?,
                 crate::runner::output_limit("maude-envelope-340").ok()?,
             )),
-            "biomcp.adverse-event-devices/3" => Some((
+            "biomcp.adverse-event-devices/4" => Some((
                 crate::runner::output_limit("maude-envelope-481").ok()?,
                 crate::runner::output_limit("maude-envelope-349").ok()?,
             )),
-            "biomcp.adverse-event-narrative/3" => Some((
+            "biomcp.adverse-event-narrative/4" => Some((
                 crate::runner::output_limit("maude-envelope-500").ok()?,
                 crate::runner::output_limit("maude-envelope-367").ok()?,
             )),
@@ -85,15 +85,15 @@ fn ceiling(value: &Value, schema: &str) -> Option<(usize, usize)> {
             crate::runner::output_limit("maude-envelope-948").ok()?,
             crate::runner::output_limit("maude-envelope-816").ok()?,
         )),
-        "biomcp.adverse-event-maude-card/3" => Some((
+        "biomcp.adverse-event-maude-card/4" => Some((
             crate::runner::output_limit("maude-envelope-1497").ok()?,
             crate::runner::output_limit("maude-envelope-1364").ok()?,
         )),
-        "biomcp.adverse-event-devices/3" => Some((
+        "biomcp.adverse-event-devices/4" => Some((
             crate::runner::output_limit("maude-envelope-1241").ok()?,
             crate::runner::output_limit("maude-envelope-1109").ok()?,
         )),
-        "biomcp.adverse-event-narrative/3" => Some((
+        "biomcp.adverse-event-narrative/4" => Some((
             crate::runner::output_limit("maude-envelope-912").ok()?,
             crate::runner::output_limit("maude-envelope-780").ok()?,
         )),

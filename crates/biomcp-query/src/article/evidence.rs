@@ -148,11 +148,16 @@ fn execute<'a>(
         snapshot.dropped |= out.dropped;
         encode(&snapshot)?
     };
-    let id = store.save_evidence(
-        query.pool().filter(|_| restored),
-        &key,
-        &payload,
-        &snapshot.sources,
+    let id = crate::publish::keep(
+        store
+            .save_evidence(
+                query.pool().filter(|_| restored),
+                &key,
+                &payload,
+                &snapshot.sources,
+            )
+            .map_err(Into::into),
+        out,
     )?;
     page::render(query, snapshot, id, out)?;
     skipped(out, graph_disabled, query.fulltext() && text_disabled);

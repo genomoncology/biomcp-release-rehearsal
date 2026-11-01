@@ -23,7 +23,7 @@ pub(super) fn load(
     query: &AdverseEventGet,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<Option<(biodata::MaudeReport, maude::Positions, Text)>, RequestError> {
+) -> Result<Option<(biodata::MaudeReport, maude::Positions, Option<Text>)>, RequestError> {
     let leg = cx.fetch.leg(&maude::SPEC, deadline).fresh(cx.fresh);
     let denied = if cx.fetch.disabled(Source::Maude) {
         Some(SourceError::disabled(Source::Maude).into())
@@ -53,7 +53,7 @@ pub(super) fn load(
         if saved.0.mdr_report_key != *query.id() || !saved.3.check(&saved.0) {
             return Err(CacheError::Database.into());
         }
-        (saved, snapshot.clone())
+        (saved, Some(snapshot.clone()))
     } else {
         let reply = maude::get(&leg, query);
         let error = reply.as_ref().err().copied();
@@ -78,16 +78,19 @@ pub(super) fn load(
             report.value.positions,
             report.refusals == biomcp_adapters::Refusal::Refused,
         );
-        let snapshot = source_snapshot::write(cx, &key(query)?, &saved, &out.sources, deadline)?;
+        let snapshot = crate::publish::keep(
+            source_snapshot::write(cx, &key(query)?, &saved, &out.sources, deadline),
+            out,
+        )?;
         (saved, snapshot)
     };
     Ok(Some(restore(saved, snapshot, out)))
 }
 fn restore(
     saved: Saved,
-    snapshot: Text,
+    snapshot: Option<Text>,
     out: &mut Outcome,
-) -> (biodata::MaudeReport, maude::Positions, Text) {
+) -> (biodata::MaudeReport, maude::Positions, Option<Text>) {
     out.sources = saved.1;
     out.dropped = saved.4;
     out.problems.extend(saved.2);

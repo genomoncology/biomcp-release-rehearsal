@@ -58,14 +58,17 @@ fn read(
             expired(q, out);
             return Ok(());
         };
-        (saved, snapshot.clone())
+        (saved, Some(snapshot.clone()))
     } else {
         let reply = vaers::read(&leg, q.vaccine().unwrap_or(""), q.vaers_section());
         let error = reply.as_ref().err().copied();
         out.sources
             .push(status::source(Source::Vaers, leg.finish(), error));
         let saved = (reply?, out.sources.clone());
-        let snapshot = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
+        let snapshot = crate::publish::keep(
+            source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline),
+            out,
+        )?;
         (saved, snapshot)
     };
     out.sources = saved.1;
@@ -79,7 +82,12 @@ fn read(
     render(q, saved.0, snapshot, out);
     Ok(())
 }
-fn render(q: &AdverseEventSearch, mut table: VaersSummary, snapshot: Text, out: &mut Outcome) {
+fn render(
+    q: &AdverseEventSearch,
+    mut table: VaersSummary,
+    snapshot: Option<Text>,
+    out: &mut Outcome,
+) {
     let total = table.rows.len() as u64;
     table.rows = table
         .rows
@@ -97,7 +105,7 @@ fn render(q: &AdverseEventSearch, mut table: VaersSummary, snapshot: Text, out: 
         truncated: None,
     });
     let offset = q.offset().saturating_add(returned);
-    if returned > 0 && u64::from(offset) < total {
+    if let Some(snapshot) = snapshot.filter(|_| returned > 0 && u64::from(offset) < total) {
         out.next.push(crate::next::Step::run(
             StepKind::Page,
             &[biomcp_types::Source::Vaers],

@@ -75,6 +75,13 @@ impl<'a> Store<'a> {
                     OWNER,
                 ],
             )?;
+            let version: Option<u32> = connection
+                .query_row("SELECT version FROM meta WHERE owner=?1", [OWNER.name], |r| r.get(0))
+                .optional()
+                .map_err(db)?;
+            if version == Some(VERSION) {
+                return Ok(());
+            }
             let tx = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(db)?;
             biomcp_fetch::check_owners(&tx, &[OWNER])?;
             let version: Option<u32> = tx

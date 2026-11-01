@@ -38,7 +38,7 @@ pub(super) fn render(
     drug: Option<&FaersDrug>,
     section: S,
     header: AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
     components: Box<[ComponentLabel]>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
@@ -62,8 +62,11 @@ pub(super) fn render(
         .take(q.section_limit() as usize)
         .cloned()
         .collect();
+    let navigation = snapshot
+        .clone()
+        .map_or_else(|| q.clone(), |t| q.with_snapshot(t));
     page(
-        &q.with_snapshot(snapshot.clone()),
+        &navigation,
         q.section_offset().saturating_add(records.len() as u32),
         total,
         out,
@@ -74,7 +77,19 @@ pub(super) fn render(
         offset: q.section_offset(),
         total,
     };
-    let result = match section {
+    let result = body(section, header, snapshot, records, components)?;
+    out.body = result.with_query(q.clone());
+    Ok(())
+}
+
+fn body(
+    section: S,
+    header: AdverseEventHeader,
+    snapshot: Option<Text>,
+    records: AdverseEventIdentifierRecords,
+    components: Box<[ComponentLabel]>,
+) -> Result<I, RequestError> {
+    Ok(match section {
         S::Unii => I::Unii {
             header,
             snapshot,
@@ -118,7 +133,5 @@ pub(super) fn render(
             components,
         },
         _ => return Err(biomcp_fetch::InputError::Serialization.into()),
-    };
-    out.body = result.with_query(q.clone());
-    Ok(())
+    })
 }

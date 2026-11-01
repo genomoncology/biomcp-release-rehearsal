@@ -5,6 +5,7 @@ use biomcp_types::{PageInfo, Problem, ReplyData, Source, SourceOutcome, SourceSt
 pub struct Outcome {
     /// Overall outcome.
     status: Status,
+    pub(crate) publish_error: Option<biomcp_fetch::CacheError>,
     /// At least one native record was refused by its adapter.
     pub(crate) dropped: bool,
     /// Typed response body.
@@ -36,6 +37,7 @@ pub(crate) struct Parts {
 pub(crate) fn finish(items: impl IntoIterator<Item = Status>, parts: Parts) -> Outcome {
     let mut out = Outcome {
         status: status(items.into_iter()),
+        publish_error: None,
         body: parts.body,
         page: parts.page,
         sources: parts.sources,
@@ -139,6 +141,7 @@ pub(crate) fn search_for(out: &mut Outcome, providers: &[Source]) {
 /// Start an unanswered query with one body and no source observations.
 pub(crate) fn empty(body: ReplyData) -> Outcome {
     Outcome {
+        publish_error: None,
         dropped: false,
         status: Status::Failed,
         body,

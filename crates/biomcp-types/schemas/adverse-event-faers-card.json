@@ -93,7 +93,14 @@
           "description": "Independent source report flags."
         },
         "snapshot": {
-          "$ref": "#/$defs/Reply_Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Opaque checked retained-report snapshot identity."
         },
         "source_url": {
@@ -118,7 +125,6 @@
       },
       "required": [
         "header",
-        "snapshot",
         "drug_count",
         "reaction_count",
         "source_url",
@@ -1117,7 +1123,7 @@
       "type": "object"
     }
   },
-  "$id": "biomcp.adverse-event-faers-card/4",
+  "$id": "biomcp.adverse-event-faers-card/5",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
@@ -1173,7 +1179,7 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.adverse-event-faers-card/4",
+      "const": "biomcp.adverse-event-faers-card/5",
       "type": "string"
     },
     "sources": {

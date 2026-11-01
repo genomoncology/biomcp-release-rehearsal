@@ -72,7 +72,8 @@ pub struct AdverseEventFaersCard {
     /// Exact selected report identity.
     pub header: AdverseEventHeader,
     /// Opaque checked retained-report snapshot identity.
-    pub snapshot: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot: Option<Text>,
     /// Native latest_received string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub latest_received: Option<Box<str>>,
@@ -115,7 +116,7 @@ pub struct AdverseEventFaersCard {
     pub components: Box<[ComponentLabel]>,
 }
 impl ResponseBody for AdverseEventFaersCard {
-    const SCHEMA: &'static str = "biomcp.adverse-event-faers-card/4";
+    const SCHEMA: &'static str = "biomcp.adverse-event-faers-card/5";
     type Query = AdverseEventGet;
 }
 /// MAUDE card; native device/patient counts remain separate from array lengths.
@@ -125,7 +126,8 @@ pub struct AdverseEventMaudeCard {
     /// Exact selected report identity.
     pub header: AdverseEventHeader,
     /// Opaque checked retained-report snapshot identity.
-    pub snapshot: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot: Option<Text>,
     /// Native report_number string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub report_number: Option<Box<str>>,
@@ -168,7 +170,7 @@ pub struct AdverseEventMaudeCard {
     pub components: Box<[ComponentLabel]>,
 }
 impl ResponseBody for AdverseEventMaudeCard {
-    const SCHEMA: &'static str = "biomcp.adverse-event-maude-card/3";
+    const SCHEMA: &'static str = "biomcp.adverse-event-maude-card/4";
     type Query = AdverseEventGet;
 }
 /// One complete-row page tied to the retained report snapshot.
@@ -194,7 +196,8 @@ macro_rules! section {
             /// Exact source report identity and version.
             pub header: AdverseEventHeader,
             /// Opaque retained source snapshot.
-            pub snapshot: Text,
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            pub snapshot: Option<Text>,
             /// One page of complete native rows.
             pub $field: AdverseEventRecords<$row>,
             /// Applicable component terms.
@@ -211,25 +214,25 @@ section!(
     AdverseEventDrugs,
     AdverseEventDrug,
     drugs,
-    "biomcp.adverse-event-drugs/3"
+    "biomcp.adverse-event-drugs/4"
 );
 section!(
     AdverseEventReactions,
     AdverseEventReaction,
     reactions,
-    "biomcp.adverse-event-reactions/5"
+    "biomcp.adverse-event-reactions/6"
 );
 section!(
     AdverseEventDevices,
     AdverseEventDevice,
     devices,
-    "biomcp.adverse-event-devices/3"
+    "biomcp.adverse-event-devices/4"
 );
 section!(
     AdverseEventNarrative,
     AdverseEventNarrativeItem,
     narrative,
-    "biomcp.adverse-event-narrative/3"
+    "biomcp.adverse-event-narrative/4"
 );
 /// One selected original identifier array, owned by an absolute drug index.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -259,7 +262,8 @@ macro_rules! identifiers {
                     /// Exact report identity and version.
                     header: AdverseEventHeader,
                     /// Opaque checked report snapshot.
-                    snapshot: Text,
+                    #[serde(default, skip_serializing_if = "Option::is_none")]
+                    snapshot: Option<Text>,
                     /// One complete-row page, owned by one native drug row.
                     $field: AdverseEventIdentifierRecords,
                     /// Applicable component terms.
@@ -280,6 +284,6 @@ identifiers! {
     ApplicationNumber, application_number, "application-number";
 }
 impl ResponseBody for AdverseEventIdentifiers {
-    const SCHEMA: &'static str = "biomcp.adverse-event-identifiers/3";
+    const SCHEMA: &'static str = "biomcp.adverse-event-identifiers/4";
     type Query = AdverseEventGet;
 }

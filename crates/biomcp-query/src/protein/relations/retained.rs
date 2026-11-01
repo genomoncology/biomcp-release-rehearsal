@@ -8,7 +8,7 @@ pub(super) fn load(
     q: &Selection,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<Option<(Entry, PoolInfo)>, RequestError> {
+) -> Result<Option<(Entry, Option<PoolInfo>)>, RequestError> {
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::UniProt) {
         let e = RequestError::Source(SourceError::disabled(Source::UniProt));
@@ -32,7 +32,7 @@ pub(super) fn load(
         out.sources = pool.sources;
         out.problems = problems;
         out.dropped = dropped;
-        return Ok(Some((entry, pool.info)));
+        return Ok(Some((entry, Some(pool.info))));
     }
     if selected.is_some() {
         restart(q, out, mismatch);
@@ -52,14 +52,17 @@ pub(super) fn load(
         return Ok(None);
     };
     let size = q.total(&entry) as u32;
-    let pool = source_snapshot::publish(
-        cx,
-        &key,
-        &(&entry, &out.problems, out.dropped),
-        size,
-        &out.sources,
-        None,
-        deadline,
+    let pool = crate::publish::keep(
+        source_snapshot::publish(
+            cx,
+            &key,
+            &(&entry, &out.problems, out.dropped),
+            size,
+            &out.sources,
+            None,
+            deadline,
+        ),
+        out,
     )?;
-    Ok(Some((entry, pool.info)))
+    Ok(Some((entry, pool.map(|p| p.info))))
 }

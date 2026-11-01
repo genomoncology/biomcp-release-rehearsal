@@ -202,13 +202,19 @@
           "description": "Exact source report identity and version."
         },
         "snapshot": {
-          "$ref": "#/$defs/Reply_Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Opaque retained source snapshot."
         }
       },
       "required": [
         "header",
-        "snapshot",
         "devices"
       ],
       "type": "object"
@@ -1093,7 +1099,7 @@
       "type": "string"
     }
   },
-  "$id": "biomcp.adverse-event-devices/3",
+  "$id": "biomcp.adverse-event-devices/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
@@ -1149,7 +1155,7 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.adverse-event-devices/3",
+      "const": "biomcp.adverse-event-devices/4",
       "type": "string"
     },
     "sources": {

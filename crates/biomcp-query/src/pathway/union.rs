@@ -78,9 +78,12 @@ fn execute(
         advance(cx, q, deadline, &mut saved, out);
     }
     let pool = if replay {
-        q.pool().cloned().ok_or(CacheError::Database)?
+        Some(q.pool().cloned().ok_or(CacheError::Database)?)
     } else {
-        source_snapshot::write(cx, &identity, &saved, &saved.3, deadline)?
+        crate::publish::keep(
+            source_snapshot::write(cx, &identity, &saved, &saved.3, deadline),
+            out,
+        )?
     };
     present(q, saved, pool, out);
     Ok(())
@@ -105,7 +108,7 @@ fn load(
     }
     Ok(Some(saved))
 }
-fn present(q: &PathwaySearch, saved: Saved, pool: biodata::Text, out: &mut Outcome) {
+fn present(q: &PathwaySearch, saved: Saved, pool: Option<biodata::Text>, out: &mut Outcome) {
     out.sources = saved.3;
     out.problems = saved.4;
     for row in &saved.0.items {
@@ -115,7 +118,7 @@ fn present(q: &PathwaySearch, saved: Saved, pool: biodata::Text, out: &mut Outco
             run(Request::GetPathway(PathwayGet::new(row.id.clone()))),
         ));
     }
-    if let Some(offset) = saved.0.page.next_offset {
+    if let (Some(offset), Some(pool)) = (saved.0.page.next_offset, pool) {
         out.next.push(crate::next::Step::new(
             StepKind::Page,
             &super::next::search(q),
