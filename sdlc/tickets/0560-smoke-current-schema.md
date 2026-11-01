@@ -1,6 +1,7 @@
 # 0560 — Make the installed smoke test ask for a current schema
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 316f3ae1994f1bb26bf70d9271476595dbc5db9e
 
 Milestone: 5
 

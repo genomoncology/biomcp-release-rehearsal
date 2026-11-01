@@ -9,7 +9,7 @@ import sys
 import tempfile
 import unittest
 
-from release.smoke import environment
+from release.smoke import SCHEMA_ID, environment
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = [
@@ -86,8 +86,8 @@ elif '/usr/bin/sha256sum' in args:
     print(hashlib.sha256(b'candidate').hexdigest(), '/usr/local/bin/biomcp')
 elif '/bin/cat' in args:
     sys.stdout.buffer.write(pathlib.Path('container', pathlib.Path(args[-1]).name).read_bytes())
-elif args[-2:] == ['schema', 'biomcp.problem/1']:
-    print('{"$id":"biomcp.problem/1"}')
+elif args[-2] == 'schema':
+    print(json.dumps({'$id': args[-1]}))
 elif args[-1] == 'help':
     print('{"result":{"commands":["get"]}}')
 elif '--entrypoint' in args and args[args.index('--entrypoint') + 1] in ('/proof/case-runner', '/proof/tool-runner'):
@@ -181,7 +181,7 @@ class LinuxContainers(unittest.TestCase):
                 self.assertEqual(normalize(labeled), normalize(plain))
         self.assertEqual([row[-1] for row in baseline[3:11]],
                          ['/usr/local/bin/biomcp', '/usr/share/doc/biomcp/LICENSE',
-                          '/usr/share/doc/biomcp/THIRD-PARTY-NOTICES.txt', 'biomcp.problem/1', 'help', 'serve',
+                          '/usr/share/doc/biomcp/THIRD-PARTY-NOTICES.txt', SCHEMA_ID, 'help', 'serve',
                           '2', '2'])
 
 
