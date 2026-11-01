@@ -1,6 +1,7 @@
 # 0551 — Pace sources from their published policies
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 726567d53e41025303c9ab0c2144c6a448ac12db
 
 Milestone: 5
 

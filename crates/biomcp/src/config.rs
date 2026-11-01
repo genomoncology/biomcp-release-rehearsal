@@ -1,6 +1,7 @@
 //! The process argument and settings boundary.
 pub(crate) mod credentials;
 pub(crate) mod key_file;
+mod pacing;
 use crate::grammar::Globals;
 use biomcp_fetch::{Fetch, FetchConfig, Mode, ReplayCache, Secret, SecretName, Secrets};
 use std::{ffi::OsString, fs, path::PathBuf, sync::Arc, time::Duration};
@@ -82,6 +83,11 @@ pub(crate) enum StartupError {
     Configuration(ConfigError),
     Local,
 }
+impl StartupError {
+    pub(crate) fn is_pacing(&self) -> bool {
+        matches!(self, Self::Configuration(error) if error.is_pacing())
+    }
+}
 impl From<ConfigError> for StartupError {
     fn from(error: ConfigError) -> Self {
         Self::Configuration(error)
@@ -142,6 +148,7 @@ fn fetch_using(
     let network = network(file)?;
     Fetch::open(FetchConfig {
         rate_share: globals.rate_share,
+        source_pacing: pacing::resolve(globals, file)?,
         disabled_sources: disabled_sources(globals, file)?,
         disabled_uses: biomcp_query::sources::disabled_uses(&disabled_names(globals, file)),
         observations: globals

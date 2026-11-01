@@ -127,3 +127,5 @@ biomarker-nci: Find NCI biomarker concepts by name or synonym and retrieve nativ
 drug-recall: Search published FDA drug recall records by name, firm, classification, status, reason and initiation dates; page and fetch exact native recall numbers with source field problems.
 variant-clinvar-haplotype: Preserve native ClinVar haplotype kind, version, chromosome grouping and ordered member identities.
 mcp-hosted: A server operator refuses host file saves, health details and store or key changes over every MCP transport in hosted mode; HTTP calls use caller source headers under declared fallback tiers without retaining credentials, pace each effective key independently, share keyless pacing, scale provider rates with --rate-share and cap whole-call time and active hosted HTTP work.
+
+source-pacing: Operators can lower source rates and simultaneous requests within documented source ceilings.

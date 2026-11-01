@@ -42,6 +42,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -78,6 +81,7 @@ help: Describe commands and their arguments.
 
 - `--format`: Choose JSON or Markdown output; configuration can change the default.
 - `--disable-sources`: Exclude source names or source terms groups.
+- `--source_pacing`: Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 - `--config`: Read configuration from this file.
 - `--offline`: Read local data without source requests.
 - `--fresh`: Request fresh source data instead of cached replies.
@@ -122,6 +126,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -159,11 +166,14 @@ Options:
       --name <name>
           Native partial name or synonym search.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Offset within the complete retained observation.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Snapshot identity retained by continuation commands.
@@ -214,11 +224,14 @@ Options:
       --offset <offset>
           Native offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained page identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Native author source.
@@ -262,11 +275,14 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --distance <distance>
           Positive radius with explicit mi or km units.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --family <family>
           Native organization family.
@@ -286,11 +302,11 @@ Options:
       --offline
           Read local data without source requests.
 
-      --fresh
-          Request fresh source data instead of cached replies.
-
       --offset <offset>
           Offset within the complete retained organization snapshot.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --pool <pool>
           Snapshot identity retained by continuation commands.
@@ -349,6 +365,9 @@ Options:
       --offset <offset>
           Native start offset.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -393,11 +412,14 @@ Options:
   -g, --gene <gene>
           Exact native mapped gene; legacy positional query aliases this field.
 
-      --config <config>
-          Read configuration from this file.
-
       --include-child-traits
           Source child-trait expansion; requires trait_id.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
   -l, --limit <limit>
           Maximum association rows.
@@ -411,17 +433,17 @@ Options:
       --pool <pool>
           Retained threshold walk identity; requires a threshold.
 
-      --offline
-          Read local data without source requests.
-
       --pubmed <pubmed>
           Exact source publication identity.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --study <study>
           Exact source study accession.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --trait <trait>
           Literal native efo_trait label; never searches reported_trait prose.
@@ -478,11 +500,14 @@ Options:
       --limit <limit>
           Five rows by default; no more than 25.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Source/retained result offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Exact retained collection identity.
@@ -535,11 +560,14 @@ Options:
       --offset <offset>
           Native source row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --source <source>
           Monarch only; HPO search is unsupported.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -583,11 +611,14 @@ Options:
       --gene <gene>
           Human gene input for exact resolution and UniProt mapping; Reactome only.
 
-      --config <config>
-          Read configuration from this file.
-
   -l, --limit <limit>
           Five rows by default, one to fifty. Reactome rows equals this limit without refill.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Native Reactome Start row or retained WikiPathways catalog offset.
@@ -644,11 +675,14 @@ Options:
       --limit <limit>
           Maximum headers per page.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Zero-based offset in the checked snapshot.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Opaque continuation retaining the catalog revision and selectors.
@@ -692,11 +726,14 @@ Options:
       --gene <gene>
           Explicit source gene symbol.
 
-      --config <config>
-          Read configuration from this file.
-
       --limit <limit>
           Rows per native page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Native source offset.
@@ -746,6 +783,9 @@ Options:
       --condition-id <condition_id>
           Exact MedGen:CUI identifier only.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -764,14 +804,14 @@ Options:
       --initiated-from <initiated_from>
           Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
 
+      --initiated-to <initiated_to>
+          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+
       --offline
           Read local data without source requests.
 
       --fresh
           Request fresh source data instead of cached replies.
-
-      --initiated-to <initiated_to>
-          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
 
       --limit <limit>
           Five results by default; at most fifty source rows or product headers.
@@ -845,11 +885,14 @@ Options:
       --manufacturer <manufacturer>
           MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Native row offset. VAERS continuation requires its retained snapshot.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --problem <problem>
           MAUDE phrase on native product_problems.
@@ -863,17 +906,17 @@ Options:
       --received-from <received_from>
           Inclusive first FDA receipt lower bound, YYYY-MM-DD.
 
-      --offline
-          Read local data without source requests.
-
       --received-to <received_to>
           Inclusive first FDA receipt upper bound, YYYY-MM-DD.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --serious <serious>
           FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --snapshot <snapshot>
           Retained VAERS table for provider-free continuation.
@@ -932,11 +975,14 @@ Options:
       --offset <offset>
           Native row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --ontology <ontology>
           Exactly one ontology, default MONDO.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           One explicit source, default OLS.
@@ -985,11 +1031,14 @@ Options:
       --firm <firm>
           Literal published recalling firm phrase; drug recalls only.
 
-      --config <config>
-          Read configuration from this file.
-
       --initiated-from <initiated_from>
           Inclusive initiation day, YYYY-MM-DD; drug recalls only.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --initiated-to <initiated_to>
           Inclusive initiation day, YYYY-MM-DD; drug recalls only.
@@ -1003,17 +1052,17 @@ Options:
       --offset <offset>
           Native rows to skip.
 
-      --offline
-          Read local data without source requests.
-
       --reason <reason>
           Phrase in the published recall reason; drug recalls only.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --source <source>
           Exactly one source; default MyChem never fans out.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --status <status>
           Literal native recall status; drug recalls only.
@@ -1062,11 +1111,14 @@ Options:
       --limit <limit>
           Number of results per page.
 
-      --config <config>
-          Read configuration from this file.
-
       --locus-group <locus_group>
           Optional HGNC locus group intersected with the selector.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Number of results to skip.
@@ -1114,11 +1166,14 @@ Options:
       --disease <disease>
           Disease words.
 
-      --config <config>
-          Read configuration from this file.
-
       --drug <drug>
           Drug words.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --gene <gene>
           Gene input; PubMed resolves it through HGNC.
@@ -1132,17 +1187,17 @@ Options:
       --no-preprints
           Exclude preprints using the source's native filter.
 
-      --offline
-          Read local data without source requests.
-
       --offset <offset>
           Number of pool items to skip.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --open-access
           Require the source's native open-access filter; Semantic Scholar means a public PDF.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --pool <pool>
           Stable snapshot from an earlier response.
@@ -1245,11 +1300,14 @@ Options:
       --biomarker-use <biomarker_use>
           Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems.
 
-      --config <config>
-          Read configuration from this file.
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --condition <condition>...
           Condition alternatives joined with OR; NCI requires NCIt codes.
+
+      --config <config>
+          Read configuration from this file.
 
       --condition-id <condition_id>
           Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes.
@@ -1263,17 +1321,17 @@ Options:
       --criteria <criteria>
           Search literal registry eligibility text for discovery only; no eligibility judgment.
 
-      --offline
-          Read local data without source requests.
-
       --distance <distance>
           Source distance with explicit mi or km units.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --exact-condition
           Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --facility <facility>
           Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius.
@@ -1401,6 +1459,9 @@ Options:
       --condition <condition>
           Literal MyVariant clinvar.rcv.conditions.name phrase; source text is not a local diagnosis. Requires a declared protein or region selector.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -1416,17 +1477,17 @@ Options:
       --offset <offset>
           Native offset within this command's bounded result window; larger native totals remain visible.
 
-      --offline
-          Read local data without source requests.
-
       --protein <protein>
           Explicit substitution or synonymous change using checked amino-acid codes.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --query <query>
           Raw MyVariant query, passed and echoed unchanged when component policy allows; requires --source myvariant. With disabled components use declared selectors instead.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --region <region>
           Exact one-based inclusive MyVariant region, such as chr7:55259500-55259600; requires --build.
@@ -1492,6 +1553,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -1530,6 +1594,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -1566,6 +1633,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -1611,6 +1681,9 @@ Options:
 
       --section-offset <section_offset>
           Offset within each independently requested collection.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -1669,11 +1742,14 @@ Options:
       --section-offset <section_offset>
           Native relation row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --snapshot <snapshot>
           Retained ancestry reply for a local page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -1725,6 +1801,9 @@ Options:
 
       --section-limit <section_limit>
           First-page row limit; function keeps one whole native text record and does not page its paragraphs.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -1786,11 +1865,14 @@ Options:
       --section-offset <section_offset>
           Native section row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --snapshot <snapshot>
           Retained exact source reply for local text and link pages; unsupported for diseases and genes.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           HPO or Monarch for cards, synonyms and xrefs; Monarch only for hierarchy, diseases and genes. Defaults to HPO for cards, synonyms and xrefs, otherwise Monarch.
@@ -1850,11 +1932,14 @@ Options:
       --pool <pool>
           Retained snapshot, when continuing a source relation.
 
-      --config <config>
-          Read configuration from this file.
-
       --section-limit <section_limit>
           Bounded initial section size; each all section has its own first page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --section-offset <section_offset>
           Native relation offset for a selected genes or events section.
@@ -1910,6 +1995,9 @@ Options:
       --section-offset <section_offset>
           Offset within one named section; all requires zero.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -1962,11 +2050,14 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --drug-id <drug_id>
           Exact published CPIC drug key; recommendations only.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --gene <gene>
           Explicit source gene symbol.
@@ -1980,17 +2071,17 @@ Options:
       --section-offset <section_offset>
           Offset within the selected section.
 
-      --offline
-          Read local data without source requests.
-
       --snapshot <snapshot>
           Retained collection for local continuation.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --source <source>
           Required source, checked against the section.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
 ```
 
@@ -2045,11 +2136,14 @@ Options:
       --section-limit <section_limit>
           Maximum native rows; omitted means five rows, or one regulatory fragment.
 
-      --config <config>
-          Read configuration from this file.
-
       --section-offset <section_offset>
           Zero-based native row or fragment offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Explicit source: GTR accession/version, WHO Product ID, PMA P number,
@@ -2117,11 +2211,14 @@ Options:
       --section-limit <section_limit>
           Whole source rows per section page.
 
-      --config <config>
-          Read configuration from this file.
-
       --section-offset <section_offset>
           Offset within the selected native section.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --snapshot <snapshot>
           Checked retained report snapshot for provider-free continuation.
@@ -2191,11 +2288,14 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --interval <interval>
           Survival-only interval code.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --ontology <ontology>
           One OLS ontology.
@@ -2209,17 +2309,17 @@ Options:
       --section-limit <section_limit>
           Native rows per page: default 2 for Monarch genes, 1 for Monarch phenotypes, otherwise 5.
 
-      --offline
-          Read local data without source requests.
-
       --section-offset <section_offset>
           Native row offset within the selected section.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --sex <sex>
           Native sex code.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --source <source>
           Default MyDisease; no automatic fallback.
@@ -2284,6 +2384,9 @@ Options:
       --civic-profile <civic_profile>
           Selected native CIViC molecular profile for a drug-scoped claim stream.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -2299,11 +2402,11 @@ Options:
       --section-offset <section_offset>
           Named section continuation, refused on an identity-only card.
 
-      --offline
-          Read local data without source requests.
-
       --source <source>
           Required source; there is no default exact-ID resolver.
+
+      --offline
+          Read local data without source requests.
 
       --fresh
           Request fresh source data instead of cached replies.
@@ -2359,6 +2462,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -2412,6 +2518,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -2467,11 +2576,14 @@ Options:
       --offset <offset>
           Character offset for ClinicalTrials.gov eligibility or NCI summary; whole-record offset for other collections.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Checked stored source record, supplied by a continuation.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --section <section>
           Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.
@@ -2542,11 +2654,14 @@ Options:
       --civic-kind <civic_kind>
           Native CIViC claim collection within the selected profile.
 
-      --config <config>
-          Read configuration from this file.
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --civic-profile <civic_profile>
           Selected CIViC molecular profile for native claim paging.
+
+      --config <config>
+          Read configuration from this file.
 
       --limit <limit>
           Candidate rows per page; more remain reachable through typed next commands.
@@ -2557,17 +2672,17 @@ Options:
       --resolver <resolver>
           Resolver for reference-qualified notation; never repairs the input locally.
 
-      --offline
-          Read local data without source requests.
-
       --section-limit <section_limit>
           Rows per named source section page; omitted uses the native source default.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline
+          Read local data without source requests.
 
       --section-offset <section_offset>
           Source rows to skip independently of identity candidate paging.
+
+      --fresh
+          Request fresh source data instead of cached replies.
 
       --tumor-type <tumor_type>
           Explicit tumor context for keyed OncoKB annotation.
@@ -2624,6 +2739,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -2668,11 +2786,14 @@ Options:
   -l, --limit <limit>
           Bounded row count.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Native or retained collection offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Retained collection identity.
@@ -2718,6 +2839,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -2752,6 +2876,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -2795,6 +2922,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -2836,11 +2966,14 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --position <position>
           Native one-based residue; zero fails during deserialization.
@@ -2892,11 +3025,14 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -2940,11 +3076,14 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --type <type>
           Exact native InterPro type, not a normalized domain label.
@@ -2992,11 +3131,14 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -3040,11 +3182,14 @@ Options:
       --limit <limit>
           Five rows by default, at most 25.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Native or retained page offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Retained collection identity.
@@ -3092,11 +3237,14 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -3135,6 +3283,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -3171,6 +3322,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -3216,11 +3370,14 @@ Options:
       --offset <offset>
           Offset within the retained selected relation.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Immutable relation snapshot.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -3265,11 +3422,14 @@ Options:
       --offset <offset>
           Offset within the retained selected relation.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Immutable relation snapshot.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offline
           Read local data without source requests.
@@ -3311,6 +3471,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -3356,11 +3519,14 @@ Options:
       --offset <offset>
           Matching-row or text-fragment offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --replace
           Replace an existing destination only when explicitly requested with save.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --rows <rows>
           Inclusive original row range.
@@ -3421,6 +3587,9 @@ Options:
       --save <save>
           Destination file or existing folder.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -3465,11 +3634,14 @@ Options:
       --offset <offset>
           Number of matching rows already returned.
 
-      --config <config>
-          Read configuration from this file.
-
       --part <part>
           One-based outline part number.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --replace
           Replace an existing destination only when explicitly requested with save.
@@ -3525,11 +3697,14 @@ Options:
       --offset <offset>
           Number of pool items to skip.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Fixed snapshot from an earlier page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Graph provider; iCite remains the default.
@@ -3577,11 +3752,14 @@ Options:
       --offset <offset>
           Number of pool items to skip.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Fixed snapshot from an earlier page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Graph provider; iCite remains the default.
@@ -3632,11 +3810,14 @@ Options:
       --offset <offset>
           Context fragment position returned by the advancing step.
 
-      --config <config>
-          Read configuration from this file.
-
       --paragraph-offset <paragraph_offset>
           Full-text fragment position returned by the advancing step.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Stored checked source scan and original hit positions.
@@ -3685,11 +3866,14 @@ Options:
       --negative <negative>...
           Up to ten negative paper identities.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Number of stored recommendations to skip.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Fixed recommendation pool.
@@ -3729,6 +3913,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -3774,6 +3961,9 @@ Options:
       --save <save>
           Caller-owned file or existing folder.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -3814,6 +4004,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -3856,11 +4049,14 @@ Options:
       --limit <limit>
           Assertions per page; omitted uses the native source default.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Assertions to skip in source order.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           One native source; no fallback or text search.
@@ -3912,11 +4108,14 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --limit <limit>
           Maximum rows per page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Native rows to skip.
@@ -3968,11 +4167,14 @@ Options:
       --limit <limit>
           Source mutation rows per page, including excluded alleles.
 
-      --config <config>
-          Read configuration from this file.
-
       --page <page>
           Zero-based native source page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --profile <profile>
           Explicit mutation molecular profile.
@@ -4029,11 +4231,14 @@ Options:
           Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.
           Checked for reference and syntax only; no full HGVS parser.
 
-      --config <config>
-          Read configuration from this file.
-
       --limit <limit>
           Source mapping rows per service, with typed continuation for remaining rows.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Source mapping rows to skip per service.
@@ -4082,6 +4287,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4120,6 +4328,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4153,6 +4364,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4185,6 +4399,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4222,6 +4439,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4264,6 +4484,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4301,6 +4524,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4342,6 +4568,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4375,6 +4604,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4412,6 +4644,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4440,6 +4675,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4479,6 +4717,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4511,6 +4752,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4552,6 +4796,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4590,6 +4837,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4633,11 +4883,14 @@ Options:
 
           [default: 1]
 
-      --config <config>
-          Read configuration from this file.
-
       --http [<http>]
           Listen on an HTTP address; omit its value for the loopback default.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --http_max_calls <http_max_calls>
           Limit tool calls in flight.
@@ -4688,6 +4941,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4752,6 +5008,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4804,6 +5063,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4832,6 +5094,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4864,6 +5129,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4892,6 +5160,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4924,6 +5195,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -4952,6 +5226,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -4984,6 +5261,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5012,6 +5292,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5044,6 +5327,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5072,6 +5358,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5102,6 +5391,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5130,6 +5422,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5160,6 +5455,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5188,6 +5486,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5218,6 +5519,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5246,6 +5550,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5278,6 +5585,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5309,6 +5619,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5339,6 +5652,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5390,6 +5706,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5418,6 +5737,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5450,6 +5772,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5481,6 +5806,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5509,6 +5837,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5541,6 +5872,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5569,6 +5903,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5601,6 +5938,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5629,6 +5969,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5659,6 +6002,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5687,6 +6033,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5717,6 +6066,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5745,6 +6097,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5775,6 +6130,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5803,6 +6161,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5835,6 +6196,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5866,6 +6230,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5896,6 +6263,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5931,6 +6301,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -5959,6 +6332,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -5994,6 +6370,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6022,6 +6401,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6063,6 +6445,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6091,6 +6476,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6121,6 +6509,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6149,6 +6540,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6179,6 +6573,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6207,6 +6604,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6237,6 +6637,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6265,6 +6668,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6301,6 +6707,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6330,6 +6739,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6358,6 +6770,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6399,6 +6814,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6427,6 +6845,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6457,6 +6878,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6485,6 +6909,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6515,6 +6942,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6543,6 +6973,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6573,6 +7006,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6601,6 +7037,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6636,6 +7075,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6664,6 +7106,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6702,6 +7147,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6730,6 +7178,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6760,6 +7211,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6789,6 +7243,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6817,6 +7274,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6862,6 +7322,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6890,6 +7353,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6920,6 +7386,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -6948,6 +7417,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -6978,6 +7450,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7006,6 +7481,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7036,6 +7514,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7064,6 +7545,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7094,6 +7578,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7122,6 +7609,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7152,6 +7642,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7180,6 +7673,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7216,6 +7712,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7247,6 +7746,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7275,6 +7777,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7305,6 +7810,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7333,6 +7841,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7363,6 +7874,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7391,6 +7905,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7422,6 +7939,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7457,6 +7977,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7485,6 +8008,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7528,6 +8054,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7560,6 +8089,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7589,6 +8121,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7617,6 +8152,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7649,6 +8187,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7677,6 +8218,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7712,6 +8256,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7749,6 +8296,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7779,6 +8329,9 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
@@ -7807,6 +8360,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7838,6 +8394,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -7876,6 +8435,9 @@ Options:
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.

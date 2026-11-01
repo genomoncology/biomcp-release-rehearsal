@@ -73,6 +73,17 @@ fn main() -> ExitCode {
             };
         }
         let fetch = config::fetch(&globals, &settings);
+        if let Err(error) = &fetch
+            && error.is_pacing()
+        {
+            return match command::local::startup(
+                error.clone(),
+                command::Encoding::cli(&root, &settings, &args),
+            ) {
+                Ok(outcome) => exit::finish(output::command(&outcome), outcome.status),
+                Err(error) => exit::failure(error),
+            };
+        }
         return exit::finish(
             mcp::serve(globals, fetch, root.clone(), settings.clone()),
             exit::Status::Success,

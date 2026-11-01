@@ -67,9 +67,14 @@ pub(crate) fn serve(
     }
     let (max_calls, max_connections) = crate::config::http_capacity(&globals, &settings)
         .map_err(|error| StartError::Configuration(error.into()))?;
+    let fetch = crate::config::fetch(&globals, &settings).map(Arc::new);
+    if let Err(error) = &fetch
+        && error.is_pacing()
+    {
+        return Err(StartError::Configuration(error.clone()));
+    }
     let listener = TcpListener::bind(address).map_err(|_| StartError::Local)?;
     let address = listener.local_addr().map_err(|_| StartError::Local)?;
-    let fetch = crate::config::fetch(&globals, &settings).map(Arc::new);
     let recovery = fetch.is_err().then(|| Arc::new(super::Recovery::new()));
     let service = Arc::new(Service {
         calls: Calls::default(),

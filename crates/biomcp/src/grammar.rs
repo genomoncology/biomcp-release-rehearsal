@@ -42,6 +42,7 @@ pub(crate) struct Globals {
     pub(crate) hosted: bool,
     pub(crate) http_max_calls: Option<std::num::NonZeroUsize>,
     pub(crate) http_max_connections: Option<std::num::NonZeroUsize>,
+    pub(crate) source_pacing: Option<String>,
     pub(crate) rate_share: biomcp_fetch::RateShare,
     pub(crate) format: Option<Format>,
     pub(crate) disable_sources: Vec<String>,
@@ -91,6 +92,14 @@ fn global_arguments() -> Command {
             .num_args(1)
             .value_delimiter(',')
             .action(ArgAction::Append),
+    );
+    root = root.arg(
+        Arg::new("source_pacing")
+            .long("source_pacing")
+            .help(
+                "Override source pacing with a JSON map of rate, keyed_rate and in_flight values.",
+            )
+            .global(true),
     );
     for name in ["config", "replay", "record", "case-cache", "observe"] {
         root = root.arg(
@@ -348,6 +357,7 @@ fn globals(matches: &clap::ArgMatches) -> Result<Globals, ParseInvalid> {
         hosted: false,
         http_max_calls: None,
         http_max_connections: None,
+        source_pacing: matches.get_one::<String>("source_pacing").cloned(),
         rate_share: biomcp_fetch::RateShare::default(),
         format: explicit_format(matches),
     };
@@ -408,10 +418,11 @@ fn arguments(matches: &clap::ArgMatches, schema: &Value) -> Result<Value, ParseI
 
 impl Globals {
     pub(crate) fn inherit(&mut self, process: &Self) -> Result<(), ParseInvalid> {
-        if self.config.is_some() {
+        if self.config.is_some() || self.source_pacing.is_some() {
             return Err(ParseInvalid::default());
         }
         self.config = process.config.clone();
+        self.source_pacing = process.source_pacing.clone();
         self.disable_sources.extend(process.disable_sources.clone());
         self.disable_sources.sort();
         self.disable_sources.dedup();

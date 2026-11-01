@@ -14,7 +14,7 @@ static QUOTA: Quota = Quota::new(
 
 #[test]
 fn idle_expiry_waits_for_refill_and_retains_active_or_queued_calls() {
-    let limiter = Limiter::new(&QUOTA, false, "0.000001".parse().unwrap());
+    let limiter = Limiter::new(QUOTA, false, "0.000001".parse().unwrap());
     let origin = Instant::now();
     {
         let mut state = limiter.state.lock().unwrap();

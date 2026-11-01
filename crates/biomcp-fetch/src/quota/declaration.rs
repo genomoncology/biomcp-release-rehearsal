@@ -6,6 +6,11 @@ use std::time::Duration;
 pub struct SourceKey(&'static str);
 
 impl SourceKey {
+    /// Stable configuration name of this provider bucket.
+    pub const fn name(self) -> &'static str {
+        self.0
+    }
+
     /// Declare a nonempty key containing lowercase ASCII letters, digits and hyphens.
     ///
     /// # Panics
@@ -54,6 +59,23 @@ impl Rate {
         }
     }
 
+    /// Declare evenly spaced requests over an explicit interval, without bursts.
+    ///
+    /// # Panics
+    /// Zero requests or seconds fail during construction.
+    pub const fn per_period(requests: u16, seconds: u16) -> Self {
+        assert!(requests > 0 && seconds > 0, "zero rate or interval");
+        Self {
+            per_second: requests,
+            seconds,
+            burst: 1,
+        }
+    }
+    /// Requests and seconds in the declared rate.
+    pub const fn ratio(self) -> (u16, u16) {
+        (self.per_second, self.seconds)
+    }
+
     /// Declare a rate and burst allowance.
     ///
     /// # Panics
@@ -69,7 +91,7 @@ impl Rate {
 }
 
 /// One provider limit shared by every source declaring its key.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Quota {
     pub(super) key: SourceKey,
     pub(super) rate: Rate,
@@ -79,6 +101,22 @@ pub struct Quota {
 }
 
 impl Quota {
+    /// Provider bucket name accepted by source pacing configuration.
+    pub const fn key(&self) -> SourceKey {
+        self.key
+    }
+    /// Default and ceiling rate for requests without credentials.
+    pub const fn rate(&self) -> Rate {
+        self.rate
+    }
+    /// Separate default and ceiling for credentials, when declared.
+    pub const fn keyed_rate(&self) -> Option<Rate> {
+        self.keyed_rate
+    }
+    /// Conservative simultaneous request ceiling.
+    pub const fn in_flight(&self) -> u8 {
+        self.in_flight
+    }
     /// Refuse immediately when the shared source spacing has not elapsed.
     pub const fn refuse_wait(mut self) -> Self {
         self.refuse_wait = true;

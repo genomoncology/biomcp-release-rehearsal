@@ -16,7 +16,7 @@ impl Leg<'_> {
             Caller::Process
         };
         self.fetch.limiters.acquire(
-            self.spec.quota,
+            self.fetch.config.source_pacing.resolve(self.spec.quota),
             self.keyed(),
             caller,
             self.fetch.config.rate_share,

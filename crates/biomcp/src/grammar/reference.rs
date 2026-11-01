@@ -56,6 +56,7 @@ fn documents() -> Result<Vec<(&'static str, String)>, Box<dyn std::error::Error>
         ("skills/SKILL.md", skill),
         ("docs/reference/commands.md", reference),
         ("docs/recipes.md", recipes),
+        ("docs/reference/source-pacing.md", pacing_document()?),
     ])
 }
 
@@ -205,4 +206,36 @@ fn unscoped_help_uses_parser_nodes_and_scoped_topics_remain_available() -> Check
         "grammar aliases missing"
     );
     Ok(())
+}
+
+fn pacing_document() -> Result<String, std::fmt::Error> {
+    let mut text = String::from(
+        "# Source pacing\n\nGenerated from the source quota registry. Run `make docs-generate` to update.\n\n\
+        Defaults equal ceilings. Where no authoritative numeric policy was found, the ceiling remains conservative. \
+        Unpublished concurrency keeps the existing local ceiling. All rates space requests evenly without bursts. \
+        Daily quotas and shared upstream pools remain separate provider constraints.\n\n\
+        | Source | Keyless default / ceiling | Keyed default / ceiling | In flight default / ceiling | Policy checked |\n\
+        | --- | --- | --- | --- | --- |\n",
+    );
+    let rate = |rate: biomcp_fetch::Rate| {
+        let (requests, seconds) = rate.ratio();
+        format!("{requests}/{seconds}s")
+    };
+    for policy in biomcp_query::sources::pacing_policies() {
+        let quota = policy.quota;
+        let keyed = quota
+            .keyed_rate()
+            .map(&rate)
+            .unwrap_or_else(|| "same as keyless".into());
+        writeln!(
+            text,
+            "| `{}` | {} | {} | {} | {} |",
+            quota.key().name(),
+            rate(quota.rate()),
+            keyed,
+            quota.in_flight(),
+            policy.citation
+        )?;
+    }
+    Ok(text)
 }

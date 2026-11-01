@@ -5,20 +5,36 @@ use serde_json::{Map, Value};
 use std::{collections::BTreeMap, fs, path::PathBuf};
 
 #[derive(Clone, Debug)]
-pub(crate) struct ConfigError(pub(crate) String);
+pub(crate) struct ConfigError(pub(crate) String, ConfigScope);
+#[derive(Clone, Debug)]
+enum ConfigScope {
+    SourcePacing,
+    Other,
+}
 impl ConfigError {
+    pub(super) fn is_pacing(&self) -> bool {
+        matches!(self.1, ConfigScope::SourcePacing)
+    }
     pub(crate) fn field(name: &str) -> Self {
         // An unknown key is a name, but arbitrary JSON strings are not safe diagnostics.
         let safe = !name.is_empty()
             && name.len() <= 96
             && name
                 .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.');
-        Self(if safe {
-            name.into()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.' || b == b'-');
+        let scope = if name == "source_pacing" || name.starts_with("source_pacing.") {
+            ConfigScope::SourcePacing
         } else {
-            "config.json".into()
-        })
+            ConfigScope::Other
+        };
+        Self(
+            if safe {
+                name.into()
+            } else {
+                "config.json".into()
+            },
+            scope,
+        )
     }
 }
 #[derive(Deserialize)]
@@ -32,6 +48,7 @@ pub(crate) struct ConfigFile {
     pub(super) ncbi_email: Option<String>,
     pub(super) keys: Option<BTreeMap<String, String>>,
     pub(super) auto_sync_max_bytes: Option<u64>,
+    pub(super) source_pacing: Option<BTreeMap<String, biomcp_fetch::PacingOverride>>,
     pub(super) http_max_calls: Option<std::num::NonZeroUsize>,
     pub(super) http_max_connections: Option<std::num::NonZeroUsize>,
 }
@@ -136,6 +153,11 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         ncbi_email: take(&mut map, "ncbi_email")?,
         keys,
         auto_sync_max_bytes: take(&mut map, "auto_sync_max_bytes")?,
+        source_pacing: map
+            .remove("source_pacing")
+            .filter(|v| !v.is_null())
+            .map(pacing)
+            .transpose()?,
         http_max_calls: take(&mut map, "http_max_calls")?,
         http_max_connections: take(&mut map, "http_max_connections")?,
     };
@@ -157,4 +179,19 @@ pub(crate) fn read_file(
         })
         .transpose()
         .map(Option::flatten)
+}
+
+/// Decode one map entry at a time so errors name a source without exposing values.
+pub(super) fn pacing(
+    value: Value,
+) -> Result<BTreeMap<String, biomcp_fetch::PacingOverride>, ConfigError> {
+    object(value, "source_pacing")?
+        .into_iter()
+        .map(|(name, value)| {
+            let field = format!("source_pacing.{name}");
+            serde_json::from_value(value)
+                .map(|value| (name, value))
+                .map_err(|_| ConfigError::field(&field))
+        })
+        .collect()
 }

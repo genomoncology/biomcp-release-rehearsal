@@ -44,6 +44,7 @@ mod drug_label;
 mod drug_next;
 mod evidence;
 mod faers_get;
+mod source_pacing;
 tool_only! { mod hgnc_sync; }
 mod held_proxy;
 mod hosted_deadline;
@@ -240,6 +241,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     let mut trials = Vec::new();
     trials.extend(protocol::trials());
     trials.extend(configuration::trials());
+    trials.extend(source_pacing::trials());
     trials.extend(recurrence::trials());
     trials.extend(replay::trials());
     trials.extend(output_stream::trials());
