@@ -26,6 +26,7 @@ serde-saphyr.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+biomcp-adapters.workspace = true
 url.workspace = true
 h2 = { workspace = true }
 tokio = { workspace = true }

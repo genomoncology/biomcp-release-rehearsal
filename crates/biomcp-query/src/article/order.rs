@@ -15,6 +15,21 @@ pub(super) struct Counts {
     pub failures: Vec<(Pmid, RequestError)>,
 }
 pub(super) fn fetch<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, ids: &[Pmid]) -> Counts {
+    fetch_selection(cx, deadline, ids, false)
+}
+pub(super) fn fetch_references<'a>(
+    cx: &Ctx<'a>,
+    deadline: &mut Deadline<'a>,
+    ids: &[Pmid],
+) -> Counts {
+    fetch_selection(cx, deadline, ids, true)
+}
+fn fetch_selection<'a>(
+    cx: &Ctx<'a>,
+    deadline: &mut Deadline<'a>,
+    ids: &[Pmid],
+    references: bool,
+) -> Counts {
     let leg = cx.fetch.leg(&icite::SPEC, *deadline).fresh(cx.fresh);
     let started = leg.remaining();
     let mut dropped = false;
@@ -26,10 +41,13 @@ pub(super) fn fetch<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, ids: &[Pmid])
     let chunks: Vec<_> = ids.chunks(icite::BATCH_LIMIT).collect();
     // A wave bounds transport callbacks to four, without a second thread policy.
     for wave in chunks.chunks(4) {
-        for (ids, result) in wave
-            .iter()
-            .zip(leg.batch(wave, |child, ids| icite::publications(child, ids)))
-        {
+        for (ids, result) in wave.iter().zip(leg.batch(wave, |child, ids| {
+            if references {
+                icite::references(child, ids)
+            } else {
+                icite::publications(child, ids)
+            }
+        })) {
             match result {
                 Ok(values) => {
                     dropped |= values.refusals == biomcp_adapters::Refusal::Refused;

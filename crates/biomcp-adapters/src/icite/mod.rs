@@ -47,6 +47,19 @@ pub fn publications(
     leg: &Leg<'_>,
     ids: &[Pmid],
 ) -> Result<crate::Mapped<Vec<Publication>>, RequestError> {
+    request::<Raw>(leg, ids)
+}
+/// Request metadata while observing the native reference selection.
+pub fn references(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+) -> Result<crate::Mapped<Vec<Publication>>, RequestError> {
+    request::<References>(leg, ids)
+}
+fn request<T: Reply + Into<Raw> + serde::de::DeserializeOwned>(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+) -> Result<crate::Mapped<Vec<Publication>>, RequestError> {
     if ids.is_empty() || ids.len() > BATCH_LIMIT {
         return Err(biomcp_fetch::bad_reply(Source::Icite, Some(200)));
     }
@@ -54,7 +67,7 @@ pub fn publications(
         .iter()
         .map(|id| id.to_string().into_boxed_str())
         .collect();
-    let raw = leg
+    let raw: Raw = leg
         .call(
             &PUBS,
             Input::Params(&[
@@ -62,9 +75,10 @@ pub fn publications(
                 ("legacy", Arg::Text("false")),
                 ("fl", Arg::Text(FIELDS)),
             ]),
-            Read::<Raw>::json(),
+            Read::<T>::json(),
         )?
-        .value;
+        .value
+        .into();
     if raw
         .data
         .iter()
@@ -111,7 +125,52 @@ impl TryFrom<u32> for Id {
 struct Raw {
     data: Vec<Field<Row>>,
 }
+impl Raw {
+    fn selection(&self, references: bool) -> Option<biomcp_fetch::Identities> {
+        let [row] = self.data.as_slice() else {
+            return None;
+        };
+        let row = row.as_ref()?;
+        let ids = if references {
+            &row.cited_pmids
+        } else {
+            &row.cited_by_pmids
+        };
+        let ids = ids.as_ref()?.as_ref()?;
+        let mut seen = BTreeSet::new();
+        biomcp_fetch::Identities::bounded(
+            "pmid",
+            ids.iter()
+                .map(|id| id.0)
+                .filter(|id| seen.insert(*id))
+                .map(|id| id.to_string())
+                .collect(),
+        )
+    }
+}
+#[derive(Deserialize)]
+#[serde(transparent)]
+struct References(Raw);
+impl From<References> for Raw {
+    fn from(value: References) -> Self {
+        value.0
+    }
+}
+impl Reply for References {
+    fn discovery(&self) -> Option<biomcp_fetch::Identities> {
+        self.0.selection(true)
+    }
+    fn input_parameter() -> Option<(&'static str, &'static str)> {
+        Raw::input_parameter()
+    }
+    fn check(&self) -> Result<(), BadReply> {
+        self.0.check()
+    }
+}
 impl Reply for Raw {
+    fn discovery(&self) -> Option<biomcp_fetch::Identities> {
+        self.selection(false)
+    }
     fn input_parameter() -> Option<(&'static str, &'static str)> {
         Some(("pmid", "pmids"))
     }

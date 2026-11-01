@@ -1,6 +1,7 @@
 # 0527 — Let the live check see iCite citation growth as source churn
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 9671ae5f9653868a6da05165d354b484db7f5b54
 
 Milestone: 5
 

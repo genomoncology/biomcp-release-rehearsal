@@ -170,6 +170,7 @@ version = "1.0.0"
 dependencies = [
  "base64 0.23.1",
  "biodata",
+ "biomcp-adapters",
  "biomcp-fetch",
  "biomcp-query",
  "biomcp-types",

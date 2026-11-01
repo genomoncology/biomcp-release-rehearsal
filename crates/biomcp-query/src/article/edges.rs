@@ -102,7 +102,11 @@ fn create<'a>(
     let Some(pmid) = query.pmid() else {
         return Ok(None);
     };
-    let parent = order::fetch(cx, deadline, &[pmid]);
+    let parent = if references {
+        order::fetch_references(cx, deadline, &[pmid])
+    } else {
+        order::fetch(cx, deadline, &[pmid])
+    };
     crate::status::append(&mut out.problems, parent.problems);
     out.sources.push(parent.source);
     if let Some(error) = parent.local {

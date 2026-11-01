@@ -4,6 +4,8 @@ use serde_json::{Value, json};
 use std::{collections::BTreeMap, fs};
 #[path = "live_input_context.rs"]
 mod input_context;
+#[path = "icite_discovery.rs"]
+mod icite_discovery;
 
 pub(super) fn retained() -> Result<(), String> {
     let sample = |name: &str, changed: bool, body: Value| {
@@ -81,6 +83,7 @@ pub(super) fn retained() -> Result<(), String> {
     scholar_context().map_err(|error| error.to_string())?;
     discovery_context()
         .and_then(|()| input_context::prove())
+        .and_then(|()| icite_discovery::prove())
         .map_err(|error| error.to_string())
 }
 
