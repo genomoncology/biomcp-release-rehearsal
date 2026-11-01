@@ -214,11 +214,11 @@ fn encode(snapshot: &Snapshot) -> Result<String, CacheError> {
             .map(|target| (target.pmid, target.doi.as_ref())),
         snapshot.dropped,
     ))
-    .map_err(|_| CacheError::Database)
+    .map_err(|_| CacheError::Snapshot)
 }
 fn decode(payload: &str) -> Result<Snapshot, CacheError> {
     let (graph, fulltext, (terminal, cursor, matched), sources, target, dropped): Saved =
-        serde_json::from_str(payload).map_err(|_| CacheError::Database)?;
+        serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
     Ok(Snapshot {
         dropped,
         graph,

@@ -104,6 +104,8 @@ CacheProblem {
     Busy => "busy",
     /// The cache could not store or remove a reply.
     Database => "database",
+    /// A stored snapshot could not be encoded or decoded.
+    Snapshot => "snapshot",
     /// Cache ownership or schema validation failed.
     Version => "version",
 }

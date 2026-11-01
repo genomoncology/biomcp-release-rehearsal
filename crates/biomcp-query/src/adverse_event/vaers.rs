@@ -74,7 +74,7 @@ fn read(
             expired(q, out);
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, snapshot.clone())
     } else {
         let reply = vaers::read(&leg, q.vaccine().unwrap_or(""), q.vaers_section());
@@ -82,7 +82,7 @@ fn read(
         out.sources
             .push(status::source(Source::Vaers, leg.finish(), error));
         let saved = (reply?, out.sources.clone());
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
+        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
         let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
         let snapshot = store.save_source_snapshot(&key(q), &payload, &out.sources)?;
         (saved, snapshot)

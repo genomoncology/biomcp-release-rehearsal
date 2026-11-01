@@ -78,7 +78,7 @@ fn execute(
     if !replay {
         advance(cx, q, deadline, &mut saved, out);
     }
-    let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
+    let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
     let pool = if replay {
         q.pool().cloned().ok_or(CacheError::Database)?
     } else {
@@ -102,7 +102,7 @@ fn load(
         expired(q, out);
         return Ok(None);
     };
-    let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+    let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
     if saved.1.len() != q.sources().len() {
         return Err(CacheError::Database.into());
     }

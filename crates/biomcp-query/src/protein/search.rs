@@ -23,7 +23,7 @@ struct Saved {
 impl Saved {
     fn encode(&self) -> Result<String, CacheError> {
         serde_json::to_string(&(&self.page, &self.sources, &self.problems, self.dropped))
-            .map_err(|_| CacheError::Database)
+            .map_err(|_| CacheError::Snapshot)
     }
     fn decode(payload: &str) -> Result<Self, CacheError> {
         type Wire = (
@@ -33,7 +33,7 @@ impl Saved {
             bool,
         );
         let (page, sources, problems, dropped): Wire =
-            serde_json::from_str(payload).map_err(|_| CacheError::Database)?;
+            serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
         Ok(Self {
             dropped,
             page,

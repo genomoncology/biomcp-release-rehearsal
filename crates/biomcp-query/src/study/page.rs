@@ -32,7 +32,7 @@ pub(super) fn search(
     } else {
         let size = u32::try_from(rows.len()).map_err(|_| CacheError::Database)?;
         let payload = serde_json::to_string(&(rows, snapshot, &out.problems, out.dropped))
-            .map_err(|_| CacheError::Database)?;
+            .map_err(|_| CacheError::Snapshot)?;
         store.publish_source_pool(&key, &payload, size, &[])?
     };
     let Some(payload) =
@@ -41,7 +41,7 @@ pub(super) fn search(
         pool_error(cx, q, false, out);
         return Ok(());
     };
-    let retained = serde_json::from_str::<Retained>(&payload).map_err(|_| CacheError::Database)?;
+    let retained = serde_json::from_str::<Retained>(&payload).map_err(|_| CacheError::Snapshot)?;
     if pool.key != request_key(q, &retained.1)? {
         pool_error(cx, q, true, out);
         return Ok(());

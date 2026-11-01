@@ -98,7 +98,7 @@ fn read(
             ));
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         if saved.0.safetyreportid != *q.id() || !saved.4.check(&saved.0) {
             return Err(CacheError::Database.into());
         }
@@ -130,7 +130,7 @@ fn read(
             detail.positions,
             detail.refusals == biomcp_adapters::Refusal::Refused,
         );
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
+        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
         let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
         let snapshot = store.save_source_snapshot(&key(q), &payload, &out.sources)?;
         (saved, snapshot)

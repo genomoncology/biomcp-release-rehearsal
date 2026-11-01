@@ -34,7 +34,7 @@ pub(crate) fn load<T: DeserializeOwned>(
                     sources,
                     problems,
                 })
-                .map_err(|_| CacheError::Database.into())
+                .map_err(|_| CacheError::Snapshot.into())
         })
         .transpose()
 }
@@ -47,7 +47,7 @@ pub(crate) fn save<T: Serialize>(
 ) -> Result<biodata::Text, RequestError> {
     let payload =
         serde_json::to_string(&(&saved.items, &saved.sources, &saved.problems, saved.dropped))
-            .map_err(|_| CacheError::Database)?;
+            .map_err(|_| CacheError::Snapshot)?;
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     Ok(store.save_source_snapshot(&key(namespace, q)?, &payload, &saved.sources)?)
 }

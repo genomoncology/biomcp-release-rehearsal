@@ -78,7 +78,7 @@ impl Saved {
             Self::Complexes(c) => serde_json::to_string(c),
             Self::Members(c) => serde_json::to_string(c),
         }
-        .map_err(|_| CacheError::Database)
+        .map_err(|_| CacheError::Snapshot)
     }
     pub(super) fn decode(q: &Selection, text: &str) -> Result<Self, CacheError> {
         match q {
@@ -90,7 +90,7 @@ impl Saved {
             Selection::Complexes(_) => serde_json::from_str(text).map(Self::Complexes),
             Selection::Members(_) => serde_json::from_str(text).map(Self::Members),
         }
-        .map_err(|_| CacheError::Database)
+        .map_err(|_| CacheError::Snapshot)
     }
     pub(super) fn member_steps(
         &self,

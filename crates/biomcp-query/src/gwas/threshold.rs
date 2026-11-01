@@ -35,11 +35,11 @@ impl Saved {
             &self.problems,
             self.dropped,
         ))
-        .map_err(|_| CacheError::Database)
+        .map_err(|_| CacheError::Snapshot)
     }
     fn decode(payload: &str) -> Result<Self, CacheError> {
         let (rows, total, done, sources, received, problems, dropped) =
-            serde_json::from_str(payload).map_err(|_| CacheError::Database)?;
+            serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
         Ok(Self {
             dropped,
             rows,

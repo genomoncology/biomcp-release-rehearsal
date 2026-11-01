@@ -96,6 +96,7 @@ mod skill;
 tool_only! { mod schema_evolution; }
 mod schema_proof;
 tool_only! { mod semantic_tables; }
+mod snapshot_errors;
 mod source_queries;
 mod source_terms;
 mod store_clean;
@@ -264,6 +265,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(vaers::trials());
     trials.extend(trial_get::trials());
     trials.push(trial_sites::trial());
+    trials.extend(snapshot_errors::trials());
     trials.extend(variant_assertion_wire::trials());
     trials.extend(evidence::trials());
     trials.extend(variant::trials());

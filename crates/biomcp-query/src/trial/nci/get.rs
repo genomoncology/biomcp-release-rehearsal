@@ -149,11 +149,11 @@ fn absent(e: RequestError) -> bool {
 impl Snapshot {
     fn encode(&self) -> Result<String, CacheError> {
         serde_json::to_string(&(&self.detail, self.fetched, &self.sources))
-            .map_err(|_| CacheError::Database)
+            .map_err(|_| CacheError::Snapshot)
     }
     fn decode(payload: &str) -> Result<Self, CacheError> {
         let (detail, fetched, sources) =
-            serde_json::from_str(payload).map_err(|_| CacheError::Database)?;
+            serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
         Ok(Self {
             detail,
             fetched,

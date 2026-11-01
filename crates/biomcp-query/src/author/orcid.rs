@@ -89,7 +89,7 @@ fn execute(
             SourceOutcome,
             Vec<biomcp_types::Problem>,
             bool,
-        ) = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+        ) = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         out.problems.extend(problems);
         out.dropped = dropped;
         (groups, source, pool)
@@ -111,7 +111,7 @@ fn execute(
         out.include_refusals(mapped.refusals);
         out.problems.extend(mapped.problems);
         let payload = serde_json::to_string(&(&groups, &source, &out.problems, out.dropped))
-            .map_err(|_| CacheError::Database)?;
+            .map_err(|_| CacheError::Snapshot)?;
         let size = u32::try_from(groups.len()).map_err(|_| CacheError::Database)?;
         let pool =
             store.publish_source_pool(&expected, &payload, size, std::slice::from_ref(&source))?;

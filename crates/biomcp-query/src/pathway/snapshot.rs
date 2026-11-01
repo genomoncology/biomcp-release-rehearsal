@@ -48,7 +48,7 @@ pub(super) fn load(
                         problems,
                     },
                 )
-                .map_err(|_| CacheError::Database)
+                .map_err(|_| CacheError::Snapshot)
         })
         .transpose()?;
     if let Some(saved) = saved {
@@ -81,7 +81,7 @@ pub(super) fn save(
         &saved.catalog_revision,
         saved.dropped,
     ))
-    .map_err(|_| CacheError::Database)?;
+    .map_err(|_| CacheError::Snapshot)?;
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     Ok(store.save_source_snapshot(&key(q)?, &payload, &saved.sources)?)
 }

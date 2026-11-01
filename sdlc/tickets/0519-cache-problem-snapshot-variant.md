@@ -1,6 +1,7 @@
 # 0519 — Report broken snapshots and author lookups truthfully
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b87d1f2b0c016d279169e455abbe886b5761fce1
 
 Milestone: 5
 

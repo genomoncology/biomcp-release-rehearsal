@@ -78,6 +78,8 @@ impl std::error::Error for FetchError {}
 pub enum CacheError {
     /// Database access failed.
     Database,
+    /// A stored snapshot could not be encoded or decoded.
+    Snapshot,
     /// The file has no valid transport ownership or a different schema version.
     Version,
     /// The connection or database remained busy until the request deadline.
@@ -87,6 +89,7 @@ impl fmt::Display for CacheError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::Database => "fetch.cache_database",
+            Self::Snapshot => "fetch.cache_snapshot",
             Self::Version => "fetch.cache_version",
             Self::Busy => "fetch.cache_busy",
         })
@@ -98,6 +101,7 @@ impl From<CacheError> for biomcp_types::CacheProblem {
         match error {
             CacheError::Busy => Self::Busy,
             CacheError::Database => Self::Database,
+            CacheError::Snapshot => Self::Snapshot,
             CacheError::Version => Self::Version,
         }
     }

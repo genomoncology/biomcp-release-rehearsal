@@ -21,7 +21,7 @@ impl Saved {
             bool,
         );
         let (genes, events, sources, problems, dropped): Wire =
-            serde_json::from_str(payload).map_err(|_| CacheError::Database)?;
+            serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
         Ok(Self {
             dropped,
             genes,
@@ -38,7 +38,7 @@ impl Saved {
             &self.problems,
             self.dropped,
         ))
-        .map_err(|_| CacheError::Database.into())
+        .map_err(|_| CacheError::Snapshot.into())
     }
 }
 pub(super) fn key(id: &biodata::PathwayId, genes: bool) -> Vec<u8> {

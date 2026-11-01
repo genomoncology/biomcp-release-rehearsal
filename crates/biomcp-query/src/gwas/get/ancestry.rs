@@ -48,7 +48,7 @@ pub(super) fn read(
             ));
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, token.clone())
     } else {
         let rows = gwas::get::ancestries(&leg, id);
@@ -67,7 +67,7 @@ pub(super) fn read(
             out.problems.clone(),
             out.dropped,
         );
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
+        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
         let token = Store::open(cx.fetch.cache_access()?, deadline)?.save_source_snapshot(
             &key,
             &payload,

@@ -10,6 +10,7 @@
       "enum": [
         "busy",
         "database",
+        "snapshot",
         "version"
       ],
       "type": "string"

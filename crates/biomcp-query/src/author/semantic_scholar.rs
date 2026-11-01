@@ -1,7 +1,7 @@
 use super::papers_snapshot as snapshot;
 use super::{empty, recovery, run};
 use crate::{Ctx, Outcome, status};
-use biodata::{AuthorId, AuthorPaperHeader};
+use biodata::{AuthorPaperHeader, SemanticScholarAuthorId};
 use biomcp_adapters::semantic_scholar::{self, author};
 use biomcp_fetch::{Deadline, RequestError, SourceError};
 use biomcp_types::Paged;
@@ -11,11 +11,11 @@ use biomcp_types::{
     Reason, ReplyData, Request, Source, SourceState, StepKind,
 };
 /// Read one exact author's native paper page and retain checked continuation state.
-pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery) -> Outcome {
+pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery, id: &SemanticScholarAuthorId) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let mut out = empty(body(q, Box::default()));
-    if let Err(error) = execute(cx, q, deadline, &mut out) {
+    if let Err(error) = execute(cx, q, id, deadline, &mut out) {
         out.local = status::local(error);
         if matches!(error, RequestError::Source(e) if e.reason == Reason::NotFound) {
             crate::status::item(&mut out, false, false, false);
@@ -35,6 +35,7 @@ pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery) -> Outcome {
 fn execute(
     cx: &Ctx<'_>,
     q: &AuthorPapersQuery,
+    id: &SemanticScholarAuthorId,
     deadline: Deadline<'_>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
@@ -74,9 +75,6 @@ fn execute(
     };
     let cached = saved.pages.iter().any(|p| p.offset == q.offset());
     if !cached {
-        let AuthorId::SemanticScholar(id) = q.id() else {
-            return Err(biomcp_fetch::CacheError::Database.into());
-        };
         let leg = cx
             .fetch
             .leg(&semantic_scholar::SPEC, deadline)

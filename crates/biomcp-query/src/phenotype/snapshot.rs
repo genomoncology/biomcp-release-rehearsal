@@ -95,11 +95,11 @@ fn load(
             ));
             return Ok(None);
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, token.clone())
     } else {
         let saved = acquire(q, leg, out)?;
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
+        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
         let token = Store::open(cx.fetch.cache_access()?, deadline)?.save_source_snapshot(
             &key(q),
             &payload,

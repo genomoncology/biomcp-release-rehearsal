@@ -46,7 +46,7 @@ pub(super) fn load(
             return Ok(None);
         };
         let (entry, problems, dropped): (Entry, Vec<biomcp_types::Problem>, bool) =
-            serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+            serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         out.sources = pool.sources;
         out.problems = problems;
         out.dropped = dropped;
@@ -71,7 +71,7 @@ pub(super) fn load(
     };
     let size = q.total(&entry) as u32;
     let payload = serde_json::to_string(&(&entry, &out.problems, out.dropped))
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Snapshot)?;
     let pool = store.publish_source_pool(&key, &payload, size, &out.sources)?;
     Ok(Some((entry, pool.info)))
 }

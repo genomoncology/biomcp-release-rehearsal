@@ -46,7 +46,7 @@ pub(super) fn load(
         })?;
         if let Some(payload) = payload {
             let (pages, source, key_needed): (Vec<PapersPage>, SourceOutcome, bool) =
-                serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+                serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
             let saved = Saved {
                 pages,
                 source,
@@ -81,7 +81,7 @@ pub(super) fn save(
     pool: Option<Pool>,
 ) -> Result<Pool, RequestError> {
     let payload = serde_json::to_string(&(&saved.pages, &saved.source, saved.key_needed))
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Snapshot)?;
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     let size = saved.pages.iter().map(|p| p.data.len() as u32).sum();
     let sources = std::slice::from_ref(&saved.source);

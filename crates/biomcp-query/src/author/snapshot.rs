@@ -41,7 +41,7 @@ pub(super) fn load(
         })?;
         if let Some(payload) = payload {
             let (pages, source, key_needed): (Vec<(Page, bool)>, SourceOutcome, bool) =
-                serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+                serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
             let saved = Saved {
                 pages: pages
                     .into_iter()
@@ -87,7 +87,7 @@ pub(super) fn save(
         .map(|page| (page, page.refusals() == biomcp_adapters::Refusal::Refused))
         .collect();
     let payload = serde_json::to_string(&(pages, &saved.source, saved.key_needed))
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Snapshot)?;
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     let size = saved.pages.iter().map(|p| p.len() as u32).sum();
     let sources = std::slice::from_ref(&saved.source);
