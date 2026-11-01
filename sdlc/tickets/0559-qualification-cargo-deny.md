@@ -1,6 +1,7 @@
 # 0559 — Install cargo-deny in the release docs check
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c6d2835aa707277f69884409d26334d0b1173634
 
 Milestone: 5
 
