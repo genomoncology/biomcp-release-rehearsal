@@ -65,7 +65,7 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Run MCP-Bench's BioMCP tasks, and InfoMosaic-Bench's if public, against 0.4.6 and 1.0: tool-call replay first, then agent runs on Ian's subscription within a run count he approves (0405).
 - Check the installed candidate against cBioPortal's 62 numeric agent questions (0462).
 - Ian approves BioData's public repository and its v1.0.0 tag, which 0459 pins (asked through Jarvis on 2026-11-01).
-- Ian approves the publication credentials and settings 0533 lists, and the 0405 phase 2 run count.
+- Ian approves the publication credentials and settings 0533 lists, and the 0405 phase 2 run count. The release workflow has no manual approval pause (0554).
 - Ian approves the public append, the 1.0 tag and publication.
 - Append this repository's history to the public repository with one merge commit, keeping old tags and releases (0294).
 - Tag v1.0.0 on that public merge commit, let the release workflow qualify the tag, and have the release operators publish from that run (0294). The installer and Homebrew download from the public repository's release, so the append and tag come before publication.
