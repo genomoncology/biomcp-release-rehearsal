@@ -1,6 +1,7 @@
 # 0526 — Check the module-shape rules
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b5c7096bb34a31180c3142defcdbf8cab2d36179
 
 Milestone: 5
 

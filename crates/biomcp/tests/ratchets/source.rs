@@ -329,6 +329,13 @@ pub(super) fn tokens(text: &str) -> Vec<String> {
                     }
                 }
             }
+        } else if ch == '\''
+            && let Some(length) = character_end(input.clone())
+        {
+            let value: String = std::iter::once(ch)
+                .chain(input.by_ref().take(length))
+                .collect();
+            result.push(value);
         } else if ch == '"' {
             let mut value = String::from(ch);
             while let Some(ch) = input.next() {
@@ -352,12 +359,53 @@ pub(super) fn tokens(text: &str) -> Vec<String> {
                     value.push(ch);
                 }
             }
+            // Raw strings may contain quotes, comments and item delimiters.
+            if matches!(value.as_str(), "r" | "br" | "cr") {
+                let hashes = input.clone().take_while(|ch| *ch == '#').count();
+                if input.clone().nth(hashes) == Some('"') {
+                    input.by_ref().take(hashes + 1).for_each(drop);
+                    value = String::from("\"");
+                    while let Some(ch) = input.next() {
+                        value.push(ch);
+                        if ch == '"' && input.clone().take(hashes).all(|ch| ch == '#') {
+                            input.by_ref().take(hashes).for_each(drop);
+                            break;
+                        }
+                    }
+                }
+            }
             result.push(value);
         } else {
             result.push(ch.to_string());
         }
     }
     result
+}
+
+// A lifetime has no closing quote after one character or escape.
+fn character_end(mut input: std::iter::Peekable<std::str::Chars<'_>>) -> Option<usize> {
+    let mut length = 1;
+    if input.next()? == '\\' {
+        length += 1;
+        match input.next()? {
+            'u' if input.next()? == '{' => {
+                length += 1;
+                loop {
+                    length += 1;
+                    if input.next()? == '}' {
+                        break;
+                    }
+                }
+            }
+            'x' => {
+                input.next()?;
+                input.next()?;
+                length += 2;
+            }
+            _ => {}
+        }
+    }
+    (input.next()? == '\'').then_some(length + 1)
 }
 
 fn adapter_helpers(path: &str, tokens: &[String]) -> Check {

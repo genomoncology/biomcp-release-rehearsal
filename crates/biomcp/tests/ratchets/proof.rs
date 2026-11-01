@@ -492,7 +492,7 @@ fn discovery_rejects_unknown_missing_and_unfeatured_trials() -> Check {
 fn tool_dispatch_stays_outside_cases() -> Check {
     rejects(
         "crates/biomcp/tests/cases.rs",
-        r#"fn main() { if arg == "--planted-tool-mode" { tool(); } }"#,
+        r##"fn main() { if arg == r#"--planted-tool-mode"# { tool(); } }"##,
         "tool modes belong in tools.rs",
     )
 }
@@ -520,4 +520,80 @@ fn adapter_mapping_helpers_require_one_owner() -> Check {
 #[test]
 fn reject_config_reads_and_tree_builds_in_commands() -> Check {
     super::process_setup::reject_config_reads_and_tree_builds_in_commands()
+}
+
+#[test]
+fn module_shape_rejects_new_source_debt() -> Check {
+    let tree = tree()?;
+    let root = tree.path();
+    let parent = "crates/biodata/src/lib.rs";
+    let leaf = "crates/biodata/src/value.rs";
+    put(
+        root,
+        parent,
+        "//! Values.\n#[cfg(any())] pub(crate) mod value;\npub use value::{Value};\n",
+    )?;
+    put(root, leaf, "//! A value.\npub struct Value;\n")?;
+    super::module_shape::limits(root, 0, 0)?;
+    put(root, "crates/biodata/src/new.rs", "pub struct New;\n")?;
+    let failure = super::module_shape::limits(root, 0, 0)
+        .expect_err("undocumented file must fail")
+        .to_string();
+    assert!(
+        failure.contains("missing first-line module docs"),
+        "{failure}"
+    );
+    fs::remove_file(root.join("crates/biodata/src/new.rs"))?;
+    for item in [
+        "pub fn value() {}",
+        "pub struct Value;",
+        "const VALUE: u8 = 1;",
+        "mod nested {}",
+        "macro_rules! value { () => {} }",
+    ] {
+        put(root, parent, &format!("//! Values.\nmod value;\n{item}\n"))?;
+        let failure = super::module_shape::limits(root, 0, 0)
+            .expect_err("parent logic must fail")
+            .to_string();
+        assert!(failure.contains("parent modules with logic"), "{failure}");
+    }
+    for literal in [
+        "'{'",
+        "'}'",
+        "'\"'",
+        "'\\''",
+        "'\\\\'",
+        "r#\"\" }\"#",
+        "br##\"\" }\"##",
+    ] {
+        put(
+            root,
+            parent,
+            &format!("//! Values.\nfn value() {{ let _ = {literal}; }}\nmod value;\n"),
+        )?;
+        let failure = super::module_shape::limits(root, 0, 0)
+            .expect_err("quoted delimiters must not hide a parent")
+            .to_string();
+        assert!(failure.contains("parent modules with logic"), "{failure}");
+    }
+    put(
+        root,
+        parent,
+        "/*! Values. */\nmod value;\nextern crate core;\nuse core::{fmt, hash};\n",
+    )?;
+    super::module_shape::limits(root, 0, 0)?;
+    put(
+        root,
+        parent,
+        "#![doc = include_str!(\"../README.md\")]\nmod value;\n",
+    )?;
+    super::module_shape::limits(root, 0, 0)?;
+    for prefix in ["/// Outer item docs.", "//!", "\n//! Late module docs."] {
+        put(root, leaf, &format!("{prefix}\npub struct Value;\n"))?;
+        assert!(
+            super::module_shape::limits(root, 0, 0).is_err(),
+            "invalid first-line module doc passed: {prefix:?}"
+        );
+    }
+    Ok(())
 }

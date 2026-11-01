@@ -7,6 +7,8 @@ mod errors;
 mod feature_contract;
 #[path = "ratchets/lints.rs"]
 mod lints;
+#[path = "ratchets/module_shape.rs"]
+mod module_shape;
 #[path = "ratchets/placement.rs"]
 mod placement;
 #[path = "ratchets/process_setup.rs"]
@@ -82,7 +84,11 @@ fn rust_files(path: &Path) -> Result<Vec<std::path::PathBuf>, std::io::Error> {
 )]
 fn repository_obeys_structural_contract() -> Check {
     let root = std::env::current_dir()?.join("../..");
-    diagnostics(vec![lints::check(&root), check(&root)])
+    diagnostics(vec![
+        lints::check(&root),
+        module_shape::check(&root),
+        check(&root),
+    ])
 }
 
 #[test]
