@@ -53,6 +53,7 @@ fmt:
 	cargo fmt --all -- --check
 
 lint:
+	+$(MAKE) --no-print-directory unused-dependencies
 	cargo check --locked -p biodata -p biomcp-types --no-default-features
 	cargo clippy --workspace --all-targets --locked -- -D warnings
 	cargo clippy --locked -p biomcp --test tools -- -D warnings
@@ -167,6 +168,19 @@ workflow-lint:
 	cargo check --locked -p biodata -p biomcp-types --no-default-features
 	actionlint
 
+.PHONY: unused-dependencies dependency-graph dependency-proof
+unused-dependencies:
+	python3 release/toolchain.py install-machete
+	cargo machete
+
+dependency-graph:
+	cargo tree --locked -p biomcp --edges normal,build
+	cargo tree --locked --target all --edges normal,build --prefix none --format "{p}"
+
+# Deliberately add an unused dependency and require the real lint entry point to fail.
+dependency-proof:
+	python3 -m unittest release.test_toolchain
+	python3 scripts/dependency_proof.py
 .PHONY: bundle-tests
 bundle-tests:
 	cargo test --locked -p biomcp-fetch --test bundle $(TEST_FILTER) $(TEST_THREADS)

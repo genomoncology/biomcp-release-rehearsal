@@ -1,6 +1,7 @@
 # 0532 — Trim dependency features and fail the gate on unused dependencies
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 17b049bcb44d491421cada7d8cf5131edcadb9ec
 
 Milestone: 5
 

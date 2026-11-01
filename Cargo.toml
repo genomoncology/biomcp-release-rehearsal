@@ -29,6 +29,8 @@ biomcp-types = { version = "=1.0.0", path = "crates/biomcp-types" }
 shlex = "=2.0.1"
 winnow = { version = "1.0.4", default-features = false, features = ["ascii", "alloc"] }
 url = "2.5.8"
+# Keep publisher hosts ASCII-only without ICU Unicode normalization.
+idna_adapter = "=1.0.0"
 base64 = "0.23.1"
 httparse = "=1.10.1"
 ctrlc = { version = "=3.5.2", features = ["termination"] }
@@ -45,7 +47,7 @@ serde-saphyr = { version = "2.0.0", default-features = false, features = ["deser
 rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
 rustls-platform-verifier = "0.7.1"
 
-ureq = { version = "3.5.0", default-features = false, features = ["rustls", "platform-verifier", "gzip", "json"] }
+ureq = { version = "3.5.0", default-features = false, features = ["rustls-no-provider", "platform-verifier", "gzip", "json"] }
 schemars = { version = "1.2.3", default-features = false, features = ["derive", "std"] }
 jsonschema = { version = "0.46.0", default-features = false }
 

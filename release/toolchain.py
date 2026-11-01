@@ -93,7 +93,7 @@ def install_rust():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['get', 'image', 'outputs', 'check', 'install-rust', 'python-check'])
+    parser.add_argument('command', choices=['get', 'image', 'outputs', 'check', 'install-rust', 'install-machete', 'python-check'])
     parser.add_argument('key', nargs='?')
     args = parser.parse_args()
     pins = manifest()
@@ -109,6 +109,15 @@ def main():
         check()
     elif args.command == 'install-rust':
         install_rust()
+    elif args.command == 'install-machete':
+        expected = pins['cargo-machete']
+        try:
+            installed = subprocess.check_output(['cargo', 'machete', '--version'], text=True).strip()
+        except (OSError, subprocess.CalledProcessError):
+            installed = ''
+        if installed != expected:
+            subprocess.run(['cargo', 'install', 'cargo-machete', '--locked',
+                            '--version', pins['cargo-machete']], check=True)
     else:
         expected = tuple(map(int, pins['python'].split('.')))
         if sys.version_info[:len(expected)] != expected:

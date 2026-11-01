@@ -7,7 +7,7 @@ license.workspace = true
 
 [dependencies]
 prost.workspace = true
-tonic = { workspace = true, features = ["channel", "codegen", "tls-ring"] }
+tonic = { workspace = true, features = ["codegen"] }
 h2 = { workspace = true }
 hyper = { version = "1", default-features = false, features = ["http2"] }
 tokio = { workspace = true }
@@ -18,7 +18,7 @@ csv.workspace = true
 flate2.workspace = true
 biomcp-types = { workspace = true }
 url.workspace = true
-biodata = { workspace = true }
+idna_adapter.workspace = true
 serde.workspace = true
 serde_json = { workspace = true, features = ["raw_value"] }
 ureq.workspace = true
@@ -37,3 +37,7 @@ rusqlite = { workspace = true, features = ["trace"] }
 
 [lints]
 workspace = true
+
+[package.metadata.cargo-machete]
+# This exact direct constraint selects url's ASCII-only IDNA backend.
+ignored = ["idna_adapter"]

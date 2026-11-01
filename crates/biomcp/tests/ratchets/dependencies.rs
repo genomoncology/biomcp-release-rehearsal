@@ -10,10 +10,10 @@ const LAYERS: &[(&str, &[&str])] = &[
     (
         "biomcp-fetch",
         &[
-            "biodata",
             "biomcp-types",
             "ureq",
             "url",
+            "idna_adapter",
             "rustls",
             "rustls-platform-verifier",
             "tonic",

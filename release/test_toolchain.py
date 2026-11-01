@@ -12,6 +12,34 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleaseTools(unittest.TestCase):
+    def test_machete_installs_only_when_the_pinned_version_is_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tools = Path(directory)
+            cargo = tools / 'cargo'
+            cargo.write_text("""#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+with Path(os.environ['CALLS']).open('a') as stream:
+    stream.write(json.dumps(sys.argv[1:]) + '\\n')
+if sys.argv[1:] == ['machete', '--version']:
+    print(os.environ['INSTALLED_VERSION'])
+""")
+            cargo.chmod(0o755)
+            calls = tools / 'calls'
+            pin = json.loads((ROOT / 'release/toolchain.json').read_text())['cargo-machete']
+            for installed in (pin, '0.0.0'):
+                with self.subTest(installed=installed):
+                    calls.unlink(missing_ok=True)
+                    env = dict(os.environ, PATH=str(tools) + os.pathsep + os.environ['PATH'],
+                               CALLS=str(calls), INSTALLED_VERSION=installed)
+                    subprocess.run([sys.executable, 'release/toolchain.py', 'install-machete'],
+                                   cwd=ROOT, env=env, check=True)
+                    actual = [json.loads(line) for line in calls.read_text().splitlines()]
+                    expected = [['machete', '--version']]
+                    if installed != pin:
+                        expected.append(['install', 'cargo-machete', '--locked', '--version', pin])
+                    self.assertEqual(actual, expected)
+
     def test_toolchain_drift_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
