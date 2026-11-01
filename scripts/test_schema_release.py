@@ -1,4 +1,5 @@
 """Exercise the release schema gate through its public command."""
+import hashlib
 import io
 import json
 import os
@@ -70,7 +71,7 @@ class SchemaRelease(unittest.TestCase):
                     self.assertNotEqual(result.returncode, 0)
                     self.assertIn("schema release gate:", result.stderr)
 
-    def test_public_gate_rejects_incompatible_same_major_and_accepts_real_tree(self):
+    def test_public_gate_accepts_current_schemas_and_rejects_same_major_narrowing(self):
         with tempfile.TemporaryDirectory(prefix="biomcp-schema-proof-") as folder:
             candidate = Path(folder)
             archive = subprocess.check_output(["git", "archive", "--format=tar", "HEAD"], cwd=ROOT)
@@ -82,8 +83,27 @@ class SchemaRelease(unittest.TestCase):
                             or not (member.isfile() or member.isdir())):
                         raise ValueError(f"unsafe source archive member: {member.name}")
                 tree.extractall(candidate, members=members)
-            # Plant a same-major narrowing in both generated types and snapshots.
-            before, after = "^[ACGTNRYSWKMBDHV]$", "^[ACGT]$"
+            command = [sys.executable, str(candidate / "scripts/schema_release.py")]
+            subprocess.run(command + ["--generate"], cwd=candidate, check=True)
+            # The mechanism test owns its baseline; release qualification owns the release copy.
+            schemas = sorted((candidate / "crates/biomcp-types/schemas").glob("*.json"))
+            baseline_archive = candidate / "mechanism-baseline.tar.gz"
+            with tarfile.open(baseline_archive, "w:gz") as baseline_tree:
+                for schema in schemas:
+                    baseline_tree.add(schema, arcname=schema.name)
+            baseline = candidate / "mechanism-baseline.json"
+            baseline.write_text(json.dumps({
+                "version": "1.0.0", "status": "provisional-candidate",
+                "source_commit": subprocess.check_output(
+                    ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+                "archive": baseline_archive.name,
+                "sha256": hashlib.sha256(baseline_archive.read_bytes()).hexdigest(),
+                "schemas": [schema.name for schema in schemas],
+            }))
+            command += ["--baseline", str(baseline)]
+            subprocess.run(command, cwd=candidate, check=True)
+            # Narrow the shared class in both scalar patterns and derived snapshots.
+            before, after = "[ACGTNRYSWKMBDHV]", "[ACGT]"
             source = candidate / "crates/biodata/src/variant/sequence.rs"
             self.assertIn(before, source.read_text())
             source.write_text(source.read_text().replace(before, after))
@@ -95,12 +115,11 @@ class SchemaRelease(unittest.TestCase):
                 "--test", "schemas", "checked_in_schemas_match_types", "--", "--exact",
             ], cwd=candidate, check=True)
             result = subprocess.run(
-                ["make", "schema-release-check"], cwd=candidate,
+                command, cwd=candidate,
                 capture_output=True, text=True,
             )
             self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("incompatible contract", result.stdout + result.stderr)
-        subprocess.run(["make", "schema-release-check"], cwd=ROOT, check=True)
 
 
 if __name__ == "__main__":

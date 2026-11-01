@@ -1,6 +1,7 @@
 # 0520 — Run the Python checks in a gate and delete dead scripts
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 4a19ca247b8a65e3f3d384ed479afbf885d2ff90
 
 Milestone: 5
 

@@ -1,4 +1,4 @@
-"""Exercise reply comparison through its command line; run outside the routine gate."""
+"""Exercise reply comparison through its command line."""
 import hashlib
 import json
 from pathlib import Path
