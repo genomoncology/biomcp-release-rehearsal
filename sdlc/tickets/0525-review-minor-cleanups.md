@@ -11,6 +11,6 @@ One `SourceError::disabled(source)` constructor replaces the 14 written-out "sou
 - Why: Jarvis's 1.0 code review (m17823, finding 9). `biomcp-query/src` writes the disabled error 14 times, although `biomcp-fetch/src/request.rs:93` already refuses disabled sources. `monarch/mod.rs:145-158` maps static literals through fallible calls to `InputError::Serialization`. The review's hosted connection-error part moved to 0530 (release review weighing, 2026-11-01).
 - Starts from: those sites.
 - Rules: no reply or problem code changes.
-- Proof: the case suite passes unchanged and the schema check passes; `rg` finds one disabled-source constructor and no fallible conversion of a static literal in the Monarch adapter.
-- Changes: `biomcp-query` source errors and the Monarch adapter.
+- Proof: the case suite passes unchanged and the schema check passes; `rg` finds one disabled-source constructor.
+- Changes: `biomcp-query` source errors.
 - Defers: nothing.
