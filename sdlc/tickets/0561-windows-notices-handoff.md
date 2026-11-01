@@ -1,6 +1,7 @@
 # 0561 — Hand generated license notices to the Windows artifact build
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7608fa5c74d70614a78d8b9c87d23872b5cc5783
 
 Milestone: 5
 

@@ -70,5 +70,5 @@ def generate(output):
         users = sorted(item['crate']['name'] + ' ' + item['crate']['version'] for item in license['used_by'])
         lines += [license['name'] + ' (' + license['id'] + ')', ', '.join(users), license['text'], '']
     (output / 'LICENSE').write_bytes((ROOT / 'LICENSE').read_bytes())
-    (output / NAMES[1]).write_text('\n'.join(lines), encoding='utf-8')
+    (output / NAMES[1]).write_bytes('\n'.join(lines).encode('utf-8'))
     return payloads(output)

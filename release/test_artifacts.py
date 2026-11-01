@@ -118,6 +118,33 @@ class ReleaseCommands(unittest.TestCase):
             self.assertEqual([call[call.index('--test') + 1] for call in calls], ['cases', 'tools'])
             self.assertFalse((scratch / 'venv').exists())
 
+    def test_build_keeps_notice_bytes_with_windows_text_newlines(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            _, env = self.fixtures(root)
+            output = root / 'dist'
+            # Emulate Windows' default text writes while running the real command.
+            command = '''import io, runpy, sys
+from unittest.mock import patch
+native_open = io.open
+def windows_open(file, mode='r', buffering=-1, encoding=None, errors=None,
+                 newline=None, closefd=True, opener=None):
+    if 'w' in mode and 'b' not in mode and newline is None:
+        newline = '\\r\\n'
+    return native_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
+sys.path.insert(0, 'release')
+sys.argv = ['release/artifacts.py', 'build', '--output', sys.argv[1]]
+with patch('io.open', windows_open):
+    runpy.run_path('release/artifacts.py', run_name='__main__')
+'''
+            result = subprocess.run([sys.executable, '-c', command, str(output)],
+                                    cwd=ROOT, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            notices = (output / 'THIRD-PARTY-NOTICES.txt').read_bytes()
+            self.assertTrue(notices.startswith(b'Generated third-party notices\n'))
+            with zipfile.ZipFile(next(output.glob('*.whl'))) as wheel:
+                self.assertEqual(wheel.read('biomcp_cli-1.0.0.dist-info/THIRD-PARTY-NOTICES.txt'), notices)
+
 
 class Artifacts(unittest.TestCase):
     def test_debug_wheel_is_refused(self):
