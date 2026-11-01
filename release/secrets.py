@@ -74,7 +74,7 @@ def git(target, env, *args):
                                    env=env, stderr=subprocess.DEVNULL)
 
 
-def inputs(mode, target, env):
+def inputs(mode, target, env, since=None):
     if mode != "history":
         def unreadable(error):
             raise error
@@ -92,13 +92,19 @@ def inputs(mode, target, env):
     # Enumerate actual reachable blobs, not patches: merge-only additions, binary
     # attributes and default diff suppression must not hide historical content.
     # Keep named refs and this HEAD without importing detached sibling jobs.
-    objects = git(target, env, "rev-list", "--objects", "--single-worktree", "--all", "HEAD").splitlines()
+    scope = ["--single-worktree", "--all", "HEAD"]
+    if since is not None:
+        if not re.fullmatch("[a-f0-9]{40}", since):
+            raise ValueError("secret baseline must be a full commit hash")
+        git(target, env, "merge-base", "--is-ancestor", since, "HEAD")
+        scope = ["HEAD", "^" + since]
+    objects = git(target, env, "rev-list", "--objects", *scope).splitlines()
     names = {}
     for row in objects:
         oid, _, name = row.partition(b" ")
         if len(oid) == 40:
             names.setdefault(oid, name.decode("utf-8", errors="replace"))
-    ids = git(target, env, "rev-list", "--objects", "--single-worktree", "--all", "HEAD", "--no-object-names")
+    ids = git(target, env, "rev-list", "--objects", *scope, "--no-object-names")
     types = subprocess.check_output(["git", "--no-replace-objects", "-C", str(target), "cat-file", "--batch-check"],
                                     input=ids, env=env, stderr=subprocess.DEVNULL)
     with subprocess.Popen(["git", "--no-replace-objects", "-C", str(target), "cat-file", "--batch"],
@@ -126,7 +132,7 @@ def inputs(mode, target, env):
                 raise ValueError("historical blob reader failed")
 
 
-def prepare(target, mode, root, env):
+def prepare(target, mode, root, env, since=None):
     directory = root / "inputs"
     directory.mkdir()
     mapping, total, members = {}, 0, 0
@@ -230,7 +236,7 @@ def prepare(target, mode, root, env):
                 opaque()
                 return
             raise ValueError("unsupported archive compression")
-    for name, payload in inputs(mode, target, env):
+    for name, payload in inputs(mode, target, env, since):
         blob = hashlib.sha1(b"blob " + str(len(payload)).encode() + b"\0" + payload).hexdigest() if mode == "history" else ""
         origin = {"blob": blob, "git_file": name}
         add(name, payload)
@@ -318,7 +324,7 @@ def findings(report, mapping, staging):
                staging / key, (int(first), int(last), int(column), int(end)))
 
 
-def scan(mode, target, cache):
+def scan(mode, target, cache, since=None):
     if target.is_symlink():
         raise ValueError("symbolic-link scan target")
     target = target.resolve(strict=True)
@@ -335,7 +341,7 @@ def scan(mode, target, cache):
                "GIT_CONFIG_KEY_0": "core.hooksPath", "GIT_CONFIG_VALUE_0": os.devnull,
                "GIT_CONFIG_KEY_1": "core.fsmonitor", "GIT_CONFIG_VALUE_1": "false"}
         binary = scanner(cache.resolve(), root)
-        staging, mapping = prepare(target, mode, root, env)
+        staging, mapping = prepare(target, mode, root, env, since)
         config, template, ignore, report = [root / name for name in ["config.toml", "report.tmpl", "ignore", "report.txt"]]
         config.write_text(scanner_config(mode, mapping, staging))
         template.write_text(r'{{range .}}{{printf "%s\t%s\t%d\t%d\t%d\t%d\n" .File .RuleID .StartLine .EndLine .StartColumn .EndColumn}}{{end}}')
@@ -362,9 +368,10 @@ if __name__ == "__main__":
     parser.add_argument("mode", choices=["history", "artifacts"])
     parser.add_argument("target", type=Path)
     parser.add_argument("--cache", type=Path, default=Path("target/security-tools"))
+    parser.add_argument("--since", help="previously scanned ancestor commit; omit for full history")
     args = parser.parse_args()
     try:
-        raise SystemExit(scan(args.mode, args.target, args.cache))
+        raise SystemExit(scan(args.mode, args.target, args.cache, args.since))
     except HistoryBindingError as error:
         parser.exit(2, json.dumps({"code": error.code, "row": error.row}) + "\n")
     except (OSError, ValueError, KeyError, subprocess.SubprocessError, tarfile.TarError, zipfile.BadZipFile, RuntimeError, EOFError, TypeError):

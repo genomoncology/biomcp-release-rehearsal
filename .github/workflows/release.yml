@@ -61,7 +61,7 @@ jobs:
           cargo install cargo-deny --version "${{ steps.tools.outputs.cargo_deny }}" --locked
           make audit
       - name: Scan the complete candidate history for secrets
-        run: make secrets
+        run: make secrets-full
       - name: Require protected operator approval for a production release
         if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
         env:

@@ -1,6 +1,7 @@
 # 0535 — Cut wasted jobs, gate time and leftover temp files
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7c096652175abe0cc8918d097ff9798fe65a5874
 
 Milestone: 5
 
