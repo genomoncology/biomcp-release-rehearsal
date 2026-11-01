@@ -47,13 +47,8 @@ pub struct Page {
 const ASSOCIATIONS: biomcp_fetch::Endpoint =
     SPEC.get("/v3/api/association").fresh(Freshness::Days(7));
 /// Fetch exactly one selected native association page after component admission.
-pub fn associations(leg: &Leg<'_>, query: &DiseaseGet) -> Result<Page, RequestError> {
+pub fn associations(leg: &Leg<'_>, query: &DiseaseGet, id: &Curie) -> Result<Page, RequestError> {
     crate::disease_sources::components::monarch(leg)?;
-    let id = query
-        .id()
-        .as_str()
-        .parse::<Curie>()
-        .map_err(|_| InputError::Path)?;
     let genes = match query.section() {
         Some(DiseaseSection::Genes) => true,
         Some(DiseaseSection::Phenotypes) => false,
@@ -86,7 +81,7 @@ pub fn associations(leg: &Leg<'_>, query: &DiseaseGet) -> Result<Page, RequestEr
         &ASSOCIATIONS,
         Input::Params(&args),
         Read::<raw::Page>::json()
-            .check(&|page| check_page(page, query, &id, genes))
+            .check(&|page| check_page(page, query, id, genes))
             .cache_if(&raw::Page::identities_admitted),
     )?;
     let received = page.items.len() as u32;
@@ -96,7 +91,7 @@ pub fn associations(leg: &Leg<'_>, query: &DiseaseGet) -> Result<Page, RequestEr
     for mut row in page.items {
         problems.append(&mut row.problems);
         if row.identity_admitted() {
-            let mapped = map::row(row, &id)?;
+            let mapped = map::row(row, id)?;
             refusals.include(mapped.refusals);
             problems.extend(mapped.problems);
             items.push(mapped.value);

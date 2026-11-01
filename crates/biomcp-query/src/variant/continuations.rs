@@ -159,7 +159,7 @@ pub(super) fn next(
         ));
     }
     collect(fetch, candidates, &mut next);
-    if query.input().namespace().ok() == Some(biomcp_types::VariantNamespace::Rs) {
+    if query.input().namespace() == biomcp_types::VariantNamespace::Rs {
         for gene in candidates.iter().flat_map(|row| &row.identity.genes) {
             push(
                 &mut next,

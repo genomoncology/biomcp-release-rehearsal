@@ -54,7 +54,9 @@ pub use variant_search::{
     MyVariantQuery, VariantRegion, VariantSearch, VariantSearchField, VariantSearchSource,
 };
 
+mod assertion_id;
 mod variant_assertions;
+pub use assertion_id::AssertionId;
 pub use variant_assertions::{AssertionSource, VariantAssertionsGet};
 mod variant_population;
 pub use variant_population::VariantPopulationQuery;
@@ -63,12 +65,15 @@ mod gene_input;
 pub use gene_input::GeneInput;
 
 mod disease;
-pub use disease::{DiseaseGet, DiseaseOntology, DiseaseSearch, DiseaseSection, DiseaseSource};
+pub use disease::{
+    DiseaseGet, DiseaseId, DiseaseOntology, DiseaseSearch, DiseaseSection, DiseaseSource,
+};
 pub use gene::QueryInvalid;
 
 mod diagnostic;
 pub use diagnostic::{
-    DiagnosticGet, DiagnosticGetSource, DiagnosticSearch, DiagnosticSearchSource, DiagnosticSection,
+    DiagnosticGet, DiagnosticGetSource, DiagnosticId, DiagnosticSearch, DiagnosticSearchSource,
+    DiagnosticSection,
 };
 
 mod pathway;

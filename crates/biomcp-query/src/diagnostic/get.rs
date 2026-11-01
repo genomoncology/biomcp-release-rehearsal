@@ -23,7 +23,7 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
         return super::pma::get(cx, q);
     }
     let mut out = empty(biomcp_types::DiagnosticCard::into_reply(q.clone(), None));
-    if q.source() != DiagnosticGetSource::Gtr {
+    let biomcp_types::DiagnosticId::Gtr(id) = q.id() else {
         return unsupported(
             if q.source() == DiagnosticGetSource::WhoIvd {
                 Source::WhoIvd
@@ -32,11 +32,11 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
             },
             out,
         );
-    }
+    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&gtr::SPEC, deadline);
-    let result = gtr::get(&leg, q);
+    let result = gtr::get(&leg, q, id);
     let error = result.as_ref().err().copied();
     if let Ok(record) = result {
         let query = record

@@ -44,7 +44,27 @@
         "/result/items": {
           "count": 2
         },
-        "/result/items/1/supplement_number": "S026"
+        "/result/items/1/supplement_number": "S026",
+        "/next/0/kind": "disambiguate",
+        "/next/1/kind": "disambiguate",
+        "/next/0/args": [
+          "get",
+          "diagnostic",
+          "P150013",
+          "--source",
+          "fda-pma",
+          "--supplement",
+          "S025"
+        ],
+        "/next/1/args": [
+          "get",
+          "diagnostic",
+          "P150013",
+          "--source",
+          "fda-pma",
+          "--supplement",
+          "S026"
+        ]
       }
     },
     {

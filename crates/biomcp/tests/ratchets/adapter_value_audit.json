@@ -1666,7 +1666,7 @@
     },
     {
       "path": "crates/biomcp-query/src/disease/seer.rs",
-      "site": "get: ) } ; let mut out = empty ( body ) ; let Ok ( selection ) = seer : : selection ( query ) else { return",
+      "site": "get: ) } ; let mut out = empty ( body ) ; let Ok ( selection ) = seer : : selection ( query , id ) else",
       "maximum": 1,
       "class": "migrated",
       "owner": "disease",

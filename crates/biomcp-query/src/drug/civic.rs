@@ -85,10 +85,13 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     if !matches!(query.sections(), [DrugSection::Civic]) {
         return super::unsupported(query.source(), out);
     }
+    let Some(id) = query.civic_id() else {
+        return super::unsupported(query.source(), out);
+    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&civic::SPEC, deadline).fresh(cx.fresh);
-    let result = civic::drug_civic(&leg, query);
+    let result = civic::drug_civic(&leg, query, id);
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
     out.sources

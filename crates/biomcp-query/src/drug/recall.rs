@@ -81,14 +81,14 @@ pub(super) fn search(cx: &Ctx<'_>, q: &DrugSearch) -> Outcome {
 }
 pub(super) fn get(cx: &Ctx<'_>, q: &DrugGet) -> Outcome {
     let mut out = empty(biomcp_types::DrugRecallCard::into_reply(q.clone(), None));
-    let Ok(id) = q.input().to_string().parse() else {
+    let Some(id) = q.recall_number() else {
         return out;
     };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&source::SPEC, deadline).fresh(cx.fresh);
     let mut error = None;
-    match source::get(&leg, &id) {
+    match source::get(&leg, id) {
         Ok(Some(row)) => {
             crate::status::item(&mut out, true, false, false);
             out.include_refusals(row.refusals);

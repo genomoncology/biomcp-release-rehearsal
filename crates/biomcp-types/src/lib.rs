@@ -153,14 +153,16 @@ pub use response::{GeneHeader, GeneResolution, Match};
 
 pub use response::TrialHeader;
 
-pub use query::{AssertionSource, VariantAssertionsGet};
+pub use query::{AssertionId, AssertionSource, VariantAssertionsGet};
 pub use response::{
     AssertionAssessment, AssertionCondition, AssertionConditionRelationship, AssertionDetail,
     AssertionDocument, AssertionDomain, AssertionKind, UnmappedAssertion, VariantAssertion,
     VariantAssertions,
 };
 
-pub use query::{DiseaseGet, DiseaseOntology, DiseaseSearch, DiseaseSection, DiseaseSource};
+pub use query::{
+    DiseaseGet, DiseaseId, DiseaseOntology, DiseaseSearch, DiseaseSection, DiseaseSource,
+};
 
 pub use response::{
     DiseaseAssociationItem, DiseaseCard, DiseaseConcept, DiseaseGenes, DiseaseHeader,
@@ -196,7 +198,8 @@ pub use adverse_event::{
 mod pgx;
 pub use pgx::*;
 pub use query::{
-    DiagnosticGet, DiagnosticGetSource, DiagnosticSearch, DiagnosticSearchSource, DiagnosticSection,
+    DiagnosticGet, DiagnosticGetSource, DiagnosticId, DiagnosticSearch, DiagnosticSearchSource,
+    DiagnosticSection,
 };
 pub use response::{
     DiagnosticCandidate, DiagnosticCard, DiagnosticCompanion, DiagnosticConditions,

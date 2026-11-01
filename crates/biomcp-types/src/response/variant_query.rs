@@ -19,7 +19,7 @@ impl VariantGetQuery {
             && query.build().is_none()
             && matches!(
                 query.input().namespace(),
-                Ok(VariantNamespace::Rs | VariantNamespace::ClinVar)
+                VariantNamespace::Rs | VariantNamespace::ClinVar
             );
         Self {
             query: if defaulted {

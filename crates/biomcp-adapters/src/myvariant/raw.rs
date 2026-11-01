@@ -56,7 +56,7 @@ impl Reply for Hit {
             .id
             .as_str()
             .parse::<biomcp_types::VariantInput>()
-            .is_ok_and(|i| i.namespace().ok() == Some(biomcp_types::VariantNamespace::Chromosome))
+            .is_ok_and(|i| i.namespace() == biomcp_types::VariantNamespace::Chromosome)
         {
             Ok(())
         } else {

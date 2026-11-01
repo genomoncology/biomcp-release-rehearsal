@@ -12,7 +12,7 @@ use biomcp_fetch::{Arg, Endpoint, Freshness, Leg, ReplyMetadata, RequestError};
 use biomcp_types::DiseaseSite;
 pub use selectors::{Selector, SelectorError};
 /// Resolve source selectors once before any network access.
-pub fn selection(query: &biomcp_types::DiseaseGet) -> Result<Selection, SelectorError> {
+pub fn selection(query: &biomcp_types::DiseaseGet, id: &Text) -> Result<Selection, SelectorError> {
     let statistic = if query.section() == Some(biomcp_types::DiseaseSection::Survival) {
         Statistic::Survival {
             interval: Selector::Interval.resolve(query.interval())?,
@@ -23,7 +23,7 @@ pub fn selection(query: &biomcp_types::DiseaseGet) -> Result<Selection, Selector
         }
     };
     Ok(Selection {
-        site: query.id().clone(),
+        site: id.clone(),
         sex: Selector::Sex.resolve(query.sex())?,
         race: Selector::Race.resolve(query.race())?,
         age_range: Selector::AgeRange.resolve(query.age_range())?,

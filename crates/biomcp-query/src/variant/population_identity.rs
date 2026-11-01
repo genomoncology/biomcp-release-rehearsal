@@ -113,7 +113,11 @@ pub(super) fn choice(
             .filter(|id| matches!(id, VariantId::Ca(_)))
             .collect();
         if let [id] = ids.as_slice() {
-            input = crate::next::checked(id.to_string().parse(), row.source, problems)?;
+            input = crate::next::checked(
+                biomcp_types::VariantInput::from_identity((*id).clone()),
+                row.source,
+                problems,
+            )?;
         } else {
             let query =
                 crate::next::checked(VariantSearch::source_record(&input), row.source, problems)?;

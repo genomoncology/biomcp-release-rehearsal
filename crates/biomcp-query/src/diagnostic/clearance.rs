@@ -19,15 +19,13 @@ pub(super) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
             });
             crate::status::item(&mut out, card.is_some(), false, false);
             if card.is_some() {
-                if let Some(search) = crate::next::checked(
-                    q.id()
-                        .as_str()
-                        .parse()
-                        .map_err(|_| biomcp_types::QueryInvalid::new(&["device_id"]))
-                        .and_then(DiagnosticSearch::companion),
-                    biomcp_types::Source::FdaCdx,
-                    &mut out.problems,
-                ) {
+                if let biomcp_types::DiagnosticId::Clearance(id) = q.id()
+                    && let Some(search) = crate::next::checked(
+                        DiagnosticSearch::companion(id.clone()),
+                        biomcp_types::Source::FdaCdx,
+                        &mut out.problems,
+                    )
+                {
                     super::next::push(
                         &mut out,
                         StepKind::Pivot,
@@ -56,7 +54,7 @@ pub(super) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
             if failure.identity_conflict {
                 out.problems.push(Problem {
                     source: Source::Fda510k,
-                    record: Some(q.id().clone()),
+                    record: Some(q.record().clone()),
                     field: "k_number".into(),
                     code: ProblemCode::IdentityConflict,
                 });

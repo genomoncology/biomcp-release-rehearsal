@@ -27,16 +27,12 @@ struct Variables<'a> {
 
 fn fetch(
     leg: &Leg<'_>,
+    id: std::num::NonZeroU32,
     query: &DrugGet,
     kind: Option<CivicClaimKind>,
     after: Option<&Text>,
     count: u32,
 ) -> Result<raw::Data, RequestError> {
-    let id = query
-        .input()
-        .to_string()
-        .parse::<u64>()
-        .map_err(|_| failure(Reason::BadReply))?;
     let profile = query
         .civic_profile()
         .map_or(String::new(), |id| format!(",molecularProfileId:{id}"));
@@ -68,7 +64,10 @@ fn fetch(
     );
     let body = Request {
         query: format!("query($id:Int!,$after:String){{therapy(id:$id){{id name link}} {fields}}}"),
-        variables: Variables { id, after },
+        variables: Variables {
+            id: u64::from(id.get()),
+            after,
+        },
     };
     let reply: raw::ReplyBody = leg
         .call(
@@ -106,6 +105,7 @@ fn matches(
 }
 fn seek<T>(
     leg: &Leg<'_>,
+    id: std::num::NonZeroU32,
     query: &DrugGet,
     kind: CivicClaimKind,
     mut rows: Connection<T>,
@@ -132,6 +132,7 @@ fn seek<T>(
         };
         let data = fetch(
             leg,
+            id,
             query,
             Some(kind),
             rows.page_info.end_cursor.as_ref(),
@@ -166,12 +167,20 @@ fn page<T>(
 pub fn drug_civic(
     leg: &Leg<'_>,
     query: &DrugGet,
+    id: std::num::NonZeroU32,
 ) -> Result<Mapped<Option<DrugCivic>>, RequestError> {
     if query.source() != biomcp_types::DrugSource::Civic {
         return Err(failure(Reason::BadReply));
     }
     let count = first_count(query);
-    let data = fetch(leg, query, query.civic_kind(), query.civic_cursor(), count)?;
+    let data = fetch(
+        leg,
+        id,
+        query,
+        query.civic_kind(),
+        query.civic_cursor(),
+        count,
+    )?;
     let mut cx = crate::mapped::Problems {
         source: Source::Civic,
         record: None,
@@ -203,7 +212,7 @@ pub fn drug_civic(
             collection(
                 leg,
                 query,
-                (CivicClaimKind::Evidence, rows),
+                (id, CivicClaimKind::Evidence, rows),
                 |d| d.evidence_items,
                 drug_map::evidence,
                 &mut cx,
@@ -217,7 +226,7 @@ pub fn drug_civic(
             collection(
                 leg,
                 query,
-                (CivicClaimKind::Assertions, rows),
+                (id, CivicClaimKind::Assertions, rows),
                 |d| d.assertions,
                 drug_map::assertion,
                 &mut cx,
@@ -257,14 +266,14 @@ fn first_count(query: &DrugGet) -> u32 {
 fn collection<T>(
     leg: &Leg<'_>,
     query: &DrugGet,
-    stream: (CivicClaimKind, Connection<T>),
+    stream: (std::num::NonZeroU32, CivicClaimKind, Connection<T>),
     extract: fn(raw::Data) -> Option<Connection<T>>,
     map: fn(T, &DrugGet, &mut crate::mapped::Problems) -> Option<biomcp_types::DrugCivicClaim>,
     cx: &mut crate::mapped::Problems,
     refusals: &mut crate::Refusal,
 ) -> Result<DrugCivicPage, RequestError> {
-    let (kind, rows) = stream;
-    let rows = seek(leg, query, kind, rows, extract)?;
+    let (id, kind, rows) = stream;
+    let rows = seek(leg, id, query, kind, rows, extract)?;
     let mut page = page(&rows, query, kind)?;
     let records: Box<[_]> = rows
         .nodes

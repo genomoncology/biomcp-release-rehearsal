@@ -5,17 +5,18 @@ use serde::{Deserialize, Serialize};
 #[serde(try_from = "Fields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "schema", schemars(with = "Fields"))]
-pub struct VariantNormalize(Fields);
+pub struct VariantNormalize(Fields<VariantInput>);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-struct Fields {
+#[cfg_attr(feature = "schema", schemars(rename = "Fields"))]
+struct Fields<H = String> {
     /// Explicit service; all preserves independent results without consensus.
     source: NormalizationSource,
     /// Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.
     /// Checked for reference and syntax only; no full HGVS parser.
     #[cfg_attr(feature = "schema", schemars(schema_with = "hgvs_schema"))]
-    hgvs: String,
+    hgvs: H,
     /// Caller assembly; required when VariantValidator is selected.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     build: Option<Build>,
@@ -37,11 +38,18 @@ impl TryFrom<Fields> for VariantNormalize {
         if !(1..=50).contains(&f.limit) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
         }
-        if f.hgvs.as_str().len() > 2048 || !valid_hgvs(&f) {
+        let hgvs =
+            VariantInput::new(&f.hgvs).map_err(|_| super::gene::QueryInvalid::new(&["hgvs"]))?;
+        if f.hgvs.len() > 2048
+            || !(hgvs.hgvs().is_some()
+                || f.source == NormalizationSource::Car
+                    && f.build.is_some()
+                    && hgvs.namespace() == VariantNamespace::Chromosome)
+        {
             return Err(super::gene::QueryInvalid::new(&["hgvs"]));
         }
         if f.build
-            .is_some_and(|build| !Self::supports_build(&f.hgvs, build))
+            .is_some_and(|build| !Self::supports_build(hgvs.hgvs(), build))
         {
             return Err(super::gene::QueryInvalid::new(&["hgvs", "build"]));
         }
@@ -57,16 +65,14 @@ impl TryFrom<Fields> for VariantNormalize {
         {
             return Err(super::gene::QueryInvalid::new(&["build"]));
         }
-        Ok(Self(f))
+        Ok(Self(Fields {
+            source: f.source,
+            hgvs,
+            build: f.build,
+            limit: f.limit,
+            offset: f.offset,
+        }))
     }
-}
-fn valid_hgvs(fields: &Fields) -> bool {
-    fields.hgvs.as_str().parse::<HgvsText>().is_ok()
-        || fields.source == NormalizationSource::Car
-            && fields.build.is_some()
-            && VariantInput::new(fields.hgvs.as_str())
-                .and_then(|value| value.namespace())
-                .is_ok_and(|namespace| namespace == VariantNamespace::Chromosome)
 }
 #[cfg(feature = "schema")]
 fn hgvs_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
@@ -77,11 +83,8 @@ fn hgvs_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
 }
 impl VariantNormalize {
     /// Refuse only a provable primary-reference conflict; never assign an unknown accession.
-    pub fn supports_build(input: &str, build: Build) -> bool {
-        let Ok(accession) = input
-            .parse::<HgvsText>()
-            .and_then(|value| value.accession())
-        else {
+    pub fn supports_build(input: Option<&HgvsText>, build: Build) -> bool {
+        let Some(accession) = input.and_then(|value| value.accession().ok()) else {
             return true;
         };
         let other = if build == Build::GRCh37 {
@@ -99,7 +102,7 @@ impl VariantNormalize {
     }
     /// Unchanged caller description.
     pub fn hgvs(&self) -> &str {
-        &self.0.hgvs
+        self.0.hgvs.as_str()
     }
     /// Explicit caller assembly.
     pub fn build(&self) -> Option<Build> {

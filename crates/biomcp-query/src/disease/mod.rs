@@ -19,10 +19,16 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &DiseaseSearch) -> Outcome {
 }
 /// Read one exact concept or selected source page.
 pub(crate) fn get(cx: &Ctx<'_>, query: &DiseaseGet) -> Outcome {
-    match query.source() {
-        DiseaseSource::MyDisease => mydisease::get(cx, query),
-        DiseaseSource::Monarch => monarch::get(cx, query),
-        biomcp_types::DiseaseSource::Seer => seer::get(cx, query),
+    match (query.id(), query.source()) {
+        (biomcp_types::DiseaseId::Concept(id), DiseaseSource::MyDisease) => {
+            mydisease::get(cx, query, id)
+        }
+        (biomcp_types::DiseaseId::Concept(id), DiseaseSource::Monarch) => {
+            monarch::get(cx, query, id)
+        }
+        (biomcp_types::DiseaseId::SeerSite(id), biomcp_types::DiseaseSource::Seer) => {
+            seer::get(cx, query, id)
+        }
         _ => ols::get(cx, query),
     }
 }

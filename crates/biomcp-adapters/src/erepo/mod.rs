@@ -29,7 +29,7 @@ const FETCH: Endpoint = SPEC
 pub fn assertions(
     leg: &Leg<'_>,
     caid: &str,
-    selection: Option<(&str, Option<&str>)>,
+    selection: Option<(&biomcp_types::AssertionId, Option<&str>)>,
 ) -> Result<Mapped<Vec<VariantAssertion>>, RequestError> {
     let mapped = records(leg, caid)?;
     let records = mapped.value;
@@ -40,6 +40,7 @@ pub fn assertions(
         list: mapped.problems,
     };
     if let Some((id, Some(version))) = selection {
+        let id = id.as_str();
         let record = records
             .iter()
             .find(|r| r.id == id)

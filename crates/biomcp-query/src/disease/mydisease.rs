@@ -8,16 +8,11 @@ use biomcp_types::{
 };
 
 /// Read only the selected exact annotation, then page its native component facts.
-pub(crate) fn get(cx: &Ctx<'_>, query: &DiseaseGet) -> Outcome {
+pub(crate) fn get(cx: &Ctx<'_>, query: &DiseaseGet, id: &biodata::Curie) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&mydisease::SPEC, deadline).fresh(cx.fresh);
-    let reply = query
-        .id()
-        .as_str()
-        .parse()
-        .map_err(|_| biomcp_fetch::RequestError::Input(biomcp_fetch::InputError::Path))
-        .and_then(|id| mydisease::annotation(&leg, &id));
+    let reply = mydisease::annotation(&leg, id);
     let error = reply.as_ref().err().copied();
     let mut out = empty(biomcp_types::DiseaseCard::into_reply(query.clone(), None));
     out.sources

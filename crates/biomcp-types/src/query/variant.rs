@@ -143,7 +143,7 @@ impl VariantGet {
         resolver: VariantResolver,
         build: Option<Build>,
     ) -> Result<Self, super::gene::QueryInvalid> {
-        if input.namespace().ok() == Some(VariantNamespace::Unsupported) {
+        if input.namespace() == VariantNamespace::Unsupported {
             return Err(super::gene::QueryInvalid::new(&["input"]));
         }
         if resolver == VariantResolver::Variantvalidator && build.is_none() {
@@ -152,7 +152,7 @@ impl VariantGet {
         if build.is_some_and(|b| !matches!(b, Build::GRCh37 | Build::GRCh38)) {
             return Err(super::gene::QueryInvalid::new(&["build"]));
         }
-        if input.namespace().ok() == Some(VariantNamespace::Chromosome) && build.is_none() {
+        if input.namespace() == VariantNamespace::Chromosome && build.is_none() {
             return Err(super::gene::QueryInvalid::new(&["input", "build"]));
         }
         Ok(Self(Fields {

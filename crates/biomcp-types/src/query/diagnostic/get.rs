@@ -1,5 +1,6 @@
+use super::DiagnosticId;
 use super::{DiagnosticGetSource, DiagnosticSection, QueryInvalid, limit};
-use biodata::{GtrTestId, PmaNumber, PmaSupplement, Text, WhoProductId};
+use biodata::{PmaSupplement, Text};
 use serde::{Deserialize, Serialize};
 /// Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -8,17 +9,18 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "schema", schemars(with = "GetFields"))]
 pub struct DiagnosticGet {
     #[serde(flatten)]
-    fields: GetFields,
+    fields: GetFields<DiagnosticId>,
     #[serde(skip)]
-    recall_number: Option<biodata::DeviceRecallNumber>,
+    record: Text,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-struct GetFields {
+#[cfg_attr(feature = "schema", schemars(rename = "GetFields"))]
+struct GetFields<I = Text> {
     /// Exact native identity, including version for GTR.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
-    id: Text,
+    id: I,
     /// Explicit source: GTR accession/version, WHO Product ID, PMA P number,
     /// 510(k) K number or device recall Z-NNNN-YYYY.
     source: DiagnosticGetSource,
@@ -49,22 +51,42 @@ crate::query::validation::checked_query!(DiagnosticGet, GetFields);
 impl TryFrom<GetFields> for DiagnosticGet {
     type Error = QueryInvalid;
     fn try_from(v: GetFields) -> Result<Self, Self::Error> {
-        let recall_number = if v.source == DiagnosticGetSource::FdaDeviceRecall {
-            Some(
-                v.id.as_str()
-                    .parse()
-                    .map_err(|_| QueryInvalid::new(&["id", "source"]))?,
-            )
-        } else {
-            None
+        let invalid = || QueryInvalid::new(&["id", "source"]);
+        let id = match v.source {
+            DiagnosticGetSource::Gtr => {
+                DiagnosticId::Gtr(v.id.as_str().parse().map_err(|_| invalid())?)
+            }
+            DiagnosticGetSource::WhoIvd => {
+                DiagnosticId::Who(v.id.as_str().parse().map_err(|_| invalid())?)
+            }
+            DiagnosticGetSource::FdaPma => {
+                DiagnosticId::Pma(v.id.as_str().parse().map_err(|_| invalid())?)
+            }
+            DiagnosticGetSource::FdaDeviceRecall => {
+                DiagnosticId::Recall(v.id.as_str().parse().map_err(|_| invalid())?)
+            }
+            DiagnosticGetSource::Fda510k => {
+                if !v.id.as_str().starts_with('K') {
+                    return Err(invalid());
+                }
+                DiagnosticId::Clearance(v.id.as_str().parse().map_err(|_| invalid())?)
+            }
         };
         validate_source(&v)?;
         if v.section_limit.is_some_and(|v| !(1..=50).contains(&v)) {
             return Err(QueryInvalid::new(&["section_limit"]));
         }
         Ok(Self {
-            fields: v,
-            recall_number,
+            record: v.id,
+            fields: GetFields {
+                id,
+                source: v.source,
+                section: v.section,
+                supplement: v.supplement,
+                section_limit: v.section_limit,
+                section_offset: v.section_offset,
+                bundle_revision: v.bundle_revision,
+            },
         })
     }
 }
@@ -87,12 +109,19 @@ impl DiagnosticGet {
     }
 
     /// Exact checked source identity.
-    pub fn id(&self) -> &Text {
+    pub fn id(&self) -> &DiagnosticId {
         &self.fields.id
+    }
+    /// Original edge-admitted spelling for source record attribution.
+    pub fn record(&self) -> &Text {
+        &self.record
     }
     /// Native recall identity parsed once by the checked input boundary.
     pub fn recall_number(&self) -> Option<&biodata::DeviceRecallNumber> {
-        self.recall_number.as_ref()
+        match self.id() {
+            DiagnosticId::Recall(id) => Some(id),
+            _ => None,
+        }
     }
     /// Explicit selected source.
     pub fn source(&self) -> DiagnosticGetSource {
@@ -135,7 +164,28 @@ impl DiagnosticGet {
         let mut q = self.fields.clone();
         q.section = Some(section);
         q.section_offset = 0;
-        q.try_into()
+        validate_source(&q)?;
+        Ok(Self {
+            fields: q,
+            record: self.record.clone(),
+        })
+    }
+    /// Open a base or supplemental card with the original constructor defaults.
+    pub fn with_supplement(&self, supplement: Option<PmaSupplement>) -> Result<Self, QueryInvalid> {
+        let fields = GetFields {
+            id: self.fields.id.clone(),
+            source: self.source(),
+            section: None,
+            supplement,
+            section_limit: None,
+            section_offset: 0,
+            bundle_revision: None,
+        };
+        validate_source(&fields)?;
+        Ok(Self {
+            fields,
+            record: self.record.clone(),
+        })
     }
     /// Bind the selected record to one immutable stored revision.
     pub fn with_bundle_revision(&self, revision: Text) -> Self {
@@ -145,20 +195,7 @@ impl DiagnosticGet {
     }
 }
 
-fn validate_source(v: &GetFields) -> Result<(), QueryInvalid> {
-    let valid_id = match v.source {
-        DiagnosticGetSource::Gtr => v.id.as_str().parse::<GtrTestId>().is_ok(),
-        DiagnosticGetSource::FdaDeviceRecall => true,
-        DiagnosticGetSource::WhoIvd => v.id.as_str().parse::<WhoProductId>().is_ok(),
-        DiagnosticGetSource::Fda510k => {
-            v.id.as_str().parse::<biodata::DiagnosticDeviceId>().is_ok()
-                && v.id.as_str().starts_with('K')
-        }
-        DiagnosticGetSource::FdaPma => v.id.as_str().parse::<PmaNumber>().is_ok(),
-    };
-    if !valid_id {
-        return Err(QueryInvalid::new(&["id", "source"]));
-    }
+fn validate_source<I>(v: &GetFields<I>) -> Result<(), QueryInvalid> {
     let valid_section = match v.source {
         DiagnosticGetSource::Gtr => matches!(
             v.section,

@@ -5,11 +5,6 @@ use biomcp_types::{PhenotypeGet, PhenotypeSection};
 /// Read exactly one checked native page; wrong endpoints or taxa never enter cache.
 pub fn get(leg: &Leg<'_>, query: &PhenotypeGet) -> Result<super::super::Page, RequestError> {
     crate::disease_sources::components::monarch(leg)?;
-    let requested = query
-        .id()
-        .as_str()
-        .parse::<biodata::Curie>()
-        .map_err(|_| InputError::Path)?;
     let human = "NCBITaxon:9606"
         .parse::<biodata::Curie>()
         .map_err(|_| InputError::Serialization)?;
@@ -46,7 +41,7 @@ pub fn get(leg: &Leg<'_>, query: &PhenotypeGet) -> Result<super::super::Page, Re
                     if page.limit != query.section_limit()
                         || page.offset != query.section_offset()
                         || page.items.iter().any(|row| {
-                            row.object.as_ref() != Some(&requested)
+                            row.object.as_ref().map(|id| id.as_str()) != Some(query.id().as_str())
                                 || (genes && row.subject_taxon.as_ref() != Some(&human))
                         })
                     {
@@ -64,6 +59,10 @@ pub fn get(leg: &Leg<'_>, query: &PhenotypeGet) -> Result<super::super::Page, Re
     for mut row in page.items {
         problems.append(&mut row.problems);
         if row.identity_admitted() {
+            let requested = row
+                .object
+                .clone()
+                .ok_or_else(|| biomcp_fetch::bad_reply(biomcp_types::Source::Monarch, None))?;
             let mapped = super::super::map::row(row, &requested)?;
             refusals.include(mapped.refusals);
             problems.extend(mapped.problems);

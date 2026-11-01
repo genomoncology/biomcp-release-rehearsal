@@ -37,9 +37,11 @@ const FETCH: Endpoint = SPEC.get("/efetch.fcgi").fresh(Freshness::Days(1));
 pub fn assertions(
     leg: &Leg<'_>,
     id: &str,
-    selection: Option<(&str, Option<&str>)>,
+    selection: Option<(&biomcp_types::AssertionId, Option<&str>)>,
 ) -> Result<crate::Mapped<Vec<VariantAssertion>>, RequestError> {
-    let vcv = selection.filter(|(id, _)| id.starts_with("VCV"));
+    let vcv = selection
+        .filter(|(id, _)| matches!(id, biomcp_types::AssertionId::Vcv(_)))
+        .map(|(id, version)| (id.as_str(), version));
     let selected = vcv.map(|(record, version)| {
         version.map_or_else(|| record.to_owned(), |v| format!("{record}.{v}"))
     });

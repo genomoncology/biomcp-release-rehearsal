@@ -29,8 +29,12 @@ fn stored_gtr_relations_distinguish_declined_identity_and_optional_values() -> C
         assert!(changed, "GTR native relation report fixture missing");
         gtr::sync(&fetch)?;
         let leg = fetch.leg(&gtr::SPEC, fetch.deadline(Duration::from_secs(20)));
-        let query = serde_json::from_value(json!({"id":"GTR000006692.3","source":"gtr"}))?;
-        let row = gtr::get(&leg, &query)?;
+        let query: biomcp_types::DiagnosticGet =
+            serde_json::from_value(json!({"id":"GTR000006692.3","source":"gtr"}))?;
+        let biomcp_types::DiagnosticId::Gtr(id) = query.id() else {
+            return Err("expected GTR identity".into());
+        };
+        let row = gtr::get(&leg, &query, id)?;
         assert_eq!(row.refusals, expected, "GTR lost actual relation refusal");
         assert!(row.card.is_some());
         if expected == Refusal::None {

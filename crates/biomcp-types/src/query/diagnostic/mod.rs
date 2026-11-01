@@ -1,5 +1,7 @@
+mod id;
 use super::QueryInvalid;
 use biodata::{DiagnosticDeviceId, FdaDrugApplication, GeneSymbol, NcbiGeneId, PartialDate, Text};
+pub use id::DiagnosticId;
 use serde::{Deserialize, Serialize};
 mod get;
 pub use get::DiagnosticGet;

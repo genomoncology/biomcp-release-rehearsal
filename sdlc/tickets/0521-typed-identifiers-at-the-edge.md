@@ -1,6 +1,7 @@
 # 0521 — Keep parsed identifiers typed after the edge
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 2c7d272e24b5970a45cf177ae9babbca06bec6d8
 
 Milestone: 5
 

@@ -544,3 +544,18 @@ fn clinvar_codings_use_exact_publisher_labels() -> Check {
     assert!(ClinvarAlleleOriginCode::from_source_label("future origin label").is_none());
     Ok(())
 }
+
+#[test]
+fn typed_candidate_assertions_preserve_source_identity_and_page() -> Check {
+    for (text, source) in [("clinvar:13961", "clinvar"), ("CA000434", "erepo")] {
+        let id: VariantId = text.parse()?;
+        let query = VariantAssertionsGet::from_identity(id.clone(), 2, 3)?;
+        assert_eq!(query.input().identity(), Some(&id));
+        assert_eq!(
+            serde_json::to_value(query)?,
+            json!({"input": text, "source": source, "limit": 2, "offset": 3})
+        );
+    }
+    assert!(VariantAssertionsGet::from_identity("rs113488022".parse()?, 2, 3).is_err());
+    Ok(())
+}

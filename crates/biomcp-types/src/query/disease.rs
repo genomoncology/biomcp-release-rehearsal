@@ -1,7 +1,9 @@
 use super::gene::{QueryInvalid, present};
 use crate::Text;
 use serde::{Deserialize, Serialize};
+mod id;
 mod source;
+pub use id::DiseaseId;
 pub use source::{DiseaseOntology, DiseaseSource};
 biodata::wire_enum! { described
     /// One named disease page.
@@ -88,14 +90,20 @@ impl TryFrom<SearchFields> for DiseaseSearch {
 #[serde(try_from = "GetFields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "schema", schemars(with = "GetFields"))]
-pub struct DiseaseGet(GetFields);
+pub struct DiseaseGet {
+    #[serde(flatten)]
+    fields: GetFields<DiseaseId>,
+    #[serde(skip)]
+    record: Text,
+}
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-struct GetFields {
+#[cfg_attr(feature = "schema", schemars(rename = "GetFields"))]
+struct GetFields<I = Text> {
     /// Exact ontology CURIE or an explicit SEER catalog site ID.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
-    id: Text,
+    id: I,
     /// Default MyDisease; no automatic fallback.
     #[serde(default = "get_source")]
     source: DiseaseSource,
@@ -154,16 +162,21 @@ impl TryFrom<GetFields> for DiseaseGet {
         {
             return Err(QueryInvalid::new(&["section_limit"]));
         }
-        if v.source == DiseaseSource::Seer
-            && (!statistic || !v.id.as_str().bytes().all(|b| b.is_ascii_digit()))
-        {
-            return Err(QueryInvalid::new(&["source", "id", "section"]));
-        }
-        if v.source != DiseaseSource::Seer
-            && (statistic || v.id.as_str().parse::<biodata::Curie>().is_err())
-        {
-            return Err(QueryInvalid::new(&["source", "id", "section"]));
-        }
+        let id = if v.source == DiseaseSource::Seer {
+            if !statistic || !v.id.as_str().bytes().all(|b| b.is_ascii_digit()) {
+                return Err(QueryInvalid::new(&["source", "id", "section"]));
+            }
+            DiseaseId::SeerSite(v.id.clone())
+        } else {
+            if statistic {
+                return Err(QueryInvalid::new(&["source", "id", "section"]));
+            }
+            DiseaseId::Concept(
+                v.id.as_str()
+                    .parse()
+                    .map_err(|_| QueryInvalid::new(&["source", "id", "section"]))?,
+            )
+        };
         if v.source != DiseaseSource::Seer
             && [
                 &v.sex,
@@ -203,7 +216,23 @@ impl TryFrom<GetFields> for DiseaseGet {
             (DiseaseSource::Monarch, Some(DiseaseSection::Phenotypes)) => 1,
             _ => default_limit(),
         });
-        Ok(Self(v))
+        Ok(Self {
+            record: v.id,
+            fields: GetFields {
+                id,
+                source: v.source,
+                ontology: v.ontology,
+                section: v.section,
+                section_limit: v.section_limit,
+                section_offset: v.section_offset,
+                sex: v.sex,
+                race: v.race,
+                age_range: v.age_range,
+                dataset: v.dataset,
+                period: v.period,
+                interval: v.interval,
+            },
+        })
     }
 }
 
@@ -268,57 +297,65 @@ impl DiseaseGet {
 
     /// Read an exact native disease CURIE through the default disease command.
     pub fn from_id(id: biodata::Curie) -> Result<Self, QueryInvalid> {
-        Ok(Self(GetFields {
-            id: Text::new(&id.to_string()).map_err(|_| QueryInvalid::new(&["id"]))?,
-            source: get_source(),
-            ontology: None,
-            section: None,
-            section_limit: Some(default_limit()),
-            section_offset: 0,
-            sex: None,
-            race: None,
-            age_range: None,
-            dataset: None,
-            period: None,
-            interval: None,
-        }))
+        let record = Text::new(id.as_str()).map_err(|_| QueryInvalid::new(&["id"]))?;
+        Ok(Self {
+            record,
+            fields: GetFields {
+                id: DiseaseId::Concept(id),
+                source: get_source(),
+                ontology: None,
+                section: None,
+                section_limit: Some(default_limit()),
+                section_offset: 0,
+                sex: None,
+                race: None,
+                age_range: None,
+                dataset: None,
+                period: None,
+                interval: None,
+            },
+        })
     }
 
+    /// Original edge-admitted spelling for source record attribution.
+    pub fn record(&self) -> &Text {
+        &self.record
+    }
     /// Exact source identifier.
-    pub fn id(&self) -> &Text {
-        &self.0.id
+    pub fn id(&self) -> &DiseaseId {
+        &self.fields.id
     }
     /// Explicit service.
     pub fn source(&self) -> DiseaseSource {
-        self.0.source
+        self.fields.source
     }
     /// Selected OLS ontology.
     pub fn ontology(&self) -> Option<DiseaseOntology> {
-        self.0.ontology
+        self.fields.ontology
     }
     /// Selected source section.
     pub fn section(&self) -> Option<DiseaseSection> {
-        self.0.section
+        self.fields.section
     }
     /// Maximum section rows.
     pub fn section_limit(&self) -> u32 {
-        self.0.section_limit.unwrap_or_else(default_limit)
+        self.fields.section_limit.unwrap_or_else(default_limit)
     }
     /// Section row offset.
     pub fn section_offset(&self) -> u32 {
-        self.0.section_offset
+        self.fields.section_offset
     }
     /// Continue the selected section while keeping its selectors.
     pub fn at_section_offset(&self, offset: u32) -> Self {
         let mut q = self.clone();
-        q.0.section_offset = offset;
+        q.fields.section_offset = offset;
         q
     }
     /// Select an available section from this exact card.
     pub fn with_section(&self, section: DiseaseSection) -> Self {
         let mut q = self.clone();
-        q.0.section = Some(section);
-        q.0.section_offset = 0;
+        q.fields.section = Some(section);
+        q.fields.section_offset = 0;
         q
     }
     /// Apply source-resolved demographics to a checked SEER query.
@@ -331,34 +368,37 @@ impl DiseaseGet {
         if self.source() != DiseaseSource::Seer {
             return Err(QueryInvalid::new(&["source"]));
         }
-        let mut fields = self.0.clone();
+        let mut fields = self.fields.clone();
         fields.sex = Some(sex);
         fields.race = Some(race);
         fields.age_range = Some(age_range);
-        fields.try_into()
+        Ok(Self {
+            fields,
+            record: self.record.clone(),
+        })
     }
     /// Native sex selector.
     pub fn sex(&self) -> Option<&Text> {
-        self.0.sex.as_ref()
+        self.fields.sex.as_ref()
     }
     /// Native race selector.
     pub fn race(&self) -> Option<&Text> {
-        self.0.race.as_ref()
+        self.fields.race.as_ref()
     }
     /// Native age range selector.
     pub fn age_range(&self) -> Option<&Text> {
-        self.0.age_range.as_ref()
+        self.fields.age_range.as_ref()
     }
     /// Native dataset selector.
     pub fn dataset(&self) -> Option<&Text> {
-        self.0.dataset.as_ref()
+        self.fields.dataset.as_ref()
     }
     /// Native period selector.
     pub fn period(&self) -> Option<&Text> {
-        self.0.period.as_ref()
+        self.fields.period.as_ref()
     }
     /// Native interval selector.
     pub fn interval(&self) -> Option<&Text> {
-        self.0.interval.as_ref()
+        self.fields.interval.as_ref()
     }
 }

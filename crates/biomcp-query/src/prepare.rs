@@ -55,13 +55,13 @@ fn prepare_disease(action: Action) -> Result<Action, biomcp_adapters::seer::Sele
         fresh,
     } = action
     {
-        if query.source() != DiseaseSource::Seer {
+        let biomcp_types::DiseaseId::SeerSite(id) = query.id() else {
             return Ok(Action::Run {
                 request: Request::GetDisease(query),
                 fresh,
             });
-        }
-        let selection = biomcp_adapters::seer::selection(&query)?;
+        };
+        let selection = biomcp_adapters::seer::selection(&query, id)?;
         let query = query
             .with_demographics(selection.sex, selection.race, selection.age_range)
             .map_err(|_| biomcp_adapters::seer::SelectorError {

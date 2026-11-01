@@ -164,10 +164,10 @@ pub(crate) fn resolve(
     let native = query.input().native_hgvs();
     let input = native.as_ref();
     match query.input().namespace() {
-        Ok(VariantNamespace::Rs | VariantNamespace::ClinVar | VariantNamespace::Chromosome) => {
+        VariantNamespace::Rs | VariantNamespace::ClinVar | VariantNamespace::Chromosome => {
             myvariant_identity(query, leg, problems, dropped, false)
         }
-        Ok(VariantNamespace::Ca) => car(allele_registry::by_id(leg, input)?, problems, dropped),
+        VariantNamespace::Ca => car(allele_registry::by_id(leg, input)?, problems, dropped),
         _ => match query.resolver() {
             biomcp_types::VariantResolver::Car => {
                 car(allele_registry::hgvs(leg, input)?, problems, dropped)
@@ -242,13 +242,13 @@ fn join_id(row: &VariantHeader) -> Option<String> {
 pub(crate) fn source(query: &VariantGet) -> &'static biomcp_fetch::SourceSpec {
     let direct = matches!(
         query.input().namespace(),
-        Ok(VariantNamespace::Rs | VariantNamespace::ClinVar | VariantNamespace::Chromosome)
+        VariantNamespace::Rs | VariantNamespace::ClinVar | VariantNamespace::Chromosome
     );
     if direct {
         &myvariant::SPEC
     } else {
         match query.input().namespace() {
-            Ok(VariantNamespace::Ca) => &allele_registry::SPEC,
+            VariantNamespace::Ca => &allele_registry::SPEC,
             _ => match query.resolver() {
                 biomcp_types::VariantResolver::Car => &allele_registry::SPEC,
                 biomcp_types::VariantResolver::Mutalyzer => &mutalyzer::SPEC,
@@ -375,7 +375,7 @@ fn myvariant_identity(
     population: bool,
 ) -> Result<(Vec<VariantHeader>, Option<Text>), RequestError> {
     let input = query.input().as_str();
-    let term = if query.input().namespace().ok() == Some(VariantNamespace::ClinVar) {
+    let term = if query.input().namespace() == VariantNamespace::ClinVar {
         format!(
             "clinvar.variant_id:{}",
             input.strip_prefix("clinvar:").unwrap_or(input)

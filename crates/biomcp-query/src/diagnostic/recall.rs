@@ -117,7 +117,7 @@ fn failed(out: &mut Outcome, q: &DiagnosticGet, failure: adapter::Failure) -> Re
     if let Some(field) = failure.identity_field {
         out.problems.push(Problem {
             source: Source::FdaDeviceRecall,
-            record: Some(q.id().clone()),
+            record: Some(q.record().clone()),
             field: field.into(),
             code: ProblemCode::IdentityConflict,
         });

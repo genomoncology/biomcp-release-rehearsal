@@ -77,23 +77,21 @@ pub(super) fn section(
             false,
         );
     };
-    let Some(q) = id
-        .to_string()
-        .parse()
-        .ok()
-        .and_then(|input| VariantAssertionsGet::new(input, source).ok())
-        .and_then(|q| {
-            q.page(query.assertion_limit(source), query.section_offset())
-                .ok()
-        })
-    else {
-        return (
-            Section::unavailable(source.source(), Reason::NoJoinId),
-            Vec::new(),
-            Vec::new(),
-            None,
-            false,
-        );
+    let q = match VariantAssertionsGet::from_identity(
+        id.clone(),
+        query.assertion_limit(source),
+        query.section_offset(),
+    ) {
+        Ok(query) => query,
+        Err(_) => {
+            return (
+                Section::unavailable(source.source(), Reason::NoJoinId),
+                Vec::new(),
+                Vec::new(),
+                None,
+                false,
+            );
+        }
     };
     read(cx, &q, deadline)
 }
@@ -114,14 +112,14 @@ fn read(
             input.strip_prefix("clinvar:").unwrap_or(input),
             query
                 .assertion()
-                .map(|id| (id.as_str(), query.version().map(|v| v.as_str()))),
+                .map(|id| (id, query.version().map(|v| v.as_str()))),
         ),
         AssertionSource::Erepo => biomcp_adapters::erepo::assertions(
             &leg,
             input,
             query
                 .assertion()
-                .map(|id| (id.as_str(), query.version().map(|v| v.as_str()))),
+                .map(|id| (id, query.version().map(|v| v.as_str()))),
         ),
     };
     let error = result.as_ref().err().copied();
@@ -162,7 +160,7 @@ fn page(query: &VariantAssertionsGet, mut rows: Vec<VariantAssertion>) -> Varian
     if let Some(id) = query.assertion() {
         rows.retain(|r| {
             r.attribution().is_some_and(|a| {
-                a.record.as_ref() == Some(id)
+                a.record.as_ref().map(|record| record.as_str()) == Some(id.as_str())
                     && query
                         .version()
                         .is_none_or(|v| a.version.as_ref() == Some(v))

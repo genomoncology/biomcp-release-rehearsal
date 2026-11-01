@@ -21,7 +21,11 @@ pub struct Record {
     pub info: BundleInfo,
 }
 /// Read one exact accession/version; no latest-version fallback or implicit synchronization.
-pub fn get(leg: &Leg<'_>, query: &DiagnosticGet) -> Result<Record, RequestError> {
+pub fn get(
+    leg: &Leg<'_>,
+    query: &DiagnosticGet,
+    id: &biodata::GtrTestId,
+) -> Result<Record, RequestError> {
     let (rows, info) = bundle::read(leg, Find::Exact(KeyKind::Id, query.id().as_str()))?;
     super::revision(query.bundle_revision(), &info)?;
     let mut versions = Vec::new();
@@ -47,9 +51,7 @@ pub fn get(leg: &Leg<'_>, query: &DiagnosticGet) -> Result<Record, RequestError>
         }
     }
     let conflict = if versions.len() > 1 {
-        Some(super::conflict(&query.id().as_str().parse().map_err(
-            |_| biomcp_fetch::bad_reply(biomcp_types::Source::Gtr, None),
-        )?))
+        Some(super::conflict(id))
     } else {
         None
     };
