@@ -14,6 +14,9 @@ pub(super) struct Request {
     pub(super) body: Vec<u8>,
 }
 impl Request {
+    pub(super) fn declared_use(&self) -> io::Result<crate::command::DeclaredUse> {
+        crate::command::DeclaredUse::parse(self.one("x-biomcp-use")?).ok_or_else(malformed)
+    }
     pub(super) fn source_keys(&self) -> io::Result<biomcp_fetch::Secrets> {
         let mut secrets = biomcp_fetch::Secrets::default();
         for name in biomcp_query::sources::keys() {

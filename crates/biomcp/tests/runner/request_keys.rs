@@ -58,7 +58,12 @@ fn recovery(freeze: bool) -> Check {
         } else {
             String::new()
         };
-        let reply = call(&server, &args, &extra, false)?;
+        let reply = call(
+            &server,
+            &args,
+            &format!("{extra}x-biomcp-use: academic\r\n"),
+            false,
+        )?;
         let content = reply
             .pointer("/result/structuredContent")
             .ok_or("missing recovery content")?;
@@ -191,7 +196,12 @@ fn licensed() -> Check {
             } else {
                 String::new()
             };
-            let reply = call(&server, &args, &extra, false)?;
+            let reply = call(
+                &server,
+                &args,
+                &format!("{extra}x-biomcp-use: academic\r\n"),
+                false,
+            )?;
             if hosted && !header {
                 if reply.pointer("/result/structuredContent/error/message")
                     != Some(&json!("add the source key in your account settings"))
@@ -283,10 +293,10 @@ fn concurrent(args: &[&str]) -> Check {
         None,
         &["--hosted".into()],
     )?;
-    let extra = format!("x-biomcp-key-oncokb-api-key: {CALLER}\r\n");
+    let extra = format!("x-biomcp-key-oncokb-api-key: {CALLER}\r\nx-biomcp-use: academic\r\n");
     let (keyed, unkeyed) = std::thread::scope(|scope| {
         let keyed = scope.spawn(|| call(&server, args, &extra, false));
-        let unkeyed = scope.spawn(|| call(&server, args, "", false));
+        let unkeyed = scope.spawn(|| call(&server, args, "x-biomcp-use: academic\r\n", false));
         Ok::<_, String>((
             keyed.join().map_err(|_| "keyed caller stopped")??,
             unkeyed.join().map_err(|_| "unkeyed caller stopped")??,
@@ -360,7 +370,12 @@ fn public() -> Check {
             } else {
                 String::new()
             };
-            call(&server, &["search", "author", &query], &extra, false)?;
+            call(
+                &server,
+                &["search", "author", &query],
+                &format!("{extra}x-biomcp-use: academic\r\n"),
+                false,
+            )?;
         }
         server.stop()?;
     }

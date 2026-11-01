@@ -111,5 +111,6 @@ fn snapshot(
     } else {
         fetch.with_secrets(secrets)
     };
-    crate::config::restrict(fetch, globals).map(Ok)
+    let fetch = crate::config::restrict(fetch, globals)?;
+    Ok(Ok(super::hosted_use::restrict(fetch, context)))
 }

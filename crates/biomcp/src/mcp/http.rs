@@ -240,12 +240,28 @@ impl Service {
             Ok(revision) => revision,
             Err(error) => return (400, Some(error), None),
         };
+        let declared_use = if self.globals.hosted {
+            match request.declared_use() {
+                Ok(usage) => Some(usage),
+                Err(_) => {
+                    return (
+                        400,
+                        Some(
+                            json!({"error":"Invalid x-biomcp-use header; allowed values: commercial, academic"}),
+                        ),
+                        Some(revision),
+                    );
+                }
+            }
+        } else {
+            None
+        };
         let mut legacy = revision != super::protocol::REVISIONS[0];
         let result = match super::rpc::message(&request.body, &mut legacy, true, &self.root) {
             super::rpc::Message::Reply(reply) => reply,
             super::rpc::Message::Notification { .. } => return (202, None, Some(revision)),
             super::rpc::Message::Tool { id, params, modern } => {
-                return self.tool(request, id, &params, modern, revision);
+                return self.tool(request, id, &params, modern, revision, declared_use);
             }
         };
         let status = if result.pointer("/error/code") == Some(&json!(-32601)) {
@@ -262,6 +278,7 @@ impl Service {
         params: &Value,
         modern: bool,
         revision: &'static str,
+        declared_use: Option<crate::command::DeclaredUse>,
     ) -> (u16, Option<Value>, Option<&'static str>) {
         let scope = self
             .globals
@@ -297,6 +314,7 @@ impl Service {
                     modern,
                     call,
                     secrets: keys,
+                    declared_use: declared_use.unwrap_or(crate::command::DeclaredUse::Commercial),
                     scope,
                 },
             )
@@ -310,6 +328,7 @@ impl Service {
                     fetch: &self.fetch,
                     recovery: self.recovery.as_deref(),
                     secrets: keys.as_ref(),
+                    declared_use,
                     scope: None,
                 },
                 true,

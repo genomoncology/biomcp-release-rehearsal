@@ -69,7 +69,12 @@ fn call(server: &Server, query: &str, key: Option<&str>) -> Check<Value> {
     let extra = key.map_or_else(String::new, |key| {
         format!("x-biomcp-key-semantic-scholar-api-key: {key}\r\n")
     });
-    super::request_keys::call(server, &["search", "author", query], &extra, false)
+    super::request_keys::call(
+        server,
+        &["search", "author", query],
+        &format!("{extra}x-biomcp-use: academic\r\n"),
+        false,
+    )
 }
 
 fn recordings(assets: &Environment) -> Check<std::path::PathBuf> {

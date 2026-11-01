@@ -5,6 +5,8 @@ mod reply;
 pub(crate) use context::Context;
 pub(crate) use encoding::{Encoding, Outcome};
 mod hosted_keys;
+mod hosted_use;
+pub(crate) use hosted_use::DeclaredUse;
 pub(crate) mod local;
 mod maintenance;
 mod mcp_policy;

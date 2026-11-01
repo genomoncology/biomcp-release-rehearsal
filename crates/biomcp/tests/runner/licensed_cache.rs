@@ -68,7 +68,12 @@ fn request(server: &Server, key: Option<&str>, offline: bool) -> Result<Value, S
     let header = key
         .map(|key| format!("x-biomcp-key-oncokb-api-key: {key}\r\n"))
         .unwrap_or_default();
-    let reply = call(server, &args, &header, false)?;
+    let reply = call(
+        server,
+        &args,
+        &format!("{header}x-biomcp-use: academic\r\n"),
+        false,
+    )?;
     if [FIRST, SECOND]
         .iter()
         .any(|key| reply.to_string().contains(key))

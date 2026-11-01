@@ -1,6 +1,7 @@
 # 0553 — Take each hosted request's declared use from a header
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: aca2c6e83b2cde4dacbfe7c0f611be58e2cde725
 
 Milestone: 5
 

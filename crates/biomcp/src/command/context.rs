@@ -11,6 +11,7 @@ pub(crate) struct Context<'a> {
     pub(crate) fetch: &'a Result<Arc<Fetch>, StartupError>,
     pub(crate) recovery: Option<&'a crate::mcp::Recovery>,
     pub(crate) secrets: Option<&'a Secrets>,
+    pub(crate) declared_use: Option<super::DeclaredUse>,
     pub(crate) scope: Option<&'a Cancellation>,
 }
 impl<'a> Context<'a> {
@@ -27,6 +28,7 @@ impl<'a> Context<'a> {
             fetch,
             recovery: None,
             secrets: None,
+            declared_use: None,
             scope: None,
         }
     }

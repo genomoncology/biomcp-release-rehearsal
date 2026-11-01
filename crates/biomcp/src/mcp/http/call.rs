@@ -30,6 +30,7 @@ pub(super) struct HostedCall {
     pub(super) modern: bool,
     pub(super) call: research::Call,
     pub(super) secrets: Option<Secrets>,
+    pub(super) declared_use: crate::command::DeclaredUse,
     pub(super) scope: Cancellation,
 }
 
@@ -44,6 +45,7 @@ impl Calls {
             modern,
             call,
             secrets,
+            declared_use,
             scope,
         } = work;
         let mut active = self.0.lock().unwrap_or_else(|e| e.into_inner());
@@ -79,6 +81,7 @@ impl Calls {
                     fetch: &fetch,
                     recovery: recovery.as_deref(),
                     secrets: secrets.as_ref(),
+                    declared_use: Some(declared_use),
                     scope: Some(&worker_scope),
                 };
                 let outcome = worker::execute(|| {
@@ -207,6 +210,7 @@ mod tests {
                     projection: Projection::Cli,
                 },
                 secrets: None,
+                declared_use: crate::command::DeclaredUse::Academic,
                 scope: Cancellation::with_budget(DEADLOCK_GUARD),
             },
         );
