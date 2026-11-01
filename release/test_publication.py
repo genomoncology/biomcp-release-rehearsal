@@ -1,4 +1,4 @@
-"""Publication contracts keep channel credentials behind approval and check installs."""
+"""Publication contracts keep channel credentials behind production tag guards and check installs."""
 import json
 import hashlib
 import io
@@ -14,20 +14,25 @@ from unittest.mock import patch
 
 
 class Publication(unittest.TestCase):
-    def test_every_channel_waits_for_approval_and_dispatch_cannot_publish(self):
+    def test_every_channel_keeps_its_environment_and_dispatch_cannot_publish(self):
         workflow = Path('.github/workflows/release.yml').read_text()
         for name in ['github', 'ghcr', 'pypi', 'homebrew', 'installer', 'registry', 'latest']:
             job = workflow.split('\n  publish-' + name + ':\n', 1)[1]
             job = re.split(r'\n  [a-z-]+:\n', job, maxsplit=1)[0]
             self.assertIn('environment: release-publication', job)
+            self.assertIn("github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.rehearsal", job)
+            self.assertIn('if: inputs.rehearsal', job)
             for step in job.split('      - name: ')[1:]:
-                if 'Report the approval rehearsal boundary' not in step:
+                if 'Report the rehearsal boundary' not in step:
                     self.assertIn("if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'", step)
         self.assertIn('attestations: true', workflow)
         self.assertIn('subject-digest: ${{ steps.image.outputs.digest }}', workflow)
         self.assertIn('push-to-registry: true', workflow)
         self.assertIn('make fmt lint test docs-check', workflow)
         post = workflow.split('\n  post-publish:\n')[1]
+        self.assertIn("if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.rehearsal", post)
+        self.assertIn("if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'", post)
+        self.assertIn('if: inputs.rehearsal', post)
         for channel in ['pypi', 'ghcr', 'homebrew', 'installer', 'registry']:
             self.assertIn('channel: ' + channel, post)
             self.assertIn('publish-' + channel, post)

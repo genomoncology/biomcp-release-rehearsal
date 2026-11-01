@@ -45,17 +45,6 @@ def identity(args):
     print("matrix=" + json.dumps({"include": PLATFORMS}, separators=(",", ":")))
 
 
-def protection(args):
-    # https://docs.github.com/en/rest/deployments/environments#get-an-environment
-    settings = json.loads(args.settings.read_text())
-    if settings.get('can_admins_bypass') is not False:
-        raise ValueError('release-publication must disable admin bypass')
-    rules = settings.get("protection_rules", [])
-    if not any(rule.get("type") == "required_reviewers" and rule.get("reviewers")
-               and rule.get("prevent_self_review") is True for rule in rules):
-        raise ValueError("release-publication must require a separate release operator's review after Ian approves")
-
-
 def candidates(args):
     records = {}
     for path in args.artifacts.glob("*/release.json"):
@@ -146,7 +135,9 @@ def release_notes(output, version, revision):
         "--signer-workflow genomoncology/biomcp/.github/workflows/release.yml "
         f"--source-ref refs/tags/v{version} --source-digest {revision}\n```\n\n"
         "Replace ARTIFACT with the downloaded file. Compare the source commit above with the release's "
-        "tag before accepting it. For a rehearsal, use the repository that ran the workflow for both "
+        "tag before accepting it. Private no-op rehearsals are unsigned and cannot pass attestation verification. "
+        "Their retained release-subject-checksums artifact and candidate.json source commit identify the outputs, "
+        "but do not provide signed provenance. For a signed public rehearsal, use the repository that ran the workflow for both "
         "repository arguments and replace --source-ref with the actual rehearsal ref. The source commit must match that run. Verification fails if the file, "
         "signer workflow or source commit differs. Stop if verification fails.\n\n"
         "The installer also checks the archive's SHA-256 checksum. Attestations identify the workflow "
@@ -193,7 +184,7 @@ def stage(args):
     plugin(args.plugin, args.output, args.version, next(iter(records.values())))
     zip_payload(args.output / "biomcp-plugin.zip")
     index = {"version": args.version, "revision": args.revision,
-             "image": "ghcr.io/genomoncology/biomcp", "publication": "requires Ian's approval and the release operator"}
+             "image": "ghcr.io/genomoncology/biomcp", "publication": "requires Ian's approval before pushing the release tag"}
     (args.output / "candidate.json").write_text(json.dumps(index, indent=2) + "\n")
     release_notes(args.output, args.version, args.revision)
     print(json.dumps(index))
@@ -206,8 +197,6 @@ def main():
     candidate.add_argument("--event", choices=["push", "workflow_dispatch"], required=True)
     candidate.add_argument("--tag", required=True)
     candidate.add_argument("--revision", required=True)
-    environment = commands.add_parser("protection")
-    environment.add_argument("settings", type=Path)
     payloads = commands.add_parser("stage")
     for name in ["artifacts", "output", "plugin"]:
         payloads.add_argument("--" + name, type=Path, required=True)
@@ -217,7 +206,7 @@ def main():
     attest.add_argument("--artifacts", type=Path, required=True)
     attest.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    {"identity": identity, "protection": protection, "stage": stage, "subjects": subjects}[args.command](args)
+    {"identity": identity, "stage": stage, "subjects": subjects}[args.command](args)
 
 
 if __name__ == "__main__":

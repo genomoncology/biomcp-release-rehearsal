@@ -9,7 +9,7 @@ import unittest
 
 
 class Promotion(unittest.TestCase):
-    def test_workflow_requires_every_install_and_a_separate_approval(self):
+    def test_workflow_requires_every_install_before_promotion(self):
         text = Path('.github/workflows/release.yml').read_text()
         job = text.split('\n  publish-latest:\n')[1]
         self.assertIn('post-publish]', job)

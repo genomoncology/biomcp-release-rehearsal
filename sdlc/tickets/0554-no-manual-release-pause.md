@@ -1,6 +1,7 @@
 # 0554 — Remove the manual approval pause from the release workflow
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 8355180763ef7eb494c9fbd5217bc79df4a66774
 
 Milestone: 5
 
