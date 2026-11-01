@@ -55,6 +55,7 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 
 - Test against public data before the cut: parse every CIViC and ClinVar record into 1.0 values (0460) and turn real user queries into cases (0461).
 - Close the release review of 2026-10-31 (weighed 2026-11-01) and the code review tickets before the cut: bundle resume 0528, store failures 0529, the hosted HTTP edge 0530, compatibility options and small CLI fixes 0531, dependency trims and the unused-dependency check 0532, gated publication 0533, release notes and public docs 0534, and 0521 to 0526. They touch nothing in `crates/biodata`, so they run while the BioData switch waits. Job failures and gate time (0535) run alongside and gate nothing.
+- Lift the hosted capacity limits the hosted team asked for on 2026-11-01: call and connection caps as settings (0548), keyed-only rate share (0549), shared TLS settings (0550), then published source pacing with config overrides (0551).
 - 0459 lists the code tickets that must land before the BioData switch, and 0336 lists those that must land before the cut. A new must-ship ticket goes on 0336's Depends line, or on 0459's when the switch needs it.
 - Switch to the extracted BioData 1.0 crate once every code ticket lands, with an empty reply diff and an unchanged schema comparison (0459).
 - Cut the release candidate from main once every ticket above lands (0336).
