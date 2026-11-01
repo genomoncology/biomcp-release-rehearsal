@@ -269,7 +269,7 @@ def history_ignores(target, env, mapping, staging):
         if not keys:
             continue
         if reachable is None:
-            reachable = set(git(target, env, "rev-list", "--objects", "--single-worktree", "--all", "HEAD").decode().splitlines())
+            reachable = set(git(target, env, "rev-list", "HEAD").decode().splitlines())
         if row["commit"] not in reachable:
             raise HistoryBindingError("history-ignore-unreachable-commit", number)
         try:

@@ -1,6 +1,7 @@
 # 0555 — Bind reviewed history exceptions to the published history
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: de098f5275124620f0125e947d9447e196b17d4c
 
 Milestone: 5
 

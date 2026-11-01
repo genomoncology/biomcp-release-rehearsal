@@ -280,6 +280,7 @@ class Screening(unittest.TestCase):
             git("worktree", "add", "--quiet", "--detach", str(sibling), base["commit"])
             git("-C", str(sibling), "commit", "--quiet", "--allow-empty", "-m", "Sibling binding fixture")
             sibling_commit = git("-C", str(sibling), "rev-parse", "HEAD")
+            git("branch", "side-only-exception", sibling_commit)
             screen([entries[0], {**entries[1], "commit": sibling_commit}], 2, "history-ignore-unreachable-commit", row=2)
             screen([{**r, "line": 2} for r in entries], 2, "history-ignore-wrong-line")
             screen([{**r, "rule": "unrelated-rule"} for r in entries], 1)
