@@ -51,6 +51,8 @@ mod hosted_pacing;
 mod housekeeping;
 mod http;
 mod http_limits;
+#[cfg(unix)]
+mod key_input;
 mod key_registration;
 pub(super) mod launch;
 mod recurrence;

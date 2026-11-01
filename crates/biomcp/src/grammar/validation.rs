@@ -10,12 +10,7 @@ pub(super) fn schema(verb: &str, entity: &str) -> Option<Value> {
     serde_json::from_str(crate::schema::find(id)?).ok()
 }
 
-pub(super) fn checked(
-    verb: &str,
-    entity: &str,
-    matches: &clap::ArgMatches,
-    cause: &QueryInvalid,
-) -> Option<UsageArguments> {
+pub(super) fn checked(verb: &str, entity: &str, cause: &QueryInvalid) -> Option<UsageArguments> {
     let schema = schema(verb, entity)?;
     let (name, property) = cause.arguments().iter().find_map(|name| {
         schema
@@ -23,15 +18,7 @@ pub(super) fn checked(
             .get(name.as_ref())
             .map(|property| (name.as_ref(), property))
     })?;
-    let argument = if name == "query"
-        && matches
-            .try_get_one::<String>("query_option")
-            .ok()
-            .flatten()
-            .is_some()
-    {
-        "--query".into()
-    } else if property.get("x-positional").is_some() {
+    let argument = if property.get("x-positional").is_some() {
         name.into()
     } else {
         format!("--{}", name.replace('_', "-"))

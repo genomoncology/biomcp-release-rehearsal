@@ -192,11 +192,11 @@ Find NCI biomarker concepts by name or synonym. The public tier returns codes, n
 ```text
 Literal author name query and native window; positional text maps to query.
 
-Usage: biomcp search author [OPTIONS] [query]
+Usage: biomcp search author [OPTIONS] <query>
 
 Arguments:
-  [query]
-          Literal query from the positional argument or --query.
+  <query>
+          Literal query from the positional argument.
 
 Options:
       --format <format>
@@ -223,9 +223,6 @@ Options:
       --source <source>
           Native author source.
 
-  -q, --query <query_option>
-          Literal query from the positional argument or --query.
-
       --offline
           Read local data without source requests.
 
@@ -234,14 +231,13 @@ Options:
 
 ```
 
-Exact author name query and source window; positional text maps to query. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l
+Exact author name query and source window; positional text maps to query. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), positional text and --limit/-l
 
 - `--limit`: Bounded source page size.
 - `--offset`: Source offset.
 - `--pool`: Retained page identity.
-- `query`: Exact query from the positional argument or --query.
+- `query`: Exact query from the positional argument.
 - `--source`: Source author source.
-- `--query`: Exact query from the positional argument or --query.
 
 ## biomcp search organization
 
@@ -331,11 +327,11 @@ Find NCI organizations. Names are not unique; trial counts cover every status, i
 ```text
 One literal cell line search, with native order and no total claim.
 
-Usage: biomcp search cell-line [OPTIONS] [query]
+Usage: biomcp search cell-line [OPTIONS] <query>
 
 Arguments:
-  [query]
-          Literal source query; positional spelling and --query use the same field.
+  <query>
+          Literal source query from the positional argument.
 
 Options:
       --format <format>
@@ -356,9 +352,6 @@ Options:
       --config <config>
           Read configuration from this file.
 
-  -q, --query <query_option>
-          Literal source query; positional spelling and --query use the same field.
-
       --offline
           Read local data without source requests.
 
@@ -371,8 +364,7 @@ One exact cell line search, with source order and no total claim. An assay count
 
 - `--limit`: Source page size.
 - `--offset`: Source start offset.
-- `query`: Exact source query; positional spelling and --query use the same field.
-- `--query`: Exact source query; positional spelling and --query use the same field.
+- `query`: Exact source query from the positional argument.
 
 ## biomcp search gwas
 
@@ -1313,6 +1305,9 @@ Options:
       --next-page <next_page>
           Opaque registry continuation; keep filters unchanged.
 
+      --offset <offset>
+          Zero-based offset of the first row in this continuation page.
+
       --phase <phase>
           Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV.
 
@@ -1367,6 +1362,7 @@ Search ClinicalTrials.gov or keyed NCI with source counts. NCI --facility matche
 - `--limit`: Headers per page; NCI applies its own lower publisher limit.
 - `--lon`: Radius center longitude in degrees.
 - `--next-page`: Opaque registry continuation; keep filters unchanged.
+- `--offset`: Zero-based offset of the first row in this continuation page.
 - `--phase`: Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV.
 - `query`: General registry discovery text.
 - `--sex`: Registry sex facet.
@@ -1582,7 +1578,7 @@ Options:
 
 ```
 
-Exact qualified records in caller order, with no name reconciliation. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.
+Exact qualified records in caller order, with no name reconciliation. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), positional text and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.
 
 - `ids`: One or more exact qualified IDs.
 
@@ -2689,7 +2685,7 @@ Options:
 
 ```
 
-One exact source record's publication window. ORCID sends its whole public works list in one reply and pages groups locally. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.
+One exact source record's publication window. ORCID sends its whole public works list in one reply and pages groups locally. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), positional text and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.
 
 - `--full`: Legacy alias for details; normalized on construction.
 - `id`: Exact qualified source record.
@@ -4343,9 +4339,6 @@ Options:
           [default: json]
           [possible values: json, md]
 
-      --absolute-path
-          Retained compatibility flag; executable paths are always absolute.
-
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
@@ -4365,7 +4358,6 @@ Example: biomcp mcp-config
 Print MCP configuration with this executable’s absolute path. JSON formats name their top-level object and retain released client aliases. The codex client prints its shell registration command. No source requests or key reads.
 
 - `--client`: Choose a JSON client or the codex shell registration command; default mcp-servers.
-- `--absolute-path`: Retained compatibility flag; executable paths are always absolute.
 
 ## biomcp health
 
@@ -4473,7 +4465,7 @@ Register and manage source credentials without showing values.
 Usage: biomcp key [OPTIONS] <COMMAND>
 
 Commands:
-  list    List supported discovery topics.
+  list    List source credentials and their origins without showing values.
   set
   remove
 
@@ -4506,7 +4498,7 @@ Register and manage source credentials without showing values.
 ## biomcp key list
 
 ```text
-List supported discovery topics.
+List source credentials and their origins without showing values.
 
 Usage: biomcp key list [OPTIONS]
 
@@ -4533,7 +4525,7 @@ Example: biomcp key list
 
 ```
 
-List supported credential names and their origin without values.
+List source credentials and their origins without showing values.
 
 
 ## biomcp key set

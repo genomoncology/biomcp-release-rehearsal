@@ -189,3 +189,19 @@ bundle-tests:
 bundle-checks: fmt
 	cargo clippy --locked -p biomcp-fetch --all-targets -- -D warnings
 	$(MAKE) ratchets
+.PHONY: cli-fixes-check
+cli-fixes-check: fmt lint ratchets
+	$(MAKE) schema-generate docs-generate
+	mkdir -p dist
+	COPYFILE_DISABLE=1 tar -czf dist/cli-generated.tar.gz crates/biomcp-types/schemas docs/reference/commands.md
+	cargo test --locked -p biomcp --bin biomcp grammar::reference::reference_matches_grammar $(TEST_THREADS)
+	python3 scripts/check_docs.py
+	$(MAKE) cli-fixes-cases
+
+CLI_FIX_CASES ?= local/ key-registration/ article-saves/ trial/name-fallback-continuation trial/input-boundaries author/help author/papers-help author/source-alias cell-line/aliases cell-line/examples mcp-parity/discovers-artifact-command-tree
+
+.PHONY: cli-fixes-cases
+cli-fixes-cases:
+	@set -e; for selection in $(CLI_FIX_CASES); do \
+		cargo test --locked -p biomcp --test cases "$$selection" $(TEST_THREADS); \
+	done

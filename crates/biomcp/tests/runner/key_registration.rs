@@ -8,6 +8,10 @@ const FIRST: &str = "synthetic-registration-first";
 const SECOND: &str = "synthetic-registration-second";
 pub(super) fn trials() -> Vec<Trial> {
     vec![
+        #[cfg(unix)]
+        transcript_trial("key-registration/input-before-lock", || {
+            super::key_input::check().map_err(Into::into)
+        }),
         transcript_trial("local-file-persistence/local-file-modes", || {
             super::local_files::modes().map_err(Into::into)
         }),

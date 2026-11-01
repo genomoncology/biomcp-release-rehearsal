@@ -5,8 +5,7 @@
   "steps": [
     {
       "run": [
-        "mcp-config",
-        "--absolute-path"
+        "mcp-config"
       ],
       "expect": {
         "/mcpServers/biomcp/args": [

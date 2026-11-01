@@ -115,12 +115,6 @@ pub(super) fn housekeeping_commands() -> [Command; 3] {
                     .long("client")
                     .value_parser(clap::value_parser!(crate::housekeeping::Client))
                     .default_value("mcp-servers"),
-            )
-            .arg(
-                Arg::new("absolute-path")
-                    .help("Retained compatibility flag; executable paths are always absolute.")
-                    .long("absolute-path")
-                    .action(ArgAction::SetTrue),
             ),
     ]
 }

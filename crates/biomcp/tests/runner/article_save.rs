@@ -10,6 +10,7 @@ type Check = Result<(), Box<dyn std::error::Error>>;
 
 pub(super) fn check() -> Check {
     text()?;
+    hidden_cli()?;
     preprint()?;
     supplement()?;
     cache_boundary::check()?;
@@ -175,6 +176,18 @@ fn text() -> Check {
         2,
         "Full text saves must preserve complete content and existing files"
     );
+    Ok(())
+}
+fn hidden_cli() -> Check {
+    let env = Environment::new()?;
+    let destination = env.root().join(".zshenv");
+    command(
+        &env,
+        "article/fulltext/live-introduction",
+        &args("text", &destination),
+        0,
+    )?;
+    assert!(destination.is_file(), "CLI saves allow hidden destinations");
     Ok(())
 }
 fn supplement() -> Check {

@@ -27,7 +27,6 @@
       "run": [
         "search",
         "author",
-        "-q",
         "Louis Williams"
       ],
       "expect": {

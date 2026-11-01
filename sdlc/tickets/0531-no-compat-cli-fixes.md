@@ -1,6 +1,7 @@
 # 0531 — Drop compatibility options and fix small CLI defects
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: dfc6d1a9b88b8635d4122b79d39825f23a20ddc1
 
 Milestone: 5
 

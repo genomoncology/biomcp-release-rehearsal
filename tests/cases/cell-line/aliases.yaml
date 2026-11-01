@@ -2,14 +2,13 @@
   "verified": "The example generator in crates/biomcp/tests/runner/cell_line/examples.rs records unchanged native bodies from tests/fixtures/cell-line/native/requests.json. The nightly run executes the public Cellosaurus search.",
   "live_check": "public",
   "feature": "cell-line-identity",
-  "story": "Short query and limit aliases map to the same checked literal request.",
+  "story": "The short limit option preserves the literal positional request.",
   "replay": "cell-line/examples",
   "steps": [
     {
       "run": [
         "search",
         "cell-line",
-        "-q",
         "MOLM13",
         "-l",
         "5",

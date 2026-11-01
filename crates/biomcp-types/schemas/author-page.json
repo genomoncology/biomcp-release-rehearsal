@@ -135,7 +135,7 @@
           "description": "Retained page identity."
         },
         "query": {
-          "description": "Literal query from the positional argument or --query.",
+          "description": "Literal query from the positional argument.",
           "minLength": 1,
           "type": "string",
           "x-positional": 0

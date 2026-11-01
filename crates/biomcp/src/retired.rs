@@ -70,7 +70,6 @@ const TRIAL_SEARCH: &[(&str, ErrorMessage)] = &[
     ("--date-from", ErrorMessage::TrialSince),
     ("--date-to", ErrorMessage::TrialUntil),
     ("--results-available", ErrorMessage::TrialResults),
-    ("--offset", ErrorMessage::TrialPage),
     ("--no-alias-expand", ErrorMessage::TrialNoExpansion),
 ];
 const GWAS_SEARCH: &[(&str, ErrorMessage)] = &[];

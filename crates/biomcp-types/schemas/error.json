@@ -294,7 +294,7 @@
       "type": "string"
     },
     "Reply_ErrorStatus": {
-      "description": "The status of an invalid schema request.",
+      "description": "The status of a command usage error, local failure or expired result.",
       "enum": [
         "usage",
         "local",

@@ -2167,6 +2167,13 @@
           "$ref": "#/$defs/Reply_Text",
           "description": "Opaque registry continuation; keep filters unchanged."
         },
+        "offset": {
+          "default": 0,
+          "description": "Zero-based offset of the first row in this continuation page.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
         "phase": {
           "$ref": "#/$defs/Reply_TrialPhaseFilter",
           "description": "Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."

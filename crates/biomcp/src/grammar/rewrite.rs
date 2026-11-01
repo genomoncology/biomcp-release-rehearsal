@@ -9,7 +9,6 @@ pub(super) fn request(
     verb: &str,
     entity: &str,
     mut value: Value,
-    matches: &clap::ArgMatches,
 ) -> Result<Request, QueryInvalid> {
     match via {
         Rewrite::Direct | Rewrite::GetPhenotype => direct(verb, entity, value),
@@ -68,12 +67,6 @@ pub(super) fn request(
                 })
         }
         Rewrite::SearchCellLine | Rewrite::SearchAuthor => {
-            if let Some(query) = matches.get_one::<String>("query_option") {
-                value
-                    .as_object_mut()
-                    .ok_or_else(QueryInvalid::default)?
-                    .insert("query".into(), query.clone().into());
-            }
             if via == Rewrite::SearchAuthor {
                 decode_query(value).map(Request::SearchAuthor)
             } else {

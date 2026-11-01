@@ -130,10 +130,9 @@ pub(super) fn parse_invalid(root: &Command, error: &clap::Error) -> super::Parse
 pub(super) fn checked_invalid(
     verb: &str,
     entity: &str,
-    matches: &clap::ArgMatches,
     cause: &biomcp_types::QueryInvalid,
 ) -> super::ParseInvalid {
-    let usage = super::validation::checked(verb, entity, matches, cause)
+    let usage = super::validation::checked(verb, entity, cause)
         .map(UsageError::Arguments)
         .or_else(|| cause.message().map(UsageError::message));
     super::ParseInvalid {

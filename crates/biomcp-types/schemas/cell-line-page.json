@@ -158,7 +158,7 @@
         },
         "query": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Literal source query; positional spelling and --query use the same field.",
+          "description": "Literal source query from the positional argument.",
           "x-positional": 0
         }
       },

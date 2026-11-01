@@ -61,7 +61,7 @@ biomcp cell-line assay-count CHEMBL3706573 --fresh
 
 ```sh
 biomcp search cell-line MOLM13
-biomcp search cell-line --query 'MV4;11'
+biomcp search cell-line 'MV4;11'
 ```
 
 ## biomcp get cell-line

@@ -282,7 +282,7 @@ pub(crate) fn parse(root: &Command, args: &[OsString]) -> Result<Parsed, ParseIn
     } else {
         let (entity, matches) = matches.subcommand().ok_or_else(ParseInvalid::default)?;
         let request = request(verb, entity, matches)
-            .map_err(|cause| errors::checked_invalid(verb, entity, matches, &cause))?;
+            .map_err(|cause| errors::checked_invalid(verb, entity, &cause))?;
         Action::Run {
             request,
             fresh: globals.fresh,
@@ -481,7 +481,7 @@ fn request(
         .iter()
         .find(|command| (command.verb, command.entity) == (verb, entity))
         .ok_or_else(biomcp_types::QueryInvalid::default)?;
-    rewrite::request(command.via, verb, entity, value, matches)
+    rewrite::request(command.via, verb, entity, value)
 }
 
 fn request_arguments(

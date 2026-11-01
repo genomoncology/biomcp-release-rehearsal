@@ -44,7 +44,7 @@ The reviewed source tree is the 0.9 implementation in `biomcp`. Runtime output s
 
 | 0.9 command, option, section or behavior | 1.0 disposition | Reason and replacement |
 | --- | --- | --- |
-| `search cell-line QUERY`, `--query`/`-q`, `--limit`/`-l`, `--offset` | `search cell-line QUERY`, `--query`/`-q`, `--limit`/`-l`, `--offset` | Preserve the literal source query and native candidate order. Default five headers; checked positive bounds. |
+| `search cell-line QUERY`, `--query`/`-q`, `--limit`/`-l`, `--offset` | `search cell-line QUERY`, `--limit`/`-l`, `--offset` | Preserve the literal source query and native candidate order. Default five headers; checked positive bounds. |
 | Name normalization, removal of punctuation, a second hyphenless search | Retire by PM ruling | Text rewriting can join different lines. One unchanged native field query supplies candidates. |
 | Human-first and identifier/synonym match reranking | Retire by PM ruling | Publish species and source names without introducing an ordering or declaring exact identity from normalized text. |
 | `get cell-line CVCL_…` | `get cell-line CVCL_…` | Resolve the exact primary accession and verify the returned primary accession. Secondary accession resolution remains deferred until a retained native card proves it. |
@@ -64,7 +64,7 @@ The closed public-issue inventory reads every closed issue returned by the repos
 <!-- parity-accounting -->
 | 0.9 leaf command | Command outcome | Ported or renamed options | Dropped options | Deferred options | Undecided options | Ruling |
 | --- | --- | --- | --- | --- | --- | --- |
-| `search cell-line` | Ported or renamed | `--query`, `--limit`, `--offset` | — | — | — | Keep unchanged literal text, explicit query aliases and native paging. Drop normalization and reranking because text rewriting can join different lines and invented order can imply identity. |
+| `search cell-line` | Ported or renamed | `--limit`, `--offset` | `--query` | — | — | Use literal positional text instead of -q/--query; keep native paging. Drop normalization and reranking because text rewriting can join different lines and invented order can imply identity. |
 | `get cell-line` | Ported or renamed | — | — | — | — | Keep exact primary accession and verified source-ID candidate resolution. Keep variants, xrefs, chembl and bounded all. The drug_response section defers PharmacoDB until affirmative database reuse terms exist. New names and identity sections disclose bounded source facts; assay-count remains a separate explicit request. |
 | `cell-line drug-response` | Deferred by ruling | — | — | `--dataset`, `--limit`, `--offset` | — | Deferred with PharmacoDB until an affirmative database reuse grant exists. No name fallback, experiment download or local response inference runs. |
 <!-- /parity-accounting -->
@@ -154,7 +154,7 @@ The first implementation uses API requests and the existing checked reply cache.
 
 | Command | Default answer, options and source work | Next actions |
 | --- | --- | --- |
-| `search cell-line QUERY` | Five native headers, `--query` alias, `--limit` 1–25 and `--offset`; one literal escaped `idsy` source query with native `start`/`rows`, no sort or rewrite. A canonical CVCL input uses exact accession query syntax. | One disambiguating get per shown CVCL accession; a page action when the window fills; no automatic winner. |
+| `search cell-line QUERY` | Five native headers, positional text, `--limit` 1–25 and `--offset`; one literal escaped `idsy` source query with native `start`/`rows`, no sort or rewrite. A canonical CVCL input uses exact accession query syntax. | One disambiguating get per shown CVCL accession; a page action when the window fills; no automatic winner. |
 | `get cell-line CVCL` | Identity card from one projected Cellosaurus request; `names`, `identity`, `xrefs`, `variants` and `chembl` are closed named sections. `identity` offers the remaining species, diseases and qualified warnings if a default collection is capped. `--section-limit` accepts 1–25 and `--section-offset` accepts a nonnegative offset; they page requested collections independently with source totals retained. | At most five priority actions under architecture 6.10: names, variants, xrefs, ChEMBL, then identity overflow if present; otherwise a supported exact gene/article pivot when available. |
 | `get cell-line SOURCE_ID` | Search the exact qualified external ID, then verify that database and accession on the selected exact card. Multiple candidates stay ambiguous. Neither a sole search result nor a name match bypasses the xref check. | Candidate gets on ambiguity; exact card sections only after identity is verified. |
 | `get cell-line CVCL chembl` | One additional exact `cellosaurus_id` metadata request. The response's ChEMBL IDs are source-local cell identities, not compounds or targets. | `cell-line assay-count CHEMBL_CELL_ID` for each exact returned record within the architecture bound. |
@@ -168,7 +168,7 @@ A card cannot embed another complete entity. Variation gene identifiers may give
 
 | Surface | Harvested positive and boundary cases |
 | --- | --- |
-| Search positional input and `--query` | C01/C02 literal spellings; assert direct native candidate IDs and order. No second altered request. |
+| Search positional input | C01/C02 literal spellings; assert direct native candidate IDs and order. No second altered request. |
 | Search `--limit`, `--offset` | NB4 native pages, source order and retained query; zero total claim on a full window, no repeated source rows introduced by the client. KG1 retains species. |
 | Exact accession get | C01, C06, C08/C09; requested and returned primary or explicitly declared secondary accession agree. Different accession is a failed identity check. |
 | Reverse source-ID get | C13/C14; exact database/accession verification, ambiguous candidates, valid unmatched identity and wrong-xref controls. |
@@ -523,7 +523,7 @@ The K-562 executable YAML walk owns its whole 1,398-row cross-reference sequence
 
 `get cell-line CVCL_2119 all` and `get cell-line CVCL_0004 all` retain every named section's default first page. The complete checked Cellosaurus reply supplies names, identity, cross-references and variants. One exact-accession ChEMBL metadata request supplies the independent ChEMBL section. The original command deadline covers both sources and their separate release reads. No assay request follows implicitly. Source failure and policy skip remain visible in their section states and source outcomes. A ChEMBL failure keeps the Cellosaurus card partial and offers a fresh command.
 
-Composite paging controls return fixed usage guidance before provider access. Each explicit section limit is a composite control because named sections have different defaults. A nonzero section offset is also refused. The named section command owns paging. Deferred PharmacoDB spellings and the HPA expression command return fixed reasons before provider access. The prior drug cell-line retirement remains unchanged. The explicit query aliases continue to submit unchanged Cellosaurus queries.
+Composite paging controls return fixed usage guidance before provider access. Each explicit section limit is a composite control because named sections have different defaults. A nonzero section offset is also refused. The named section command owns paging. Deferred PharmacoDB spellings and the HPA expression command return fixed reasons before provider access. The prior drug cell-line retirement remains unchanged. Positional text submits unchanged Cellosaurus queries.
 
 The outside-in composite cases reuse the protected native fixtures and the existing independent source fault matrices. Additional composites label synthetic failures and distinguish successful empty, failed, skipped and unavailable states. The ordinary-cache policy cases reject disabled sources before retained replies or requests. A local HTML verification page proves that neither source follows or retries a verification route. No live provider request, licensed fixture or analysis tool is involved.
 

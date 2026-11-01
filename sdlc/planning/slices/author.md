@@ -91,7 +91,7 @@ The closed public issue inventory was read on 2026-10-26: all 57 closed issues w
 <!-- parity-accounting -->
 | 0.9 leaf command | Command outcome | Ported or renamed options | Dropped options | Deferred options | Undecided options | Ruling |
 | --- | --- | --- | --- | --- | --- | --- |
-| `search author` | Ported or renamed | `--query`, `--source`, `--limit`, `--offset` | — | — | — | Keep literal positional text and -q/--query, numeric -l/--limit, native order and source alias semanticscholar. Shared --pool retains checked pages. ORCID name search, topic ranking and coauthor aggregation remain unsupported because the accepted sources establish no such scope. |
+| `search author` | Ported or renamed | `--source`, `--limit`, `--offset` | `--query` | — | — | Use literal positional text instead of -q/--query; keep numeric -l/--limit, native order and source alias semanticscholar. Shared --pool retains checked pages. ORCID name search, topic ranking and coauthor aggregation remain unsupported because the accepted sources establish no such scope. |
 | `get author` | Ported or renamed | — | — | — | — | Keep exact semantic-scholar:ID, alias semanticscholar:ID and checksummed orcid:ID in caller order. Counts describe provider records. No person link or cross-provider merge is computed. |
 | `author papers` | Ported or renamed | `--full`, `--limit`, `--offset` | — | — | — | Keep provider-qualified papers and numeric -l. Semantic Scholar details and --full select the same native rich page. ORCID pages public groups with native assertion provenance. Shared --pool preserves the retained collection. |
 <!-- /parity-accounting -->
@@ -256,7 +256,7 @@ Before type acceptance, the capture set must cover each source field's absence, 
 
 | Surface | Required cases and harvest links |
 | --- | --- |
-| Search positional text and legacy `-q/--query` compatibility ruling | A21 same-name candidates, A23 topic rank refusal, whitespace/empty usage, unchanged native text. |
+| Search positional text | A21 same-name candidates, A23 topic rank refusal, whitespace/empty usage, unchanged native text. |
 | Search `--source` and legacy spelling | A21 explicit source, unsupported source usage, disabled source group, eligible keyless reply, 429, malformed body. |
 | Search `--limit`, `--offset`, `--pool` | A21 first page and exact continuation, min/max/invalid bounds, empty page, warm page makes no request, expired pool offers restart. |
 | `get author` one/many qualified IDs and ID alias | A01/A05/A09/A13 exact provider identities; A18/A24 exact ORCID; input order; invalid checksum before request; missing record; mismatched source ID refused; no name-based join. |
@@ -366,7 +366,7 @@ The scoped synthetic works HTTP 404 control measures 295 CLI bytes, 4 bare resul
 
 ## Retirement and source-failure contract
 
-`list author` returns `usage.retired` and names `help author`, `help search author` and `help get author`. `help author` retains the complete author route list, including papers. Topic ranking, coauthor aggregation and cross-provider merging return fixed unsupported guidance to `search author TEXT` or `search article`. An ORCID name search returns its own fixed unsupported guidance. Neither route rewrites query text, chooses a candidate or joins records by name. The existing article-owned `article authors` retirement remains unchanged. Legacy `-q` and `--query` author searches remain supported. Numeric `-l` remains an alias of `--limit` for search and papers.
+`list author` returns `usage.retired` and names `help author`, `help search author` and `help get author`. `help author` retains the complete author route list, including papers. Topic ranking, coauthor aggregation and cross-provider merging return fixed unsupported guidance to `search author TEXT` or `search article`. An ORCID name search returns its own fixed unsupported guidance. Neither route rewrites query text, chooses a candidate or joins records by name. The existing article-owned `article authors` retirement remains unchanged. Author searches take positional text; legacy `-q` and `--query` options are refused. Numeric `-l` remains an alias of `--limit` for search and papers.
 
 Synthetic controls distinguish a successful empty candidate page, an absent exact record and a failed source. Both sources retain source identity and publisher terms on HTTP 429, HTTP 500, deadline, broken JSON and HTTP 200 error-body failures. An anonymous Semantic Scholar 429 retains the key-help action. The existing source failure handling required no adapter change for these controls.
 

@@ -32,7 +32,7 @@ pub struct AuthorSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Literal query from the positional argument or --query.
+    /// Literal query from the positional argument.
     #[cfg_attr(feature = "schema", schemars(length(min = 1), extend("x-positional" = 0)))]
     query: Box<str>,
     /// Native author source.

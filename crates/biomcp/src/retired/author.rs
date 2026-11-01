@@ -38,15 +38,14 @@ pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMe
                 }
                 continue;
             }
-            if flag.strip_prefix("-q").is_some_and(|v| !v.is_empty())
-                || flag
-                    .strip_prefix("-l")
-                    .is_some_and(|v| !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit()))
+            if flag
+                .strip_prefix("-l")
+                .is_some_and(|v| !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit()))
             {
                 continue;
             }
-            // Short query and limit flags retain their ordinary value boundaries.
-            if matches!(flag, "-q" | "--query" | "-l") {
+            // The short limit flag retains its ordinary value boundary.
+            if flag == "-l" {
                 if inline.is_none() {
                     args.next();
                 }

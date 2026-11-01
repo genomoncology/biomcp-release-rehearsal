@@ -22,7 +22,6 @@
       "run": [
         "search",
         "cell-line",
-        "--query",
         "MV4;11"
       ],
       "expect": {

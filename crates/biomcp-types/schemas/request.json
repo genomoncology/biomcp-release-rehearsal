@@ -1180,7 +1180,7 @@
           "description": "Retained page identity."
         },
         "query": {
-          "description": "Literal query from the positional argument or --query.",
+          "description": "Literal query from the positional argument.",
           "minLength": 1,
           "type": "string",
           "x-positional": 0
@@ -1315,7 +1315,7 @@
         },
         "query": {
           "$ref": "#/$defs/Text",
-          "description": "Literal source query; positional spelling and --query use the same field.",
+          "description": "Literal source query from the positional argument.",
           "x-positional": 0
         }
       },
@@ -4219,6 +4219,13 @@
         "next_page": {
           "$ref": "#/$defs/Text",
           "description": "Opaque registry continuation; keep filters unchanged."
+        },
+        "offset": {
+          "default": 0,
+          "description": "Zero-based offset of the first row in this continuation page.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
         },
         "phase": {
           "$ref": "#/$defs/TrialPhaseFilter",

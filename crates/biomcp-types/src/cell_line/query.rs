@@ -48,7 +48,7 @@ pub struct CellLineSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Literal source query; positional spelling and --query use the same field.
+    /// Literal source query from the positional argument.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     query: Text,
     /// Native page size.

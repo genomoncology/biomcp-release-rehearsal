@@ -138,7 +138,7 @@ fn apply(
             out.next.push(crate::next::Step::run(
                 StepKind::Page,
                 &[Source::Nci],
-                Request::SearchTrial(q.at_page(token)),
+                Request::SearchTrial(q.at_page(token, offset.saturating_add(returned))),
                 fresh,
             ));
         }

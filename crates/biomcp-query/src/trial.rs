@@ -129,7 +129,7 @@ fn apply_page(
         );
     }
     outcome.page = page.total.map(|total| biomcp_types::PageInfo {
-        offset: 0,
+        offset: query.offset(),
         returned: page.items.len() as u32,
         total,
         pool: None,
@@ -139,7 +139,10 @@ fn apply_page(
         outcome.next.push(crate::next::Step::run(
             StepKind::Page,
             &[query.source().source()],
-            Request::SearchTrial(query.at_page(token)),
+            Request::SearchTrial(query.at_page(
+                token,
+                query.offset().saturating_add(page.items.len() as u32),
+            )),
             fresh,
         ));
     }

@@ -233,6 +233,9 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     next_page: Option<Text>,
+    /// Zero-based offset of the first row in this continuation page.
+    #[serde(default)]
+    offset: u32,
     /// Source total only; no returned study rows.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     count_only: bool,
@@ -396,6 +399,10 @@ impl TrialSearch {
     pub fn next_page(&self) -> Option<&Text> {
         self.0.next_page.as_ref()
     }
+    /// Zero-based offset carried by continuation queries.
+    pub fn offset(&self) -> u32 {
+        self.0.offset
+    }
     /// Source count without study rows.
     pub fn count_only(&self) -> bool {
         self.0.count_only
@@ -432,9 +439,10 @@ impl TrialSearch {
         alternatives
     }
     /// Continue the identical source query with its opaque cursor.
-    pub fn at_page(&self, token: Text) -> Self {
+    pub fn at_page(&self, token: Text, offset: u32) -> Self {
         let mut next = self.clone();
         next.0.next_page = Some(token);
+        next.0.offset = offset;
         next
     }
 }

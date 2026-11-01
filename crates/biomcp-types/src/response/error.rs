@@ -26,7 +26,7 @@ macro_rules! singleton {
 }
 
 singleton! {
-    /// The status of an invalid schema request.
+    /// The status of a command usage error, local failure or expired result.
     pub ErrorStatus { Usage => "usage", Local => "local", Expired => "expired" }
 }
 

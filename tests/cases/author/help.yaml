@@ -13,7 +13,7 @@
             "--pool"
           ]
         },
-        "/result/commands/0/description": "Exact author name query and source window; positional text maps to query. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l",
+        "/result/commands/0/description": "Exact author name query and source window; positional text maps to query. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), positional text and --limit/-l",
         "/result/commands/0/examples": {
           "count": 2
         },
@@ -34,7 +34,7 @@
             "ids"
           ]
         },
-        "/result/commands/0/description": "Exact qualified records in caller order, with no name reconciliation. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.",
+        "/result/commands/0/description": "Exact qualified records in caller order, with no name reconciliation. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), positional text and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.",
         "/result/commands/0/examples": {
           "count": 2
         },

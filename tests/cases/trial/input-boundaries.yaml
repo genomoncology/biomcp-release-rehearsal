@@ -49,7 +49,7 @@
       "exit": 2,
       "offline": true,
       "expect": {
-        "/error/message": "renamed; use: --next-page with the opaque registry cursor"
+        "/error/code": "usage.arguments"
       }
     }
   ],

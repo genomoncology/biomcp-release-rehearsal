@@ -13,7 +13,7 @@ pub(crate) const ENV_PATHS: &[(&str, &str)] = &[
     ("XDG_CACHE_HOME", "cache"),
 ];
 pub(crate) fn new() -> io::Result<tempfile::TempDir> {
-    let root = tempfile::tempdir()?;
+    let root = tempfile::Builder::new().prefix("biomcp-").tempdir()?;
     for directory in ["home", "config", "cache"] {
         fs::create_dir(root.path().join(directory))?;
     }
