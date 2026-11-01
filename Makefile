@@ -23,7 +23,11 @@ pre-job: check-cheap
 LINT_GOALS = unused-dependencies check-no-default-features lint-workspace lint-tools
 
 check-cheap:
-	+$(MAKE) --no-print-directory --keep-going -j1 fmt $(LINT_GOALS) ratchets
+	+$(MAKE) --no-print-directory --keep-going -j1 shell-check fmt $(LINT_GOALS) ratchets
+
+.PHONY: shell-check
+shell-check:
+	python3 scripts/check_shell.py
 
 # Retained proof archives use the platform tar, including Python 3.9 machines.
 proof-unpack:
@@ -118,7 +122,7 @@ docs-check:
 	python3 scripts/test_build_workers.py
 	python3 scripts/test_trials.py
 	python3 scripts/test_nightly_live_check.py
-	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows
+	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows release.test_artifacts.ReleaseCommands
 	python3 -m unittest release.test_workflow release.test_security release.test_licenses release.test_docs
 	python3 -m unittest release.test_source_revision release.test_workflow_contracts release.test_publication release.test_promotion
 .PHONY: release-linux

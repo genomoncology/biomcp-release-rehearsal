@@ -1,6 +1,7 @@
 # 0556 — Run release-only paths in the routine gate
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 3fdbcdd4ee4a22d7d2c4fb4c962ada395ca8b5b7
 
 Milestone: 5
 

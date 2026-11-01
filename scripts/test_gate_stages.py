@@ -38,6 +38,32 @@ class GateStages(unittest.TestCase):
             self.assertIn('gate stage=pre-job', result.stdout)
             self.assertNotIn('gate stage=workflow-lint', result.stdout)
 
+    def test_cheap_check_parses_tracked_shell_scripts_by_shebang(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'scripts').mkdir()
+            for name in ('Makefile', 'scripts/check_shell.py'):
+                (root / name).write_bytes((ROOT / name).read_bytes())
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            # Neither the extension nor executable permission selects the file.
+            script = root / 'release fixture.txt'
+            script.write_text('#!/bin/sh\nif true; then\n  :\nfi\n')
+            (root / 'untracked.sh').write_text('#!/bin/sh\nif\n')
+            (root / 'other.sh').write_text('#!/bin/bash\nif\n')
+            subprocess.run(['git', '-C', str(root), 'add', 'release fixture.txt', 'other.sh'], check=True)
+            goals = ('fmt', 'unused-dependencies', 'check-no-default-features',
+                     'lint-workspace', 'lint-tools', 'ratchets')
+            # check-cheap invokes a recursive make; pass omissions to that child.
+            command = ['make', '--no-print-directory', 'check-cheap',
+                       'MAKE=make ' + ' '.join('-o ' + goal for goal in goals)]
+            for broken in (False, True):
+                if broken:
+                    script.write_text('#!/bin/sh\nif true; then\n')
+                result = subprocess.run(command, cwd=root, capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, not broken, result.stdout + result.stderr)
+                if broken:
+                    self.assertIn('release fixture.txt', result.stderr)
+
     def test_coverage_reuses_completed_gate_prerequisites(self):
         result = subprocess.run(['make', '--no-print-directory', '-n',
                                  '-o', 'docs-check', '-o', 'library-tests', 'coverage'],
