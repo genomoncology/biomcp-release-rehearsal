@@ -127,3 +127,12 @@ release-mutations:
 workflow-lint:
 	cargo check --locked -p biodata -p biomcp-types --no-default-features
 	actionlint
+
+.PHONY: bundle-tests
+bundle-tests:
+	cargo test --locked -p biomcp-fetch --test bundle $(TEST_FILTER) $(TEST_THREADS)
+
+.PHONY: bundle-checks
+bundle-checks: fmt
+	cargo clippy --locked -p biomcp-fetch --all-targets -- -D warnings
+	$(MAKE) ratchets

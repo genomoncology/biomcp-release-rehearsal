@@ -1,6 +1,7 @@
 # 0528 — Recover a complete bundle part instead of wedging on HTTP 416
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 08c9239ad94cb5b357d349fe7040f55d5b7e9273
 
 Milestone: 5
 

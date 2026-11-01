@@ -20,6 +20,7 @@ struct Transfer<'a> {
     part: &'a mut Part,
     auto: bool,
     downloaded_bytes: u64,
+    complete: bool,
     started: Instant,
 }
 impl Leg<'_> {
@@ -80,14 +81,14 @@ impl Leg<'_> {
             &mut file,
             !record && matches!(b.format, super::RowFormat::Tsv),
         )?;
-        let started = Instant::now();
         let mut transfer = Transfer {
             holder: &holder,
             file: &mut file,
             part: &mut part,
             auto,
             downloaded_bytes: 0,
-            started,
+            complete: false,
+            started: Instant::now(),
         };
         let result = self.download(
             b,
@@ -102,7 +103,9 @@ impl Leg<'_> {
         if result.is_err() {
             // Preserve this holder's file only if its fenced metadata update succeeds.
             let cleanup = Deadline::start(Duration::from_secs(1), None);
-            if cache.retain(b.name, &holder, &part, cleanup)? {
+            if transfer.complete {
+                cache.discard(b.name, &holder, cleanup)?;
+            } else if cache.retain(b.name, &holder, &part, cleanup)? {
                 file.keep().map_err(|_| CacheError::Database)?;
             }
         }
@@ -166,7 +169,7 @@ impl Leg<'_> {
                 Ok(mut response) => {
                     let status = response.status().as_u16();
                     self.observe_bundle_status(&prepared, status, b.format, t.started.elapsed());
-                    if status == 412 && t.part.bytes > 0 {
+                    if matches!(status, 412 | 416) && t.part.bytes > 0 {
                         reset(t.file, t.part)?;
                         headers.clear();
                         continue;
@@ -272,6 +275,7 @@ impl Leg<'_> {
             t.part.etag = None;
         }
         self.stream(t, response, R::MAX_BYTES)?;
+        t.complete = true;
         t.file.flush().map_err(|_| CacheError::Database)?;
         t.file.rewind().map_err(|_| CacheError::Database)?;
         let mut body = Vec::new();
