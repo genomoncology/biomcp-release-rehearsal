@@ -22,22 +22,17 @@ fn documents() -> Result<Vec<(&'static str, String)>, Box<dyn std::error::Error>
         }
     }
     let mut recipes = String::from(
-        "# Worked commands\n\nGenerated from harvested case run steps through the shipped help examples. \
-        The documentation check executes these commands against recordings through CLI and MCP. \
-        Live source replies can differ.\n\nChoose a command below, inspect its source outcomes and follow its returned next commands. \
-        Stored sources require the explicit synchronization shown by their command.\n\n",
+        "# Worked commands\n\nGenerated from recorded public cases. Run `make docs-generate` to update. \
+        The documentation check executes these cases through CLI and MCP. Live replies can differ.\n\n",
     );
-    for entry in help
-        .commands
-        .iter()
-        .filter(|entry| !entry.examples.is_empty())
-    {
-        let name = std::iter::once("biomcp")
-            .chain(entry.command.iter().map(String::as_str))
-            .collect::<Vec<_>>()
-            .join(" ");
-        writeln!(recipes, "## {name}\n\n```sh")?;
-        for args in &entry.examples {
+    for name in ["version", "gene", "article", "trial"] {
+        let case: serde_json::Value = serde_saphyr::from_str(&fs::read_to_string(
+            root().join(format!("tests/cases/readme/{name}.yaml")),
+        )?)?;
+        let question = case["story"].as_str().ok_or("recipe question missing")?;
+        writeln!(recipes, "## {question}\n\n```sh")?;
+        for step in case["steps"].as_array().ok_or("recipe steps missing")? {
+            let args: Vec<String> = serde_json::from_value(step["run"].clone())?;
             writeln!(
                 recipes,
                 "biomcp {}",

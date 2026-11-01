@@ -95,7 +95,7 @@ fn missing_marker(
     root: &std::path::Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Plant an actual kept recording case, then remove only its declaration.
-    let path = fixtures().join("cases/gene/kras.yaml");
+    let path = fixtures().join("cases/readme/gene.yaml");
     let mut case: Value = serde_saphyr::from_str(&fs::read_to_string(path)?)?;
     case.as_object_mut()
         .ok_or("missing case object")?

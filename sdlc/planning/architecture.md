@@ -28,7 +28,7 @@ The dependency direction follows `../decisions/2026-10-23-crates-enforce-depende
 | Each command path has one grammar or one declared shared rewrite, with a registered schema. | `command_types!` consumers | Check: `crates/biomcp-types/tests/schemas/commands.rs` |
 | Generated help and reference text agree with the grammar. | `crates/biomcp/src/grammar/reference.rs` | Check: `crates/biomcp/src/grammar/reference.rs` |
 | Case replies validate against their advertised schemas before assertions. | `crates/biomcp/tests/runner/schema.rs` | Check: `crates/biomcp/tests/runner/schema_proof.rs` |
-| Schema generation and release comparison reject incompatible transitions outside explicit reviewed changes. | `scripts/schema_release.py` | Check: `scripts/test_schema_release.py` |
+| Schema generation and release comparison require a major-version bump for incompatible transitions. | `scripts/schema_release.py` | Check: `scripts/test_schema_release.py` |
 
 The command reference owns the public command inventory. This file carries no second command or schema list.
 

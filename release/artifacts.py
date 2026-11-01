@@ -17,11 +17,13 @@ import tarfile
 import zipfile
 
 if __package__:
+    from .readme import description
     from .tools import candidate, check
     from .source_revision import revision as source_revision
     from .notices import generate, payloads, metadata as check_metadata
     from .license_check import zip_payload
 else:
+    from readme import description
     from tools import candidate, check
     from source_revision import revision as source_revision
     from notices import generate, payloads, metadata as check_metadata
@@ -84,7 +86,7 @@ def wheel(output, binary, provenance):
     files = {
         stem + ".data/scripts/biomcp" + suffix: binary.read_bytes(),
         stem + ".data/scripts/" + provenance["distribution"] + suffix: binary.read_bytes(),
-        metadata + "/METADATA": ("Metadata-Version: 2.1\nName: " + provenance["distribution"] + "\nVersion: " + version + "\nSummary: BioMCP CLI and MCP server\nRequires-Python: >=3.9\nLicense: MIT\nProject-URL: Homepage, https://biomcp.org\nProject-URL: Repository, https://github.com/genomoncology/biomcp\nProject-URL: Documentation, https://biomcp.org\nDescription-Content-Type: text/markdown\n\nBioMCP CLI and MCP server\n\nmcp-name: io.github.genomoncology/biomcp\n").encode(),
+        metadata + "/METADATA": ("Metadata-Version: 2.1\nName: " + provenance["distribution"] + "\nVersion: " + version + "\nSummary: BioMCP CLI and MCP server\nRequires-Python: >=3.9\nLicense: MIT\nProject-URL: Homepage, https://biomcp.org\nProject-URL: Repository, https://github.com/genomoncology/biomcp\nProject-URL: Documentation, https://biomcp.org\nDescription-Content-Type: text/markdown\n\n" + description() + "\n\nmcp-name: io.github.genomoncology/biomcp\n").encode(),
         metadata + "/WHEEL": ("Wheel-Version: 1.0\nGenerator: biomcp-local-producer\nRoot-Is-Purelib: false\nTag: py3-none-" + tag + "\n").encode(),
         metadata + "/release.json": json.dumps(provenance, sort_keys=True).encode(),
     }

@@ -1,7 +1,7 @@
 {
   "live_check": "public",
   "feature": "article-search",
-  "story": "PubMed relevance pages preserve every recorded PMID in order, and hydrated pages survive another process offline.",
+  "story": "Which PubMed articles match AKT1 E17K?",
   "replay": "article/search/live",
   "steps": [
     {

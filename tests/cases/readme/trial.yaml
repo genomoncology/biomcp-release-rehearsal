@@ -1,7 +1,7 @@
 {
   "feature": "trial-search",
   "live_check": "public",
-  "story": "Registry native condition search preserves captured total and native identity order; provider response from the investigation, source processing date 2026-10-23, delivered locally through the actual CLI record path.",
+  "story": "Which registered trials match melanoma?",
   "replay": "trial/condition",
   "steps": [
     {

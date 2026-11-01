@@ -8,7 +8,7 @@ Run `make schema-release-check` to compare the generated schemas with the record
 
 Set `BIOMCP_TRANSCRIPT_DIR` to an empty output directory when running the case runner. It records exact stdout bytes, exit codes, surfaces and arguments before assertions or JSON parsing. Without the variable, tests run normally. Keep transcript directories outside Git.
 
-Run the same selected cases and trials at the base and head commits. Then run `python3 scripts/reply_diff.py BASE HEAD` through `pm job`. A difference exits nonzero and names the step and JSON pointer, or a character offset for text and formatting differences. The default report stops after twenty differences. This comparison is optional and does not run in the routine gate.
+Run the same selected cases and trials at the base and head commits. Then run `python3 scripts/reply_diff.py BASE HEAD`. A difference exits nonzero and names the step and JSON pointer, or a character offset for text and formatting differences. The default report stops after twenty differences. This comparison is optional and does not run in the routine gate.
 
 Case keys contain the relative case path and zero-based step index. Each case transcript holds its CLI and MCP executions in order. Walk pages append to that same step. MCP records the raw server stdout before parsing. Ordinary trial keys contain the trial name, an argument hash and the number of earlier identical argument lists. The launcher allocates those keys before execution. Isolated environment and checkout paths become placeholders for hashing and comparison.
 
@@ -30,7 +30,7 @@ The separate `tools` target contains opt-in schema and assertion boundary proofs
 
 `make coverage` runs `cases` against an instrumented product binary. The launcher gives every child a `bin-%m-%p.profraw` profile name. The script merges only those profiles and reports only the actual binary object through LLVM tools. The denominator contains linked product source lines and excludes generated protobuf code. Harness execution and in-process library contracts never count. `make library-tests` validates those libraries separately in the routine gate.
 
-The PM sets `coverage.floor` from the first binary-only measurement and owns subsequent increases. `make unreached` displays line execution counts from the last complete collection. Raw child and harness profiles remain in the coverage target directory for diagnosis until the next collection.
+The release maintainer sets `coverage.floor` from the first binary-only measurement and owns subsequent increases. `make unreached` displays line execution counts from the last complete collection. Raw child and harness profiles remain in the coverage target directory for diagnosis until the next collection.
 
 ## Inspect a candidate with mutation testing
 
@@ -48,7 +48,7 @@ The native command selects `biomcp` in its shared Cargo arguments as well as its
 
 Run `collect --plan DIRECTORY/plan.json` after the shard jobs finish. Attach `mutation-report.json` and the raw shard directories to the candidate. The report separates caught mutants, survivors, build failures, native timeouts and unrun mutants. It preserves native phase durations and reports the number that actually completed. Missing shards, baseline failures and tool errors fail collection. Survivors remain advisory. The release owner chooses at most ten survivors for new outside-in cases, starting with rule modules, and lists the rest.
 
-The release rehearsal exposes each mutation action through `make release-mutations MUTATION_REPORT=REPORT MUTATION_ARGS='ACTION ARGUMENTS'`. Supply a job-owned stage report for each invocation. Submit each planned shard through its own `pm job`; after all shards finish, invoke `collect` through the same target. This entry point records the action's exit status and leaves its native logs and survivor report beside the plan.
+The release rehearsal exposes each mutation action through `make release-mutations MUTATION_REPORT=REPORT MUTATION_ARGS='ACTION ARGUMENTS'`. Supply a job-owned stage report for each invocation. Submit each planned shard as a separate native job; after all shards finish, invoke `collect` through the same target. This entry point records the action's exit status and leaves its native logs and survivor report beside the plan.
 
 A calibration that hits the cap before all selected mutants finish is incomplete. Do not call it a measured calibration or replace missing results with estimates from booked cores. The full cases duration may prevent the required calibration or assertion-deletion experiment from fitting the cap. The release owner must resolve that limit before running either experiment. A planted proof must use the same exact `status.rs` mutant with one owning assertion deleted and restored. Other assertions may also catch the mutant; check that premise before claiming a survivor.
 

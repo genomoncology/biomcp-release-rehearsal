@@ -44,6 +44,7 @@ def main():
                 ["test", "--locked", "-p", "biomcp", "--test", "ratchets"],
             ],
             "docs-check": [
+                ["test", "--locked", "-p", "biomcp", "--test", "cases", "readme/"],
                 ["test", "--locked", "-p", "biomcp", "--bin", "biomcp",
                  "grammar::reference::reference_matches_grammar"],
             ],

@@ -6,7 +6,7 @@ BioMCP retrieves biomedical evidence for cancer care and human health research. 
 
 Install the published package with `uv tool install biomcp-cli`. Upgrade an existing installation with `uv tool upgrade biomcp-cli`. Use the package manager or verified installer that owns your installation for updates and removal. BioMCP has no self-update command.
 
-The [upgrade guide](sdlc/planning/upgrade.md) maps 0.9 commands to their replacements and explains retired capabilities. Confirm the installed version before using this command reference:
+Read the [1.0 release notes](release/notes.md) before upgrading. The [upgrade guide](sdlc/planning/upgrade.md) maps 0.9 commands to their replacements and explains retired capabilities. Confirm the installed version before using this command reference:
 
 ```sh
 biomcp version
@@ -66,7 +66,7 @@ Hosted source pacing follows each effective key. Keyless calls share one bucket 
 
 ## Develop
 
-The documentation check does not run the exact `uv tool install biomcp-cli` or `uv tool upgrade biomcp-cli` shell instructions. Release artifact checks install and exercise the produced package in an isolated environment.
+The documentation check does not run the exact `uv tool install biomcp-cli` or `uv tool upgrade biomcp-cli` shell instructions.
 
 Run `make docs-generate` after command changes and `make docs-check` to check generated documentation and execute documented examples against recordings. Run `make landing-gate` for the routine formatting, lint, coverage and dependency checks. See [ROADMAP.md](ROADMAP.md) for scope and source availability.
 

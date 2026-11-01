@@ -30,6 +30,7 @@ def main():
         root = Path(directory)
         for name in (
             "ROADMAP.md",
+            "README.md",
             "skills/SKILL.md",
             "docs/reference/commands.md",
             "sdlc/features.md",
@@ -57,6 +58,12 @@ def main():
             shutil.copyfile(ROOT / name, target)
         result = check(root)
         assert result.returncode == 0, result.stderr
+        readme = root / "README.md"
+        original_readme = readme.read_text()
+        readme.write_text(original_readme.replace("get gene KRAS", "get gene INVENTED"))
+        result = check(root)
+        assert result.returncode != 0 and "README examples differ" in result.stderr, result
+        readme.write_text(original_readme)
         architecture.write_text(original_architecture + "\n## Planted rule\n\nCheck: `scripts/missing_check.py`.\n")
         result = check(root)
         assert result.returncode != 0 and "architecture names a missing check file" in result.stderr, result

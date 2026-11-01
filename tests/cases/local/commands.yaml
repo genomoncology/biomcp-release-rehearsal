@@ -5,12 +5,6 @@
   "steps": [
     {
       "run": [
-        "version"
-      ],
-      "stdout": "biomcp 1.0.0\n"
-    },
-    {
-      "run": [
         "--version"
       ],
       "stdout": "biomcp 1.0.0\n"

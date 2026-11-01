@@ -467,3 +467,7 @@ The measured CLI/MCP envelopes carry per-case ceilings. Every 0.9 timing and out
 - [ ] Release rehearsal on every platform; [ticket 0293](sdlc/tickets/0293-final-release-rehearsal.md) requires final-candidate installed proof
 - [ ] Agent comparison on outside judged question sets, for every slice; the [comparison requirement](sdlc/planning/slices.md) uses the latest released baseline named above
 - [ ] This repository's history appended to the public repository with one merge commit, preserving old tags and releases; [ticket 0294](sdlc/tickets/0294-history-replacement.md) requires release approval before the append, tag and publication
+
+## Patient records
+
+FHIR patient reading is planned for 1.1. The 1.0 release retrieves public biomedical source records. See the [release notes](release/notes.md) for upgrade changes.

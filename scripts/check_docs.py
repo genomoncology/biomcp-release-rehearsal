@@ -2,6 +2,8 @@
 import argparse
 import re
 import sys
+import json
+import shlex
 from pathlib import Path
 
 from parity import LEDGER_END, LEDGER_START, UPGRADE_END, UPGRADE_START, rows, table, upgrade
@@ -24,6 +26,14 @@ def architecture(root):
 
 def check(root):
     architecture(root)
+    readme = (root / "README.md").read_text()
+    examples = [shlex.split(line)[1:] for block in re.findall(r"```sh\n(.*?)```", readme, re.S)
+                for line in block.splitlines() if line.startswith("biomcp ")]
+    recorded = [step["run"] for path in sorted((root / "tests/cases/readme").glob("*.yaml"))
+                for step in json.loads(path.read_text())["steps"]]
+    if sorted(examples) != sorted(recorded) or len(recorded) != 4:
+        raise ValueError("README examples differ from recorded cases")
+
     if (root / "skills/SKILL.md").stat().st_size > 4096:
         raise ValueError("agent skill exceeds 4 KB")
     roadmap = (root / "ROADMAP.md").read_text()

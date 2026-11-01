@@ -1,0 +1,25 @@
+{
+  "title": "BioMCP",
+  "description": "BioMCP retrieves biomedical evidence for cancer care and human health research through a command line and the Model Context Protocol.",
+  "license": "MIT",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Maurer, Ian"
+    },
+    {
+      "name": "Yeakley, Justin"
+    },
+    {
+      "name": "Zingalis, Anibee"
+    }
+  ],
+  "keywords": [
+    "bioinformatics",
+    "biomedical-databases",
+    "clinical-trials",
+    "genomics",
+    "mcp"
+  ],
+  "version": "1.0.0"
+}

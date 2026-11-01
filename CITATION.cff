@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use BioMCP in research, please cite the software using this metadata."
+title: BioMCP
+type: software
+abstract: >-
+  BioMCP retrieves biomedical evidence for cancer care and human health research
+  through a command line and the Model Context Protocol.
+version: 1.0.0
+license: MIT
+repository-code: https://github.com/genomoncology/biomcp
+url: https://biomcp.org
+keywords:
+  - bioinformatics
+  - biomedical-databases
+  - clinical-trials
+  - genomics
+  - mcp
+authors:
+  - given-names: Ian
+    family-names: Maurer
+  - given-names: Justin
+    family-names: Yeakley
+  - given-names: Anibee
+    family-names: Zingalis

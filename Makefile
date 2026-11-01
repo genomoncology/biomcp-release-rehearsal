@@ -90,6 +90,7 @@ unreached:
 
 .PHONY: docs-check
 docs-check:
+	cargo test --locked -p biomcp --test cases readme/ $(TEST_THREADS)
 	cargo test --locked -p biomcp --bin biomcp grammar::reference::reference_matches_grammar $(TEST_THREADS)
 	python3 release/toolchain.py check
 	python3 -m unittest release.test_toolchain
@@ -109,7 +110,7 @@ docs-check:
 	python3 scripts/test_trials.py
 	python3 scripts/test_nightly_live_check.py
 	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows
-	python3 -m unittest release.test_workflow release.test_security release.test_licenses
+	python3 -m unittest release.test_workflow release.test_security release.test_licenses release.test_docs
 	python3 -m unittest release.test_source_revision release.test_workflow_contracts release.test_publication release.test_promotion
 .PHONY: release-linux
 release-linux:
@@ -136,6 +137,10 @@ schema-generate:
 
 schema-release-check:
 	python3 scripts/schema_release.py
+
+.PHONY: current-schema-check
+current-schema-check:
+	cargo test --locked -p biomcp-types --features schema --test schemas checked_in_schemas_match_types -- --exact
 
 .PHONY: tensor-proto-check
 tensor-proto-check:
@@ -237,3 +242,20 @@ test-support-checks: pre-job
 	cargo test --locked -p biomcp-query --test article_search --test gene_resolution --test query_refusals --test collection_refusals $(TEST_THREADS)
 	python3 scripts/trials.py --target tools --proofs schema-discovery/terms-subtraction-keeps-payload-ceilings schema-discovery/markdown-terms-subtraction-keeps-payload-ceilings schema-discovery/capture-retains-replay-owner schema-discovery/persistent-fixture-evidence
 	python3 scripts/trials.py --target cases variant-alphagenome/alphagenome-source-identity-refusals
+
+.PHONY: public-docs-check
+public-docs-check:
+	+$(MAKE) --no-print-directory pre-job
+	+$(MAKE) --no-print-directory docs-check
+
+.PHONY: http-busy-diagnosis
+http-busy-diagnosis: fmt
+	cargo test --locked -p biomcp --test cases mcp-http/framing-resource-deadlines-and-shutdown $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-http/framing-resource-deadlines-and-shutdown $(TEST_THREADS)
+
+.PHONY: http-edge-coverage
+http-edge-coverage:
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-hosted/ $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases key-registration/ $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test tools -- --proofs schema-discovery/isolates-child-environments $(if $(strip $(RUST_TEST_THREADS)),--test-threads $(RUST_TEST_THREADS))

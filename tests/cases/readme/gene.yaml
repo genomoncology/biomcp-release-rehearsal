@@ -1,7 +1,7 @@
 {
   "live_check": "public",
   "feature": "gene-identity",
-  "story": "kras",
+  "story": "Which source record identifies KRAS?",
   "replay": "gene/main",
   "steps": [
     {

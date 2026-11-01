@@ -1,6 +1,7 @@
 # 0534 — Write the 1.0 release notes and correct the public docs
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: e038c6ebcc1269338ad49d219aa15d1eadc865f3
 
 Milestone: 5
 

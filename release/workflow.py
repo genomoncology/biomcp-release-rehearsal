@@ -10,8 +10,10 @@ import sys
 import zipfile
 
 if __package__:
+    from .notes import schema_changes
     from .toolchain import manifest
 else:
+    from notes import schema_changes
     from toolchain import manifest
 
 
@@ -137,8 +139,9 @@ def plugin(source, output, version, notices):
 
 def release_notes(output, version, revision):
     (output / "RELEASE-NOTES.md").write_text(
-        f"# BioMCP {version}\n\nCandidate source commit: `{revision}`.\n\n"
-        "Before installation, verify each downloaded release artifact with a current GitHub CLI:\n\n"
+        (Path(__file__).with_name("notes.md").read_text() + f"\n\nCandidate source commit: `{revision}`.\n\n"
+         + schema_changes() + "\n\n")
+        + "Before installation, verify each downloaded release artifact with a current GitHub CLI:\n\n"
         "```sh\ngh attestation verify ARTIFACT --repo genomoncology/biomcp "
         "--signer-workflow genomoncology/biomcp/.github/workflows/release.yml "
         f"--source-ref refs/tags/v{version} --source-digest {revision}\n```\n\n"
