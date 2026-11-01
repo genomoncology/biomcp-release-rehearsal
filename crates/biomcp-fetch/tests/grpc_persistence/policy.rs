@@ -9,7 +9,7 @@ fn credentials_stay_out_of_requests_recordings_and_offline_reads_without_a_key()
         secret: SecretName::OncokbApiKey,
         place: KeyPlace::Header("x-fixture-key"),
     };
-    let source = fixture.source(false, KeyUse::Required(credential));
+    let source = fixture.with_quota(false, KeyUse::Required(credential), &QUOTA);
     let directory = tempfile::tempdir()?;
     let mut config = FetchConfig {
         mode: Mode::Record {
@@ -64,7 +64,7 @@ fn credentials_stay_out_of_requests_recordings_and_offline_reads_without_a_key()
 #[test]
 fn concurrent_captures_keep_each_stream_order_and_terminal_marker() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let directory = tempfile::tempdir()?;
     let record = fetch(
         &fixture,
@@ -111,7 +111,7 @@ fn concurrent_captures_keep_each_stream_order_and_terminal_marker() -> Check {
 #[test]
 fn failed_sidecar_publication_keeps_the_old_manifest_and_allows_a_later_capture() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let directory = tempfile::tempdir()?;
     let record = fetch(
         &fixture,
@@ -164,7 +164,7 @@ fn failed_sidecar_publication_keeps_the_old_manifest_and_allows_a_later_capture(
 #[test]
 fn live_wire_limit_rejects_the_stream_before_spool_admission() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     // The two valid protobufs consume 25 framed wire bytes. The worker must
     // reject the second DATA frame rather than delivering it to the spool.
     let live = Fetch::open(FetchConfig {
@@ -198,13 +198,14 @@ fn stream_source(fixture: &Fixture, private: bool) -> &'static SourceSpec {
         secret: SecretName::OncokbApiKey,
         place: KeyPlace::Header("x-fixture-key"),
     };
-    fixture.source(
+    fixture.with_quota(
         false,
         if private {
             KeyUse::Required(credential)
         } else {
             KeyUse::Optional(credential)
         },
+        &QUOTA,
     )
 }
 #[test]

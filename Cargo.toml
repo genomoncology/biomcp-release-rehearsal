@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/biomcp-types", "crates/biodata", "crates/biomcp-adapters", "crates/biomcp-fetch", "crates/biomcp-query", "crates/biomcp"]
+members = ["crates/biomcp-test-support", "crates/biomcp-types", "crates/biodata", "crates/biomcp-adapters", "crates/biomcp-fetch", "crates/biomcp-query", "crates/biomcp"]
 resolver = "3"
 
 [workspace.package]
@@ -21,6 +21,7 @@ debug = "line-tables-only"
 debug = false
 
 [workspace.dependencies]
+biomcp-test-support = { version = "=1.0.0", path = "crates/biomcp-test-support" }
 biodata = { version = "=1.0.0", path = "crates/biodata" }
 biomcp-adapters = { version = "=1.0.0", path = "crates/biomcp-adapters" }
 biomcp-fetch = { version = "=1.0.0", path = "crates/biomcp-fetch" }

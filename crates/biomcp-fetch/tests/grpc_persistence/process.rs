@@ -1,11 +1,6 @@
 //! Prove that another process reads the ordinary shared checked reply cache.
 use super::*;
-#[path = "../support/environment.rs"]
-#[expect(
-    clippy::disallowed_types,
-    reason = "This fixture owns the isolated child process launcher"
-)]
-mod child_environment;
+use biomcp_test_support::environment as child_environment;
 #[test]
 #[expect(
     clippy::disallowed_methods,
@@ -13,7 +8,7 @@ mod child_environment;
 )]
 fn another_process_reads_checked_cache_without_connecting() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let directory = tempfile::tempdir()?;
     let cache = directory.path().join("shared.sqlite");
     let live = fetch(

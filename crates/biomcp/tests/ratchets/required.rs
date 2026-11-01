@@ -1,8 +1,7 @@
 //! Required public surface comes from shipped help and the advertised MCP registry.
 #[path = "../runner/case_data.rs"]
 mod case_data;
-#[path = "../../../biomcp-fetch/tests/support/environment.rs"]
-mod environment;
+use biomcp_test_support::environment;
 #[path = "../support/help_catalog.rs"]
 mod help_catalog;
 #[path = "../support/housekeeping_contract.rs"]

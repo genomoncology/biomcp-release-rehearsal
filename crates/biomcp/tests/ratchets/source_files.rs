@@ -12,6 +12,21 @@ pub(super) fn check(root: &Path) -> Check {
     }
     for entry in fs::read_dir(crates)? {
         let crate_root = entry?.path();
+        let shared_tests = crate_root
+            .file_name()
+            .is_some_and(|name| name == "biomcp-test-support");
+        if shared_tests {
+            let manifest: toml::Value =
+                toml::from_str(&fs::read_to_string(crate_root.join("Cargo.toml"))?)?;
+            if manifest
+                .get("package")
+                .and_then(|package| package.get("publish"))
+                .and_then(toml::Value::as_bool)
+                != Some(false)
+            {
+                return Err("biomcp-test-support must declare publish=false".into());
+            }
+        }
         for path in super::super::rust_files(&crate_root.join("tests"))? {
             let text = fs::read_to_string(&path)?;
             let relative = path
@@ -26,7 +41,14 @@ pub(super) fn check(root: &Path) -> Check {
                 .strip_prefix(root)?
                 .to_string_lossy()
                 .replace('\\', "/");
-            checks.push(source(root, &relative, &text, &sqlite, &mut keys));
+            // This explicit dev-dependency owner contains fixtures, so product-only
+            // I/O and interior-state ownership rules do not apply. General source
+            // placement and module checks still scan its src directory independently.
+            checks.push(if shared_tests {
+                test(&relative, &text)
+            } else {
+                source(root, &relative, &text, &sqlite, &mut keys)
+            });
         }
     }
     super::super::diagnostics(checks)

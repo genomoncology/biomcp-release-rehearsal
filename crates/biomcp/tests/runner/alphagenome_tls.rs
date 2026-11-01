@@ -5,18 +5,7 @@ use libtest_mimic::Trial;
 use serde_json::{Value, json};
 #[path = "alphagenome_capture.rs"]
 mod capture;
-#[path = "../../../biomcp-fetch/tests/grpc_worker/support.rs"]
-#[expect(
-    dead_code,
-    reason = "One shared TLS fixture serves transport and CLI contracts"
-)]
-mod support;
-static QUOTA: biomcp_fetch::Quota = biomcp_fetch::Quota::new(
-    biomcp_fetch::SourceKey::declare("alphagenome-cli-synthetic"),
-    biomcp_fetch::Rate::per_second(1000),
-    None,
-    1,
-);
+use biomcp_test_support::grpc as support;
 const SECTION: &str = "/result/candidates/0/sections/alphagenome";
 const KEY: &str = "synthetic-alphagenome-cli-placeholder";
 pub(super) fn trials() -> Vec<Trial> {

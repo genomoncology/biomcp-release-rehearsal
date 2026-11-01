@@ -1,6 +1,23 @@
 //! Required publisher provenance is measured separately from unchanged payload caps.
-#[path = "../../src/view/escape.rs"]
-pub(super) mod text;
+// Test-owned Markdown contract for data cells. Product rendering is checked by callers.
+pub(super) mod text {
+    pub(crate) fn source_link(value: &str) -> String {
+        format!("<{value}>")
+    }
+    pub(crate) fn escape(value: &str) -> String {
+        value.chars().map(|ch| match ch {
+            '&' => "&amp;".into(), '<' => "&lt;".into(), '>' => "&gt;".into(),
+            ':' => "&#58;".into(), '.' => "&#46;".into(), '@' => "&#64;".into(),
+            '\n' => "&#10;".into(), '\r' => "&#13;".into(),
+            ch if ch.is_control()
+                || matches!(ch, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}') => {
+                format!("\\u{{{:04x}}}", u32::from(ch))
+            },
+            ch if "\\*_`|[]#!~".contains(ch) => format!("\\{ch}"),
+            ch => ch.to_string(),
+        }).collect()
+    }
+}
 use serde_json::{Value, json};
 
 fn strip_row(row: &mut Value) -> Result<(), String> {

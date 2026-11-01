@@ -4,7 +4,8 @@
     reason = "The shared test launcher owns child environment and executable selection"
 )]
 use std::{fs, io, path::Path, process::Command};
-pub(crate) const ENV_PATHS: &[(&str, &str)] = &[
+/// Child environment paths rooted in each isolated test environment.
+pub const ENV_PATHS: &[(&str, &str)] = &[
     ("HOME", "home"),
     ("USERPROFILE", "home"),
     ("APPDATA", "config"),
@@ -12,14 +13,16 @@ pub(crate) const ENV_PATHS: &[(&str, &str)] = &[
     ("XDG_CONFIG_HOME", "config"),
     ("XDG_CACHE_HOME", "cache"),
 ];
-pub(crate) fn new() -> io::Result<tempfile::TempDir> {
+/// Create an isolated temporary environment.
+pub fn new() -> io::Result<tempfile::TempDir> {
     let root = tempfile::Builder::new().prefix("biomcp-").tempdir()?;
     for directory in ["home", "config", "cache"] {
         fs::create_dir(root.path().join(directory))?;
     }
     Ok(root)
 }
-pub(crate) fn command(program: &Path, root: &Path, args: &[String]) -> Command {
+/// Launch a child with isolated home, config, cache and credentials.
+pub fn command(program: &Path, root: &Path, args: &[String]) -> Command {
     let mut command = Command::new(program);
     command
         .args(args)

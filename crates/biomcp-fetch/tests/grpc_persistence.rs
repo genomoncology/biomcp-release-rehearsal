@@ -1,15 +1,10 @@
 //! Feature stream-persistence: checked synthetic streams persist without network replay.
-#[path = "grpc_worker/support.rs"]
-#[expect(
-    dead_code,
-    reason = "Share the complete local TLS fixture with worker phase tests"
-)]
-mod support;
 use biomcp_fetch::grpc::{Limits, StreamDecoder};
 use biomcp_fetch::{
     BadReply, Fetch, FetchConfig, Freshness, KeyUse, Mode, Quota, Rate, RequestError, SourceKey,
     SourceSpec,
 };
+use biomcp_test_support::grpc as support;
 use std::time::Duration;
 use support::{Check, Fixture, Hold};
 static QUOTA: Quota = Quota::new(
@@ -90,7 +85,7 @@ fn manifest(dir: &std::path::Path) -> Check<std::path::PathBuf> {
 #[test]
 fn complete_recording_replays_checked_tensors_without_connections() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let dir = tempfile::tempdir()?;
     let record = fetch(
         &fixture,
@@ -136,7 +131,7 @@ fn complete_recording_replays_checked_tensors_without_connections() -> Check {
 #[test]
 fn endpoint_ceilings_refuse_recorded_requests_messages_and_cumulative_wire() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let dir = tempfile::tempdir()?;
     let recording = fetch(
         &fixture,
@@ -197,7 +192,7 @@ fn incomplete_and_failed_streams_never_enter_the_cache() -> Check {
         (Hold::None, 0, vec![messages()[1].clone()]),
     ] {
         let fixture = Fixture::with_messages(hold, status, false, false, messages)?;
-        let source = fixture.source(false, KeyUse::None);
+        let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
         let dir = tempfile::tempdir()?;
         let cache = dir.path().join("cache.sqlite");
         let recording = dir.path().join("record");
@@ -236,7 +231,7 @@ fn incomplete_and_failed_streams_never_enter_the_cache() -> Check {
 #[test]
 fn cache_identity_and_current_decoder_limits_control_offline_reuse() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let dir = tempfile::tempdir()?;
     let cache = dir.path().join("cache.sqlite");
     let live = fetch(
@@ -282,7 +277,7 @@ fn cache_identity_and_current_decoder_limits_control_offline_reuse() -> Check {
 #[test]
 fn replay_refuses_missing_terminal_unsafe_or_missing_sidecars_and_current_limits() -> Check {
     let fixture = Fixture::with_messages(Hold::None, 0, false, false, messages())?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let dir = tempfile::tempdir()?;
     let record = fetch(
         &fixture,

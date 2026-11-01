@@ -6,8 +6,7 @@
 )]
 use biomcp_fetch::Input;
 
-#[path = "evidence.rs"]
-mod evidence;
+use biomcp_test_support::evidence;
 
 use super::{Server, config, spec, support::Answer};
 use biomcp_fetch::{Arg, Fetch, Freshness, KeyUse, SourceSpec};

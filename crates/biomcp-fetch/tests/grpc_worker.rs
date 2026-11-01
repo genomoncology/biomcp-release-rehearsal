@@ -44,7 +44,7 @@ fn http_failure_refuses_body_even_when_grpc_trailers_claim_success() -> support:
             network: fixture.network(None, "")?,
             ..Default::default()
         })?;
-        let source = fixture.source(false, KeyUse::None);
+        let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
         let leg = fetch.leg(source, fetch.deadline(Duration::from_secs(5)));
         let mut messages = 0;
         let error = leg
@@ -91,7 +91,7 @@ fn source_ceilings_tighten_request_message_and_cumulative_wire_admission() -> su
             false,
             vec![vec![8, 42], vec![8, 43]],
         )?;
-        let source = fixture.source(false, KeyUse::None);
+        let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
         let fetch = Fetch::open(FetchConfig {
             grpc_limits: global,
             network: fixture.network(None, "")?,
@@ -143,14 +143,13 @@ fn stream_worker_offline_never_opens_a_connection() {
     );
 }
 
-#[path = "grpc_worker/support.rs"]
-mod support;
+use biomcp_test_support::grpc as support;
 use support::{Call, Check, Fixture, Hold, Seen};
 
 #[test]
 fn stream_worker_uses_added_trust_and_filters_provider_metadata() -> Check {
     let fixture = Fixture::new(Hold::None, 0, false, false)?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let fetch = Fetch::open(FetchConfig {
         network: fixture.network(None, "")?,
         ..FetchConfig::default()
@@ -192,7 +191,7 @@ fn stream_worker_refuses_untrusted_certificates_and_missing_h2() -> Check {
             network,
             ..FetchConfig::default()
         })?;
-        let source = fixture.source(false, KeyUse::None);
+        let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
         let leg = fetch.leg(source, fetch.deadline(Duration::from_secs(5)));
         let error = leg
             .grpc(&source.grpc("/synthetic.Tensor/Exchange"), &[], |_| Ok(()))
@@ -216,7 +215,7 @@ fn stream_worker_routes_explicit_environment_and_bypass_proxies() -> Check {
         (false, false, true),
     ] {
         let fixture = Fixture::new(Hold::None, 0, !bypass, proxy_tls)?;
-        let source = fixture.source(!bypass, KeyUse::None);
+        let source = fixture.with_quota(!bypass, KeyUse::None, &QUOTA);
         let proxy = format!(
             "{}://user:synthetic-proxy@{}",
             if proxy_tls { "https" } else { "http" },
@@ -281,7 +280,7 @@ fn stream_worker_maps_status_without_retrying_or_reflecting_provider_text() -> C
             secret: SecretName::OncokbApiKey,
             place: KeyPlace::Header("x-fixture-key"),
         });
-        let source = fixture.source(false, key);
+        let source = fixture.with_quota(false, key, &QUOTA);
         let mut secrets = Secrets::default();
         secrets.insert(
             SecretName::OncokbApiKey,
@@ -325,7 +324,7 @@ fn stream_worker_uses_one_absolute_deadline_in_each_response_phase() -> Check {
         Hold::Trailers,
     ] {
         let fixture = Fixture::new(hold, 0, hold == Hold::Connect, false)?;
-        let source = fixture.source(hold == Hold::Connect, KeyUse::None);
+        let source = fixture.with_quota(hold == Hold::Connect, KeyUse::None, &QUOTA);
         let fetch = Fetch::open(FetchConfig {
             network: fixture.network(
                 (hold == Hold::Connect)
@@ -375,7 +374,7 @@ fn stream_worker_uses_one_absolute_deadline_in_each_response_phase() -> Check {
 #[test]
 fn stream_worker_refuses_interrupted_stream_without_resending() -> Check {
     let fixture = Fixture::new(Hold::Interrupt, 0, false, false)?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let fetch = Fetch::open(FetchConfig {
         network: fixture.network(None, "")?,
         ..FetchConfig::default()
@@ -436,8 +435,8 @@ fn stream_worker_holds_the_shared_permit_until_stream_cancellation() -> Check {
         network,
         ..Default::default()
     })?;
-    let first_source = first.source(false, KeyUse::None);
-    let second_source = second.source(false, KeyUse::None);
+    let first_source = first.with_quota(false, KeyUse::None, &QUOTA);
+    let second_source = second.with_quota(false, KeyUse::None, &QUOTA);
     let first_call = Call::start(fetch.clone(), first_source, Duration::from_secs(2))?;
     first.wait_message()?;
     fetch
@@ -481,7 +480,7 @@ fn stream_worker_queue_deadlines_return_without_waiting_for_another_stream() -> 
         ..Default::default()
     })?;
     let (first_fetch, cancel) = fetch.cancellable()?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let queued = fixture.with_quota(false, KeyUse::None, &QUEUE_QUOTA);
     let first = Call::start(first_fetch, source, Duration::from_secs(5))?;
     fixture.wait_message()?;
@@ -508,7 +507,7 @@ fn stream_worker_queue_deadlines_return_without_waiting_for_another_stream() -> 
 #[test]
 fn stream_worker_rejects_callback_completion_after_the_absolute_deadline() -> Check {
     let fixture = Fixture::new(Hold::None, 0, false, false)?;
-    let source = fixture.source(false, KeyUse::None);
+    let source = fixture.with_quota(false, KeyUse::None, &QUOTA);
     let fetch = Fetch::open(FetchConfig {
         network: fixture.network(None, "")?,
         ..Default::default()

@@ -18,9 +18,8 @@ csv.workspace = true
 zip.workspace = true
 
 [dev-dependencies]
-time = { version = "0.3.55", default-features = false, features = ["std"] }
+biomcp-test-support.workspace = true
 sha2.workspace = true
-rcgen = { workspace = true, features = ["pem", "ring"] }
 rustls.workspace = true
 libtest-mimic.workspace = true
 serde_json.workspace = true

@@ -1,7 +1,6 @@
 //! Recorded replies must read into their published body type and write unchanged.
+use biomcp_test_support::readers;
 use serde_json::Value;
-#[path = "../../../biomcp-types/tests/schemas/readers.rs"]
-mod readers;
 
 pub(super) fn check(bytes: &[u8], value: &Value, mcp: bool) -> Result<(), String> {
     let Some(schema) = value.get("schema").and_then(Value::as_str) else {

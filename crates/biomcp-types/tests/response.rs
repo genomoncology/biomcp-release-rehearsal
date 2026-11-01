@@ -294,10 +294,9 @@ fn research_fetch_keeps_the_original_caller_identifier() -> Result<(), serde_jso
     Ok(())
 }
 
+use biomcp_test_support::readers;
 use biomcp_types::{Envelope, Help, ResponseBody, SchemaCatalog, Status};
 use serde_json::Value;
-#[path = "schemas/readers.rs"]
-mod readers;
 
 #[test]
 fn envelope_checks_body_identity_and_accepts_added_reply_fields()

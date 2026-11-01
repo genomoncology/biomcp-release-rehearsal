@@ -1,7 +1,6 @@
 use std::{fs, io, path::Path, sync::Arc};
 
-#[path = "../../../biomcp-fetch/tests/support/environment.rs"]
-mod child_environment;
+use biomcp_test_support::environment as child_environment;
 pub(super) use child_environment::ENV_PATHS;
 
 #[derive(Debug)]

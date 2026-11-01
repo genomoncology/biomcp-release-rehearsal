@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::{fs, path::Path};
 type Check = Result<(), Box<dyn std::error::Error>>;
 /// Copy transport-owned identities unchanged and mutate only response exchanges.
-pub(crate) fn copy_capture(
+pub fn copy_capture(
     original: &Path,
     recordings: &Path,
     mut change: impl FnMut(&str, &mut Value),
@@ -38,7 +38,8 @@ pub(crate) fn copy_capture(
     Ok(())
 }
 
-pub(crate) fn cache_acquisition(record: &mut Value, acquired: i64) {
+/// Assign a synthetic acquisition date to successful exchanges.
+pub fn cache_acquisition(record: &mut Value, acquired: i64) {
     if let Some(exchanges) = record.get_mut("exchanges").and_then(Value::as_array_mut) {
         for exchange in exchanges {
             if exchange

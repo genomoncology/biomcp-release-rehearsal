@@ -69,22 +69,7 @@ fn query_resolution() -> Check {
     Ok(())
 }
 
-#[path = "../../biomcp-fetch/tests/support/capture.rs"]
-mod capture_support;
-#[path = "../../biomcp-fetch/tests/support/fixtures.rs"]
-mod fixture_paths;
-#[path = "../../biomcp-fetch/tests/support/recordings.rs"]
-#[expect(
-    clippy::disallowed_methods,
-    reason = "The shared fixture copier owns isolated recording file I/O"
-)]
-#[expect(
-    dead_code,
-    reason = "The shared recording support also serves binary cache setup"
-)]
-mod recording_support;
-#[path = "../../biomcp-fetch/tests/support/replay.rs"]
-mod replay_support;
+use biomcp_test_support::replay as replay_support;
 fn main() {
     libtest_mimic::run(&libtest_mimic::Arguments::from_args(), trials()).exit();
 }

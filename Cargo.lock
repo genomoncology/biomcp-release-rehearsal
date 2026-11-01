@@ -173,16 +173,14 @@ dependencies = [
  "biomcp-adapters",
  "biomcp-fetch",
  "biomcp-query",
+ "biomcp-test-support",
  "biomcp-types",
  "clap",
  "ctrlc",
- "h2",
  "httparse",
  "jsonschema",
  "libtest-mimic",
  "nix",
- "prost",
- "rcgen",
  "rpassword",
  "rusqlite",
  "rustls",
@@ -192,11 +190,7 @@ dependencies = [
  "sha2",
  "shlex",
  "tempfile",
- "time",
- "tokio",
- "tokio-rustls",
  "toml",
- "tonic",
  "url",
 ]
 
@@ -206,20 +200,19 @@ version = "1.0.0"
 dependencies = [
  "biodata",
  "biomcp-fetch",
+ "biomcp-test-support",
  "biomcp-types",
  "calamine",
  "csv",
  "libtest-mimic",
  "prost",
  "quick-xml",
- "rcgen",
  "rustls",
  "serde",
  "serde_ignored",
  "serde_json",
  "sha2",
  "tempfile",
- "time",
  "zip",
 ]
 
@@ -228,6 +221,7 @@ name = "biomcp-fetch"
 version = "1.0.0"
 dependencies = [
  "base64 0.23.1",
+ "biomcp-test-support",
  "biomcp-types",
  "csv",
  "flate2",
@@ -237,7 +231,6 @@ dependencies = [
  "idna_adapter",
  "prost",
  "quick-xml",
- "rcgen",
  "rusqlite",
  "rustls",
  "rustls-platform-verifier",
@@ -260,6 +253,7 @@ dependencies = [
  "biodata",
  "biomcp-adapters",
  "biomcp-fetch",
+ "biomcp-test-support",
  "biomcp-types",
  "libtest-mimic",
  "rusqlite",
@@ -270,10 +264,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "biomcp-test-support"
+version = "1.0.0"
+dependencies = [
+ "biomcp-fetch",
+ "biomcp-types",
+ "h2",
+ "prost",
+ "rcgen",
+ "rustls",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "time",
+ "tokio",
+ "tokio-rustls",
+ "tonic",
+]
+
+[[package]]
 name = "biomcp-types"
 version = "1.0.0"
 dependencies = [
  "biodata",
+ "biomcp-test-support",
  "jsonschema",
  "proptest",
  "schemars",

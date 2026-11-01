@@ -70,8 +70,7 @@ mod mcp_hosted;
 mod nci;
 mod request_keys;
 tool_only! { mod negative_cases; }
-#[path = "../../../biomcp-fetch/tests/support/network_stub.rs"]
-mod network_stub;
+use biomcp_test_support::network_stub;
 mod normalization;
 mod oncokb;
 mod oncokb_context;
@@ -468,12 +467,8 @@ tool_only! {
     }
 }
 
-#[path = "../../../biomcp-fetch/tests/support/capture.rs"]
-mod capture_support;
-#[path = "../../../biomcp-fetch/tests/support/fixtures.rs"]
-mod fixture_paths;
-#[path = "../../../biomcp-fetch/tests/support/hash.rs"]
-mod stable_hash;
+use biomcp_test_support::capture as capture_support;
+use biomcp_test_support::fixtures as fixture_paths;
+use biomcp_test_support::hash as stable_hash;
 
-#[path = "../../../biomcp-fetch/tests/support/recordings.rs"]
-mod recording_support;
+use biomcp_test_support::recordings as recording_support;

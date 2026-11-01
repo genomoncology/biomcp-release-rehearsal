@@ -26,16 +26,10 @@ serde-saphyr.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+biomcp-test-support.workspace = true
 biomcp-adapters.workspace = true
 url.workspace = true
-h2 = { workspace = true }
-tokio = { workspace = true }
-tokio-rustls = { workspace = true }
-tonic = { workspace = true, features = ["codegen"] }
-prost = { workspace = true }
 rusqlite.workspace = true
-rcgen = { workspace = true, features = ["pem", "ring"] }
-time = { version = "0.3.55", default-features = false, features = ["std"] }
 rustls.workspace = true
 jsonschema.workspace = true
 libtest-mimic.workspace = true

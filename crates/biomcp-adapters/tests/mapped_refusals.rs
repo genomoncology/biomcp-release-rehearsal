@@ -1,27 +1,9 @@
 //! Source contracts exercise the adapters that own native admission and mapping.
-#[path = "../../biomcp-fetch/tests/support/capture.rs"]
-mod capture_support;
-#[path = "../../biomcp-fetch/tests/support/fixtures.rs"]
-mod fixture_paths;
 #[path = "mapped_refusals/mod.rs"]
 mod mapped_refusals;
-#[path = "../../biomcp-fetch/tests/support/network_stub.rs"]
-#[expect(
-    clippy::disallowed_methods,
-    clippy::disallowed_types,
-    reason = "The shared TLS test peer owns native socket I/O and retained fixture evidence"
-)]
-#[expect(
-    dead_code,
-    reason = "The TLS fixture also serves binary launch and evidence contracts"
-)]
-mod network_stub;
-#[path = "../../biomcp-fetch/tests/support/replay.rs"]
-mod replay_support;
-#[path = "../../biomcp-fetch/tests/support/hash.rs"]
-mod stable_hash;
-#[path = "../../biomcp-fetch/tests/support/value.rs"]
-mod value;
+use biomcp_test_support::network_stub;
+use biomcp_test_support::replay as replay_support;
+use biomcp_test_support::value;
 use libtest_mimic::{Failed, Trial};
 fn trial(name: &str, run: impl FnOnce() -> Result<(), Failed> + Send + 'static) -> Trial {
     Trial::test(name, run)
@@ -33,14 +15,3 @@ fn main() {
     )
     .exit();
 }
-
-#[path = "../../biomcp-fetch/tests/support/recordings.rs"]
-#[expect(
-    clippy::disallowed_methods,
-    reason = "The shared fixture copier owns isolated recording file I/O"
-)]
-#[expect(
-    dead_code,
-    reason = "The shared recording support also serves binary cache setup"
-)]
-mod recording_support;

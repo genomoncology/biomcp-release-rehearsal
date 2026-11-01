@@ -6,12 +6,7 @@
 )]
 use biomcp_fetch::Input;
 
-#[path = "support/environment.rs"]
-#[expect(
-    clippy::disallowed_types,
-    reason = "This fixture owns the isolated child process launcher"
-)]
-mod child_environment;
+use biomcp_test_support::environment as child_environment;
 mod support;
 use biomcp_fetch::{
     Bundle, Fetch, FetchConfig, Find, Freshness, KeyKind, KeyUse, Keys, Quota, Rate, Row,

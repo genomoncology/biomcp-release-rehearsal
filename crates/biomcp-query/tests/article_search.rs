@@ -7,10 +7,9 @@
     reason = "Public store and concurrency contracts own isolated fixture I/O and abort on invalid fixture setup"
 )]
 
-#[path = "../../biomcp-fetch/tests/support/recordings.rs"]
-mod recording_support;
 use biomcp_fetch::{CacheError, Fetch, FetchConfig, Mode, ReplayCache, RequestError};
 use biomcp_query::{Ctx, Outcome};
+use biomcp_test_support::recordings as recording_support;
 use biomcp_types::{ArticlePage, ArticleSearch, ReplyData, Request, Status};
 use std::{path::PathBuf, time::Duration};
 fn recordings(name: &str) -> PathBuf {
