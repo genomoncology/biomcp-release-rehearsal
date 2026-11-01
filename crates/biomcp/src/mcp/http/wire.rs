@@ -142,6 +142,17 @@ fn timeout(stream: &TcpStream, end: Instant) -> io::Result<()> {
 pub(super) fn malformed() -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, "Invalid HTTP request")
 }
+// Send the fixed refusal together before closing unread caller bytes.
+pub(super) fn unavailable(stream: &mut TcpStream) -> io::Result<()> {
+    const BODY: &str = r#"{"error":"Service unavailable"}"#;
+    let response = format!(
+        "HTTP/1.1 503 Response\r\nContent-Type: application/json\r\nConnection: close\r\n\
+         Cache-Control: no-store\r\nContent-Length: {}\r\n\r\n{BODY}",
+        BODY.len()
+    );
+    stream.set_nonblocking(true)?;
+    stream.write_all(response.as_bytes())
+}
 pub(super) fn write(
     stream: &mut TcpStream,
     status: u16,

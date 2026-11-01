@@ -11,6 +11,10 @@ const GENERATED_PROTO: &str = "crates/biomcp-adapters/src/alphagenome/proto.rs";
 // New exceptions require a reviewed path and reason here.
 const EXCEPTIONS: &[(&str, &str)] = &[
     (
+        "crates/biomcp/src/mcp/http/admission.rs",
+        "Bound HTTP framing readers separately from active requests with owned atomic permits",
+    ),
+    (
         "crates/biomcp-fetch/src/cache/admission.rs",
         "Bind the explicit admission latch to its acquired connection while optional readers probe ownership",
     ),

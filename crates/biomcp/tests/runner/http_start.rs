@@ -12,6 +12,10 @@ impl Server {
     ) -> Result<Self, String> {
         Self::configured_globals(bind, config, replay, key, allowed_host, &[])
     }
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Own the HTTP diagnostic receiver shared by concurrent test callers"
+    )]
     pub(in crate::runner) fn configured_globals(
         bind: &str,
         config: Option<Value>,
@@ -50,26 +54,30 @@ impl Server {
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| e.to_string())?;
+        let (diagnostics, messages) = std::sync::mpsc::channel();
         let mut server = Self {
             child,
             address,
             _environment: environment,
+            diagnostics: std::sync::Mutex::new(messages),
+            diagnostic_reader: None,
         };
         let stderr = server.child.stderr.take().ok_or("HTTP stderr missing")?;
         let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-        let reader = std::thread::spawn(move || {
+        server.diagnostic_reader = Some(std::thread::spawn(move || {
             use std::io::BufRead;
+            let mut input = std::io::BufReader::new(stderr);
             let mut line = String::new();
-            let result = std::io::BufReader::new(stderr)
-                .read_line(&mut line)
-                .map(|_| line);
+            let result = input.read_line(&mut line).map(|_| line);
             let _ = sender.send(result);
-        });
+            for line in input.lines().map_while(Result::ok) {
+                let _ = diagnostics.send(line);
+            }
+        }));
         let event = receiver
             .recv_timeout(Duration::from_secs(5))
             .map_err(|_| "HTTP readiness event timed out")?
             .map_err(|e| e.to_string())?;
-        reader.join().map_err(|_| "HTTP readiness reader stopped")?;
         let event: Value =
             serde_json::from_str(&event).map_err(|e| format!("HTTP readiness: {e}"))?;
         server.address = event

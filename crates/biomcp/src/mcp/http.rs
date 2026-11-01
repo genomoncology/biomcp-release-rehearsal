@@ -1,4 +1,5 @@
 //! Bounded blocking HTTP transport with independent request protocol state.
+mod admission;
 mod authority;
 mod call;
 mod chunked;
@@ -15,6 +16,7 @@ use std::{
 };
 const ACCEPT_POLL: std::time::Duration = std::time::Duration::from_millis(20);
 const MAX_CONNECTIONS: usize = 8;
+const MAX_READERS: usize = MAX_CONNECTIONS + 1;
 const HEALTH_BUDGET: std::time::Duration = std::time::Duration::from_secs(2);
 pub(crate) enum StartError {
     Configuration(crate::config::StartupError),
@@ -24,6 +26,7 @@ pub(crate) enum StartError {
 }
 struct Service {
     calls: Calls,
+    requests: admission::Slots<MAX_CONNECTIONS>,
     address: SocketAddr,
     hosts: Vec<Authority>,
     globals: crate::grammar::Globals,
@@ -68,6 +71,7 @@ pub(crate) fn serve(
     let recovery = fetch.is_err().then(|| Arc::new(super::Recovery::new()));
     let service = Arc::new(Service {
         calls: Calls::default(),
+        requests: admission::Slots::default(),
         address,
         hosts,
         fetch,
@@ -90,7 +94,7 @@ pub(crate) fn serve(
 }
 #[expect(
     clippy::disallowed_methods,
-    reason = "Own at most MAX_CONNECTIONS blocking socket workers"
+    reason = "Own bounded framing and active request workers through completion"
 )]
 fn connections(
     listener: TcpListener,
@@ -99,6 +103,7 @@ fn connections(
 ) -> io::Result<()> {
     listener.set_nonblocking(true)?;
     let mut workers: Vec<thread::JoinHandle<()>> = Vec::new();
+    let readers = admission::Slots::<MAX_READERS>::default();
     loop {
         if stopped.try_recv().is_ok() {
             break;
@@ -117,7 +122,7 @@ fn connections(
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
             Err(error) => return Err(error),
         };
-        let mut retained = Vec::with_capacity(MAX_CONNECTIONS);
+        let mut retained = Vec::with_capacity(MAX_CONNECTIONS + MAX_READERS);
         for worker in workers {
             if worker.is_finished() {
                 let _ = worker.join();
@@ -126,23 +131,22 @@ fn connections(
             }
         }
         workers = retained;
-        if workers.len() >= MAX_CONNECTIONS {
-            let _ = wire::read(&mut stream);
-            let _ = wire::write(
-                &mut stream,
-                503,
-                br#"{"error":"Service unavailable"}"#,
-                None,
-                None,
-            );
+        // Retain a whole-worker bound while phase permits change hands or diagnostics run.
+        let reader = if workers.len() < MAX_CONNECTIONS + MAX_READERS {
+            readers.take()
+        } else {
+            None
+        };
+        let Some(reader) = reader else {
+            record(wire::unavailable(&mut stream));
             continue;
-        }
+        };
         let service = service.clone();
         workers.push(
             thread::Builder::new()
                 .name("mcp-http".into())
                 .spawn(move || {
-                    let _ = service.handle(stream);
+                    record(service.handle(stream, reader));
                 })?,
         );
     }
@@ -155,10 +159,27 @@ fn connections(
     }
     Ok(())
 }
+fn record(result: io::Result<()>) {
+    if let Err(error) = result {
+        crate::output::diagnostic(
+            format!("biomcp: HTTP connection failed ({:?})\n", error.kind()).as_bytes(),
+        );
+    }
+}
 impl Service {
-    fn handle(&self, mut stream: TcpStream) -> io::Result<()> {
+    fn handle(&self, mut stream: TcpStream, reader: admission::Permit) -> io::Result<()> {
         // A malformed or oversized framing closes without reflecting untrusted headers.
         let request = wire::read(&mut stream)?;
+        // Health uses a framing slot and never waits for an active tool slot.
+        let _request = if request.path == "/health" {
+            None
+        } else {
+            let Some(permit) = self.requests.take() else {
+                return wire::unavailable(&mut stream);
+            };
+            drop(reader);
+            Some(permit)
+        };
         let (status, value, revision) = self.route(&request);
         let body = value
             .map(|v| serde_json::to_vec(&v))

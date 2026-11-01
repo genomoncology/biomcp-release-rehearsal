@@ -205,3 +205,19 @@ cli-fixes-cases:
 	@set -e; for selection in $(CLI_FIX_CASES); do \
 		cargo test --locked -p biomcp --test cases "$$selection" $(TEST_THREADS); \
 	done
+.PHONY: http-edge-check
+http-edge-check: fmt
+	cargo clippy --locked -p biomcp --all-targets -- -D warnings
+	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+
+.PHONY: hosted-http-load
+hosted-http-load:
+	cargo test --locked -p biomcp --bin biomcp hosted_http_sync_load -- --ignored --nocapture
+
+.PHONY: cli-candidate-check
+cli-candidate-check: fmt
+	cargo clippy --locked -p biomcp --test cases -- -D warnings
+	$(MAKE) ratchets
+	python3 -c 'import json,subprocess,sys; out=subprocess.run([sys.argv[1], "mcp-config", "--client", "mcp-servers", "--absolute-path", "--offline"],capture_output=True,check=False); print("REMOVED_CONFIG_OPTION bytes="+str(len(out.stdout))+" exit="+str(out.returncode)); print(out.stdout[:1024].decode()); assert out.returncode == 2; assert json.loads(out.stdout)["error"]["code"] == "usage.arguments"' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
+	$(MAKE) cli-fixes-cases CLI_FIX_CASES='trial/ housekeeping/ local/mcp-config local/removed-options local/key-list-help'

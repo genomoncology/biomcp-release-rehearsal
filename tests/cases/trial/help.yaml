@@ -25,6 +25,7 @@
           "--limit",
           "--lon",
           "--next-page",
+          "--offset",
           "--phase",
           "query",
           "--sex",
@@ -46,7 +47,7 @@
         "/result/commands/0/examples": {
           "count": 4
         },
-        "/result/commands/0/arguments/28/description": "First included registry update date.",
+        "/result/commands/0/arguments/29/description": "First included registry update date.",
         "/result/commands/0/arguments/9/description": "Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial."
       },
       "max_bytes": 11802,

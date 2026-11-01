@@ -1,6 +1,7 @@
 # 0530 — Keep the hosted HTTP edge answering under load
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 34532a947459f709fafdc2a4b07cc67061504e90
 
 Milestone: 5
 

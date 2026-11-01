@@ -101,7 +101,7 @@ fn check() -> Check {
 fn check_config(env: &Environment, client: Option<&str>, empty: bool) -> Check {
     let mut args = vec!["mcp-config", "--offline"];
     if let Some(client) = client {
-        args.extend(["--client", client, "--absolute-path"]);
+        args.extend(["--client", client]);
     }
     let output = run(env, &args, empty)?;
     let value: Value = serde_json::from_str(success(&output)?)?;

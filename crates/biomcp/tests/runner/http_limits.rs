@@ -27,8 +27,11 @@ fn closed(address: SocketAddr, data: &[u8]) -> Check {
     }
 }
 pub(super) fn check() -> Check {
-    chunked()?;
-    overload()?;
+    chunked().map_err(|error| format!("chunked: {error}"))?;
+    overload().map_err(|error| format!("overload: {error}"))?;
+    dropped_peer().map_err(|error| format!("dropped peer: {error}"))?;
+    #[cfg(unix)]
+    busy_health().map_err(|error| format!("busy health: {error}"))?;
     let mut server = Server::start()?;
     for bytes in [
         format!(
@@ -177,28 +180,29 @@ fn chunked() -> Check {
 fn overload() -> Check {
     let server = Server::start()?;
     let mut held = Vec::new();
-    for _ in 0..8 {
+    // Framing reserves one reader beyond the eight active call slots for health.
+    for _ in 0..9 {
         let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
         socket
             .write_all(b"GET /health HTTP/1.1\r\n")
             .map_err(|e| e.to_string())?;
         held.push(socket);
     }
-    let mut excess = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
-    excess
-        .set_read_timeout(Some(Duration::from_millis(800)))
-        .map_err(|e| e.to_string())?;
-    excess
-        .write_all(format!("GET /health HTTP/1.1\r\nHost: {}\r\n\r\n", server.address).as_bytes())
-        .map_err(|e| e.to_string())?;
-    let mut response = String::new();
-    excess
-        .read_to_string(&mut response)
-        .map_err(|e| e.to_string())?;
-    if !response.starts_with("HTTP/1.1 503 ") {
-        return Err(format!(
-            "excess connection did not receive 503: {response:?}"
-        ));
+    // A silent refused peer must not consume the read budget or delay the next accept.
+    for _ in 0..2 {
+        let mut excess = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
+        excess
+            .set_read_timeout(Some(Duration::from_millis(800)))
+            .map_err(|e| e.to_string())?;
+        let mut response = String::new();
+        excess
+            .read_to_string(&mut response)
+            .map_err(|e| e.to_string())?;
+        if !response.starts_with("HTTP/1.1 503 ") {
+            return Err(format!(
+                "excess connection did not receive 503: {response:?}"
+            ));
+        }
     }
     drop(held);
     Ok(())
@@ -249,4 +253,101 @@ pub(super) fn read_only_health(server: &Server) -> Result<(u16, serde_json::Valu
         ));
     }
     response
+}
+
+fn dropped_peer() -> Check {
+    let server = Server::start()?;
+    let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
+    socket.write_all(format!(
+        "POST /mcp HTTP/1.1\r\nHost: {}\r\nX-Biomcp-Key-Oncokb-Token: synthetic-secret\r\nContent-Length: 999\r\n\r\nprivate-body",
+        server.address
+    ).as_bytes()).map_err(|e| e.to_string())?;
+    socket
+        .shutdown(std::net::Shutdown::Both)
+        .map_err(|e| e.to_string())?;
+    drop(socket);
+    let event = server
+        .diagnostics
+        .lock()
+        .map_err(|_| "HTTP diagnostics receiver poisoned")?
+        .recv_timeout(Duration::from_secs(5))
+        .map_err(|_| "dropped HTTP peer was not recorded")?;
+    if event != "biomcp: HTTP connection failed (InvalidData)" {
+        return Err(format!("unsafe or missing connection diagnostic: {event}"));
+    }
+    if server.request("GET", "/health", "")?.0 != 200 {
+        return Err("server stopped after the client dropped".into());
+    }
+    Ok(())
+}
+
+#[cfg(unix)]
+fn busy_health() -> Check {
+    use std::os::unix::fs::OpenOptionsExt;
+    // Every tool blocks in the existing per-call settings read until this writer closes.
+    let server = Server::configured_globals(
+        "127.0.0.1:0",
+        Some(serde_json::json!({})),
+        None,
+        None,
+        None,
+        &["--hosted".into()],
+    )?;
+    let config = server
+        .environment()
+        .root()
+        .join("config/biomcp/config.json");
+    std::fs::remove_file(&config).map_err(|e| e.to_string())?;
+    nix::unistd::mkfifo(
+        &config,
+        nix::sys::stat::Mode::S_IRUSR | nix::sys::stat::Mode::S_IWUSR,
+    )
+    .map_err(|e| e.to_string())?;
+    let writer = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .custom_flags(nix::libc::O_NONBLOCK)
+        .open(&config)
+        .map_err(|e| e.to_string())?;
+    let mut held = Vec::new();
+    for index in 1..=8 {
+        let body = super::mcp::request(
+            serde_json::json!(index),
+            "tools/call",
+            serde_json::json!({
+                "name":"biomcp", "arguments":{"args":["get","protein",format!("P0000{index}")]}
+            }),
+        )
+        .to_string();
+        let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
+        socket.write_all(format!(
+            "POST /mcp HTTP/1.1\r\nHost: {}\r\nContent-Type: application/json\r\n\
+             Accept: application/json, text/event-stream\r\nMCP-Protocol-Version: 2026-07-28\r\nMcp-Method: tools/call\r\nMcp-Name: biomcp\r\n\
+             Content-Length: {}\r\n\r\n{body}",
+            server.address, body.len()
+        ).as_bytes()).map_err(|e| e.to_string())?;
+        held.push(socket);
+    }
+    // A refused ordinary request observes that all eight tool slots are occupied.
+    let probe =
+        super::mcp::request(serde_json::json!(9), "tools/list", serde_json::json!({})).to_string();
+    let end = Instant::now() + Duration::from_secs(5);
+    loop {
+        let status = server.request("POST", "/mcp", &probe)?.0;
+        if status == 503 {
+            break;
+        }
+        if status != 200 || Instant::now() >= end {
+            return Err(format!(
+                "eight long calls did not occupy capacity: {status}"
+            ));
+        }
+    }
+    let (status, body) = server.request("GET", "/health", "")?;
+    if status != 200 || body.get("store") != Some(&serde_json::json!(true)) {
+        return Err(format!("busy server failed health: {status} {body}"));
+    }
+    drop(writer);
+    drop(held);
+    Ok(())
 }
