@@ -31,6 +31,7 @@ pub struct Stub {
     /// The synthetic PEM trust anchor.
     pub certificate: String,
     stop: mpsc::Sender<()>,
+    handshakes: mpsc::Receiver<rustls::HandshakeKind>,
     evidence: Arc<evidence::Evidence>,
     worker: Option<thread::JoinHandle<Result<Requests, String>>>,
 }
@@ -136,6 +137,7 @@ impl Stub {
         let listener = TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
         let address = listener.local_addr().map_err(|e| e.to_string())?;
         let (stop, stopping) = mpsc::channel();
+        let (handshake, handshakes) = mpsc::channel();
         let (certificate, config) = identity(hosts)?;
         let evidence = evidence::Evidence::new(address, hosts);
         let observed = Arc::clone(&evidence);
@@ -162,6 +164,9 @@ impl Stub {
                 let mut tls = StreamOwned::new(connection, socket);
                 // An untrusted client closes its handshake before sending HTTP.
                 if let Ok(request) = observed.check("TLS request", source_request(&mut tls)) {
+                    if let Some(kind) = tls.conn.handshake_kind() {
+                        handshake.send(kind).map_err(|e| e.to_string())?;
+                    }
                     let body = reply(&request)?;
                     let content_type = content_type(&request);
                     let status = status(&request);
@@ -182,9 +187,14 @@ impl Stub {
             address,
             certificate,
             stop,
+            handshakes,
             evidence,
             worker: Some(worker),
         })
+    }
+    /// Return completed TLS handshakes observed since the last read.
+    pub fn handshakes(&self) -> Vec<rustls::HandshakeKind> {
+        self.handshakes.try_iter().collect()
     }
     /// Stop and join the peer, returning all observed requests.
     pub fn finish(mut self) -> Result<Vec<(String, String)>, String> {

@@ -83,7 +83,7 @@ impl Network {
             Route::Https => self.https.clone(),
         })
     }
-    pub(crate) fn rpc_tls(&self) -> Result<rustls::ClientConfig, FetchError> {
+    pub(crate) fn tls_configuration(&self) -> Result<rustls::ClientConfig, FetchError> {
         crate::tls::configuration(self.roots.0.clone())
     }
 
@@ -157,8 +157,11 @@ impl Agents {
         self.http.clone().shutdown();
         self.https.clone().shutdown();
     }
-    pub(crate) fn new(network: &Network, explicit: Option<&Secret>) -> Result<Self, FetchError> {
-        let tls = Arc::new(crate::tls::configuration(network.roots.0.clone())?);
+    pub(crate) fn new(
+        network: &Network,
+        explicit: Option<&Secret>,
+        tls: Arc<rustls::ClientConfig>,
+    ) -> Result<Self, FetchError> {
         let explicit = proxy(explicit)?;
         let make = |proxy| {
             use ureq::unversioned::{

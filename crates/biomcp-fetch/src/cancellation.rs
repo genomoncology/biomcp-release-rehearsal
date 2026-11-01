@@ -80,6 +80,7 @@ impl Fetch {
         let agents = Arc::new(Agents::new(
             &self.config.network,
             self.config.proxy.as_ref(),
+            self.tls.clone(),
         )?);
         let mut owners = cancellation
             .agents

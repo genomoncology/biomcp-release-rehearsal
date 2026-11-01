@@ -4,7 +4,7 @@ use super::{
     control::{CallGuard, CallState, Stop},
     rpc_call::{self, Event},
 };
-use crate::{LocalDeadline, Network, Secret};
+use crate::{LocalDeadline, Secret};
 use biomcp_types::Reason;
 #[expect(
     clippy::disallowed_types,
@@ -40,7 +40,7 @@ struct Running {
 pub(crate) struct Worker {
     running: Mutex<Option<Running>>,
     stop: Arc<Stop>,
-    network: Network,
+    tls: Arc<rustls::ClientConfig>,
     pub(super) limits: Limits,
 }
 impl Worker {
@@ -48,14 +48,17 @@ impl Worker {
         clippy::disallowed_types,
         reason = "Serialize lazy runtime initialization and join its sole worker thread"
     )]
-    pub(crate) fn new(network: Network, limits: Limits) -> Result<Self, crate::FetchError> {
+    pub(crate) fn new(
+        tls: Arc<rustls::ClientConfig>,
+        limits: Limits,
+    ) -> Result<Self, crate::FetchError> {
         limits
             .check()
             .map_err(|_| crate::FetchError::StreamingLimits)?;
         Ok(Self {
             running: Mutex::new(None),
             stop: Arc::default(),
-            network,
+            tls,
             limits,
         })
     }
@@ -67,11 +70,11 @@ impl Worker {
         if running.is_none() {
             let (sender, receiver) = tokio::sync::mpsc::channel(self.limits.queued_calls);
             let stop = self.stop.clone();
-            let network = self.network.clone();
+            let tls = self.tls.clone();
             let limits = self.limits;
             let thread = thread::Builder::new()
                 .name("source-streams".into())
-                .spawn(move || runtime(receiver, stop, network, limits))
+                .spawn(move || runtime(receiver, stop, tls, limits))
                 .map_err(|_| Reason::Unavailable)?;
             *running = Some(Running { sender, thread });
         }
@@ -152,14 +155,15 @@ impl Drop for Worker {
 fn runtime(
     receiver: tokio::sync::mpsc::Receiver<Command>,
     stop: Arc<Stop>,
-    network: Network,
+    tls: Arc<rustls::ClientConfig>,
     limits: Limits,
 ) {
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .max_blocking_threads(1)
         .build();
-    if let (Ok(runtime), Ok(mut tls)) = (runtime, network.rpc_tls()) {
+    if let Ok(runtime) = runtime {
+        let mut tls = (*tls).clone();
         tls.alpn_protocols = vec![b"h2".to_vec()];
         runtime.block_on(run(receiver, stop, Arc::new(tls), limits));
         // Only the documented system resolver may remain on its single blocking slot.

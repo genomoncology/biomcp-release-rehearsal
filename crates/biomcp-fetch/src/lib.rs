@@ -165,6 +165,7 @@ pub struct Fetch {
     secrets: std::sync::Arc<Secrets>,
     hosted: bool,
     agents: std::sync::Arc<network::Agents>,
+    tls: std::sync::Arc<rustls::ClientConfig>,
     grpc_worker: std::sync::Arc<grpc::Worker>,
     cancelled: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
     call_end: Option<std::time::Instant>,
@@ -197,11 +198,9 @@ impl Fetch {
         if config.max_body == u64::MAX {
             return Err(FetchError::BodyLimit);
         }
-        let grpc_worker = std::sync::Arc::new(grpc::Worker::new(
-            config.network.clone(),
-            config.grpc_limits,
-        )?);
-        let agents = network::Agents::new(&config.network, config.proxy.as_ref())?;
+        let tls = std::sync::Arc::new(config.network.tls_configuration()?);
+        let grpc_worker = std::sync::Arc::new(grpc::Worker::new(tls.clone(), config.grpc_limits)?);
+        let agents = network::Agents::new(&config.network, config.proxy.as_ref(), tls.clone())?;
         if matches!(config.mode, Mode::Replay { .. }) && config.replay_cache.is_none() {
             config.replay_cache = Some(
                 ReplayCache::temporary_with_owners(&config.cache_owners)
@@ -231,6 +230,7 @@ impl Fetch {
             hosted: false,
             agents: std::sync::Arc::new(agents),
             grpc_worker,
+            tls,
             cancelled: None,
             call_end: None,
             mode: std::mem::take(&mut config.mode),
@@ -470,3 +470,7 @@ mod counted;
 pub use counted::ContentRange;
 
 mod request_body;
+
+#[cfg(test)]
+#[path = "../tests/transport/tls_builds.rs"]
+mod tls_build_tests;

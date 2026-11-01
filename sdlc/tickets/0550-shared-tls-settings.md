@@ -1,6 +1,7 @@
 # 0550 — Build TLS settings once for hosted calls
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c9394cc5fb17ede1fc40a6703ebf3de125f750cc
 
 Milestone: 5
 

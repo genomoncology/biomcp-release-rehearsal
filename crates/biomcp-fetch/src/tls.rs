@@ -19,6 +19,8 @@ use ureq::{
 pub(crate) fn configuration(
     roots: Vec<CertificateDer<'static>>,
 ) -> Result<ClientConfig, FetchError> {
+    #[cfg(test)]
+    crate::tls_build_tests::BUILDS.with(|count| count.set(count.get() + 1));
     let provider = Arc::new(rustls::crypto::ring::default_provider());
     let verifier =
         rustls_platform_verifier::Verifier::new_with_extra_roots(roots, provider.clone())

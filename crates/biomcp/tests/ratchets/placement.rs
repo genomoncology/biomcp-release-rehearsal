@@ -16,6 +16,10 @@ const ALLOWED: &[(&str, &str)] = &[
         "Check credential-free exact publisher origins at the private admission boundary without a product inventory helper.",
     ),
     (
+        "crates/biomcp-fetch/tests/transport/tls_builds.rs",
+        "Count TLS configuration builds across hosted calls at the private constructor boundary without exposing test controls.",
+    ),
+    (
         "crates/biomcp-fetch/tests/grpc_worker/shutdown.rs",
         "Prove cancellation joins active network work at the private worker boundary without exporting shutdown control.",
     ),
