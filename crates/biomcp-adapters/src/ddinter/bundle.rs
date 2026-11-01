@@ -136,7 +136,7 @@ pub fn interactions(
             Ok::<_, biodata::Error>(mapped.value)
         })
         .collect::<Result<Box<[_]>, _>>()
-        .map_err(|_| biomcp_fetch::CacheError::Database)?;
+        .map_err(|_| biomcp_fetch::CacheError::Limit)?;
     Ok(crate::Mapped {
         refusals,
         problems,

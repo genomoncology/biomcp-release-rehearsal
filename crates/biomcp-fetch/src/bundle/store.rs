@@ -39,31 +39,31 @@ impl Part {
         {
             Ok(file) => file,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
-            Err(_) => return Err(CacheError::Database),
+            Err(_) => return Err(CacheError::Filesystem),
         };
         match file.try_lock() {
             Ok(()) => Ok(false),
             Err(std::fs::TryLockError::WouldBlock) => Ok(true),
-            Err(std::fs::TryLockError::Error(_)) => Err(CacheError::Database),
+            Err(std::fs::TryLockError::Error(_)) => Err(CacheError::Filesystem),
         }
     }
     fn validate(&self, folder: &std::path::Path) -> Result<bool, CacheError> {
         let path = std::path::Path::new(&self.path);
-        let parent = path.parent().ok_or(CacheError::Database)?;
+        let parent = path.parent().ok_or(CacheError::Limit)?;
         let valid_name = path
             .file_name()
             .and_then(|n| n.to_str())
             .is_some_and(part_name);
         if !valid_name
-            || parent.canonicalize().map_err(|_| CacheError::Database)?
-                != folder.canonicalize().map_err(|_| CacheError::Database)?
+            || parent.canonicalize().map_err(|_| CacheError::Filesystem)?
+                != folder.canonicalize().map_err(|_| CacheError::Filesystem)?
         {
-            return Err(CacheError::Database);
+            return Err(CacheError::Limit);
         }
         match path.symlink_metadata() {
             Ok(meta) if meta.is_file() => Ok(true),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
-            _ => Err(CacheError::Database),
+            _ => Err(CacheError::Filesystem),
         }
     }
 }
@@ -76,11 +76,11 @@ pub(super) fn create_part(folder: &std::path::Path) -> Result<tempfile::NamedTem
         .prefix(PART_PREFIX)
         .rand_bytes(PART_RANDOM)
         .tempfile_in(folder)
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Filesystem)?;
     // The transfer file witnesses this holder's lifetime, including process death.
     file.as_file()
         .try_lock()
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Filesystem)?;
     Ok(file)
 }
 pub(crate) fn initialize(c: &Connection) -> Result<(), CacheError> {
@@ -296,7 +296,7 @@ fn selected_rows(c: &Connection, name: &str, find: Find<'_>) -> Result<Vec<Strin
                     .map(|v| v.to_ascii_lowercase())
                     .collect::<Vec<_>>(),
             )
-            .map_err(|_| CacheError::Database)?,
+            .map_err(|_| CacheError::Encoding)?,
             None,
             kind(k),
         ),

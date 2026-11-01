@@ -1,6 +1,7 @@
 # 0547 — Give cache failures their own kinds
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b2c4767d92588dce30bda18dbe01499f307d2c06
 
 Milestone: 5
 

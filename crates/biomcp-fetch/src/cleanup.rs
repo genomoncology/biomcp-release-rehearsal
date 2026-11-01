@@ -9,7 +9,7 @@ use std::{fs, path::Path};
 impl Fetch {
     /// Remove expired transport replies only when the caller explicitly requests cleanup.
     pub fn clean_expired_replies(&self, deadline: Deadline<'_>) -> Result<u64, CacheError> {
-        let cache = self.cache.as_ref().ok_or(CacheError::Database)?;
+        let cache = self.cache.as_ref().ok_or(CacheError::Internal)?;
         cache.write_sql(deadline, |c| {
             c.execute("DELETE FROM reply WHERE fresh_until<=?1", [now()])
                 .map(|n| n as u64)
@@ -37,9 +37,9 @@ impl crate::CacheAccess {
             return Ok(0);
         };
         let mut removed = 0;
-        for entry in fs::read_dir(parent).map_err(|_| CacheError::Database)? {
-            let entry = entry.map_err(|_| CacheError::Database)?;
-            let kind = entry.file_type().map_err(|_| CacheError::Database)?;
+        for entry in fs::read_dir(parent).map_err(|_| CacheError::Filesystem)? {
+            let entry = entry.map_err(|_| CacheError::Filesystem)?;
+            let kind = entry.file_type().map_err(|_| CacheError::Filesystem)?;
             let name = entry.file_name();
             let Some(version) = name.to_str().and_then(namespace) else {
                 continue;
@@ -132,14 +132,14 @@ fn transport_table(name: &str) -> bool {
 }
 
 fn remove_database(path: &Path) -> Result<(), CacheError> {
-    fs::remove_file(path).map_err(|_| CacheError::Database)?;
+    fs::remove_file(path).map_err(|_| CacheError::Filesystem)?;
     for suffix in ["-wal", "-shm"] {
         let mut sidecar = path.as_os_str().to_os_string();
         sidecar.push(suffix);
         match fs::remove_file(sidecar) {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(_) => return Err(CacheError::Database),
+            Err(_) => return Err(CacheError::Filesystem),
         }
     }
     Ok(())

@@ -102,7 +102,7 @@ fn store_corruption_and_exhausted_budget_remain_typed_local_failures() {
         .unwrap();
     let out = run(&fetch, query(Some(id.as_str()), 0), false);
     assert_eq!(out.status(), Status::Failed);
-    assert_eq!(out.local, Some(RequestError::Cache(CacheError::Database)));
+    assert_eq!(out.local, Some(RequestError::Cache(CacheError::Encoding)));
     assert!(out.sources.is_empty());
     fetch
         .cache_access()

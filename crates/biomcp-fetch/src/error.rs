@@ -88,8 +88,16 @@ impl std::error::Error for FetchError {}
 /// Local cache failures carry no SQL, file paths or provider text.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CacheError {
-    /// Database access failed.
+    /// A SQLite operation failed.
     Database,
+    /// Cache JSON could not be encoded or decoded.
+    Encoding,
+    /// A cache filesystem operation failed.
+    Filesystem,
+    /// Cache state or synchronization was inconsistent.
+    Internal,
+    /// Cache content exceeded a supported bound or failed validation.
+    Limit,
     /// A stored snapshot could not be encoded or decoded.
     Snapshot,
     /// The file has no valid transport ownership or a different schema version.
@@ -101,6 +109,10 @@ impl fmt::Display for CacheError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::Database => "fetch.cache_database",
+            Self::Encoding => "fetch.cache_encoding",
+            Self::Filesystem => "fetch.cache_filesystem",
+            Self::Internal => "fetch.cache_internal",
+            Self::Limit => "fetch.cache_limit",
             Self::Snapshot => "fetch.cache_snapshot",
             Self::Version => "fetch.cache_version",
             Self::Busy => "fetch.cache_busy",
@@ -113,6 +125,10 @@ impl From<CacheError> for biomcp_types::CacheProblem {
         match error {
             CacheError::Busy => Self::Busy,
             CacheError::Database => Self::Database,
+            CacheError::Encoding => Self::Encoding,
+            CacheError::Filesystem => Self::Filesystem,
+            CacheError::Internal => Self::Internal,
+            CacheError::Limit => Self::Limit,
             CacheError::Snapshot => Self::Snapshot,
             CacheError::Version => Self::Version,
         }

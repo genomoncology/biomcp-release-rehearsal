@@ -66,7 +66,7 @@ impl Policy {
                 |r| r.get(0),
             )
             .map_err(super::db)?;
-        let mut metadata = self.decode(&text)?.ok_or(CacheError::Database)?;
+        let mut metadata = self.decode(&text)?.ok_or(CacheError::Internal)?;
         metadata.sources.push(outcome.clone());
         let next = self.encode(&metadata.sources, &metadata.problems, metadata.dropped)?;
         self.authorize_update(cx, Table::Pool, id, &next)
@@ -86,10 +86,10 @@ impl Policy {
                 r.get(0)
             })
             .map_err(super::db)?;
-        let old = self.decode(&text)?.ok_or(CacheError::Database)?;
-        let new = self.decode(next)?.ok_or(CacheError::Database)?;
+        let old = self.decode(&text)?.ok_or(CacheError::Internal)?;
+        let new = self.decode(next)?.ok_or(CacheError::Internal)?;
         if self.0.is_hosted() && old.ownership != new.ownership {
-            return Err(CacheError::Database);
+            return Err(CacheError::Internal);
         }
         Ok(())
     }
@@ -114,7 +114,7 @@ impl Policy {
             .flatten()
             .is_none()
         {
-            return Err(CacheError::Database);
+            return Err(CacheError::Internal);
         }
         Ok(())
     }
@@ -156,11 +156,11 @@ impl Policy {
     ) -> Result<String, CacheError> {
         let ownership = match self.ownership(sources) {
             Ownership::Public if problems.is_empty() && !dropped => {
-                return serde_json::to_string(sources).map_err(|_| CacheError::Database);
+                return serde_json::to_string(sources).map_err(|_| CacheError::Encoding);
             }
             Ownership::Public => None,
             Ownership::Caller(identity) => Some(identity),
-            Ownership::Missing => return Err(CacheError::Database),
+            Ownership::Missing => return Err(CacheError::Internal),
         };
         serde_json::to_string(&Metadata {
             sources: sources.into(),
@@ -168,21 +168,21 @@ impl Policy {
             dropped,
             ownership,
         })
-        .map_err(|_| CacheError::Database)
+        .map_err(|_| CacheError::Encoding)
     }
 
     pub(super) fn decode(&self, text: &str) -> Result<Option<Metadata>, CacheError> {
         let value: serde_json::Value =
-            serde_json::from_str(text).map_err(|_| CacheError::Database)?;
+            serde_json::from_str(text).map_err(|_| CacheError::Encoding)?;
         let metadata = if value.is_array() {
             Metadata {
-                sources: serde_json::from_str(text).map_err(|_| CacheError::Database)?,
+                sources: serde_json::from_str(text).map_err(|_| CacheError::Encoding)?,
                 problems: Vec::new(),
                 dropped: false,
                 ownership: None,
             }
         } else {
-            serde_json::from_str(text).map_err(|_| CacheError::Database)?
+            serde_json::from_str(text).map_err(|_| CacheError::Encoding)?
         };
         if !self.0.is_hosted() {
             return Ok(Some(metadata));
@@ -204,7 +204,7 @@ impl Policy {
         let identity = Sha256::digest([key, payload.as_bytes()].concat()).into();
         match self.ownership(sources) {
             Ownership::Public => Ok(identity),
-            Ownership::Missing => Err(CacheError::Database),
+            Ownership::Missing => Err(CacheError::Internal),
             Ownership::Caller(scope) => {
                 let mut hash = Sha256::new();
                 hash.update(b"biomcp/query-snapshot/v1\0");

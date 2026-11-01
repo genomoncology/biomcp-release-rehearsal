@@ -38,7 +38,7 @@ impl<'guard, 'connection> Owner<'guard, 'connection> {
                 Err(TryLockError::WouldBlock) => {
                     std::thread::park_timeout(Duration::from_millis(1).min(deadline.remaining()));
                 }
-                Err(TryLockError::Poisoned(_)) => return Err(CacheError::Database),
+                Err(TryLockError::Poisoned(_)) => return Err(CacheError::Internal),
             }
         }
     }

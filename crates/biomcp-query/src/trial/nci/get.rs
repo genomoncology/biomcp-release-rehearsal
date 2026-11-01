@@ -105,7 +105,7 @@ fn restore(
     deadline: biomcp_fetch::Deadline<'_>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    let id = q.input().first().copied().ok_or(CacheError::Database)?;
+    let id = q.input().first().copied().ok_or(CacheError::Internal)?;
     let snapshot: Option<Snapshot> = source_snapshot::read(
         cx,
         &source_snapshot::key("nci-trial", &id)?,
@@ -123,7 +123,7 @@ fn restore(
         return Ok(());
     };
     if snapshot.detail.card.nct_id != id {
-        return Err(CacheError::Database.into());
+        return Err(CacheError::Internal.into());
     }
     if !page::valid(q, &snapshot) {
         out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);

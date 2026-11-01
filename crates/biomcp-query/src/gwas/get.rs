@@ -274,7 +274,7 @@ fn associations(
     }
     out.body = (GwasPage {
         items,
-        page: out.page.clone().ok_or(biomcp_fetch::CacheError::Database)?,
+        page: out.page.clone().ok_or(biomcp_fetch::CacheError::Internal)?,
         qualifying_total: None,
         continuation,
     })

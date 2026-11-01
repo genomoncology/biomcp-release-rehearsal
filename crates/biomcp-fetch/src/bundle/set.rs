@@ -156,7 +156,7 @@ fn append_part(
 ) -> Result<(), RequestError> {
     for row in rows {
         let value: serde_json::Value =
-            serde_json::from_str(&row.row).map_err(|_| crate::CacheError::Database)?;
+            serde_json::from_str(&row.row).map_err(|_| crate::CacheError::Encoding)?;
         let document = serde_json::json!({"part":part.name,"row":row.number,"value":value});
         complete.push(parse::Parsed {
             number: row.number,

@@ -53,7 +53,7 @@ impl CacheAccess {
 impl Fetch {
     /// Retain the active reply cache and its directory owner for a query connection.
     pub fn cache_access(&self) -> Result<CacheAccess, CacheError> {
-        let cache = self.cache.as_ref().ok_or(CacheError::Database)?;
+        let cache = self.cache.as_ref().ok_or(CacheError::Internal)?;
         Ok(CacheAccess {
             path: cache.2.clone(),
             _cache: cache.clone(),

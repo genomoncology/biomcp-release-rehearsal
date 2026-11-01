@@ -43,10 +43,10 @@ impl Store<'_> {
                 let Some(metadata) = self.policy().decode(&sources)? else { return Ok(None) };
                 Ok(Some(Pool {
                     info: PoolInfo {
-                        id: Text::new(&id).map_err(|_| CacheError::Database)?,
+                        id: Text::new(&id).map_err(|_| CacheError::Limit)?,
                         size,
-                        created: u64::try_from(created).map_err(|_| CacheError::Database)?,
-                        expires: u64::try_from(expires).map_err(|_| CacheError::Database)?,
+                        created: u64::try_from(created).map_err(|_| CacheError::Limit)?,
+                        expires: u64::try_from(expires).map_err(|_| CacheError::Limit)?,
                     },
 
                     key,
@@ -78,7 +78,7 @@ impl Store<'_> {
             let created = Self::now();
             let expires = created.saturating_add(86400);
             let id: String = tx.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0)).map_err(db)?;
-            let size = u32::try_from(items.len()).map_err(|_| CacheError::Database)?;
+            let size = u32::try_from(items.len()).map_err(|_| CacheError::Limit)?;
             tx.execute(
                 "INSERT INTO pool(id,request_key,created,expires,size,outcomes) VALUES (?1,?2,?3,?4,?5,?6)",
                 params![id, key, created, expires, size, outcomes],
@@ -90,18 +90,18 @@ impl Store<'_> {
                     .map_err(db)?;
                 for (rank, item) in items.iter().enumerate() {
                     let identity = match &item.key {
-                        Some(key) => serde_json::to_string(key).map_err(|_| CacheError::Database)?,
+                        Some(key) => serde_json::to_string(key).map_err(|_| CacheError::Encoding)?,
                         None => format!("unidentified:{rank}"),
                     };
                     let mut identity_item = item.clone();
                     identity_item.header = None;
-                    let payload = serde_json::to_string(&identity_item).map_err(|_| CacheError::Database)?;
-                    let header = item.header.as_ref().map(serde_json::to_string).transpose().map_err(|_| CacheError::Database)?;
+                    let payload = serde_json::to_string(&identity_item).map_err(|_| CacheError::Encoding)?;
+                    let header = item.header.as_ref().map(serde_json::to_string).transpose().map_err(|_| CacheError::Encoding)?;
                     let own: Vec<_> = problems
                         .iter()
                         .filter(|p| p.record.as_ref().is_some_and(|r| item.pmid.is_some_and(|id| r.as_str() == id.to_string())))
                         .collect();
-                    let own = serde_json::to_string(&own).map_err(|_| CacheError::Database)?;
+                    let own = serde_json::to_string(&own).map_err(|_| CacheError::Encoding)?;
                     insert
                         .execute(params![id, rank as u32, identity, payload, header, item.pmid.is_none(), own])
                         .map_err(db)?;
@@ -115,10 +115,10 @@ impl Store<'_> {
             .map_err(db)?;
             Ok(Pool {
                 info: PoolInfo {
-                    id: Text::new(&id).map_err(|_| CacheError::Database)?,
+                    id: Text::new(&id).map_err(|_| CacheError::Limit)?,
                     size,
-                    created: u64::try_from(created).map_err(|_| CacheError::Database)?,
-                    expires: u64::try_from(expires).map_err(|_| CacheError::Database)?,
+                    created: u64::try_from(created).map_err(|_| CacheError::Limit)?,
+                    expires: u64::try_from(expires).map_err(|_| CacheError::Limit)?,
                 },
                 key: key.into(),
                 sources: sources.into(),
@@ -159,10 +159,10 @@ impl Store<'_> {
             .map_err(db)?;
             Ok(Pool {
                 info: PoolInfo {
-                    id: Text::new(&id).map_err(|_| CacheError::Database)?,
+                    id: Text::new(&id).map_err(|_| CacheError::Limit)?,
                     size,
-                    created: u64::try_from(created).map_err(|_| CacheError::Database)?,
-                    expires: u64::try_from(expires).map_err(|_| CacheError::Database)?,
+                    created: u64::try_from(created).map_err(|_| CacheError::Limit)?,
+                    expires: u64::try_from(expires).map_err(|_| CacheError::Limit)?,
                 },
                 key: key.into(),
                 sources: sources.into(),
@@ -199,7 +199,7 @@ impl Store<'_> {
                     )
                     .map_err(db)?;
                 if snapshot != 1 {
-                    return Err(CacheError::Database);
+                    return Err(CacheError::Internal);
                 }
             }
             let (size, outcomes): (u32, String) = tx
@@ -210,7 +210,7 @@ impl Store<'_> {
                 )
                 .map_err(db)?;
             pool.info.size = size;
-            pool.sources = policy.decode(&outcomes)?.ok_or(CacheError::Database)?.sources;
+            pool.sources = policy.decode(&outcomes)?.ok_or(CacheError::Internal)?.sources;
             Ok(pool)
         })
     }
@@ -241,13 +241,13 @@ impl Store<'_> {
                 .map_err(db)?;
             rows.map(|row| {
                 let (id, checked, header, problems, outcome) = row.map_err(db)?;
-                let mut item: ArticleItem = serde_json::from_str(&id).map_err(|_| CacheError::Database)?;
-                item.header = header.map(|h| serde_json::from_str(&h).map_err(|_| CacheError::Database)).transpose()?;
+                let mut item: ArticleItem = serde_json::from_str(&id).map_err(|_| CacheError::Encoding)?;
+                item.header = header.map(|h| serde_json::from_str(&h).map_err(|_| CacheError::Encoding)).transpose()?;
                 Ok(StoredItem {
                     item,
                     checked,
-                    problems: serde_json::from_str(&problems).map_err(|_| CacheError::Database)?,
-                    outcome: outcome.map(|v| serde_json::from_str(&v).map_err(|_| CacheError::Database)).transpose()?,
+                    problems: serde_json::from_str(&problems).map_err(|_| CacheError::Encoding)?,
+                    outcome: outcome.map(|v| serde_json::from_str(&v).map_err(|_| CacheError::Encoding)).transpose()?,
                 })
             })
             .collect()
@@ -268,11 +268,11 @@ impl Store<'_> {
             policy.authorize_hydration(tx, pool, outcome)?;
             if dropped {
                 let raw: String = tx.query_row("SELECT outcomes FROM pool WHERE id=?1", [pool], |r| r.get(0)).map_err(db)?;
-                let metadata = policy.decode(&raw)?.ok_or(CacheError::Database)?;
+                let metadata = policy.decode(&raw)?.ok_or(CacheError::Internal)?;
                 let raw = policy.encode(&metadata.sources, &metadata.problems, true)?;
                 tx.execute("UPDATE pool SET outcomes=?2 WHERE id=?1", params![pool, raw]).map_err(db)?;
             }
-            let outcome = outcome.map(serde_json::to_string).transpose().map_err(|_| CacheError::Database)?;
+            let outcome = outcome.map(serde_json::to_string).transpose().map_err(|_| CacheError::Encoding)?;
             let names: Vec<_> = ids.iter().map(ToString::to_string).collect();
             for (index, id) in ids.iter().enumerate() {
                 let header = headers
@@ -280,9 +280,9 @@ impl Store<'_> {
                     .find(|h| h.pmid == Some(*id))
                     .map(serde_json::to_string)
                     .transpose()
-                    .map_err(|_| CacheError::Database)?;
+                    .map_err(|_| CacheError::Encoding)?;
                 let name = id.to_string();
-                let identity = serde_json::to_string(&biomcp_types::ArticleKey::Pubmed(*id)).map_err(|_| CacheError::Database)?;
+                let identity = serde_json::to_string(&biomcp_types::ArticleKey::Pubmed(*id)).map_err(|_| CacheError::Encoding)?;
                 let problems: Vec<_> = problems
                     .iter()
                     .filter(|p| {
@@ -296,14 +296,14 @@ impl Store<'_> {
                         r.get(0)
                     })
                     .map_err(db)?;
-                let mut merged: Vec<Problem> = serde_json::from_str(&old).map_err(|_| CacheError::Database)?;
+                let mut merged: Vec<Problem> = serde_json::from_str(&old).map_err(|_| CacheError::Encoding)?;
                 merged.retain(|p| p.source != biomcp_types::Source::PubMed);
                 for problem in problems {
                     if !merged.contains(problem) {
                         merged.push(problem.clone());
                     }
                 }
-                let problems = serde_json::to_string(&merged).map_err(|_| CacheError::Database)?;
+                let problems = serde_json::to_string(&merged).map_err(|_| CacheError::Encoding)?;
                 // A concurrent accepted header always wins over a missing or later response.
                 tx.execute(
                     "UPDATE pool_item SET checked=1,header=?3,problems=?4,outcome=?5 WHERE pool=?1 AND identity=?2 AND \

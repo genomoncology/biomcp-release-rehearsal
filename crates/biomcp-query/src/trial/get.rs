@@ -105,7 +105,7 @@ fn restore(
     deadline: biomcp_fetch::Deadline<'_>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    let id = query.input().first().copied().ok_or(CacheError::Database)?;
+    let id = query.input().first().copied().ok_or(CacheError::Internal)?;
     if cx.fetch.disabled(Source::ClinicalTrialsGov) {
         let leg = cx.fetch.leg(&ctgov::SPEC, deadline);
         let result = ctgov::detail::get(&leg, id);
@@ -143,7 +143,7 @@ fn restore(
         return Ok(());
     };
     if snapshot.detail.card.nct_id != id {
-        return Err(CacheError::Database.into());
+        return Err(CacheError::Internal.into());
     }
     if !page::valid(query, &snapshot) {
         out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);

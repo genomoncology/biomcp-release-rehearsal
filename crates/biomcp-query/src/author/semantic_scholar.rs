@@ -85,7 +85,7 @@ fn execute(
         status::retain_source_state(&mut saved.source, &source);
     }
     let pool = if cached {
-        Some(old_pool.ok_or(biomcp_fetch::CacheError::Database)?)
+        Some(old_pool.ok_or(biomcp_fetch::CacheError::Internal)?)
     } else {
         crate::publish::keep(
             snapshot::publish(
@@ -112,7 +112,7 @@ fn present(
         .pages
         .into_iter()
         .find(|p| p.offset == q.offset())
-        .ok_or(biomcp_fetch::CacheError::Database)?;
+        .ok_or(biomcp_fetch::CacheError::Internal)?;
     out.include_refusals(page.refusals);
     out.problems.extend(page.problems);
     let items: Box<[_]> = page

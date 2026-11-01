@@ -78,7 +78,7 @@ fn execute(
         advance(cx, q, deadline, &mut saved, out);
     }
     let pool = if replay {
-        Some(q.pool().cloned().ok_or(CacheError::Database)?)
+        Some(q.pool().cloned().ok_or(CacheError::Internal)?)
     } else {
         crate::publish::keep(
             source_snapshot::write(cx, &identity, &saved, &saved.3, deadline),
@@ -104,7 +104,7 @@ fn load(
         return Ok(None);
     };
     if saved.1.len() != q.sources().len() {
-        return Err(CacheError::Database.into());
+        return Err(CacheError::Internal.into());
     }
     Ok(Some(saved))
 }

@@ -59,7 +59,7 @@ pub(super) fn create<'a>(
                     "article citations <PMID> --source icite"
                 }
                 .parse()
-                .map_err(|_| biomcp_fetch::CacheError::Database)?,
+                .map_err(|_| biomcp_fetch::CacheError::Internal)?,
             });
     }
     out.sources.push(source);

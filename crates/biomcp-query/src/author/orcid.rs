@@ -89,7 +89,7 @@ fn execute(
         let groups = mapped.value;
         out.include_refusals(mapped.refusals);
         out.problems.extend(mapped.problems);
-        let size = u32::try_from(groups.len()).map_err(|_| CacheError::Database)?;
+        let size = u32::try_from(groups.len()).map_err(|_| CacheError::Limit)?;
         let pool = crate::publish::keep(
             source_snapshot::publish(
                 cx,

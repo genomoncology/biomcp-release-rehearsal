@@ -102,8 +102,16 @@ biodata::wire_enum! {
 CacheProblem {
     /// The cache connection or file was busy.
     Busy => "busy",
-    /// The cache could not store or remove a reply.
+    /// A SQLite operation failed.
     Database => "database",
+    /// Cache JSON could not be encoded or decoded.
+    Encoding => "encoding",
+    /// A cache filesystem operation failed.
+    Filesystem => "filesystem",
+    /// Cache state or synchronization was inconsistent.
+    Internal => "internal",
+    /// Cache content exceeded a supported bound or failed validation.
+    Limit => "limit",
     /// A stored snapshot could not be encoded or decoded.
     Snapshot => "snapshot",
     /// Cache ownership or schema validation failed.

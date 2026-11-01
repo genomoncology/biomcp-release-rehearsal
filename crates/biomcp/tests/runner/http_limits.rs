@@ -283,8 +283,6 @@ fn dropped_peer() -> Check {
 
 #[cfg(unix)]
 fn busy_health() -> Check {
-    use std::os::unix::fs::OpenOptionsExt;
-    // Every tool blocks in the existing per-call settings read until this writer closes.
     let server = Server::configured_globals(
         "127.0.0.1:0",
         Some(serde_json::json!({})),
@@ -293,23 +291,8 @@ fn busy_health() -> Check {
         None,
         &["--hosted".into()],
     )?;
-    let config = server
-        .environment()
-        .root()
-        .join("config/biomcp/config.json");
-    std::fs::remove_file(&config).map_err(|e| e.to_string())?;
-    nix::unistd::mkfifo(
-        &config,
-        nix::sys::stat::Mode::S_IRUSR | nix::sys::stat::Mode::S_IWUSR,
-    )
-    .map_err(|e| e.to_string())?;
-    let writer = std::fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .custom_flags(nix::libc::O_NONBLOCK)
-        .open(&config)
-        .map_err(|e| e.to_string())?;
     let mut held = Vec::new();
+    let mut writers = Vec::new();
     for index in 1..=8 {
         let body = super::mcp::request(
             serde_json::json!(index),
@@ -319,35 +302,100 @@ fn busy_health() -> Check {
             }),
         )
         .to_string();
-        let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
-        socket.write_all(format!(
-            "POST /mcp HTTP/1.1\r\nHost: {}\r\nContent-Type: application/json\r\n\
-             Accept: application/json, text/event-stream\r\nMCP-Protocol-Version: 2026-07-28\r\nMcp-Method: tools/call\r\nMcp-Name: biomcp\r\n\
-             Content-Length: {}\r\n\r\n{body}",
-            server.address, body.len()
-        ).as_bytes()).map_err(|e| e.to_string())?;
+        let (socket, writer) = hold_settings_reader(&server, &body)?;
         held.push(socket);
+        writers.push(writer);
     }
-    // A refused ordinary request observes that all eight tool slots are occupied.
+    // Every FIFO open witnesses a real admitted tool call before this probe competes.
     let probe =
         super::mcp::request(serde_json::json!(9), "tools/list", serde_json::json!({})).to_string();
-    let end = Instant::now() + Duration::from_secs(5);
-    loop {
-        let status = server.request("POST", "/mcp", &probe)?.0;
-        if status == 503 {
-            break;
-        }
-        if status != 200 || Instant::now() >= end {
-            return Err(format!(
-                "eight long calls did not occupy capacity: {status}"
-            ));
-        }
+    let status = server.request("POST", "/mcp", &probe)?.0;
+    if status != 503 {
+        return Err(format!(
+            "eight admitted long calls did not retain capacity: {status}; held={}",
+            held_outcomes(&mut held)
+        ));
     }
     let (status, body) = server.request("GET", "/health", "")?;
     if status != 200 || body.get("store") != Some(&serde_json::json!(true)) {
         return Err(format!("busy server failed health: {status} {body}"));
     }
-    drop(writer);
+    drop(writers);
     drop(held);
     Ok(())
+}
+
+#[cfg(unix)]
+fn hold_settings_reader(server: &Server, body: &str) -> Result<(TcpStream, std::fs::File), String> {
+    use std::os::unix::fs::OpenOptionsExt;
+    let config = server
+        .environment()
+        .root()
+        .join("config/biomcp/config.json");
+    // Unlinking preserves each previous reader's inode and its owned writer.
+    std::fs::remove_file(&config).map_err(|e| e.to_string())?;
+    nix::unistd::mkfifo(
+        &config,
+        nix::sys::stat::Mode::S_IRUSR | nix::sys::stat::Mode::S_IWUSR,
+    )
+    .map_err(|e| e.to_string())?;
+    let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
+    socket
+        .write_all(
+            format!(
+                "POST /mcp HTTP/1.1\r\nHost: {}\r\nContent-Type: application/json\r\n\
+         Accept: application/json, text/event-stream\r\nMCP-Protocol-Version: 2026-07-28\r\n\
+         Mcp-Method: tools/call\r\nMcp-Name: biomcp\r\nContent-Length: {}\r\n\r\n{body}",
+                server.address,
+                body.len()
+            )
+            .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+    // A writer cannot open until this call has opened the fresh FIFO for reading.
+    let end = Instant::now() + Duration::from_secs(60);
+    loop {
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .custom_flags(nix::libc::O_NONBLOCK)
+            .open(&config)
+        {
+            Ok(writer) => return Ok((socket, writer)),
+            Err(error)
+                if error.raw_os_error() == Some(nix::libc::ENXIO) && Instant::now() < end =>
+            {
+                std::thread::yield_now();
+            }
+            Err(error) => return Err(format!("settings reader did not enter its FIFO: {error}")),
+        }
+    }
+}
+
+#[cfg(unix)]
+fn held_outcomes(held: &mut [TcpStream]) -> String {
+    held.iter_mut()
+        .map(|socket| {
+            if let Err(error) = socket.set_nonblocking(true) {
+                return error.to_string();
+            }
+            let mut response = String::new();
+            let result = socket.take(8192).read_to_string(&mut response);
+            if response.is_empty() {
+                return format!("pending {result:?}");
+            }
+            let Some((head, body)) = response.split_once("\r\n\r\n") else {
+                return format!("incomplete header: {} bytes", response.len());
+            };
+            let value = serde_json::from_str::<serde_json::Value>(body).ok();
+            format!(
+                "{} rpc_error={:?} tool_error={:?}",
+                head.lines().next().unwrap_or_default(),
+                value.as_ref().and_then(|value| value.get("error")),
+                value
+                    .as_ref()
+                    .and_then(|value| value.pointer("/result/structuredContent/error"))
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
 }

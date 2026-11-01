@@ -42,6 +42,10 @@
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
         "snapshot",
         "version"
       ],

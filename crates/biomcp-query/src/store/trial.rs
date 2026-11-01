@@ -59,7 +59,7 @@ impl Store<'_> {
                 params![id, key, Self::now().saturating_add(86400), payload, outcomes],
             )
             .map_err(db)?;
-            Text::new(&id).map_err(|_| CacheError::Database)
+            Text::new(&id).map_err(|_| CacheError::Limit)
         })
     }
 }

@@ -51,7 +51,7 @@ pub(super) fn load(
             return Ok(None);
         };
         if saved.0.mdr_report_key != *query.id() || !saved.3.check(&saved.0) {
-            return Err(CacheError::Database.into());
+            return Err(CacheError::Internal.into());
         }
         (saved, Some(snapshot.clone()))
     } else {

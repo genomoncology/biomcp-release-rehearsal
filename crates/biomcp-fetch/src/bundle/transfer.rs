@@ -53,7 +53,7 @@ impl Cache {
         owners: &[SchemaOwner],
         deadline: Deadline<'_>,
     ) -> Result<bool, CacheError> {
-        let mut uri = url::Url::from_file_path(path).map_err(|_| CacheError::Database)?;
+        let mut uri = url::Url::from_file_path(path).map_err(|_| CacheError::Limit)?;
         uri.query_pairs_mut().append_pair("mode", "ro");
         let connection = self.owned_connection()?;
         sql_deadline(&connection, deadline)?;
@@ -127,7 +127,7 @@ fn stage(
         )
         .map_err(db_error)?;
     if u64::from(bytes) > super::MAX_BUNDLE_BYTES {
-        return Err(CacheError::Database);
+        return Err(CacheError::Limit);
     }
     for table in TABLES {
         stage_table(&snapshot, *table, name, version, deadline)?;
@@ -140,7 +140,7 @@ fn stage(
         )
         .map_err(db_error)?;
     if !complete {
-        return Err(CacheError::Database);
+        return Err(CacheError::Internal);
     }
     snapshot.commit().map_err(db_error)?;
     Ok(Some(version))
@@ -233,7 +233,7 @@ fn verify(connection: &Connection, name: &str, deadline: Deadline<'_>) -> Result
             )
             .map_err(db_error)?;
         if different {
-            return Err(CacheError::Database);
+            return Err(CacheError::Internal);
         }
     }
     Ok(())

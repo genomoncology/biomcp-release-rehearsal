@@ -66,7 +66,7 @@ fn read(
             return Ok(());
         };
         if saved.0.safetyreportid != *q.id() || !saved.4.check(&saved.0) {
-            return Err(CacheError::Database.into());
+            return Err(CacheError::Internal.into());
         }
         (saved, Some(snapshot.clone()))
     } else {

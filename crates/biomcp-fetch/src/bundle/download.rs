@@ -49,12 +49,12 @@ impl Leg<'_> {
         {
             return Err(self.failure(Reason::Syncing, None).into());
         }
-        fs::create_dir_all(&cache.1).map_err(|_| CacheError::Database)?;
+        fs::create_dir_all(&cache.1).map_err(|_| CacheError::Filesystem)?;
         let mut file = store::create_part(&cache.1)?;
         let holder = file
             .path()
             .file_name()
-            .ok_or(CacheError::Database)?
+            .ok_or(CacheError::Internal)?
             .to_string_lossy()
             .into_owned();
         let path = file.path().to_string_lossy().into_owned();
@@ -106,7 +106,7 @@ impl Leg<'_> {
             if transfer.complete {
                 cache.discard(b.name, &holder, cleanup)?;
             } else if cache.retain(b.name, &holder, &part, cleanup)? {
-                file.keep().map_err(|_| CacheError::Database)?;
+                file.keep().map_err(|_| CacheError::Filesystem)?;
             }
         }
         result
@@ -118,13 +118,13 @@ impl Leg<'_> {
             .fetch
             .bundle_imports
             .lock()
-            .map_err(|_| CacheError::Database)?;
+            .map_err(|_| CacheError::Internal)?;
         if imported.contains(b.name) {
             return cache
                 .bundle_info(b.name, self.budget())?
                 .as_ref()
                 .map(|m| BundleSync::Published(store::info(b, m)))
-                .ok_or(CacheError::Database.into());
+                .ok_or(CacheError::Internal.into());
         }
         let url = format!("{}{}", self.spec.base.trim_end_matches('/'), b.path);
         let key = crate::retry::identity(&url);
@@ -276,12 +276,12 @@ impl Leg<'_> {
         }
         self.stream(t, response, R::MAX_BYTES)?;
         t.complete = true;
-        t.file.flush().map_err(|_| CacheError::Database)?;
-        t.file.rewind().map_err(|_| CacheError::Database)?;
+        t.file.flush().map_err(|_| CacheError::Filesystem)?;
+        t.file.rewind().map_err(|_| CacheError::Filesystem)?;
         let mut body = Vec::new();
         t.file
             .read_to_end(&mut body)
-            .map_err(|_| CacheError::Database)?;
+            .map_err(|_| CacheError::Filesystem)?;
         let url = format!("{}{}", self.spec.base.trim_end_matches('/'), b.path);
         self.observe_bundle(
             (&crate::retry::identity(&url), &url),
@@ -443,7 +443,9 @@ impl Leg<'_> {
             if t.part.bytes.saturating_add(n as u64) > limit {
                 return Err(self.failure(Reason::Syncing, Some(status)).into());
             }
-            t.file.write_all(bytes).map_err(|_| CacheError::Database)?;
+            t.file
+                .write_all(bytes)
+                .map_err(|_| CacheError::Filesystem)?;
             t.part.bytes += n as u64;
             t.downloaded_bytes += n as u64;
         }
@@ -457,9 +459,9 @@ fn reset(file: &mut tempfile::NamedTempFile, part: &mut Part) -> Result<(), Cach
     use std::io::{Seek, SeekFrom};
     file.as_file_mut()
         .set_len(0)
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Filesystem)?;
     file.seek(SeekFrom::Start(0))
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Filesystem)?;
     part.bytes = 0;
     part.etag = None;
     part.total = None;
@@ -514,7 +516,7 @@ fn conditional(part: &Part, old: Option<&Meta>) -> Result<Vec<(&'static str, Str
     let mut headers = Vec::new();
     if part.bytes > 0 {
         headers.push(("Range", format!("bytes={}-", part.bytes)));
-        headers.push(("If-Match", part.etag.clone().ok_or(CacheError::Database)?));
+        headers.push(("If-Match", part.etag.clone().ok_or(CacheError::Internal)?));
     } else if let Some(old) = old {
         if let Some(etag) = &old.etag {
             headers.push(("If-None-Match", etag.clone()));
@@ -538,7 +540,7 @@ fn resume(
             && let Ok(input) = fs::File::open(&prior.path)
         {
             let copied = std::io::copy(&mut input.take(prior.bytes), file)
-                .map_err(|_| CacheError::Database)?;
+                .map_err(|_| CacheError::Filesystem)?;
             if copied == prior.bytes {
                 part.bytes = copied;
                 part.etag = prior.etag;
@@ -551,7 +553,7 @@ fn resume(
         if let Err(error) = fs::remove_file(prior.path)
             && error.kind() != std::io::ErrorKind::NotFound
         {
-            return Err(CacheError::Database);
+            return Err(CacheError::Filesystem);
         }
     }
     Ok(())

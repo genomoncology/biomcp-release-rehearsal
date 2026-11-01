@@ -174,6 +174,6 @@ fn schema_admission_clears_ownership_before_poison_is_observed() {
     ));
     assert_eq!(
         cache.try_sql(deadline(), |_| Ok(())),
-        Err(CacheError::Database)
+        Err(CacheError::Internal)
     );
 }

@@ -169,7 +169,7 @@ impl Leg<'_> {
         for path in &self.fetch.config.cache_predecessors {
             match path.try_exists() {
                 Ok(false) => continue,
-                Err(_) => return Err(crate::CacheError::Database.into()),
+                Err(_) => return Err(crate::CacheError::Filesystem.into()),
                 Ok(true) => {}
             }
             if cache.import_bundle(path, name, &self.fetch.config.cache_owners, self.budget())? {
@@ -201,12 +201,12 @@ impl Leg<'_> {
         self.fetch
             .cache
             .as_deref()
-            .ok_or(crate::CacheError::Database.into())
+            .ok_or(crate::CacheError::Internal.into())
     }
 }
 
 fn decode<R: Row>(rows: Vec<String>) -> Result<Vec<R>, RequestError> {
     rows.into_iter()
-        .map(|row| serde_json::from_str(&row).map_err(|_| crate::CacheError::Database.into()))
+        .map(|row| serde_json::from_str(&row).map_err(|_| crate::CacheError::Encoding.into()))
         .collect()
 }

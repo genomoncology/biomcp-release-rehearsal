@@ -37,7 +37,7 @@ pub(super) fn search(
         pool_error(cx, q, false, out);
         return Ok(());
     } else {
-        let size = u32::try_from(rows.len()).map_err(|_| CacheError::Database)?;
+        let size = u32::try_from(rows.len()).map_err(|_| CacheError::Limit)?;
         let retained = (rows, snapshot, out.problems.clone(), out.dropped);
         let pool = crate::publish::keep(
             source_snapshot::publish(cx, &key, &retained, size, &[], None, deadline),

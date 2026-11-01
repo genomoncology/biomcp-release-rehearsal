@@ -50,7 +50,7 @@ impl Fetch {
     }
 }
 fn database(path: &Path) -> Result<u64, CacheError> {
-    let mut bytes = regular_length(path)?.ok_or(CacheError::Database)?;
+    let mut bytes = regular_length(path)?.ok_or(CacheError::Filesystem)?;
     for suffix in ["-wal", "-shm"] {
         let mut name = path.as_os_str().to_os_string();
         name.push(suffix);
@@ -62,19 +62,19 @@ fn regular_length(path: &Path) -> Result<Option<u64>, CacheError> {
     match fs::symlink_metadata(path) {
         Ok(meta) => Ok(meta.is_file().then_some(meta.len())),
         Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
-        Err(_) => Err(CacheError::Database),
+        Err(_) => Err(CacheError::Filesystem),
     }
 }
 fn parts(path: &Path) -> Result<u64, CacheError> {
     match fs::symlink_metadata(path) {
-        Ok(meta) if !meta.is_dir() => return Err(CacheError::Database),
+        Ok(meta) if !meta.is_dir() => return Err(CacheError::Filesystem),
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(0),
-        Err(_) => return Err(CacheError::Database),
+        Err(_) => return Err(CacheError::Filesystem),
         Ok(_) => {}
     }
     let mut bytes = 0;
-    for entry in fs::read_dir(path).map_err(|_| CacheError::Database)? {
-        let entry = entry.map_err(|_| CacheError::Database)?;
+    for entry in fs::read_dir(path).map_err(|_| CacheError::Filesystem)? {
+        let entry = entry.map_err(|_| CacheError::Filesystem)?;
         if entry
             .file_name()
             .to_str()
@@ -89,8 +89,8 @@ fn parts(path: &Path) -> Result<u64, CacheError> {
 fn retained_paths(active: &Path, configured: &[PathBuf]) -> Result<Vec<PathBuf>, CacheError> {
     let mut paths = configured.to_vec();
     if let Some(folder) = active.parent() {
-        for entry in fs::read_dir(folder).map_err(|_| CacheError::Database)? {
-            let entry = entry.map_err(|_| CacheError::Database)?;
+        for entry in fs::read_dir(folder).map_err(|_| CacheError::Filesystem)? {
+            let entry = entry.map_err(|_| CacheError::Filesystem)?;
             if entry
                 .file_name()
                 .to_str()

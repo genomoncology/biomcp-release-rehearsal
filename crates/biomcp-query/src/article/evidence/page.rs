@@ -99,7 +99,7 @@ fn page<T: Clone>(
     let mut out = Vec::new();
     let mut bytes = 0;
     for item in items.iter().skip(offset) {
-        let size = size(item).map_err(|_| biomcp_fetch::CacheError::Database)? + 1;
+        let size = size(item).map_err(|_| biomcp_fetch::CacheError::Encoding)? + 1;
         if !out.is_empty() && bytes + size > budget {
             break;
         }

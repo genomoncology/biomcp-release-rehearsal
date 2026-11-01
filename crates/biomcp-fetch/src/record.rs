@@ -72,7 +72,7 @@ impl ReplayCache {
     }
     /// Allocate a cache while checking all declared schema owners first.
     pub fn temporary_with_owners(owners: &[crate::SchemaOwner]) -> Result<Self, CacheError> {
-        let directory = tempfile::tempdir().map_err(|_| CacheError::Database)?;
+        let directory = tempfile::tempdir().map_err(|_| CacheError::Filesystem)?;
         let cache = Arc::new(Cache::open_with_owners(
             &directory.path().join("replay.sqlite"),
             owners,
@@ -88,7 +88,7 @@ impl ReplayCache {
         owners: &[crate::SchemaOwner],
     ) -> Result<Self, CacheError> {
         safe_path(path)?;
-        fs::create_dir(path).map_err(|_| CacheError::Database)?;
+        fs::create_dir(path).map_err(|_| CacheError::Filesystem)?;
         let result = (|| {
             fs::OpenOptions::new()
                 .write(true)
@@ -99,7 +99,7 @@ impl ReplayCache {
         })();
         if result.is_err() {
             let _ = fs::remove_dir_all(path);
-            return Err(CacheError::Database);
+            return Err(CacheError::Filesystem);
         }
         let cache = Arc::new(Cache::open_with_owners(
             &path.join("replay.sqlite"),
@@ -119,8 +119,8 @@ impl ReplayCache {
         if !fs::symlink_metadata(path).is_ok_and(|meta| meta.is_dir()) {
             return Err(CacheError::Version);
         }
-        for entry in fs::read_dir(path).map_err(|_| CacheError::Database)? {
-            let entry = entry.map_err(|_| CacheError::Database)?;
+        for entry in fs::read_dir(path).map_err(|_| CacheError::Filesystem)? {
+            let entry = entry.map_err(|_| CacheError::Filesystem)?;
             let name = entry.file_name();
             if ![
                 ".biomcp-case",
@@ -132,7 +132,7 @@ impl ReplayCache {
             .any(|allowed| name == *allowed)
                 || !entry
                     .file_type()
-                    .map_err(|_| CacheError::Database)?
+                    .map_err(|_| CacheError::Filesystem)?
                     .is_file()
             {
                 return Err(CacheError::Version);
@@ -169,7 +169,7 @@ fn safe_path(path: &Path) -> Result<(), CacheError> {
         match fs::symlink_metadata(ancestor) {
             Ok(meta) if meta.file_type().is_symlink() => return Err(CacheError::Version),
             Err(error) if error.kind() != std::io::ErrorKind::NotFound => {
-                return Err(CacheError::Database);
+                return Err(CacheError::Filesystem);
             }
             _ => {}
         }
