@@ -6,7 +6,7 @@ Milestone: 5
 
 ## Outcome
 
-One `SourceError::disabled(source)` constructor replaces the 14 written-out "source disabled" errors, and static text literals become `Text` without fallible calls.
+One `SourceError::disabled(source)` constructor replaces the 14 written-out "source disabled" errors. The static-literal clause moved to 0459, because it needs a BioData constructor (m18414).
 
 - Why: Jarvis's 1.0 code review (m17823, finding 9). `biomcp-query/src` writes the disabled error 14 times, although `biomcp-fetch/src/request.rs:93` already refuses disabled sources. `monarch/mod.rs:145-158` maps static literals through fallible calls to `InputError::Serialization`. The review's hosted connection-error part moved to 0530 (release review weighing, 2026-11-01).
 - Starts from: those sites.
