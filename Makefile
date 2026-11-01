@@ -259,3 +259,7 @@ http-edge-coverage:
 	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-hosted/ $(TEST_THREADS)
 	cargo llvm-cov test --no-report --locked -p biomcp --test cases key-registration/ $(TEST_THREADS)
 	cargo llvm-cov test --no-report --locked -p biomcp --test tools -- --proofs schema-discovery/isolates-child-environments $(if $(strip $(RUST_TEST_THREADS)),--test-threads $(RUST_TEST_THREADS))
+
+.PHONY: http-capacity-check
+http-capacity-check: pre-job docs-check
+	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)

@@ -1,6 +1,7 @@
 # 0548 — Make hosted call and connection caps two settings
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c53c65ac49a275155e7d43409a19831d59419c52
 
 Milestone: 5
 

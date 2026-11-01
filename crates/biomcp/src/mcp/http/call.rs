@@ -1,5 +1,5 @@
 //! Own bounded hosted tool workers through completion and return whole-call timeouts.
-use super::{MAX_CONNECTIONS, Service};
+use super::Service;
 use crate::{
     command::Context,
     mcp::{protocol, research, worker},
@@ -55,7 +55,7 @@ impl Calls {
                 let _ = active.swap_remove(index).worker.join();
             }
         }
-        if active.len() >= MAX_CONNECTIONS {
+        if active.len() >= service.max_calls {
             return protocol::error(id, -31000, "Tool capacity exceeded");
         }
         if scope.remaining().is_zero() {
@@ -146,7 +146,8 @@ fn wait(
 
 #[cfg(test)]
 mod tests {
-    use super::{Active, Calls, HostedCall, MAX_CONNECTIONS, Service};
+    use super::{Active, Calls, HostedCall, Service};
+    use crate::config::DEFAULT_HTTP_CAPACITY as MAX_CONNECTIONS;
     use crate::{
         config::StartupError,
         grammar::Globals,
@@ -168,7 +169,9 @@ mod tests {
             root: std::sync::Arc::new(crate::grammar::root().unwrap()),
             settings: std::sync::Arc::new(Ok(None)),
             calls: Calls::default(),
-            requests: super::super::admission::Slots::default(),
+            connections: super::super::admission::Slots::new(MAX_CONNECTIONS),
+            max_calls: MAX_CONNECTIONS,
+            max_connections: MAX_CONNECTIONS,
             address: "127.0.0.1:1".parse().unwrap(),
             hosts: Vec::new(),
             globals: Globals::default(),
@@ -280,7 +283,7 @@ mod tests {
             let control = Control {
                 running: AtomicBool::new(true),
                 next: AtomicUsize::new(0),
-                barrier: Barrier::new(super::super::MAX_CONNECTIONS + 1),
+                barrier: Barrier::new(super::MAX_CONNECTIONS + 1),
                 started: Instant::now(),
             };
             let measurements = collect(&service, &control);
@@ -318,7 +321,9 @@ mod tests {
             let address = listener.local_addr()?;
             let service = Arc::new(Service {
                 calls: Calls::default(),
-                requests: super::super::super::admission::Slots::default(),
+                connections: super::super::super::admission::Slots::new(super::MAX_CONNECTIONS),
+                max_calls: super::MAX_CONNECTIONS,
+                max_connections: super::MAX_CONNECTIONS,
                 address,
                 hosts: Vec::new(),
                 globals,
@@ -333,7 +338,7 @@ mod tests {
             std::thread::scope(|scope| {
                 let sync = scope.spawn(|| sync_worker(service, control));
                 let health = scope.spawn(|| health_worker(service, control));
-                let workers: Vec<_> = (0..super::super::MAX_CONNECTIONS)
+                let workers: Vec<_> = (0..super::MAX_CONNECTIONS)
                     .map(|_| scope.spawn(|| call_worker(service.address, control)))
                     .collect();
                 let samples = workers
@@ -445,7 +450,7 @@ mod tests {
             "publisher_delay":"zero; measure local shared cache work",
             "acquisition":"measurement time assigned to copied captures for cache admission",
             "latency_seconds":latencies,
-            "workers":super::super::MAX_CONNECTIONS,"call_limit":CALLS,"window_seconds":WINDOW.as_secs(),
+            "workers":super::MAX_CONNECTIONS,"call_limit":CALLS,"window_seconds":WINDOW.as_secs(),
             "elapsed_seconds":started.elapsed().as_secs_f64(),"completed_calls":measurements.samples.len(),
             "p50_seconds":percentile(50),"p95_seconds":percentile(95),"max_seconds":latencies.last(),
             "failed_calls":failures,"initial_sync_rows":initial_rows,

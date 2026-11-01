@@ -50,6 +50,7 @@ mod hosted_deadline;
 mod hosted_pacing;
 mod housekeeping;
 mod http;
+mod http_capacity;
 mod http_limits;
 #[cfg(unix)]
 mod key_input;

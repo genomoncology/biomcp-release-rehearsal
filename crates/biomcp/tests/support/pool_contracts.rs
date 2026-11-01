@@ -151,3 +151,12 @@ pub(crate) const HOSTED_PACING: (&str, &[&str]) = (
     "mcp-hosted/pacing/two-header-keys",
     &["option serve --rate-share"],
 );
+
+// Operator flags override file settings and keep discovery available under tool load.
+pub(crate) const HTTP_CAPACITY: (&str, &[&str]) = (
+    "mcp-http/configured-capacity-and-refusals",
+    &[
+        "option serve --http_max_calls",
+        "option serve --http_max_connections",
+    ],
+);

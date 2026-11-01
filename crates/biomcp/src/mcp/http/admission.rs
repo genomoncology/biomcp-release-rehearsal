@@ -12,21 +12,29 @@ use std::sync::{
     clippy::disallowed_types,
     reason = "Bound HTTP framing readers separately from active requests"
 )]
-#[derive(Default)]
-pub(super) struct Slots<const LIMIT: usize>(Arc<AtomicUsize>);
+pub(super) struct Slots {
+    count: Arc<AtomicUsize>,
+    limit: usize,
+}
 #[expect(
     clippy::disallowed_types,
     reason = "Release one HTTP admission count when its worker leaves the phase"
 )]
 pub(super) struct Permit(Arc<AtomicUsize>);
-impl<const LIMIT: usize> Slots<LIMIT> {
+impl Slots {
+    pub(super) fn new(limit: usize) -> Self {
+        Self {
+            count: Arc::default(),
+            limit,
+        }
+    }
     pub(super) fn take(&self) -> Option<Permit> {
-        self.0
+        self.count
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
-                (count < LIMIT).then_some(count + 1)
+                (count < self.limit).then_some(count + 1)
             })
             .ok()
-            .map(|_| Permit(self.0.clone()))
+            .map(|_| Permit(self.count.clone()))
     }
 }
 impl Drop for Permit {

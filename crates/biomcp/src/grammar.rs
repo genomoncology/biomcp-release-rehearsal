@@ -40,6 +40,8 @@ pub(crate) struct Globals {
     pub(crate) offline: bool,
     pub(crate) fresh: bool,
     pub(crate) hosted: bool,
+    pub(crate) http_max_calls: Option<std::num::NonZeroUsize>,
+    pub(crate) http_max_connections: Option<std::num::NonZeroUsize>,
     pub(crate) rate_share: biomcp_fetch::RateShare,
     pub(crate) format: Option<Format>,
     pub(crate) disable_sources: Vec<String>,
@@ -344,6 +346,8 @@ fn globals(matches: &clap::ArgMatches) -> Result<Globals, ParseInvalid> {
         offline: matches.get_flag("offline"),
         fresh: matches.get_flag("fresh"),
         hosted: false,
+        http_max_calls: None,
+        http_max_connections: None,
         rate_share: biomcp_fetch::RateShare::default(),
         format: explicit_format(matches),
     };
@@ -417,6 +421,8 @@ impl Globals {
         self.case_cache = process.case_cache.clone();
         self.fresh |= process.fresh;
         self.hosted = process.hosted;
+        self.http_max_calls = process.http_max_calls;
+        self.http_max_connections = process.http_max_connections;
         self.rate_share = process.rate_share;
         self.format = self.format.or(process.format);
         self.offline |= process.offline;

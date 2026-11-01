@@ -32,6 +32,8 @@ pub(crate) struct ConfigFile {
     pub(super) ncbi_email: Option<String>,
     pub(super) keys: Option<BTreeMap<String, String>>,
     pub(super) auto_sync_max_bytes: Option<u64>,
+    pub(super) http_max_calls: Option<std::num::NonZeroUsize>,
+    pub(super) http_max_connections: Option<std::num::NonZeroUsize>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -134,6 +136,8 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         ncbi_email: take(&mut map, "ncbi_email")?,
         keys,
         auto_sync_max_bytes: take(&mut map, "auto_sync_max_bytes")?,
+        http_max_calls: take(&mut map, "http_max_calls")?,
+        http_max_connections: take(&mut map, "http_max_connections")?,
     };
     unknown(&map, "")?;
     Ok(file)

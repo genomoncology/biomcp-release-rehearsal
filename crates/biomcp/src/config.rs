@@ -11,6 +11,29 @@ pub(crate) mod file;
 pub(crate) use file::ConfigError;
 use file::ConfigFile;
 
+pub(crate) const DEFAULT_HTTP_CAPACITY: usize = 8;
+
+pub(crate) fn http_capacity(
+    globals: &Globals,
+    settings: &Settings,
+) -> Result<(usize, usize), ConfigError> {
+    let file = configured(settings)?;
+    let calls = globals
+        .http_max_calls
+        .or_else(|| file.and_then(|f| f.http_max_calls))
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(DEFAULT_HTTP_CAPACITY);
+    let connections = globals
+        .http_max_connections
+        .or_else(|| file.and_then(|f| f.http_max_connections))
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(DEFAULT_HTTP_CAPACITY);
+    if connections < calls || connections > (usize::MAX - 1) / 2 {
+        return Err(ConfigError::field("http_max_connections"));
+    }
+    Ok((calls, connections))
+}
+
 pub(crate) type Settings = Result<Option<ConfigFile>, ConfigError>;
 
 fn configured(settings: &Settings) -> Result<Option<&ConfigFile>, ConfigError> {
