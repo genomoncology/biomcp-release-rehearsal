@@ -1,4 +1,4 @@
-use super::{empty, run, snapshot};
+use super::{empty, run};
 use crate::{Action, Bundle, Ctx, Outcome, status};
 use biodata::PathwayId;
 use biomcp_adapters::wikipathways;
@@ -28,7 +28,7 @@ pub(super) fn headers(
     q: &PathwaySearch,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<snapshot::Saved, RequestError> {
+) -> Result<super::search::Saved, RequestError> {
     let leg = cx.fetch.leg(&wikipathways::SPEC, deadline);
     let reply = wikipathways::search(&leg, q.query().map_or("", |v| v.as_str()));
     let error = reply.as_ref().err().copied();
@@ -36,7 +36,7 @@ pub(super) fn headers(
         .push(status::source(Source::WikiPathways, leg.finish(), error));
     let (items, info) = reply?;
     let total = items.value.len() as u64;
-    Ok(snapshot::Saved {
+    Ok(super::search::Saved {
         dropped: items.refusals == biomcp_adapters::Refusal::Refused,
         body: PathwayPage {
             items: items.value.into(),

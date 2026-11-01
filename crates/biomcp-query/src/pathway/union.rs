@@ -1,6 +1,6 @@
 //! Separate source legs take turns without title joins or score blending.
 use super::{empty, run};
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::{reactome, wikipathways};
 use biomcp_fetch::{CacheError, Deadline, RequestError};
 use biomcp_types::Paged;
@@ -20,7 +20,7 @@ type Saved = (
     bool,
 );
 fn key(q: &PathwaySearch) -> Result<Vec<u8>, RequestError> {
-    serde_json::to_vec(&("pathway-union/2", q.restart())).map_err(|_| CacheError::Database.into())
+    source_snapshot::key("pathway-union", &q.restart())
 }
 fn page(q: &PathwaySearch) -> PathwayPage {
     PathwayPage {
@@ -58,9 +58,8 @@ fn execute(
         expired(q, out);
         return Ok(());
     }
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     let identity = key(q)?;
-    let loaded = load(cx, q, &store, &identity, out)?;
+    let loaded = load(cx, q, deadline, &identity, out)?;
     if matches!(out.body, ReplyData::PoolError { .. }) {
         return Ok(());
     }
@@ -78,11 +77,10 @@ fn execute(
     if !replay {
         advance(cx, q, deadline, &mut saved, out);
     }
-    let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
     let pool = if replay {
         q.pool().cloned().ok_or(CacheError::Database)?
     } else {
-        store.save_source_snapshot(&identity, &payload, &saved.3)?
+        source_snapshot::write(cx, &identity, &saved, &saved.3, deadline)?
     };
     present(q, saved, pool, out);
     Ok(())
@@ -90,19 +88,18 @@ fn execute(
 fn load(
     cx: &Ctx<'_>,
     q: &PathwaySearch,
-    store: &Store<'_>,
+    deadline: Deadline<'_>,
     identity: &[u8],
     out: &mut Outcome,
 ) -> Result<Option<Saved>, RequestError> {
     let Some(pool) = q.pool().filter(|_| !(cx.fresh || q.fresh())) else {
         return Ok(None);
     };
-    let payload = store.source_snapshot(pool.as_str(), identity, |s| cx.fetch.disabled(s))?;
-    let Some(payload) = payload else {
+    let saved: Option<Saved> = source_snapshot::read(cx, identity, pool.as_str(), deadline)?;
+    let Some(saved) = saved else {
         expired(q, out);
         return Ok(None);
     };
-    let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
     if saved.1.len() != q.sources().len() {
         return Err(CacheError::Database.into());
     }

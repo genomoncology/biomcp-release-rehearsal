@@ -5,14 +5,14 @@ use biomcp_adapters::maude;
 use biomcp_types::ReplyBody;
 use biomcp_types::{AdverseEventGet, AdverseEventSection, ReplyData, Request, Source, StepKind};
 mod projection;
+mod record;
 mod rows;
-mod snapshot;
 /// Read exactly one numeric MAUDE key and project only its requested section.
 pub(crate) fn get(cx: &Ctx<'_>, query: &AdverseEventGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let mut out = crate::status::empty(empty(query));
-    match snapshot::load(cx, query, deadline, &mut out) {
+    match record::load(cx, query, deadline, &mut out) {
         Ok(Some((report, positions, snapshot))) => {
             let bound = query.with_snapshot(snapshot.clone());
             match projection::project(query, report, snapshot, positions) {

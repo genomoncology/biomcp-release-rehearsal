@@ -1,15 +1,14 @@
 //! Complete entry-backed pages bind the section and every selector to one snapshot.
-use crate::{Ctx, Outcome, status};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{Text, UniProtIsoform};
 use biomcp_adapters::uniprot;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     PageInfo, ProteinFeatures, ProteinFeaturesQuery, ProteinIsoforms, ProteinRelationQuery,
     ProteinStructures, ReplyData, Request, Source, StepKind,
 };
-use sha2::{Digest, Sha256};
 mod retained;
 #[derive(Clone)]
 pub(super) enum Selection {
@@ -43,13 +42,10 @@ impl Selection {
             ),
         }
     }
-    fn key(&self) -> Result<Vec<u8>, CacheError> {
-        let request = serde_json::to_vec(&self.request(None)).map_err(|_| CacheError::Database)?;
-        let mut hash = Sha256::new();
-        hash.update(b"biomcp.protein_sections/2\0");
-        hash.update(request);
-        Ok(hash.finalize().to_vec())
+    fn key(&self) -> Result<Vec<u8>, RequestError> {
+        source_snapshot::key("protein-sections", &self.request(None))
     }
+
     fn total(&self, entry: &uniprot::Entry) -> usize {
         match self {
             Self::Features(q) => entry.features.iter().filter(|r| accepts(q, r)).count(),

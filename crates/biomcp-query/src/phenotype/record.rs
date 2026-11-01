@@ -1,15 +1,14 @@
 //! One exact term reply supplies every local section page.
 use super::{empty, problem, recovery, run};
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{PhenotypeHierarchyLink, PhenotypeSynonym, PhenotypeXref, Text};
 use biomcp_adapters::{hpo, monarch};
-use biomcp_fetch::{CacheError, Deadline, RequestError, SourceError};
+use biomcp_fetch::{Deadline, RequestError, SourceError};
 use biomcp_types::Paged;
 use biomcp_types::{
     PhenotypeGet, PhenotypeSource, PhenotypeTermCard, Reason, ReplyData, Request, Source,
     SourceOutcome, StepKind,
 };
-use sha2::{Digest, Sha256};
 pub(super) type Rows = (
     PhenotypeTermCard,
     Option<Box<[PhenotypeSynonym]>>,
@@ -18,16 +17,8 @@ pub(super) type Rows = (
     Option<u64>,
 );
 type Saved = (Rows, Vec<SourceOutcome>, Vec<biomcp_types::Problem>, bool);
-fn key(q: &PhenotypeGet) -> Vec<u8> {
-    Sha256::digest(
-        format!(
-            "biomcp.phenotype-reply/3\0{}\0{}",
-            q.source().as_str(),
-            q.id()
-        )
-        .as_bytes(),
-    )
-    .to_vec()
+fn key(q: &PhenotypeGet) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key("phenotype", &(q.source(), q.id()))
 }
 /// Read one independent source card or a local section from its retained reply.
 pub(super) fn get(cx: &Ctx<'_>, q: &PhenotypeGet) -> Outcome {
@@ -83,10 +74,8 @@ fn load(
         return Err(error);
     }
     let (saved, token) = if let Some(token) = q.snapshot() {
-        let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let Some(payload) =
-            store.source_snapshot(token.as_str(), &key(q), |source| cx.fetch.disabled(source))?
-        else {
+        let saved: Option<Saved> = source_snapshot::read(cx, &key(q)?, token.as_str(), deadline)?;
+        let Some(saved) = saved else {
             out.body = ReplyData::PoolError { mismatch: false };
             out.next.push(crate::next::Step::new(
                 StepKind::Restart,
@@ -95,16 +84,10 @@ fn load(
             ));
             return Ok(None);
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, token.clone())
     } else {
         let saved = acquire(q, leg, out)?;
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
-        let token = Store::open(cx.fetch.cache_access()?, deadline)?.save_source_snapshot(
-            &key(q),
-            &payload,
-            &out.sources,
-        )?;
+        let token = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
         (saved, token)
     };
     out.sources = saved.1;

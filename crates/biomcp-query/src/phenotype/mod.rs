@@ -2,8 +2,8 @@
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 mod associations;
+mod record;
 mod sections;
-mod snapshot;
 use crate::{Ctx, Outcome, status};
 use biomcp_adapters::monarch;
 use biomcp_types::{
@@ -17,7 +17,7 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &PhenotypeGet) -> Outcome {
     ) {
         associations::get(cx, q)
     } else {
-        snapshot::get(cx, q)
+        record::get(cx, q)
     }
 }
 /// Search one native HP page without source substitution or local selection.
@@ -46,7 +46,7 @@ pub(crate) fn search(cx: &Ctx<'_>, q: &PhenotypeSearch) -> Outcome {
             let get = PhenotypeGet::new(item.id.clone());
             out.next.push(crate::next::Step::new(
                 StepKind::Disambiguate,
-                &[snapshot::source(&get)],
+                &[record::source(&get)],
                 run(Request::GetPhenotype(get)),
             ));
         }

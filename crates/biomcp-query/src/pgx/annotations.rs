@@ -109,7 +109,7 @@ pub(super) fn get(cx: &Ctx<'_>, q: &PgxGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let mut out = crate::status::empty((body(q, vec![], vec![])).with_query(q.clone()));
-    match super::snapshot::load(cx, q, deadline, &mut out) {
+    match super::annotations_record::load(cx, q, deadline, &mut out) {
         Ok(Some((body, snapshot))) => match q.with_snapshot(snapshot) {
             Ok(bound) => {
                 out.body = (slice(q, body)).with_query(q.clone());

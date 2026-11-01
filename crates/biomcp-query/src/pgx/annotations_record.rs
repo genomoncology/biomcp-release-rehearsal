@@ -1,31 +1,20 @@
 //! Retained complete ClinPGx collections reuse the shared immutable source store.
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::clinpgx;
-use biomcp_fetch::{CacheError, Deadline, RequestError, SourceError};
+use biomcp_fetch::{Deadline, RequestError, SourceError};
 use biomcp_types::Paged;
 use biomcp_types::{
     PgxAnnotationKind, PgxAnnotations, PgxGet, Reason, ReplyData, Request, Source, SourceOutcome,
     SourceState, StepKind,
 };
-use sha2::{Digest, Sha256};
 type Saved = (
     PgxAnnotations,
     Vec<SourceOutcome>,
     Vec<biomcp_types::Problem>,
     bool,
 );
-fn key(q: &PgxGet) -> Vec<u8> {
-    Sha256::digest(
-        format!(
-            "biomcp.clinpgx_annotations/4\0{}\0{}",
-            q.gene(),
-            q.kind()
-                .map(PgxAnnotationKind::as_str)
-                .unwrap_or("clinical")
-        )
-        .as_bytes(),
-    )
-    .to_vec()
+fn key(q: &PgxGet) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key("pgx", &(q.gene(), q.kind()))
 }
 pub(super) fn load(
     cx: &Ctx<'_>,
@@ -46,11 +35,9 @@ pub(super) fn load(
         return Err(error);
     }
     let (saved, snapshot) = if let Some(snapshot) = q.snapshot() {
-        let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let Some(payload) = store.source_snapshot(snapshot.as_str(), &key(q), |source| {
-            cx.fetch.disabled(source)
-        })?
-        else {
+        let saved: Option<Saved> =
+            source_snapshot::read(cx, &key(q)?, snapshot.as_str(), deadline)?;
+        let Some(saved) = saved else {
             out.body = ReplyData::PoolError { mismatch: false };
             out.next.push(crate::next::Step::run(
                 StepKind::Restart,
@@ -60,7 +47,6 @@ pub(super) fn load(
             ));
             return Ok(None);
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, snapshot.clone())
     } else {
         let reply = match q.kind() {
@@ -86,9 +72,7 @@ pub(super) fn load(
             out.problems.clone(),
             out.dropped,
         );
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
-        let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let snapshot = store.save_source_snapshot(&key(q), &payload, &out.sources)?;
+        let snapshot = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
         (saved, snapshot)
     };
     out.sources = saved.1;

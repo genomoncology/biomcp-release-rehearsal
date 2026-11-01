@@ -1,15 +1,14 @@
 //! One native table per request, with provider-free retained continuation.
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::Text;
 use biomcp_adapters::vaers;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     AdverseEventSearch, PageInfo, Reason, ReplyData, Request, Source, SourceOutcome, StepKind,
     VaersSection, VaersSummary,
 };
-use sha2::{Digest, Sha256};
 type Saved = (VaersSummary, Vec<SourceOutcome>);
 
 pub(super) fn search(cx: &Ctx<'_>, q: &AdverseEventSearch) -> Outcome {
@@ -23,16 +22,8 @@ pub(super) fn search(cx: &Ctx<'_>, q: &AdverseEventSearch) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-fn key(q: &AdverseEventSearch) -> Vec<u8> {
-    Sha256::digest(
-        format!(
-            "biomcp.vaers_snapshot/1\0{}\0{}",
-            q.vaccine().unwrap_or(""),
-            q.vaers_section().code()
-        )
-        .as_bytes(),
-    )
-    .to_vec()
+fn key(q: &AdverseEventSearch) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key("vaers", &(q.vaccine(), q.vaers_section().code()))
 }
 fn expired(q: &AdverseEventSearch, out: &mut Outcome) {
     out.body = ReplyData::PoolError { mismatch: false };
@@ -67,14 +58,12 @@ fn read(
         return Ok(());
     }
     let (saved, snapshot) = if let Some(snapshot) = q.snapshot() {
-        let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let Some(payload) =
-            store.source_snapshot(snapshot.as_str(), &key(q), |s| cx.fetch.disabled(s))?
-        else {
+        let saved: Option<Saved> =
+            source_snapshot::read(cx, &key(q)?, snapshot.as_str(), deadline)?;
+        let Some(saved) = saved else {
             expired(q, out);
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, snapshot.clone())
     } else {
         let reply = vaers::read(&leg, q.vaccine().unwrap_or(""), q.vaers_section());
@@ -82,9 +71,7 @@ fn read(
         out.sources
             .push(status::source(Source::Vaers, leg.finish(), error));
         let saved = (reply?, out.sources.clone());
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
-        let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let snapshot = store.save_source_snapshot(&key(q), &payload, &out.sources)?;
+        let snapshot = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
         (saved, snapshot)
     };
     out.sources = saved.1;

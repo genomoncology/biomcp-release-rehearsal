@@ -1,20 +1,16 @@
 //! An exact threshold walk retains received identities without scanning ahead.
 use super::{map, next};
-use crate::{
-    Ctx, Outcome, status,
-    store::{Pool, Store},
-};
+use crate::{Ctx, Outcome, source_snapshot, status, store::Pool};
 use biomcp_adapters::gwas;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     GwasAssociation, GwasPage, GwasPageQuery, GwasSearch, PageInfo, Reason, ReplyData, Request,
     Source, SourceOutcome, StepKind,
 };
-use sha2::{Digest, Sha256};
 
-#[derive(Default)]
+#[derive(Default, serde::Serialize, serde::Deserialize)]
 struct Saved {
     dropped: bool,
     rows: Vec<GwasAssociation>,
@@ -23,33 +19,6 @@ struct Saved {
     total: Option<u64>,
     done: bool,
     sources: Vec<SourceOutcome>,
-}
-impl Saved {
-    fn encode(&self) -> Result<String, CacheError> {
-        serde_json::to_string(&(
-            &self.rows,
-            self.total,
-            self.done,
-            &self.sources,
-            self.received,
-            &self.problems,
-            self.dropped,
-        ))
-        .map_err(|_| CacheError::Snapshot)
-    }
-    fn decode(payload: &str) -> Result<Self, CacheError> {
-        let (rows, total, done, sources, received, problems, dropped) =
-            serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
-        Ok(Self {
-            dropped,
-            rows,
-            received,
-            problems,
-            total,
-            done,
-            sources,
-        })
-    }
 }
 pub(super) fn search(cx: &Ctx<'_>, q: &GwasSearch) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
@@ -93,12 +62,8 @@ pub(super) fn search(cx: &Ctx<'_>, q: &GwasSearch) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-fn key(q: &GwasSearch) -> Vec<u8> {
-    Sha256::digest(format!(
-        "biomcp.gwas_threshold/4\0{}",
-        serde_json::to_string(&q.restart()).unwrap_or_default()
-    ))
-    .to_vec()
+fn key(q: &GwasSearch) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key("gwas-threshold", &q.restart())
 }
 
 fn restart(q: &GwasSearch, out: &mut Outcome, mismatch: bool) {
@@ -133,14 +98,19 @@ fn read(
         restart(q, out, false);
         return Ok(());
     }
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let prior = if cx.fresh {
-        None
+    let key = key(q)?;
+    let (prior, mismatch) = if cx.fresh {
+        (None, false)
     } else {
-        store.find(&key(q), q.pool().map(biodata::Text::as_str))?
+        source_snapshot::find::<Saved>(cx, &key, q.pool(), deadline)?
     };
-    let Some(mut saved) = load(cx, q, &store, prior.as_ref(), out)? else {
-        return Ok(());
+    let (mut saved, prior) = match prior {
+        Some((saved, pool)) => (saved, Some(pool)),
+        None if q.pool().is_some() => {
+            restart(q, out, mismatch);
+            return Ok(());
+        }
+        None => (Saved::default(), None),
     };
     if q.offset() as usize > saved.rows.len() {
         restart(q, out, false);
@@ -162,40 +132,10 @@ fn read(
     } else {
         out.sources = saved.sources.clone();
     }
-    let payload = saved.encode()?;
     let size = saved.rows.len() as u32;
-    let pool = match prior {
-        Some(pool) => store.extend_source_pool(pool, &payload, size, &saved.sources)?,
-        None => store.publish_source_pool(&key(q), &payload, size, &saved.sources)?,
-    };
+    let pool = source_snapshot::publish(cx, &key, &saved, size, &saved.sources, prior, deadline)?;
     render(cx, q, saved, pool, out);
     Ok(())
-}
-fn load(
-    cx: &Ctx<'_>,
-    q: &GwasSearch,
-    store: &Store<'_>,
-    prior: Option<&Pool>,
-    out: &mut Outcome,
-) -> Result<Option<Saved>, RequestError> {
-    let Some(pool) = prior else {
-        if q.pool().is_some() {
-            restart(q, out, false);
-            return Ok(None);
-        }
-        return Ok(Some(Saved::default()));
-    };
-    if pool.key != key(q) {
-        restart(q, out, true);
-        return Ok(None);
-    }
-    let Some(payload) =
-        store.source_snapshot(pool.info.id.as_str(), &key(q), |s| cx.fetch.disabled(s))?
-    else {
-        restart(q, out, false);
-        return Ok(None);
-    };
-    Ok(Some(Saved::decode(&payload)?))
 }
 fn append(q: &GwasSearch, saved: &mut Saved, page: gwas::Page) -> Result<(), RequestError> {
     if saved.total.is_some_and(|total| total != page.total) {

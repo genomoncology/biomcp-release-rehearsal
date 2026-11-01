@@ -1,50 +1,25 @@
 //! Retained UniProt windows bind literal selectors and hide native cursors.
 use super::next;
-use crate::{
-    Ctx, Outcome, status,
-    store::{Pool, Store},
-};
+use crate::{Ctx, Outcome, source_snapshot, status, store::Pool};
 use biodata::Text;
 use biomcp_adapters::uniprot;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     PageInfo, ProteinPage, ProteinSearch, ReplyData, Request, Source, SourceOutcome, Status,
     StepKind,
 };
-use sha2::{Digest, Sha256};
+#[derive(serde::Serialize, serde::Deserialize)]
 struct Saved {
     dropped: bool,
     page: uniprot::SearchPage,
     sources: Vec<SourceOutcome>,
     problems: Vec<biomcp_types::Problem>,
 }
-impl Saved {
-    fn encode(&self) -> Result<String, CacheError> {
-        serde_json::to_string(&(&self.page, &self.sources, &self.problems, self.dropped))
-            .map_err(|_| CacheError::Snapshot)
-    }
-    fn decode(payload: &str) -> Result<Self, CacheError> {
-        type Wire = (
-            uniprot::SearchPage,
-            Vec<SourceOutcome>,
-            Vec<biomcp_types::Problem>,
-            bool,
-        );
-        let (page, sources, problems, dropped): Wire =
-            serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
-        Ok(Self {
-            dropped,
-            page,
-            sources,
-            problems,
-        })
-    }
-}
 struct Loaded {
     saved: Saved,
-    prior: Option<(Pool, String)>,
+    prior: Option<Pool>,
 }
 /// Walk the retained collection; an invalid pool never silently refetches.
 pub(crate) fn search(cx: &Ctx<'_>, q: &ProteinSearch) -> Outcome {
@@ -68,13 +43,11 @@ pub(crate) fn search(cx: &Ctx<'_>, q: &ProteinSearch) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-fn key(q: &ProteinSearch) -> Vec<u8> {
-    Sha256::digest(format!(
-        "biomcp.protein_pool/2\0{}\0{}\0reviewed-human-uniprot",
-        q.query().map_or("", Text::as_str),
-        q.gene().map_or("", biodata::GeneSymbol::as_str)
-    ))
-    .to_vec()
+fn key(q: &ProteinSearch) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key(
+        "protein-search",
+        &(q.query(), q.gene(), "reviewed-human-uniprot"),
+    )
 }
 fn restart(q: &ProteinSearch, out: &mut Outcome, mismatch: bool) {
     out.body = ReplyData::PoolError { mismatch };
@@ -108,8 +81,7 @@ fn read(
         restart(q, out, false);
         return Ok(());
     }
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let loaded = load(q, &leg, &store, cx, out);
+    let loaded = load(q, &leg, deadline, cx, out);
     let Loaded { mut saved, prior } = match loaded {
         Ok(Some(saved)) => saved,
         Ok(None) => return Ok(()),
@@ -131,47 +103,31 @@ fn read(
     out.sources = saved.sources.clone();
     out.problems = saved.problems.clone();
     out.local = error.and_then(status::local);
-    let payload = saved.encode()?;
     let size = saved.page.items.len() as u32;
-    let pool = match prior {
-        Some((pool, old)) if old == payload => pool,
-        Some((pool, _)) => store.extend_source_pool(pool, &payload, size, &out.sources)?,
-        None => store.publish_source_pool(&key(q), &payload, size, &out.sources)?,
-    };
+    let pool = source_snapshot::publish(cx, &key(q)?, &saved, size, &out.sources, prior, deadline)?;
     render(q, saved, pool.info.id.clone(), pool.info, out);
     Ok(())
 }
 fn load(
     q: &ProteinSearch,
     leg: &biomcp_fetch::Leg<'_>,
-    store: &Store<'_>,
+    deadline: Deadline<'_>,
     cx: &Ctx<'_>,
     out: &mut Outcome,
 ) -> Result<Option<Loaded>, RequestError> {
-    let pool = if cx.fresh {
-        None
+    let (saved, mismatch) = if cx.fresh {
+        (None, false)
     } else {
-        store.find(&key(q), q.pool().map(Text::as_str))?
+        source_snapshot::find::<Saved>(cx, &key(q)?, q.pool(), deadline)?
     };
-    if let Some(pool) = pool {
-        if pool.key != key(q) {
-            restart(q, out, true);
-            return Ok(None);
-        }
-        let Some(payload) =
-            store.source_snapshot(pool.info.id.as_str(), &key(q), |s| cx.fetch.disabled(s))?
-        else {
-            restart(q, out, false);
-            return Ok(None);
-        };
-        let saved = Saved::decode(&payload)?;
+    if let Some((saved, pool)) = saved {
         return Ok(Some(Loaded {
             saved,
-            prior: Some((pool, payload)),
+            prior: Some(pool),
         }));
     }
     if q.pool().is_some() {
-        restart(q, out, false);
+        restart(q, out, mismatch);
         return Ok(None);
     }
     let mapped = uniprot::search(leg, q, None)?;

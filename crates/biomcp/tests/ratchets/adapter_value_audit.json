@@ -1249,7 +1249,7 @@
       "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
     },
     {
-      "path": "crates/biomcp-query/src/adverse_event_maude/snapshot.rs",
+      "path": "crates/biomcp-query/src/adverse_event_maude/record.rs",
       "site": "load: new ( query . id ( ) . as_str ( ) ) . ok ( )",
       "maximum": 1,
       "class": "legitimate_absence",
@@ -2097,7 +2097,7 @@
       "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
     },
     {
-      "path": "crates/biomcp-query/src/phenotype/snapshot.rs",
+      "path": "crates/biomcp-query/src/phenotype/record.rs",
       "site": "acquire: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
       "maximum": 1,
       "class": "legitimate_absence",
@@ -2105,7 +2105,7 @@
       "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
     },
     {
-      "path": "crates/biomcp-query/src/phenotype/snapshot.rs",
+      "path": "crates/biomcp-query/src/phenotype/record.rs",
       "site": "get: . id ( ) . as_str ( ) . parse ( ) . ok ( )",
       "maximum": 1,
       "class": "legitimate_absence",

@@ -1,9 +1,7 @@
-use super::{
-    CacheError, Outcome, Request, RequestError, Selection, StepKind, Store, complex_portal,
-    interpro,
-};
+use super::{Outcome, Request, RequestError, Selection, StepKind, complex_portal, interpro};
 use biomcp_types::ReplyBody;
 use biomcp_types::{ProteinComplexMembers, ProteinComplexes, ProteinDomains};
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(super) enum Saved {
     Domains(
         Vec<biodata::ProteinDomainMatch>,
@@ -70,34 +68,13 @@ impl Saved {
             Self::Members(c) => c.as_ref().map_or(0, |c| c.members.len() as u64),
         }
     }
-    pub(super) fn encode(&self) -> Result<String, CacheError> {
-        match self {
-            Self::Domains(items, total, problems, dropped) => {
-                serde_json::to_string(&(items, total, problems, dropped))
-            }
-            Self::Complexes(c) => serde_json::to_string(c),
-            Self::Members(c) => serde_json::to_string(c),
-        }
-        .map_err(|_| CacheError::Snapshot)
-    }
-    pub(super) fn decode(q: &Selection, text: &str) -> Result<Self, CacheError> {
-        match q {
-            Selection::Domains(_) => {
-                serde_json::from_str(text).map(|(rows, total, problems, dropped)| {
-                    Self::Domains(rows, total, problems, dropped)
-                })
-            }
-            Selection::Complexes(_) => serde_json::from_str(text).map(Self::Complexes),
-            Selection::Members(_) => serde_json::from_str(text).map(Self::Members),
-        }
-        .map_err(|_| CacheError::Snapshot)
-    }
     pub(super) fn member_steps(
         &self,
         q: &Selection,
         offset: u32,
         limit: u32,
-        store: &mut Store<'_>,
+        cx: &crate::Ctx<'_>,
+        deadline: biomcp_fetch::Deadline<'_>,
         out: &mut Outcome,
     ) -> Result<(), RequestError> {
         let Self::Complexes(collection) = self else {
@@ -115,31 +92,15 @@ impl Saved {
             );
             let selection = Selection::Members(query.clone());
             let key = selection.key()?;
-            let payload = Self::Members(Some(complex.clone())).encode()?;
-            let existing = store.find(&key, None)?;
-            let pool = if let Some(pool) = existing {
-                if store
-                    .source_snapshot(pool.info.id.as_str(), &key, |_| false)?
-                    .as_deref()
-                    == Some(payload.as_str())
-                {
-                    pool
-                } else {
-                    store.publish_source_pool(
-                        &key,
-                        &payload,
-                        complex.members.len() as u32,
-                        &out.sources,
-                    )?
-                }
-            } else {
-                store.publish_source_pool(
-                    &key,
-                    &payload,
-                    complex.members.len() as u32,
-                    &out.sources,
-                )?
-            };
+            let saved = Self::Members(Some(complex.clone()));
+            let pool = crate::source_snapshot::intern(
+                cx,
+                &key,
+                &saved,
+                complex.members.len() as u32,
+                &out.sources,
+                deadline,
+            )?;
             out.next.push(crate::next::Step::run(
                 StepKind::Section,
                 &[biomcp_types::Source::ComplexPortal],

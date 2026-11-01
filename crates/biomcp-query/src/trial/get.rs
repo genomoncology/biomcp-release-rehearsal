@@ -1,9 +1,7 @@
 //! Exact trial cards and immutable source section continuations.
 use biomcp_types::ReplyBody;
 pub(in crate::trial) mod page;
-mod snapshot;
-use self::snapshot::Snapshot;
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::NctId;
 use biomcp_adapters::ctgov;
 use biomcp_fetch::{CacheError, RequestError};
@@ -57,11 +55,6 @@ fn fetch(
         .map_or_else(Vec::new, |version| version.problems.clone());
     let source_updated = version.and_then(|version| version.value);
     let mut items = Vec::new();
-    let mut store = if query.sections().is_empty() || !rows.iter().any(Result::is_ok) {
-        None
-    } else {
-        Some(Store::open(cx.fetch.cache_access()?, deadline)?)
-    };
     for (id, row) in query.input().iter().zip(rows) {
         match row {
             Ok((detail, metadata)) => {
@@ -77,14 +70,16 @@ fn fetch(
                     processing_problems: processing_problems.clone(),
                     sources: vec![own_source],
                 };
-                let pool = if let Some(store) = store.as_mut() {
-                    Some(store.save_source_snapshot(
-                        &Snapshot::key(*id),
-                        &snapshot.encode()?,
-                        &snapshot.sources,
-                    )?)
-                } else {
+                let pool = if query.sections().is_empty() {
                     None
+                } else {
+                    Some(source_snapshot::write(
+                        cx,
+                        &source_snapshot::key("trial", id)?,
+                        &snapshot,
+                        &snapshot.sources,
+                        deadline,
+                    )?)
                 };
                 items.push(page::render(query, snapshot, pool, out)?);
             }
@@ -128,13 +123,13 @@ fn restore(
         );
         return Ok(());
     }
-    let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let payload = store.source_snapshot(
+    let snapshot: Option<Snapshot> = source_snapshot::read(
+        cx,
+        &source_snapshot::key("trial", &id)?,
         query.pool().map_or("", |p| p.as_str()),
-        &Snapshot::key(id),
-        |s| cx.fetch.disabled(s),
+        deadline,
     )?;
-    let Some(payload) = payload else {
+    let Some(snapshot) = snapshot else {
         out.body = ReplyData::PoolError { mismatch: false };
         out.next.push(crate::next::Step::run(
             StepKind::Restart,
@@ -144,7 +139,6 @@ fn restore(
         ));
         return Ok(());
     };
-    let snapshot = Snapshot::decode(&payload)?;
     if snapshot.detail.card.nct_id != id {
         return Err(CacheError::Database.into());
     }
@@ -203,4 +197,13 @@ fn partial(snapshot: &Snapshot) -> bool {
                 SourceState::Failed | SourceState::Stale | SourceState::Syncing
             )
         })
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub(super) struct Snapshot {
+    pub(super) detail: biomcp_adapters::ctgov::detail::Detail,
+    pub(super) fetched: Option<u64>,
+    pub(super) version: Option<biomcp_types::SourceTimestamp>,
+    pub(super) processing_problems: Vec<biomcp_types::Problem>,
+    pub(super) sources: Vec<biomcp_types::SourceOutcome>,
 }

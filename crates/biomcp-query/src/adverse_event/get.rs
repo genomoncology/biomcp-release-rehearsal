@@ -2,15 +2,14 @@
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 mod render;
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{FaersReport, Text};
 use biomcp_adapters::faers;
 use biomcp_fetch::{CacheError, Deadline, RequestError};
 use biomcp_types::{
     AdverseEventGet, AdverseEventSection, ReplyData, Request, Source, SourceOutcome, StepKind,
 };
-use sha2::{Digest, Sha256};
-#[derive(serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 struct Saved(
     FaersReport,
     Text,
@@ -19,29 +18,6 @@ struct Saved(
     #[serde(default)] faers::Positions,
     #[serde(default)] bool,
 );
-impl serde::Serialize for Saved {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeTuple;
-        let mut tuple = serializer.serialize_tuple(if self.5 {
-            6
-        } else if self.4.is_empty() {
-            4
-        } else {
-            5
-        })?;
-        tuple.serialize_element(&self.0)?;
-        tuple.serialize_element(&self.1)?;
-        tuple.serialize_element(&self.2)?;
-        tuple.serialize_element(&self.3)?;
-        if !self.4.is_empty() || self.5 {
-            tuple.serialize_element(&self.4)?;
-        }
-        if self.5 {
-            tuple.serialize_element(&true)?;
-        }
-        tuple.end()
-    }
-}
 pub(super) fn get(cx: &Ctx<'_>, q: &AdverseEventGet) -> Outcome {
     let mut out = super::unsupported();
     out.body = biomcp_types::AdverseEventFaersCard::into_reply(q.clone(), None);
@@ -53,8 +29,8 @@ pub(super) fn get(cx: &Ctx<'_>, q: &AdverseEventGet) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-fn key(q: &AdverseEventGet) -> Vec<u8> {
-    Sha256::digest(format!("biomcp.faers_snapshot/2\0{}", q.id()).as_bytes()).to_vec()
+fn key(q: &AdverseEventGet) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key("faers", q.id())
 }
 fn read(
     cx: &Ctx<'_>,
@@ -85,10 +61,9 @@ fn read(
         return Err(e);
     }
     let (saved, snapshot) = if let Some(snapshot) = q.snapshot() {
-        let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let Some(payload) =
-            store.source_snapshot(snapshot.as_str(), &key(q), |s| cx.fetch.disabled(s))?
-        else {
+        let saved: Option<Saved> =
+            source_snapshot::read(cx, &key(q)?, snapshot.as_str(), deadline)?;
+        let Some(saved) = saved else {
             out.body = ReplyData::PoolError { mismatch: false };
             out.next.push(crate::next::Step::run(
                 StepKind::Restart,
@@ -98,7 +73,6 @@ fn read(
             ));
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         if saved.0.safetyreportid != *q.id() || !saved.4.check(&saved.0) {
             return Err(CacheError::Database.into());
         }
@@ -130,9 +104,7 @@ fn read(
             detail.positions,
             detail.refusals == biomcp_adapters::Refusal::Refused,
         );
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
-        let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let snapshot = store.save_source_snapshot(&key(q), &payload, &out.sources)?;
+        let snapshot = source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline)?;
         (saved, snapshot)
     };
     render_saved(q, saved, snapshot, out)

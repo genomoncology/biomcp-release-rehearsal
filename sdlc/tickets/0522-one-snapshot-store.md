@@ -1,6 +1,7 @@
 # 0522 — Move every source snapshot onto one store
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 390e9c65deac799173655e4ed9a0d15b9a93981f
 
 Milestone: 5
 

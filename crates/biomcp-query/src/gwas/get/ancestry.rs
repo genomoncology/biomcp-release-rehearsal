@@ -3,12 +3,11 @@ use super::{
     Ctx, Deadline, GwasAncestries, GwasAncestry, GwasGet, Outcome, Problem, Reason, RequestError,
     Source, SourceOutcome, StepKind, action, gwas, page, rejected, status,
 };
-use crate::store::Store;
-use biomcp_fetch::{CacheError, SourceError};
+use crate::source_snapshot;
+use biomcp_fetch::SourceError;
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::ReplyData;
-use sha2::{Digest, Sha256};
 type Saved = (Vec<GwasAncestry>, Vec<SourceOutcome>, Vec<Problem>, bool);
 pub(super) fn read(
     cx: &Ctx<'_>,
@@ -22,7 +21,7 @@ pub(super) fn read(
     else {
         return Ok(());
     };
-    let key = Sha256::digest(format!("biomcp.gwas-ancestries/6\0{id}"));
+    let key = source_snapshot::key("gwas-ancestry", id)?;
     let leg = cx.fetch.leg(&gwas::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::Gwas) {
         let error = RequestError::Source(SourceError {
@@ -36,10 +35,8 @@ pub(super) fn read(
         return Err(error);
     }
     let (saved, token) = if let Some(token) = window.snapshot() {
-        let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let Some(payload) =
-            store.source_snapshot(token.as_str(), &key, |s| cx.fetch.disabled(s))?
-        else {
+        let saved: Option<Saved> = source_snapshot::read(cx, &key, token.as_str(), deadline)?;
+        let Some(saved) = saved else {
             out.body = ReplyData::PoolError { mismatch: false };
             out.next.push(crate::next::Step::new(
                 StepKind::Restart,
@@ -48,7 +45,6 @@ pub(super) fn read(
             ));
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Snapshot)?;
         (saved, token.clone())
     } else {
         let rows = gwas::get::ancestries(&leg, id);
@@ -67,12 +63,7 @@ pub(super) fn read(
             out.problems.clone(),
             out.dropped,
         );
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Snapshot)?;
-        let token = Store::open(cx.fetch.cache_access()?, deadline)?.save_source_snapshot(
-            &key,
-            &payload,
-            &out.sources,
-        )?;
+        let token = source_snapshot::write(cx, &key, &saved, &out.sources, deadline)?;
         (saved, token)
     };
     out.sources = saved.1;

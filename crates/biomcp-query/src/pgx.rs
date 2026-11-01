@@ -1,8 +1,8 @@
 //! CPIC retrieval preserves source contexts and performs no clinical inference.
 use biomcp_types::ReplyBody;
 mod annotations;
+mod annotations_record;
 mod next;
-mod snapshot;
 use crate::{Ctx, Outcome, status};
 pub(crate) use annotations::annotation;
 use biomcp_adapters::cpic;

@@ -4,10 +4,8 @@ mod next;
 mod orcid;
 mod papers;
 pub(crate) use papers::papers;
-mod papers_snapshot;
 mod search;
 mod semantic_scholar;
-mod snapshot;
 use crate::next::run;
 pub(super) use crate::status::empty;
 use crate::{Action, Outcome};
@@ -69,4 +67,11 @@ fn key_step(out: &mut Outcome) {
 
 fn source_error(error: Option<biomcp_fetch::RequestError>) -> Option<biomcp_fetch::RequestError> {
     error.filter(|error| !matches!(error, biomcp_fetch::RequestError::Source(error) if error.reason == Reason::NotFound))
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct NativePages<P> {
+    pages: Vec<P>,
+    source: biomcp_types::SourceOutcome,
+    key_needed: bool,
 }

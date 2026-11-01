@@ -1,7 +1,7 @@
 mod eligibility;
 mod publications;
 mod sites;
-use super::snapshot::Snapshot;
+use super::Snapshot;
 use crate::Outcome;
 use biodata::{NctId, Text};
 

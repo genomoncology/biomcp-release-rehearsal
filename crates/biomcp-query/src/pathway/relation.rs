@@ -1,5 +1,5 @@
-use super::{empty, relation_snapshot as snapshot};
-use crate::{Ctx, Outcome, status};
+use super::empty;
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{PathwayId, Text};
 use biomcp_adapters::reactome;
 use biomcp_fetch::{Deadline, RequestError, SourceError};
@@ -131,7 +131,13 @@ fn read_inner(
     let loaded = if q.fresh {
         None
     } else {
-        snapshot::load(cx, q.id, q.genes, q.pool, deadline)?
+        source_snapshot::find::<Saved>(
+            cx,
+            &source_snapshot::key("pathway-relation", &(q.id, q.genes))?,
+            q.pool,
+            deadline,
+        )?
+        .0
     };
     let (saved, pool) = match loaded {
         Some(pair) => pair,
@@ -141,7 +147,20 @@ fn read_inner(
         }
         None => {
             let saved = fetch(cx, q, deadline, out)?;
-            let pool = snapshot::save(cx, q.id, q.genes, deadline, &saved)?;
+            let pool = source_snapshot::publish(
+                cx,
+                &source_snapshot::key("pathway-relation", &(q.id, q.genes))?,
+                &saved,
+                saved
+                    .genes
+                    .as_ref()
+                    .map(|g| g.items.len())
+                    .or_else(|| saved.events.as_ref().map(|e| e.items.len()))
+                    .unwrap_or(0) as u32,
+                &saved.sources,
+                None,
+                deadline,
+            )?;
             (saved, pool)
         }
     };
@@ -239,7 +258,7 @@ fn fetch(
     q: &Selection<'_>,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<snapshot::Saved, RequestError> {
+) -> Result<Saved, RequestError> {
     if matches!(q.id, PathwayId::Wikipathways(_)) {
         return super::gpml_relation::fetch(cx, q, deadline, out);
     }
@@ -269,7 +288,7 @@ fn fetch(
                 }
             }
         };
-        let mut saved = snapshot::Saved {
+        let mut saved = Saved {
             dropped: out.dropped,
             genes: None,
             events: None,
@@ -318,4 +337,13 @@ fn full_page(size: usize, kind: PathwayTotalKind) -> PathwayPageInfo {
         next_offset: None,
         pool: None,
     }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub(super) struct Saved {
+    pub dropped: bool,
+    pub genes: Option<biomcp_types::PathwayGenes>,
+    pub events: Option<biomcp_types::PathwayEvents>,
+    pub sources: Vec<biomcp_types::SourceOutcome>,
+    pub problems: Vec<biomcp_types::Problem>,
 }

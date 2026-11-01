@@ -1,5 +1,5 @@
-use super::{empty, run, snapshot};
-use crate::{Ctx, Outcome, status};
+use super::{empty, run};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::reactome;
 use biomcp_fetch::{Deadline, RequestError, SourceError};
 use biomcp_types::Paged;
@@ -74,7 +74,25 @@ fn execute(
         }
         .into());
     }
-    let saved = snapshot::load(cx, q, deadline, out)?;
+    let key = source_snapshot::key("pathway-search", &q.restart())?;
+    let saved: Option<Saved> = if let Some(id) = q.pool().filter(|_| !(cx.fresh || q.fresh())) {
+        let saved: Option<Saved> = source_snapshot::read(cx, &key, id.as_str(), deadline)?;
+        match saved {
+            Some(saved) if saved.complete || q.offset() == saved.body.page.offset => Some(saved),
+            Some(saved) if saved.body.page.next_offset == Some(q.offset()) => None,
+            _ => {
+                out.body = ReplyData::PoolError { mismatch: false };
+                out.next.push(crate::next::Step::new(
+                    StepKind::Restart,
+                    &super::next::search(q),
+                    run(Request::SearchPathway(q.restart())),
+                ));
+                None
+            }
+        }
+    } else {
+        None
+    };
     if matches!(out.body, ReplyData::PoolError { .. }) {
         return Ok(());
     }
@@ -82,7 +100,7 @@ fn execute(
         Some(saved) => saved,
         None => fetch(cx, q, deadline, out)?,
     };
-    let pool = snapshot::save(cx, q, deadline, &saved)?;
+    let pool = source_snapshot::write(cx, &key, &saved, &saved.sources, deadline)?;
     out.dropped = saved.dropped;
     out.sources = saved.sources;
     out.problems = saved.problems;
@@ -113,7 +131,7 @@ fn fetch(
     q: &PathwaySearch,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<snapshot::Saved, RequestError> {
+) -> Result<Saved, RequestError> {
     if q.source() == biomcp_types::PathwaySource::Wikipathways {
         return super::wikipathways::headers(cx, q, deadline, out);
     }
@@ -157,7 +175,7 @@ fn fetch(
         body.page.total_kind = PathwayTotalKind::Observed;
     }
     body.page.returned = body.items.len() as u32;
-    Ok(snapshot::Saved {
+    Ok(Saved {
         dropped: out.dropped,
         body,
         complete,
@@ -178,4 +196,14 @@ fn slice(body: &mut PathwayPage, q: &PathwaySearch) {
     body.page.returned = body.items.len() as u32;
     let next = q.offset().saturating_add(body.page.returned);
     body.page.next_offset = (u64::from(next) < body.page.total).then_some(next);
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub(super) struct Saved {
+    pub dropped: bool,
+    pub body: PathwayPage,
+    pub complete: bool,
+    pub catalog_revision: Option<biodata::Text>,
+    pub sources: Vec<biomcp_types::SourceOutcome>,
+    pub problems: Vec<biomcp_types::Problem>,
 }

@@ -1,5 +1,5 @@
 //! A complete GPML relation is checked once and retained before any page is selected.
-use super::{relation::Selection, relation_snapshot::Saved};
+use super::{relation::Saved, relation::Selection};
 use crate::{Ctx, Outcome, status};
 use biodata::{PathwayId, PathwaySpecies};
 use biomcp_adapters::wikipathways;
