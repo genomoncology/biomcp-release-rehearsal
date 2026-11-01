@@ -14,7 +14,7 @@ class HostedWorkflow(unittest.TestCase):
         self.assertIn('--staged-formula staged/biomcp.rb', workflow)
         self.assertIn('needs: [candidate, stage, staged-homebrew]', workflow)
         self.assertNotIn('Ian approved BioMCP', workflow)
-        self.assertIn('Protection check and release-operator job were skipped', workflow)
+        self.assertIn('Approval reached; no channel authentication or publication attempted.', workflow)
 
 
 if __name__ == '__main__':

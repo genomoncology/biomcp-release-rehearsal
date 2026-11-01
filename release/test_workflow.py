@@ -15,7 +15,7 @@ from release.test_licenses import archive as write_archive, payloads, wheel_fixt
 class Staging(unittest.TestCase):
     def test_workflow_attests_all_subjects_before_candidate_upload(self):
         workflow = Path(".github/workflows/release.yml").read_text()
-        stage = workflow.split("\n  stage:\n", 1)[1].split("\n  release-operator:\n", 1)[0]
+        stage = workflow.split("\n  stage:\n", 1)[1].split("\n  staged-homebrew:\n", 1)[0]
         self.assertIn("subject-checksums: ${{ runner.temp }}/subjects.sha256", stage)
         self.assertIn("create-storage-record: false", stage)
         self.assertIn("push-to-registry: false", stage)
@@ -25,9 +25,11 @@ class Staging(unittest.TestCase):
         self.assertNotIn("if:", attest[1])
         self.assertLess(stage.index("release/secrets.py artifacts"), attest.start())
         self.assertLess(attest.end(), stage.index("name: release-candidate"))
-        for job in re.split(r"\n  [a-z-]+:\n", workflow.split("jobs:\n", 1)[1])[1:]:
-            grants = set(re.findall(r"^      ([a-z-]+): write$", job, re.M))
-            self.assertEqual(grants, {"id-token", "attestations"} if "Attest every staged artifact" in job else set())
+        # Artifact signing remains isolated from channel publication credentials.
+        self.assertIn('      id-token: write', stage)
+        self.assertIn('      attestations: write', stage)
+        self.assertNotIn('      packages: write', stage)
+        self.assertNotIn('      contents: write', stage)
 
     def test_tag_builds_skip_cache_restore(self):
         workflow = Path('.github/workflows/release.yml').read_text()

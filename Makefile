@@ -110,7 +110,7 @@ docs-check:
 	python3 scripts/test_nightly_live_check.py
 	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows
 	python3 -m unittest release.test_workflow release.test_security release.test_licenses
-	python3 -m unittest release.test_source_revision release.test_workflow_contracts
+	python3 -m unittest release.test_source_revision release.test_workflow_contracts release.test_publication release.test_promotion
 .PHONY: release-linux
 release-linux:
 	sh release/linux.sh $(CONTAINER_ARGS)
@@ -168,6 +168,12 @@ workflow-lint:
 	cargo check --locked -p biodata -p biomcp-types --no-default-features
 	actionlint
 
+.PHONY: publication-check
+publication-check:
+	actionlint
+	python3 -m unittest release.test_publication release.test_workflow release.test_workflow_contracts release.test_toolchain release.test_promotion
+	python3 release/toolchain.py check
+	python3 scripts/check_docs.py
 .PHONY: unused-dependencies dependency-graph dependency-proof
 unused-dependencies:
 	python3 release/toolchain.py install-machete

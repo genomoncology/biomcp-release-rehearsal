@@ -50,8 +50,16 @@
       "https://registry-1.docker.io/v2/library/debian/manifests/bookworm-slim"
     ],
     "runtime-packages": "https://deb.debian.org/debian/dists/bookworm/main/binary-amd64/Packages.gz",
-    "rustup-sha256": "https://static.rust-lang.org/rustup/archive/{rustup}/{target}/rustup-init{suffix}.sha256"
+    "rustup-sha256": "https://static.rust-lang.org/rustup/archive/{rustup}/{target}/rustup-init{suffix}.sha256",
+    "mcp-publisher": "https://github.com/modelcontextprotocol/registry/releases/tag/v1.8.1"
   },
   "cargo-about": "0.9.3",
-  "cargo-mutants": "27.1.0"
+  "cargo-mutants": "27.1.0",
+  "mcp-publisher": {
+    "version": "v1.8.1",
+    "archives": {
+      "linux_amd64": "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
+    }
+  },
+  "cosign": "v3.1.4"
 }

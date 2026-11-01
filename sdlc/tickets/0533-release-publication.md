@@ -1,6 +1,7 @@
 # 0533 — Publish the release through gated jobs and check every channel
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c4eedced3301cae52c02ae7efc3b84e4ac80c736
 
 Milestone: 5
 

@@ -1,11 +1,16 @@
 name: Release
 
-# Dispatch always rehearses the checked-out workflow revision without publication.
+# Dispatch rehearses the checked-out revision without publication.
 # A tag qualifies the same artifacts and then waits for the release operator.
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      approval_rehearsal:
+        description: Exercise publication approvals without publishing or authenticating to channels
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -63,11 +68,11 @@ jobs:
       - name: Scan the complete candidate history for secrets
         run: make secrets-full
       - name: Require protected operator approval for a production release
-        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api repos/genomoncology/biomcp/environments/release-publication > "$RUNNER_TEMP/protection.json"
+          gh api "repos/$GITHUB_REPOSITORY/environments/release-publication" > "$RUNNER_TEMP/protection.json"
           python3 release/workflow.py protection "$RUNNER_TEMP/protection.json"
 
   qualify:
@@ -110,7 +115,7 @@ jobs:
           key: release-${{ matrix.platform }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml', 'release/toolchain.json') }}
       - name: Check formatting, lint and tests on Linux x86_64
         if: matrix.platform == 'manylinux_2_28_x86_64'
-        run: make fmt lint test
+        run: make fmt lint test docs-check
       - name: Build and install native artifacts, including CLI version and offline health
         if: runner.os != 'Linux'
         shell: bash
@@ -181,11 +186,6 @@ jobs:
             echo 'All five native install gates, both Linux container gates and publication payload checks passed.'
             echo 'No channel was published. Authentication, uploads, directory acceptance, site delivery and latest pointer movement remain unexercised.'
             echo 'Every staged file has signed build provenance. Verify downloaded files against this repository, workflow and source commit.'
-            if [ "$GITHUB_EVENT_NAME" != push ] || [ "$GITHUB_REPOSITORY" != genomoncology/biomcp ]; then
-              echo 'Protection check and release-operator job were skipped for this rehearsal.'
-            else
-              echo 'Protection settings passed. The release-operator job follows this staging job.'
-            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   staged-homebrew:
@@ -228,27 +228,277 @@ jobs:
           path: ${{ runner.temp }}/formula/report.json
           if-no-files-found: error
 
-  release-operator:
+  publish-github:
     needs: [candidate, stage, staged-homebrew]
-    if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions: {}
-    # Configure required reviewers, prevent self-review and disable admin bypass.
-    # The release operator approves this environment only after Ian approves.
-    environment:
-      name: release-publication
+    timeout-minutes: 15
+    environment: release-publication
+    permissions:
+      contents: write
     steps:
-      - name: Hand the approved candidate to the release operators
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Publish checked archives, desktop bundles and plugin assets
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 release/publication.py github --staged staged
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Approval reached; no channel authentication or publication attempted.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish-ghcr:
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
+    needs: [candidate, stage, staged-homebrew]
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release-publication
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push both checked images and their manifest
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        id: image
+        run: python3 release/publication.py ghcr --staged staged >> "$GITHUB_OUTPUT"
+      - name: Attest the pushed container digest in GHCR
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-name: ghcr.io/genomoncology/biomcp
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Approval reached; no channel authentication or publication attempted.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish-pypi:
+    needs: [candidate, stage, staged-homebrew, publish-ghcr]
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release-publication
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Select wheels for the Trusted Publisher
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        run: python3 release/publication.py wheels --staged staged
+      # https://docs.pypi.org/trusted-publishers/using-a-publisher/
+      - name: Publish wheels with Trusted Publishing and attestations
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
+        with:
+          packages-dir: pypi/
+          attestations: true
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Approval reached; no channel authentication or publication attempted.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish-homebrew:
+    needs: [candidate, stage, staged-homebrew, publish-github]
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release-publication
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Check out the public Homebrew tap
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: genomoncology/homebrew-biomcp
+          ref: main
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+      - name: Publish the staged two-architecture formula
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        run: python3 release/publication.py homebrew --staged staged --checkout tap
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Approval reached; no channel authentication or publication attempted.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish-installer:
+    needs: [candidate, stage, staged-homebrew, publish-github]
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release-publication
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Check out the existing Pages publication
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: gh-pages
+          path: site
+      - name: Publish the staged installer to the public site
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 release/publication.py installer --staged staged --checkout site
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Approval reached; no channel authentication or publication attempted.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish-registry:
+    needs: [candidate, stage, staged-homebrew, publish-pypi]
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release-publication
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Read publisher tool pins
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        id: tools
+        run: python3 release/toolchain.py outputs >> "$GITHUB_OUTPUT"
+      - name: Install the pinned Sigstore verifier
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: ${{ steps.tools.outputs.cosign }}
+      - name: Install the pinned MCP Registry publisher
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        run: python3 release/toolchain.py install-mcp-publisher
+      # https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/github-actions.mdx
+      - name: Publish the staged MCP Registry record using GitHub OIDC
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        run: python3 release/publication.py registry --staged staged
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Approval reached; no channel authentication or publication attempted.' >> "$GITHUB_STEP_SUMMARY"
+
+  post-publish:
+    needs: [candidate, publish-github, publish-ghcr, publish-pypi, publish-homebrew, publish-installer, publish-registry]
+    if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - channel: pypi
+            os: ubuntu-24.04
+          - channel: ghcr
+            os: ubuntu-24.04
+          - channel: homebrew
+            os: macos-14
+          - channel: installer
+            os: ubuntu-24.04
+          - channel: registry
+            os: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      attestations: read
+      packages: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install from the published channel and check the candidate version
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        env:
+          CHANNEL: ${{ matrix.channel }}
           VERSION: ${{ needs.candidate.outputs.version }}
-        run: |
-          {
-            echo "BioMCP $VERSION passed qualification, staging and staged Homebrew installation. This environment passed its configured protection rules."
-            echo "Operators must verify Ian's release approval before publishing. This job cannot verify that approval."
-            echo "Candidate source: $GITHUB_SHA. Download release-candidate from this run."
-            echo 'Operators publish archives to genomoncology/biomcp before the biomcp.org installer, genomoncology/homebrew-biomcp formula and biomcp marketplace update.'
-            echo 'Operators publish biomcp-cli wheels to PyPI before io.github.genomoncology/biomcp server.json.'
-            echo 'Operators publish both checked image architectures to ghcr.io/genomoncology/biomcp before moving latest, and supply the macOS and Windows biomcp desktop bundles through the existing directory or manual channel.'
-            echo 'This workflow grants no service credentials and performs no publication.'
-          } >> "$GITHUB_STEP_SUMMARY"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 release/published.py "$CHANNEL" --version "$VERSION"
+      - name: Report the install rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Dispatch skips public channel installs; the promotion approval follows these no-op jobs.' >> "$GITHUB_STEP_SUMMARY"
+
+  publish-latest:
+    needs: [candidate, stage, publish-ghcr, post-publish]
+    if: success() && ((github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.approval_rehearsal)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release-publication
+    concurrency:
+      group: release-latest
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-candidate
+          path: staged
+      - name: Log in to GHCR for promotion
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote only the newest checked stable release
+        if: github.event_name == 'push' && github.repository == 'genomoncology/biomcp'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIGEST: ${{ needs.publish-ghcr.outputs.digest }}
+        run: python3 release/publication.py promote --staged staged --digest "$DIGEST"
+      - name: Report the approval rehearsal boundary
+        if: inputs.approval_rehearsal
+        run: echo 'Promotion approval reached; latest pointers stay unchanged.' >> "$GITHUB_STEP_SUMMARY"
