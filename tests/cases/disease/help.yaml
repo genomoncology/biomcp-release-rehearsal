@@ -12,6 +12,7 @@
           "text",
           "--format",
           "--disable-sources",
+          "--source_pacing",
           "--config",
           "--offline",
           "--fresh"
@@ -54,6 +55,7 @@
           "--source",
           "--format",
           "--disable-sources",
+          "--source_pacing",
           "--config",
           "--offline",
           "--fresh"

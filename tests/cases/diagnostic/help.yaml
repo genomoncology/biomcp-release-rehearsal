@@ -29,7 +29,8 @@
             "--offset",
             "--product-code",
             "--initiated-from",
-            "--initiated-to"
+            "--initiated-to",
+            "--source_pacing"
           ]
         },
         "/result/commands/0/arguments/14/choices": [
@@ -39,7 +40,7 @@
           "fda-device-recall"
         ]
       },
-      "max_bytes": 3792
+      "max_bytes": 3955
     },
     {
       "run": [
@@ -107,5 +108,5 @@
       "max_bytes": 1391
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. The source_pacing global argument adds 162 compact JSON bytes and one array separator. Its exhausted leaf budget adds exactly those 163 bytes, preserving the prior headroom; other budgets stay unchanged."
 }

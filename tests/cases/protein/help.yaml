@@ -50,7 +50,8 @@
           "includes_all_of": [
             "input",
             "--section",
-            "--section-limit"
+            "--section-limit",
+            "--source_pacing"
           ]
         },
         "/result/commands/0/sections/*/word": {
@@ -67,7 +68,7 @@
         },
         "/result/commands/0/section_rule": "Select source sections or all bounded first pages; function keeps one whole text record."
       },
-      "max_bytes": 3208
+      "max_bytes": 3371
     },
     {
       "run": [
@@ -118,11 +119,12 @@
             "--limit",
             "--offset",
             "--pool",
-            "--type"
+            "--type",
+            "--source_pacing"
           ]
         }
       },
-      "max_bytes": 2248
+      "max_bytes": 2411
     },
     {
       "run": [
@@ -253,5 +255,5 @@
       "max_bytes": 1640
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. The source_pacing global argument adds 162 compact JSON bytes and one array separator. Each exhausted leaf budget adds exactly those 163 bytes, preserving the prior headroom; other budgets stay unchanged."
 }

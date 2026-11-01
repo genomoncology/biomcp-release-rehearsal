@@ -19,7 +19,7 @@ class GateStages(unittest.TestCase):
         self.assertEqual(result.returncode, 7)
         self.assertRegex(result.stdout, r'gate stage=fixture elapsed_seconds=\d+\.\d+ exit=7')
 
-    def test_pre_job_stops_at_format_failure(self):
+    def test_pre_job_reports_all_cheap_failures_and_stops_gate(self):
         with tempfile.TemporaryDirectory() as temporary:
             tools = Path(temporary)
             cargo = tools / 'cargo'
@@ -28,12 +28,15 @@ class GateStages(unittest.TestCase):
             env = {**os.environ, 'PATH': str(tools) + os.pathsep + os.environ['PATH']}
             for key in ('MAKEFLAGS', 'MFLAGS', 'MAKELEVEL', 'MAKEOVERRIDES'):
                 env.pop(key, None)
-            result = subprocess.run(['make', '--no-print-directory', 'pre-job'],
+            result = subprocess.run([sys.executable, str(ROOT / 'scripts/landing_gate.py')],
                                     cwd=ROOT, env=env, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('cargo fmt --all -- --check', result.stdout)
-            self.assertNotIn('cargo clippy', result.stdout)
-            self.assertNotIn('cargo test', result.stdout)
+            self.assertIn('cargo clippy --keep-going --workspace', result.stdout)
+            self.assertIn('cargo clippy --keep-going --locked -p biomcp --test tools', result.stdout)
+            self.assertIn('plain-cli-build', result.stderr)
+            self.assertIn('gate stage=pre-job', result.stdout)
+            self.assertNotIn('gate stage=workflow-lint', result.stdout)
 
     def test_coverage_reuses_completed_gate_prerequisites(self):
         result = subprocess.run(['make', '--no-print-directory', '-n',

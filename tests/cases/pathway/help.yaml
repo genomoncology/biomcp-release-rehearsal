@@ -134,7 +134,7 @@
     {
       "expect": {
         "/result/commands/0/arguments": {
-          "count": 5
+          "count": 6
         },
         "/result/commands/0/command": [
           "sync",
@@ -144,7 +144,12 @@
         "/result/commands/0/examples": {
           "count": 2
         },
-        "/status": "complete"
+        "/status": "complete",
+        "/result/commands/0/arguments/*/name": {
+          "includes_all_of": [
+            "--source_pacing"
+          ]
+        }
       },
       "max_bytes": 1479,
       "run": [

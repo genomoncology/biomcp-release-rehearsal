@@ -17,11 +17,13 @@ landing-gate:
 	+python3 scripts/landing_gate.py
 
 # Keep these sequential even when the caller uses make -j.
-.PHONY: pre-job proof-check proof-list proof proof-unpack gate-stage-check
-pre-job:
-	+$(MAKE) --no-print-directory fmt
-	+$(MAKE) --no-print-directory lint
-	+$(MAKE) --no-print-directory ratchets
+.PHONY: pre-job check-cheap proof-check proof-list proof proof-unpack gate-stage-check
+pre-job: check-cheap
+
+LINT_GOALS = unused-dependencies check-no-default-features lint-workspace lint-tools
+
+check-cheap:
+	+$(MAKE) --no-print-directory --keep-going -j1 fmt $(LINT_GOALS) ratchets
 
 # Retained proof archives use the platform tar, including Python 3.9 machines.
 proof-unpack:
@@ -52,11 +54,18 @@ plain-cli-build:
 fmt:
 	cargo fmt --all -- --check
 
+.PHONY: $(LINT_GOALS)
 lint:
-	+$(MAKE) --no-print-directory unused-dependencies
-	cargo check --locked -p biodata -p biomcp-types --no-default-features
-	cargo clippy --workspace --all-targets --locked -- -D warnings
-	cargo clippy --locked -p biomcp --test tools -- -D warnings
+	+$(MAKE) --no-print-directory --keep-going -j1 $(LINT_GOALS)
+
+check-no-default-features:
+	cargo check --keep-going --locked -p biodata -p biomcp-types --no-default-features
+
+lint-workspace:
+	cargo clippy --keep-going --workspace --all-targets --locked -- -D warnings
+
+lint-tools:
+	cargo clippy --keep-going --locked -p biomcp --test tools -- -D warnings
 
 ratchets: plain-cli-build
 	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)

@@ -1,6 +1,7 @@
 # 0552 — Report every cheap check failure in one run
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 26d0f26cf4bed1c91a0b6f313723f54ad0b398ce
 
 Milestone: 5
 
