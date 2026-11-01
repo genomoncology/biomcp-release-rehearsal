@@ -58,6 +58,39 @@ else:
 
 @unittest.skipIf(os.name == 'nt', 'synthetic executables use POSIX shebangs')
 class InstalledCli(unittest.TestCase):
+    def test_prepare_stages_python_helpers_for_installed_tool_proofs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = root / 'dist'
+            output.mkdir()
+            binary = root / 'biomcp'
+            binary.write_text('synthetic executable')
+            record = {'distribution': 'biomcp-cli', 'version': '1.0.0', 'platform': platform_tag(False),
+                      'profile': 'release', 'cargo_profile': {'debug_assertions': False, 'opt_level': '3'},
+                      'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(), 'revision': 'a' * 40}
+            write_payloads(output)
+            wheel(output, binary, record)
+            cargo = root / 'cargo'
+            cargo.write_text(f'#!{sys.executable}\nimport json, sys\n'
+                             f'print(json.dumps({{"reason": "compiler-artifact", "target": '
+                             f'{{"name": sys.argv[sys.argv.index("--test") + 1]}}, '
+                             f'"executable": {str(binary)!r}}}))\n')
+            cargo.chmod(0o755)
+            scratch = root / 'prepared'
+            result = subprocess.run([sys.executable, 'release/gate.py', '--prepare-only',
+                                     '--artifacts', str(output), '--scratch', str(scratch)],
+                                    env={**os.environ, 'PATH': str(root) + os.pathsep + os.environ['PATH']},
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            helpers = scratch / 'fixtures/support/scripts'
+            # Import from the installed layout without a checkout on the Python path.
+            imported = subprocess.run([sys.executable, '-c',
+                                       'import icite_discovery_proof as proof; '
+                                       'assert callable(proof.prove) and callable(proof.classify_case)'],
+                                      cwd=helpers, env={**os.environ, 'PYTHONPATH': ''},
+                                      capture_output=True, text=True)
+            self.assertEqual(imported.returncode, 0, imported.stdout + imported.stderr)
+
     def test_installed_cli_rows_bind_results_and_fail_on_cli_exit(self):
         for fail in ('', 'version', 'health', 'commit', 'LICENSE', 'THIRD-PARTY-NOTICES.txt', 'unexpected'):
             with self.subTest(fail=fail), tempfile.TemporaryDirectory() as directory:

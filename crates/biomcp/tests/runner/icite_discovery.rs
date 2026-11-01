@@ -19,10 +19,7 @@ pub(super) fn prove() -> Result<(), Box<dyn std::error::Error>> {
             &report,
             serde_json::to_vec(&json!({"baseline":baseline,"live":live,"ordinal":1}))?,
         )?;
-        let script = super::super::super::launch::fixtures()
-            .parent()
-            .ok_or("missing root")?
-            .join("scripts/icite_discovery_proof.py");
+        let script = super::super::super::launch::fixture_script("icite_discovery_proof.py");
         let output = env
             .command(
                 "python3",

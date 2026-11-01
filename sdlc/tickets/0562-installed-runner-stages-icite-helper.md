@@ -1,6 +1,7 @@
 # Installed runner stages the iCite proof helper
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7b8f2d0417087bb91ebbac51315a03f4ccfa6fe5
 Milestone: 5
 
 ## Outcome

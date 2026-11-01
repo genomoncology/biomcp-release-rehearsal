@@ -143,6 +143,18 @@ pub(super) fn arguments(args: &[String], globals: &[String]) -> Vec<String> {
 pub(super) fn checkout() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf()
 }
+
+tool_only! {
+pub(super) fn fixture_script(name: &str) -> std::path::PathBuf {
+    let root = if std::env::var_os("BIOMCP_TEST_FIXTURES").is_some() {
+        fixtures().join("support")
+    } else {
+        checkout().join("../..")
+    };
+    root.join("scripts").join(name)
+}
+}
+
 pub(super) fn fixture_text(relative: &str) -> Result<String, String> {
     let path = fixtures().join(relative);
     fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))

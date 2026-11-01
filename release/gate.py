@@ -15,7 +15,7 @@ from artifacts import cargo, inspect
 from notices import NAMES as LEGAL_NAMES
 from windows import check_runtime
 from smoke import environment, smoke
-from local_server import server, https_server
+from local_server import https_server
 
 
 def installer_environment(root, bash):
@@ -94,6 +94,17 @@ def cli_checks(binary, record):
         return rows
 
 
+def stage_fixtures(source, fixtures):
+    shutil.copytree(source / "tests", fixtures, dirs_exist_ok=True)
+    provenance = Path("sdlc/planning/slices/gene.md")
+    (fixtures / "support" / provenance).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source / provenance, fixtures / "support" / provenance)
+    helpers = fixtures / "support/scripts"
+    helpers.mkdir(parents=True, exist_ok=True)
+    for name in ("icite_discovery_proof.py", "nightly_live_check.py"):
+        shutil.copy2(source / "scripts" / name, helpers / name)
+
+
 def installed(args):
     output = args.artifacts.resolve()
     wheel = next(output.glob("*.whl"))
@@ -110,10 +121,7 @@ def installed(args):
     source = Path(__file__).resolve().parent.parent
     executable = root / ("case-runner.exe" if os.name == "nt" else "case-runner")
     if not args.prepared:
-        shutil.copytree(source / "tests", fixtures, dirs_exist_ok=True)
-        provenance = Path("sdlc/planning/slices/gene.md")
-        (fixtures / "support" / provenance).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source / provenance, fixtures / "support" / provenance)
+        stage_fixtures(source, fixtures)
         shutil.copy2(Path(cargo("release", tests=True)["executable"]), executable)
         tool = executable.with_name("tool-runner" + executable.suffix)
         shutil.copy2(Path(cargo("release", tests="tools")["executable"]), tool)
