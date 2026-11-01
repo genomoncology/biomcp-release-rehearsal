@@ -29,7 +29,7 @@ PLATFORMS = [
     {"os": "ubuntu-24.04", "platform": "manylinux_2_28_x86_64", "arch": "amd64", "image": manifest()["images"]["manylinux-x86_64"]},
     {"os": "ubuntu-24.04-arm", "platform": "manylinux_2_28_aarch64", "arch": "arm64", "image": manifest()["images"]["manylinux-aarch64"]},
     {"os": "macos-15-intel", "platform": "macosx_11_0_x86_64", "arch": "", "image": ""},
-    {"os": "macos-14", "platform": "macosx_11_0_arm64", "arch": "", "image": ""},
+    {"os": "macos-15", "platform": "macosx_11_0_arm64", "arch": "", "image": ""},
     {"os": "windows-2022", "platform": "win_amd64", "arch": "", "image": ""},
 ]
 

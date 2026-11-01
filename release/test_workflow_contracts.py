@@ -4,8 +4,18 @@ import unittest
 import subprocess
 import sys
 
+from release.workflow import PLATFORMS
+
 
 class HostedWorkflow(unittest.TestCase):
+    def test_release_uses_supported_apple_arm_runner(self):
+        workflow = Path('.github/workflows/release.yml').read_text()
+        self.assertNotIn('macos-14', workflow)
+        arm, = [row for row in PLATFORMS if row['platform'] == 'macosx_11_0_arm64']
+        self.assertEqual(arm['os'], 'macos-15')
+        self.assertIn('os: macos-15\n            platform: macosx_11_0_arm64', workflow)
+        self.assertIn('channel: homebrew\n            os: macos-15\n', workflow)
+
     def test_release_has_no_environment_inspection_or_manual_pause(self):
         workflow = Path('.github/workflows/release.yml').read_text()
         self.assertNotIn('release/workflow.py protection', workflow)

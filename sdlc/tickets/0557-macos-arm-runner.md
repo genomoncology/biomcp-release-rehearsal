@@ -1,6 +1,7 @@
 # 0557 — Move Apple ARM release jobs to macos-15
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d1742f511c7bf67cf1dd42dd9451416438d94505
 
 Milestone: 5
 
