@@ -1,6 +1,7 @@
 # 0558 — Fix the license notices and schema proof disk use on hosted runners
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 0b01ea3f1cd3f3da7764abebe28728771a6daf60
 
 Milestone: 5
 

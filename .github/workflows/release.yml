@@ -108,7 +108,10 @@ jobs:
           key: release-${{ matrix.platform }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml', 'release/toolchain.json') }}
       - name: Check formatting, lint and tests on Linux x86_64
         if: matrix.platform == 'manylinux_2_28_x86_64'
-        run: make fmt lint test docs-check
+        run: |
+          df -h . "${TMPDIR:-/tmp}"
+          trap 'df -h . "${TMPDIR:-/tmp}"' EXIT
+          make fmt lint test docs-check
       - name: Build and install native artifacts, including CLI version and offline health
         if: runner.os != 'Linux'
         shell: bash

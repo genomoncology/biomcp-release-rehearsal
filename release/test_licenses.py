@@ -2,6 +2,7 @@
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -56,6 +57,38 @@ def wheel_fixture(directory, tag):
 
 
 class Licensing(unittest.TestCase):
+    def test_generation_excludes_dependencies_that_do_not_ship(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            cargo = root / 'cargo'
+            cargo.write_text(
+                f"#!{sys.executable}\n"
+                "import json, pathlib, sys, tomllib\n"
+                "if sys.argv[1:] == ['about', '--version']:\n"
+                "    print('cargo-about ' + json.loads(pathlib.Path('release/toolchain.json').read_text())['cargo-about'])\n"
+                "else:\n"
+                "    args = sys.argv[1:]\n"
+                "    config = tomllib.loads(pathlib.Path(args[args.index('--config') + 1]).read_text())\n"
+                "    assert config.get('ignore-dev-dependencies') is True, 'dev dependencies do not ship'\n"
+                "    assert config.get('ignore-build-dependencies') is True, 'build dependencies do not ship'\n"
+                "    data = {'licenses': [{'name': 'MIT License', 'id': 'MIT', 'text': 'Permission notice',\n"
+                "             'used_by': [{'crate': {'name': 'shipping-crate', 'version': '1.0.0'}}]}],\n"
+                "            'crates': [{'name': 'shipping-crate'}]}\n"
+                "    pathlib.Path(args[args.index('--output-file') + 1]).write_text(json.dumps(data))\n"
+            )
+            cargo.chmod(0o755)
+            result = subprocess.run(
+                [sys.executable, '-c', 'from pathlib import Path; from release.notices import generate; '
+                 'generate(Path(__import__("sys").argv[1]))', str(root)],
+                env=dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH']),
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            notices = (root / 'THIRD-PARTY-NOTICES.txt').read_text()
+            self.assertIn('shipping-crate 1.0.0', notices)
+            self.assertIn('Permission notice', notices)
+            self.assertEqual((root / 'LICENSE').read_bytes(), LICENSE)
+
     def test_inspection_requires_license_notices_and_registry_metadata(self):
         for defect in ('LICENSE', 'THIRD-PARTY-NOTICES.txt', 'marker', 'License', 'Project-URL', None):
             with self.subTest(defect=defect), tempfile.TemporaryDirectory() as temp:
