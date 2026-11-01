@@ -65,8 +65,11 @@ if '/bin/bash' in args:
         pathlib.Path('target/debug').mkdir(parents=True)
         pathlib.Path('target/debug/container-output').touch()
         pathlib.Path('proof/fixtures').mkdir(parents=True)
-        pathlib.Path('proof/case-runner').touch()
-        pathlib.Path('proof/tool-runner').touch()
+        for name in ('case-runner', 'tool-runner'):
+            runner = pathlib.Path('proof', name)
+            runner.write_text('#!/bin/sh\n' +
+                              'echo "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"\n')
+            runner.chmod(0o755)
         gate = pathlib.Path('proof/tools/release/gate.py')
         gate.parent.mkdir(parents=True)
         gate.write_text(os.environ['GATE_FIXTURE'])
@@ -90,11 +93,13 @@ elif args[-2] == 'schema':
     print(json.dumps({'$id': args[-1]}))
 elif args[-1] == 'help':
     print('{"result":{"commands":["get"]}}')
-elif '--entrypoint' in args and args[args.index('--entrypoint') + 1] in ('/proof/case-runner', '/proof/tool-runner'):
-    entry = args[args.index('--entrypoint') + 1]
-    assert pathlib.Path('container', pathlib.Path(entry).name).is_file(), entry
-    assert (entry == '/proof/tool-runner') == ('--proofs' in args), args
-    print('test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out')
+elif '--entrypoint' in args and args[args.index('--entrypoint') + 1] == '/bin/sh':
+    assert 'BIOMCP_TEST_FIXTURES=/tmp/check/fixtures' in args, args
+    with tempfile.TemporaryDirectory() as root:
+        start = args.index('-ec') + 1
+        command = [arg.replace('/tmp/check', root + '/check').replace('/proof/', str(pathlib.Path('container').resolve()) + '/')
+                   for arg in args[start:]]
+        subprocess.run(['/bin/sh', '-ec', *command], check=True)
 elif args[-1] == 'serve':
     for frame in sys.stdin:
         value = json.loads(frame)

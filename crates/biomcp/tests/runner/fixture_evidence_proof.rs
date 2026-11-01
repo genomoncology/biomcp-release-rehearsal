@@ -184,10 +184,7 @@ fn persistence() -> Result<(), Box<dyn std::error::Error>> {
                 .join("explicit-evidence/fixture-failures")
         } else {
             command.env_remove("BIOMCP_EVIDENCE_DIR");
-            super::super::launch::checkout()
-                .join("../..")
-                .canonicalize()?
-                .join("target/fixture-evidence")
+            biomcp_test_support::evidence::default_directory()
         };
         let output = command.output()?;
         if !output.status.success() {
@@ -201,7 +198,7 @@ fn persistence() -> Result<(), Box<dyn std::error::Error>> {
                 .ok_or("fixture child omitted retained evidence")?,
         )?;
         let retained = std::path::PathBuf::from(paths.first().ok_or("missing evidence path")?);
-        if retained.parent() != Some(expected.as_path()) {
+        if retained.parent() != Some(expected.canonicalize()?.as_path()) {
             return Err(format!("fixture evidence used unexpected path: {retained:?}").into());
         }
         fs::remove_dir_all(&scratch)?;

@@ -33,10 +33,7 @@ pub(super) fn check() -> Result<(), Box<dyn std::error::Error>> {
                 .join("explicit-evidence/fixture-failures")
         } else {
             command.env_remove("BIOMCP_EVIDENCE_DIR");
-            super::super::launch::checkout()
-                .join("../..")
-                .canonicalize()?
-                .join("target/fixture-evidence")
+            biomcp_test_support::evidence::default_directory()
         };
         let output = command.output()?;
         if !output.status.success() {
@@ -68,7 +65,7 @@ pub(super) fn check() -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
         }
-        if retained.parent() != Some(expected.as_path()) {
+        if retained.parent() != Some(expected.canonicalize()?.as_path()) {
             return Err(format!("native evidence used unexpected path: {retained:?}").into());
         }
         fs::remove_dir_all(retained)?;
