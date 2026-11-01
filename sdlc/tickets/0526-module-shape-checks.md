@@ -2,9 +2,7 @@
 
 Status: OPEN.
 
-Milestone: 6
-
-Depends on: 0294
+Milestone: 5
 
 ## Outcome
 

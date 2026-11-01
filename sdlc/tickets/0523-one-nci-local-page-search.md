@@ -2,7 +2,7 @@
 
 Status: OPEN.
 
-Milestone: 6
+Milestone: 5
 
 Depends on: 0522
 
@@ -13,6 +13,6 @@ Organization search and biomarker search run one generic NCI fetch-once, page-lo
 - Why: Jarvis's 1.0 code review (m17823, finding 3). `organization.rs` and `biomarker/search.rs` share about 120 of 170 lines: the same NCI source, the same flow and the same key help.
 - Starts from: the two search modules and the shared snapshot store after 0522.
 - Rules: no reply, problem code or key help text changes.
-- Proof: an empty reply diff and an unchanged schema comparison; the existing organization and biomarker cases pass unchanged.
+- Proof: the case suite passes unchanged and the schema check passes, with the reply diff reviewed as a diagnostic; the existing organization and biomarker cases pass unchanged.
 - Changes: the two search modules and one shared helper.
 - Defers: nothing.

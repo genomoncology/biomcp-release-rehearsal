@@ -10,4 +10,4 @@ The 1.0 docs do not mention BioASQ. The 0.9 module and page stay readable in the
 
 ## Other review dispositions
 
-Jarvis's review findings became tickets: 0519 and 0520 before the release candidate, 0521 to 0526 in milestone 6 after publication. The unused `biodata` dependency in `crates/biomcp-fetch` is removed in 0459. The BioData crate findings went to BioData's PM (m17831). No finding was declined.
+Jarvis's review findings became tickets 0519 to 0526. On 2026-11-01, after the release review, 0521 to 0526 moved before the release candidate under Ian's ruling that 1.0 ships every known fix. The unused `biodata` dependency in `crates/biomcp-fetch` is removed in 0459. The BioData crate findings went to BioData's PM (m17831). No finding was declined.
