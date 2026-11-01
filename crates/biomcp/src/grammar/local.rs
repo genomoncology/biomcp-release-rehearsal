@@ -12,7 +12,7 @@ pub(super) fn serve_command() -> Command {
         .arg(
             Arg::new("rate-share")
                 .long("rate-share")
-                .help("Use this share of every source rate in hosted mode (greater than 0, at most 1).")
+                .help("Use this share of keyed source rates in hosted mode (greater than 0, at most 1).")
                 .value_parser(clap::value_parser!(biomcp_fetch::RateShare))
                 .default_value("1")
                 .requires("hosted"),

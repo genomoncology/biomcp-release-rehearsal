@@ -429,15 +429,15 @@ fn separate_keyless_callers_share_one_source_bucket() -> Check {
 }
 
 #[test]
-fn rate_share_scales_both_keyed_and_keyless_source_rates() -> Check {
-    for (key, expected) in [(None, 1000), (Some("placeholder-rate-key"), 500)] {
+fn rate_share_scales_only_keyed_hosted_source_rates() -> Check {
+    for (key, expected) in [(None, 500), (Some("placeholder-rate-key"), 500)] {
         let (_dir, shared, spec) = fixture("0.5".parse()?)?;
         let fetch = caller(&shared, key);
         get(&fetch, spec, Duration::from_secs(2))?;
         assert_eq!(
             get(&fetch, spec, Duration::from_secs(2))?,
             Duration::from_millis(2000 - expected),
-            "replay token accounting must scale without wall-clock timing noise"
+            "only a keyed hosted bucket must scale its source rate"
         );
     }
     Ok(())

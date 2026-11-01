@@ -1,6 +1,7 @@
 # 0549 — Scale only keyed buckets by the rate share
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c4def631b50565f9d1514bba808b9594f5d8693d
 
 Milestone: 5
 

@@ -10,7 +10,7 @@ pub(super) fn trials() -> Vec<Trial> {
         super::transcript::trial(super::pool_contract::HOSTED_PACING.0, || {
             check(true).map_err(Into::into)
         }),
-        super::transcript::trial("mcp-hosted/pacing/shared-keyless", || {
+        super::transcript::trial("mcp-hosted/pacing/full-rate-keyless", || {
             check(false).map_err(Into::into)
         }),
     ]
@@ -34,14 +34,15 @@ fn check(keyed: bool) -> Check {
         return Err(format!("first caller did not spend its token: {first}"));
     }
     let spent = call(&server, "PacingSpent", a)?;
-    if !spent
-        .pointer("/result/structuredContent/sources")
-        .and_then(Value::as_array)
-        .is_some_and(|sources| {
-            sources.iter().any(|source| {
-                source.get("reason").and_then(Value::as_str) == Some("deadline-exceeded")
+    if keyed
+        && !spent
+            .pointer("/result/structuredContent/sources")
+            .and_then(Value::as_array)
+            .is_some_and(|sources| {
+                sources.iter().any(|source| {
+                    source.get("reason").and_then(Value::as_str) == Some("deadline-exceeded")
+                })
             })
-        })
     {
         return Err(format!(
             "exhausted caller did not reach its typed pacing deadline: {spent}"
@@ -54,17 +55,11 @@ fn check(keyed: bool) -> Check {
                 "another header key shared the exhausted bucket: {other}"
             ));
         }
-    } else if !other
-        .pointer("/result/structuredContent/sources")
-        .and_then(Value::as_array)
-        .is_some_and(|sources| {
-            sources.iter().any(|source| {
-                source.get("reason").and_then(Value::as_str) == Some("deadline-exceeded")
-            })
-        })
+    } else if spent.pointer("/result/isError") != Some(&json!(false))
+        || other.pointer("/result/isError") != Some(&json!(false))
     {
         return Err(format!(
-            "another keyless call received its own token: {other}"
+            "keyless calls did not retain their full source rate: {spent}; {other}"
         ));
     }
     server.stop()

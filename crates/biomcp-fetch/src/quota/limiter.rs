@@ -44,10 +44,10 @@ impl Limiters {
                 || Arc::strong_count(limiter) > 1
                 || !limiter.expired_at(Instant::now(), deadline.now())
         });
-        let share = if matches!(caller, Caller::Process) {
-            RateShare::default()
-        } else {
+        let share = if matches!(caller, Caller::Hosted(Some(_))) {
             share
+        } else {
+            RateShare::default()
         };
         let limiter = buckets
             .entry((quota.key, caller))
