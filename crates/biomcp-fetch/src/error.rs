@@ -24,6 +24,18 @@ pub struct SourceError {
     pub retry_after: Option<std::time::Duration>,
 }
 
+impl SourceError {
+    /// Refuse a source disabled by caller policy before any source access.
+    pub fn disabled(source: Source) -> Self {
+        Self {
+            source,
+            reason: Reason::Disabled,
+            status: None,
+            retry_after: None,
+        }
+    }
+}
+
 impl fmt::Display for SourceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", self.source, self.reason)

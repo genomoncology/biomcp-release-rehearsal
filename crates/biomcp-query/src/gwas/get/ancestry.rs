@@ -1,7 +1,7 @@
 //! The existing store retains one complete received ancestry collection.
 use super::{
-    Ctx, Deadline, GwasAncestries, GwasAncestry, GwasGet, Outcome, Problem, Reason, RequestError,
-    Source, SourceOutcome, StepKind, action, gwas, page, rejected, status,
+    Ctx, Deadline, GwasAncestries, GwasAncestry, GwasGet, Outcome, Problem, RequestError, Source,
+    SourceOutcome, StepKind, action, gwas, page, rejected, status,
 };
 use crate::source_snapshot;
 use biomcp_fetch::SourceError;
@@ -24,12 +24,7 @@ pub(super) fn read(
     let key = source_snapshot::key("gwas-ancestry", id)?;
     let leg = cx.fetch.leg(&gwas::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::Gwas) {
-        let error = RequestError::Source(SourceError {
-            source: Source::Gwas,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        });
+        let error = RequestError::Source(SourceError::disabled(Source::Gwas));
         out.sources
             .push(status::source(Source::Gwas, leg.finish(), Some(error)));
         return Err(error);

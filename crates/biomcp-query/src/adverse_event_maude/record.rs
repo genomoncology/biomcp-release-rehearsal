@@ -26,15 +26,7 @@ pub(super) fn load(
 ) -> Result<Option<(biodata::MaudeReport, maude::Positions, Text)>, RequestError> {
     let leg = cx.fetch.leg(&maude::SPEC, deadline).fresh(cx.fresh);
     let denied = if cx.fetch.disabled(Source::Maude) {
-        Some(
-            SourceError {
-                source: Source::Maude,
-                reason: Reason::Disabled,
-                status: None,
-                retry_after: None,
-            }
-            .into(),
-        )
+        Some(SourceError::disabled(Source::Maude).into())
     } else if query.section() == Some(AdverseEventSection::Devices) {
         biomcp_adapters::adverse_event_sources::components::gmdn(&leg).err()
     } else {

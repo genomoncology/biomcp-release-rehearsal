@@ -92,7 +92,7 @@ impl Leg<'_> {
 
     pub(crate) fn check_source(&self) -> Result<(), RequestError> {
         if self.fetch.disabled(self.spec.source) {
-            return Err(self.failure(Reason::Disabled, None).into());
+            return Err(SourceError::disabled(self.spec.source).into());
         }
         if let crate::KeyUse::Required(credential) | crate::KeyUse::Optional(credential) =
             self.spec.key

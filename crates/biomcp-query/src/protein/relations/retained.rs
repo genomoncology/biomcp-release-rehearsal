@@ -2,7 +2,7 @@ use super::{Selection, restart};
 use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::uniprot::{self, Entry};
 use biomcp_fetch::{Deadline, RequestError, SourceError};
-use biomcp_types::{PoolInfo, Reason, Source};
+use biomcp_types::{PoolInfo, Source};
 pub(super) fn load(
     cx: &Ctx<'_>,
     q: &Selection,
@@ -11,12 +11,7 @@ pub(super) fn load(
 ) -> Result<Option<(Entry, PoolInfo)>, RequestError> {
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::UniProt) {
-        let e = RequestError::Source(SourceError {
-            source: Source::UniProt,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        });
+        let e = RequestError::Source(SourceError::disabled(Source::UniProt));
         out.sources
             .push(status::source(Source::UniProt, leg.finish(), Some(e)));
         return Err(e);

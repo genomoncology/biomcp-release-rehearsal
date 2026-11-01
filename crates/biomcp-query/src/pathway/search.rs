@@ -66,13 +66,7 @@ fn execute(
         Source::Reactome
     };
     if cx.fetch.disabled(source) {
-        return Err(SourceError {
-            source,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into());
+        return Err(SourceError::disabled(source).into());
     }
     let key = source_snapshot::key("pathway-search", &q.restart())?;
     let saved: Option<Saved> = if let Some(id) = q.pool().filter(|_| !(cx.fresh || q.fresh())) {

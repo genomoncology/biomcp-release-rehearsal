@@ -63,12 +63,7 @@ fn load(
         || (q.source() == PhenotypeSource::Monarch
             && biomcp_adapters::disease_sources::components::monarch(&leg).is_err())
     {
-        let error = RequestError::Source(SourceError {
-            source: source(q),
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        });
+        let error = RequestError::Source(SourceError::disabled(source(q)));
         out.sources
             .push(status::source(source(q), leg.finish(), Some(error)));
         return Err(error);

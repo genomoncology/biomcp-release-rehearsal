@@ -1,6 +1,7 @@
 # 0525 — Clean up disabled-source errors and literal text
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 91bcdc494d2038c3ef563eee44d582ec3d8a0e86
 
 Milestone: 5
 

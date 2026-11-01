@@ -110,13 +110,7 @@ fn read_inner(
         Source::Reactome
     };
     if cx.fetch.disabled(source) {
-        let error: RequestError = SourceError {
-            source,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into();
+        let error: RequestError = SourceError::disabled(source).into();
         out.sources.push(biomcp_adapters::registry::outcome(
             source,
             biomcp_types::SourceState::Skipped,

@@ -4,7 +4,7 @@ use biomcp_adapters::clinpgx;
 use biomcp_fetch::{Deadline, RequestError, SourceError};
 use biomcp_types::Paged;
 use biomcp_types::{
-    PgxAnnotationKind, PgxAnnotations, PgxGet, Reason, ReplyData, Request, Source, SourceOutcome,
+    PgxAnnotationKind, PgxAnnotations, PgxGet, ReplyData, Request, Source, SourceOutcome,
     SourceState, StepKind,
 };
 type Saved = (
@@ -24,12 +24,7 @@ pub(super) fn load(
 ) -> Result<Option<(PgxAnnotations, biodata::Text)>, RequestError> {
     let leg = cx.fetch.leg(&clinpgx::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::ClinPgx) {
-        let error = RequestError::Source(SourceError {
-            source: Source::ClinPgx,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        });
+        let error = RequestError::Source(SourceError::disabled(Source::ClinPgx));
         out.sources
             .push(status::source(Source::ClinPgx, leg.finish(), Some(error)));
         return Err(error);

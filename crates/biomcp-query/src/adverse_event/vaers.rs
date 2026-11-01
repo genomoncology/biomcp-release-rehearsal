@@ -6,7 +6,7 @@ use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
-    AdverseEventSearch, PageInfo, Reason, ReplyData, Request, Source, SourceOutcome, StepKind,
+    AdverseEventSearch, PageInfo, ReplyData, Request, Source, SourceOutcome, StepKind,
     VaersSection, VaersSummary,
 };
 type Saved = (VaersSummary, Vec<SourceOutcome>);
@@ -42,13 +42,7 @@ fn read(
 ) -> Result<(), RequestError> {
     let leg = cx.fetch.leg(&vaers::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::Vaers) {
-        let error = biomcp_fetch::SourceError {
-            source: Source::Vaers,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into();
+        let error = biomcp_fetch::SourceError::disabled(Source::Vaers).into();
         out.sources
             .push(status::source(Source::Vaers, leg.finish(), Some(error)));
         return Err(error);
