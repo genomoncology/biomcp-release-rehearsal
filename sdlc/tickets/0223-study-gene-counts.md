@@ -1,6 +1,6 @@
 # 0223 — Add the study counts section with source gene aggregates
 
-Status: WITHDRAWN.
+Status: WITHDRAWN. Deferred by the 2026-10-26 capture limit ruling: no per-gene aggregate row filter and 4.2 MB unfiltered replies.
 
 Milestone: 4
 

@@ -1,6 +1,6 @@
 # 0293 — Rehearse the final release candidate on every platform
 
-Status: OPEN.
+Status: OPEN. Reopened: 0336 adds 0334 and 0335 to the candidate; the final rehearsal must qualify the refreshed release head (m9956).
 
 Milestone: 5
 

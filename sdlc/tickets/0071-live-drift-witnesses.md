@@ -1,6 +1,6 @@
 # 0071 — live-drift-witnesses
 
-Status: WITHDRAWN.
+Status: WITHDRAWN. superseded by 0069
 
 Milestone: 1
 

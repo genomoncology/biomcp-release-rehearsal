@@ -1,6 +1,6 @@
 # 0151 — Fix the live-check diagnostics that 0068's first run exposed
 
-Status: WITHDRAWN.
+Status: WITHDRAWN. Duplicate: 0069 (f7fa47ba) and 0070 (092c2794) already cover all three diagnostic outcomes
 
 Milestone: 3
 

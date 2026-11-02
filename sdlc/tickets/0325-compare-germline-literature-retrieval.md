@@ -1,6 +1,6 @@
 # 0325 — Record experiment 497's germline literature retrieval comparison
 
-Status: COMPLETE.
+Status: COMPLETE. Experiment 497 evaluated; findings filed as 0326 to 0329; PDF reading on the later list.
 
 Milestone: 5
 

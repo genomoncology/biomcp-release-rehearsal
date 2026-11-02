@@ -1,6 +1,6 @@
 # 0098 — Compare 1.0 with 0.9.4 on outside question sets (PM-owned, no developer lane)
 
-Status: COMPLETE.
+Status: COMPLETE. Article, trial, variant and drug runs done against 0.9.4; gaps filed as 0102, 0123, 0311 and 0312; disease, diagnostic, GWAS and phenotype have no outside judged set (Jarvis m8766), recorded as a gap.
 
 Milestone: 5
 

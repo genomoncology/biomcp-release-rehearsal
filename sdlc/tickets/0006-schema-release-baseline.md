@@ -1,6 +1,6 @@
 # 0006 — Compare schemas with the last public release
 
-Status: WITHDRAWN.
+Status: WITHDRAWN. Filed too early: nothing is released and no baseline source exists. Milestone 5 now names the release schema baseline; it is refiled when release preparation starts.
 
 Milestone: 5
 
