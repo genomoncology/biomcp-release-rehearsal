@@ -1,6 +1,7 @@
 # Qualification job time limit fits the recipe
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: cffe8afecd53518e1fbf581acf70c9047209c226
 Milestone: 5
 
 ## Outcome
