@@ -130,7 +130,7 @@ def discovery_changes(before, after):
     return changes
 
 
-def consumed_selection(group, before, after, left, right):
+def consumed_selection(group, before, after, left, right, complete=False):
     selections, batch_sizes = [], []
     for requests in (before, after):
         rows = []
@@ -146,16 +146,16 @@ def consumed_selection(group, before, after, left, right):
                     return False
                 rows.extend(ids)
                 sizes.append(len(ids))
-        if not valid_ids(rows) or not sizes:
+        if not valid_ids(rows) or (not sizes and not complete):
             return False
         selections.append(set(rows))
-        batch_sizes.append(max(sizes))
-    return (batch_sizes[0] == batch_sizes[1]
-            and selections == [set(left), set(right)]
-            and (set(left) < set(right) or set(right) < set(left)))
+        batch_sizes.append(max(sizes, default=0))
+    return (selections == [set(left), set(right)]
+            and (complete or (batch_sizes[0] == batch_sizes[1]
+                 and (set(left) < set(right) or set(right) < set(left)))))
 
 
-def dependent_change(removed, added, discoveries, before, after, peers):
+def dependent_change(removed, added, discoveries, before, after, peers, complete=False):
     groups = {}
     for side, requests in enumerate((removed, added)):
         for request in requests:
@@ -188,11 +188,18 @@ def dependent_change(removed, added, discoveries, before, after, peers):
         namespace = group[2]
         old = {value for row in old_rows for value in row}
         new = {value for row in new_rows for value in row}
+        candidates = discoveries.get(namespace, [])
+        # A complete command may consume a wholly replaced discovery selection,
+        # including no IDs. Require every input in both directions, with the same
+        # context, rather than accepting arbitrary subsets or a failed provider.
+        if complete and old != new and any(candidate['valid']
+                and consumed_selection(group, *peers, candidate['left'], candidate['right'],
+                                       complete=True) for candidate in candidates):
+            continue
         if (old == new or not old_rows or not new_rows
                 or sum(map(len, old_rows)) != len(old)
                 or sum(map(len, new_rows)) != len(new)):
             return 'failure'
-        candidates = discoveries.get(namespace, [])
         if not candidates:
             return 'failure'
         # Transport sorts ID parameters. Require the same contiguous discovery
@@ -226,7 +233,7 @@ def same_window(old, new, left, right):
     return False
 
 
-def command_classification(capture, discoveries, peers):
+def command_classification(capture, discoveries, peers, complete=False):
     before = terminal(capture['baseline']['requests'])
     after = terminal(capture['live']['requests'])
     statuses = [item.get('status') for item in after.values()]
@@ -236,7 +243,7 @@ def command_classification(capture, discoveries, peers):
     removed = [before[key] for key in before.keys() - after.keys()]
     added = [after[key] for key in after.keys() - before.keys()]
     # Proven 429-only outcomes are nonfatal; unrelated plan changes still need proof.
-    plan = dependent_change(removed, added, discoveries, before, after, peers) if removed or added else 'healthy'
+    plan = dependent_change(removed, added, discoveries, before, after, peers, complete) if removed or added else 'healthy'
     if plan in ('failure', 'uncertain'):
         return plan
     return 'throttled' if 429 in statuses else plan
@@ -314,7 +321,7 @@ def classify_case(row):
                   for side in ('baseline', 'live'))
     outcomes = []
     output_changes = {item for item in drift if ': output status changed:' in item}
-    for command in witness:
+    for command, comparison in zip(witness, result['commands']):
         before = terminal(command['baseline']['requests'])
         after = terminal(command['live']['requests'])
         seen = before.keys() & after.keys()
@@ -325,7 +332,8 @@ def classify_case(row):
             replaced = {change['request'] for change in changes}
             current[:] = [change for change in current if change['request'] not in replaced]
             current.extend(changes)
-        outcomes.append(command_classification(command, discoveries, peers))
+        complete = comparison.get('before_status') == comparison.get('after_status') == 'complete'
+        outcomes.append(command_classification(command, discoveries, peers, complete))
         matched = {item for item in output_changes
                    if item.startswith('command ' + str(command['ordinal'])
                                       + ': output status changed:')}

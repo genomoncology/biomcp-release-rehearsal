@@ -10,6 +10,10 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+if __package__:
+    from .nightly_recommendation_cases import recommendation_case, reranked_tail_case
+else:
+    from nightly_recommendation_cases import recommendation_case, reranked_tail_case
 CARGO = '''#!/usr/bin/env python3
 import json, os, sys
 from pathlib import Path
@@ -143,62 +147,6 @@ def publication_growth_case(change='addition', count=1590, insertion=650):
                        'commands': [{'ordinal': 1, 'exchanges': {'omitted': 0, 'drift_omitted': 0}}]},
             'witness': [{'ordinal': 1, 'baseline': {'requests': before},
                          'live': {'requests': after}}]}
-
-
-def reranked_tail_case(change='boundary'):
-    old = [str(1000 + i) for i in range(23)]
-    new = old[:8] + ['2000'] + old[8:]
-    if change == 'prefix':
-        new = list(reversed(old[:20])) + old[20:] + ['2000']
-    else:
-        new.reverse()
-    def discovery(ids):
-        return {'identity': 'discovery', 'source': 'semantic-scholar', 'role': 'Recommendations',
-                'url': 'https://example.org/recommendations?limit=24', 'status': 200,
-                'provenance': {'discoveries': [{'namespace': 'pmid', 'ids': ids},
-                                             {'namespace': 'doi', 'ids': []}]}}
-    def batch(ids):
-        return {'identity': ','.join(sorted(ids)), 'source': 'pubmed', 'role': 'Summary',
-                'status': 200, 'provenance': {'input_context': 'same-filter-offset-limit',
-                    'inputs': {'namespace': 'pmid', 'ids': sorted(ids)}}}
-    commands = []
-    for start in range(0, 23, 10):
-        ordinal = len(commands) + 1
-        commands.append({'ordinal': ordinal,
-            'baseline': {'requests': ([discovery(old)] if start == 0 else []) + [batch(old[start:start+10])]},
-            'live': {'requests': ([discovery(new)] if start == 0 else []) + [batch(new[start:start+10])]}})
-    first = commands[0]
-    provider = first['live']['requests'][0]
-    dependent = first['live']['requests'][1]
-    if change in ('filter', 'offset', 'limit'):
-        dependent['provenance']['input_context'] = 'changed-' + change
-    elif change == 'missing-batch':
-        commands[1]['live']['requests'] = []
-    elif change == 'duplicate-id':
-        dependent['provenance']['inputs']['ids'].append(dependent['provenance']['inputs']['ids'][0])
-    elif change == 'omitted-id':
-        dependent['provenance']['inputs']['ids'].pop()
-    elif change == 'unchanged':
-        provider['provenance']['discoveries'][0]['ids'] = old
-    elif change in ('source', 'role', 'url', 'status'):
-        provider[change] = 503 if change == 'status' else 'unrelated'
-    elif change == 'over-cap':
-        provider['provenance']['discoveries'][0]['ids'] = [str(100000 + i) for i in range(10_001)]
-    elif change == 'missing-metadata':
-        provider['provenance'] = {}
-    elif change == 'duplicate-namespace':
-        provider['provenance']['discoveries'].append({'namespace': 'pmid', 'ids': new})
-    elif change == 'stale':
-        import copy
-        for side in ('baseline', 'live'):
-            stale = copy.deepcopy(first['baseline']['requests'][0])
-            commands[1][side]['requests'].insert(0, stale)
-    drift = ['summary: request-plan-changed']
-    if change in ('schema', 'absence', 'refusal'):
-        drift.append('output ' + change + ' changed')
-    return {'case': change, 'witness': commands, 'result': {'drift': drift,
-        'commands': [{'ordinal': cmd['ordinal'], 'exchanges': {'omitted': 0, 'drift_omitted': 0}}
-                     for cmd in commands]}}
 
 
 class NightlyCommand(unittest.TestCase):
@@ -418,6 +366,15 @@ class NightlyCommand(unittest.TestCase):
                 ('unrelated', 'failure', 1), ('invariant', 'failure', 1)]:
             with self.subTest(change=change):
                 self.classified(classification_case(change), expected, code)
+
+    def test_complete_recommendation_replacements_follow_exact_discovery(self):
+        for story in ('multi', 'single'):
+            for day in ('1101', '1102'):
+                with self.subTest(story=story, day=day):
+                    self.classified(recommendation_case(story, day), 'churn', 0)
+            for change in ('unrelated', 'context', 'failed-discovery', 'subset', 'partial'):
+                with self.subTest(story=story, change=change):
+                    self.classified(recommendation_case(story, change=change), 'failure', 1)
 
     def test_reranked_source_tail_requires_complete_provider_owned_selection(self):
         for change in ('boundary', 'prefix', 'filter', 'offset', 'limit', 'missing-batch',

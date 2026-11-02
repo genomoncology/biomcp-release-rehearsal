@@ -1,6 +1,7 @@
 # Nightly classifier accepts discovery-driven input changes
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: aadf71ad24fad74f4a3c8607ae4368582fa3f553
 Milestone: 5
 
 ## Outcome
