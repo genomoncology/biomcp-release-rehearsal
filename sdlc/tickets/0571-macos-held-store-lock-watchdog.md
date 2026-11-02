@@ -1,6 +1,7 @@
 # macOS ARM held store lock watchdog
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 85707b100df30ed6b196b16e8c730ba3899124dd
 Milestone: 5
 
 ## Outcome

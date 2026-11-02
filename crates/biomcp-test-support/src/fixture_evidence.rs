@@ -152,7 +152,7 @@ fn retain(root: &Path, context: &Context, reason: &str) -> io::Result<PathBuf> {
 }
 pub(crate) use crate::evidence::directory;
 
-fn copy(source: &Path, destination: &Path) -> io::Result<()> {
+pub(crate) fn copy(source: &Path, destination: &Path) -> io::Result<()> {
     fs::create_dir(destination)?;
     for entry in fs::read_dir(source)? {
         let entry = entry?;

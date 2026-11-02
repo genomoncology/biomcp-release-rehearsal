@@ -1,6 +1,6 @@
 //! Security contract: licensed routes cannot yet reach query continuation stores from the CLI.
 use super::{EvidenceState, Store};
-use biomcp_fetch::{Fetch, FetchConfig, Secret, SecretName, Secrets};
+use biomcp_fetch::{Fetch, FetchConfig, Mode, Secret, SecretName, Secrets};
 use biomcp_types::{ArticleItem, SourceOutcome, SourceState};
 use std::{path::Path, time::Duration};
 
@@ -261,6 +261,48 @@ fn dropped_pool_facts_keep_caller_ownership_during_hydration() -> Check {
                 .ok_or("pool missing")?
                 .dropped
         );
+    }
+    Ok(())
+}
+
+// SQLite connection state cannot be observed through the CLI; the installed
+// held-store-lock case owns the reader and sync behavior.
+#[test]
+fn query_connections_keep_virtual_sqlite_waits_zero_and_live_waits_bounded() -> Check {
+    for replay in [false, true] {
+        let directory = tempfile::tempdir()?;
+        let fetch = Fetch::open(FetchConfig {
+            mode: if replay {
+                Mode::Replay {
+                    dir: directory.path().into(),
+                }
+            } else {
+                Mode::default()
+            },
+            cache: Some(directory.path().join("cache.sqlite")),
+            cache_owners: vec![super::OWNER],
+            ..FetchConfig::default()
+        })?;
+        let store = Store::open(
+            fetch.cache_access()?,
+            fetch.deadline(Duration::from_secs(120)),
+        )?;
+        let milliseconds: i64 = store.read(|connection| {
+            connection
+                .query_row("PRAGMA busy_timeout", [], |row| row.get(0))
+                .map_err(super::db)
+        })?;
+        if replay {
+            assert_eq!(
+                milliseconds, 0,
+                "a virtual deadline cannot drive a real SQLite wait"
+            );
+        } else {
+            assert!(
+                milliseconds > 0 && milliseconds <= 120_000,
+                "live SQLite waits must retain the remaining real budget: {milliseconds}"
+            );
+        }
     }
     Ok(())
 }

@@ -20,13 +20,23 @@ pub(super) fn trials() -> Vec<Trial> {
 }
 
 fn locked(cdx: bool) -> Result<(), String> {
-    let schemas = Registry::embedded()?;
     let env = Environment::new().map_err(|e| e.to_string())?;
+    let result = locked_with_environment(cdx, &env);
+    result.map_err(
+        |error| match biomcp_test_support::evidence::retain(env.root()) {
+            Ok(root) => format!("{error}; retained store-lock fixture={}", root.display()),
+            Err(retention) => format!("{error}; fixture retention failed: {retention}"),
+        },
+    )
+}
+
+fn locked_with_environment(cdx: bool, env: &Environment) -> Result<(), String> {
+    let schemas = Registry::embedded()?;
     let replay = if cdx {
-        diagnostic_cdx::seed(&env)?
+        diagnostic_cdx::seed(env)?
     } else {
         wikipathways::seed(
-            &env,
+            env,
             wikipathways::catalog(true, false),
             wikipathways::catalog(false, false),
             200,
@@ -34,10 +44,10 @@ fn locked(cdx: bool) -> Result<(), String> {
     };
     let repeated = env.root().join("repeated-replies");
     super::recordings(&replay, &repeated)?;
-    let mut peer = Peer::with_globals(&env, &env.globals(Some(&repeated), false))?;
+    let mut peer = Peer::with_globals(env, &env.globals(Some(&repeated), false))?;
     let source = if cdx { "fda-cdx" } else { "wikipathways" };
     let sync = vec!["sync", source];
-    let initial = call(&mut peer, &schemas, &sync)?;
+    let initial = call("initial-sync", &mut peer, &schemas, &sync)?;
     if initial.pointer("/result/isError") != Some(&json!(false))
         || initial
             .pointer("/result/structuredContent/local_error")
@@ -51,6 +61,7 @@ fn locked(cdx: bool) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     if !cdx {
         let reader = call(
+            "held-lock-reader",
             &mut peer,
             &schemas,
             &["search", "pathway", "Atlas", "--source", source],
@@ -71,10 +82,10 @@ fn locked(cdx: bool) -> Result<(), String> {
             return Err(format!("reader lost its checked provider state: {reader}"));
         }
     }
-    failure(&call(&mut peer, &schemas, &sync)?)?;
+    failure(&call("held-lock-sync", &mut peer, &schemas, &sync)?)?;
     let mut args = env.globals(Some(&repeated), false);
     args.extend(sync.iter().map(|word| (*word).to_owned()));
-    let cli = super::super::configuration::invoke(&env, args.clone(), 5)?;
+    let cli = super::super::configuration::invoke(env, args.clone(), 5)?;
     schemas.validate(&cli, &args, false)?;
     if cli.get("local_error") != Some(&json!("busy")) || cli.get("status") != Some(&json!("failed"))
     {
@@ -84,13 +95,23 @@ fn locked(cdx: bool) -> Result<(), String> {
     peer.finish()
 }
 
-fn call(peer: &mut Peer, schemas: &Registry, args: &[&str]) -> Result<Value, String> {
+fn call(phase: &str, peer: &mut Peer, schemas: &Registry, args: &[&str]) -> Result<Value, String> {
+    let started = std::time::Instant::now();
     peer.send(&request(
         json!(1),
         "tools/call",
         json!({"name":"biomcp", "arguments":{"args":args}}),
     ))?;
-    let reply = peer.next()?;
+    let reply = peer
+        .next()
+        .map_err(|error| format!("{phase} {args:?}: {error}"))?;
+    use std::io::Write;
+    writeln!(
+        std::io::stderr(),
+        "STORE_LOCK_MCP phase={phase} elapsed={:?}",
+        started.elapsed()
+    )
+    .map_err(|e| e.to_string())?;
     let content = reply
         .pointer("/result/structuredContent")
         .ok_or("content missing")?;

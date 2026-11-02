@@ -8,6 +8,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Retain a failed synthetic fixture beside the shared diagnostic outputs.
+pub fn retain(root: &Path) -> io::Result<PathBuf> {
+    let retained = tempfile::Builder::new()
+        .prefix("failed-fixture-")
+        .tempdir_in(directory()?)?;
+    crate::fixture_evidence::copy(root, &retained.path().join("scratch"))?;
+    Ok(retained.keep())
+}
+
 /// Keep installed-runner evidence beside the copied fixtures, outside child scratch.
 pub fn default_directory() -> PathBuf {
     std::env::var_os("BIOMCP_TEST_FIXTURES")

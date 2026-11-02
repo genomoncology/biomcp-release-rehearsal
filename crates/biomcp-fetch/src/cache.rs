@@ -334,10 +334,8 @@ pub(crate) fn write_transaction(
         .map_err(|error| db_error(error))
 }
 
-pub(crate) fn sql_deadline(
-    connection: &Connection,
-    deadline: Deadline<'_>,
-) -> Result<(), CacheError> {
+/// Configure SQLite's lock wait from the deadline; replay clocks never wait on OS locks.
+pub fn sql_deadline(connection: &Connection, deadline: Deadline<'_>) -> Result<(), CacheError> {
     if deadline.expired() {
         return Err(CacheError::Busy);
     }
