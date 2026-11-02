@@ -75,13 +75,13 @@ impl Cache {
             &self.2,
             OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_URI,
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
         let version = connection
             .query_row("SELECT version FROM meta WHERE owner=?1", [OWNER], |row| {
                 row.get::<_, u32>(0)
             })
             .optional()
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         if version != Some(VERSION) {
             return Err(CacheError::Version);
         }
@@ -109,18 +109,20 @@ impl Cache {
                 Err(_) => return Err(CacheError::Filesystem),
             }
         }
-        let mut connection = Connection::open(path).map_err(db_error)?;
+        let mut connection = Connection::open(path).map_err(|error| db_error(error))?;
         check_owners(&connection, owners)?;
-        connection.busy_timeout(OPEN_WAIT).map_err(db_error)?;
+        connection
+            .busy_timeout(OPEN_WAIT)
+            .map_err(|error| db_error(error))?;
         Self::initialize(&mut connection)?;
         // Ownership is validated before changing the file's journal mode.
         let journal: String = connection
             .pragma_query_value(None, "journal_mode", |row| row.get(0))
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         if !journal.eq_ignore_ascii_case("wal") {
             connection
                 .pragma_update(None, "journal_mode", "WAL")
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
         }
         Ok(Self(
             Mutex::new(connection),
@@ -206,7 +208,7 @@ impl Cache {
                     },
                 )
                 .optional()
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
             match entry {
                 Some((
                     status,
@@ -265,7 +267,9 @@ impl Cache {
             return Err(CacheError::Busy);
         }
         let connection = wait_mutex(&self.0, deadline, &deadline.local(), Some(&self.4))?;
-        connection.busy_timeout(Duration::ZERO).map_err(db_error)?;
+        connection
+            .busy_timeout(Duration::ZERO)
+            .map_err(|error| db_error(error))?;
         operation(&connection)
     }
 
@@ -277,7 +281,7 @@ impl Cache {
         let _writer = try_mutex(&self.3)?;
         connection
             .execute("DELETE FROM reply WHERE key=?1", [key])
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         Ok(())
     }
 
@@ -290,8 +294,8 @@ impl Cache {
         deadline: Deadline<'_>,
     ) -> Result<(), CacheError> {
         self.write_sql(deadline, |connection| {
-            let tx = connection.unchecked_transaction().map_err(db_error)?;
-            tx.execute("DELETE FROM reply WHERE fresh_until<=?1", [now().saturating_sub(STALE_GRACE_SECONDS)]).map_err(db_error)?;
+            let tx = connection.unchecked_transaction().map_err(|error| db_error(error))?;
+            tx.execute("DELETE FROM reply WHERE fresh_until<=?1", [now().saturating_sub(STALE_GRACE_SECONDS)]).map_err(|error| db_error(error))?;
             tx.execute(
                 "INSERT INTO reply(key,source,url,status,content_type,body,fetched_at,fresh_until,content_range,pagination) \
         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
@@ -316,8 +320,8 @@ impl Cache {
                         .map_err(|_| CacheError::Encoding)?
                 ],
             )
-            .map_err(db_error)?;
-            tx.commit().map_err(db_error)
+            .map_err(|error| db_error(error))?;
+            tx.commit().map_err(|error| db_error(error))
         })
     }
 }
@@ -327,7 +331,7 @@ pub(crate) fn write_transaction(
     connection: &Connection,
 ) -> Result<rusqlite::Transaction<'_>, CacheError> {
     rusqlite::Transaction::new_unchecked(connection, rusqlite::TransactionBehavior::Immediate)
-        .map_err(db_error)
+        .map_err(|error| db_error(error))
 }
 
 pub(crate) fn sql_deadline(
@@ -343,7 +347,7 @@ pub(crate) fn sql_deadline(
         } else {
             deadline.remaining()
         })
-        .map_err(db_error)
+        .map_err(|error| db_error(error))
 }
 #[expect(
     clippy::disallowed_types,

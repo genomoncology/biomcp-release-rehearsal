@@ -1,6 +1,7 @@
 # Windows HGNC first snapshot recovery
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 6df4293dcb4862f518967147a8797a0412bcb56d
 Milestone: 5
 
 ## Outcome

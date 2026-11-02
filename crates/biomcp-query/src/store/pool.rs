@@ -38,7 +38,7 @@ impl Store<'_> {
                     Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?))
                 })
                 .optional()
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             row.map(|(id, key, created, expires, size, sources)| {
                 let Some(metadata) = self.policy().decode(&sources)? else { return Ok(None) };
                 Ok(Some(Pool {
@@ -77,17 +77,17 @@ impl Store<'_> {
             Self::collect_expired(tx)?;
             let created = Self::now();
             let expires = created.saturating_add(86400);
-            let id: String = tx.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0)).map_err(db)?;
+            let id: String = tx.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0)).map_err(|error| db(error))?;
             let size = u32::try_from(items.len()).map_err(|_| CacheError::Limit)?;
             tx.execute(
                 "INSERT INTO pool(id,request_key,created,expires,size,outcomes) VALUES (?1,?2,?3,?4,?5,?6)",
                 params![id, key, created, expires, size, outcomes],
             )
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
             {
                 let mut insert = tx
                     .prepare("INSERT INTO pool_item(pool,rank,identity,item,header,checked,problems) VALUES (?1,?2,?3,?4,?5,?6,?7)")
-                    .map_err(db)?;
+                    .map_err(|error| db(error))?;
                 for (rank, item) in items.iter().enumerate() {
                     let identity = match &item.key {
                         Some(key) => serde_json::to_string(key).map_err(|_| CacheError::Encoding)?,
@@ -104,7 +104,7 @@ impl Store<'_> {
                     let own = serde_json::to_string(&own).map_err(|_| CacheError::Encoding)?;
                     insert
                         .execute(params![id, rank as u32, identity, payload, header, item.pmid.is_none(), own])
-                        .map_err(db)?;
+                        .map_err(|error| db(error))?;
                 }
             }
             tx.execute(
@@ -112,7 +112,7 @@ impl Store<'_> {
                 pool=excluded.pool",
                 params![key, id],
             )
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
             Ok(Pool {
                 info: PoolInfo {
                     id: Text::new(&id).map_err(|_| CacheError::Limit)?,
@@ -140,23 +140,23 @@ impl Store<'_> {
             Self::collect_expired(tx)?;
             let created = Self::now();
             let expires = created.saturating_add(86400);
-            let id: String = tx.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0)).map_err(db)?;
+            let id: String = tx.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0)).map_err(|error| db(error))?;
             tx.execute(
                 "INSERT INTO pool(id,request_key,created,expires,size,outcomes) VALUES (?1,?2,?3,?4,?5,?6)",
                 params![id, key, created, expires, size, outcomes],
             )
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
             tx.execute(
                 "INSERT INTO trial_snapshot(id,request_key,expires,payload,outcomes) VALUES (?1,?2,?3,?4,?5)",
                 params![id, key, expires, payload, outcomes],
             )
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
             tx.execute(
                 "INSERT INTO pool_current(request_key,pool) VALUES (?1,?2) ON CONFLICT(request_key) DO UPDATE SET \
                 pool=excluded.pool",
                 params![key, id],
             )
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
             Ok(Pool {
                 info: PoolInfo {
                     id: Text::new(&id).map_err(|_| CacheError::Limit)?,
@@ -190,14 +190,14 @@ impl Store<'_> {
                     "UPDATE pool SET size=?3,outcomes=?4 WHERE id=?1 AND request_key=?2 AND expires>?5 AND size<=?3",
                     params![id, pool.key, size, outcomes, Self::now()],
                 )
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             if changed == 1 {
                 let snapshot = tx
                     .execute(
                         "UPDATE trial_snapshot SET payload=?3,outcomes=?4 WHERE id=?1 AND request_key=?2 AND expires>?5",
                         params![id, pool.key, payload, outcomes, Self::now()],
                     )
-                    .map_err(db)?;
+                    .map_err(|error| db(error))?;
                 if snapshot != 1 {
                     return Err(CacheError::Internal);
                 }
@@ -208,7 +208,7 @@ impl Store<'_> {
                     params![id, pool.key, Self::now()],
                     |row| Ok((row.get(0)?, row.get(1)?)),
                 )
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             pool.info.size = size;
             pool.sources = policy.decode(&outcomes)?.ok_or(CacheError::Internal)?.sources;
             Ok(pool)
@@ -227,7 +227,7 @@ impl Store<'_> {
                     "SELECT item,checked,header,problems,outcome FROM pool_item WHERE pool=?1 ORDER BY rank LIMIT ?2 \
                 OFFSET ?3",
                 )
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             let rows = statement
                 .query_map(params![pool, limit, offset], |r| {
                     Ok((
@@ -238,9 +238,9 @@ impl Store<'_> {
                         r.get::<_, Option<String>>(4)?,
                     ))
                 })
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             rows.map(|row| {
-                let (id, checked, header, problems, outcome) = row.map_err(db)?;
+                let (id, checked, header, problems, outcome) = row.map_err(|error| db(error))?;
                 let mut item: ArticleItem = serde_json::from_str(&id).map_err(|_| CacheError::Encoding)?;
                 item.header = header.map(|h| serde_json::from_str(&h).map_err(|_| CacheError::Encoding)).transpose()?;
                 Ok(StoredItem {
@@ -267,10 +267,10 @@ impl Store<'_> {
         self.write(|tx| {
             policy.authorize_hydration(tx, pool, outcome)?;
             if dropped {
-                let raw: String = tx.query_row("SELECT outcomes FROM pool WHERE id=?1", [pool], |r| r.get(0)).map_err(db)?;
+                let raw: String = tx.query_row("SELECT outcomes FROM pool WHERE id=?1", [pool], |r| r.get(0)).map_err(|error| db(error))?;
                 let metadata = policy.decode(&raw)?.ok_or(CacheError::Internal)?;
                 let raw = policy.encode(&metadata.sources, &metadata.problems, true)?;
-                tx.execute("UPDATE pool SET outcomes=?2 WHERE id=?1", params![pool, raw]).map_err(db)?;
+                tx.execute("UPDATE pool SET outcomes=?2 WHERE id=?1", params![pool, raw]).map_err(|error| db(error))?;
             }
             let outcome = outcome.map(serde_json::to_string).transpose().map_err(|_| CacheError::Encoding)?;
             let names: Vec<_> = ids.iter().map(ToString::to_string).collect();
@@ -295,7 +295,7 @@ impl Store<'_> {
                     .query_row("SELECT problems FROM pool_item WHERE pool=?1 AND identity=?2", params![pool, identity], |r| {
                         r.get(0)
                     })
-                    .map_err(db)?;
+                    .map_err(|error| db(error))?;
                 let mut merged: Vec<Problem> = serde_json::from_str(&old).map_err(|_| CacheError::Encoding)?;
                 merged.retain(|p| p.source != biomcp_types::Source::PubMed);
                 for problem in problems {
@@ -310,7 +310,7 @@ impl Store<'_> {
                     header IS NULL",
                     params![pool, identity, header, problems, outcome],
                 )
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             }
             Ok(())
         })

@@ -9,23 +9,23 @@ pub(super) fn expired(tx: &Transaction<'_>, limit: i64) -> Result<StoreClean, Ca
     let ids = {
         let mut statement = tx
             .prepare("SELECT id FROM pool WHERE expires<=?1 ORDER BY expires,id LIMIT ?2")
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
         statement
             .query_map(params![now, limit], |r| r.get::<_, String>(0))
-            .map_err(db)?
+            .map_err(|error| db(error))?
             .collect::<Result<Vec<_>, _>>()
-            .map_err(db)?
+            .map_err(|error| db(error))?
     };
     let mut counts = StoreClean::default();
     for id in ids {
         counts.items += tx
             .execute("DELETE FROM pool_item WHERE pool=?1", [&id])
-            .map_err(db)? as u64;
+            .map_err(|error| db(error))? as u64;
         tx.execute("DELETE FROM pool_current WHERE pool=?1", [&id])
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
         counts.pools += tx
             .execute("DELETE FROM pool WHERE id=?1", [&id])
-            .map_err(db)? as u64;
+            .map_err(|error| db(error))? as u64;
     }
     counts.snapshots += tx
         .execute(
@@ -33,14 +33,14 @@ pub(super) fn expired(tx: &Transaction<'_>, limit: i64) -> Result<StoreClean, Ca
         expires,id LIMIT ?2)",
             params![now, limit],
         )
-        .map_err(db)? as u64;
+        .map_err(|error| db(error))? as u64;
     counts.snapshots += tx
         .execute(
             "DELETE FROM citation_evidence WHERE id IN (SELECT id FROM citation_evidence WHERE expires<=?1 \
         ORDER BY expires,id LIMIT ?2)",
             params![now, limit],
         )
-        .map_err(db)? as u64;
+        .map_err(|error| db(error))? as u64;
     Ok(counts)
 }
 impl Store<'_> {

@@ -61,7 +61,9 @@ impl<'a> Store<'a> {
         let started = Instant::now();
         let wall_end = started.checked_add(deadline.remaining()).unwrap_or(started);
         let mut connection = access.connect()?;
-        connection.busy_timeout(deadline.remaining()).map_err(db)?;
+        connection
+            .busy_timeout(deadline.remaining())
+            .map_err(|error| db(error))?;
         access.admit(deadline, || {
             biomcp_fetch::check_owners(
                 &connection,
@@ -78,29 +80,29 @@ impl<'a> Store<'a> {
             let version: Option<u32> = connection
                 .query_row("SELECT version FROM meta WHERE owner=?1", [OWNER.name], |r| r.get(0))
                 .optional()
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             if version == Some(VERSION) {
                 return Ok(());
             }
-            let tx = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(db)?;
+            let tx = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(|error| db(error))?;
             biomcp_fetch::check_owners(&tx, &[OWNER])?;
             let version: Option<u32> = tx
                 .query_row("SELECT version FROM meta WHERE owner=?1", [OWNER.name], |r| r.get(0))
                 .optional()
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             if version.is_some_and(|version| version != VERSION) {
                 for table in OWNER.tables.iter().rev() {
-                    tx.execute_batch(&format!("DROP TABLE IF EXISTS {table}")).map_err(db)?;
+                    tx.execute_batch(&format!("DROP TABLE IF EXISTS {table}")).map_err(|error| db(error))?;
                 }
             }
-            tx.execute_batch(include_str!("schema.sql")).map_err(db)?;
+            tx.execute_batch(include_str!("schema.sql")).map_err(|error| db(error))?;
             tx.execute(
                 "INSERT INTO meta(owner,version) VALUES (?1,?2) ON CONFLICT(owner) DO UPDATE SET version=excluded.version",
                 params![OWNER.name, VERSION],
             )
-            .map_err(db)?;
-            tx.commit().map_err(db)?;
-            connection.pragma_update(None, "journal_mode", "WAL").map_err(db)?;
+            .map_err(|error| db(error))?;
+            tx.commit().map_err(|error| db(error))?;
+            connection.pragma_update(None, "journal_mode", "WAL").map_err(|error| db(error))?;
             Ok(())
         })?;
         Ok(Self {
@@ -116,7 +118,7 @@ impl<'a> Store<'a> {
         }
         self.connection
             .busy_timeout(self.deadline().remaining())
-            .map_err(db)
+            .map_err(|error| db(error))
     }
     pub(super) fn read<T>(
         &self,
@@ -127,9 +129,12 @@ impl<'a> Store<'a> {
             if !self._access.is_hosted() {
                 return operation(&self.connection);
             }
-            let tx = self.connection.unchecked_transaction().map_err(db)?;
+            let tx = self
+                .connection
+                .unchecked_transaction()
+                .map_err(|error| db(error))?;
             let result = operation(&tx)?;
-            tx.commit().map_err(db)?;
+            tx.commit().map_err(|error| db(error))?;
             Ok(result)
         })
     }
@@ -143,9 +148,9 @@ impl<'a> Store<'a> {
             let tx = self
                 .connection
                 .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             let result = operation(&tx)?;
-            tx.commit().map_err(db)?;
+            tx.commit().map_err(|error| db(error))?;
             Ok(result)
         })
     }
@@ -171,17 +176,16 @@ impl<'a> Store<'a> {
             .unwrap_or(0)
     }
 }
+#[track_caller]
 fn db(error: rusqlite::Error) -> CacheError {
-    match error {
-        rusqlite::Error::SqliteFailure(e, _)
-            if matches!(
-                e.code,
-                rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked
-            ) =>
-        {
-            CacheError::Busy
-        }
-        _ => CacheError::Database,
+    biomcp_fetch::record_sqlite_error("query.store", &error);
+    if matches!(
+        error.sqlite_error_code(),
+        Some(rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)
+    ) {
+        CacheError::Busy
+    } else {
+        CacheError::Database
     }
 }
 
@@ -190,7 +194,9 @@ pub fn health(fetch: &biomcp_fetch::Fetch, budget: std::time::Duration) -> Resul
     let access = fetch.cache_access()?;
     let connection = access.connect_read_only()?;
     let deadline = fetch.deadline(budget);
-    connection.busy_timeout(deadline.remaining()).map_err(db)?;
+    connection
+        .busy_timeout(deadline.remaining())
+        .map_err(|error| db(error))?;
     access.admit(deadline, || {
         biomcp_fetch::check_owners(
             &connection,

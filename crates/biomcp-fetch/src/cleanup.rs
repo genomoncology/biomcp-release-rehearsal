@@ -13,7 +13,7 @@ impl Fetch {
         cache.write_sql(deadline, |c| {
             c.execute("DELETE FROM reply WHERE fresh_until<=?1", [now()])
                 .map(|n| n as u64)
-                .map_err(db_error)
+                .map_err(|error| db_error(error))
         })
     }
 }
@@ -79,9 +79,9 @@ fn owned_file(path: &Path, owners: &[SchemaOwner]) -> Result<bool, CacheError> {
     };
     let declared = statement
         .query_map([], |r| r.get::<_, String>(0))
-        .map_err(db_error)?
+        .map_err(|error| db_error(error))?
         .collect::<Result<Vec<_>, _>>()
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     if declared.is_empty()
         || declared
             .iter()
@@ -91,12 +91,12 @@ fn owned_file(path: &Path, owners: &[SchemaOwner]) -> Result<bool, CacheError> {
     }
     let mut tables = connection
         .prepare("SELECT name FROM sqlite_master WHERE type='table'")
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     let names = tables
         .query_map([], |r| r.get::<_, String>(0))
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     for name in names {
-        let name = name.map_err(db_error)?;
+        let name = name.map_err(|error| db_error(error))?;
         if name == "bundle" {
             // An empty predecessor can receive a publication after inspection. Keep its file.
             return Ok(false);

@@ -177,3 +177,25 @@ fn schema_admission_clears_ownership_before_poison_is_observed() {
         Err(CacheError::Internal)
     );
 }
+
+// This inner test owns the diagnostic privacy and nonfatal I/O boundary.
+#[test]
+fn sqlite_diagnostic_records_exclude_error_text_and_ignore_unavailable_files() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("sqlite.jsonl");
+    let error = rusqlite::Error::SqliteFailure(
+        rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CONSTRAINT_TRIGGER),
+        Some("private SQL, binding and database path".into()),
+    );
+    crate::sqlite_diagnostic::append(&path, "fixture.insert", &error);
+    assert!(!path.exists(), "diagnostics must not create a destination");
+    std::fs::write(&path, []).unwrap();
+    crate::sqlite_diagnostic::append(&path, "fixture.insert", &error);
+    let record: serde_json::Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(
+        record,
+        serde_json::json!({"operation":"fixture.insert",
+        "primary_code":19,"extended_code":1811})
+    );
+    crate::sqlite_diagnostic::append(root.path(), "fixture.insert", &error);
+}

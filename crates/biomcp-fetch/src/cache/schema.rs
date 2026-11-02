@@ -34,10 +34,10 @@ fn check_owners_at(
     if !connection.is_autocommit() {
         return validate(connection);
     }
-    let transaction =
-        Transaction::new_unchecked(connection, TransactionBehavior::Deferred).map_err(db_error)?;
+    let transaction = Transaction::new_unchecked(connection, TransactionBehavior::Deferred)
+        .map_err(|error| db_error(error))?;
     validate(&transaction)?;
-    transaction.commit().map_err(db_error)
+    transaction.commit().map_err(|error| db_error(error))
 }
 fn validate_owners(
     connection: &Connection,
@@ -50,7 +50,7 @@ fn validate_owners(
             [],
             |r| r.get(0),
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     for owner in owners {
         let version: Option<u32> = if has_meta {
             connection
@@ -60,7 +60,7 @@ fn validate_owners(
                     |r| r.get(0),
                 )
                 .optional()
-                .map_err(version_error)?
+                .map_err(|error| version_error(error))?
         } else {
             None
         };
@@ -77,7 +77,7 @@ fn validate_owners(
                         [table],
                         |r| r.get(0),
                     )
-                    .map_err(db_error)?;
+                    .map_err(|error| db_error(error))?;
                 if orphan {
                     return Err(CacheError::Version);
                 }
@@ -86,6 +86,7 @@ fn validate_owners(
     }
     Ok(())
 }
+#[track_caller]
 fn version_error(error: rusqlite::Error) -> CacheError {
     match error {
         rusqlite::Error::FromSqlConversionFailure(..)
@@ -141,7 +142,7 @@ impl Cache {
                 [],
                 |row| row.get(0),
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         if has_meta
             && connection
                 .query_row("SELECT version FROM meta WHERE owner=?1", [OWNER], |row| {
@@ -155,14 +156,14 @@ impl Cache {
         }
         let tx = connection
             .transaction_with_behavior(TransactionBehavior::Immediate)
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         let meta_exists: bool = tx
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='meta')",
                 [],
                 |r| r.get(0),
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         let version: Option<u32> = if meta_exists {
             tx.query_row("SELECT version FROM meta WHERE owner=?1", [OWNER], |r| {
                 r.get(0)
@@ -179,8 +180,8 @@ impl Cache {
             "INSERT INTO meta(owner,version) VALUES (?1,?2) ON CONFLICT(owner) DO UPDATE SET version=excluded.version",
             (OWNER, VERSION),
         )
-        .map_err(db_error)?;
-        tx.commit().map_err(db_error)
+        .map_err(|error| db_error(error))?;
+        tx.commit().map_err(|error| db_error(error))
     }
 }
 
@@ -193,19 +194,21 @@ fn create_reply_schema(tx: &Transaction<'_>, version: Option<u32>) -> Result<(),
                 fetched_at INTEGER NOT NULL, fresh_until INTEGER NOT NULL);
             CREATE INDEX IF NOT EXISTS reply_fresh ON reply (fresh_until);",
     )
-    .map_err(db_error)?;
+    .map_err(|error| db_error(error))?;
     if version == Some(1) {
         tx.execute("ALTER TABLE reply ADD COLUMN content_range TEXT", [])
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
     }
     if matches!(version, Some(1 | 2)) {
         tx.execute("ALTER TABLE reply ADD COLUMN pagination TEXT", [])
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
     }
     Ok(())
 }
 
+#[track_caller]
 pub(crate) fn db_error(error: rusqlite::Error) -> CacheError {
+    crate::record_sqlite_error("fetch", &error);
     if matches!(
         error.sqlite_error_code(),
         Some(rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)

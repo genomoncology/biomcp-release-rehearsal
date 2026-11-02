@@ -19,7 +19,7 @@ impl Store<'_> {
                     |r| r.get(0),
                 )
                 .optional()
-                .map_err(db)?;
+                .map_err(|error| db(error))?;
             let Some(outcomes) = outcomes else { return Ok(None) };
             let Some(metadata) = self.policy().decode(&outcomes)? else { return Ok(None) };
             if metadata.sources.iter().any(|s| disabled(s.source)) {
@@ -27,7 +27,7 @@ impl Store<'_> {
             }
             cx.query_row("SELECT payload FROM trial_snapshot WHERE id=?1", params![id], |r| r.get(0))
                 .map(Some)
-                .map_err(db)
+                .map_err(|error| db(error))
         })
     }
     pub(crate) fn save_source_snapshot(
@@ -48,7 +48,7 @@ impl Store<'_> {
         self.write(|tx| {
             Self::collect_expired(tx)?;
             if hosted {
-                let exists: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM trial_snapshot WHERE id=?1)", [&id], |r| r.get(0)).map_err(db)?;
+                let exists: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM trial_snapshot WHERE id=?1)", [&id], |r| r.get(0)).map_err(|error| db(error))?;
                 if exists {
                     policy.authorize_update(tx, super::ownership::Table::Snapshot, &id, &outcomes)?;
                 }
@@ -58,7 +58,7 @@ impl Store<'_> {
                 CONFLICT(id) DO UPDATE SET expires=excluded.expires",
                 params![id, key, Self::now().saturating_add(86400), payload, outcomes],
             )
-            .map_err(db)?;
+            .map_err(|error| db(error))?;
             Text::new(&id).map_err(|_| CacheError::Limit)
         })
     }

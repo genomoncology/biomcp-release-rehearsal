@@ -291,3 +291,24 @@ impl crate::Leg<'_> {
         }
     }
 }
+
+/// Record a SQLite error without changing its classification or the command result.
+#[track_caller]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The proof diagnostic boundary alone reads its opt-in destination"
+)]
+pub fn record_sqlite_error(component: &'static str, error: &rusqlite::Error) {
+    let Some(path) = std::env::var_os(crate::SQLITE_DIAGNOSTICS) else {
+        return;
+    };
+    let caller = std::panic::Location::caller();
+    // Only a compiled source basename is retained, never a runtime path or SQL.
+    let source = caller
+        .file()
+        .rsplit(['/', '\\'])
+        .next()
+        .unwrap_or("unknown");
+    let operation = format!("{component}::{source}:{}", caller.line());
+    crate::sqlite_diagnostic::append(Path::new(&path), &operation, error);
+}

@@ -26,13 +26,17 @@ impl Cache {
         deadline: Deadline<'_>,
     ) -> Result<bool, CacheError> {
         let connection = self.owned_connection()?;
-        connection.execute_batch(STAGING).map_err(db_error)?;
+        connection
+            .execute_batch(STAGING)
+            .map_err(|error| db_error(error))?;
         if let Some(rows) = rows {
             for (batch, chunk) in rows.chunks(BATCH_ROWS).enumerate() {
                 sql_deadline(&connection, deadline)?;
-                let tx = connection.unchecked_transaction().map_err(db_error)?;
+                let tx = connection
+                    .unchecked_transaction()
+                    .map_err(|error| db_error(error))?;
                 insert(&tx, bundle.name, batch * BATCH_ROWS, chunk)?;
-                tx.commit().map_err(db_error)?;
+                tx.commit().map_err(|error| db_error(error))?;
             }
         }
         // Reserve the writer before reading ownership. A deferred read snapshot
@@ -47,7 +51,7 @@ impl Cache {
                         params![bundle.name, holder],
                         |row| row.get(0),
                     )
-                    .map_err(db_error)?;
+                    .map_err(|error| db_error(error))?;
                 if !owned {
                     return Ok(false);
                 }
@@ -58,17 +62,17 @@ impl Cache {
                         &format!("DELETE FROM {table} WHERE bundle=?1"),
                         [bundle.name],
                     )
-                    .map_err(db_error)?;
+                    .map_err(|error| db_error(error))?;
                     let stage = table.replacen("bundle_", "stage_", 1);
                     tx.execute(
                         &format!("INSERT INTO {table} SELECT * FROM temp.{stage}"),
                         [],
                     )
-                    .map_err(db_error)?;
+                    .map_err(|error| db_error(error))?;
                 }
             }
             metadata(&tx, bundle.name, holder, meta)?;
-            tx.commit().map_err(db_error)?;
+            tx.commit().map_err(|error| db_error(error))?;
             Ok(true)
         })
     }
@@ -87,21 +91,21 @@ fn insert(
                 "INSERT INTO temp.stage_row VALUES(?1,?2,?3)",
                 params![name, index, row.row],
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         for (key, value) in &row.keys.exact {
             connection
                 .execute(
                     "INSERT INTO temp.stage_key VALUES(?1,?2,?3,?4)",
                     params![name, kind(*key), value.to_ascii_lowercase(), index],
                 )
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
         }
         connection
             .execute(
                 "INSERT INTO temp.stage_words(bundle,n,words) VALUES(?1,?2,?3)",
                 params![name, index, row.keys.words.join(" ")],
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
     }
     Ok(())
 }
@@ -119,19 +123,19 @@ fn metadata(
         =excluded.modified",
             params![name, meta.bytes as i64, meta.rows as i64, meta.fresh_until, meta.etag, meta.modified],
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     let rejections = serde_json::to_string(&meta.rejections).map_err(|_| CacheError::Encoding)?;
     connection.execute(
         "INSERT INTO bundle_rejection VALUES(?1,?2) ON CONFLICT(name) DO UPDATE SET rejections=excluded.rejections",
         params![name, rejections],
-    ).map_err(db_error)?;
+    ).map_err(|error| db_error(error))?;
     if let (Some(revision), Some(retrieved)) = (&meta.content_revision, meta.retrieved_at) {
         connection
             .execute(
                 "INSERT INTO bundle_content VALUES(?1,?2,?3)",
                 params![name, revision, retrieved],
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
     }
     if let Some(holder) = holder {
         connection
@@ -139,7 +143,7 @@ fn metadata(
                 "DELETE FROM bundle_sync WHERE name=?1 AND holder=?2",
                 params![name, holder],
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
     }
     Ok(())
 }

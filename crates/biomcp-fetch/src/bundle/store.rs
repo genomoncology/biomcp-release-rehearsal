@@ -103,7 +103,7 @@ pub(crate) fn initialize(c: &Connection) -> Result<(), CacheError> {
     CREATE TRIGGER IF NOT EXISTS bundle_content_delete BEFORE DELETE ON bundle BEGIN DELETE FROM \
         bundle_content WHERE name=OLD.name; END;",
     )
-    .map_err(db_error)
+    .map_err(|error| db_error(error))
 }
 pub(super) fn kind(k: KeyKind) -> u8 {
     match k {
@@ -138,7 +138,7 @@ impl Cache {
         self.sql(d, |c| {
             c.query_row(METADATA, [name], metadata)
                 .optional()
-                .map_err(db_error)
+                .map_err(|error| db_error(error))
         })
     }
     pub(super) fn bundle_rows(
@@ -156,15 +156,15 @@ impl Cache {
         d: Deadline<'_>,
     ) -> Result<Option<(Meta, Vec<String>)>, CacheError> {
         self.sql(d, |c| {
-            let tx = c.unchecked_transaction().map_err(db_error)?;
+            let tx = c.unchecked_transaction().map_err(|error| db_error(error))?;
             let meta = tx
                 .query_row(METADATA, [name], metadata)
                 .optional()
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
             let value = meta
                 .map(|meta| selected_rows(&tx, name, find).map(|rows| (meta, rows)))
                 .transpose()?;
-            tx.commit().map_err(db_error)?;
+            tx.commit().map_err(|error| db_error(error))?;
             Ok(value)
         })
     }
@@ -174,7 +174,7 @@ impl Cache {
                 "SELECT part FROM bundle_sync WHERE name=?1 AND holder IS NOT NULL AND lease_until>?2",
                 params![name, now()],
                 |r| Ok(Part { path: r.get(0)?, bytes: 0, etag: None, total: None }),
-            ).optional().map_err(db_error)?;
+            ).optional().map_err(|error| db_error(error))?;
             part.map(|part| part.in_use(&self.1)).transpose().map(|used| used.unwrap_or(false))
         })
     }
@@ -208,7 +208,7 @@ impl Cache {
                     },
                 )
                 .optional()
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
             if let Some((Some(_), until, _, part)) = &old
                 && *until > now()
                 && part.in_use(&self.1)?
@@ -232,8 +232,8 @@ impl Cache {
                 etag=NULL,total=NULL",
                 params![name, holder, lease, url, path],
             )
-            .map_err(db_error)?;
-            tx.commit().map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
+            tx.commit().map_err(|error| db_error(error))?;
             Ok(part)
         })
     }
@@ -249,7 +249,7 @@ impl Cache {
                 params![name, holder],
             )
             .map(|_| ())
-            .map_err(db_error)
+            .map_err(|error| db_error(error))
         })
     }
     pub(super) fn retain(
@@ -266,7 +266,7 @@ impl Cache {
                 params![name, holder, p.bytes as i64, p.etag, p.total.map(|n| n as i64)],
             )
             .map(|n| n == 1)
-            .map_err(db_error)
+            .map_err(|error| db_error(error))
         })
     }
 }
@@ -335,7 +335,7 @@ fn selected_rows(c: &Connection, name: &str, find: Find<'_>) -> Result<Vec<Strin
         }
     };
 
-    let mut q = c.prepare(query).map_err(db_error)?;
+    let mut q = c.prepare(query).map_err(|error| db_error(error))?;
     let count = q.parameter_count();
     let mut out = Vec::new();
     let mut rows = if count == 2 {
@@ -343,9 +343,9 @@ fn selected_rows(c: &Connection, name: &str, find: Find<'_>) -> Result<Vec<Strin
     } else {
         q.query(params![name, a, b, k])
     }
-    .map_err(db_error)?;
-    while let Some(row) = rows.next().map_err(db_error)? {
-        out.push(row.get(0).map_err(db_error)?);
+    .map_err(|error| db_error(error))?;
+    while let Some(row) = rows.next().map_err(|error| db_error(error))? {
+        out.push(row.get(0).map_err(|error| db_error(error))?);
     }
     Ok(out)
 }

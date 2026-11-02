@@ -60,13 +60,13 @@ impl Cache {
         check_current_owners(&connection, owners)?;
         connection
             .execute("ATTACH DATABASE ?1 AS predecessor", [uri.as_str()])
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         let Some(_version) = stage(&connection, name, owners, deadline)? else {
             return Ok(false);
         };
         connection
             .execute_batch("DETACH DATABASE predecessor")
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         self.publish_sql(deadline, || {
             sql_deadline(&connection, deadline)?;
             let tx = write_transaction(&connection)?;
@@ -84,10 +84,10 @@ impl Cache {
                     ),
                     [],
                 )
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
             }
             verify(&tx, name, deadline)?;
-            tx.commit().map_err(db_error)?;
+            tx.commit().map_err(|error| db_error(error))?;
             Ok(true)
         })
     }
@@ -99,7 +99,7 @@ fn exists(connection: &Connection, schema: &str, name: &str) -> Result<bool, Cac
             [name],
             |r| r.get(0),
         )
-        .map_err(db_error)
+        .map_err(|error| db_error(error))
 }
 fn stage(
     connection: &Connection,
@@ -107,7 +107,9 @@ fn stage(
     owners: &[SchemaOwner],
     deadline: Deadline<'_>,
 ) -> Result<Option<u32>, CacheError> {
-    let snapshot = connection.unchecked_transaction().map_err(db_error)?;
+    let snapshot = connection
+        .unchecked_transaction()
+        .map_err(|error| db_error(error))?;
     check_predecessor(&snapshot, owners)?;
     if !source_table(&snapshot, "bundle")? || !exists(&snapshot, "predecessor", name)? {
         return Ok(None);
@@ -118,14 +120,14 @@ fn stage(
             [],
             |r| r.get(0),
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     let bytes: u32 = snapshot
         .query_row(
             "SELECT bytes FROM predecessor.bundle WHERE name=?1",
             [name],
             |r| r.get(0),
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     if u64::from(bytes) > super::MAX_BUNDLE_BYTES {
         return Err(CacheError::Limit);
     }
@@ -138,11 +140,11 @@ fn stage(
             [],
             |r| r.get(0),
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     if !complete {
         return Err(CacheError::Internal);
     }
-    snapshot.commit().map_err(db_error)?;
+    snapshot.commit().map_err(|error| db_error(error))?;
     Ok(Some(version))
 }
 fn source_table(connection: &Connection, table: &str) -> Result<bool, CacheError> {
@@ -152,7 +154,7 @@ fn source_table(connection: &Connection, table: &str) -> Result<bool, CacheError
             [table],
             |r| r.get(0),
         )
-        .map_err(db_error)
+        .map_err(|error| db_error(error))
 }
 fn stage_table(
     connection: &Connection,
@@ -176,7 +178,7 @@ fn stage_table(
             "CREATE TEMP TABLE stage_{} AS SELECT {} FROM {source}.{} WHERE 0",
             table.name, table.columns, table.name
         ))
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     if !present {
         return Ok(());
     }
@@ -186,7 +188,7 @@ fn stage_table(
             "SELECT {} FROM predecessor.{} WHERE {}=?1",
             table.columns, table.name, table.key
         ))
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     let columns = select.column_count();
     let placeholders = (1..=columns)
         .map(|n| format!("?{n}"))
@@ -197,19 +199,19 @@ fn stage_table(
             "INSERT INTO temp.stage_{} VALUES ({placeholders})",
             table.name
         ))
-        .map_err(db_error)?;
-    let mut rows = select.query([name]).map_err(db_error)?;
-    while let Some(row) = rows.next().map_err(db_error)? {
+        .map_err(|error| db_error(error))?;
+    let mut rows = select.query([name]).map_err(|error| db_error(error))?;
+    while let Some(row) = rows.next().map_err(|error| db_error(error))? {
         if deadline.expired() {
             return Err(CacheError::Busy);
         }
         let values = (0..columns)
             .map(|n| row.get_ref(n).map(rusqlite::types::ToSqlOutput::Borrowed))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         insert
             .execute(rusqlite::params_from_iter(values))
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
     }
     Ok(())
 }
@@ -231,7 +233,7 @@ fn verify(connection: &Connection, name: &str, deadline: Deadline<'_>) -> Result
                 [name],
                 |r| r.get(0),
             )
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         if different {
             return Err(CacheError::Internal);
         }

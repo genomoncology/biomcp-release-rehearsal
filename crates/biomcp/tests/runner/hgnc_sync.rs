@@ -206,19 +206,30 @@ fn first() -> Check {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let mut pending = Pending::start(&env)?;
     let peer = stub(&env)?;
+    let diagnostic = env.root().join("sqlite-errors.jsonl");
+    fs::write(&diagnostic, []).map_err(|e| e.to_string())?;
+    let failure = |stage: &str, detail: String| {
+        format!("first snapshot {stage}: {detail}; SQLite diagnostics: {}",
+            fs::read_to_string(&diagnostic).unwrap_or_default())
+    };
     let mut command = env.command(env!("CARGO_BIN_EXE_biomcp"), &args("2"));
+    command.env(biomcp_fetch::SQLITE_DIAGNOSTICS, &diagnostic);
     let child = command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| e.to_string())?;
-    pending.kill()?;
-    let output = command.wait_with_output(child).map_err(|e| e.to_string())?;
+        .map_err(|e| failure("spawn failed", e.to_string()))?;
+    pending.kill().map_err(|e| failure("publisher stop failed", e))?;
+    let output = command.wait_with_output(child)
+        .map_err(|e| failure("wait failed", e.to_string()))?;
     if !output.status.success() || !output.stderr.is_empty() {
-        return Err(format!(
-            "first snapshot failed: {}",
-            String::from_utf8_lossy(&output.stdout)
-        ));
+        return Err(failure("failed", format!("{}; stderr: {}",
+            String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr))));
+    }
+    let result: Value = serde_json::from_slice(&output.stdout)
+        .map_err(|e| failure("JSON failed", e.to_string()))?;
+    if result.get("status") != Some(&json!("complete")) {
+        return Err(failure("did not recover completely", result.to_string()));
     }
     peer.finish()?;
     Ok(())
