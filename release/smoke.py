@@ -63,7 +63,7 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
         return {"tools": tools, "checks": checks, **summary}
 
 
-def case_suite(command, env, root, fixtures, timeout=None):
+def case_suite(command, env, root, fixtures, timeout=None, expected_filtered=None):
     started = time.monotonic()
     result = subprocess.run(command + ["--test-threads", "2"], env=env, cwd=root,
                             capture_output=True, text=True, timeout=timeout)
@@ -71,8 +71,11 @@ def case_suite(command, env, root, fixtures, timeout=None):
     print(result.stdout, end="", flush=True)
     require(result.returncode == 0, "installed cases failed: " + result.stdout + result.stderr)
     counts = re.search(r"test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored; (\d+) measured; (\d+) filtered out", result.stdout)
-    require(counts is not None and counts.group(2) == "0" and counts.group(5) == "0",
-            "installed runner did not report an unfiltered complete suite")
+    filtered = 0 if expected_filtered is None else expected_filtered
+    require(counts is not None and counts.group(2) == "0" and int(counts.group(5)) == filtered,
+            "installed runner did not report the complete declared selection")
+    if expected_filtered is not None:
+        require(int(counts.group(1)) > 0, "container runner did not execute any proof")
     return {"cases": sum(1 for path in (fixtures / "cases").rglob("*") if path.suffix in (".yaml", ".yml")),
             "trials": int(counts.group(1)) + int(counts.group(3)),
             "elapsed_seconds": elapsed, "timeout_seconds": elapsed * 1.15}

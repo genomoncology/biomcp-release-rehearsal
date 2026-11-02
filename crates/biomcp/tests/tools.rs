@@ -40,6 +40,18 @@ fn main() -> ExitCode {
         return runner::proof::environment_probe();
     }
     match env::args().nth(1).as_deref() {
+        Some("--proof-metadata") => match runner::proof_requirements::metadata() {
+            Ok(metadata) => {
+                use std::io::Write;
+                let _ = writeln!(std::io::stdout(), "{metadata}");
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                use std::io::Write;
+                let _ = writeln!(std::io::stderr(), "proof metadata: {error}");
+                ExitCode::FAILURE
+            }
+        },
         Some("--proofs") => {
             let arguments = std::iter::once("tools".to_owned()).chain(env::args().skip(2));
             match runner::tool_trials() {

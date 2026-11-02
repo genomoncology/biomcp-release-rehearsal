@@ -37,13 +37,24 @@ def main():
     checks.extend(["version", "mcp-all-stdout"])
     executable = common + ["-v", str(Path(proof).resolve()) + ":/proof:ro", "-e", "BIOMCP_TEST_EXECUTABLE=/usr/local/bin/biomcp", "-e", "BIOMCP_TEST_FIXTURES=/tmp/check/fixtures",
                            "--entrypoint", "/bin/sh", image, "-ec", RUNNER_SETUP, "installed-runner"]
-    case_suite(executable + ["/tmp/check/tool-runner", "--proofs"],
-               os.environ.copy(), Path.cwd(), Path(proof) / "fixtures")
+    metadata = json.loads(subprocess.check_output(
+        executable + ["/tmp/check/tool-runner", "--proof-metadata"], text=True))
+    exclusions = [row["name"] for row in metadata if row["requires_repository_python"]]
+    require(len(metadata) > len(exclusions), "container selection has no runtime proofs")
+    selection = ["/tmp/check/tool-runner", "--proofs", "--exact"]
+    for name in exclusions:
+        selection.extend(["--skip", name])
+    proofs = case_suite(executable + selection, os.environ.copy(), Path.cwd(),
+                        Path(proof) / "fixtures", expected_filtered=len(exclusions))
+    require(proofs["trials"] == len(metadata) - len(exclusions),
+            "container proof count differs from declared selection")
     checks.append("runner-proofs")
     executable += ["/tmp/check/case-runner"]
     summary = case_suite(executable, os.environ.copy(), Path.cwd(), Path(proof) / "fixtures")
     checks.append("all-cases-and-trials")
-    print(json.dumps({"artifact": "docker", "platform": "linux/" + arch, "result": "pass", "checks": checks, **summary}))
+    print(json.dumps({"artifact": "docker", "platform": "linux/" + arch, "result": "pass", "checks": checks,
+                      "proofs": {"ran": proofs["trials"], "excluded": exclusions,
+                                 "excluded_count": len(exclusions)}, **summary}))
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@ mod pool_contract;
 #[path = "../support/synthetic_contracts.rs"]
 mod required_contract;
 tool_only! { pub(super) mod tools_api; }
+tool_only! { pub(super) mod proof_requirements; }
 mod features;
 use crate::runner::transcript::trial as transcript_trial;
 use execution::run_step;
@@ -464,6 +465,7 @@ tool_only! {
     pub(super) fn tool_trials() -> Result<Vec<Trial>, String> {
         let registry = schema::Registry::embedded()?;
         let mut trials = proof::trials();
+        trials.push(proof_requirements::trial());
         trials.push(reply_comparison::trial());
         trials.extend(hgnc_sync::trials());
         trials.extend(schema_proof::trials(registry));

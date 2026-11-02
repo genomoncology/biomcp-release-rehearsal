@@ -22,7 +22,8 @@ pub(super) fn trials() -> Vec<Trial> {
         }),
         transcript_trial("live-source-checks/retained-drift-witnesses", || {
             witness_proof::retained().map_err(Into::into)
-        }),
+        })
+        .with_kind(super::proof_requirements::REPOSITORY_PYTHON),
         transcript_trial("live-source-checks/credential-free-witness-urls", || {
             witness_proof::credentials().map_err(Into::into)
         }),
