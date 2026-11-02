@@ -4,7 +4,15 @@ use biomcp_fetch::{Certificates, Fetch, FetchConfig, Network, Observations};
 use serde_json::json;
 use std::{fs, sync::Arc, time::Duration};
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The proof caller supplies its Python interpreter explicitly"
+)]
 pub(super) fn prove() -> Result<(), Box<dyn std::error::Error>> {
+    let python = std::env::var_os("BIOMCP_TEST_PYTHON")
+        .filter(|value| !value.is_empty())
+        .ok_or("iCite classifier proof requires BIOMCP_TEST_PYTHON from its caller")?;
+    let python = std::path::PathBuf::from(python);
     let env = Environment::new()?;
     for references in [false, true] {
         let mut sides = Vec::new();
@@ -22,10 +30,16 @@ pub(super) fn prove() -> Result<(), Box<dyn std::error::Error>> {
         let script = super::super::super::launch::fixture_script("icite_discovery_proof.py");
         let output = env
             .command(
-                "python3",
+                &python,
                 &[script.display().to_string(), report.display().to_string()],
             )
-            .output()?;
+            .output()
+            .map_err(|error| {
+                format!(
+                    "cannot run iCite proof Python {}: {error}",
+                    python.display()
+                )
+            })?;
         if !output.status.success() {
             return Err(format!("iCite classifier proof failed: {output:?}").into());
         }

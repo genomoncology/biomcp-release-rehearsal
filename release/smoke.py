@@ -3,8 +3,10 @@
 import json
 import os
 import re
+import shutil
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -31,7 +33,7 @@ def environment(root):
     return env
 
 
-def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=None):
+def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=None, python=sys.executable):
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory).resolve()
         env = environment(root)
@@ -54,7 +56,10 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
         checks.extend(["version", "mcp-all-stdout"])
         require(any((root / "cache").rglob("*.sqlite")), "first tool call did not create the cache")
         checks.append("ordinary-cache-created")
-        env.update(BIOMCP_TEST_EXECUTABLE=str(binary), BIOMCP_TEST_FIXTURES=str(fixtures))
+        interpreter = shutil.which(python)
+        require(interpreter is not None, "proof Python interpreter is unavailable: " + python)
+        env.update(BIOMCP_TEST_EXECUTABLE=str(binary), BIOMCP_TEST_FIXTURES=str(fixtures),
+                   BIOMCP_TEST_PYTHON=os.path.abspath(interpreter))
         tool = runner.with_name("tool-runner" + runner.suffix)
         case_suite([str(tool), "--proofs"], env, root, fixtures, timeout)
         checks.append("runner-proofs")

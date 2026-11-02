@@ -3,6 +3,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 export RUSTUP_TOOLCHAIN=1.95.0
+export BIOMCP_TEST_PYTHON=$(python3 -c 'import sys; print(sys.executable)')
 case "${1:-focused}" in
   focused)
     make fmt lint ratchets

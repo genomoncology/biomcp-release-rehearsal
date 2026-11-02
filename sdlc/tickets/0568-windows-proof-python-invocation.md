@@ -1,6 +1,7 @@
 # Windows tool proofs find Python
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 2fc606b2da373814b9fc726c706f540af688883a
 Depends on: 0562
 Milestone: 5
 

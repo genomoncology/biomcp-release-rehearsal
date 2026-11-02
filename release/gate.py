@@ -139,7 +139,8 @@ def installed(args):
         for row in cli_checks(binary, record):
             results.append({"artifact": kind, "platform": record["platform"], **row})
             print(json.dumps(results[-1]), flush=True)
-        completed = smoke(binary, executable, fixtures, record["version"], server_args, suite_timeout)
+        completed = smoke(binary, executable, fixtures, record["version"], server_args, suite_timeout,
+                          python=args.python)
         if suite_timeout is None:
             suite_timeout = completed["timeout_seconds"]
         if declared_tools is not None and sorted(completed["tools"]) != sorted(declared_tools):

@@ -123,8 +123,14 @@ class InstalledCli(unittest.TestCase):
                 (output / 'server.json').write_text(json.dumps(registry))
                 scratch = root / 'install'
                 (scratch / 'fixtures').mkdir(parents=True)
+                selected_python = root / 'selected-python.exe'
+                selected_python.write_text(f'#!{sys.executable}\nimport os, sys\nos.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])\n')
+                selected_python.chmod(0o755)
                 runner = scratch / 'case-runner'
-                runner.write_text(f'#!{sys.executable}\nprint(\"test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out\")\n')
+                handoff = (f'import os, subprocess\nselected = os.environ.get("BIOMCP_TEST_PYTHON")\n'
+                           f'assert selected == {str(selected_python)!r}, selected\n'
+                           'subprocess.run([selected, "-c", "pass"], check=True)\n' if not fail else '')
+                runner.write_text(f'#!{sys.executable}\n' + handoff + 'print("test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out")\n')
                 runner.chmod(0o755)
                 tool = runner.with_name("tool-runner")
                 tool.write_text(runner.read_text())
@@ -133,7 +139,7 @@ class InstalledCli(unittest.TestCase):
                 # Homebrew has separate installation proof; this fixture uses the shared gate on five channels.
                 env['PATH'] = os.defpath
                 result = subprocess.run([sys.executable, 'release/gate.py', '--prepared', '--artifacts', str(output),
-                                         '--scratch', str(scratch), '--python', sys.executable], env=env,
+                                         '--scratch', str(scratch), '--python', str(selected_python)], env=env,
                                         capture_output=True, text=True, timeout=120)
                 if fail:
                     self.assertNotEqual(result.returncode, 0)

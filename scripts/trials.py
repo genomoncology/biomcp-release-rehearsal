@@ -51,6 +51,7 @@ def main():
     os.chdir(ROOT)
     target = [cargo(args.profile, tests=args.target)["executable"]]
     if args.proofs:
+        os.environ["BIOMCP_TEST_PYTHON"] = sys.executable
         target.append("--proofs")
     elif cases or args.target == "tools":
         target += ["--cases", str(cases or ROOT / "tests/cases")]
