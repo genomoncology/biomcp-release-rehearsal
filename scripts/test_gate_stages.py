@@ -1,5 +1,7 @@
 """Check stage diagnostics and incremental secret history against real Git."""
 import os
+import re
+import secrets
 from pathlib import Path
 import subprocess
 import sys
@@ -7,6 +9,7 @@ import tempfile
 import unittest
 
 from release.secrets import inputs
+from release.smoke import environment
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -89,6 +92,84 @@ class GateStages(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('release/secrets.py history .', result.stdout)
         self.assertNotIn('--since', result.stdout)
+
+    def test_release_checkout_scans_complete_candidate_without_unrelated_refs(self):
+        workflow = (ROOT / '.github/workflows/release.yml').read_text()
+        candidate = workflow.split('\n  candidate:\n', 1)[1].split('\n  qualify:\n', 1)[0]
+        checkout = candidate.split('      - uses: actions/checkout@', 1)[1].split('      - name:', 1)[0]
+        self.assertIn('ref: ${{ github.sha }}', checkout)
+        self.assertIn('persist-credentials: false', checkout)
+        self.assertIn('fetch-tags: false', checkout)
+        depth = int(re.search(r'fetch-depth: (\d+)', checkout)[1])
+        guard = candidate.split('      - name: Check complete candidate history scope\n', 1)[1]
+        guard = guard.split('        run: |\n', 1)[1].split('      - ', 1)[0]
+        guard = '\n'.join(line[10:] for line in guard.splitlines())
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, checkout = root / 'source', root / 'checkout'
+            source.mkdir(); checkout.mkdir()
+            env = {**environment(root), 'PATH': os.defpath, 'GIT_CONFIG_NOSYSTEM': '1'}
+            def git(repo, *args):
+                return subprocess.check_output(['git', '-C', str(repo), *args], env=env,
+                                               stderr=subprocess.DEVNULL).decode().strip()
+            def commit(name, content):
+                (source / name).write_text(content)
+                git(source, 'add', '.')
+                git(source, 'commit', '-qm', 'Add fixture')
+            git(source, 'init', '-q')
+            git(source, 'config', 'user.name', 'Fixture')
+            git(source, 'config', 'user.email', 'fixture@example.invalid')
+            commit('base', 'clean base')
+            base = git(source, 'rev-parse', 'HEAD')
+            git(source, 'checkout', '-qb', 'side')
+            commit('removed', 'complete merged ancestry')
+            removed_blob = git(source, 'rev-parse', 'HEAD:removed')
+            git(source, 'rm', 'removed'); git(source, 'commit', '-qm', 'Remove fixture')
+            git(source, 'checkout', '-qb', 'candidate', base)
+            commit('candidate', 'clean candidate')
+            git(source, 'merge', '--no-ff', '-qm', 'Merge fixture', 'side')
+            revision = git(source, 'rev-parse', 'HEAD')
+            expected_commits = git(source, 'rev-list', '--count', revision)
+            expected_objects = set(git(source, 'rev-list', '--objects', '--no-object-names', revision).splitlines())
+            git(source, 'checkout', '--orphan', 'old-main')
+            git(source, 'rm', '-rf', '.')
+            token = 'ghp_' + secrets.token_hex(18)
+            commit('credential.txt', 'access_token = ' + token + '\n')
+            git(source, 'tag', 'v0.9.2')
+            remote_refs = git(source, 'show-ref')
+            git(checkout, 'init', '-q')
+            git(checkout, 'remote', 'add', 'origin', source.as_uri())
+            # Match the pinned checkout action's positive-depth, exact-SHA fetch.
+            # Its depth-zero branch fetches every head and tag instead.
+            if depth == 0:
+                git(checkout, 'fetch', 'origin', '+refs/heads/*:refs/remotes/origin/*', '+refs/tags/*:refs/tags/*')
+            else:
+                git(checkout, 'fetch', '--no-tags', '--depth=' + str(depth), 'origin', revision)
+            git(checkout, 'checkout', '--detach', revision)
+            def scope(expected):
+                result = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', guard], cwd=checkout,
+                                        env={**env, 'GITHUB_SHA': revision}, capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, expected, result.stdout + result.stderr)
+            def screen(expected):
+                result = subprocess.run([sys.executable, str(ROOT / 'release/secrets.py'), 'history', str(checkout)],
+                                        cwd=ROOT, env=env, capture_output=True, text=True)
+                self.assertEqual(result.returncode, expected, 'fixture history scan changed')
+                self.assertNotIn(token, result.stdout + result.stderr)
+                return result
+            scope(True)
+            self.assertEqual(git(checkout, 'rev-parse', '--is-shallow-repository'), 'false')
+            self.assertEqual(git(checkout, 'rev-list', '--count', '--all', 'HEAD'), expected_commits)
+            self.assertEqual(set(git(checkout, 'rev-list', '--objects', '--no-object-names', '--all', 'HEAD').splitlines()), expected_objects)
+            self.assertEqual(git(checkout, 'show-ref', '--head'), revision + ' HEAD')
+            self.assertEqual(git(checkout, 'cat-file', '-p', removed_blob), 'complete merged ancestry')
+            self.assertEqual(git(checkout, 'status', '--porcelain'), '')
+            screen(0)
+            # Importing an old ref must trip both the scope guard and real scanner.
+            git(checkout, 'fetch', '--no-tags', 'origin', '+refs/heads/old-main:refs/remotes/origin/old-main')
+            scope(False)
+            self.assertIn('credential.txt', screen(1).stdout)
+            self.assertEqual(git(source, 'show-ref'), remote_refs)
+            self.assertEqual(git(checkout, 'status', '--porcelain'), '')
 
     def test_incremental_scan_keeps_removed_and_merge_blobs(self):
         with tempfile.TemporaryDirectory() as temporary:

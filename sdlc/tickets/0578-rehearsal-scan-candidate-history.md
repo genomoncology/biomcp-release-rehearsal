@@ -1,6 +1,7 @@
 # Release history scan covers the candidate's own history
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: f7b14460e206158eb3edce133115a4600dc4e5ea
 Milestone: 5
 
 ## Outcome

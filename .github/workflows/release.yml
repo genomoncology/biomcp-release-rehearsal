@@ -37,7 +37,26 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-          fetch-depth: 0
+          ref: ${{ github.sha }}
+          # Git's INFINITE_DEPTH keeps checkout's targeted ref fetch while
+          # retrieving every ancestor (depth 0 fetches all heads and tags).
+          # https://github.com/git/git/blob/v2.51.0/commit.h#L230
+          fetch-depth: 2147483647
+          fetch-tags: false
+      - name: Check complete candidate history scope
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse --is-shallow-repository)" = false
+          candidate_commits=$(git --no-replace-objects rev-list --count HEAD)
+          scan_commits=$(git --no-replace-objects rev-list --count --single-worktree --all HEAD)
+          candidate_objects=$(git --no-replace-objects rev-list --objects --no-object-names HEAD | wc -l)
+          scan_objects=$(git --no-replace-objects rev-list --objects --no-object-names --single-worktree --all HEAD | wc -l)
+          echo "Candidate history: $candidate_commits commits, $candidate_objects objects"
+          echo "Scan history: $scan_commits commits, $scan_objects objects"
+          # The scan is a superset of HEAD: equal counts mean equal scope.
+          test "$candidate_commits" = "$scan_commits"
+          test "$candidate_objects" = "$scan_objects"
       - name: Read release tool pins
         id: tools
         shell: bash
