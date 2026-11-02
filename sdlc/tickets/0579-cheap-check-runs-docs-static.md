@@ -11,5 +11,5 @@ Milestone: 5
 - Starts from: `Makefile` (`check-cheap`, `docs-check`), `scripts/check_docs.py`.
 - Rules: add one recipe line to `check-cheap`; keep the existing `docs-check` call; add no new checker, helper or limit.
 - Proof: a file over the limit fails `make check-cheap`; the cheap gate passes on main.
-- Changes: `Makefile` only.
+- Changes: `Makefile`, plus the existing `scripts/check_shell.py` (which reads check-cheap's goals from its first dry-run line, lines 11-14) so it still finds the recursive Make goals, and the `scripts/test_gate_stages.py` fixture so it carries the newly invoked static script. The focused-check regression from 0572 keeps failing a partial selection.
 - Defers: nothing.
