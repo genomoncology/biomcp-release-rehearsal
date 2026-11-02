@@ -1,6 +1,7 @@
 # Windows configuration path cases
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c0ad78b47519c5f7db46e2991768b2ab3966b122
 Milestone: 5
 
 ## Outcome

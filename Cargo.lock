@@ -184,6 +184,7 @@ dependencies = [
  "rpassword",
  "rusqlite",
  "rustls",
+ "same-file",
  "serde",
  "serde-saphyr",
  "serde_json",

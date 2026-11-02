@@ -47,8 +47,11 @@ fn fallbacks() -> Check {
     let bin = env.root().join("bin");
     fs::create_dir(&bin)?;
     for path in [None, Some(bin.as_path())] {
-        if configuration(&env, &executable, path)? != executable {
-            return Err("missing PATH entry did not retain the running executable".into());
+        let actual = configuration(&env, &executable, path)?;
+        if !actual.is_absolute() || !same_file::is_same_file(&actual, &executable)? {
+            return Err(format!(
+                "missing PATH entry did not retain the running executable: PATH={path:?}, actual={actual:?}, expected={executable:?}"
+            ).into());
         }
     }
     // A second installation can have identical bytes while naming a different file.
@@ -56,7 +59,8 @@ fn fallbacks() -> Check {
         &executable,
         bin.join(format!("biomcp{}", std::env::consts::EXE_SUFFIX)),
     )?;
-    if configuration(&env, &executable, Some(&bin))? != executable {
+    let actual = configuration(&env, &executable, Some(&bin))?;
+    if !actual.is_absolute() || !same_file::is_same_file(&actual, &executable)? {
         return Err("a different installation replaced the running executable".into());
     }
     Ok(())

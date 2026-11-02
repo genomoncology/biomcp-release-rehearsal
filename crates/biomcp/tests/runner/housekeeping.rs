@@ -70,8 +70,16 @@ fn check() -> Check {
         {
             return Err("verbose build or schema provenance differs from this artifact".into());
         }
-        if !empty && !text.contains(&config.display().to_string()) {
-            return Err("config path does not match the settings boundary".into());
+        if !empty {
+            let actual = text
+                .lines()
+                .find_map(|line| line.strip_prefix("Config: "))
+                .ok_or("missing config path")?;
+            if !Path::new(actual).is_absolute() || !same_file::is_same_file(actual, &config)? {
+                return Err(format!(
+                    "config path does not match the settings boundary: actual={actual:?}, expected={config:?}"
+                ).into());
+            }
         }
         for client in [
             None,
@@ -119,7 +127,7 @@ fn check_config(env: &Environment, client: Option<&str>, empty: bool) -> Check {
         .and_then(Value::as_str)
         .ok_or("missing executable")?;
     let expected = env.command(env!("CARGO_BIN_EXE_biomcp"), &[]);
-    if Path::new(path).canonicalize()? != Path::new(expected.get_program()).canonicalize()?
+    if !same_file::is_same_file(path, expected.get_program())?
         || !Path::new(path).is_absolute()
         || !Path::new(path).is_file()
         || entry.get("args") != Some(&json!(["serve"]))
@@ -180,17 +188,18 @@ fn shell_client(env: &Environment, empty: bool) -> Check {
     )?;
     let words = shlex::split(success(&output)?).ok_or("invalid shell command")?;
     let expected = env.command(env!("CARGO_BIN_EXE_biomcp"), &[]);
-    let path = Path::new(expected.get_program()).canonicalize()?;
-    let expected = [
-        "codex",
-        "mcp",
-        "add",
-        "biomcp",
-        "--",
-        path.to_str().ok_or("invalid executable path")?,
-        "serve",
-    ];
-    if words != expected {
+    let [codex, mcp, add, biomcp, separator, path, serve] = words.as_slice() else {
+        return Err(format!("wrong shell client configuration: {words:?}").into());
+    };
+    if codex != "codex"
+        || mcp != "mcp"
+        || add != "add"
+        || biomcp != "biomcp"
+        || separator != "--"
+        || serve != "serve"
+        || !Path::new(path).is_absolute()
+        || !same_file::is_same_file(path, expected.get_program())?
+    {
         return Err(format!("wrong shell client configuration: {words:?}").into());
     }
     Ok(())
