@@ -51,6 +51,8 @@ class HostedWorkflow(unittest.TestCase):
         bootstrap = qualify.split('uses: actions/setup-python@')[0]
         self.assertIn("runner.os == 'Windows' && 'python' || 'python3'", bootstrap)
         self.assertIn('make fmt lint test', qualify)
+        checks = qualify.split('make fmt lint test docs-check', 1)[1]
+        self.assertLess(checks.index('cargo clean --profile dev'), checks.index('run: make release-linux'))
         self.assertIn("matrix.platform == 'manylinux_2_28_x86_64'", qualify)
         self.assertIn('--staged-formula staged/biomcp.rb', workflow)
         self.assertIn('needs: [candidate, stage, staged-homebrew]', workflow)

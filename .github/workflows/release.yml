@@ -113,6 +113,8 @@ jobs:
           df -h . "${TMPDIR:-/tmp}"
           trap 'df -h . "${TMPDIR:-/tmp}"' EXIT
           make fmt lint test docs-check
+          du -sh target/debug
+          cargo clean --profile dev
       - name: Build and install native artifacts, including CLI version and offline health
         if: runner.os != 'Linux'
         shell: bash
