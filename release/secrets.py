@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import io
 import json
+import lzma
 import os
 from pathlib import Path, PurePosixPath
 import platform
@@ -74,13 +75,18 @@ def git(target, env, *args):
                                    env=env, stderr=subprocess.DEVNULL)
 
 
-def inputs(mode, target, env, since=None):
+def inputs(mode, target, env, since=None, progress=None):
     if mode != "history":
         def unreadable(error):
             raise error
         for directory, directories, files in os.walk(target, followlinks=False, onerror=unreadable):
             for name in sorted(directories + files):
                 path = Path(directory) / name
+                # Only fixed publication labels can cross the diagnostic boundary.
+                # Nested paths and arbitrary filesystem names may contain secrets.
+                if progress is not None:
+                    progress["artifact"] = (name if name in ("biomcp-container-amd64.tar", "biomcp-container-arm64.tar")
+                                            else "untrusted-artifact-name")
                 if path.is_symlink() or not (path.is_file() or path.is_dir()):
                     raise ValueError("nonregular artifact")
                 if path.is_file():
@@ -132,7 +138,19 @@ def inputs(mode, target, env, since=None):
                 raise ValueError("historical blob reader failed")
 
 
-def prepare(target, mode, root, env, since=None):
+def alternatives_metadata(name, payload):
+    # dpkg names each alternatives database after its link group, including
+    # groups such as builtins.7.gz. These are text records, not gzip members.
+    # Only a nested canonical database path with a text header qualifies;
+    # gzip magic still takes precedence and every byte is screened above.
+    parts = name.split("!")
+    path = PurePosixPath(parts[-1])
+    return (len(parts) > 1 and path.parent == PurePosixPath("var/lib/dpkg/alternatives")
+            and payload.startswith((b"auto\n", b"manual\n"))
+            and all(byte in (9, 10, 13) or 32 <= byte <= 126 for byte in payload))
+
+
+def prepare(target, mode, root, env, since=None, progress=None):
     directory = root / "inputs"
     directory.mkdir()
     mapping, total, members = {}, 0, 0
@@ -206,7 +224,7 @@ def prepare(target, mode, root, env, since=None):
                 # A nested declared archive keeps its own strict error policy;
                 # its failure must not become an outer opaque-blob fallback.
                 add(nested, content, depth + 1)
-        elif payload.startswith(b"\x1f\x8b") or suffix.endswith((".gz", ".tgz")):
+        elif payload.startswith(b"\x1f\x8b") or (suffix.endswith((".gz", ".tgz")) and not alternatives_metadata(name, payload)):
             with gzip.GzipFile(fileobj=io.BytesIO(payload)) as source:
                 add(name + "!uncompressed.tar" if suffix.endswith((".tar.gz", ".tgz")) else name + "!uncompressed", source.read(MAX_FILE + 1), depth + 1)
         elif suffix.endswith(".tar") or (len(payload) > 262 and payload[257:262] == b"ustar"):
@@ -231,12 +249,16 @@ def prepare(target, mode, root, env, since=None):
                             add(nested, source.read(MAX_FILE + 1), depth + 1)
                     else:
                         raise ValueError("unsupported archive member")
-        elif suffix.endswith((".7z", ".rar", ".bz2", ".xz", ".zst")) or payload.startswith((b"7z\xbc\xaf\x27\x1c", b"Rar!", b"BZh", b"\xfd7zXZ\x00", b"\x28\xb5\x2f\xfd")):
+        elif payload.startswith(b"\xfd7zXZ\x00") or suffix.endswith(".xz"):
+            with lzma.LZMAFile(io.BytesIO(payload)) as source:
+                add(name + "!uncompressed.tar" if suffix.endswith(".tar.xz") else name + "!uncompressed",
+                    source.read(MAX_FILE + 1), depth + 1)
+        elif suffix.endswith((".7z", ".rar", ".bz2", ".zst")) or payload.startswith((b"7z\xbc\xaf\x27\x1c", b"Rar!", b"BZh", b"\xfd7zXZ\x00", b"\x28\xb5\x2f\xfd")):
             if mode == "history" and not suffix.endswith(ARCHIVE_SUFFIXES):
                 opaque()
                 return
             raise ValueError("unsupported archive compression")
-    for name, payload in inputs(mode, target, env, since):
+    for name, payload in inputs(mode, target, env, since, progress):
         blob = hashlib.sha1(b"blob " + str(len(payload)).encode() + b"\0" + payload).hexdigest() if mode == "history" else ""
         origin = {"blob": blob, "git_file": name}
         add(name, payload)
@@ -324,7 +346,38 @@ def findings(report, mapping, staging):
                staging / key, (int(first), int(last), int(column), int(end)))
 
 
+ERRORS = (OSError, ValueError, KeyError, subprocess.SubprocessError,
+          tarfile.TarError, zipfile.BadZipFile, lzma.LZMAError, RuntimeError, EOFError, TypeError)
+
+
+class ScreeningError(Exception):
+    """Only fixed classifications and artifact coordinates cross this boundary."""
+
+    def __init__(self, category, progress):
+        self.diagnostic = {"category": category, **progress}
+
+
 def scan(mode, target, cache, since=None):
+    progress = {"stage": "target-validation", "artifact": "scan-target"}
+    try:
+        return screen(mode, target, cache, since, progress)
+    except HistoryBindingError:
+        raise
+    except ERRORS as error:
+        if isinstance(error, gzip.BadGzipFile):
+            category = "validation"
+        elif isinstance(error, OSError):
+            category = "filesystem"
+        elif progress["stage"] in ("scanner-execution", "scanner-report"):
+            category = "scanner"
+        elif isinstance(error, (ValueError, tarfile.TarError, zipfile.BadZipFile, lzma.LZMAError, EOFError)):
+            category = "validation"
+        else:
+            category = "preparation"
+        raise ScreeningError(category, progress) from None
+
+
+def screen(mode, target, cache, since, progress):
     if target.is_symlink():
         raise ValueError("symbolic-link scan target")
     target = target.resolve(strict=True)
@@ -340,9 +393,19 @@ def scan(mode, target, cache, since=None):
                "GIT_NO_LAZY_FETCH": "1", "GIT_GRAFT_FILE": os.devnull, "GIT_CONFIG_COUNT": "2",
                "GIT_CONFIG_KEY_0": "core.hooksPath", "GIT_CONFIG_VALUE_0": os.devnull,
                "GIT_CONFIG_KEY_1": "core.fsmonitor", "GIT_CONFIG_VALUE_1": "false"}
+        progress["stage"] = "scanner-preparation"
         binary = scanner(cache.resolve(), root)
-        staging, mapping = prepare(target, mode, root, env, since)
+        progress["stage"] = "artifact-preparation"
+        staging, mapping = prepare(target, mode, root, env, since, progress)
+        progress.update(stage="scanner-configuration", artifact="scan-target")
         config, template, ignore, report = [root / name for name in ["config.toml", "report.tmpl", "ignore", "report.txt"]]
+        digests = set()
+        if mode == "artifacts":
+            if __package__:
+                from .public_fixtures import reviewed, recognized
+            else:
+                from public_fixtures import reviewed, recognized
+            digests = reviewed()
         config.write_text(scanner_config(mode, mapping, staging))
         template.write_text(r'{{range .}}{{printf "%s\t%s\t%d\t%d\t%d\t%d\n" .File .RuleID .StartLine .EndLine .StartColumn .EndColumn}}{{end}}')
         ignore.write_text("\n".join(history_ignores(target, env, mapping, staging)) if mode == "history" else "")
@@ -350,29 +413,46 @@ def scan(mode, target, cache, since=None):
                    "--ignore-gitleaks-allow", "--redact=100", "--no-banner", "--no-color", "--log-level", "error",
                    "--report-format", "template", "--report-template", str(template), "--report-path", str(report)]
         # Never retain raw scanner diagnostics or JSON/SARIF finding reports.
+        progress["stage"] = "scanner-execution"
         result = subprocess.run(command, cwd=root, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         if result.stderr:
             raise ValueError("secret scanner could not screen every input")
         if result.returncode == 1 and report.is_file():
-            for finding, _, _ in findings(report, mapping, staging):
+            progress["stage"] = "scanner-report"
+            rejected = False
+            reported = 0
+            for finding, path, coordinates in findings(report, mapping, staging):
+                reported += 1
+                if mode == "artifacts" and finding["rule"] == "private-key" and recognized(path, coordinates, digests):
+                    continue
+                rejected = True
                 print(json.dumps({"file": finding["file"], "rule": finding["rule"]}))
-            return 1
+            if not reported:
+                raise ValueError("secret scanner finding report was empty")
+            if rejected:
+                return 1
+            print("Secret scan passed")
+            return 0
         if result.returncode:
             raise ValueError("secret scanner failed; diagnostic output was suppressed")
         print("Secret scan passed")
         return 0
 
 
-if __name__ == "__main__":
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=["history", "artifacts"])
     parser.add_argument("target", type=Path)
     parser.add_argument("--cache", type=Path, default=Path("target/security-tools"))
     parser.add_argument("--since", help="previously scanned ancestor commit; omit for full history")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     try:
         raise SystemExit(scan(args.mode, args.target, args.cache, args.since))
     except HistoryBindingError as error:
         parser.exit(2, json.dumps({"code": error.code, "row": error.row}) + "\n")
-    except (OSError, ValueError, KeyError, subprocess.SubprocessError, tarfile.TarError, zipfile.BadZipFile, RuntimeError, EOFError, TypeError):
-        parser.exit(2, "Secret screening failed; diagnostic output was suppressed\n")
+    except ScreeningError as error:
+        parser.exit(2, json.dumps(error.diagnostic) + "\n")
+
+
+if __name__ == "__main__":
+    main()

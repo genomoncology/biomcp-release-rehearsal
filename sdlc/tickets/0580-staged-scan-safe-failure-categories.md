@@ -1,6 +1,7 @@
 # Staged artifact secret scan names its failure category
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a68f0cfb819d6316b7824ea2292927ecdc642aba
 Milestone: 5
 
 ## Outcome

@@ -1,5 +1,8 @@
 """Security boundaries exercised through the real scanner and audit commands."""
 import io
+import gzip
+import hashlib
+import lzma
 import json
 import os
 from pathlib import Path
@@ -18,8 +21,166 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Screening(unittest.TestCase):
+    def test_screening_failures_report_safe_categories_without_exception_values(self):
+        from contextlib import redirect_stderr
+        from release.secrets import main
+        # Inject failures at the command boundary: the exception value must never
+        # reach stderr, including preparation and child-process diagnostics.
+        cases = [(RuntimeError, "preparation"), (OSError, "filesystem"),
+                 (ValueError, "validation"), (KeyError, "preparation"),
+                 (TypeError, "preparation"), (EOFError, "validation"), (lzma.LZMAError, "validation"),
+                 (tarfile.ReadError, "validation"), (zipfile.BadZipFile, "validation"),
+                 (gzip.BadGzipFile, "validation")]
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)
+            for kind, category in cases:
+                with self.subTest(kind=kind), patch("release.secrets.scanner", side_effect=kind("private scanned value")):
+                    output = io.StringIO()
+                    with redirect_stderr(output), self.assertRaises(SystemExit) as stopped:
+                        main(["artifacts", str(target)])
+                    self.assertEqual(stopped.exception.code, 2)
+                    self.assertEqual(json.loads(output.getvalue()), {
+                        "category": category, "stage": "scanner-preparation", "artifact": "scan-target"})
+            with patch("release.secrets.scanner", return_value=target / "scanner"), patch(
+                    "release.secrets.subprocess.run", side_effect=subprocess.SubprocessError("private scanned value")):
+                output = io.StringIO()
+                with redirect_stderr(output), self.assertRaises(SystemExit) as stopped:
+                    main(["artifacts", str(target)])
+                self.assertEqual(stopped.exception.code, 2)
+                self.assertEqual(json.loads(output.getvalue()), {
+                    "category": "scanner", "stage": "scanner-execution", "artifact": "scan-target"})
+
+    def test_failure_coordinates_do_not_disclose_untrusted_names(self):
+        from contextlib import redirect_stderr
+        from release.secrets import main
+        marker = "private-scanned-name"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            target = root / marker
+            target.mkdir()
+            for filename in [marker + ".tar", "biomcp-container-amd64.tar"]:
+                artifact = target / filename
+                with tarfile.open(artifact, "w") as archive:
+                    member = tarfile.TarInfo(marker + ".gz")
+                    member.size = 6
+                    archive.addfile(member, io.BytesIO(b"broken"))
+                output = io.StringIO()
+                with patch("release.secrets.scanner", return_value=root / "scanner"), redirect_stderr(output), self.assertRaises(SystemExit) as stopped:
+                    main(["artifacts", str(target)])
+                self.assertEqual(stopped.exception.code, 2)
+                self.assertNotIn(marker, output.getvalue())
+                diagnostic = json.loads(output.getvalue())
+                self.assertEqual(diagnostic["artifact"], filename if filename.startswith("biomcp-") else "untrusted-artifact-name")
+                artifact.unlink()
+
+    def test_container_alternatives_metadata_is_screened_as_text_and_manpages_are_expanded(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            artifacts = root / "artifacts"
+            artifacts.mkdir()
+            token = "ghp_" + secrets.token_hex(18)
+            secret = ("access_token = " + token + "\n").encode()
+            metadata = b"auto\n/usr/share/man/man7/builtins.7.gz\n\n/usr/share/man/man7/bash-builtins.7.gz\n10\n\n"
+            def screen(database, manpage):
+                with tarfile.open(artifacts / "container.tar", "w") as archive:
+                    for name, payload in [("var/lib/dpkg/alternatives/builtins.7.gz", database),
+                                          ("usr/share/man/man7/bash-builtins.7.gz", manpage)]:
+                        member = tarfile.TarInfo(name)
+                        member.size = len(payload)
+                        archive.addfile(member, io.BytesIO(payload))
+                return subprocess.run([sys.executable, str(ROOT / "release/secrets.py"), "artifacts", str(artifacts)],
+                                      cwd=ROOT, env={**environment(root), "PATH": os.defpath},
+                                      capture_output=True, text=True)
+            clean = screen(metadata, gzip.compress(b"manual page"))
+            self.assertEqual(clean.returncode, 0, clean.stderr)
+            for database, manpage, location in [
+                    (metadata + secret, gzip.compress(b"manual page"), "alternatives/builtins.7.gz"),
+                    (metadata, gzip.compress(secret), "bash-builtins.7.gz!uncompressed"),
+                    (gzip.compress(secret), gzip.compress(b"manual page"), "alternatives/builtins.7.gz!uncompressed")]:
+                result = screen(database, manpage)
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertIn(location, result.stdout)
+                self.assertNotIn(token, result.stdout + result.stderr)
+            self.assertEqual(screen(metadata, b"broken gzip").returncode, 2)
+
+    def test_container_compressed_logs_are_expanded_and_malformed_streams_fail_closed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            artifacts = root / "artifacts"
+            artifacts.mkdir()
+            token = "ghp_" + secrets.token_hex(18)
+            secret = ("access_token = " + token + "\n").encode()
+            for suffix, compress in [("xz", lzma.compress)]:
+                for payload, expected in [(compress(b"clean log\n"), 0), (compress(secret), 1), (b"broken", 2), (compress(b"clean log\n")[:-1], 2)]:
+                    with tarfile.open(artifacts / "container.tar", "w") as archive:
+                        member = tarfile.TarInfo("var/log/apt/eipp.log." + suffix)
+                        member.size = len(payload)
+                        archive.addfile(member, io.BytesIO(payload))
+                    result = subprocess.run([sys.executable, str(ROOT / "release/secrets.py"), "artifacts", str(artifacts)],
+                                            cwd=ROOT, env={**environment(root), "PATH": os.defpath},
+                                            capture_output=True, text=True)
+                    self.assertEqual(result.returncode, expected, result.stderr)
+                    self.assertNotIn(token, result.stdout + result.stderr)
+                    if expected == 1:
+                        self.assertIn("eipp.log." + suffix + "!uncompressed", result.stdout)
+
+    def test_reviewed_public_fixtures_do_not_exempt_fresh_or_changed_keys_in_same_library(self):
+        from release.public_fixtures import reviewed, POLICY
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            artifacts, tools = root / "artifacts", root / "tools"
+            artifacts.mkdir()
+            tools.mkdir()
+            for name in ["secrets.py", "smoke.py", "toolchain.py", "toolchain.json", "public_fixtures.py"]:
+                shutil.copy2(ROOT / "release" / name, tools / name)
+            def key():
+                return subprocess.check_output([shutil.which("openssl"), "genpkey", "-algorithm", "RSA",
+                                                "-pkeyopt", "rsa_keygen_bits:1024"], stderr=subprocess.DEVNULL).strip()
+            # Ephemeral synthetic material exercises the offline digest boundary.
+            fixture, fresh = key(), key()
+            policy = json.loads(POLICY.read_text())
+            policy["fixtures"][0]["sha256"] = hashlib.sha256(fixture).hexdigest()
+            policy_path = tools / "public-fixtures.json"
+            policy_path.write_text(json.dumps(policy))
+            original = b"\x7fELF\xff\x00" + fixture + b"\n"
+            changed = fixture.replace(b"\n", b"\nA", 1)
+            library = artifacts / "libgnutls.so.30.34.3"
+            # The pinned scanner cannot locate an unterminated multiline EOF
+            # match completely. Incomplete coordinates must remain fatal.
+            for payload, expected in [(original, 0), (original.rstrip(b"\n"), 1), (original + b"\n" + fresh + b"\n", 1),
+                                      (original + b"\n" + changed + b"\n", 1)]:
+                library.write_bytes(payload)
+                result = subprocess.run([sys.executable, str(tools / "secrets.py"), "artifacts", str(artifacts),
+                                         "--cache", str(ROOT / "target/security-tools")],
+                                        cwd=ROOT, env={**environment(root), "PATH": os.defpath},
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, expected, "exact public fixture recognition changed")
+                self.assertNotIn(fresh.decode(), result.stdout + result.stderr)
+            policy["fixtures"][0]["sha256"] = "invalid-digest"
+            policy_path.write_text(json.dumps(policy))
+            with patch("release.public_fixtures.POLICY", policy_path), self.assertRaises(ValueError):
+                reviewed()
+
+    def test_scanner_finding_exit_without_reported_findings_fails_closed(self):
+        from contextlib import redirect_stderr, redirect_stdout
+        from release.secrets import main
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)
+            def empty_report(command, **kwargs):
+                Path(command[command.index("--report-path") + 1]).touch()
+                return subprocess.CompletedProcess(command, 1, stderr=b"")
+            output, diagnostic = io.StringIO(), io.StringIO()
+            with patch("release.secrets.scanner", return_value=target / "scanner"), patch(
+                    "release.secrets.subprocess.run", side_effect=empty_report), redirect_stdout(output), redirect_stderr(diagnostic):
+                with self.assertRaises(SystemExit) as stopped:
+                    main(["artifacts", str(target)])
+            self.assertEqual(stopped.exception.code, 2)
+            self.assertEqual(output.getvalue(), "")
+            self.assertEqual(json.loads(diagnostic.getvalue()), {
+                "category": "scanner", "stage": "scanner-report", "artifact": "scan-target"})
+
     def test_history_scan_uses_isolated_git_location_and_fails_closed_without_git(self):
-        from release.secrets import scan
+        from release.secrets import scan, ScreeningError
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
             repo, tools, missing = [root / name for name in ["repo", "usr/local/bin", "missing"]]
@@ -39,7 +200,7 @@ class Screening(unittest.TestCase):
             with patch("os.defpath", str(missing)), patch("os.get_exec_path", side_effect=isolated_search), patch.dict(os.environ, {"PATH": str(missing)}):
                 self.assertEqual(scan("history", repo, ROOT / "target/security-tools"), 0)
                 (tools / "git").unlink()
-                with self.assertRaises(FileNotFoundError):
+                with self.assertRaises(ScreeningError):
                     scan("history", repo, ROOT / "target/security-tools")
 
     def test_history_scan_excludes_detached_siblings_but_keeps_candidate_and_named_refs(self):
@@ -197,7 +358,7 @@ class Screening(unittest.TestCase):
             candidate.write_bytes(b"PK\x03\x04broken archive")
             corrupt = screen()
             self.assertEqual(corrupt.returncode, 2, "corrupt archive must fail closed")
-            self.assertEqual(corrupt.stderr, "Secret screening failed; diagnostic output was suppressed\n")
+            self.assertEqual(json.loads(corrupt.stderr), {"category": "validation", "stage": "artifact-preparation", "artifact": "untrusted-artifact-name"})
             candidate.write_bytes(next((ROOT / "tests/replies/article/supplements/synthetic-bound-directory-size").rglob("*.bin")).read_bytes())
             self.assertEqual(screen().returncode, 2, "malformed directory size in a staged archive must fail closed")
             with zipfile.ZipFile(candidate, "w") as archive:
