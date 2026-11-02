@@ -1,5 +1,9 @@
 # Source and entity cautions
 
+## Cache and store storage
+
+Keep cache and store folders on a local disk, or a local Docker named volume. Sharing one cache between several processes through a Docker Desktop host bind mount or a network filesystem is unsupported and can lose cache writes. [SQLite WAL](https://www.sqlite.org/wal.html#overview) requires processes to share memory on the same host and does not support network filesystems. See [cache and store configuration](configuration.md#cache-and-store-folders) for folder selection and Docker storage.
+
 ## Article text and supplement saves
 
 CLI saves require `--replace` for existing files. Stdio MCP allows new-file saves and refuses `--save` with `--replace` before provider requests or file changes. HTTP server calls refuse saves. CLI and stdio MCP saves belong to the caller and create no download directory or saved-file registry.

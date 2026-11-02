@@ -1,6 +1,7 @@
 # Document where the cache and store may live
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d2cf771f51afd389f4683c46541fd8c573358e23
 Milestone: 5
 
 ## Outcome

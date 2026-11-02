@@ -22,6 +22,8 @@ Every source and component field is enabled by default, including noncommercial 
 
 BioMCP reads `$XDG_CONFIG_HOME/biomcp/config.json` or `~/.config/biomcp/config.json` on Unix, and `%APPDATA%/biomcp/config.json` on Windows. Use `--config PATH` for another file. Source names and the `noncommercial` and `restricted` groups also work with `--disable-sources`. Configuration and command exclusions combine. Exclusions also prevent disabled data from returning through cache, replay or stored collections.
 
+See [server configuration](docs/configuration.md) for cache and store folders, Docker storage and server settings.
+
 Use `biomcp key set oncokb` to enter your own key at a prompt that hides input. Keys stay in the configuration folder and out of shell history. `biomcp key list` reports credential names and origins without values. Source-specific environment variables remain available; `biomcp help key oncokb` explains the supported names. A source that requires your account or license sends no request without your key. An optional key raises its source's limit; the source remains available at its public limit without it.
 
 For company networks, `ca_bundle` adds PEM certificates to platform trust and keeps verification enabled. `proxy` sets an explicit HTTP or HTTPS proxy. Otherwise BioMCP prefers `https_proxy`, `http_proxy` and `no_proxy` over `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY`. Use `biomcp help network ca_bundle` or `biomcp help network proxy` for details.
