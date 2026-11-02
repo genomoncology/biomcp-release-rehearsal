@@ -68,11 +68,7 @@ pub(crate) fn run(list: bool, details: bool) -> Result<Value, String> {
     let mut results = Vec::new();
     let mut sources = BTreeMap::<String, Value>::new();
     for (path, case) in cases {
-        let name = path
-            .strip_prefix(&root)
-            .map_err(|e| e.to_string())?
-            .display()
-            .to_string();
+        let name = super::case_name(&path, &root)?;
         let skip = eligibility(&case);
         if let Some(reason) = skip {
             results.push(json!({"case": name, "skipped": reason}));

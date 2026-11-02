@@ -135,6 +135,16 @@ use std::{fs, path::Path, sync::Arc};
 mod case_data;
 use case_data::{Case, Step, collect, read_case};
 
+fn case_name(path: &Path, root: &Path) -> Result<String, String> {
+    Ok(path
+        .strip_prefix(root)
+        .map_err(|error| error.to_string())?
+        .iter()
+        .map(|part| part.to_str().ok_or("case path must be UTF-8"))
+        .collect::<Result<Vec<_>, _>>()?
+        .join("/"))
+}
+
 pub(super) fn discover(root: &Path) -> Result<Vec<Trial>, String> {
     let mut paths = Vec::new();
     collect(root, &mut paths).map_err(|error| format!("{}: {error}", root.display()))?;
@@ -146,13 +156,7 @@ pub(super) fn discover(root: &Path) -> Result<Vec<Trial>, String> {
     let trials = paths
         .into_iter()
         .map(|path| {
-            let name = path
-                .strip_prefix(root)
-                .map_err(|error| error.to_string())?
-                .iter()
-                .map(|part| part.to_str().ok_or("case path must be UTF-8"))
-                .collect::<Result<Vec<_>, _>>()?
-                .join("/");
+            let name = case_name(&path, root)?;
             let case = read_case(&path)?;
             let name = format!("{}/{name}", case.feature);
             let registry = Arc::clone(&registry);

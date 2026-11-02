@@ -1,6 +1,7 @@
 # Windows offline eligibility list
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 18b0e4e719596567a479b11f95b4773c3af14ec3
 Milestone: 5
 
 ## Outcome
