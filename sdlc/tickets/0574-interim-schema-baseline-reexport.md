@@ -1,6 +1,7 @@
 # Interim schema baseline re-export for rehearsals
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: ea28347c3ec69125886b40cdf21152dce7c30ac4
 Milestone: 5
 
 ## Outcome
