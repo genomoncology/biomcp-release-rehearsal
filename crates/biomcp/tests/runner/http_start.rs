@@ -1,6 +1,8 @@
 //! Start one isolated HTTP process and retain its validated readiness address.
 use super::{Environment, Server};
 use serde_json::Value;
+#[cfg(unix)]
+use serde_json::json;
 use std::{net::SocketAddr, process::Stdio, time::Duration};
 impl Server {
     pub(super) fn configured_key(
@@ -12,10 +14,6 @@ impl Server {
     ) -> Result<Self, String> {
         Self::configured_globals(bind, config, replay, key, allowed_host, &[])
     }
-    #[expect(
-        clippy::disallowed_types,
-        reason = "Own the HTTP diagnostic receiver shared by concurrent test callers"
-    )]
     pub(in crate::runner) fn configured_globals(
         bind: &str,
         config: Option<Value>,
@@ -23,6 +21,29 @@ impl Server {
         key: Option<(&str, &str)>,
         allowed_host: Option<&str>,
         globals: &[String],
+    ) -> Result<Self, String> {
+        Self::configured_launch(
+            bind,
+            config,
+            replay,
+            key,
+            allowed_host,
+            globals,
+            |env, args| env.command(env!("CARGO_BIN_EXE_biomcp"), args),
+        )
+    }
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Own the HTTP diagnostic receiver shared by concurrent test callers"
+    )]
+    pub(super) fn configured_launch(
+        bind: &str,
+        config: Option<Value>,
+        replay: Option<std::path::PathBuf>,
+        key: Option<(&str, &str)>,
+        allowed_host: Option<&str>,
+        globals: &[String],
+        launch: impl FnOnce(&Environment, &[String]) -> crate::runner::capture::Capture,
     ) -> Result<Self, String> {
         let environment = Environment::new().map_err(|e| e.to_string())?;
         if let Some(config) = config {
@@ -37,7 +58,7 @@ impl Server {
         if let Some(path) = replay {
             args.extend(environment.globals(Some(&path), false));
         }
-        let mut command = environment.command(env!("CARGO_BIN_EXE_biomcp"), &args);
+        let mut command = launch(&environment, &args);
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
@@ -88,4 +109,39 @@ impl Server {
             .map_err(|_| "invalid listening address")?;
         Ok(server)
     }
+}
+
+#[cfg(unix)]
+pub(super) fn ignored_interrupt() -> super::Check {
+    let mut server = Server::configured_launch(
+        "127.0.0.1:0",
+        None,
+        None,
+        None,
+        None,
+        &["--hosted".into()],
+        |env, args| {
+            let binary = crate::runner::launch::executable(std::path::Path::new(env!(
+                "CARGO_BIN_EXE_biomcp"
+            )));
+            let mut shell = vec![
+                "-c".into(),
+                "trap '' INT; exec \"$@\"".into(),
+                "sh".into(),
+                binary.to_string_lossy().into_owned(),
+            ];
+            shell.extend_from_slice(args);
+            env.command("sh", &shell)
+        },
+    )?;
+    let request = crate::runner::mcp::request(json!(1), "ping", json!({}));
+    let (status, reply) = server.request("POST", "/mcp", &request.to_string())?;
+    if status != 200
+        || reply.get("id") != Some(&json!(1))
+        || !reply.get("result").is_some_and(Value::is_object)
+        || reply.get("error").is_some()
+    {
+        return Err(format!("ignored SIGINT MCP ping: {status} {reply}"));
+    }
+    server.shutdown(true)
 }

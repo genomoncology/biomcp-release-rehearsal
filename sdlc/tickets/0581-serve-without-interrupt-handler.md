@@ -1,6 +1,7 @@
 # Serve keeps running or says why when it cannot catch interrupts
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 50407d21070635e84cbc28f905e646ba8cdc1b56
 Milestone: 5
 
 ## Outcome

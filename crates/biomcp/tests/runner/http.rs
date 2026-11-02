@@ -17,6 +17,10 @@ pub(super) fn trials() -> Vec<Trial> {
         transcript_trial(crate::runner::pool_contract::HTTP_CAPACITY.0, || {
             super::http_capacity::check().map_err(Into::into)
         }),
+        #[cfg(unix)]
+        transcript_trial("mcp-http/ignored-interrupt-keeps-serving", || {
+            start::ignored_interrupt().map_err(Into::into)
+        }),
         transcript_trial("mcp-http/local-health-and-discovery", || {
             lifecycle().map_err(Into::into)
         }),
@@ -60,6 +64,9 @@ impl Drop for Server {
 }
 impl Server {
     pub(super) fn stop(&mut self) -> Check {
+        self.shutdown(false)
+    }
+    fn shutdown(&mut self, _terminate: bool) -> Check {
         if self.child.try_wait().map_err(|e| e.to_string())?.is_some() {
             return Ok(());
         }
@@ -68,8 +75,15 @@ impl Server {
             let pid = nix::unistd::Pid::from_raw(
                 self.child.id().try_into().map_err(|_| "HTTP process ID")?,
             );
-            nix::sys::signal::kill(pid, nix::sys::signal::Signal::SIGINT)
-                .map_err(|e| e.to_string())?;
+            nix::sys::signal::kill(
+                pid,
+                if _terminate {
+                    nix::sys::signal::Signal::SIGTERM
+                } else {
+                    nix::sys::signal::Signal::SIGINT
+                },
+            )
+            .map_err(|e| e.to_string())?;
         }
         // Native Windows console Ctrl-C is exercised by the platform rehearsal.
         #[cfg(windows)]

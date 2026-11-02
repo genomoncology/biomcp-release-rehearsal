@@ -90,10 +90,14 @@ pub(crate) fn serve(
         settings,
     });
     let (stop, stopped) = std::sync::mpsc::sync_channel(1);
-    ctrlc::try_set_handler(move || {
+    // This standalone server owns shutdown, including inherited ignored signals.
+    ctrlc::set_handler(move || {
         let _ = stop.try_send(());
     })
-    .map_err(|_| StartError::Local)?;
+    .map_err(|_| {
+        crate::output::diagnostic(b"biomcp: could not install HTTP shutdown handler\n");
+        StartError::Local
+    })?;
     let mut ready = serde_json::to_vec(&json!({"listening":address.to_string()}))
         .map_err(|_| StartError::Local)?;
     ready.push(b'\n');
