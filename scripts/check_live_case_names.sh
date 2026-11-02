@@ -4,7 +4,6 @@ set -eu
 cd "$(dirname "$0")/.."
 export RUSTUP_TOOLCHAIN=1.95.0
 python3.13 --version
-python3.13 scripts/check_shell.py
-make fmt lint-workspace ratchets
+make check-cheap
 cargo test --locked -p biomcp --test tools -- --proofs live-source-checks/offline-eligibility --exact
 cargo test --locked -p biomcp --test tools -- --proofs schema-discovery/selects-and-lists-cases --exact

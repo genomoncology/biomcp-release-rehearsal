@@ -51,18 +51,24 @@ class GateStages(unittest.TestCase):
             (root / 'untracked.sh').write_text('#!/bin/sh\nif\n')
             (root / 'other.sh').write_text('#!/bin/bash\nif\n')
             subprocess.run(['git', '-C', str(root), 'add', 'release fixture.txt', 'other.sh'], check=True)
+            focused = root / 'scripts/check_focused.sh'
+            focused.write_text('#!/bin/sh\nmake check-cheap\n')
+            subprocess.run(['git', '-C', str(root), 'add', 'scripts/check_focused.sh'], check=True)
             goals = ('fmt', 'unused-dependencies', 'check-no-default-features',
                      'lint-workspace', 'lint-tools', 'ratchets')
             # check-cheap invokes a recursive make; pass omissions to that child.
             command = ['make', '--no-print-directory', 'check-cheap',
                        'MAKE=make ' + ' '.join('-o ' + goal for goal in goals)]
-            for broken in (False, True):
-                if broken:
-                    script.write_text('#!/bin/sh\nif true; then\n')
+            for broken, partial in ((False, False), (True, False), (False, True)):
+                script.write_text('#!/bin/sh\nif true; then\n' + ('' if broken else ':\nfi\n'))
+                focused.write_text('#!/bin/sh\nmake ' +
+                                   ('fmt lint-tools ratchets' if partial else 'check-cheap') + '\n')
                 result = subprocess.run(command, cwd=root, capture_output=True, text=True)
-                self.assertEqual(result.returncode == 0, not broken, result.stdout + result.stderr)
+                self.assertEqual(result.returncode == 0, not (broken or partial), result.stdout + result.stderr)
                 if broken:
                     self.assertIn('release fixture.txt', result.stderr)
+                if partial:
+                    self.assertIn('scripts/check_focused.sh:2: use make check-cheap', result.stderr)
 
     def test_coverage_reuses_completed_gate_prerequisites(self):
         result = subprocess.run(['make', '--no-print-directory', '-n',

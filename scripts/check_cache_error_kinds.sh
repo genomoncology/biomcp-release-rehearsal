@@ -2,7 +2,7 @@
 set -eu
 case "${1:-focused}" in
 cheap)
-    make fmt lint ratchets
+    make check-cheap
     ;;
 generate)
     sh "$0" cheap

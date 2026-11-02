@@ -8,7 +8,7 @@ help)
     cargo test --locked -p biomcp --test cases help
     ;;
 binding)
-    make fmt
+    make check-cheap
     cargo test --locked -p biomcp --bin biomcp grammar::reference::reference_matches_grammar
     python3 scripts/check_docs.py
     ;;

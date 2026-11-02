@@ -10,7 +10,7 @@ case "${1:-focused}" in
     ;;
   focused)
     ruff check --select F401,F841,ERA,BLE,E722,S110 release/notices.py release/test_artifacts.py
-    python3.13 scripts/check_shell.py
+    make check-cheap
     python3.13 -m unittest release.test_artifacts.ReleaseCommands release.test_licenses
     ;;
   *) exit 2 ;;

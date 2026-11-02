@@ -1,6 +1,7 @@
 # Focused check scripts reuse the cheap check
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 08ec38e98040144d755bb43ea237baaa55dad445
 Milestone: 5
 
 ## Outcome

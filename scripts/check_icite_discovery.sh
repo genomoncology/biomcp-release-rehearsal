@@ -6,7 +6,7 @@ export RUSTUP_TOOLCHAIN=1.95.0
 export BIOMCP_TEST_PYTHON=$(python3 -c 'import sys; print(sys.executable)')
 case "${1:-focused}" in
   focused)
-    make fmt lint ratchets
+    make check-cheap
     cargo test --locked -p biomcp --test tools -- --proofs live-source-checks/retained-drift-witnesses
     cargo test --locked -p biomcp --test cases -- article/citations/
     ;;

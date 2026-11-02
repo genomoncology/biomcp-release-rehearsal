@@ -2,7 +2,7 @@
 set -eu
 case "${1:-focused}" in
 red) cargo test --locked -p biomcp --test cases article-search/late-store-lock-keeps-fetched-items ;;
-cheap) make fmt lint ratchets ;;
+cheap) make check-cheap ;;
 schema) make schema-generate ;;
 article) cargo test --locked -p biomcp-query --test article_search ;;
 focused)
@@ -12,8 +12,7 @@ focused)
  sh "$0" retention
  ;;
 retention)
- cargo fmt --all -- --check
- cargo clippy --locked -p biomcp --test cases -- -D warnings
+ make check-cheap
  cargo test --locked -p biomcp --test cases cache-resilience/stale-replies
  cargo test --locked -p biomcp --test cases held-store-lock
  cargo test --locked -p biomcp --test cases store-clean/

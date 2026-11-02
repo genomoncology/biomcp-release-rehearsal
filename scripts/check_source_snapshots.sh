@@ -6,7 +6,7 @@ qualify)
     sh "$0" cases
     ;;
 cheap)
-    make fmt lint ratchets
+    make check-cheap
     ;;
 focused)
     cargo test --locked -p biomcp --test cases cache-resilience/

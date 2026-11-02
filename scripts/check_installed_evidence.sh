@@ -36,13 +36,11 @@ case "${1:-linux}" in
       /tmp/check/tool-runner /tmp/check/target/fixture-evidence
     ;;
   focused)
-    cargo fmt --all -- --check
-    python3.13 scripts/check_shell.py
+    make check-cheap
     python3.13 -m unittest release.test_linux
     cargo test --locked -p biomcp --test tools -- --proofs --exact schema-discovery/retains-failed-local-peer-state
     cargo test --locked -p biomcp --test tools -- --proofs --exact schema-discovery/persistent-fixture-evidence
     cargo test --locked -p biomcp --test tools -- --proofs --exact schema-discovery/persistent-native-evidence
-    cargo clippy --locked -p biomcp --test tools -- -D warnings
     ;;
   boundary)
     ruff check --select F401,F841,ERA,BLE,E722,S110 release/container_check.py release/test_linux.py

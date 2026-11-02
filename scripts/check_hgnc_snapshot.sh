@@ -6,9 +6,7 @@ export PATH="$HOME/.local/bin:$PATH"
 export RUSTUP_TOOLCHAIN=1.95.0
 case "${1:-}" in
     '')
-        cargo fmt --all -- --check
-        cargo clippy --locked -p biomcp-fetch -p biomcp-query --all-targets -- -D warnings
-        cargo clippy --locked -p biomcp --test tools -- -D warnings
+        make check-cheap
         cargo test --locked -p biomcp-fetch --lib sqlite_diagnostic
         cargo test --locked -p biomcp-fetch --lib cache::contention
         ;;

@@ -3,7 +3,7 @@
 set -eu
 case "${1:-focused}" in
 qualify)
-    make fmt lint ratchets
+    make check-cheap
     sh "$0" focused
     sh "$0" cases
     sh "$0" diagnostic "$2" "$3"
