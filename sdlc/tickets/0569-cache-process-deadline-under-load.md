@@ -1,6 +1,7 @@
 # Cache process test deadline under load
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 06a0e68bfdb5a9a5721ee9c7b71d06e2c5729882
 Milestone: 5
 
 ## Outcome
