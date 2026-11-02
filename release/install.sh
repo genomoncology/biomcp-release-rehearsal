@@ -16,7 +16,11 @@ fail() { echo "$*" >&2; exit 1; }
 
 download() {
   if command -v curl >/dev/null 2>&1; then
-    curl --proto '=https' --proto-redir '=https' -fsSL --connect-timeout 10 --max-time 120 "$1" -o "$2"
+    set -- --proto '=https' --proto-redir '=https' -fsSL --connect-timeout 10 --max-time 120 "$1" -o "$2"
+    if [ -n "${CURL_CA_BUNDLE:-}" ]; then
+      set -- --cacert "$CURL_CA_BUNDLE" "$@"
+    fi
+    curl "$@"
   elif command -v wget >/dev/null 2>&1; then
     # GNU wget's --https-only governs recursive links. Check each redirect
     # ourselves because its ordinary downloader may otherwise follow HTTP.

@@ -187,7 +187,16 @@ def installed(args):
         shutil.copy2(item, release / item.name)
     public_destination = root / "download-installer-bin"
     with https_server(downloads, shutil.which("openssl", path=installer_environment(root, bash)["PATH"]) or "openssl") as (base, ca):
-        download_env = {**installer_environment(root, bash), "BIOMCP_RELEASE_BASE_URL": base, "BIOMCP_INSTALL_DIR": public_destination.as_posix(), "CURL_CA_BUNDLE": str(ca)}
+        download_env = {**installer_environment(root, bash), "BIOMCP_RELEASE_BASE_URL": base, "BIOMCP_INSTALL_DIR": public_destination.as_posix(), "CURL_CA_BUNDLE": ca.as_posix()}
+        # Identify the actual downloader and CA readability in this shell's
+        # isolated context, without exposing parent configuration or credentials.
+        diagnostic = (
+            'if command -v curl >/dev/null 2>&1; then '
+            'printf "Installer downloader: %s\\n" "$(command -v curl)"; curl --version; fi; '
+            'test -r "$CURL_CA_BUNDLE"; '
+            'printf "Installer fixture CA readable: %s\\n" "$CURL_CA_BUNDLE"'
+        )
+        subprocess.run([bash, "-ec", diagnostic], env=download_env, check=True)
         subprocess.run([bash, (source / "release/install.sh").as_posix(), "--version", record["version"]], env=download_env, check=True)
     check("download-install-script", public_destination / ("biomcp" + suffix))
     if not homebrew(output, root, check):

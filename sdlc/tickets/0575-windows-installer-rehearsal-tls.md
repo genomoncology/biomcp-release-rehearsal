@@ -1,6 +1,7 @@
 # Windows installer download proof trusts its fixture CA
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d0e6c606c102cf8193984ca93e460956d69b81e6
 Milestone: 5
 
 ## Outcome
