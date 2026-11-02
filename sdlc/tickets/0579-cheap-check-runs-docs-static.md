@@ -1,6 +1,7 @@
 # Cheap check runs the static docs check
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 6c774a8d22250b0ed8a9dbc6750217f62ce44fc5
 Milestone: 5
 
 ## Outcome

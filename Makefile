@@ -23,6 +23,7 @@ pre-job: check-cheap
 LINT_GOALS = unused-dependencies check-no-default-features lint-workspace lint-tools
 
 check-cheap:
+	python3 scripts/check_docs.py
 	+$(MAKE) --no-print-directory --keep-going -j1 shell-check fmt $(LINT_GOALS) ratchets
 
 .PHONY: shell-check

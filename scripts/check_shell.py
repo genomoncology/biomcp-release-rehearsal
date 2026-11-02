@@ -8,8 +8,10 @@ import sys
 
 def main():
     paths = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
-    recipe = subprocess.check_output(
-        ['make', '--no-print-directory', '-n', 'check-cheap'], text=True).splitlines()[0]
+    recipes = subprocess.check_output(
+        ['make', '--no-print-directory', '-n', 'check-cheap'], text=True).splitlines()
+    recipe = next(line for line in recipes
+                  if Path(shlex.split(line)[0]).name in ('make', 'gmake'))
     cheap = {word for word in shlex.split(recipe)[1:]
              if not word.startswith('-') and '=' not in word}
     status = 0

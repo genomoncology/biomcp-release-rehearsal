@@ -47,6 +47,8 @@ class GateStages(unittest.TestCase):
             (root / 'scripts').mkdir()
             for name in ('Makefile', 'scripts/check_shell.py'):
                 (root / name).write_bytes((ROOT / name).read_bytes())
+            # This fixture exercises shell checks, not the separate docs validator.
+            (root / 'scripts/check_docs.py').write_text('')
             subprocess.run(['git', 'init', '-q', str(root)], check=True)
             # Neither the extension nor executable permission selects the file.
             script = root / 'release fixture.txt'
