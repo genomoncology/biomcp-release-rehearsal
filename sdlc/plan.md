@@ -61,7 +61,7 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Cut the release candidate from main once every ticket above lands (0336).
 
 - Rehearse the final candidate on every platform (0293).
-- A fresh agent compares the 0.9.3 CLI and a local 1.0 build from main blind on about 20 tasks, before the cut, and every 1.0 regression is fixed or explained (0402; Ian, 2026-11-02).
+- A fresh agent compares the 0.9.3 CLI and a local 1.0 build from main blind on about 20 tasks, before the cut, and every 1.0 regression is fixed or explained (0402; run by an outside party, not the BioMCP team, Ian 2026-11-02).
 - Run MCP-Bench's BioMCP tasks, and InfoMosaic-Bench's if public, against 0.4.6 and 1.0: tool-call replay first, then agent runs on Ian's subscription within a run count he approves (0405).
 - Check the installed candidate against cBioPortal's 62 numeric agent questions (0462).
 - Ian approves BioData's public repository and its v1.0.0 tag, which 0459 pins (asked through Jarvis on 2026-11-01).
