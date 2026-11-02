@@ -7,10 +7,9 @@ fn roundtrip<T: DeserializeOwned + Serialize>(v: Value) -> Result<Value, serde_j
     serde_json::to_value(serde_json::from_value::<T>(v)?)
 }
 #[test]
-fn source_qualified_identity_checks_checksum_and_aliases() {
+fn source_qualified_identity_checks_checksum_and_spelling() {
     for (input, canonical) in [
         ("semantic-scholar:2060978", "semantic-scholar:2060978"),
-        ("semanticscholar:2060978", "semantic-scholar:2060978"),
         ("orcid:0000-0002-4299-3018", "orcid:0000-0002-4299-3018"),
         ("orcid:0000-0002-1694-233X", "orcid:0000-0002-1694-233X"),
     ] {
@@ -23,6 +22,7 @@ fn source_qualified_identity_checks_checksum_and_aliases() {
         assert_eq!(canonical.parse::<AuthorId>().unwrap(), id);
     }
     for bad in [
+        "semanticscholar:2060978",
         "2060978",
         "0000-0002-4299-3018",
         "orcid:0000-0002-4299-3019",

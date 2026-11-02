@@ -54,8 +54,10 @@ fn identifiers_keep_canonical_source_spelling_and_refuse_bad_boundaries() -> Che
         &["", "0", "01", "-1", "4294967296", " 673"],
     )?;
     values::<OmimId>(
-        &["164757", "000001"],
-        &["12345", "1234567", "12345x", " 164757"],
+        &["100000", "164757", "699999"],
+        &[
+            "000001", "099999", "700000", "12345", "1234567", "12345x", " 164757",
+        ],
     )?;
     values::<EnsemblGeneId>(
         &["ENSG00000157764", "ENSG00000157764.12"],
@@ -106,7 +108,10 @@ fn identifiers_keep_canonical_source_spelling_and_refuse_bad_boundaries() -> Che
     let gene: EnsemblGeneId = "ENSG00000157764.12".parse()?;
     assert_eq!(gene.base(), "ENSG00000157764");
     assert_eq!(gene.version(), Some(12));
-    assert_eq!("NM_004333".parse::<AccessionBase>()?.as_str(), "NM_004333");
+    assert_eq!(
+        "NM_004333".parse::<AccessionBase>()?.to_string(),
+        "NM_004333"
+    );
     assert_eq!(NcbiGeneId::new(673)?.get(), 673);
     assert!(NcbiGeneId::new(0).is_err());
     Ok(())

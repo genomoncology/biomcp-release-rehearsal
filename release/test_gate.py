@@ -72,6 +72,9 @@ class InstalledCli(unittest.TestCase):
             wheel(output, binary, record)
             cargo = root / 'cargo'
             cargo.write_text(f'#!{sys.executable}\nimport json, sys\n'
+                             'if sys.argv[1:3] == ["vendor", "--locked"]:\n'
+                             '    assert len(sys.argv) == 4\n'
+                             '    sys.exit(0)\n'
                              f'print(json.dumps({{"reason": "compiler-artifact", "target": '
                              f'{{"name": sys.argv[sys.argv.index("--test") + 1]}}, '
                              f'"executable": {str(binary)!r}}}))\n')

@@ -5,14 +5,32 @@ from pathlib import Path
 import re
 import shlex
 import sys
+from collections import Counter
 
 from reply_runtime import Bindings, align, context_roots, owner, pair
+
+
+def capture_kind(execution):
+    if not isinstance(execution, dict):
+        raise ValueError("invalid execution shape")
+    keys = set(execution)
+    required = {"args", "stdout", "exit", "surface"}
+    metadata = {"root", "checkout", "version", "executable", "sequence_start", "sequence_end", "replay_owner_root"}
+    if required <= keys <= required | metadata and execution["surface"] in ("cli", "mcp"):
+        return "process"
+    if keys == {"args", "surface", "http_status", "supplied_header", "extra_argument", "reply"} and execution["surface"] == "http":
+        return "http"
+    if keys == {"surface", "keyed_reply", "unkeyed_reply"} and execution["surface"] == "http-concurrent":
+        return "http-concurrent"
+    raise ValueError("unknown execution shape")
 
 
 def load(directory):
     records = {}
     uncaptured = []
     native = {}
+    structured = {}
+    seen = set()
     for path in sorted(Path(directory).rglob("*.json")):
         if path.name.startswith("._"):
             continue
@@ -22,6 +40,9 @@ def load(directory):
                 uncaptured.append(record["name"])
             continue
         key = record["key"]
+        if not isinstance(key, str) or key in seen:
+            raise ValueError("duplicate or invalid transcript key")
+        seen.add(key)
         # Context::record stores native wire request pairs separately from executions.
         if (isinstance(key, str) and key.startswith("cache/") and key.endswith("/requests")
                 and len(key.split("/")) == 4
@@ -38,12 +59,16 @@ def load(directory):
             native[key] = record
             continue
         owner(key)
-        if key in records:
-            raise ValueError(f"duplicate transcript key: {key}")
-        records[key] = record
-    if not records and not uncaptured:
+        executions = record.get("executions")
+        if not isinstance(executions, list) or not executions:
+            raise ValueError("invalid executions")
+        kinds = {capture_kind(execution) for execution in executions}
+        if len(kinds) != 1:
+            raise ValueError("mixed execution shapes")
+        (records if kinds == {"process"} else structured)[key] = record
+    if not records and not structured and not uncaptured:
         raise ValueError(f"no transcripts: {directory}")
-    return records, uncaptured, native
+    return records, uncaptured, native, structured
 
 
 def normalize(record):
@@ -123,13 +148,28 @@ def main():
         print("usage: reply_diff.py BASE HEAD", file=sys.stderr)
         return 2
     try:
-        (base, base_missing, base_native), (head, head_missing, head_native) = (load(d) for d in sys.argv[1:3])
+        (base, base_missing, base_native, base_structured), (head, head_missing, head_native, head_structured) = (load(d) for d in sys.argv[1:3])
+        for label, processes, structured, native in (
+                ("BASE", base, base_structured, base_native),
+                ("HEAD", head, head_structured, head_native)):
+            counts = Counter()
+            records = Counter()
+            for record in [*processes.values(), *structured.values()]:
+                kind = capture_kind(record["executions"][0])
+                records[kind] += 1
+                counts[kind] += len(record["executions"])
+            counts["native-request-batches"] = sum(len(r["executions"]) for r in native.values())
+            records["native-request-batches"] = len(native)
+            print(f"{label} captures: " + ", ".join(
+                f"{k}={records[k]} records/{v} executions" for k, v in sorted(counts.items())), file=sys.stderr)
+        if base.keys() & head_structured.keys() or head.keys() & base_structured.keys():
+            raise ValueError("execution category changed between captures")
         for label, missing in (("BASE", base_missing), ("HEAD", head_missing)):
             if missing:
                 print(f"{label} uncaptured trials ({len(missing)}):", file=sys.stderr)
                 for name in sorted(missing):
                     print(f"  {name}", file=sys.stderr)
-        if not base or not head:
+        if not (base or base_structured) or not (head or head_structured):
             raise ValueError("comparison requires captured steps in both sets")
         bindings = Bindings()
         roots, aliases = align(base, head, normalize, bindings)
@@ -143,6 +183,18 @@ def main():
                 pair(x, y, owner(key), bindings, declared, normalize)
             paired[key] = (a, b)
         differences = 0
+        for key in sorted(base_structured.keys() | head_structured.keys()):
+            if key not in base_structured or key not in head_structured:
+                location = "/ missing in " + ("HEAD" if key in base_structured else "BASE")
+            else:
+                before, after = base_structured[key], head_structured[key]
+                if capture_kind(before["executions"][0]) != capture_kind(after["executions"][0]):
+                    raise ValueError("structured execution category changed")
+                location = pointer(before, after)
+            if location:
+                differences += 1
+                if differences <= 20:
+                    print(f"{key}: {location}")
         for key in sorted(base_native.keys() | head_native.keys()):
             location = ("/ missing in " + ("HEAD" if key in base_native else "BASE")
                         if key not in base_native or key not in head_native

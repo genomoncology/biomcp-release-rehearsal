@@ -126,6 +126,8 @@ fn attribution(
         .ok_or(biodata::Error::TextEmpty)?;
     let filename = path.rsplit('/').next().ok_or(biodata::Error::TextEmpty)?;
     Ok(biodata::Attribution {
+        approved: None,
+        published: None,
         source: Text::new("ddinter")?,
         record: Some(Text::new(&format!("{filename}:{}", origin.row))?),
         version: revision.map(Text::new).transpose()?,

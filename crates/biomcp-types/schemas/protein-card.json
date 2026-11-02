@@ -39,6 +39,17 @@
     "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
@@ -49,6 +60,17 @@
             }
           ],
           "description": "Source evaluation date."
+        },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
         },
         "record": {
           "anyOf": [
@@ -186,6 +208,29 @@
       ],
       "type": "string"
     },
+    "Reply_ClingenDosageScoreCode": {
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "30",
+        "40"
+      ],
+      "type": "string"
+    },
+    "Reply_ClingenGeneValidity2017Code": {
+      "enum": [
+        "definitive",
+        "strong",
+        "moderate",
+        "limited",
+        "disputed",
+        "refuted",
+        "no_known_disease_relationship"
+      ],
+      "type": "string"
+    },
     "Reply_ClingenLowPenetrance2024Code": {
       "description": "Checked ClingenLowPenetrance2024 codes.",
       "enum": [
@@ -210,6 +255,14 @@
         "uniparental",
         "not_provided",
         "unknown"
+      ],
+      "type": "string"
+    },
+    "Reply_ClinvarClassificationCode": {
+      "enum": [
+        "germline",
+        "somatic_clinical_impact",
+        "oncogenicity"
       ],
       "type": "string"
     },
@@ -400,6 +453,91 @@
             "code"
           ],
           "type": "object"
+        },
+        {
+          "description": "ClinVar classification type.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClinvarClassificationCode"
+            },
+            "system": {
+              "const": "clinvar_classification_type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Sequence Ontology consequence or edit.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_SoCode"
+            },
+            "system": {
+              "const": "so",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "HPO mode of inheritance.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_HpoInheritanceCode"
+            },
+            "system": {
+              "const": "hpo",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "ClinGen gene validity.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClingenGeneValidity2017Code"
+            },
+            "system": {
+              "const": "clingen_gene_validity_2017",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "ClinGen dosage score.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClingenDosageScoreCode"
+            },
+            "system": {
+              "const": "clingen_dosage_score",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
         }
       ]
     },
@@ -411,6 +549,16 @@
     "Reply_Curie": {
       "description": "Checked prefix:local ontology identifier.",
       "pattern": "^[A-Za-z0-9_.-]+:[^:/\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f][^:\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]*$",
+      "type": "string"
+    },
+    "Reply_HpoInheritanceCode": {
+      "enum": [
+        "HP:0000006",
+        "HP:0000007",
+        "HP:0001417",
+        "HP:0001427",
+        "HP:0032113"
+      ],
       "type": "string"
     },
     "Reply_IdentifierNamespace": {
@@ -2397,6 +2545,32 @@
           "type": "object"
         }
       ]
+    },
+    "Reply_SoCode": {
+      "enum": [
+        "SO:0001819",
+        "SO:0001624",
+        "SO:0001574",
+        "SO:0001575",
+        "SO:0001630",
+        "SO:0001627",
+        "SO:0001623",
+        "SO:0001587",
+        "SO:0001583",
+        "SO:0001822",
+        "SO:0001821",
+        "SO:0001589",
+        "SO:0001578",
+        "SO:0001619",
+        "SO:1000002",
+        "SO:0000159",
+        "SO:0000667",
+        "SO:1000035",
+        "SO:1000036",
+        "SO:1000032",
+        "SO:0002073"
+      ],
+      "type": "string"
     },
     "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",

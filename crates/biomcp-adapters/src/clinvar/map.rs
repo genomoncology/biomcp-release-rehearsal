@@ -178,6 +178,8 @@ fn attribution(
         return Ok(None);
     }
     Ok(Some(Attribution {
+        approved: None,
+        published: None,
         source: Source::ClinVar.text(),
         record: Some(text(&id)?),
         version: problems.checked_text("version", version.as_deref()),

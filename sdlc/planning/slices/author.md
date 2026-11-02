@@ -79,7 +79,7 @@ The closed public issue inventory was read on 2026-10-26: all 57 closed issues w
 | `search author -q/--query TEXT` | Keep query capability as `search author TEXT` | Native Semantic Scholar candidates, unchanged text; no disambiguation guess. |
 | `--source semanticscholar` | Keep as an alias of canonical `--source semantic-scholar` | Accepted compatibility preserves existing calls; do not silently query ORCID name search. |
 | Search `-l/--limit`, `--offset` | Keep both limit spellings and add shared `--pool` | Native bounded page in source order, with stable local continuation. |
-| `get author semanticscholar:ID` | Keep as an alias of canonical `semantic-scholar:ID` | One exact provider record; the existing ID spelling remains accepted. |
+| `get author semanticscholar:ID` | Remove this spelling; use canonical `semantic-scholar:ID` | One exact provider record uses the canonical ID spelling. |
 | `get author orcid:ID` | Keep | Exact public ORCID person record, checksum validated before request. |
 | `author papers ID` | Keep | Provider-qualified corpus, with explicit source provenance. |
 | Papers `-l/--limit`, `--offset` | Keep both limit spellings and shared pool | Semantic Scholar pages natively; ORCID work summaries may require one bounded whole reply. |
@@ -92,7 +92,7 @@ The closed public issue inventory was read on 2026-10-26: all 57 closed issues w
 | 0.9 leaf command | Command outcome | Ported or renamed options | Dropped options | Deferred options | Undecided options | Ruling |
 | --- | --- | --- | --- | --- | --- | --- |
 | `search author` | Ported or renamed | `--source`, `--limit`, `--offset` | `--query` | — | — | Use literal positional text instead of -q/--query; keep numeric -l/--limit, native order and source alias semanticscholar. Shared --pool retains checked pages. ORCID name search, topic ranking and coauthor aggregation remain unsupported because the accepted sources establish no such scope. |
-| `get author` | Ported or renamed | — | — | — | — | Keep exact semantic-scholar:ID, alias semanticscholar:ID and checksummed orcid:ID in caller order. Counts describe provider records. No person link or cross-provider merge is computed. |
+| `get author` | Ported or renamed | — | — | — | — | Use semantic-scholar:ID and checksummed orcid:ID in caller order. The semanticscholar:ID spelling is removed. Counts describe provider records. No person link or cross-provider merge is computed. |
 | `author papers` | Ported or renamed | `--full`, `--limit`, `--offset` | — | — | — | Keep provider-qualified papers and numeric -l. Semantic Scholar details and --full select the same native rich page. ORCID pages public groups with native assertion provenance. Shared --pool preserves the retained collection. |
 <!-- /parity-accounting -->
 

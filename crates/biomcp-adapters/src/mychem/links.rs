@@ -39,6 +39,8 @@ pub(super) fn reference(
         },
         relation: text(relation)?,
         attribution: Attribution {
+            approved: None,
+            published: None,
             source: text(component)?,
             record: native_record(component, c).map(text).transpose()?,
             version: None,

@@ -8,7 +8,7 @@
       "run": [
         "get",
         "author",
-        "semanticscholar:456",
+        "semantic-scholar:456",
         "semantic-scholar:123",
         "semantic-scholar:999"
       ],

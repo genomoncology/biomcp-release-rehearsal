@@ -232,6 +232,8 @@ fn problems_round_trip_with_optional_record_and_ignore_unknown_fields() {
 
 fn population_base() -> Result<PopulationFrequency, Box<dyn std::error::Error>> {
     let attribution = Attribution {
+        approved: None,
+        published: None,
         source: Source::Gnomad.text(),
         record: None,
         version: None,

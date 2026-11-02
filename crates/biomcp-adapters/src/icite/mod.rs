@@ -118,7 +118,9 @@ struct Id(Pmid);
 impl TryFrom<u32> for Id {
     type Error = biodata::Error;
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Pmid::new(value).map(Self)
+        Pmid::new(value)
+            .map(Self)
+            .map_err(|_| biodata::Error::ArticleIdInvalid)
     }
 }
 #[derive(Deserialize)]

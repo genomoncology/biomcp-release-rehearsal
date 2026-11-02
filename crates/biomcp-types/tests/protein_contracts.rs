@@ -194,15 +194,15 @@ fn inclusive_conversion_refuses_reversed_or_zero_residues() -> Result<(), Box<dy
     let exact = |n| Bound::new(Some(n), Some(n));
     assert_eq!(
         UncertainSpan0::from_inclusive(exact(2)?, exact(1)?),
-        Err(Error::SpanOrder)
+        Err(biodata::CoordinateError::ReversedBounds)
     );
     assert_eq!(
         UncertainSpan0::from_inclusive(exact(0)?, exact(1)?),
-        Err(Error::PositionZero)
+        Err(biodata::CoordinateError::ZeroPosition)
     );
     assert_eq!(
         UncertainSpan0::from_inclusive(exact(1)?, exact(0)?),
-        Err(Error::PositionZero)
+        Err(biodata::CoordinateError::ZeroPosition)
     );
     assert!(
         UncertainSpan0::from_inclusive(

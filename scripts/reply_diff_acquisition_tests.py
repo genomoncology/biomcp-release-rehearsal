@@ -6,6 +6,50 @@ from reply_diff_test_support import ReplyDiffCase
 
 
 class ReplyAcquisitions(ReplyDiffCase):
+    def retained_pool_capture(self, directory, side, mutation=None):
+        old_clock = 10 if side == 'base' else 20
+        pool = {'id': side, 'size': 2, 'created': old_clock, 'expires': old_clock + 90}
+        for step in range(5 if mutation == 'redeclare' else 4):
+            sync = step in (0, 2)
+            current = step in (2, 4)
+            value = {'schema': 'biomcp.sync/7' if sync else 'biomcp.study-page/5',
+                     'status': 'complete', 'sources': [{'source': 'cbioportal', 'state': 'ok'}],
+                     'query': {'source': 'cbioportal'} if sync else {'text': 'atlas', 'offset': 0},
+                     'result': {'snapshot': {'revision': 'new' if current else 'old',
+                                            'acquired': old_clock + int(current)}}}
+            args = ['sync', 'cbioportal-studies'] if sync else ['search', 'study', 'atlas']
+            if not sync:
+                value['page'] = {'pool': dict(pool)}
+            if step == 3:
+                value['query'].update(pool=side, offset=1)
+                args += ['--pool', side, '--offset', '1']
+                if mutation == 'snapshot':
+                    value['result']['snapshot']['revision'] = 'new'
+                if mutation == 'acquisition':
+                    value['result']['snapshot']['acquired'] += 1
+                if mutation == 'pool':
+                    value['page']['pool']['id'] = value['query']['pool'] = args[-3] = 'other'
+                if mutation == 'schema':
+                    value['schema'] = 'biomcp.other/5'
+                if mutation == 'source':
+                    value['sources'][0]['source'] = 'other'
+                if mutation == 'plain':
+                    value['query'].pop('pool')
+                    args = ['search', 'study', 'atlas']
+            self.write(directory, 'case/retained-pool.yaml/step/' + str(step),
+                       json.dumps(value).encode(), args=args, root='/tmp/' + side,
+                       sequence_start=step * 2, sequence_end=step * 2 + 1)
+
+    def test_retained_pool_keeps_only_its_declared_catalog_acquisition(self):
+        self.retained_pool_capture(self.base, 'base')
+        self.retained_pool_capture(self.head, 'head')
+        result = self.compare()
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        for mutation in ['snapshot', 'acquisition', 'pool', 'schema', 'source', 'plain', 'redeclare']:
+            with self.subTest(mutation=mutation):
+                self.retained_pool_capture(self.head, 'head', mutation)
+                self.assertNotEqual(self.compare().returncode, 0)
+
     def test_fetched_clocks_bind_only_inside_the_recorded_cache_root(self):
         key = "case/monarch.yaml/step/"
         for directory, side in [(self.base, "base"), (self.head, "head")]:

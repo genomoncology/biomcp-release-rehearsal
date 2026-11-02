@@ -38,7 +38,10 @@ impl AlphaGenomeScalar {
         };
         match kind {
             Some(kind) => Ok(Self::Nonfinite { kind }),
-            None => f64::from(value).try_into().map(Self::Finite),
+            None => f64::from(value)
+                .try_into()
+                .map(Self::Finite)
+                .map_err(|_| biodata::Error::NumberNonFinite),
         }
     }
 }

@@ -73,6 +73,8 @@ impl Submission {
                     .collect(),
                 indication: None,
                 attribution: Attribution {
+                    approved: None,
+                    published: None,
                     source: "drugsfda".parse().map_err(|_| {
                         biomcp_fetch::bad_reply(biomcp_types::Source::Drugsfda, Some(200))
                     })?,

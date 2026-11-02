@@ -72,7 +72,10 @@ fn member_subject(
         "feature.name",
         Some(feature?.as_str().parse::<GeneSymbol>()),
     )?;
-    let gene = cx.optional("feature.name", Some(biodata::GeneRef::try_from(symbol)))?;
+    let gene = cx.optional(
+        "feature.name",
+        Some(biodata::SourceGeneRef::try_from(symbol)),
+    )?;
     match proteins.as_slice() {
         [] => None,
         [protein] => Some(VariantRef::protein_hgvs(

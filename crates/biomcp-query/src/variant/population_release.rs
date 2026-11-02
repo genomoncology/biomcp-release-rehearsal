@@ -47,6 +47,8 @@ pub(super) fn frequency(
         dataset,
         version.clone(),
         Attribution {
+            approved: None,
+            published: None,
             source: Source::Gnomad.text(),
             record: Some(raw.variant_id.clone()),
             release: Some(version.clone()),

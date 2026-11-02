@@ -40,6 +40,7 @@ pub fn assertions(
         list: mapped.problems,
     };
     if let Some((id, Some(version))) = selection {
+        let id = id.to_string();
         let id = id.as_str();
         let record = records
             .iter()

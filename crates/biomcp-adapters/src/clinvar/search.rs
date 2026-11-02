@@ -43,7 +43,9 @@ impl TryFrom<String> for Id {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let text = format!("clinvar:{value}");
         Ok(Self {
-            identity: text.parse()?,
+            identity: text
+                .parse()
+                .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)?,
             text: biodata::Text::new(&text)?,
         })
     }

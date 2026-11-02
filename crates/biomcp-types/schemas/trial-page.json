@@ -3,6 +3,17 @@
     "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
@@ -13,6 +24,17 @@
             }
           ],
           "description": "Source evaluation date."
+        },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
         },
         "record": {
           "anyOf": [
@@ -833,7 +855,7 @@
     },
     "Reply_OmimId": {
       "description": " A six-digit OMIM identifier, preserving all six digits.",
-      "pattern": "^[0-9]{6}$",
+      "pattern": "^[1-6][0-9]{5}$",
       "type": "string"
     },
     "Reply_PageInfo": {

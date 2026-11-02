@@ -55,29 +55,7 @@ pub(super) fn rows(
                 taxon: Some(9606),
                 locations,
                 member_signatures: signatures.clone().into(),
-                attribution: Attribution {
-                    source: crate::mapped::text("interpro").map_err(|_| {
-                        biomcp_fetch::bad_reply(biomcp_types::Source::InterPro, Some(200))
-                    })?,
-                    record: Some(
-                        crate::mapped::text(entry.metadata.accession.as_str()).map_err(|_| {
-                            biomcp_fetch::bad_reply(biomcp_types::Source::InterPro, Some(200))
-                        })?,
-                    ),
-                    url: Some(
-                        crate::mapped::text(&format!(
-                            "https://www.ebi.ac.uk/interpro/entry/InterPro/{}",
-                            entry.metadata.accession
-                        ))
-                        .map_err(|_| {
-                            biomcp_fetch::bad_reply(biomcp_types::Source::InterPro, Some(200))
-                        })?,
-                    ),
-                    version: None,
-                    release: None,
-                    submitter: None,
-                    evaluated: None,
-                },
+                attribution: attribution(&entry.metadata.accession)?,
             });
         }
         all_problems.extend(problems.list);
@@ -86,6 +64,30 @@ pub(super) fn rows(
         refusals,
         value: rows,
         problems: all_problems,
+    })
+}
+
+fn attribution(accession: &biodata::InterProId) -> Result<Attribution, RequestError> {
+    Ok(Attribution {
+        approved: None,
+        published: None,
+        source: crate::mapped::text("interpro")
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::InterPro, Some(200)))?,
+        record: Some(
+            crate::mapped::text(accession.as_str())
+                .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::InterPro, Some(200)))?,
+        ),
+        url: Some(
+            crate::mapped::text(&format!(
+                "https://www.ebi.ac.uk/interpro/entry/InterPro/{}",
+                accession
+            ))
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::InterPro, Some(200)))?,
+        ),
+        version: None,
+        release: None,
+        submitter: None,
+        evaluated: None,
     })
 }
 

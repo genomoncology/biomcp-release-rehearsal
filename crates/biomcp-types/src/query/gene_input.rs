@@ -22,7 +22,10 @@ impl GeneInput {
             .get(..5)
             .is_some_and(|prefix| prefix.eq_ignore_ascii_case("HGNC:"))
         {
-            return value.parse().map(Self::HgncId);
+            return value
+                .parse()
+                .map(Self::HgncId)
+                .map_err(|_| Error::HgncIdInvalid);
         }
         if value
             .get(..4)
@@ -31,7 +34,10 @@ impl GeneInput {
             return value.parse().map(Self::EnsemblId);
         }
         if !value.is_empty() && value.bytes().all(|ch| ch.is_ascii_digit()) {
-            return value.parse().map(Self::EntrezId);
+            return value
+                .parse()
+                .map(Self::EntrezId)
+                .map_err(|_| Error::NcbiGeneIdInvalid);
         }
         Text::new(value).map(Self::Text)
     }

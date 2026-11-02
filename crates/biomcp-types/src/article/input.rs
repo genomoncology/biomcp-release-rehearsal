@@ -26,7 +26,9 @@ impl std::str::FromStr for ArticleInput {
         {
             doi.parse().map(Self::Doi)
         } else {
-            s.parse().map(Self::Pmid)
+            s.parse()
+                .map(Self::Pmid)
+                .map_err(|_| Error::ArticleIdInvalid)
         }
     }
 }

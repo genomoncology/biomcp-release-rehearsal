@@ -21,7 +21,9 @@ impl FromStr for SourceTimestampValue {
         if !value.is_ascii() || bytes.len() < 20 || !matches!(bytes.get(10), Some(b'T' | b't')) {
             return Err(invalid());
         }
-        let date = value[..10].parse::<biodata::PartialDate>()?;
+        let date = value[..10]
+            .parse::<biodata::PartialDate>()
+            .map_err(|_| biodata::Error::DateInvalid)?;
         let (clock, offset) = match bytes.last() {
             Some(b'Z' | b'z') => (&value[11..value.len() - 1], 0),
             _ => {

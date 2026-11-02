@@ -150,6 +150,8 @@ impl Document {
             return None;
         }
         let attribution = Attribution {
+            approved: None,
+            published: None,
             source: Source::Erepo.text(), record: cx.text("PCERDocID", Some(record)), version: cx.text("docVersion", Some(version)),
             release: None, submitter: None, evaluated: None,
             url: cx.text("uuid", Some(&format!("https://erepo.clinicalgenome.org/evrepo/ui/classification/{}?version={version}", self.uuid))),

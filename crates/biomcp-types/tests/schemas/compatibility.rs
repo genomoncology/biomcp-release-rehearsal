@@ -105,6 +105,13 @@ fn compatible(
                     path,
                     old.pattern.as_deref(),
                     new.pattern.as_deref(),
+                )
+                || reviews.narrowing(
+                    old_name,
+                    old_major,
+                    path,
+                    old.pattern.as_deref(),
+                    new.pattern.as_deref(),
                 ))
         || new
             .minimum
@@ -227,7 +234,9 @@ fn visit(
                 visit(root, branch, path, shapes, refs)?;
             }
         } else {
-            for (kind, branch) in scalars::branches(root, branches)? {
+            for (kind, branch) in scalars::branches(root, branches)
+                .map_err(|error| format!("{error} at {path}: {branches}"))?
+            {
                 descend(root, branch, path, &format!("@type={kind}"), shapes, refs)?;
             }
         }

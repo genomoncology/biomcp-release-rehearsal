@@ -71,7 +71,9 @@ class WindowsRuntime(unittest.TestCase):
         config = configparser.ConfigParser()
         config.read('.cargo/config.toml')
         target = 'target.x86_64-pc-windows-msvc'
-        self.assertEqual(config.sections(), [target])
+        self.assertEqual(config.sections(), [target, 'net'])
+        self.assertEqual(list(config['net']), ['git-fetch-with-cli'])
+        self.assertTrue(config.getboolean('net', 'git-fetch-with-cli'))
         self.assertEqual(list(config[target]), ['rustflags'])
         self.assertEqual(json.loads(config[target]['rustflags']), ['-C', 'target-feature=+crt-static'])
 

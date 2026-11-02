@@ -1,6 +1,7 @@
 # 0459 — Depend on the extracted BioData 1.0 crate
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 87e12b3a634c7074bcd784e2d4ac5559e98865b9
 
 Milestone: 5
 

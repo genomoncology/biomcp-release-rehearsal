@@ -107,7 +107,7 @@ const AUTHOR_BOUNDARY: &str = " Author IDs identify source records, not resolved
     unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with \
     --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set \
     semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use \
-    semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source \
+    semantic-scholar:ID or orcid:ID. Search supports --source \
     semantic-scholar (alias semanticscholar), positional text and --limit/-l; papers supports --limit/-l \
     and Semantic Scholar details/--full.";
 const CELL_LINE_BOUNDARY: &str = "An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.";
@@ -380,7 +380,7 @@ fn tree_intro() -> Vec<String> {
 
 fn author_selectors(command: &HelpCommand, line: &mut String) {
     if command.command == ["get", "author"] {
-        line.push_str(" semantic-scholar:ID|orcid:ID (semanticscholar:ID alias)");
+        line.push_str(" semantic-scholar:ID|orcid:ID");
     }
     if command.command == ["author", "papers"] {
         line.push_str(" details|--full --limit/-l --offset --pool");

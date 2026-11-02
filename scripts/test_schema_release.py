@@ -115,15 +115,17 @@ class SchemaRelease(unittest.TestCase):
                 }))
                 command += ["--baseline", str(baseline)]
                 subprocess.run(command, cwd=candidate, env=environment, check=True)
-                # Narrow the shared class in both scalar patterns and derived snapshots.
-                before, after = "[ACGTNRYSWKMBDHV]", "[ACGT]"
-                source = candidate / "crates/biodata/src/variant/sequence.rs"
-                self.assertIn(before, source.read_text())
+                # Narrow the compiled consumer pattern and its derived snapshots.
+                before = "^chr([1-9]|1[0-9]|2[0-2]|X|Y|M|MT)"
+                after = "^chr([1-9]|1[0-9]|2[0-2]|X|Y)"
+                source = candidate / "crates/biomcp-types/src/query/variant_input.rs"
+                self.assertEqual(source.read_text().count(before), 1)
+                self.assertGreater(sum(schema.read_text().count(before) for schema in schemas), 0)
                 originals = {path: path.read_bytes() for path in [source, *schemas]}
                 source.write_text(source.read_text().replace(before, after))
                 for schema in (candidate / "crates/biomcp-types/schemas").glob("*.json"):
                     schema.write_text(schema.read_text().replace(before, after))
-                # Ordinary in-tree generation accepts the jointly changed copies.
+                # Consumer generation accepts the jointly changed copies.
                 subprocess.run(schema_test, cwd=candidate, env=environment, check=True)
                 result = subprocess.run(
                     command, cwd=candidate, env=environment,

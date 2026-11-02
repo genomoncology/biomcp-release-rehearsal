@@ -31,6 +31,8 @@ pub(super) fn row(
             original_subject: raw.original_subject,
             original_object: raw.original_object,
             attribution: Attribution {
+                approved: None,
+                published: None,
                 source: Text::new("monarch").map_err(|_| InputError::Serialization)?,
                 record: raw.id,
                 url: raw

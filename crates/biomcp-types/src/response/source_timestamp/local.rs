@@ -20,7 +20,9 @@ impl FromStr for SourceLocalTimestampValue {
         {
             return Err(biodata::Error::DateInvalid);
         }
-        value[..10].parse::<biodata::PartialDate>()?;
+        value[..10]
+            .parse::<biodata::PartialDate>()
+            .map_err(|_| biodata::Error::DateInvalid)?;
         super::value::source_clock(&value[11..])?;
         Ok(Self(value.into()))
     }

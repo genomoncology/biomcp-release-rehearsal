@@ -57,7 +57,9 @@ impl TryFrom<f64> for RnaAbundance {
         if value < 0.0 {
             return Err(biodata::Error::NumberNonFinite);
         }
-        FiniteNumber::try_from(value).map(Self)
+        FiniteNumber::try_from(value)
+            .map(Self)
+            .map_err(|_| biodata::Error::NumberNonFinite)
     }
 }
 impl From<RnaAbundance> for f64 {

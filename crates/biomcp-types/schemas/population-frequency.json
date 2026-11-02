@@ -1,8 +1,55 @@
 {
   "$defs": {
+    "Reply_Accession": {
+      "description": "A reference sequence accession: RefSeq or Ensembl with its version, or LRG.",
+      "pattern": "^(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)$",
+      "type": "string"
+    },
+    "Reply_AcmgAmp2015Code": {
+      "description": "Checked AcmgAmp2015 codes.",
+      "enum": [
+        "pathogenic",
+        "likely_pathogenic",
+        "uncertain_significance",
+        "likely_benign",
+        "benign"
+      ],
+      "type": "string"
+    },
+    "Reply_AmpAscoCap2017LevelCode": {
+      "description": "Checked AmpAscoCap2017Level codes.",
+      "enum": [
+        "level_a",
+        "level_b",
+        "level_c",
+        "level_d"
+      ],
+      "type": "string"
+    },
+    "Reply_AmpAscoCap2017TierCode": {
+      "description": "Checked AmpAscoCap2017Tier codes.",
+      "enum": [
+        "tier_i",
+        "tier_ii",
+        "tier_iii",
+        "tier_iv"
+      ],
+      "type": "string"
+    },
     "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
@@ -13,6 +60,17 @@
             }
           ],
           "description": "Source evaluation date."
+        },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
         },
         "record": {
           "anyOf": [
@@ -92,14 +150,114 @@
         "GRCh38"
       ]
     },
+    "Reply_Category": {
+      "description": "A source gene-level category.",
+      "enum": [
+        "amplification",
+        "deletion",
+        "fusion",
+        "exon_mutation",
+        "oncogenic_mutation",
+        "residue"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        "A stated gene amplification.",
+        "A stated gene deletion.",
+        "A stated gene fusion.",
+        "An exon-scoped molecular change.",
+        "A source category of oncogenic mutations, without classifying a member.",
+        "Every variant at a stated protein site."
+      ]
+    },
+    "Reply_CivicEvidenceLevelCode": {
+      "description": "Source-defined CIViC evidence levels.",
+      "enum": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e"
+      ],
+      "type": "string"
+    },
     "Reply_ClinVarAlleleId": {
       "description": " An allele identifier inside a ClinVar record, not a variant identifier.",
-      "pattern": "^(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
     "Reply_ClinVarVariationId": {
       "description": " A ClinVar variation record, which may represent a compound.",
-      "pattern": "^clinvar:(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$",
+      "pattern": "^clinvar:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
+      "type": "string"
+    },
+    "Reply_ClingenCgcVicc2022Code": {
+      "description": "Checked ClingenCgcVicc2022 codes.",
+      "enum": [
+        "oncogenic",
+        "likely_oncogenic",
+        "uncertain_significance",
+        "likely_benign",
+        "benign"
+      ],
+      "type": "string"
+    },
+    "Reply_ClingenDosageScoreCode": {
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "30",
+        "40"
+      ],
+      "type": "string"
+    },
+    "Reply_ClingenGeneValidity2017Code": {
+      "enum": [
+        "definitive",
+        "strong",
+        "moderate",
+        "limited",
+        "disputed",
+        "refuted",
+        "no_known_disease_relationship"
+      ],
+      "type": "string"
+    },
+    "Reply_ClingenLowPenetrance2024Code": {
+      "description": "Checked ClingenLowPenetrance2024 codes.",
+      "enum": [
+        "pathogenic_low_penetrance",
+        "likely_pathogenic_low_penetrance",
+        "established_risk_allele",
+        "likely_risk_allele",
+        "uncertain_risk_allele"
+      ],
+      "type": "string"
+    },
+    "Reply_ClinvarAlleleOriginCode": {
+      "description": "Checked ClinVar allele origin codes.",
+      "enum": [
+        "germline",
+        "somatic",
+        "de_novo",
+        "inherited",
+        "maternal",
+        "paternal",
+        "biparental",
+        "uniparental",
+        "not_provided",
+        "unknown"
+      ],
+      "type": "string"
+    },
+    "Reply_ClinvarClassificationCode": {
+      "enum": [
+        "germline",
+        "somatic_clinical_impact",
+        "oncogenicity"
+      ],
       "type": "string"
     },
     "Reply_ClinvarHaplotypeKind": {
@@ -125,6 +283,281 @@
         "allele_id"
       ],
       "type": "object"
+    },
+    "Reply_ClinvarReviewStatusCode": {
+      "description": "Checked ClinVar review status codes.",
+      "enum": [
+        "practice_guideline",
+        "expert_panel",
+        "criteria_provided_multiple_submitters_no_conflicts",
+        "criteria_provided_conflicting_classifications",
+        "criteria_provided_multiple_submitters",
+        "criteria_provided_single_submitter",
+        "no_assertion_criteria_provided",
+        "no_classification_provided",
+        "no_classification_for_the_individual_variant"
+      ],
+      "type": "string"
+    },
+    "Reply_Coding": {
+      "description": "A code in one explicitly named source framework.",
+      "oneOf": [
+        {
+          "description": "ClinVar publisher review status.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClinvarReviewStatusCode"
+            },
+            "system": {
+              "const": "clinvar_review_status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "ClinVar publisher allele origin.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClinvarAlleleOriginCode"
+            },
+            "system": {
+              "const": "clinvar_allele_origin",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "OncoKB oncogenicity vocabulary.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_OncokbOncogenicityCode"
+            },
+            "system": {
+              "const": "oncokb_oncogenicity",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "OncoKB evidence levels.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_OncokbLevelCode"
+            },
+            "system": {
+              "const": "oncokb_level",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "CIViC evidence level.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_CivicEvidenceLevelCode"
+            },
+            "system": {
+              "const": "civic_evidence_level",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "acmg_amp_2015 vocabulary.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_AcmgAmp2015Code"
+            },
+            "system": {
+              "const": "acmg_amp_2015",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "clingen_low_penetrance_2024 vocabulary.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClingenLowPenetrance2024Code"
+            },
+            "system": {
+              "const": "clingen_low_penetrance_2024",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "amp_asco_cap_2017_tier vocabulary.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_AmpAscoCap2017TierCode"
+            },
+            "system": {
+              "const": "amp_asco_cap_2017_tier",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "amp_asco_cap_2017_level vocabulary.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_AmpAscoCap2017LevelCode"
+            },
+            "system": {
+              "const": "amp_asco_cap_2017_level",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "clingen_cgc_vicc_2022 vocabulary.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClingenCgcVicc2022Code"
+            },
+            "system": {
+              "const": "clingen_cgc_vicc_2022",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "ClinVar classification type.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClinvarClassificationCode"
+            },
+            "system": {
+              "const": "clinvar_classification_type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Sequence Ontology consequence or edit.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_SoCode"
+            },
+            "system": {
+              "const": "so",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "HPO mode of inheritance.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_HpoInheritanceCode"
+            },
+            "system": {
+              "const": "hpo",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "ClinGen gene validity.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClingenGeneValidity2017Code"
+            },
+            "system": {
+              "const": "clingen_gene_validity_2017",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "ClinGen dosage score.",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/Reply_ClingenDosageScoreCode"
+            },
+            "system": {
+              "const": "clingen_dosage_score",
+              "type": "string"
+            }
+          },
+          "required": [
+            "system",
+            "code"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "Reply_Curie": {
       "description": "Checked prefix:local ontology identifier.",
@@ -183,6 +616,11 @@
       ],
       "type": "object"
     },
+    "Reply_GeneSymbol": {
+      "description": "Source spelling of a gene symbol, with ASCII case-insensitive identity.",
+      "pattern": "^[A-Za-z][A-Za-z0-9._/@-]{0,254}$",
+      "type": "string"
+    },
     "Reply_GenotypeFilter": {
       "description": "Source count filtering state.",
       "enum": [
@@ -200,9 +638,50 @@
       "pattern": "^(?!(?:[NX]P_[0-9]{6}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|[NX]P_(?!000)[0-9]{9}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENSP[0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))p0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))(?:\\([^)]*\\))?:[gcnrmo]\\.)(?![^:()]+\\((?:[NX]P_[0-9]{6}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|[NX]P_(?!000)[0-9]{9}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENSP[0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))p0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))\\):[gcnrmo]\\.)(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)(?:\\((?:(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)|[A-Za-z][A-Za-z0-9._/@-]{0,254})\\))?:(?:[gcnrpmo]\\.[\\x21-\\x7e]*[0-9][\\x21-\\x7e]*|[pr]\\.(?:\\?|\\(\\?\\)|=|\\(=\\))|r\\.(?:spl\\??|\\(spl\\?\\)))$",
       "type": "string"
     },
+    "Reply_HpoInheritanceCode": {
+      "enum": [
+        "HP:0000006",
+        "HP:0000007",
+        "HP:0001417",
+        "HP:0001427",
+        "HP:0032113"
+      ],
+      "type": "string"
+    },
     "Reply_NcbiGeneId": {
       "description": "A positive NCBI Gene identifier in canonical decimal text.",
       "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
+      "type": "string"
+    },
+    "Reply_OncokbLevelCode": {
+      "description": "Source-defined OncoKB vocabulary.",
+      "enum": [
+        "level_1",
+        "level_2",
+        "level_3a",
+        "level_3b",
+        "level_4",
+        "level_r1",
+        "level_r2",
+        "level_dx1",
+        "level_dx2",
+        "level_dx3",
+        "level_px1",
+        "level_px2",
+        "level_px3"
+      ],
+      "type": "string"
+    },
+    "Reply_OncokbOncogenicityCode": {
+      "description": "Source-defined OncoKB vocabulary.",
+      "enum": [
+        "oncogenic",
+        "likely_oncogenic",
+        "likely_neutral",
+        "inconclusive",
+        "resistance",
+        "unknown"
+      ],
       "type": "string"
     },
     "Reply_PartialDate": {
@@ -226,6 +705,13 @@
         "xy"
       ],
       "type": "string"
+    },
+    "Reply_Position1": {
+      "description": "A positive one-based position, without an assembly or biological meaning.",
+      "format": "uint32",
+      "maximum": 4294967295,
+      "minimum": 1,
+      "type": "integer"
     },
     "Reply_ProfileExpression": {
       "description": "Exact source text together with its parsed Boolean tree.",
@@ -326,6 +812,169 @@
         }
       ]
     },
+    "Reply_ProteinSite": {
+      "description": "A residue or residue interval, without a variant assertion.",
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Position1"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Last one-based residue, if a range."
+        },
+        "gene": {
+          "$ref": "#/$defs/Reply_SymbolGeneRef",
+          "description": "Source gene identity."
+        },
+        "position": {
+          "$ref": "#/$defs/Reply_Position1",
+          "description": "First one-based residue."
+        },
+        "protein": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Accession"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source protein accession."
+        },
+        "residue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source residue label, if stated."
+        },
+        "transcript": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TranscriptReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source transcript, with version status kept."
+        }
+      },
+      "required": [
+        "gene",
+        "position"
+      ],
+      "type": "object"
+    },
+    "Reply_Region": {
+      "description": "A numbered exon or intron with its stated total.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/Reply_RegionKind"
+        },
+        "number": {
+          "$ref": "#/$defs/Reply_Position1"
+        },
+        "total": {
+          "$ref": "#/$defs/Reply_Position1"
+        }
+      },
+      "required": [
+        "kind",
+        "number",
+        "total"
+      ],
+      "type": "object"
+    },
+    "Reply_RegionKind": {
+      "description": "An exon or intron in a source transcript annotation.",
+      "enum": [
+        "exon",
+        "intron"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        "Exon in transcript order.",
+        "Intron in transcript order."
+      ]
+    },
+    "Reply_SoCode": {
+      "enum": [
+        "SO:0001819",
+        "SO:0001624",
+        "SO:0001574",
+        "SO:0001575",
+        "SO:0001630",
+        "SO:0001627",
+        "SO:0001623",
+        "SO:0001587",
+        "SO:0001583",
+        "SO:0001822",
+        "SO:0001821",
+        "SO:0001589",
+        "SO:0001578",
+        "SO:0001619",
+        "SO:1000002",
+        "SO:0000159",
+        "SO:0000667",
+        "SO:1000035",
+        "SO:1000036",
+        "SO:1000032",
+        "SO:0002073"
+      ],
+      "type": "string"
+    },
+    "Reply_SymbolGeneRef": {
+      "description": "One gene label and the publisher identifiers known for it.",
+      "properties": {
+        "ensembl_gene_id": {
+          "anyOf": [
+            {
+              "pattern": "^ENSG[0-9]{11}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hgnc_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_HgncId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/Reply_GeneSymbol"
+        },
+        "ncbi_gene_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_NcbiGeneId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "type": "object"
+    },
     "Reply_Text": {
       "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
       "maxLength": 1048576,
@@ -333,14 +982,83 @@
       "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
+    "Reply_TranscriptReference": {
+      "description": "A transcript reference in versioned Accession or unversioned AccessionBase form.",
+      "pattern": "(^(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)$|^(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})|ENS[GTP][0-9]{11}|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)$)",
+      "type": "string"
+    },
     "Reply_VariantId": {
       "description": "Published variant-level identifiers, with each identifier's level retained.",
-      "pattern": "(^rs(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^CA(?=[0-9]{6,}(?:[^0-9]|$))(?:(?=[0-9]{6}(?:[^0-9]|$))0*(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})|(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0}))$|^PA(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^VCV(?!000000000)[0-9]{9}(\\.[1-9][0-9]*)?$|^clinvar:(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^COS[VMN][1-9][0-9]*$|^ga4gh:VA\\.[A-Za-z0-9_-]{32}$)",
+      "pattern": "(^rs(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^CA(?=[0-9]{6,}(?:[^0-9]|$))(?:(?=[0-9]{6}(?:[^0-9]|$))0*(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})|(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0}))$|^PA(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^VCV(?!000000000)[0-9]{9}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?$|^clinvar:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|^COS[VMN](?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^ga4gh:VA\\.[A-Za-z0-9_-]{32}$)",
       "type": "string"
     },
     "Reply_VariantRef": {
       "description": "Checked source subject reference; at least one source identity or label is required.",
       "oneOf": [
+        {
+          "properties": {
+            "category": {
+              "$ref": "#/$defs/Reply_Category"
+            },
+            "edit": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Coding"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gene": {
+              "$ref": "#/$defs/Reply_GeneRef"
+            },
+            "label": {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            "level": {
+              "const": "categorical",
+              "type": "string"
+            },
+            "partner": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_GeneRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "region": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Region"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "site": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_ProteinSite"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "level",
+            "gene",
+            "category",
+            "label"
+          ],
+          "type": "object"
+        },
         {
           "description": "Exact allele identifier or reference-qualified notation.",
           "properties": {
@@ -801,7 +1519,7 @@
     },
     "Reply_VcvId": {
       "description": " A ClinVar variation accession, possibly a haplotype or compound.",
-      "pattern": "^VCV(?!000000000)[0-9]{9}(\\.[1-9][0-9]*)?$",
+      "pattern": "^VCV(?!000000000)[0-9]{9}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?$",
       "type": "string"
     }
   },

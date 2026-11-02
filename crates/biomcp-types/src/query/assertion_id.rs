@@ -1,5 +1,6 @@
 use crate::{AssertionSource, QueryInvalid, RcvId, ScvId, Text, VcvId};
 use serde::Serialize;
+use std::fmt;
 /// Native assertion selector, preserving its source grammar.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(untagged)]
@@ -36,13 +37,14 @@ impl AssertionId {
             _ => Err(invalid()),
         }
     }
-    /// Exact native wire spelling.
-    pub fn as_str(&self) -> &str {
+}
+impl fmt::Display for AssertionId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Vcv(id) => id.as_str(),
-            Self::Rcv(id) => id.as_str(),
-            Self::Scv(id) => id.as_str(),
-            Self::Erepo(id) => id.as_str(),
+            Self::Vcv(id) => id.fmt(f),
+            Self::Rcv(id) => id.fmt(f),
+            Self::Scv(id) => id.fmt(f),
+            Self::Erepo(id) => id.fmt(f),
         }
     }
 }

@@ -16,6 +16,8 @@ import json, os, sys
 from pathlib import Path
 with open(os.environ['COMMAND_LOG'], 'a') as log:
     log.write(json.dumps(sys.argv[1:]) + '\\n')
+if sys.argv[1:2] == ['vendor']:
+    sys.exit(0)
 target = sys.argv[sys.argv.index('--test') + 1] if '--test' in sys.argv else 'biomcp'
 print(json.dumps({'reason':'compiler-artifact', 'target':{'name':target},
                   'executable':os.environ['FAKE_RUNNER']}))
@@ -56,7 +58,11 @@ class FocusedCommand(unittest.TestCase):
                                                 env=dict(environment, TRIAL_EXIT=str(code)),
                                                 capture_output=True, text=True)
                         calls = [json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
-                        self.assertEqual(len(calls), builds, result.stderr)
+                        vendors = [call for call in calls if call[:1] == ['vendor']]
+                        self.assertEqual(len(vendors), int(builds > 0), result.stderr)
+                        if vendors:
+                            self.assertEqual(vendors[0][:2], ['vendor', '--locked'])
+                        self.assertEqual(len(calls) - len(vendors), builds, result.stderr)
                         if builds == 2:
                             self.assertEqual(result.returncode, code, result.stderr)
                             output = json.loads(result.stdout)
@@ -72,7 +78,10 @@ class FocusedCommand(unittest.TestCase):
             self.assertEqual(result.returncode, 29)
             self.assertIn('discovery stdout context', result.stdout)
             self.assertIn('cases: malformed YAML', result.stderr)
-            self.assertEqual(len(log.read_text().splitlines()), 1)
+            calls = [json.loads(line) for line in log.read_text().splitlines()]
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(calls[0][:2], ['vendor', '--locked'])
+            self.assertEqual(calls[1][:1], ['test'])
 
     def test_discovery_preserves_rust_case_and_custom_trial_modes(self):
         from trials import main

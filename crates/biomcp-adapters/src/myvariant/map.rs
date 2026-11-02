@@ -74,7 +74,14 @@ fn candidate(
         let id = problems.field("clinvar.variant_id", Some(cv.variant_id));
         if let Some(id) = problems.optional(
             "clinvar.variant_id",
-            id.map(biodata::ClinVarVariationId::new),
+            id.map(|id| {
+                u32::try_from(id)
+                    .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)
+                    .and_then(|id| {
+                        biodata::ClinVarVariationId::new(id)
+                            .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)
+                    })
+            }),
         ) {
             ids.push(VariantId::ClinVarVariation(id));
         }
@@ -142,7 +149,7 @@ fn component_terms(ids: &[VariantId]) -> Box<[biomcp_types::ComponentLabel]> {
 fn genes(
     raw: Option<Field<OneOrMany<Field<Gene>>>>,
     problems: &mut Problems,
-) -> Vec<biodata::GeneRef> {
+) -> Vec<biodata::SourceGeneRef> {
     let source = problems.field("dbsnp.gene", raw);
     source
         .into_iter()
@@ -152,7 +159,7 @@ fn genes(
             let symbol = problems.field("dbsnp.gene.symbol", gene.symbol)?;
             problems.optional(
                 "dbsnp.gene.symbol",
-                Some(biodata::GeneRef::new(symbol, None, None, None)),
+                Some(biodata::SourceGeneRef::new(symbol, None, None, None)),
             )
         })
         .collect()

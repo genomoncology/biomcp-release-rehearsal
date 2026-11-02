@@ -60,7 +60,7 @@ fn accession(row: &PathwayMember) -> Option<UniProtAcc> {
     if row.reference.namespace.as_deref() != Some("uniprot") {
         return None;
     }
-    let stated = UniProtIsoform::new(row.reference.id.as_str()).ok()?;
+    let stated = UniProtIsoform::new(row.reference.id.as_str())?;
     let base = stated
         .as_str()
         .split_once('-')

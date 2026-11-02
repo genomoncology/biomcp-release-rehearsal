@@ -10,7 +10,7 @@ The dependency direction follows `../decisions/2026-10-23-crates-enforce-depende
 
 | Rule | Owner | Enforcement |
 | --- | --- | --- |
-| Neutral entity values have no workspace dependency or I/O. | `crates/biodata` | Check: `crates/biomcp/tests/ratchets/dependencies.rs`; Check: `crates/biodata/clippy.toml` |
+| Neutral entity values have no workspace dependency or I/O. | [BioData](https://github.com/genomoncology/biodata) | Check: the published crate's dependency and lint checks |
 | Consumer queries, replies, source identities and schemas sit above neutral values. | `crates/biomcp-types` | Check: `crates/biomcp/tests/ratchets/dependencies.rs`; Check: `crates/biomcp-types/clippy.toml` |
 | Transport owns network clients, request caching, recording, replay and bundle transfer. | `crates/biomcp-fetch` | Check: `crates/biomcp/tests/ratchets/dependencies.rs` |
 | Adapters declare sources and map native replies without importing query services, the binary, HTTP clients or SQLite. | `crates/biomcp-adapters` | Check: `crates/biomcp/tests/ratchets/dependencies.rs`; Check: `crates/biomcp-adapters/clippy.toml` |
@@ -48,7 +48,7 @@ Terms describe publisher conditions. They do not grant reuse rights. Provider de
 
 ## 4. Values and native reply mapping
 
-`biodata` owns neutral checked values. `biomcp-types` owns BioMCP requests and replies. This separation implements `../decisions/2026-10-23-biodata-is-the-base-data-layer.md`.
+`biodata` owns neutral checked values in its public repository. BioMCP depends on BioData v1.0.0 at the exact commit in the workspace manifest; the release build vendors that locked source for offline compilation. `biomcp-types` owns BioMCP requests and replies. This separation implements `../decisions/2026-10-23-biodata-is-the-base-data-layer.md`.
 
 `crates/biomcp-adapters/src/raw.rs` represents a malformed optional field with `Field::Invalid`. Mapping helpers in `mapped.rs` preserve the useful record and attach a field problem. `Mapped<T>` carries the value, problems and the independent `Refusal` fact. Native member refusal is different from an optional field omission.
 
@@ -187,11 +187,13 @@ The runner tool proof `schema-discovery/capture-retains-replay-owner` drops the 
 | `crates/biomcp-types/tests/gene_ids.rs` | Exercise checked values and schema contracts through the public library API. |
 | `crates/biomcp-types/tests/gene_model.rs` | Exercise checked values and schema contracts through the public library API. |
 | `crates/biomcp-types/tests/rust_api.rs` | Exercise the external Rust API consumer compile/runtime contract. |
+| `crates/biomcp-types/tests/biodata_switch.rs` | Exercise reviewed shared identifier identity, selector wire text and refusal codes through the consumer API. |
 | `crates/biomcp-types/tests/query.rs` | Exercise checked values and schema contracts through the public library API. |
 | `crates/biomcp-types/tests/response.rs` | Exercise checked values and schema contracts through the public library API. |
 | `crates/biomcp-types/tests/schemas.rs` | Exercise checked values and schema contracts through the public library API. |
 | `crates/biomcp-types/tests/schemas/disease.rs` | Exercise standalone disease option metadata and synthetic envelope schema contracts before command registration. |
 | `crates/biomcp-types/tests/schemas/compatibility_cases.rs` | Exercise checked values and schema contracts through the public library API. |
+| `crates/biomcp-types/tests/schemas/policy.rs` | Test reviewed schema pattern changes at exact paths and reject near misses. |
 | `crates/biomcp-types/tests/schemas/compatibility_recursive_cases.rs` | Exercise recursive public schema graphs and their compatibility constraints. |
 | `crates/biomcp-types/tests/schemas/temporal.rs` | Exercise native timestamp schema spelling and temporal property consistency. |
 | `crates/biomcp-types/tests/schemas/drug.rs` | Exercise public drug header and card disclosure boundaries through their serialized values and schemas. |
@@ -255,6 +257,7 @@ The runner tool proof `schema-discovery/capture-retains-replay-owner` drops the 
 | `crates/biomcp-query/tests/gene_resolution.rs` | Mutate isolated cache freshness and preserve a local bundle failure under an API-only short command deadline. |
 | `crates/biomcp/tests/ratchets.rs` | Enforce repository structure and prove refusal of planted violations in isolated trees. |
 | `crates/biomcp/tests/ratchets/lints.rs` | Prove the shared Clippy settings reject planted scalar, banned-type and reason drift. |
+| `crates/biomcp/tests/ratchets/dependency_sources.rs` | Reject unapproved Git revisions and missing source policy inputs through the dependency guard. |
 | `crates/biomcp/tests/ratchets/proof.rs` | Enforce repository structure and prove refusal of planted violations in isolated trees. |
 
 Everything else goes through the runner.

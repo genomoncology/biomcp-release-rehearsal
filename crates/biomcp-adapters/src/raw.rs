@@ -46,7 +46,9 @@ pub(crate) struct NumericPmid(pub biodata::Pmid);
 impl TryFrom<u32> for NumericPmid {
     type Error = biodata::Error;
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        biodata::Pmid::new(value).map(Self)
+        biodata::Pmid::new(value)
+            .map(Self)
+            .map_err(|_| biodata::Error::ArticleIdInvalid)
     }
 }
 

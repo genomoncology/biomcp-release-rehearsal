@@ -13,6 +13,8 @@ pub(super) fn attribution(
     ontology: DiseaseOntology,
 ) -> Result<Attribution, RequestError> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: crate::mapped::text(ontology.as_str()).map_err(|_| InputError::Serialization)?,
         record: record_text(id),
         url: iri,

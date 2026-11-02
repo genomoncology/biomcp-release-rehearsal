@@ -139,7 +139,6 @@ text_value!(ProteinQuery, "ProteinQuery", {
         biodata::schema_pattern::decimal(u32::MAX.into())
     )
 });
-#[cfg(feature = "schema")]
 fn regex_escape(value: &str) -> String {
     if value == "*" {
         "\\*".into()

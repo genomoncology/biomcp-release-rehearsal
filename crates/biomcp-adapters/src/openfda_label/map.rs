@@ -45,6 +45,8 @@ impl RawRecord {
             revised: self.effective_time,
             url: Some(url.clone()),
             attribution: Attribution {
+                approved: None,
+                published: None,
                 source: "openfda-label".parse().map_err(|_| {
                     biomcp_fetch::bad_reply(biomcp_types::Source::OpenfdaLabel, Some(200))
                 })?,

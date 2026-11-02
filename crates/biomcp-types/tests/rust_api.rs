@@ -21,7 +21,7 @@ fn variant_consumer_reads_coding_representations_statements_and_frequencies() ->
             allele: None,
         }]
         .into(),
-        genes: vec![GeneRef::try_from(GeneSymbol::new("EGFR")?)?].into(),
+        genes: vec![SourceGeneRef::try_from(GeneSymbol::new("EGFR")?)?].into(),
     };
     let coding = variant
         .representations
@@ -35,6 +35,8 @@ fn variant_consumer_reads_coding_representations_statements_and_frequencies() ->
     );
     let subject = VariantRef::allele_hgvs(notation.parse()?);
     let attribution = Attribution {
+        approved: None,
+        published: None,
         source: Text::new("synthetic")?,
         record: None,
         version: None,
@@ -44,7 +46,7 @@ fn variant_consumer_reads_coding_representations_statements_and_frequencies() ->
         evaluated: None,
     };
     let statement = Statement::new(
-        subject.clone(),
+        subject.clone().into(),
         "pathogenicity".parse()?,
         Term {
             label: Text::new("source label")?,
@@ -53,10 +55,10 @@ fn variant_consumer_reads_coding_representations_statements_and_frequencies() ->
         attribution.clone(),
     );
     assert_eq!(
-        statement.subject.hgvs().map(HgvsText::as_str),
-        Some(notation)
+        serde_json::to_value(&statement.subject)?,
+        serde_json::to_value(&subject)?,
+        "Subject conversion preserves the variant wire"
     );
-    assert!(statement.subject.id().is_none());
     let frequency: PopulationFrequency = serde_json::from_value(json!({
         "subject": subject,
         "build": Build::GRCh38,
@@ -86,7 +88,7 @@ fn variant_consumer_reads_coding_representations_statements_and_frequencies() ->
 
 #[test]
 fn consumers_read_each_subject_level_without_json() -> Check {
-    let gene = GeneRef::try_from(GeneSymbol::new("EGFR")?)?;
+    let gene = SourceGeneRef::try_from(GeneSymbol::new("EGFR")?)?;
     let allele = VariantRef::allele("VCV000013961.3".parse()?);
     let protein = VariantRef::protein_hgvs(
         gene.clone(),
@@ -204,8 +206,8 @@ where
     }
     assert_eq!(
         ids.len(),
-        1,
-        "all versions identify the same {prefix} record"
+        3,
+        "source versions retain distinct identities for {prefix}"
     );
     assert!(
         !ids.contains(&format!("{prefix}000013962").parse::<T>()?),
@@ -220,7 +222,7 @@ fn clinvar_accessions_compare_by_record_identity_and_preserve_source_versions() 
     same_identity::<RcvId>("RCV")?;
     same_identity::<ScvId>("SCV")?;
     assert_eq!(
-        "VCV000013961.3".parse::<VcvId>()?.as_str(),
+        "VCV000013961.3".parse::<VcvId>()?.to_string(),
         "VCV000013961.3"
     );
     Ok(())

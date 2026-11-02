@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/biomcp-test-support", "crates/biomcp-types", "crates/biodata", "crates/biomcp-adapters", "crates/biomcp-fetch", "crates/biomcp-query", "crates/biomcp"]
+members = ["crates/biomcp-test-support", "crates/biomcp-types", "crates/biomcp-adapters", "crates/biomcp-fetch", "crates/biomcp-query", "crates/biomcp"]
 resolver = "3"
 
 [workspace.package]
@@ -22,7 +22,8 @@ debug = false
 
 [workspace.dependencies]
 biomcp-test-support = { version = "=1.0.0", path = "crates/biomcp-test-support" }
-biodata = { version = "=1.0.0", path = "crates/biodata" }
+# BioData v1.0.0, pinned to the annotated tag's commit.
+biodata = { version = "=1.0.0", git = "https://github.com/genomoncology/biodata", rev = "8bcd2456cab32d04daaac5ea0a17ea4151d4224e", features = ["schema"] }
 biomcp-adapters = { version = "=1.0.0", path = "crates/biomcp-adapters" }
 biomcp-fetch = { version = "=1.0.0", path = "crates/biomcp-fetch" }
 biomcp-query = { version = "=1.0.0", path = "crates/biomcp-query" }

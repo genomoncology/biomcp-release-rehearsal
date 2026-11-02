@@ -172,8 +172,8 @@
       "type": "object"
     },
     "Reply_AuthorId": {
-      "description": "One provider record. Semantic Scholar emits semantic-scholar:ID, accepts semanticscholar:ID. ORCID checksums are checked. Variants imply no relationship.",
-      "pattern": "^((semantic-scholar|semanticscholar):[1-9][0-9]*|orcid:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
+      "description": "One provider record. Semantic Scholar emits semantic-scholar:ID. ORCID checksums are checked. Variants imply no relationship.",
+      "pattern": "^(semantic-scholar:[1-9][0-9]*|orcid:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
       "type": "string"
     },
     "Reply_CacheProblem": {

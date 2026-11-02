@@ -26,6 +26,8 @@ if args[0] in ('build', 'test'):
     print(json.dumps({'reason': 'compiler-artifact', 'target': {'name': name},
                       'executable': str(root / name),
                       'profile': {'debug_assertions': False, 'opt_level': '3'}}))
+elif args[:2] == ['vendor', '--locked'] and len(args) == 3:
+    pass
 elif args == ['metadata', '--locked', '--format-version', '1', '--no-deps']:
     print(json.dumps({'packages': [{'name': 'biomcp', 'version': '1.0.0'}]}))
 elif args == ['about', '--version']:
@@ -73,6 +75,8 @@ class ReleaseCommands(unittest.TestCase):
                                     cwd=ROOT, env=env, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             record = json.loads((output / 'release.json').read_text())
+            calls = [json.loads(line) for line in (tools / 'cargo.jsonl').read_text().splitlines()]
+            self.assertEqual(len([call for call in calls if call[:2] == ['vendor', '--locked']]), 1)
             self.assertEqual(record['revision'], 'a' * 40)
             self.assertEqual(record['version'], '1.0.0')
             self.assertEqual(record['binary_sha256'], hashlib.sha256((tools / 'biomcp').read_bytes()).hexdigest())
@@ -115,7 +119,10 @@ class ReleaseCommands(unittest.TestCase):
                 self.assertEqual((scratch / 'tools/release' / source.name).read_bytes(), source.read_bytes())
             self.assertEqual((scratch / 'tools/LICENSE').read_bytes(), (ROOT / 'LICENSE').read_bytes())
             calls = [json.loads(line) for line in (tools / 'cargo.jsonl').read_text().splitlines()]
-            self.assertEqual([call[call.index('--test') + 1] for call in calls], ['cases', 'tools'])
+            vendors = [call for call in calls if call[:2] == ['vendor', '--locked']]
+            self.assertEqual(len(vendors), 1)
+            self.assertEqual([call[call.index('--test') + 1] for call in calls if call not in vendors],
+                             ['cases', 'tools'])
             self.assertFalse((scratch / 'venv').exists())
 
     def test_build_keeps_notice_bytes_with_windows_text_newlines(self):

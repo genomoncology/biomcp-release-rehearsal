@@ -15,7 +15,7 @@ fn round_trip<T: Serialize + DeserializeOwned + PartialEq + Debug>(value: &T) ->
 }
 fn header() -> Result<GeneHeader, Error> {
     Ok(GeneHeader {
-        hgnc_id: HgncId::new(1097)?,
+        hgnc_id: HgncId::new(1097).map_err(|_| Error::HgncIdInvalid)?,
         symbol: GeneSymbol::new("BRAF")?,
         name: Some(Text::new("BRAF name")?),
         locus_group: Some(LocusGroup::ProteinCoding),
@@ -26,7 +26,7 @@ fn header() -> Result<GeneHeader, Error> {
 }
 fn gene() -> Result<Gene, Error> {
     Ok(Gene {
-        hgnc_id: HgncId::new(1097)?,
+        hgnc_id: HgncId::new(1097).map_err(|_| Error::HgncIdInvalid)?,
         symbol: GeneSymbol::new("BRAF")?,
         entrez_id: None,
         ensembl_id: None,

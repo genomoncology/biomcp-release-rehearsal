@@ -39,9 +39,12 @@ pub fn assertions(
     id: &str,
     selection: Option<(&biomcp_types::AssertionId, Option<&str>)>,
 ) -> Result<crate::Mapped<Vec<VariantAssertion>>, RequestError> {
-    let vcv = selection
+    let selected_vcv = selection
         .filter(|(id, _)| matches!(id, biomcp_types::AssertionId::Vcv(_)))
-        .map(|(id, version)| (id.as_str(), version));
+        .map(|(id, version)| (id.to_string(), version));
+    let vcv = selected_vcv
+        .as_ref()
+        .map(|(id, version)| (id.as_str(), *version));
     let selected = vcv.map(|(record, version)| {
         version.map_or_else(|| record.to_owned(), |v| format!("{record}.{v}"))
     });

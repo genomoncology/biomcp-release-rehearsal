@@ -131,6 +131,8 @@ fn map(
 fn attribution(id: &biodata::HpId) -> Result<Attribution, RequestError> {
     let text = |s: &str| Text::new(s).map_err(|_| InputError::Serialization);
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: text("hpo")?,
         record: Some(text(id.as_str())?),
         url: Some(text(&format!("https://hpo.jax.org/browse/term/{id}"))?),

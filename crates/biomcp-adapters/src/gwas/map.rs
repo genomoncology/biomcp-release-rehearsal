@@ -66,6 +66,7 @@ fn optional_text(
     let parsed = if field == "pubmed_id" {
         value
             .parse::<biodata::Pmid>()
+            .map_err(|_| biodata::Error::ArticleIdInvalid)
             .and_then(|_| biodata::Text::new(&value))
     } else {
         biodata::Text::from_source(&value)

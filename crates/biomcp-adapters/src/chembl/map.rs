@@ -168,6 +168,8 @@ fn references(
 }
 fn attribution(record: String) -> Result<Attribution, Error> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: Text::new("chembl")?,
         record: Some(Text::new(&record)?),
         version: None,

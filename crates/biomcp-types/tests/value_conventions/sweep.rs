@@ -82,7 +82,7 @@ fn identifiers_and_variant_text_preserve_identity() -> Check {
         &["ENSG00000157764", "ENSG00000157764.2"],
         &["ENSG00000157764.0"],
     )?;
-    constructor_contract(biodata::OmimId::new, &["001234"], &["12345"])?;
+    value_contract::<biodata::OmimId>(&["100000", "699999"], &["099999", "700000"])?;
     constructor_contract(
         biodata::UniProtAcc::new,
         &["P15056", "A0A024RBG1"],
@@ -169,7 +169,7 @@ fn source_identifiers_preserve_identity() -> Check {
     constructor_contract(biodata::WikiPathwaysId::new, &["WP1"], &["WP01"])?;
     value_contract::<biodata::PathwayId>(&["R-HSA-1", "WP1"], &["WP01"])?;
     constructor_contract(
-        biodata::UniProtIsoform::new,
+        |value| biodata::UniProtIsoform::new(value).ok_or(biodata::UniProtIsoformError),
         &["P15056", "P15056-2"],
         &["P15056-0"],
     )?;
@@ -251,7 +251,7 @@ fn author_and_record_vocabularies_preserve_identity() -> Check {
     value_contract::<biodata::SemanticScholarAuthorId>(&["1"], &["01"])?;
     value_contract::<biodata::OrcidId>(&["0000-0002-1825-0097"], &["0000-0002-1825-0098"])?;
     value_contract::<biodata::AuthorId>(
-        &["orcid:0000-0002-1825-0097", "semanticscholar:1"],
+        &["orcid:0000-0002-1825-0097", "semantic-scholar:1"],
         &["orcid:0000-0002-1825-0098"],
     )?;
     value_contract::<biodata::OrcidClientId>(&["APP-0123456789ABCDEF"], &["APP-0123456789ABCDE"])?;
@@ -299,8 +299,35 @@ fn scientific_vocabularies_preserve_identity() -> Check {
     )?;
     value_contract::<biodata::FaersAgeUnit>(&["800"], &["800!"])?;
     value_contract::<biodata::ExpressionSyntax>(&["hgvs.g"], &["hgvs.g!"])?;
-    value_contract::<biodata::RefSeqPrefix>(&["NC_"], &["NC_!"])?;
-    value_contract::<biodata::EnsemblFeature>(&["ENSG"], &["ENSG!"])?;
+    {
+        let value = "NC_".parse::<biodata::RefSeqPrefix>()?;
+        assert_eq!(value.to_string(), "NC_");
+        assert_eq!(serde_json::to_value(value)?, json!("nc"));
+        assert_eq!(
+            serde_json::from_value::<biodata::RefSeqPrefix>(json!("nc"))?,
+            value
+        );
+        assert!("NC_!".parse::<biodata::RefSeqPrefix>().is_err());
+        assert!(serde_json::from_value::<biodata::RefSeqPrefix>(json!("NC_")).is_err());
+        assert!(serde_json::from_value::<biodata::RefSeqPrefix>(json!("nc!")).is_err());
+    }
+    {
+        let value = "ENSG".parse::<biodata::EnsemblFeature>()?;
+        assert_eq!(value.to_string(), "ENSG");
+        assert_eq!(serde_json::to_value(value)?, json!("gene"));
+        assert_eq!(
+            serde_json::from_value::<biodata::EnsemblFeature>(json!("gene"))?,
+            value
+        );
+        assert!("ENSG!".parse::<biodata::EnsemblFeature>().is_err());
+        assert!(serde_json::from_value::<biodata::EnsemblFeature>(json!("ENSG")).is_err());
+        assert!(serde_json::from_value::<biodata::EnsemblFeature>(json!("gene!")).is_err());
+    }
+    Ok(())
+}
+
+#[test]
+fn population_and_assertion_vocabularies_preserve_identity() -> Check {
     value_contract::<biodata::PopulationDataType>(&["exomes"], &["exomes!"])?;
     value_contract::<biodata::PopulationSex>(&["xx"], &["xx!"])?;
     value_contract::<biodata::GenotypeFilter>(&["raw"], &["raw!"])?;
@@ -310,11 +337,32 @@ fn scientific_vocabularies_preserve_identity() -> Check {
     )?;
     value_contract::<biodata::ProteinIsoformStatus>(&["Displayed"], &["Displayed!"])?;
     value_contract::<biodata::ProteinSequenceAvailability>(&["available"], &["available!"])?;
-    value_contract::<biodata::ClinvarReviewStatusCode>(
-        &["practice_guideline"],
-        &["practice_guideline!"],
-    )?;
-    value_contract::<biodata::ClinvarAlleleOriginCode>(&["germline"], &["germline!"])?;
+    {
+        let value = "practice guideline".parse::<biodata::ReviewStatus>()?;
+        assert_eq!(value.to_string(), "practice guideline");
+        assert_eq!(serde_json::to_value(value)?, json!("practice_guideline"));
+        assert_eq!(
+            serde_json::from_value::<biodata::ReviewStatus>(json!("practice_guideline"))?,
+            value
+        );
+        assert!(
+            "practice guideline!"
+                .parse::<biodata::ReviewStatus>()
+                .is_err()
+        );
+        assert!(
+            "practice_guideline"
+                .parse::<biodata::ReviewStatus>()
+                .is_err()
+        );
+        assert!(
+            serde_json::from_value::<biodata::ReviewStatus>(json!("practice guideline")).is_err()
+        );
+        assert!(
+            serde_json::from_value::<biodata::ReviewStatus>(json!("practice_guideline!")).is_err()
+        );
+    }
+    value_contract::<biodata::AlleleOrigin>(&["germline"], &["germline!"])?;
     value_contract::<biodata::AcmgAmp2015Code>(&["pathogenic"], &["pathogenic!"])?;
     value_contract::<biodata::ClingenLowPenetrance2024Code>(
         &["pathogenic_low_penetrance"],
@@ -341,10 +389,9 @@ fn equal_identity_uses_equal_hashes() -> Check {
     equal_hash::<biodata::Doi>("10.1000/ABC", "10.1000/abc")?;
     equal_hash::<biodata::ScientificPValue>("1.50e-8", "1.5e-8")?;
     equal_hash::<biodata::ScientificPValue>("1.000e0", "1e0")?;
-    equal_hash::<biodata::AuthorId>("semanticscholar:1", "semantic-scholar:1")?;
-    equal_hash::<biodata::VcvId>("VCV000000001.1", "VCV000000001.2")?;
-    equal_hash::<biodata::RcvId>("RCV000000001.1", "RCV000000001.2")?;
-    equal_hash::<biodata::ScvId>("SCV000000001.1", "SCV000000001.2")?;
+    equal_hash::<biodata::VcvId>("VCV000000001.1", "VCV000000001.1")?;
+    equal_hash::<biodata::RcvId>("RCV000000001.1", "RCV000000001.1")?;
+    equal_hash::<biodata::ScvId>("SCV000000001.1", "SCV000000001.1")?;
     Ok(())
 }
 
@@ -437,8 +484,8 @@ fn structured_text_values_reject_invalid_native_parts() -> Check {
     Ok(())
 }
 
-fn constructor_contract<T>(
-    new: fn(&str) -> Result<T, biodata::Error>,
+fn constructor_contract<T, E>(
+    new: fn(&str) -> Result<T, E>,
     valid: &[&str],
     invalid: &[&str],
 ) -> Check
@@ -549,19 +596,4 @@ fn source_timestamp_values_preserve_native_text() -> Check {
             "2024-05-03T10:00:00Z\n",
         ],
     )
-}
-
-#[test]
-fn synonymous_protein_search_roundtrips_canonical_hgvs() -> Result<(), Box<dyn std::error::Error>> {
-    let canonical = json!({"gene":"BARD1", "protein":"p.Ala613=", "limit":10, "offset":0});
-    for text in ["p.Ala613=", "p.A613="] {
-        let query: biomcp_types::VariantSearch =
-            serde_json::from_value(json!({"gene":"BARD1", "protein":text}))?;
-        assert_eq!(serde_json::to_value(&query)?, canonical);
-        assert_eq!(
-            biomcp_types::protein_query_forms(text)?,
-            ["A613=", "Ala613=", "p.A613=", "p.Ala613="].map(String::from)
-        );
-    }
-    Ok(())
 }

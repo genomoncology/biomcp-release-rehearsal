@@ -7,7 +7,7 @@ use crate::{
 };
 use biodata::{
     Attribution, DrugDiseaseReference, DrugIdentity, DrugIndicationClaim, DrugNativeTarget,
-    DrugStage, DrugTargetRelation, Error, GeneRef,
+    DrugStage, DrugTargetRelation, Error, SourceGeneRef,
 };
 use biomcp_types::{DrugHeader, DrugSource, Source};
 
@@ -132,7 +132,7 @@ pub fn targets(
                 target.approved_symbol,
             );
             let gene = symbol
-                .map(|label| GeneRef::new(label, None, None, Some(id.clone())))
+                .map(|label| SourceGeneRef::new(label, None, None, Some(id.clone())))
                 .transpose()?;
             let native = DrugNativeTarget {
                 namespace: "opentargets".parse()?,
@@ -216,6 +216,8 @@ pub fn indications(
 }
 fn attribution(drug: &DrugIdentity) -> Result<Attribution, Error> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: "opentargets".parse()?,
         record: Some(drug.id.to_string().parse()?),
         version: None,

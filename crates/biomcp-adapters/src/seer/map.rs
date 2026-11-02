@@ -29,6 +29,8 @@ fn requested(query: &Selection) -> Result<Box<[StatisticSelector]>, BadReply> {
 }
 fn attribution(key: &str) -> Result<Attribution, BadReply> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: "seer".parse().map_err(|_| BadReply)?,
         record: Some(key.parse().map_err(|_| BadReply)?),
         version: None,

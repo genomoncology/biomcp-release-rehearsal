@@ -158,6 +158,7 @@ fn read(
 }
 fn page(query: &VariantAssertionsGet, mut rows: Vec<VariantAssertion>) -> VariantAssertions {
     if let Some(id) = query.assertion() {
+        let id = id.to_string();
         rows.retain(|r| {
             r.attribution().is_some_and(|a| {
                 a.record.as_ref().map(|record| record.as_str()) == Some(id.as_str())

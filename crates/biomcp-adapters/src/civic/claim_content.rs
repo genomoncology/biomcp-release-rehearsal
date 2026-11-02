@@ -113,6 +113,8 @@ pub(super) fn native(
         allele_origin,
         citations,
         attribution: Attribution {
+            approved: None,
+            published: None,
             source: Source::Civic.text(),
             record: None,
             version: None,

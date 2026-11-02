@@ -19,7 +19,14 @@ pub(super) fn ids(raw: Option<Field<raw::External>>, fields: &mut Problems) -> V
         ) {
             if let Some(id) = fields.optional(
                 "externalRecords.ClinVarVariations.variationId",
-                Some(biodata::ClinVarVariationId::new(cv.id)),
+                Some(
+                    u32::try_from(cv.id)
+                        .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)
+                        .and_then(|id| {
+                            biodata::ClinVarVariationId::new(id)
+                                .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)
+                        }),
+                ),
             ) {
                 ids.push(VariantId::ClinVarVariation(id));
             }

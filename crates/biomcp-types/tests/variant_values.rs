@@ -137,7 +137,7 @@ fn published_variant_identifiers_round_trip_without_text_inference() -> Check {
         #[cfg(feature = "schema")]
         assert_eq!(validator.is_valid(&json!(text)), valid, "schema: {text}");
         assert_eq!(text.parse::<HgvsText>().is_ok(), valid, "{text}");
-        let accepted = Text::new(text).and_then(Expression::hgvs).is_ok();
+        let accepted = Text::new(text).is_ok_and(|value| Expression::hgvs(value).is_ok());
         assert_eq!(accepted, valid, "{text}");
     }
     Ok(())
@@ -264,16 +264,16 @@ fn identifier_levels_are_checked_and_never_promoted() {
 }
 #[test]
 fn gene_references_keep_only_stated_ids_and_require_a_label() {
-    use biodata::GeneRef;
+    use biodata::SourceGeneRef;
     let text = r#"{"label":"BRAF","ncbi_gene_id":"673"}"#;
-    let value: GeneRef = serde_json::from_str(text).expect("source ids");
+    let value: SourceGeneRef = serde_json::from_str(text).expect("source ids");
     assert!(value.hgnc_id().is_none());
     assert_eq!(value.ncbi_gene_id().expect("stated id").get(), 673);
     assert_eq!(
         serde_json::to_value(value).expect("serialize"),
         serde_json::from_str::<serde_json::Value>(text).expect("json")
     );
-    assert!(serde_json::from_str::<GeneRef>(r#"{"label":" "}"#).is_err());
+    assert!(serde_json::from_str::<SourceGeneRef>(r#"{"label":" "}"#).is_err());
 }
 #[test]
 fn interval_comparison_requires_both_source_builds() {
@@ -284,17 +284,17 @@ fn interval_comparison_requires_both_source_builds() {
         span: Span0::new(0, 2).expect("bounds"),
         strand: None,
     };
-    assert_eq!(region.contains(&region), Ok(true));
-    let other = region.clone();
+    assert_eq!(region.contains(region), Ok(true));
+    let other = region;
     region.build = None;
     assert_eq!(
         region
-            .contains(&other)
+            .contains(other)
             .expect_err("no guessed assembly")
             .code(),
         "coord.interval.build_absent"
     );
-    assert!(other.contains(&region).is_err());
+    assert!(other.contains(region).is_err());
 }
 #[test]
 fn shared_refusals_use_the_settled_codes() {
@@ -306,7 +306,8 @@ fn shared_refusals_use_the_settled_codes() {
         assert_eq!(
             text.parse::<Accession>()
                 .expect_err("invalid grammar")
-                .code(),
+                .code
+                .name(),
             code
         );
     }
@@ -529,9 +530,9 @@ fn term_retains_multiple_source_codings_and_concept_refuses_system_uris() -> Che
 
 #[test]
 fn clinvar_codings_use_exact_publisher_labels() -> Check {
-    let review = ClinvarReviewStatusCode::from_source_label("criteria provided, single submitter")
+    let review = ReviewStatus::from_source_label("criteria provided, single submitter")
         .ok_or("review label")?;
-    let origin = ClinvarAlleleOriginCode::from_source_label("de novo").ok_or("origin label")?;
+    let origin = AlleleOrigin::from_source_label("de novo").ok_or("origin label")?;
     assert_eq!(
         serde_json::to_value(Coding::ClinvarReviewStatus(review))?,
         json!({"system":"clinvar_review_status","code":"criteria_provided_single_submitter"})
@@ -540,8 +541,8 @@ fn clinvar_codings_use_exact_publisher_labels() -> Check {
         serde_json::to_value(Coding::ClinvarAlleleOrigin(origin))?,
         json!({"system":"clinvar_allele_origin","code":"de_novo"})
     );
-    assert!(ClinvarReviewStatusCode::from_source_label("future review label").is_none());
-    assert!(ClinvarAlleleOriginCode::from_source_label("future origin label").is_none());
+    assert!(ReviewStatus::from_source_label("future review label").is_none());
+    assert!(AlleleOrigin::from_source_label("future origin label").is_none());
     Ok(())
 }
 

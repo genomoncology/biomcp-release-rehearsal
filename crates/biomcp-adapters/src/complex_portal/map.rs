@@ -11,8 +11,7 @@ pub(super) fn members(
             let protein = if r.interactor_type == "protein" {
                 problems.required(
                     "participants.protein",
-                    UniProtIsoform::new(&r.identifier)
-                        .ok()
+                    UniProtIsoform::new(r.identifier.as_str())
                         .filter(|p| p.as_str() == r.identifier),
                 )
             } else {

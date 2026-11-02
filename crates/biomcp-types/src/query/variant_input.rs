@@ -29,7 +29,6 @@ pub enum VariantNamespace {
     Unsupported,
 }
 impl VariantInput {
-    #[cfg(feature = "schema")]
     pub(crate) const CHROMOSOME_PATTERN: &'static str =
         r"^chr([1-9]|1[0-9]|2[0-2]|X|Y|M|MT):g\.[\x21-\x7e]*[0-9][\x21-\x7e]*$";
 
@@ -154,11 +153,11 @@ text_value!(
     VariantInput,
     "VariantInput",
     format!(
-        "^(?=[\\x21-\\x7e]{{1,{}}}$)({}|{}|^{}$|{})",
+        "^(?=[\\x21-\\x7e]{{1,{}}}$)({}|{}|{}|{})",
         Self::MAX_BYTES,
         crate::VariantId::pattern().replace("clinvar:", "[cC][lL][iI][nN][vV][aA][rR]:"),
         crate::HgvsText::pattern(),
-        biodata::schema_pattern::decimal(u64::MAX),
+        biodata::ClinVarVariationId::pattern().replace("clinvar:", ""),
         Self::CHROMOSOME_PATTERN
     )
 );

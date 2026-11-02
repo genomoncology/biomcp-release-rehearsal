@@ -26,7 +26,7 @@ pub(crate) fn row(
         let coding = acmg(&label, row.detail.as_ref());
         let clinvar = attribution.source.as_str() == "clinvar";
         let mut statement = Statement::new(
-            subject,
+            subject.into(),
             proposition,
             Term {
                 label,
@@ -36,7 +36,7 @@ pub(crate) fn row(
         );
         statement.strength = review.map(|label| {
             let coding = clinvar
-                .then(|| biodata::ClinvarReviewStatusCode::from_source_label(label.as_str()))
+                .then(|| biodata::ReviewStatus::from_source_label(label.as_str()))
                 .flatten()
                 .map(Coding::ClinvarReviewStatus);
             Term {
@@ -51,9 +51,7 @@ pub(crate) fn row(
             if detail.origins.len() == 1 {
                 statement.allele_origin = detail.origins.first().cloned().map(|label| {
                     let coding = clinvar
-                        .then(|| {
-                            biodata::ClinvarAlleleOriginCode::from_source_label(label.as_str())
-                        })
+                        .then(|| biodata::AlleleOrigin::from_source_label(label.as_str()))
                         .flatten()
                         .map(Coding::ClinvarAlleleOrigin);
                     Term {

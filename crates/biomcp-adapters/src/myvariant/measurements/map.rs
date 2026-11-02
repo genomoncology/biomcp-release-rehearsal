@@ -207,6 +207,8 @@ impl Output {
                 continue;
             };
             self.scores.push(PredictorScore {
+                gene: None,
+                transcript: None,
                 subject: self.subject.clone(),
                 method: Text::new(&if array {
                     format!("{path}[{index}]")
@@ -217,6 +219,8 @@ impl Output {
                 score,
                 label: if array { None } else { label.clone() },
                 attribution: Attribution {
+                    approved: None,
+                    published: None,
                     source: Source::MyVariant.text(),
                     record: Some(self.id.clone()),
                     version: None,

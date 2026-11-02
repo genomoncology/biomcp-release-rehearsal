@@ -38,6 +38,8 @@ pub(super) fn card(row: Molecule, fetched: Option<i64>) -> Result<crate::Mapped<
         list: header.problems,
     };
     let attribution = Attribution {
+        approved: None,
+        published: None,
         source: Text::new("chembl")?,
         record: problems.record.clone(),
         version: None,

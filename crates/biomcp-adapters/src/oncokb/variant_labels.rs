@@ -105,7 +105,11 @@ fn classification(
     if let Some(subject) = subject {
         Record::Statement {
             statement: Box::new(Statement {
-                subject: subject.clone(),
+                method: None,
+                mode_of_inheritance: None,
+                criteria_not_met: Box::default(),
+                status: None,
+                subject: subject.clone().into(),
                 proposition,
                 predicate: None,
                 direction: None,
@@ -118,6 +122,8 @@ fn classification(
                 criteria: Box::default(),
                 citations,
                 attribution: Attribution {
+                    approved: None,
+                    published: None,
                     source: Source::Oncokb.text(),
                     record: None,
                     version: None,

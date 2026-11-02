@@ -107,7 +107,7 @@ pub struct AssertionDetail {
     pub met_criteria: Box<[Text]>,
     /// Native gene context retained when the conclusion cannot map to a statement.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gene_context: Option<biodata::GeneRef>,
+    pub gene_context: Option<biodata::SourceGeneRef>,
     /// Source publication date; never an inferred evaluation date.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub published: Option<PartialDate>,

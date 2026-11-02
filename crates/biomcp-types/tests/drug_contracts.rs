@@ -320,7 +320,7 @@ fn native_target_identity_does_not_require_an_invented_gene() {
         )
         .is_err()
     );
-    let gene = biodata::GeneRef::new("source gene".parse().expect("label"), None, None, None)
+    let gene = biodata::SourceGeneRef::new("source gene".parse().expect("label"), None, None, None)
         .expect("native gene");
     let gene_only = DrugTargetRelation::new(
         parsed.drug().clone(),

@@ -79,6 +79,8 @@ pub(super) fn event(
         dates,
         indication: item(row, problems, "therapeutic_indication"),
         attribution: Attribution {
+            approved: None,
+            published: None,
             source: row.source.clone(),
             record: Some(row.record.clone()),
             version: item(row, problems, "revision_number"),

@@ -12,6 +12,8 @@ fn attribution(
     version: Option<u64>,
 ) -> Result<Attribution, RequestError> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: crate::mapped::text(source)
             .map_err(|_| RequestError::Input(InputError::Serialization))?,
         record: Some(

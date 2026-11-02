@@ -6,6 +6,7 @@ import unittest
 
 from reply_diff_acquisition_tests import ReplyAcquisitions
 from reply_diff_test_support import ReplyDiffCase
+from reply_diff_structured_tests import ReplyStructured
 
 
 class ReplyDiff(ReplyDiffCase):

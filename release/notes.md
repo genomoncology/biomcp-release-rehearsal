@@ -75,4 +75,21 @@ The following 0.9 entity fields leave the reply root. Every nested path beneath 
 
 Cache failures now distinguish `fetch.cache_encoding`, `fetch.cache_filesystem`, `fetch.cache_internal` and `fetch.cache_limit`. Their `CacheProblem` wire values are `encoding`, `filesystem`, `internal` and `limit`. Genuine SQLite failures keep `fetch.cache_database`; unreadable stored snapshots keep `fetch.cache_snapshot`. The former use of the database code for these other failures has no compatibility alias. Handle each typed code instead of treating every local failure as a database failure.
 
+Identifier schemas now enforce the same bounds as their checked values. These exact restrictions also apply wherever a command embeds the identifier, including `VariantInput`.
+
+| Identifier | Accepted numeric range |
+| --- | --- |
+| VCV version | 1 through 4,294,967,295 |
+| RCV version | 1 through 4,294,967,295 |
+| SCV version | 1 through 4,294,967,295 |
+| COSMIC number | 1 through 18,446,744,073,709,551,615 |
+| ClinVar variation number | 1 through 4,294,967,295 |
+| ClinVar allele number | 1 through 4,294,967,295 |
+| ClinVar branch of `VariantId` | 1 through 4,294,967,295 |
+| OMIM number | Six digits with a first digit from 1 through 6 |
+
+`VariantInput` applies the ClinVar variation bound to both bare numbers and `clinvar:` IDs. Other identifier namespaces keep their own bounds. Author IDs require `semantic-scholar:ID` or a checked `orcid:ID`; `semanticscholar:ID` is removed from `AuthorId`, embedded author records and selector schemas. Author errors now describe only the canonical ID spellings and pattern. Their error code stays the same. The `--source semanticscholar` source selector remains accepted.
+
+ClinVar VCV, RCV and SCV equality and hashing include the version. Rust callers can use `same_accession` to compare accessions across versions. Variable-width accession output uses its canonical spelling, so `LRG_0001t01` becomes `LRG_1t1`. Fixed-width accessions such as `NM_000546` retain their zero padding.
+
 The candidate's schema identity changes appear below when these notes are staged. They compare current schemas with the preserved `release/migration-schema-baseline.tar.gz` history. Refreshing the compatibility baseline for a release does not replace that history. The [schema directory](https://github.com/genomoncology/biomcp/tree/main/crates/biomcp-types/schemas) defines output fields and required values. In particular, adverse-event snapshot fields become optional when a cache write fails; callers must handle their absence. A major bump permits an intentional breaking schema change. The schema check does not prohibit all breaking changes.

@@ -5,6 +5,11 @@ from pathlib import Path
 import subprocess
 import tempfile
 
+if __package__:
+    from .vendor import environment as vendor_environment
+else:
+    from vendor import environment as vendor_environment
+
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = ('LICENSE', 'THIRD-PARTY-NOTICES.txt')
 MARKER = 'mcp-name: io.github.genomoncology/biomcp'
@@ -60,7 +65,7 @@ def generate(output):
         settings.write_text(configuration())
         command = ['cargo', 'about', 'generate', '--locked', '--workspace', '--fail',
                    '--config', str(settings), '--format', 'json', '--output-file', str(Path(temp) / 'licenses.json')]
-        subprocess.run(command, cwd=ROOT, check=True)
+        subprocess.run(command, cwd=ROOT, check=True, env=vendor_environment())
         data = json.loads((Path(temp) / 'licenses.json').read_text())
     if not data.get('licenses') or not data.get('crates'):
         raise ValueError('dependency notices must not be empty')

@@ -94,6 +94,8 @@ impl Record {
             )
         });
         let attribution = Attribution {
+            approved: None,
+            published: None,
             source: Source::Erepo.text(),
             record: Some(id),
             version: Some(version),
@@ -137,7 +139,10 @@ impl Record {
         };
         let criteria = cx.fields("metCodes", self.criteria);
         let gene = cx.field("gene", self.gene).and_then(|label| {
-            cx.optional("gene", Some(biodata::GeneRef::new(label, None, None, None)))
+            cx.optional(
+                "gene",
+                Some(biodata::SourceGeneRef::new(label, None, None, None)),
+            )
         });
         if let Some(statement) = &mut row.statement {
             statement.criteria = criteria;

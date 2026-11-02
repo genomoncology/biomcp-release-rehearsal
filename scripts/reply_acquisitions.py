@@ -31,7 +31,7 @@ def captured_command(args, command):
         for i in range(0, len(prefix), 2)))
 
 
-def accepted_sync(execution, value, mcp_arguments):
+def command_args(execution, mcp_arguments):
     args = execution['args']
     if execution['surface'] == 'mcp':
         frames = list(mcp_arguments(execution))
@@ -39,9 +39,16 @@ def accepted_sync(execution, value, mcp_arguments):
                 or len(args) - args.index('<requests>') != 2
                 or args[:1] != ['serve']
                 or not captured_command(args[1:args.index('<requests>')] + ['serve'], ['serve'])):
-            return False
+            return None
         args = frames[0][2]
     elif execution['surface'] != 'cli':
+        return None
+    return args
+
+
+def accepted_sync(execution, value, mcp_arguments):
+    args = command_args(execution, mcp_arguments)
+    if args is None:
         return False
     # This Document catalog cannot revalidate with 304: download passes old=None.
     # One CLI command / MCP frame has no prior Fetch-local replay import to reuse.
@@ -53,6 +60,30 @@ def accepted_sync(execution, value, mcp_arguments):
             and query.get('source') == 'cbioportal'
             and any(isinstance(source, dict) and source.get('source') == 'cbioportal' and source.get('state') == 'ok'
                     for source in sources))
+
+
+def study_pool(execution, value, mcp_arguments):
+    """Recognize only captured study-page declarations and their exact continuations."""
+    query, page, sources = (value.get(key) for key in ('query', 'page', 'sources'))
+    if (value.get('schema') != 'biomcp.study-page/5'
+            or not isinstance(query, dict) or not isinstance(page, dict)
+            or not isinstance(query.get('text'), str) or not isinstance(sources, list)
+            or not any(isinstance(s, dict) and s.get('source') == 'cbioportal'
+                       and s.get('state') == 'ok' for s in sources)):
+        return None
+    pool = page.get('pool')
+    if not isinstance(pool, dict) or not isinstance(pool.get('id'), str):
+        return None
+    command = ['search', 'study', query['text']]
+    continuation = 'pool' in query
+    if continuation:
+        if query['pool'] != pool['id'] or type(query.get('offset')) is not int:
+            return None
+        command += ['--pool', pool['id'], '--offset', str(query['offset'])]
+    args = command_args(execution, mcp_arguments)
+    if args is None or not captured_command(args, command):
+        return None
+    return pool['id'], continuation, pool
 
 
 def acquisition_events(records, owner, mcp_arguments):
@@ -87,6 +118,7 @@ def acquisition_events(records, owner, mcp_arguments):
             if not syncs:
                 continue
             active, ordinal = None, -1
+            pools = {}
             for start, end, execution, value, snapshot in entries:
                 for sync_start, sync_end, sync, _, _ in syncs:
                     if sync is not execution and start < sync_end and sync_start < end:
@@ -94,7 +126,22 @@ def acquisition_events(records, owner, mcp_arguments):
                 if accepted_sync(execution, value, mcp_arguments):
                     active = snapshot
                     ordinal += 1
-                elif active is None or snapshot != active:
+                    result[id(execution)] = ordinal
+                    continue
+                captured_pool = study_pool(execution, value, mcp_arguments)
+                if captured_pool is not None and captured_pool[1]:
+                    ident, _, pool = captured_pool
+                    prior = pools.get(ident)
+                    if prior is None or prior[0] != snapshot or prior[2] != pool:
+                        raise ValueError('catalog continuation differs from its declared pool acquisition')
+                    result[id(execution)] = prior[1]
+                    continue
+                if active is None or snapshot != active:
                     raise ValueError('catalog read differs from latest accepted sync acquisition')
+                if captured_pool is not None:
+                    ident, _, pool = captured_pool
+                    declaration = (snapshot, ordinal, pool)
+                    if pools.setdefault(ident, declaration) != declaration:
+                        raise ValueError('catalog pool acquisition declaration changed')
                 result[id(execution)] = ordinal
     return result

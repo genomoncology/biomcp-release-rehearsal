@@ -64,7 +64,10 @@ class Licensing(unittest.TestCase):
             cargo.write_text(
                 f"#!{sys.executable}\n"
                 "import json, pathlib, sys, tomllib\n"
-                "if sys.argv[1:] == ['about', '--version']:\n"
+                "if sys.argv[1:3] == ['vendor', '--locked']:\n"
+                "    assert len(sys.argv) == 4\n"
+                "    with pathlib.Path(__file__).with_name('vendors').open('a') as log: log.write('locked\\n')\n"
+                "elif sys.argv[1:] == ['about', '--version']:\n"
                 "    print('cargo-about ' + json.loads(pathlib.Path('release/toolchain.json').read_text())['cargo-about'])\n"
                 "else:\n"
                 "    args = sys.argv[1:]\n"
@@ -84,6 +87,7 @@ class Licensing(unittest.TestCase):
                 capture_output=True, text=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((root / 'vendors').read_text().splitlines(), ['locked'])
             notices = (root / 'THIRD-PARTY-NOTICES.txt').read_text()
             self.assertIn('shipping-crate 1.0.0', notices)
             self.assertIn('Permission notice', notices)

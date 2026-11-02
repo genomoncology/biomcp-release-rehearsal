@@ -94,6 +94,7 @@ fn read(path: &Path) -> Result<Value, Box<dyn std::error::Error>> {
 
 pub(super) fn check(root: &Path) -> Check {
     let workspace = read(&root.join("Cargo.toml"))?;
+    super::dependency_sources::check(root, &workspace)?;
     for (name, allowed) in LAYERS {
         let path = root.join("crates").join(name).join("Cargo.toml");
         if !path.exists() {
