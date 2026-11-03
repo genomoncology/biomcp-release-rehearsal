@@ -58,15 +58,14 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Lift the hosted capacity limits the hosted team asked for on 2026-11-01: call and connection caps as settings (0548), keyed-only rate share (0549), shared TLS settings (0550), then published source pacing with config overrides (0551), and per-request declared use (0553).
 - 0459 lists the code tickets that must land before the BioData switch, and 0336 lists those that must land before the cut. A new must-ship ticket goes on 0336's Depends line, or on 0459's when the switch needs it.
 - Switch to the extracted BioData 1.0 crate once every code ticket lands, with an empty reply diff and an unchanged schema comparison (0459).
-- Fix the agent benchmark's general causes and bugs before the cut (Ian, 2026-11-03): the generated front-door map 0586, MCP replies sent once 0587, every variant ID form 0588, bugs and errors 0589, lean default replies 0590. This lifts the command freeze for these tickets only; the outside comparison 0402 then runs on the improved build. Experiment 513's ranked list may add more.
+- Fix the agent benchmark's general causes and bugs before the cut (Ian, 2026-11-03): the generated front-door map 0586, MCP replies sent once 0587, every variant ID form 0588, bugs and errors 0589, lean default replies 0590. Experiment 513's ranked list may add more. Hosting's launch needs come first.
 - Cut the release candidate from main once every ticket above lands (0336).
 
 - Rehearse the final candidate on every platform (0293).
-- A fresh agent compares the 0.9.3 CLI and a local 1.0 build from main blind on about 20 tasks, before the cut, and every 1.0 regression is fixed or explained (0402; run by an outside party, not the BioMCP team, Ian 2026-11-02).
-- Run MCP-Bench's BioMCP tasks, and InfoMosaic-Bench's if public, against 0.4.6 and 1.0: tool-call replay first, then agent runs on Ian's subscription within a run count he approves (0405).
+- Comparisons with 0.9.3 and agent benchmarks belong to the evals team (experiment 513), not BioMCP; 0402 and 0405 were handed over (Ian, 2026-11-03, m23337). BioMCP tickets the changes evals marks as sure wins.
 - Check the installed candidate against cBioPortal's 62 numeric agent questions (0462).
 - Ian approves BioData's public repository and its v1.0.0 tag, which 0459 pins (asked through Jarvis on 2026-11-01).
-- Ian approves the publication credentials and settings 0533 lists, and the 0405 phase 2 run count. The release workflow has no manual approval pause (0554).
+- Ian approves the publication credentials and settings 0533 lists. The release workflow has no manual approval pause (0554).
 - Ian approves the public append, the 1.0 tag and publication.
 - Append this repository's history to the public repository with one merge commit, keeping old tags and releases (0294).
 - Tag v1.0.0 on that public merge commit, let the release workflow qualify the tag, and have the release operators publish from that run (0294). The installer and Homebrew download from the public repository's release, so the append and tag come before publication.

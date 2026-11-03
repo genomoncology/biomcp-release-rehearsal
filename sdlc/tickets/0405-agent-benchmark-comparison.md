@@ -1,6 +1,6 @@
 # 0405 — Compare 1.0 with 0.4.6 on public agent benchmarks
 
-Status: OPEN.
+Status: WITHDRAWN. Handed to the evals team (experiment 513), which owns comparisons; BioMCP builds tickets (Ian, 2026-11-03, relayed in m23337).
 
 Milestone: 5
 

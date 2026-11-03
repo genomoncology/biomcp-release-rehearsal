@@ -1,6 +1,6 @@
 # 0402 — Compare 0.9.3 and 1.0 blind before publishing
 
-Status: OPEN.
+Status: WITHDRAWN. Handed to the evals team (experiment 513), which owns comparisons; BioMCP builds tickets (Ian, 2026-11-03, relayed in m23337).
 
 Milestone: 5
 
