@@ -6,6 +6,7 @@ mod local_files;
 tool_only! { mod protein_commands; }
 tool_only! { mod trial_condition; }
 tool_only! { pub(super) mod other_source_value_proof; }
+mod article_lean;
 mod article_save;
 mod article_save_reply;
 mod assertions;
@@ -246,6 +247,7 @@ fn run_case_owned(
 pub(super) fn protocol_trials() -> Vec<Trial> {
     let mut trials = Vec::new();
     trials.extend(protocol::trials());
+    trials.extend(article_lean::trials());
     trials.extend(configuration::trials());
     trials.extend(source_pacing::trials());
     trials.extend(recurrence::trials());

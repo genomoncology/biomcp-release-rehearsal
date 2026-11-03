@@ -90,9 +90,8 @@ pub(super) fn fulltext<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut 
         sections.fulltext = Some(match result {
             Ok(Some(document)) => {
                 if !document.body.parts.is_empty() {
-                    super::sections::fulltext::next_input(
+                    super::sections::fulltext::outline_next(
                         ArticleInput::EuropePmc(id.clone()),
-                        1,
                         &mut out.next,
                         &mut out.problems,
                     );

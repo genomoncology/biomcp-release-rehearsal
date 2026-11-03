@@ -23,7 +23,7 @@ const HINTS: &[Hint] = &[
     },
     Hint {
         schema: biomcp_types::ArticleCards::SCHEMA,
-        title: "/answer/card/title",
+        title: "",
         columns: &[],
     },
     Hint {

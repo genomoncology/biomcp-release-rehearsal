@@ -66,7 +66,7 @@ pub(super) fn run<'a>(
         if fulltext && sections.fulltext.is_none() {
             sections.fulltext = Some(section(data, |(text, _)| text.clone()));
             if matches!(data,Ok(Some((text,_))) if !text.parts.is_empty()) && out.next.len() < 5 {
-                next(id, 1, &mut out.next, &mut out.problems);
+                outline_next(ArticleInput::Pmcid(id), &mut out.next, &mut out.problems);
             }
         }
         if supplements && sections.supplements.is_none() {
@@ -152,13 +152,24 @@ pub(crate) fn outline(document: &pmc_oa::Document) -> FullText {
         figures: document.body.figures.clone().into(),
     }
 }
-pub(crate) fn next(
-    id: Pmcid,
-    part: u32,
+pub(crate) fn outline_next(
+    input: ArticleInput,
     out: &mut Vec<crate::next::Step>,
     problems: &mut Vec<biomcp_types::Problem>,
 ) {
-    next_input(ArticleInput::Pmcid(id), part, out, problems);
+    // This fill-in term advertises literal finding without inventing a research question.
+    if let Some(query) = crate::next::checked(
+        ArticleText::finding(input, "<text>"),
+        Source::PmcOa,
+        problems,
+    ) {
+        out.push(crate::next::Step::run(
+            StepKind::Section,
+            &super::super::next::text_sources(query.input()),
+            Request::ArticleText(query),
+            false,
+        ));
+    }
 }
 pub(crate) fn next_input(
     input: ArticleInput,

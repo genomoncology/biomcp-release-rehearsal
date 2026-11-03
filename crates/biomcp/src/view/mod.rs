@@ -1,4 +1,5 @@
 //! One structural view of serialized JSON and its schema presentation hints.
+mod article;
 mod escape;
 mod help;
 mod hints;
@@ -85,7 +86,12 @@ impl View<'_> {
                 heading(name, depth, out);
                 if name == "next" {
                     steps(value, out);
-                } else {
+                } else if !(name == "parts"
+                    && self
+                        .hint
+                        .is_some_and(|hint| hint.schema == biomcp_types::ArticleCards::SCHEMA)
+                    && article::parts(value, out))
+                {
                     View {
                         root: self.root,
                         hint: self.hint,

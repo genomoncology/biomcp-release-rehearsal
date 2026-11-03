@@ -1,6 +1,7 @@
 # Default replies drop repeated content
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 2d84360a21e6772fd6560851c869cad562f0ed3b
 Milestone: 5
 
 ## Outcome

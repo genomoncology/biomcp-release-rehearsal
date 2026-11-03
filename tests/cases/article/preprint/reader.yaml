@@ -21,8 +21,8 @@
           "article",
           "text",
           "PPR1295425",
-          "--part",
-          "1"
+          "--find",
+          "<text>"
         ]
       },
       "max_bytes": 4500
