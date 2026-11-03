@@ -348,6 +348,28 @@ impl VariantSearch {
         self.0.append_filters(&mut term);
         term
     }
+    /// Open SnpEff selector using the same literal protein forms as transcript matching.
+    /// Other selectors retain their ordinary source query.
+    pub fn snpeff_source_query(&self) -> String {
+        if !self.uses_dbnsfp_selector() {
+            return self.source_query();
+        }
+        let mut term = match (&self.0.gene, &self.0.protein) {
+            (Some(gene), Some(protein)) => {
+                let forms = protein
+                    .forms()
+                    .map(|p| format!("\"{}\"", literal(&p)))
+                    .join(" OR ");
+                format!(
+                    "snpeff.ann.genename:{} AND snpeff.ann.hgvs_p:({forms})",
+                    literal(gene.as_str())
+                )
+            }
+            _ => String::new(),
+        };
+        self.0.append_filters(&mut term);
+        term
+    }
     /// Assembly explicitly declared in the request.
     pub fn build(&self) -> Option<Build> {
         self.0.build

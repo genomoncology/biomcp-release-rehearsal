@@ -1,6 +1,7 @@
 # Gene and protein variant search works when dbNSFP is off
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 4d30e2e9b2c9db13b37bf3cb7e6ce3252a1f547f
 Milestone: 5
 
 ## Outcome

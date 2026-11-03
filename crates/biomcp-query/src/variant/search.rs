@@ -25,9 +25,10 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &VariantSearch) -> Outcome {
     };
     let leg = cx.fetch.leg(spec, deadline).fresh(cx.fresh);
     let terms = component_terms("clinvar", query.uses_clinvar_filters());
-    let selector_terms = component_terms("dbnsfp", query.uses_dbnsfp_selector());
+    let (selector, source_query) = selector(cx, query);
+    let selector_terms = component_terms(selector, query.uses_dbnsfp_selector());
     let reply = match (&terms, &selector_terms) {
-        (Ok(_), Ok(_)) => fetch_page(cx, &leg, query),
+        (Ok(_), Ok(_)) => fetch_page(cx, &leg, query, selector, &source_query),
         (Err(error), _) | (_, Err(error)) => Err(*error),
     };
     let terms = terms.ok().flatten();
@@ -41,7 +42,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &VariantSearch) -> Outcome {
             body: (VariantPage {
                 selector_terms: selector_terms.clone(),
                 filter_terms: terms.clone(),
-                source_query: query.source_query(),
+                source_query: source_query.clone(),
                 build: query.build(),
                 items: Box::default(),
             })
@@ -74,7 +75,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &VariantSearch) -> Outcome {
         out.body = (VariantPage {
             selector_terms,
             filter_terms: terms,
-            source_query: query.source_query(),
+            source_query,
             build: query.build(),
             items: reply.rows.value.into(),
         })
@@ -84,10 +85,19 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &VariantSearch) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
+fn selector(cx: &Ctx<'_>, query: &VariantSearch) -> (&'static str, String) {
+    if myvariant::components::disabled(cx.fetch, "dbnsfp") {
+        ("snpeff", query.snpeff_source_query())
+    } else {
+        ("dbnsfp", query.source_query())
+    }
+}
 fn fetch_page(
     cx: &Ctx<'_>,
     leg: &biomcp_fetch::Leg<'_>,
     query: &VariantSearch,
+    selector: &str,
+    source_query: &str,
 ) -> Result<SearchPage, biomcp_fetch::RequestError> {
     if query.uses_clinvar_selector() {
         return clinvar::search(leg, query).map(|page| SearchPage {
@@ -97,11 +107,11 @@ fn fetch_page(
         });
     }
     if (query.uses_clinvar_filters() && myvariant::components::disabled(cx.fetch, "clinvar"))
-        || (query.uses_dbnsfp_selector() && myvariant::components::disabled(cx.fetch, "dbnsfp"))
+        || (query.uses_dbnsfp_selector() && myvariant::components::disabled(cx.fetch, selector))
     {
         return Err(biomcp_fetch::SourceError::disabled(Source::MyVariant).into());
     }
-    myvariant::search(leg, query).map(|page| SearchPage {
+    myvariant::search(leg, query, source_query).map(|page| SearchPage {
         total: page.total,
         consumed: page.consumed,
         rows: page.rows,
