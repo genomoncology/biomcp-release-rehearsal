@@ -1,6 +1,7 @@
 # Bundle sync reports rate limits honestly and refreshes conditionally
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b2c4dae2f1f01cfea05b1f7fbf5f851f16545cfe
 Milestone: 5
 
 ## Outcome

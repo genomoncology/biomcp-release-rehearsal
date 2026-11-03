@@ -94,11 +94,7 @@ impl Leg<'_> {
             b,
             &url,
             &mut transfer,
-            if record || !matches!(b.format, super::RowFormat::Tsv) {
-                None
-            } else {
-                old.as_ref()
-            },
+            if record { None } else { old.as_ref() },
         );
         if result.is_err() {
             // Preserve this holder's file only if its fenced metadata update succeeds.
@@ -185,18 +181,7 @@ impl Leg<'_> {
                     let wait = header(&response, "retry-after")
                         .and_then(|v| crate::retry::retry_after(&v, std::time::SystemTime::now()));
                     drop(permit);
-                    if !crate::retry::retry_status(status) || attempt + 1 == crate::retry::ATTEMPTS
-                    {
-                        return Err(self
-                            .failure(crate::retry::status_reason(status), Some(status))
-                            .into());
-                    }
-                    if !crate::retry::wait(
-                        wait.unwrap_or_else(|| crate::retry::backoff(&prepared.identity, attempt)),
-                        self.budget(),
-                    ) {
-                        return Err(self.failure(Reason::Syncing, Some(status)).into());
-                    }
+                    super::replay::retry(self, &prepared.identity, status, wait, attempt)?;
                 }
                 Err(error) => {
                     self.observe(

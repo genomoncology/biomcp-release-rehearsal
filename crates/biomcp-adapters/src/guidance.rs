@@ -13,6 +13,9 @@ pub fn notices(
 ) -> Vec<SourceNotice> {
     let message = match reason {
         Some(Reason::DeadlineExceeded) => deadline(source),
+        Some(Reason::RateLimited) => {
+            Some("The source rate-limited this request; retry after the reported delay.")
+        }
         Some(Reason::LocalQuota) => crate::decl::decl(source).guidance.quota,
         _ => None,
     };

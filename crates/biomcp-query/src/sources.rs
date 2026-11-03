@@ -1,6 +1,6 @@
 //! Source declarations and access used by the command interfaces.
 #![deny(clippy::wildcard_enum_match_arm)]
-pub use biomcp_adapters::guidance::{WONDER_QUOTA, deadline};
+pub use biomcp_adapters::guidance::{WONDER_QUOTA, deadline, notices};
 pub use biomcp_adapters::quotas::{configure as source_pacing, policies as pacing_policies};
 pub use biomcp_adapters::registry::records::{RecordKind, declaration, record_url};
 pub use biomcp_adapters::registry::{
