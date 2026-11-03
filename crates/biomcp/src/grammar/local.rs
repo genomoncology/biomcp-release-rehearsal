@@ -51,6 +51,9 @@ pub(super) fn help_command(root: &Command) -> Command {
     let mut help = Command::new("help");
     for command in root.get_subcommands() {
         let mut child = help_tree(command);
+        if command.get_name() == "get" {
+            child = child.subcommand(Command::new("clingen"));
+        }
         if command.get_name() == "key" {
             child = child.arg(
                 Arg::new("source")

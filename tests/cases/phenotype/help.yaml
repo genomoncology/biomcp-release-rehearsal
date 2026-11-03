@@ -18,9 +18,9 @@
             "--offset"
           ]
         },
-        "/result/commands/0/description": "Search exact human HP term candidates through Monarch with bounded source pages. A term lookup answers terminology and does not establish a diagnosis.",
+        "/result/commands/0/description": "Search exact human HP term candidates through Monarch with bounded source pages. Sources: hpo, monarch.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -49,9 +49,9 @@
             "--snapshot"
           ]
         },
-        "/result/commands/0/description": "Read an exact HP term from HPO or Monarch, or page source sections. A term lookup answers terminology; an association answers what its publisher asserts. Neither establishes a diagnosis.",
+        "/result/commands/0/description": "Read an exact HP term from HPO or Monarch, or page source sections. Sources: hpo, monarch.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": {
           "equals": [

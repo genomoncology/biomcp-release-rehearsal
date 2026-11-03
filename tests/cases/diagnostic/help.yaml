@@ -10,9 +10,9 @@
         "diagnostic"
       ],
       "expect": {
-        "/result/commands/0/description": "Search five source records by default. FDA device recalls cover every medical device; totals count recall records, without harm inference.",
+        "/result/commands/0/description": "Search five source records by default. Sources: fda-cdx, fda-device-recall, gtr, who-ivd.",
         "/result/commands/0/examples": {
-          "count": 4
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -29,8 +29,7 @@
             "--offset",
             "--product-code",
             "--initiated-from",
-            "--initiated-to",
-            "--source_pacing"
+            "--initiated-to"
           ]
         },
         "/result/commands/0/arguments/14/choices": [
@@ -49,9 +48,9 @@
         "diagnostic"
       ],
       "expect": {
-        "/result/commands/0/description": "Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.",
+        "/result/commands/0/description": "Get one exact source record or supported section. Sources: fda-510k, fda-device-recall, fda-pma, gtr, who-ivd.",
         "/result/commands/0/examples": {
-          "count": 3
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -89,7 +88,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1372
@@ -102,7 +101,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1391

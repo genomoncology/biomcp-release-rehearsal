@@ -19,9 +19,9 @@
           "search",
           "study"
         ],
-        "/result/commands/0/description": "Exact stored metadata search; text is never parsed as a query language. No frequency, denominator, survival or comparison is calculated. Source counts keep their source names.",
+        "/result/commands/0/description": "Exact stored metadata search; text is never parsed as a query language. Sources: cbioportal.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -47,9 +47,9 @@
           "get",
           "study"
         ],
-        "/result/commands/0/description": "Exact case-sensitive study card or bounded metadata section. No frequency, denominator, survival or comparison is calculated. Source counts keep their source names.",
+        "/result/commands/0/description": "Exact case-sensitive study card or bounded metadata section. Sources: cbioportal.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "profiles",
@@ -76,7 +76,7 @@
           "cbioportal-studies"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },

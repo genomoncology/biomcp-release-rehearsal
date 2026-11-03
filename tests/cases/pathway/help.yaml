@@ -26,9 +26,9 @@
           "search",
           "pathway"
         ],
-        "/result/commands/0/description": "Search Reactome (default) or WikiPathways human pathways. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.",
+        "/result/commands/0/description": "Search Reactome (default) or WikiPathways human pathways. Sources: reactome, wikipathways.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -55,9 +55,9 @@
           "get",
           "pathway"
         ],
-        "/result/commands/0/description": "Get an exact human Reactome R-HSA or WikiPathways WP card. Read whole summary, genes, Reactome events or bounded all sections. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.",
+        "/result/commands/0/description": "Get an exact human Reactome R-HSA or WikiPathways WP card. Sources: reactome, wikipathways.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": {
           "includes_all_of": [
@@ -91,9 +91,9 @@
           "pathway",
           "genes"
         ],
-        "/result/commands/0/description": "Read Reactome exact references or WikiPathways GeneProduct data nodes. The details layer discloses complete Reactome physical contexts. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.",
+        "/result/commands/0/description": "Read Reactome exact references or WikiPathways GeneProduct data nodes. Sources: reactome, wikipathways.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -118,9 +118,9 @@
           "pathway",
           "events"
         ],
-        "/result/commands/0/description": "Read Reactome event objects and unresolved source integer references in source order. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.",
+        "/result/commands/0/description": "Read Reactome event objects and unresolved source integer references in source order. Sources: reactome.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -133,21 +133,18 @@
     },
     {
       "expect": {
-        "/result/commands/0/arguments": {
-          "count": 6
-        },
         "/result/commands/0/command": [
           "sync",
           "wikipathways"
         ],
         "/result/commands/0/description": "Replace WikiPathways search/get metadata catalogs atomically; reads never sync. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete",
-        "/result/commands/0/arguments/*/name": {
-          "includes_all_of": [
-            "--source_pacing"
+        "/result/commands/0": {
+          "omits": [
+            "arguments"
           ]
         }
       },

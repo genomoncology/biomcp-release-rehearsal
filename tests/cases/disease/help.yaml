@@ -9,13 +9,7 @@
           "--offset",
           "--ontology",
           "--source",
-          "text",
-          "--format",
-          "--disable-sources",
-          "--source_pacing",
-          "--config",
-          "--offline",
-          "--fresh"
+          "text"
         ],
         "/result/commands/0/arguments/2/choices": [
           "mondo",
@@ -27,7 +21,7 @@
           "disease"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -52,20 +46,14 @@
           "--section-limit",
           "--section-offset",
           "--sex",
-          "--source",
-          "--format",
-          "--disable-sources",
-          "--source_pacing",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--source"
         ],
         "/result/commands/0/command": [
           "get",
           "disease"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "synonyms",

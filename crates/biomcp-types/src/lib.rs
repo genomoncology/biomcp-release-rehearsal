@@ -266,3 +266,6 @@ pub use response::{BiomarkerCard, BiomarkerHeader, BiomarkerPage, BiomarkerResul
 pub use response::{UsageArguments, UsageError};
 
 pub use response::{Reply, ReplyBody, ReplyData};
+
+mod coverage;
+pub use coverage::command_implicit_sources;

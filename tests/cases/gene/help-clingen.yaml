@@ -1,0 +1,44 @@
+{
+  "feature": "gene-help",
+  "live_check": "local-only generated help",
+  "story": "ClinGen discovery redirects to the gene section instead of returning empty help.",
+  "steps": [
+    {
+      "run": [
+        "help",
+        "get",
+        "clingen"
+      ],
+      "expect": {
+        "/result/commands/0/command": [
+          "get",
+          "gene"
+        ],
+        "/result/commands/0/sections/*/word": {
+          "includes_all_of": [
+            "clingen"
+          ]
+        },
+        "/result/commands/0/examples/0": [
+          "get",
+          "gene",
+          "KRAS",
+          "clingen"
+        ]
+      }
+    },
+    {
+      "run": [
+        "help",
+        "get",
+        "clingen",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

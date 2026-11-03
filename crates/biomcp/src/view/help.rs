@@ -9,6 +9,11 @@ pub(super) fn render(value: &Value, out: &mut String) {
         .into_iter()
         .flatten()
     {
+        if command.get("command").is_none() {
+            out.push_str(command["description"].as_str().unwrap_or_default());
+            out.push_str("\n\n");
+            continue;
+        }
         let path = command["command"]
             .as_array()
             .into_iter()

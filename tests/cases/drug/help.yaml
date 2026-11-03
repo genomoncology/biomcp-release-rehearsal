@@ -11,7 +11,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -33,7 +33,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "xrefs",
@@ -74,7 +74,7 @@
           "ema"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1372
@@ -91,7 +91,7 @@
           "ddinter"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1391

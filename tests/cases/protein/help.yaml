@@ -16,7 +16,7 @@
           "protein"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -44,14 +44,13 @@
           "protein"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "input",
             "--section",
-            "--section-limit",
-            "--source_pacing"
+            "--section-limit"
           ]
         },
         "/result/commands/0/sections/*/word": {
@@ -83,7 +82,7 @@
           "features"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -111,7 +110,7 @@
           "domains"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -119,8 +118,7 @@
             "--limit",
             "--offset",
             "--pool",
-            "--type",
-            "--source_pacing"
+            "--type"
           ]
         }
       },
@@ -139,7 +137,7 @@
           "isoforms"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -165,7 +163,7 @@
           "complexes"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -191,7 +189,7 @@
           "complex-members"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -218,7 +216,7 @@
           "structures"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -244,7 +242,7 @@
           "sequence"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [

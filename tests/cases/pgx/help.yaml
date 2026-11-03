@@ -16,9 +16,9 @@
           "pgx"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/description": "Checked gene-keyed CPIC pair search. No phenotype, phase or dose is calculated.",
+        "/result/commands/0/description": "Checked gene-keyed CPIC pair search. Sources: cpic.",
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--gene",
@@ -49,9 +49,9 @@
           "pgx"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/description": "PGx card or section. No phenotype, phase or dose is calculated.",
+        "/result/commands/0/description": "PGx card or section. Sources: clinpgx, cpic.",
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--gene",

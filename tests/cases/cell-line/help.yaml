@@ -11,9 +11,9 @@
             "--offset"
           ]
         },
-        "/result/commands/0/description": "One exact cell line search, with source order and no total claim. An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.",
+        "/result/commands/0/description": "One exact cell line search, with source order and no total claim. Sources: cellosaurus.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -35,9 +35,9 @@
             "--section-offset"
           ]
         },
-        "/result/commands/0/description": "One exact identity and an optional bounded named section. An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.",
+        "/result/commands/0/description": "One exact identity and an optional bounded named section. Sources: cellosaurus.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/section_rule": "Omit for the default card; all returns bounded first pages without an assay count.",
         "/result/commands/0/sections/*/word": {
@@ -67,9 +67,9 @@
             "id"
           ]
         },
-        "/result/commands/0/description": "A separate assay-count request, never implicit in metadata or all. An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.",
+        "/result/commands/0/description": "A separate assay-count request, never implicit in metadata or all. Sources: chembl.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },

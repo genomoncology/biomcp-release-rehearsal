@@ -27,8 +27,11 @@ pub(crate) fn collect(
             .and_then(Value::as_array)
             .ok_or("scoped help commands missing")?
         {
+            let Some(command_path) = entry.get("command") else {
+                continue;
+            };
             let words: Vec<String> =
-                serde_json::from_value(entry["command"].clone()).map_err(|e| e.to_string())?;
+                serde_json::from_value(command_path.clone()).map_err(|e| e.to_string())?;
             if words == path {
                 commands.insert(words, entry.clone());
             } else if words.starts_with(&path) && words.len() == path.len() + 1 {
@@ -50,6 +53,7 @@ fn paths(response: &Value) -> Result<Vec<Vec<String>>, String> {
         .and_then(Value::as_array)
         .ok_or("help commands missing")?
         .iter()
-        .map(|c| serde_json::from_value(c["command"].clone()).map_err(|e| e.to_string()))
+        .filter_map(|c| c.get("command"))
+        .map(|path| serde_json::from_value(path.clone()).map_err(|e| e.to_string()))
         .collect()
 }

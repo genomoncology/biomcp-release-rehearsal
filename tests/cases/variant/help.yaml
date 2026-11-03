@@ -11,9 +11,9 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/description": "Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller."
+        "/result/commands/0/description": "Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Sources: alphagenome, car, civic, clinvar, erepo, gnomad, gwas, hotspots, mutalyzer, myvariant, oncokb, variantvalidator."
       },
       "max_bytes": 5514
     },
@@ -25,7 +25,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 3976
@@ -38,7 +38,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2458
@@ -51,7 +51,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2540
@@ -64,7 +64,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2493
@@ -77,7 +77,7 @@
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 3135

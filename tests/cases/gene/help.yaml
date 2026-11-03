@@ -23,11 +23,6 @@
             "get",
             "gene",
             "KRAS"
-          ],
-          [
-            "get",
-            "gene",
-            "BRAF"
           ]
         ],
         "/result/commands/0/section_rule": {
@@ -48,24 +43,13 @@
           "--limit",
           "--locus-group",
           "--offset",
-          "query",
-          "--format",
-          "--disable-sources",
-          "--source_pacing",
-          "--config",
-          "--offline",
-          "--fresh"
+          "query"
         ],
         "/result/commands/0/examples": [
           [
             "search",
             "gene",
             "KRAS"
-          ],
-          [
-            "search",
-            "gene",
-            "p16"
           ]
         ]
       },

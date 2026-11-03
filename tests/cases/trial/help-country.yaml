@@ -1,0 +1,31 @@
+{
+  "feature": "trial-help",
+  "live_check": "local-only help and input validation",
+  "story": "A compact country catalog names its accepted form and full-list command; misspelled input retains the close valid country name.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--country",
+        "United State"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--country",
+        "/error/valid_values": {
+          "includes_all_of": [
+            "United States"
+          ]
+        },
+        "/next/0/args": [
+          "help",
+          "search",
+          "trial"
+        ]
+      }
+    }
+  ]
+}

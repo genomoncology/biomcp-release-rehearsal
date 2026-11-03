@@ -1,6 +1,7 @@
 # Help, skill and MCP instructions open with a short generated map
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 4545ef31274b2c873268d207f1c0e7265009443a
 Milestone: 5
 
 ## Outcome

@@ -36,20 +36,14 @@
           "--study-type",
           "--updated-since",
           "--updated-until",
-          "--variant",
-          "--format",
-          "--disable-sources",
-          "--source_pacing",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--variant"
         ],
-        "/result/commands/0/arguments/4/description": "Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes.",
+        "/result/commands/0/arguments/4/description": "",
         "/result/commands/0/examples": {
-          "count": 4
+          "count": 1
         },
-        "/result/commands/0/arguments/29/description": "First included registry update date.",
-        "/result/commands/0/arguments/9/description": "Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial."
+        "/result/commands/0/arguments/29/description": "",
+        "/result/commands/0/arguments/9/description": ""
       },
       "max_bytes": 11802,
       "run": [
@@ -66,16 +60,10 @@
           "--offset",
           "--pool",
           "--section",
-          "--source",
-          "--format",
-          "--disable-sources",
-          "--source_pacing",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--source"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/section_rule": "Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.",
         "/result/commands/0/sections/*/word": [
@@ -104,16 +92,10 @@
           "file",
           "input",
           "--replace",
-          "--save",
-          "--format",
-          "--disable-sources",
-          "--source_pacing",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--save"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2228,

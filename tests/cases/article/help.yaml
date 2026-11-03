@@ -15,7 +15,7 @@
           "article"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": {
           "includes_all_of": [
@@ -43,7 +43,7 @@
           "article"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -85,7 +85,7 @@
           "text"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 14000
@@ -102,7 +102,7 @@
           "supplement"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 14000
@@ -119,7 +119,7 @@
           "citations"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/4/choices": [
           "icite",
@@ -140,7 +140,7 @@
           "references"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/4/choices": [
           "icite",
@@ -161,7 +161,7 @@
           "citation-evidence"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 5000
@@ -178,7 +178,7 @@
           "recommendations"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 5000

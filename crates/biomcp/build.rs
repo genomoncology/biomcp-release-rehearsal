@@ -5,6 +5,8 @@
 )]
 use std::{collections::BTreeMap, env, error::Error, fs, path::PathBuf};
 
+#[path = "build/front_map.rs"]
+mod front_map;
 #[path = "build/schema_metadata.rs"]
 mod schema_metadata;
 
@@ -37,7 +39,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<String>();
     let output = PathBuf::from(env::var("OUT_DIR")?).join("schemas.rs");
     fs::write(output, format!("&[\n{entries}]\n"))?;
-    embed_skills()?;
+    let map = front_map::generate(&schemas)?;
+    println!("cargo:rerun-if-env-changed=BIOMCP_FRONT_MAP_CHARACTER_LIMIT");
+    let character_limit = env::var("BIOMCP_FRONT_MAP_CHARACTER_LIMIT")
+        .ok()
+        .map(|value| value.parse::<usize>())
+        .transpose()?
+        .unwrap_or(front_map::DEFAULT_CHARACTER_LIMIT);
+    if map.chars().count() > character_limit {
+        return Err(format!(
+            "front map exceeds {} characters: {}",
+            character_limit,
+            map.chars().count()
+        )
+        .into());
+    }
+    fs::write(
+        PathBuf::from(env::var("OUT_DIR")?).join("front-map.txt"),
+        &map,
+    )?;
+    embed_skills(&map)?;
     embed_examples()
 }
 
@@ -283,11 +304,19 @@ fn git_revision() -> Result<String, Box<dyn Error>> {
     Ok(String::from_utf8(commit.stdout)?.trim().to_owned())
 }
 
-fn embed_skills() -> Result<(), Box<dyn Error>> {
+fn embed_skills(map: &str) -> Result<(), Box<dyn Error>> {
     let directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?).join("../../skills");
     println!("cargo:rerun-if-changed={}", directory.display());
     let mut assets = BTreeMap::new();
     skill_files(&directory, &directory, &mut assets)?;
+    let guide = assets.get_mut("SKILL.md").ok_or("missing skill guide")?;
+    if guide.matches("{{front-map}}").count() != 1 {
+        return Err("skill template requires exactly one front-map marker".into());
+    }
+    *guide = guide.replace("{{front-map}}", map);
+    if guide.len() > 4096 {
+        return Err("embedded agent skill exceeds 4 KB".into());
+    }
     let entries = assets
         .iter()
         .map(|(name, text)| format!("({name:?}, {text:?}),\n"))

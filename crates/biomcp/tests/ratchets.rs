@@ -199,3 +199,6 @@ fn required_surface_has_asserted_calls() -> Check {
 fn required_coverage_rejects_planted_gaps() -> Check {
     required::controls()
 }
+
+#[path = "../build/front_map.rs"]
+mod front_map;

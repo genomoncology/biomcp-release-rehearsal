@@ -25,9 +25,9 @@
           "search",
           "gwas"
         ],
-        "/result/commands/0/description": "Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic. BioMCP's local request deadline expired. GWAS Catalog response times can vary; retry later or use https://www.ebi.ac.uk/gwas/. Contact the GWAS Catalog helpdesk if this persists.",
+        "/result/commands/0/description": "Source associations in default p-value-ascending order. Sources: gwas.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
@@ -53,9 +53,9 @@
           "get",
           "gwas"
         ],
-        "/result/commands/0/description": "Source association or study and source context. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic. BioMCP's local request deadline expired. GWAS Catalog response times can vary; retry later or use https://www.ebi.ac.uk/gwas/. Contact the GWAS Catalog helpdesk if this persists.",
+        "/result/commands/0/description": "Source association or study and source context. Sources: gwas.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "loci",

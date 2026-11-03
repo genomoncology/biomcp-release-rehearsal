@@ -83,26 +83,15 @@ pub(super) fn overview(
     for child in parser.get_subcommands().filter(|c| !c.is_hide_set()) {
         let mut child_path = path.to_vec();
         child_path.push(child.get_name().into());
-        let description = child
-            .get_about()
-            .map(ToString::to_string)
-            .or_else(|| {
-                commands
-                    .iter()
-                    .find(|c| c.command == child_path)
-                    .map(|c| c.description.clone())
-            })
+        let description = commands
+            .iter()
+            .find(|c| c.command == child_path)
+            .map(|c| c.description.clone())
+            .or_else(|| child.get_about().map(ToString::to_string))
             .unwrap_or_default();
         result.push(HelpCommand {
             command: child_path,
-            description: description
-                .lines()
-                .next()
-                .unwrap_or_default()
-                .split(". ")
-                .next()
-                .unwrap_or_default()
-                .into(),
+            description,
             reply_schemas: Vec::new(),
             arguments: Vec::new(),
             sections: Vec::new(),
