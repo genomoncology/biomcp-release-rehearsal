@@ -16,7 +16,7 @@
         "/error/option": "input",
         "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
         "/error/valid_values": [
-          "Canonical ClinicalTrials.gov identifier. Pattern: ^NCT(?!00000000)[0-9]{8}$"
+          "Canonical ClinicalTrials.gov identifier."
         ],
         "/next/0/args": [
           "help",

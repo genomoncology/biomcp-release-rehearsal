@@ -1,6 +1,7 @@
 # Fix the bugs and misleading errors the agent benchmark found
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: f837afab4c65628a0c940987df443d956e99a621
 Milestone: 5
 
 ## Outcome

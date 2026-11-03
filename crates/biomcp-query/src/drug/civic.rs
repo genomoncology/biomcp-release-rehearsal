@@ -82,7 +82,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
 
 pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     let mut out = super::empty(biomcp_types::DrugCivic::into_reply(query.clone(), None));
-    if !matches!(query.sections(), [DrugSection::Civic]) {
+    if query.sections().is_empty() || !query.supports_sections() {
         return super::unsupported(query.source(), out);
     }
     let Some(id) = query.civic_id() else {

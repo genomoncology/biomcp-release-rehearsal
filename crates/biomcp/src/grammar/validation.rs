@@ -76,9 +76,6 @@ pub(super) fn accepted(schema: &Value, property: &Value) -> Option<Box<[biodata:
             .and_then(Value::as_str)
             .or_else(|| super::property_type(value))?;
         let mut form = description.to_owned();
-        if let Some(pattern) = value.get("pattern").and_then(Value::as_str) {
-            form.push_str(&format!(" Pattern: {pattern}"));
-        }
         for (key, label) in [
             ("minimum", "Minimum"),
             ("maximum", "Maximum"),

@@ -208,7 +208,7 @@ const EXAMPLE_CASES: &[(&str, usize)] = &[
 const GUIDE_CASES: &[(&str, usize)] = &[
     ("variant/search-coding-flcn.yaml", 0),
     ("drug/label-discovery.yaml", 0),
-    ("drug/label-controls.yaml", 3),
+    ("drug/label-controls.yaml", 1),
     ("trial/or-options.yaml", 1),
     ("trial/wider-zero.yaml", 0),
     ("trial/wider-zero.yaml", 1),

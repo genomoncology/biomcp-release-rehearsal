@@ -5,6 +5,7 @@ impl Action {
     /// Prepare source selectors and preserve existing usage refusal envelopes.
     pub fn prepare(self) -> Result<Self, UsageError> {
         let action = prepare_disease(self).map_err(selector_error)?;
+        drug_selector(&action)?;
         if let Some(error) = unsupported(&action) {
             return Err(error);
         }
@@ -146,4 +147,48 @@ fn unsupported(action: &Action) -> Option<UsageError> {
         return Some(UsageError::UnsupportedFilter { source, option });
     }
     None
+}
+
+fn drug_selector(action: &Action) -> Result<(), UsageError> {
+    let Action::Run {
+        request: Request::GetDrug(query),
+        ..
+    } = action
+    else {
+        return Ok(());
+    };
+    let (option, values) = if query
+        .label_section()
+        .is_some_and(|heading| !biomcp_types::OPENFDA_LABEL_HEADINGS.contains(&heading.as_str()))
+    {
+        (
+            "--label-section",
+            biomcp_types::OPENFDA_LABEL_HEADINGS
+                .iter()
+                .map(|heading| heading.parse())
+                .collect::<Result<Vec<biodata::Text>, _>>(),
+        )
+    } else if !query.supports_sections() {
+        (
+            "section",
+            query
+                .source()
+                .sections()
+                .iter()
+                .map(|section| <&str>::from(*section).parse())
+                .collect::<Result<Vec<biodata::Text>, _>>(),
+        )
+    } else {
+        return Ok(());
+    };
+    let values = values.map_err(|_| UsageError::arguments())?;
+    Err(UsageError::SourceSelector {
+        source: query.source().source(),
+        option: option.into(),
+        valid_values: values.into(),
+        next: vec![biomcp_types::Step {
+            kind: biomcp_types::StepKind::Configure,
+            args: ["help", "get", "drug"].map(Into::into).into(),
+        }],
+    })
 }

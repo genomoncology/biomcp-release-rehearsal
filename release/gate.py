@@ -11,11 +11,19 @@ import subprocess
 import tempfile
 import zipfile
 
-from artifacts import cargo, inspect
-from notices import NAMES as LEGAL_NAMES
-from windows import check_runtime
-from smoke import environment, smoke
-from local_server import https_server
+if __package__:
+    from .artifacts import cargo, inspect
+    from .notices import NAMES as LEGAL_NAMES
+    from .windows import check_runtime
+    from .smoke import environment, smoke
+    from .local_server import https_server
+else:
+    from artifacts import cargo, inspect
+    from notices import NAMES as LEGAL_NAMES
+    from windows import check_runtime
+    from smoke import environment, smoke
+    from local_server import https_server
+
 
 
 def installer_environment(root, bash):

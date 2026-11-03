@@ -1,0 +1,23 @@
+{
+  "feature": "query-validation",
+  "story": "An invalid coding selector explains the syntax without dumping an implementation regex.",
+  "live_check": "Synthetic or recorded local regression; no live calls",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BRAF",
+        "--coding",
+        "invalid"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/option": "--coding",
+        "/error/valid_values/0": "HGVS 21.1 coding edit syntax without a reference. The parser additionally requires increasing range endpoints, different substitution bases and insertion adjacency where literal positions establish it. It does not check transcript sequence or exon boundaries."
+      },
+      "max_bytes": 2200
+    }
+  ]
+}

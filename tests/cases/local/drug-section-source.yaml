@@ -1,0 +1,24 @@
+{
+  "feature": "query-validation",
+  "story": "Source-specific section errors list the sections this source can actually serve.",
+  "live_check": "Local unsupported source section; no source calls",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA000001",
+        "regulatory",
+        "--source",
+        "drugsfda"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/option": "section",
+        "/error/valid_values": [
+          "approvals"
+        ]
+      }
+    }
+  ]
+}

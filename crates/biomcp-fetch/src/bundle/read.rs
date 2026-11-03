@@ -133,7 +133,8 @@ impl Leg<'_> {
         }
     }
     /// Read only the last validated local bundle, even when fresh or replay is selected.
-    /// Missing data reports `Syncing`; the caller must explicitly synchronize it.
+    /// A first live reader waits for an active publisher within its deadline.
+    /// Missing data without an active publisher still requires explicit synchronization.
     pub fn stored_rows<R: Row>(
         &self,
         bundle: &Bundle<R>,
@@ -142,9 +143,36 @@ impl Leg<'_> {
         self.bundle_source(bundle)?;
         let cache = self.bundle_cache()?;
         self.import_predecessor(cache, bundle.name)?;
-        let (meta, rows) = cache
-            .stored_bundle(bundle.name, find, self.budget())?
-            .ok_or_else(|| self.failure(biomcp_types::Reason::Syncing, None))?;
+        let mut snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
+        let mut waiting = false;
+        while snapshot.is_none() {
+            if !matches!(self.fetch.mode, Mode::Live { .. })
+                || !cache.syncing(bundle.name, self.budget())?
+            {
+                // A publisher may have committed between the snapshot read and
+                // the lease check. Read once more before declaring it absent.
+                snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
+                break;
+            }
+            if !waiting && self.fetch.config.observations.is_some() {
+                let url = format!("{}{}", self.spec.base.trim_end_matches('/'), bundle.path);
+                self.observed(
+                    &crate::retry::identity(&url),
+                    None,
+                    0,
+                    crate::Shape::default(),
+                    std::time::Duration::ZERO,
+                    ("bundle-wait", false, &url, crate::Provenance::default()),
+                );
+            }
+            waiting = true;
+            if !crate::retry::wait(std::time::Duration::from_millis(10), self.budget()) {
+                return Err(self.failure(biomcp_types::Reason::Syncing, None).into());
+            }
+            snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
+        }
+        let (meta, rows) =
+            snapshot.ok_or_else(|| self.failure(biomcp_types::Reason::Syncing, None))?;
         let rows = decode(rows)?;
         if meta.fresh_until <= crate::cache::now() {
             self.report

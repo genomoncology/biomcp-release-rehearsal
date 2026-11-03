@@ -72,6 +72,15 @@ fn aliases(
     schema: &Value,
     mut command: Command,
 ) -> Result<Command, super::ParseInvalid> {
+    if schema.get("$id").and_then(Value::as_str) == Some("biomcp.article-search/3") {
+        command = command.arg(
+            Arg::new("query_alias")
+                .long("query")
+                .short('q')
+                .help("Alias for positional article text.")
+                .conflicts_with("text"),
+        );
+    }
     if matches!(name, "cell-line" | "author") && properties(schema)?.contains_key("query") {
         command = command.mut_arg("limit", |arg| arg.short('l'));
     }

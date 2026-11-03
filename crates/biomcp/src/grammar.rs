@@ -412,6 +412,11 @@ fn arguments(matches: &clap::ArgMatches, schema: &Value) -> Result<Value, ParseI
         };
         result.insert(name.clone(), value);
     }
+    if schema.get("$id").and_then(Value::as_str) == Some("biomcp.article-search/3")
+        && let Some(text) = matches.get_one::<String>("query_alias")
+    {
+        result.insert("text".into(), Value::String(text.clone()));
+    }
     split_sections(&mut result, schema)?;
     Ok(Value::Object(result))
 }

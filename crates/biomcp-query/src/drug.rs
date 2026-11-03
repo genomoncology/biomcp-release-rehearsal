@@ -111,9 +111,7 @@ fn selected_get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     } else {
         biomcp_types::DrugCard::into_reply(query.clone(), None)
     });
-    if query.source() != DrugSource::Mychem
-        || !matches!(query.sections(), [] | [biomcp_types::DrugSection::Xrefs])
-    {
+    if query.source() != DrugSource::Mychem || !query.supports_sections() {
         return unsupported(query.source(), out);
     }
     let command = cx.fetch.command_deadline(cx.budget);

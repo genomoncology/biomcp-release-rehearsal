@@ -77,6 +77,34 @@ pub(crate) fn retired_study_directory() -> bool {
 }
 
 pub(crate) const BUDGET: Duration = Duration::from_secs(20);
+pub(crate) fn budget(settings: &Settings) -> Duration {
+    settings
+        .as_ref()
+        .ok()
+        .and_then(Option::as_ref)
+        .and_then(|file| file.command_timeout_seconds)
+        .map_or(BUDGET, |seconds| {
+            Duration::from_secs(u64::from(seconds.get()))
+        })
+}
+pub(crate) fn request_defaults(
+    settings: &Settings,
+    request: &biomcp_types::Request,
+) -> Result<biomcp_types::Request, ConfigError> {
+    let limit = configured(settings)?.and_then(|file| file.drug_approvals_limit);
+    if let biomcp_types::Request::GetDrug(query) = request
+        && query.source() == biomcp_types::DrugSource::Drugsfda
+        && query.sections() == [biomcp_types::DrugSection::Approvals]
+        && query.section_limit().is_none()
+        && let Some(limit) = limit
+    {
+        return query
+            .with_section_limit(limit)
+            .map(biomcp_types::Request::GetDrug)
+            .map_err(|_| ConfigError::field("drug_approvals_limit"));
+    }
+    Ok(request.clone())
+}
 #[derive(Clone, Debug)]
 pub(crate) enum StartupError {
     Cache(biomcp_fetch::CacheError),

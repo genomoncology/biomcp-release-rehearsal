@@ -1,0 +1,30 @@
+{
+  "feature": "query-validation",
+  "story": "An unsupported label heading lists the supported heading choices.",
+  "live_check": "Synthetic or recorded local regression; no live calls",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "label",
+        "--source",
+        "openfda-label",
+        "--label-section",
+        "unsupported"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/option": "--label-section",
+        "/error/valid_values": [
+          "boxed_warning",
+          "dosage_and_administration",
+          "drug_interactions",
+          "indications_and_usage",
+          "warnings_and_cautions"
+        ]
+      }
+    }
+  ]
+}

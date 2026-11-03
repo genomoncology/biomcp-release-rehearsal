@@ -1,4 +1,4 @@
-//! Opt-in bounded wire summaries with credential-free request URLs.
+//! Opt-in bounded wire and bundle-wait summaries with credential-free request URLs.
 use serde::{Deserialize, Serialize};
 #[expect(
     clippy::disallowed_types,
@@ -139,7 +139,7 @@ pub struct Observation {
     /// Prepared URL, before any credential or contact insertion.
     #[serde(default)]
     pub url: String,
-    /// Checked reply type, identifying the endpoint role without request values.
+    /// Checked reply type or bundle-wait entry, without request values.
     #[serde(default)]
     pub role: String,
     /// Reused checked local data rather than a transport attempt.

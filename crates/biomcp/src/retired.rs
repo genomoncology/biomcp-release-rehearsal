@@ -42,8 +42,6 @@ const SECTIONS: &[(&str, ErrorMessage)] = &[
 ];
 const ARTICLE_SEARCH: &[(&str, ErrorMessage)] = &[
     ("-k", ErrorMessage::ArticleText),
-    ("-q", ErrorMessage::ArticleText),
-    ("--query", ErrorMessage::ArticleText),
     ("--date-from", ErrorMessage::Since),
     ("--year-min", ErrorMessage::Since),
     ("--date-to", ErrorMessage::Until),

@@ -28,7 +28,12 @@ pub(super) fn select(
         Section::unavailable(Source::Drugsfda, Reason::NotFound)
     } else {
         let offset = query.section_offset().unwrap_or(0);
-        let records = row.submissions(offset, query.section_limit().unwrap_or(1))?;
+        let records = row.submissions(
+            offset,
+            query
+                .section_limit()
+                .unwrap_or(biomcp_types::DEFAULT_DRUG_APPROVALS_LIMIT),
+        )?;
         let returned = records.len() as u32;
         let total = row.submission_count() as u64;
         out.page = Some(PageInfo {

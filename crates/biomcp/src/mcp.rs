@@ -162,7 +162,7 @@ impl Server {
             Err(error) => (
                 Err(error.clone()),
                 Some(biomcp_fetch::Cancellation::with_budget(
-                    crate::config::BUDGET,
+                    crate::config::budget(&settings),
                 )),
             ),
         };

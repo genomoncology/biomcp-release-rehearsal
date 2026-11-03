@@ -382,11 +382,14 @@ fn run_request(
     settings: &crate::config::Settings,
     allow_save: bool,
 ) -> io::Result<biomcp_query::Outcome> {
+    let configured_request = crate::config::request_defaults(settings, request)
+        .map_err(|_| io::Error::other("local configuration failed"))?;
+    let request = &configured_request;
     let cx = biomcp_query::Ctx {
         ncbi_email: crate::config::ncbi_email(settings)
             .map_err(|_| io::Error::other("local configuration failed"))?,
         fetch,
-        budget: crate::config::BUDGET,
+        budget: crate::config::budget(settings),
         fresh,
     };
     Ok(match request {

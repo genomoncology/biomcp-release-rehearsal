@@ -2,63 +2,9 @@
   "verified": "tests/replies/drug/label-discovery/provenance.json records the native openFDA identity and product fields and original body hashes. Local request wrappers and synthetic absences are declared there. Nightly execution checks the public label discovery and section requests.",
   "live_check": "Synthetic label controls and authored warning-section absence; recorded only.",
   "feature": "drug-label",
-  "story": "Synthetic label controls preserve exact discovery and unavailable-section behavior.",
+  "story": "Exact application discovery rejects mismatched applications and absent label headings remain unavailable.",
   "replay": "drug/label-discovery",
   "steps": [
-    {
-      "run": [
-        "search",
-        "drug",
-        "CAVHANZA EXTRA",
-        "--source",
-        "openfda-label",
-        "--limit",
-        "1"
-      ],
-      "exit": 0,
-      "expect": {
-        "/status": "complete",
-        "/result": {
-          "omits": [
-            "items"
-          ]
-        },
-        "/sources/0/term": "\"CAVHANZA EXTRA\"",
-        "": {
-          "omits": [
-            "problems"
-          ]
-        }
-      },
-      "max_bytes": 1500
-    },
-    {
-      "run": [
-        "search",
-        "drug",
-        "REFERENCE BRAND",
-        "--source",
-        "openfda-label",
-        "--limit",
-        "1"
-      ],
-      "exit": 0,
-      "expect": {
-        "/status": "complete",
-        "/result": {
-          "omits": [
-            "items"
-          ]
-        },
-        "/sources/0/term": "\"REFERENCE BRAND\"",
-        "": {
-          "omits": [
-            "problems"
-          ]
-        }
-      },
-      "max_bytes": 1500
-    },
     {
       "run": [
         "search",

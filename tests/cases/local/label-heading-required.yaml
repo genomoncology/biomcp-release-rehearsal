@@ -1,0 +1,21 @@
+{
+  "feature": "query-validation",
+  "story": "A missing label heading names the exact option the caller must supply.",
+  "live_check": "Synthetic or recorded local regression; no live calls",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "label",
+        "--source",
+        "openfda-label"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/option": "--label-section"
+      }
+    }
+  ]
+}

@@ -1236,6 +1236,9 @@ Options:
       --variant <variant>
           Variant words.
 
+  -q, --query <query_alias>
+          Alias for positional article text.
+
 ```
 
 Checked search selectors and pool cursor. Sources: europepmc, litsense, litvar, pubmed, pubtator, semantic-scholar.
@@ -1269,6 +1272,7 @@ pubtator: entity and word search including full text; needs the right entity ID;
 - `--type`: Publication-type filter.
 - `--until`: Inclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date.
 - `--variant`: Variant words.
+- `--query`: Alias for positional article text.
 
 ## biomcp search trial
 

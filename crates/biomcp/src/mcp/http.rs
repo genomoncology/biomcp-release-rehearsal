@@ -284,10 +284,9 @@ impl Service {
         revision: &'static str,
         declared_use: Option<crate::command::DeclaredUse>,
     ) -> (u16, Option<Value>, Option<&'static str>) {
-        let scope = self
-            .globals
-            .hosted
-            .then(|| biomcp_fetch::Cancellation::with_budget(crate::config::BUDGET));
+        let scope = self.globals.hosted.then(|| {
+            biomcp_fetch::Cancellation::with_budget(crate::config::budget(&self.settings))
+        });
         let Some(call) = super::research::parse(params) else {
             return (
                 200,

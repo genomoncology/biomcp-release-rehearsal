@@ -1,7 +1,7 @@
 {
   "feature": "drug-label",
   "live_check": "synthetic",
-  "story": "Mixed native label members preserve valid names, primary text, headings and checked SPL identity.",
+  "story": "Mixed native label members preserve valid names, free-text candidates, headings and checked SPL identity.",
   "replay": "drug/member-values/openfda-label",
   "steps": [
     {
@@ -139,8 +139,11 @@
       ],
       "expect": {
         "/result/items/0/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
-        "/problems/*/field": {
-          "includes": "spl_product_data_elements"
+        "/page/returned": 1,
+        "/result/items/0": {
+          "omits": [
+            "matched_name"
+          ]
         }
       }
     },

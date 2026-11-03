@@ -2,7 +2,7 @@ gene-identity: A caller resolves approved symbols, aliases, previous symbols and
 gene-search: A caller searches genes by words, chromosome band and locus group with totals and bounded pages.
 gene-bundle: A caller synchronizes the HGNC bundle and reads gene identity offline.
 gene-help: A caller discovers gene arguments, section names and executable examples through help.
-gene-sections: A caller requests named gene sections separately or together and sees each section's source and availability.
+gene-sections: A caller requests named gene sections separately or together, sees each source and availability, and waits within a configurable deadline for an active first bundle publication.
 gene-protein: A caller sees every reviewed human protein linked by the gene's identifiers.
 gene-pathways: A caller sees Reactome pathways linked to the gene.
 gene-expression: A caller sees source-stated tissue expression and subcellular locations for the gene.
@@ -57,7 +57,7 @@ drug-ema: Explicitly synchronize EMA medicines and read separate native candidat
 drug-civic: Search literal CIViC therapy candidates and retrieve independent native evidence and assertion pages with their complete profile context.
 drug-mychem: Search literal MyChem candidate pages and retrieve exact native document identities with attributed cross-references.
 drug-label: Find complete brand or generic names with an explicit match basis and read exact SPL identities and native label fields with complete bounded text continuation, preserving revision, original text and source outcomes.
-drug-approvals: Read source-native application candidates, independent product status and application submission history with explicit product selection.
+drug-approvals: Read source-native application candidates, independent product status and application submission history with explicit product selection and configurable submission pages.
 disease-ols: Discover source-ordered ontology candidates, read exact OLS facts and refuse retired disease inputs before source access.
 disease-mydisease: Read an exact selected annotation and independently page native synonyms, cross references and parents without hidden enrichment.
 disease-seer: Select native SEER catalog sites and page stage incidence or annual observed and modeled survival without inferred population or dataset facts.

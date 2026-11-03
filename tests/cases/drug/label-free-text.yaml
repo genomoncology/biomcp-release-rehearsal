@@ -1,0 +1,28 @@
+{
+  "feature": "drug-label",
+  "story": "Free-text label discoveries return source matches even when product names do not match.",
+  "live_check": "Synthetic or recorded local regression; no live calls",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "REFERENCE BRAND",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/page/returned": 1,
+        "/result/items/0/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "/result/items/0": {
+          "omits": [
+            "matched_name"
+          ]
+        }
+      }
+    }
+  ],
+  "replay": "drug/label-discovery"
+}

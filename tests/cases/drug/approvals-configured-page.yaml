@@ -1,0 +1,39 @@
+{
+  "feature": "drug-approvals",
+  "story": "Configured submission page sizes apply by default and explicit section limits override them.",
+  "live_check": "Synthetic two-submission page; recorded only",
+  "replay": "drug/approvals-page",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/page/returned": 1
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/page/returned": 2
+      }
+    }
+  ],
+  "config": {
+    "drug_approvals_limit": 1
+  }
+}

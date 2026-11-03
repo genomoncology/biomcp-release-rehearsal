@@ -111,7 +111,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     } else {
         biomcp_types::DrugCard::into_reply(query.clone(), None)
     });
-    if !matches!(query.sections(), [] | [DrugSection::Label])
+    if !query.supports_sections()
         || label
             && !query
                 .label_section()

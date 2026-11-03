@@ -83,61 +83,7 @@ fn discover(
             .parse()
             .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::OpenfdaLabel, Some(200)))?,
     );
-    let mut fallback = page(leg, &selector, limit, offset, None)?;
-    fallback
-        .window
-        .rows
-        .retain(|record| record.name_match(name).is_some() || primary_name(record, name));
-    Ok(fallback)
-}
-fn phrase(value: &str) -> String {
-    value
-        .split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ")
-        .to_lowercase()
-}
-// Missing harmonized names are not evidence of a different product. Both primary
-// product fields must identify the complete requested name before admitting it.
-fn primary_name(record: &super::Record, name: &Text) -> bool {
-    let record = &record.0;
-    if record.openfda.brand_name.iter().flatten().next().is_some()
-        || record
-            .openfda
-            .generic_name
-            .iter()
-            .flatten()
-            .next()
-            .is_some()
-    {
-        return false;
-    }
-    let name = phrase(name.as_str());
-    let starts_product = record
-        .spl_product_data_elements
-        .iter()
-        .flatten()
-        .any(|part| {
-            phrase(part)
-                .strip_prefix(&name)
-                .is_some_and(|rest| rest.is_empty() || rest.starts_with([' ', '™', '®']))
-        });
-    starts_product
-        && record
-            .package_label_principal_display_panel
-            .iter()
-            .flatten()
-            .any(|panel| {
-                let panel = phrase(panel);
-                ['™', '®'].into_iter().any(|mark| {
-                    panel
-                        .match_indices(&format!("{name}{mark}"))
-                        .any(|(index, _)| {
-                            panel
-                                .get(..index)
-                                .and_then(|prefix| prefix.chars().next_back())
-                                .is_none_or(|previous| !previous.is_alphanumeric())
-                        })
-                })
-            })
+    // The publisher searched label text, so a matching passage need not name
+    // this product. Preserve its candidates and mark exact name matches separately.
+    page(leg, &selector, limit, offset, None)
 }

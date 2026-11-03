@@ -53,7 +53,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     } else {
         biomcp_types::DrugCard::into_reply(query.clone(), None)
     });
-    if !matches!(query.sections(), [] | [DrugSection::Regulatory]) {
+    if !query.supports_sections() {
         return unsupported(query.source(), out);
     }
     let command = cx.fetch.command_deadline(cx.budget);

@@ -25,16 +25,10 @@ mod raw;
 mod wire;
 use biodata::{DrugId, Text};
 use biomcp_fetch::{Arg, BadReply, Endpoint, Freshness, Leg, ReplyMetadata, RequestError};
+/// Exact native headings supported by the label surface.
+pub use biomcp_types::OPENFDA_LABEL_HEADINGS as HEADINGS;
 pub use map::Record;
 use raw::Record as RawRecord;
-/// Exact native headings supported by the label surface.
-pub const HEADINGS: [&str; 5] = [
-    "boxed_warning",
-    "dosage_and_administration",
-    "drug_interactions",
-    "indications_and_usage",
-    "warnings_and_cautions",
-];
 const LABEL: Endpoint = SPEC.get("").fresh(Freshness::Days(1)).json_absence();
 /// A source candidate page, preserving native order and source total.
 #[derive(Debug)]

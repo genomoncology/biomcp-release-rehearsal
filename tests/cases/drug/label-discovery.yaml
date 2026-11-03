@@ -1,5 +1,5 @@
 {
-  "verified": "tests/replies/drug/label-discovery/provenance.json records the native openFDA identity and product fields and original body hashes. Local request wrappers and synthetic absences are declared there. Nightly execution checks the public label discovery and section requests. Synthetic longer-brand, incidental-warning, mismatched-application and warning-section controls run in label-controls.yaml and do not enter live checks.",
+  "verified": "tests/replies/drug/label-discovery/provenance.json records the native openFDA identity and product fields and original body hashes. Local request wrappers and synthetic absences are declared there. Nightly execution checks the public label discovery and section requests. Synthetic mismatched-application and warning-section controls run in label-controls.yaml; incidental-warning text discovery runs in label-free-text.yaml. These controls do not enter live checks.",
   "live_check": "public",
   "feature": "drug-label",
   "story": "Public label identities support free-text discovery and exact application search.",

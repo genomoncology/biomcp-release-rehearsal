@@ -48,6 +48,8 @@ pub(crate) struct ConfigFile {
     pub(super) ncbi_email: Option<String>,
     pub(super) keys: Option<BTreeMap<String, String>>,
     pub(super) auto_sync_max_bytes: Option<u64>,
+    pub(super) command_timeout_seconds: Option<std::num::NonZeroU32>,
+    pub(super) drug_approvals_limit: Option<u32>,
     pub(super) source_pacing: Option<BTreeMap<String, biomcp_fetch::PacingOverride>>,
     pub(super) http_max_calls: Option<std::num::NonZeroUsize>,
     pub(super) http_max_connections: Option<std::num::NonZeroUsize>,
@@ -96,6 +98,12 @@ fn decode(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
             })
         })
     })?;
+    if file
+        .drug_approvals_limit
+        .is_some_and(|n| !(1..=50).contains(&n))
+    {
+        return Err(ConfigError::field("drug_approvals_limit"));
+    }
     if let Some(keys) = &file.keys {
         for key in keys.keys() {
             if !biomcp_query::sources::keys()
@@ -153,6 +161,8 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         ncbi_email: take(&mut map, "ncbi_email")?,
         keys,
         auto_sync_max_bytes: take(&mut map, "auto_sync_max_bytes")?,
+        command_timeout_seconds: take(&mut map, "command_timeout_seconds")?,
+        drug_approvals_limit: take(&mut map, "drug_approvals_limit")?,
         source_pacing: map
             .remove("source_pacing")
             .filter(|v| !v.is_null())
