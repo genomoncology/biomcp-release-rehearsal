@@ -52,6 +52,8 @@ pub struct RegisteredKey {
     pub header: crate::Text,
     /// Declared server credential fallback policy.
     pub tier: KeyTier,
+    /// Publisher use label for the whole source.
+    pub usage: crate::Use,
     /// Current credential origin.
     pub state: KeyState,
 }

@@ -1,7 +1,7 @@
 {
   "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "key-registration",
-  "story": "A caller registers and replaces a synthetic credential, sees only its origin, and removes it.",
+  "story": "A caller lists whole-source use labels and registers, replaces and removes a synthetic credential without seeing its value.",
   "steps": [
     {
       "run": [
@@ -21,8 +21,21 @@
         "list"
       ],
       "expect": {
+        "/result/entries/1/state": "stored",
+        "/result/entries/0/source": "ncbi",
+        "/result/entries/0/usage": "open",
         "/result/entries/1/source": "semantic-scholar",
-        "/result/entries/1/state": "stored"
+        "/result/entries/1/usage": "noncommercial",
+        "/result/entries/2/source": "orcid",
+        "/result/entries/2/usage": "noncommercial",
+        "/result/entries/3/source": "oncokb",
+        "/result/entries/3/usage": "licensed",
+        "/result/entries/4/source": "alphagenome",
+        "/result/entries/4/usage": "licensed",
+        "/result/entries/5/source": "nci",
+        "/result/entries/5/usage": "open",
+        "/result/entries/6/source": "openfda",
+        "/result/entries/6/usage": "open"
       }
     },
     {

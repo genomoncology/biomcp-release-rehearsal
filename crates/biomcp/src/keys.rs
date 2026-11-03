@@ -210,6 +210,9 @@ fn entry(
         environment: text(name.environment().into())?,
         header: text(name.header())?,
         tier: biomcp_query::sources::key_tier(name),
+        usage: biomcp_query::sources::terms(biomcp_query::sources::key_source(name))
+            .ok_or(Failure::Local)?
+            .usage,
         state,
     })
 }

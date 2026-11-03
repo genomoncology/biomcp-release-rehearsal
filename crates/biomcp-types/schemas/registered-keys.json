@@ -236,6 +236,10 @@
         "tier": {
           "$ref": "#/$defs/Reply_KeyTier",
           "description": "Declared server credential fallback policy."
+        },
+        "usage": {
+          "$ref": "#/$defs/Reply_Use",
+          "description": "Publisher use label for the whole source."
         }
       },
       "required": [
@@ -244,6 +248,7 @@
         "environment",
         "header",
         "tier",
+        "usage",
         "state"
       ],
       "type": "object"
