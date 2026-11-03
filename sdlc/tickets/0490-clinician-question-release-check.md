@@ -1,6 +1,6 @@
 # 0490 — Run the clinician-worded questions on each release candidate
 
-Status: OPEN.
+Status: WITHDRAWN. Handed to the evals team, which scores agent answers; failures come back as BioMCP tickets (Ian via Jarvis, m23337 and m23350).
 
 Milestone: 5
 

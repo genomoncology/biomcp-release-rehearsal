@@ -62,8 +62,7 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Cut the release candidate from main once every ticket above lands (0336).
 
 - Rehearse the final candidate on every platform (0293).
-- Comparisons with 0.9.3 and agent benchmarks belong to the evals team (experiment 513), not BioMCP; 0402 and 0405 were handed over (Ian, 2026-11-03, m23337). BioMCP tickets the changes evals marks as sure wins.
-- Check the installed candidate against cBioPortal's 62 numeric agent questions (0462).
+- Comparisons with 0.9.3 and agent benchmarks belong to the evals team (experiment 513), not BioMCP; 0402, 0405, 0462 and 0490 were handed over (Ian, 2026-11-03, m23337 and m23350). BioMCP tickets the changes evals marks as sure wins.
 - Ian approves BioData's public repository and its v1.0.0 tag, which 0459 pins (asked through Jarvis on 2026-11-01).
 - Ian approves the publication credentials and settings 0533 lists. The release workflow has no manual approval pause (0554).
 - Ian approves the public append, the 1.0 tag and publication.

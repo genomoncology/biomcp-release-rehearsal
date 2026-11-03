@@ -1,6 +1,6 @@
 # 0462 — Check BioMCP against cBioPortal's agent question bank
 
-Status: OPEN.
+Status: WITHDRAWN. Handed to the evals team, which scores agent answers; failures come back as BioMCP tickets (Ian via Jarvis, m23337 and m23350).
 
 Milestone: 5
 
