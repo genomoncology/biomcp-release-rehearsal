@@ -13,6 +13,7 @@ The front page of `biomcp help`, the skill and the MCP server instructions all o
   - The map is generated, never hand-copied, and has no flags and no prose. A test fails when an entity, command, section or source is missing from it.
   - Trap lines are general rules about BioMCP itself (for example, which ID forms a command takes), never hints about particular questions. Never tune to the 20 benchmark questions.
   - The map stays under 2,500 characters including trap lines; a test enforces the limit as a setting with that default.
+  - The map names service sources; carried components stay in source help, and one map line names the command that lists them all (m22817).
   - Per-command help keeps syntax, sections and source names, and drops repeated prose.
   - This ticket lifts the command freeze for help, skill and instruction text only.
 - Proof: installed-binary cases show the map in `biomcp help`, in the MCP `initialize` instructions and in the shipped skill, byte-identical across the three. A synthetic new entity in a test declaration appears in the map without other edits. The longest per-command help is at least 40% shorter than at 27eadce.
