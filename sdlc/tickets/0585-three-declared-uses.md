@@ -22,6 +22,7 @@ Uses:
   - Fix the stale terms links: CADD (https://cadd.gs.washington.edu/download), COSMIC (https://www.cosmickb.org/terms/), SnpEff (MIT).
   - Local CLI and stdio behaviour is unchanged: with no declared use, they run every configured source as today. The `x-biomcp-use` header is read only in hosted mode.
   - `restricted` stays a legacy `disable_sources` alias for exactly the former group, so existing local configurations and help keep working (m22690).
+  - Other named `disable_sources` groups such as `noncommercial` follow the corrected labels, and the release notes name each membership change (m22713).
   - Allowed exception to the command freeze, because it serves the hosted launch: label text in source listings, the usage and terms fields of source outcomes, the hosted header values and their error text may change. Every other reply, help and skill stays byte-identical, and the reply diff names each change.
   - Keys never appear in replies or logs.
 - Proof: installed-binary hosted cases. Without the header, a ClinicalTrials.gov, PubMed and ClinVar call succeeds, while an OncoKB call with a valid-looking key and a DDInter call are refused as disabled. With `commercial` and an OncoKB key, OncoKB is attempted; with `commercial` and no key, it is refused. With `academic`, every configured source is attempted. A CC BY full-text record is returned under `restricted` and a noncommercial-licensed one is withheld. An unknown header value names all three values. A local CLI run with no header matches today's replies.
