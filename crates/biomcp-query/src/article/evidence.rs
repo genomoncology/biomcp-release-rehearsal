@@ -108,12 +108,18 @@ fn execute<'a>(
             crate::store::EvidenceState::Disabled => Snapshot::empty(),
             crate::store::EvidenceState::Ready(payload) => {
                 restored = true;
-                decode(&payload)?
+                decode(&payload)?.unwrap_or_else(Snapshot::empty)
             }
         }
     } else {
         Snapshot::empty()
     };
+    if restrict_text(
+        &mut snapshot,
+        cx.fetch.disabled_use(biomcp_types::Use::PerRecord),
+    ) {
+        restored = false;
+    }
     let mut stages = deadline.child(deadline.remaining().saturating_sub(SAVE_BUDGET));
     let started = stages.remaining();
     if graph_disabled {
@@ -221,10 +227,14 @@ fn encode(snapshot: &Snapshot) -> Result<String, CacheError> {
     ))
     .map_err(|_| CacheError::Snapshot)
 }
-fn decode(payload: &str) -> Result<Snapshot, CacheError> {
-    let (graph, fulltext, (terminal, cursor, matched), sources, target, dropped): Saved =
-        serde_json::from_str(payload).map_err(|_| CacheError::Snapshot)?;
-    Ok(Snapshot {
+fn decode(payload: &str) -> Result<Option<Snapshot>, CacheError> {
+    let Some((graph, fulltext, (terminal, cursor, matched), sources, target, dropped)): Option<
+        Saved,
+    > = crate::store::labels::decode(payload).map_err(|_| CacheError::Snapshot)?
+    else {
+        return Ok(None);
+    };
+    Ok(Some(Snapshot {
         dropped,
         graph,
         fulltext,
@@ -233,5 +243,21 @@ fn decode(payload: &str) -> Result<Snapshot, CacheError> {
         matched,
         sources,
         target: target.map(|(pmid, doi)| graph::Target { pmid, doi }),
-    })
+    }))
+}
+
+fn restrict_text(snapshot: &mut Snapshot, restricted: bool) -> bool {
+    if restricted
+        && snapshot.fulltext.as_ref().is_some_and(|section| {
+            matches!(section,
+            Section::Data { data, .. } if !biomcp_adapters::pmc_oa::commercial(data.license))
+        })
+    {
+        snapshot.fulltext = Some(Section::unavailable(
+            Source::PmcOa,
+            biomcp_types::Reason::Disabled,
+        ));
+        return true;
+    }
+    false
 }

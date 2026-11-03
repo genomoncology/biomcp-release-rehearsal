@@ -1264,7 +1264,8 @@
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }

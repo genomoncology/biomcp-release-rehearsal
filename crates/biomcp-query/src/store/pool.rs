@@ -247,7 +247,7 @@ impl Store<'_> {
                     item,
                     checked,
                     problems: serde_json::from_str(&problems).map_err(|_| CacheError::Encoding)?,
-                    outcome: outcome.map(|v| serde_json::from_str(&v).map_err(|_| CacheError::Encoding)).transpose()?,
+                    outcome: outcome.map(|v| super::labels::decode(&v)).transpose()?.flatten(),
                 })
             })
             .collect()

@@ -36,7 +36,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCI Clinical Trials Search publisher terms; user's API key required",
         url: "https://www.cancer.gov/syndication/api",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
 };
 /// Native trial search, also used for one bounded health request.

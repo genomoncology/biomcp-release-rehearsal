@@ -60,7 +60,7 @@
                   {
                     "component": "clinvar",
                     "terms": {
-                      "usage": "restricted",
+                      "usage": "open",
                       "name": "NCBI policy; submission rights remain source-specific",
                       "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
                     }

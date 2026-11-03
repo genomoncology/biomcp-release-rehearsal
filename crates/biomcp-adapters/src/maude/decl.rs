@@ -46,6 +46,6 @@ pub(crate) const GMDN_COMPONENT: crate::registry::Component = crate::registry::C
     terms: biomcp_fetch::Terms {
         name: "openFDA license: GMDN third-party terminology exceptions",
         url: "https://open.fda.gov/license/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Attribution,
     },
 };

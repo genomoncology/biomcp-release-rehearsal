@@ -288,7 +288,7 @@ fn follow_page(env: &Environment, value: &Value, total: usize) -> Result<usize, 
 }
 
 fn blocked(env: &Environment, args: &[String], record: &std::path::Path) -> Check {
-    for switch in ["cpic", "noncommercial"] {
+    for switch in ["cpic"] {
         for replay in [false, true] {
             let mut blocked = vec!["--disable-sources".into(), switch.into()];
             if replay {

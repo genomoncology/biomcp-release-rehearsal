@@ -24,7 +24,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "Europe PMC copyright; record-specific licenses",
         url: "https://europepmc.org/help#copyright",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::PerRecord,
     },
     source: Source::EuropePmc,
     base: "https://www.ebi.ac.uk/europepmc/webservices/rest",

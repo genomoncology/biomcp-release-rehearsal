@@ -1,6 +1,7 @@
 # Sources carry their actual terms, and hosted callers declare one of three uses
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 2f109f95c3b44748fd6528e2f72ef32fcdb717d1
 Milestone: 5
 
 ## Outcome

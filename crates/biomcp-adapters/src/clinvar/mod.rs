@@ -20,7 +20,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCBI policy; submission rights remain source-specific",
         url: "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::ClinVar,
     base: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils",

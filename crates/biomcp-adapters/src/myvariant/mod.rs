@@ -26,7 +26,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "MyVariant.info terms and component data licenses",
         url: "https://myvariant.info/terms",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::MyVariant,
     base: "https://myvariant.info/v1",

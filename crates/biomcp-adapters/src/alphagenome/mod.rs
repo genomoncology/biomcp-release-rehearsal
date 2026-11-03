@@ -31,7 +31,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "AlphaGenome API terms",
         url: "https://alphagenome.google/terms",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Licensed,
     },
     base: "https://gdmscience.googleapis.com:443",
     key: KeyUse::Required(Credential {

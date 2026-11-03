@@ -9,9 +9,9 @@ pub static SPEC: SourceSpec = SourceSpec {
     source: Source::Cpic,
     base: "https://api.cpicpgx.org/v1",
     terms: Terms {
-        name: crate::pgx_sources::TERMS.name,
-        url: crate::pgx_sources::TERMS.url,
-        usage: crate::pgx_sources::TERMS.usage,
+        name: "CPIC data use policy",
+        url: "https://cpicpgx.org/about/terms-of-use/",
+        usage: biomcp_types::Use::Open,
     },
     quota: &crate::quotas::CPIC,
     key: KeyUse::None,

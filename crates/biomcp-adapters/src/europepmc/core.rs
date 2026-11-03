@@ -171,6 +171,11 @@ pub fn read(
             problems: p.list,
         });
     }
+    pmc_oa::permitted(
+        leg,
+        biomcp_types::Source::EuropePmc,
+        pmc_oa::license(license.as_deref().unwrap_or("")),
+    )?;
     let endpoint = FULLTEXT
         .clone()
         .with_path(format!("/{id}/fullTextXML"))

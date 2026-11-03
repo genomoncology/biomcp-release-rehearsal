@@ -20,7 +20,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "GWAS Catalog terms and dataset rights",
         url: "https://www.ebi.ac.uk/about/terms-of-use/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::Gwas,
     base: "https://www.ebi.ac.uk/gwas/rest/api/v2",

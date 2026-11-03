@@ -19,7 +19,7 @@ fn required_key_refuses_without_connections_and_keyed_request_uses_metadata() ->
         terms: biomcp_fetch::Terms {
             name: "Synthetic terms",
             url: "https://example.test/terms",
-            usage: biomcp_types::Use::Restricted,
+            usage: biomcp_types::Use::Licensed,
         },
         base: Box::leak(format!("https://127.0.0.1:{}", fixture.address.port()).into_boxed_str()),
         key: KeyUse::Required(Credential {

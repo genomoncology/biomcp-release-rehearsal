@@ -22,7 +22,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "cBioPortal study-specific terms unverified; commercial restrictions may apply",
         url: "https://docs.cbioportal.org/user-guide/faq/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Attribution,
     },
 };
 /// Checked metadata for the exact caller-selected cohort.

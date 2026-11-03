@@ -7,7 +7,7 @@ fn restricted_source_requires_its_own_key_before_any_provider_request()
 -> Result<(), Box<dyn std::error::Error>> {
     let source = Source::AlphaGenome;
     let terms = registry::terms(source).ok_or("missing terms")?;
-    assert_eq!(terms.usage, Use::Restricted);
+    assert_eq!(terms.usage, Use::Licensed);
     assert_eq!(terms.url, "https://alphagenome.google/terms");
     assert_eq!(SPEC.base, "https://gdmscience.googleapis.com:443");
     assert!(matches!(

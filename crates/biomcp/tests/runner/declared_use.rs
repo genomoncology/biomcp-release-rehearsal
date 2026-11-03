@@ -4,13 +4,36 @@ use crate::runner::transcript::trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 mod components;
+mod continuation;
+mod legacy;
+mod records;
 const ACADEMIC: &str = "x-biomcp-use: academic\r\n";
-const KEY: &str = "synthetic-declared-use-key";
-const CPIC: &[&str] = &["get", "pgx", "--gene", "DPYD", "--source", "cpic"];
+const KEY: &str = "7c28f96a-3f48-4d6b-8d30-512c5d41e979";
+const CLINPGX: &[&str] = &[
+    "get",
+    "pgx",
+    "--gene",
+    "DPYD",
+    "annotations",
+    "--source",
+    "clinpgx",
+];
 const ONCOKB: &[&str] = &["get", "gene", "TP53", "oncokb"];
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
+        trial("mcp-hosted/use/legacy-group-membership", || {
+            legacy::check().map_err(Into::into)
+        }),
+        trial("mcp-hosted/use/continuation-rights", || {
+            continuation::check().map_err(Into::into)
+        }),
+        trial("mcp-hosted/use/free-sources", || {
+            records::free().map_err(Into::into)
+        }),
+        trial("mcp-hosted/use/record-rights", || {
+            records::rights().map_err(Into::into)
+        }),
         trial("mcp-hosted/use/components", || {
             components::check().map_err(Into::into)
         }),
@@ -34,6 +57,15 @@ fn disabled(reply: &Value, source: &str) -> bool {
                 .any(|row| row["source"] == source && row["reason"] == "disabled")
         })
 }
+fn source_ok(reply: &Value, source: &str) -> bool {
+    reply
+        .pointer("/result/structuredContent/sources")
+        .and_then(Value::as_array)
+        .is_some_and(|rows| {
+            rows.iter()
+                .any(|row| row["source"] == source && row["state"] == "ok")
+        })
+}
 fn admission() -> Result<(), String> {
     let assets = Environment::new().map_err(|e| e.to_string())?;
     let scoped = super::licensed_cache::scoped_gene_fixture(&assets, KEY)?;
@@ -42,16 +74,40 @@ fn admission() -> Result<(), String> {
     for excluded in [false, true] {
         let mut server = Server::configured_globals(
             "127.0.0.1:0",
-            Some(json!({"disable_sources":if excluded {vec!["oncokb", "cpic"]} else {vec![]}})),
+            Some(json!({"disable_sources":if excluded {vec!["oncokb", "clinpgx"]} else {vec![]}})),
             Some(scoped.clone()),
             None,
             None,
             &["--hosted".into()],
         )?;
+        let ddinter = call(
+            &server,
+            &[
+                "get",
+                "drug",
+                "DDInter1",
+                "interactions",
+                "--source",
+                "ddinter",
+            ],
+            "",
+            false,
+        )?;
+        if !disabled(&ddinter, "ddinter") {
+            return Err(format!("default use admitted DDInter: {ddinter}"));
+        }
         for use_header in ["", "x-biomcp-use: commercial\r\n", ACADEMIC] {
-            let args = ["get", "pgx", "--gene", "DPYD", "--source", "cpic"];
+            let args = [
+                "get",
+                "pgx",
+                "--gene",
+                "DPYD",
+                "annotations",
+                "--source",
+                "clinpgx",
+            ];
             let cpic = call(&server, &args, use_header, false)?;
-            if disabled(&cpic, "cpic") != (excluded || use_header != ACADEMIC) {
+            if disabled(&cpic, "clinpgx") != (excluded || use_header != ACADEMIC) {
                 return Err(format!("wrong noncommercial source admission: {cpic}"));
             }
             let reply = call(&server, ONCOKB, use_header, false)?;
@@ -69,6 +125,10 @@ fn admission() -> Result<(), String> {
                 if !disabled(&keyed, "oncokb") {
                     return Err("caller key overrode server exclusion".into());
                 }
+            } else if use_header.is_empty() {
+                if !disabled(&keyed, "oncokb") {
+                    return Err("default use accepted a licensed source key".into());
+                }
             } else if keyed
                 .pointer("/result/structuredContent/result/items/0/sections/oncokb/state")
                 != Some(&json!("data"))
@@ -84,11 +144,9 @@ fn admission() -> Result<(), String> {
 }
 fn retained() -> Result<(), String> {
     let assets = Environment::new().map_err(|e| e.to_string())?;
-    let stub = Stub::counted(
-        |_| Ok(r#"[{"symbol":"DPYD"}]"#.into()),
-        |_| "Content-Range: 0-0/1\r\n".into(),
-        |_| 200,
-    )?;
+    let stub = Stub::for_source("api.clinpgx.org", "application/json", |_| {
+        Ok(r#"{"status":"success","data":[]}"#.into())
+    })?;
     stub.retain(assets.shared_root());
     let ca = assets.root().join("ca.pem");
     std::fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
@@ -100,18 +158,19 @@ fn retained() -> Result<(), String> {
         None,
         &["--hosted".into()],
     )?;
-    let academic = call(&server, CPIC, ACADEMIC, false)?;
-    if academic.pointer("/result/structuredContent/status") != Some(&json!("complete")) {
+    let academic = call(&server, CLINPGX, ACADEMIC, false)?;
+    if !source_ok(&academic, "clinpgx") {
         return Err(format!("academic noncommercial source failed: {academic}"));
     }
-    let offline: Vec<_> = CPIC.iter().copied().chain(["--offline"]).collect();
+    let offline: Vec<_> = CLINPGX.iter().copied().chain(["--offline"]).collect();
     let stored = call(&server, &offline, ACADEMIC, false)?;
-    if stored.pointer("/result/structuredContent/status") != Some(&json!("complete")) {
+    if !source_ok(&stored, "clinpgx") {
         return Err(format!("academic reply was not retained: {stored}"));
     }
     for header in ["", "x-biomcp-use: commercial\r\n"] {
         let commercial = call(&server, &offline, header, false)?;
-        if !disabled(&commercial, "cpic") || commercial.to_string().contains("\"symbol\":\"DPYD\"")
+        if !disabled(&commercial, "clinpgx")
+            || commercial.to_string().contains("\"symbol\":\"DPYD\"")
         {
             return Err(format!(
                 "academic stored reply escaped to commercial caller: {commercial}"
@@ -119,7 +178,7 @@ fn retained() -> Result<(), String> {
         }
     }
     server.stop()?;
-    if stub.finish()?.len() != 1 {
+    if stub.finish()?.is_empty() {
         return Err("commercial source reached upstream".into());
     }
     Ok(())
@@ -135,7 +194,7 @@ fn headers() -> Result<(), String> {
             Server::configured_globals("127.0.0.1:0", None, None, None, None, &globals)?;
         let frame = json!({"jsonrpc":"2.0","id":1,"method":"tools/call", "params":{
             "name":"biomcp", "arguments":{
-                "args":["get","pgx","--gene","DPYD","--source","cpic","--offline"]
+                "args":["get","pgx","--gene","DPYD","--source","clinpgx","--offline"]
             }
         }});
         for extra in [
@@ -159,9 +218,7 @@ fn headers() -> Result<(), String> {
             }
             if hosted
                 && !reply.is_some_and(|reply| {
-                    ["x-biomcp-use", "commercial", "academic"]
-                        .iter()
-                        .all(|word| reply.to_string().contains(word))
+                    reply.get("error") == Some(&json!("Invalid x-biomcp-use header; allowed values: restricted, commercial, academic"))
                 })
             {
                 return Err("invalid declaration omitted allowed values".into());

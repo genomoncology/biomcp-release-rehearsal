@@ -143,12 +143,55 @@ def pointer(left, right, path=""):
     return None
 
 
+def fields(left, right, path=""):
+    """Enumerate every delta, parsing JSON replies while retaining raw text changes."""
+    if type(left) is type(right) and isinstance(left, dict):
+        for key in sorted(left.keys() | right.keys()):
+            child = path + "/" + key.replace("~", "~0").replace("/", "~1")
+            if key not in left or key not in right:
+                yield {"path": child, "before": left.get(key), "after": right.get(key),
+                       "missing": "before" if key not in left else "after"}
+            else:
+                yield from fields(left[key], right[key], child)
+    elif type(left) is type(right) and isinstance(left, list):
+        for index in range(max(len(left), len(right))):
+            child = path + f"/{index}"
+            if index >= min(len(left), len(right)):
+                yield {"path": child, "missing": "before" if index >= len(left) else "after"}
+            else:
+                yield from fields(left[index], right[index], child)
+    elif type(left) is not type(right) or left != right:
+        if path.endswith("/stdout") and isinstance(left, str) and isinstance(right, str):
+            try:
+                before, after = json.loads(left), json.loads(right)
+            except (ValueError, TypeError):
+                pass
+            else:
+                if pointer(before, after):
+                    yield from fields(before, after, path)
+                    return
+        yield {"path": path or "/", "before": left, "after": right}
+
+
+def show(key, before, after, location, count, full):
+    if full:
+        changes = fields(before, after) if before is not None and after is not None else [{"path": location}]
+        for change in changes:
+            print(json.dumps({"key": key, **change}, ensure_ascii=False, sort_keys=True))
+    elif count <= 20:
+        print(f"{key}: {location}")
+
+
 def main():
-    if len(sys.argv) != 3:
-        print("usage: reply_diff.py BASE HEAD", file=sys.stderr)
+    arguments = sys.argv[1:]
+    full = "--all-fields" in arguments
+    if full:
+        arguments.remove("--all-fields")
+    if len(arguments) != 2:
+        print("usage: reply_diff.py [--all-fields] BASE HEAD", file=sys.stderr)
         return 2
     try:
-        (base, base_missing, base_native, base_structured), (head, head_missing, head_native, head_structured) = (load(d) for d in sys.argv[1:3])
+        (base, base_missing, base_native, base_structured), (head, head_missing, head_native, head_structured) = (load(d) for d in arguments)
         for label, processes, structured, native in (
                 ("BASE", base, base_structured, base_native),
                 ("HEAD", head, head_structured, head_native)):
@@ -184,6 +227,7 @@ def main():
             paired[key] = (a, b)
         differences = 0
         for key in sorted(base_structured.keys() | head_structured.keys()):
+            before, after = base_structured.get(key), head_structured.get(key)
             if key not in base_structured or key not in head_structured:
                 location = "/ missing in " + ("HEAD" if key in base_structured else "BASE")
             else:
@@ -193,31 +237,34 @@ def main():
                 location = pointer(before, after)
             if location:
                 differences += 1
-                if differences <= 20:
-                    print(f"{key}: {location}")
+                show(key, before, after, location, differences, full)
         for key in sorted(base_native.keys() | head_native.keys()):
+            before, after = base_native.get(key), head_native.get(key)
             location = ("/ missing in " + ("HEAD" if key in base_native else "BASE")
                         if key not in base_native or key not in head_native
                         else pointer(base_native[key], head_native[key]))
             if location:
                 differences += 1
-                if differences <= 20:
-                    print(f"{key}: {location}")
+                show(key, before, after, location, differences, full)
         for key in sorted(base.keys() | (head.keys() - set(aliases.values()))):
+            before, after = (None, None)
+            if key in paired:
+                before, after = [list(values) for values in zip(*[
+                    pair(x, y, owner(key), bindings,
+                         [context_roots(r, k, i) for r, k in zip(roots, (key, aliases.get(key, key)))],
+                         normalize)
+                    for i, (x, y) in enumerate(zip(*paired[key]))])]
             location = ("/ missing in " + ("HEAD" if key in base else "BASE")
-                        if key not in paired
-                        else pointer(*[list(values) for values in zip(*[
-                            pair(x, y, owner(key), bindings,
-                                 [context_roots(r, k, i) for r, k in zip(roots, (key, aliases.get(key, key)))],
-                                 normalize)
-                            for i, (x, y) in enumerate(zip(*paired[key]))])]))
+                        if key not in paired else pointer(before, after))
             if key in paired and len(paired[key][0]) != len(paired[key][1]):
                 location = "/executions/length"
+                if full:
+                    print(json.dumps({"key": key, "path": location,
+                                      "before": len(paired[key][0]), "after": len(paired[key][1])}, sort_keys=True))
             if location:
                 differences += 1
-                if differences <= 20:
-                    print(f"{key}: {location}")
-        if differences > 20:
+                show(key, before, after, location, differences, full)
+        if differences > 20 and not full:
             print(f"{differences - 20} more differing keys")
         return int(differences > 0)
     except (OSError, ValueError, KeyError, TypeError) as error:

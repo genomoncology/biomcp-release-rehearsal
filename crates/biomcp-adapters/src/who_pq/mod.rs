@@ -13,7 +13,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: Terms {
         name: "WHO copyright policy; export-specific reuse grant unverified",
         url: "https://www.who.int/about/policies/publishing/copyright",
-        usage: Use::Restricted,
+        usage: Use::Noncommercial,
     },
     quota: &crate::quotas::WHO,
     key: KeyUse::None,

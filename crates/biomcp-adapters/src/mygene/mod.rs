@@ -16,7 +16,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "MyGene.info Terms of Use; upstream data terms",
         url: "https://docs.mygene.info/en/latest/terms.html",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::MyGene,
     base: "https://mygene.info/v3",

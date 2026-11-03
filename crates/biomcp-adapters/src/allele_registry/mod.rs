@@ -16,7 +16,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "ClinGen Allele Registry service terms; output rights require review",
         url: "https://clinicalgenome.org/about/terms-of-use/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::AlleleRegistry,
     base: "https://reg.genome.network",

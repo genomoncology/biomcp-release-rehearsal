@@ -24,7 +24,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "OncoKB license",
         url: "https://faq.oncokb.org/licensing",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Licensed,
     },
     source: Source::Oncokb,
     base: "https://www.oncokb.org",

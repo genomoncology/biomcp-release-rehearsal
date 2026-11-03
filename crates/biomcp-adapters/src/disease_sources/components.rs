@@ -30,7 +30,7 @@ pub(crate) const ORPHANET: Terms = Terms {
 pub(crate) const OMIM: Terms = Terms {
     name: "OMIM Use Agreement; separately licensed payload only",
     url: "https://omim.org/help/agreement",
-    usage: Use::Restricted,
+    usage: Use::Licensed,
 };
 pub(crate) const fn component(
     source: Source,

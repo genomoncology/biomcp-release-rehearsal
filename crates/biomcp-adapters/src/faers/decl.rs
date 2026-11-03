@@ -46,6 +46,6 @@ pub(crate) const MEDDRA_COMPONENT: crate::registry::Component = crate::registry:
     terms: biomcp_fetch::Terms {
         name: "MedDRA statement on data sharing; third-party terminology",
         url: "https://admin.meddra.org/sites/default/files/page/documents/000198_statement_on_meddra_data_sharing_1_1.pdf",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Attribution,
     },
 };

@@ -18,7 +18,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "PMC copyright; article-specific licenses",
         url: "https://pmc.ncbi.nlm.nih.gov/about/copyright/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::PerRecord,
     },
     source: Source::PmcOa,
     base: "https://pmc-oa-opendata.s3.amazonaws.com",
@@ -102,6 +102,7 @@ pub fn read(
             problems: problems.list,
         });
     };
+    permitted(leg, Source::PmcOa, license(&license_code))?;
     let loc =
         location::Location::checked(&record.xml_url, &directory).map_err(|_| invalid_reply)?;
     if !loc.path.ends_with(".xml") {
@@ -180,3 +181,6 @@ fn body(
 
 /// Complete source policy and command declaration.
 pub(crate) mod decl;
+
+mod rights;
+pub use rights::{commercial, permitted};

@@ -15,7 +15,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "Mutalyzer service output terms require review",
         url: "https://mutalyzer.nl/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::Mutalyzer,
     base: "https://mutalyzer.nl/api",

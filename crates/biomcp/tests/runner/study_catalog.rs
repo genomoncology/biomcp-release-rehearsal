@@ -244,7 +244,7 @@ fn replacement() -> Check {
             "catalog/replacement/2",
         )?;
         if failure.pointer("/sources/0/state") != Some(&json!("failed"))
-            || failure.pointer("/sources/0/use") != Some(&json!("restricted"))
+            || failure.pointer("/sources/0/use") != Some(&json!("attribution"))
             || failure.pointer("/sources/0/terms").is_none()
         {
             return Err(format!(

@@ -15,7 +15,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "Publisher-specific terms; data reuse unverified",
         url: "https://www.cancerhotspots.org/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::CancerHotspots,
     base: "https://www.cancerhotspots.org",

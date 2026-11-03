@@ -11,7 +11,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: Terms {
         name: crate::adverse_event_sources::FDA_TERMS.name,
         url: crate::adverse_event_sources::FDA_TERMS.url,
-        usage: crate::adverse_event_sources::FDA_TERMS.usage,
+        usage: biomcp_types::Use::Attribution,
     },
     quota: &crate::quotas::OPENFDA,
     key: crate::openfda_key::OPTIONAL,

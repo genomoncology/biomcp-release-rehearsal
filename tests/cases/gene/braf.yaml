@@ -36,8 +36,8 @@
         "/sources/0/source": "hgnc",
         "/sources/*/use": [
           "open",
-          "restricted",
-          "restricted"
+          "open",
+          "licensed"
         ],
         "/sources/*/terms": {
           "count": 3
@@ -51,7 +51,7 @@
             "source": "oncokb",
             "state": "skipped",
             "reason": "no-key",
-            "use": "restricted",
+            "use": "licensed",
             "terms": "OncoKB license",
             "terms_url": "https://faq.oncokb.org/licensing"
           }

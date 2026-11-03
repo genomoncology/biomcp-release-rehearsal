@@ -44,6 +44,8 @@ pub(super) fn check_reviewed(
     kind: ContractKind,
     reviews: &Reviews,
 ) -> Check<()> {
+    let baseline = reviews.enum_baseline(old, new);
+    let old = &baseline;
     let old_shapes = shapes(old)?;
     let new_shapes = shapes(new)?;
     let (old_name, old_major) = identity(old)?;

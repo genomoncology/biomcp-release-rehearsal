@@ -123,11 +123,15 @@ fn envelope(value: &Value) -> Result<(), String> {
             .terms,
     )
     .map_err(|e| e.to_string())?;
+    let component_bytes = serde_json::to_vec(&json!({"component_terms": &terms}))
+        .map_err(|e| e.to_string())?
+        .len()
+        - 1;
     let payload = serde_json::to_vec(&comparable)
         .map_err(|e| e.to_string())?
         .len();
     if terms != json!([{"component":"clinvar","terms":expected}])
-        || full - payload != 205 + source_terms
+        || full - payload != component_bytes + source_terms
         || payload > crate::runner::output_limit("hotspots-payload")?
         || full - source_terms > crate::runner::output_limit("hotspots-envelope")?
     {

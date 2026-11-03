@@ -251,7 +251,7 @@ impl Service {
                     return (
                         400,
                         Some(
-                            json!({"error":"Invalid x-biomcp-use header; allowed values: commercial, academic"}),
+                            json!({"error":"Invalid x-biomcp-use header; allowed values: restricted, commercial, academic"}),
                         ),
                         Some(revision),
                     );
@@ -318,7 +318,7 @@ impl Service {
                     modern,
                     call,
                     secrets: keys,
-                    declared_use: declared_use.unwrap_or(crate::command::DeclaredUse::Commercial),
+                    declared_use: declared_use.unwrap_or(crate::command::DeclaredUse::Restricted),
                     scope,
                 },
             )

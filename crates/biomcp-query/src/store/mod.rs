@@ -216,3 +216,5 @@ pub fn health(fetch: &biomcp_fetch::Fetch, budget: std::time::Duration) -> Resul
 
 #[cfg(test)]
 mod privacy_tests;
+
+pub(crate) mod labels;

@@ -66,9 +66,10 @@ pub(crate) fn read<T: DeserializeOwned>(
         .source_snapshot(token, key, |s| cx.fetch.disabled(s))?
         .map(|payload| decode(&payload))
         .transpose()
+        .map(Option::flatten)
 }
-fn decode<T: DeserializeOwned>(payload: &str) -> Result<T, RequestError> {
-    serde_json::from_str(payload).map_err(|_| CacheError::Snapshot.into())
+fn decode<T: DeserializeOwned>(payload: &str) -> Result<Option<T>, RequestError> {
+    crate::store::labels::decode(payload).map_err(|_| CacheError::Snapshot.into())
 }
 fn encode(payload: &impl Serialize) -> Result<String, RequestError> {
     serde_json::to_string(payload).map_err(|_| CacheError::Snapshot.into())
@@ -100,9 +101,9 @@ pub(crate) fn find<T: DeserializeOwned>(
     };
     let saved = store
         .source_snapshot(pool.info.id.as_str(), key, |s| cx.fetch.disabled(s))?
-        .map(|payload| decode(&payload).map(|saved| (saved, pool)))
+        .map(|payload| decode(&payload).map(|saved| saved.map(|saved| (saved, pool))))
         .transpose()?;
-    Ok((saved, mismatch))
+    Ok((saved.flatten(), mismatch))
 }
 pub(crate) fn publish(
     cx: &Ctx<'_>,

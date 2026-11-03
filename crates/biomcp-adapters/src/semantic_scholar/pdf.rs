@@ -120,7 +120,7 @@ pub static PUBLISHER: biomcp_fetch::SourceSpec = biomcp_fetch::SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "Publisher PDF; article-specific source license",
         url: "https://api.semanticscholar.org/api-docs/graph#tag/Paper-Data",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::PerRecord,
     },
     base: "",
     key: biomcp_fetch::KeyUse::None,

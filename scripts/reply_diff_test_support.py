@@ -25,8 +25,10 @@ class ReplyDiffCase(unittest.TestCase):
         path = directory / (hashlib.sha256(key.encode()).hexdigest() + ".json")
         path.write_text(json.dumps(dict(key=key, executions=[execution])))
 
-    def compare(self, owners=None):
+    def compare(self, owners=None, *, all_fields=False):
         args = [sys.executable, str(SCRIPT), str(self.base), str(self.head)]
+        if all_fields:
+            args.insert(2, "--all-fields")
         if owners:
             args.append(str(owners))
         return subprocess.run(args,

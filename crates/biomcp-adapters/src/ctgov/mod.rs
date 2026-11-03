@@ -27,7 +27,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "ClinicalTrials.gov attribution and source processing date; publisher terms",
         url: "https://clinicaltrials.gov/about-site/terms-conditions",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Attribution,
     },
 };
 const SEARCH: Endpoint = SPEC.get("/studies").fresh(Freshness::Days(1));

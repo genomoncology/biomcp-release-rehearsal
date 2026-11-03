@@ -21,6 +21,19 @@ The [upgrade table](https://github.com/genomoncology/biomcp/blob/main/sdlc/plann
 - Article downloads use exact file selections and `--save PATH`. Text readers, PDFs and supplements have separate commands. HTTP MCP refuses file saves.
 - Variant normalization uses `--source`, `--hgvs` and explicit builds. Variant source assertions, population and recurrence use their named commands. No source score becomes a clinical classification.
 
+## Hosted use and source terms
+
+Hosted HTTP requests accept `x-biomcp-use: restricted`, `commercial` or `academic`. Missing headers select restricted use. Restricted use admits open and attribution sources and commercially permitted full-text records; caller keys do not enable noncommercial or separately licensed sources. Commercial use also admits a source licensed by the caller's own key. Academic use retains every configured source. Server exclusions always apply. Ordinary CLI and stdio defaults keep every configured source available.
+
+The published `restricted` source label is replaced by the actual `open`, `attribution`, `noncommercial`, `licensed` or `per-record` category. Existing `disable_sources: ["restricted"]` configurations retain exactly their former source and component exclusions as a legacy alias. Current named groups follow corrected labels:
+
+- `open` gains `car`, `clinvar`, `erepo`, `gwas`, `hotspots`, `litsense`, `mutalyzer`, `mygene`, `nci`, `pubmed`, `pubtator`, `variantvalidator` and `cpic`, plus the MyVariant `clinvar` and `snpeff` components. The MyVariant service is open while each carried component retains its own terms.
+- `noncommercial` loses `cpic` and gains `who-pq` and the MyVariant `snpedia` component. Its existing DDInter, ClinPGx, Semantic Scholar API, ORCID, WHO IVD, CADD and academic dbNSFP exclusions remain.
+- The `licensed` label applies to `alphagenome`, `oncokb`, the MyVariant `cosmic` component and the MyDisease `omim` component.
+- The `per-record` label applies to PMC OA and Europe PMC full text. Publisher PDFs obtained through Semantic Scholar also retain their own record licenses, separately from the API's noncommercial terms.
+
+ClinicalTrials.gov, cBioPortal, VAERS, FAERS MedDRA terms and MAUDE GMDN terms carry attribution labels and remain available in restricted use. CPIC has its own terms independently of ClinPGx. CADD and COSMIC terms links are corrected, and SnpEff is identified by its MIT license. NCBI and openFDA keys continue to raise the limits of free sources. Previously stored continuations resolve old labels through the current source registry when read.
+
 ## Configuration migration
 
 Create a JSON configuration file at the platform path described in the [upgrade guide](https://github.com/genomoncology/biomcp/blob/main/sdlc/planning/upgrade.md#configuration-and-keys). Unknown fields fail. Replace the old `cache.toml` fields `[cache].dir`, `[cache].max_size`, `[cache].min_disk_free` and `[cache].max_age_secs`. The old cache mode, size and disk policies no longer apply. The following 0.9 operator variables no longer configure 1.0:

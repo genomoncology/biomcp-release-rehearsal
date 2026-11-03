@@ -206,8 +206,10 @@ biodata::wire_enum! {
         Attribution => "attribution",
         /// Commercial use requires separate permission.
         Noncommercial => "noncommercial",
-        /// Source-specific or mixed rights require checking the publisher's terms.
-        Restricted => "restricted",
+        /// Separate publisher permission is required.
+        Licensed => "licensed",
+        /// Reuse rights are owned by each individual record.
+        PerRecord => "per-record",
     }
 }
 

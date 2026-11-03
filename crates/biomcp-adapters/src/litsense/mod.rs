@@ -20,7 +20,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCBI policies; publisher rights in input text",
         url: "https://www.ncbi.nlm.nih.gov/home/about/policies/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::LitSense,
     base: "https://www.ncbi.nlm.nih.gov/research/litsense2-api",

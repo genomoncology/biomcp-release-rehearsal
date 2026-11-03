@@ -17,7 +17,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "VariantValidator service output terms require review",
         url: "https://variantvalidator.org/help/about/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::VariantValidator,
     base: "https://rest.variantvalidator.org/VariantValidator",
