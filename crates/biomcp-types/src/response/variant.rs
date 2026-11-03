@@ -120,10 +120,30 @@ pub struct VariantPage {
     /// Assembly sent to the source, never inferred from a candidate label.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub build: Option<crate::Build>,
+    /// Fallback candidates excluded because their reference allele was not confirmed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub excluded: Option<VariantSearchExclusions>,
     /// Native source order, preserving every candidate including repeated source identities.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub items: Box<[VariantHeader]>,
 }
+/// Count of candidates withheld from a fallback search, with a stable reason.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct VariantSearchExclusions {
+    /// Native candidate count, independent of pagination's consumed positions.
+    pub count: u32,
+    /// Why these candidates could not be admitted.
+    pub reason: VariantSearchExclusionReason,
+}
+biodata::wire_enum! {
+    /// Fixed fallback exclusion reasons.
+    VariantSearchExclusionReason {
+        /// No allowed same-record annotation or agreeing reference sequence was available.
+        ReferenceUnconfirmed => "reference-unconfirmed",
+    }
+}
+
 impl super::ResponseBody for VariantPage {
     const SCHEMA: &'static str = "biomcp.variant-page/16";
     type Query = crate::VariantSearch;

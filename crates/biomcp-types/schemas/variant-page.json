@@ -7473,6 +7473,17 @@
           ],
           "description": "Assembly sent to the source, never inferred from a candidate label."
         },
+        "excluded": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_VariantSearchExclusions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Fallback candidates excluded because their reference allele was not confirmed."
+        },
         "filter_terms": {
           "anyOf": [
             {
@@ -8216,6 +8227,33 @@
           "description": "Explicit source language; required for a raw query."
         }
       },
+      "type": "object"
+    },
+    "Reply_VariantSearchExclusionReason": {
+      "description": "Fixed fallback exclusion reasons.",
+      "enum": [
+        "reference-unconfirmed"
+      ],
+      "type": "string"
+    },
+    "Reply_VariantSearchExclusions": {
+      "description": "Count of candidates withheld from a fallback search, with a stable reason.",
+      "properties": {
+        "count": {
+          "description": "Native candidate count, independent of pagination's consumed positions.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reason": {
+          "$ref": "#/$defs/Reply_VariantSearchExclusionReason",
+          "description": "Why these candidates could not be admitted."
+        }
+      },
+      "required": [
+        "count",
+        "reason"
+      ],
       "type": "object"
     },
     "Reply_VariantSearchField": {

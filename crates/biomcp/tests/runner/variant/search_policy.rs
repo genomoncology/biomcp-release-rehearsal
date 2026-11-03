@@ -115,7 +115,7 @@ fn check_policy(protein: &str) -> Result<(), String> {
     globals.push("--hosted".into());
     let hosted = mcp::call_with_globals(&replay_env, &args, false, &globals)?;
     check_reply(&hosted)?;
-    hosted_http(&replay, protein)?;
+    hosted_http(&replay, protein, check_reply)?;
     let requests = stub.finish()?;
     let [(_, request)] = requests.as_slice() else {
         return Err(format!("expected exactly one source request: {requests:?}"));
@@ -132,7 +132,11 @@ fn check_policy(protein: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn hosted_http(replay: &std::path::Path, protein: &str) -> Result<(), String> {
+pub(super) fn hosted_http(
+    replay: &std::path::Path,
+    protein: &str,
+    check: fn(&Value) -> Result<(), String>,
+) -> Result<(), String> {
     let server = super::super::http::Server::configured_globals(
         "127.0.0.1:0",
         None,
@@ -160,7 +164,7 @@ fn hosted_http(replay: &std::path::Path, protein: &str) -> Result<(), String> {
     if status != 200 || reply.pointer("/result/isError") != Some(&json!(false)) {
         return Err(format!("restricted hosted request failed: {reply}"));
     }
-    check_reply(
+    check(
         reply
             .pointer("/result/structuredContent")
             .ok_or("missing hosted result")?,

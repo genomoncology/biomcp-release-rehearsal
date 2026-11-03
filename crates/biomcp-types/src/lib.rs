@@ -64,7 +64,6 @@ pub use query::{RecurrenceSource, VariantRecurrenceQuery};
 pub use query::{TrialGet, TrialSection};
 pub use query::{VariantInput, VariantNamespace};
 pub use response::TrialParameter;
-pub use response::VariantPage;
 pub use response::{AnnotatedEntity, AnnotationKind, Annotations, ArticleSections, Tldr};
 pub use response::{ArticleCardItem, ArticleCards, ArticleMatch, ArticleResolution};
 pub use response::{ArticleEdgeItem, ArticleEdgePage, CitationIntent, Citations};
@@ -136,6 +135,7 @@ pub use response::{TrialDocumentResult, TrialDocumentSaved};
 pub use response::{
     VariantCard, VariantGetQuery, VariantHeader, VariantResolution, VariantTranscript,
 };
+pub use response::{VariantPage, VariantSearchExclusionReason, VariantSearchExclusions};
 pub use source::{Reason, Source, Use};
 
 pub use query::{OrganizationSearch, OrganizationSource};

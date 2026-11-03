@@ -2,6 +2,7 @@
 use biomcp_fetch::{Input, Read};
 /// Independent terms for carried components.
 pub mod components;
+mod corroboration;
 /// MyVariant-carried historical COSMIC fragments.
 pub mod cosmic;
 mod map;

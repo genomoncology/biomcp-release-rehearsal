@@ -1,6 +1,7 @@
 # The SnpEff search fallback never matches an uncorroborated record
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 3c788c1cfb4ccc62db48e267a8a6067017b6bc16
 Milestone: 5
 
 ## Outcome

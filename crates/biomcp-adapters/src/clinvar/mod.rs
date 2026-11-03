@@ -3,6 +3,8 @@ use biomcp_fetch::{Input, Read};
 mod detail;
 mod map;
 mod raw;
+mod reference;
+pub(crate) use reference::reference_agrees;
 mod search;
 mod subject;
 use crate::quotas;
