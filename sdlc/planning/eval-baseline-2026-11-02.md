@@ -1,6 +1,6 @@
 # Agent benchmark baseline, 2026-11-02
 
-The full report is pm mail m21159 (eval runner, experiment 512). No tickets until Ian sets priorities.
+The full report is pm mail m21159 (eval runner, experiment 512). Ian approved fixing the general causes and bugs before 1.0 on 2026-11-03; tickets 0586 to 0590.
 
 Build 27eadce, one run per question per arm, same model, BioMCP against curl and Python only. Accuracy 19/20 in both arms. Leaving out one outlier, BioMCP used about 17% more tokens; it used more error calls (25 against 13) and less time (954 s against 1055 s). Where BioMCP has the lookup and the agent uses it, it costs the same or less.
 

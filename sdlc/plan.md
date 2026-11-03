@@ -58,6 +58,7 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Lift the hosted capacity limits the hosted team asked for on 2026-11-01: call and connection caps as settings (0548), keyed-only rate share (0549), shared TLS settings (0550), then published source pacing with config overrides (0551), and per-request declared use (0553).
 - 0459 lists the code tickets that must land before the BioData switch, and 0336 lists those that must land before the cut. A new must-ship ticket goes on 0336's Depends line, or on 0459's when the switch needs it.
 - Switch to the extracted BioData 1.0 crate once every code ticket lands, with an empty reply diff and an unchanged schema comparison (0459).
+- Fix the agent benchmark's general causes and bugs before the cut (Ian, 2026-11-03): the generated front-door map 0586, MCP replies sent once 0587, every variant ID form 0588, bugs and errors 0589, lean default replies 0590. This lifts the command freeze for these tickets only; the outside comparison 0402 then runs on the improved build. Experiment 513's ranked list may add more.
 - Cut the release candidate from main once every ticket above lands (0336).
 
 - Rehearse the final candidate on every platform (0293).
