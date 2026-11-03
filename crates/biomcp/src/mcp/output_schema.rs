@@ -41,7 +41,6 @@ pub(super) fn for_tool(root: &crate::grammar::Root, name: &str) -> io::Result<Va
     Ok(json!({
         "$schema": super::protocol::SCHEMA_DIALECT,
         "type": "object",
-        "description": "Compact reply shape. Use biomcp schema <id> for the complete contract.",
         "anyOf": branches
     }))
 }
@@ -69,7 +68,12 @@ fn shape(root: &Value) -> io::Result<Value> {
             let node =
                 resolve(node, root).ok_or_else(|| io::Error::other("unresolved reply property"))?;
             let value = if matches!(key.as_str(), "schema" | "status") {
-                node.clone()
+                let mut compact = node.clone();
+                if let Some(fields) = compact.as_object_mut() {
+                    fields.remove("description");
+                    fields.remove("title");
+                }
+                compact
             } else if let Some(kind) = node.get("type") {
                 json!({"type":kind})
             } else if let Some(choices) = node.get("anyOf").and_then(Value::as_array) {

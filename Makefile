@@ -278,3 +278,24 @@ http-edge-coverage:
 .PHONY: http-capacity-check
 http-capacity-check: pre-job docs-check
 	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+
+.PHONY: mcp-reply-focused mcp-reply-gate
+mcp-reply-focused mcp-reply-gate: export PATH := /Users/ian/.local/share/uv/python/cpython-3.13.17-macos-aarch64-none/bin:$(HOME)/.cargo/bin:$(PATH)
+mcp-reply-focused mcp-reply-gate: export RUSTUP_TOOLCHAIN := 1.95.0
+mcp-reply-focused: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/0587-proofs/replies
+mcp-reply-focused:
+	cargo fmt --all -- --check
+	mkdir -p target/mcp-reply/installed
+	cargo install --locked --debug --path crates/biomcp --root target/mcp-reply/installed --force
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/mcp-reply/installed/bin/biomcp" cargo test --locked -p biomcp --test cases mcp-parity/ $(TEST_THREADS)
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/mcp-reply/installed/bin/biomcp" cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/mcp-reply/installed/bin/biomcp" cargo test --locked -p biomcp --test cases mcp-hosted/ $(TEST_THREADS)
+	python3 scripts/check_front_map.py target/mcp-reply/installed/bin/biomcp --mcp-baseline target/0587-proofs/baseline-installed/biomcp --output target/0587-proofs/candidate
+mcp-reply-gate: landing-gate
+
+JSCPD ?= jscpd
+.PHONY: mcp-reply-scan
+mcp-reply-scan:
+	$(JSCPD) --version
+	$(JSCPD) crates/biomcp/src/config.rs crates/biomcp/src/config crates/biomcp/src/help.rs crates/biomcp/src/mcp.rs crates/biomcp/src/mcp --format rust --max-size 10mb --reporters json --output target/0587-proofs/jscpd-product
+	$(JSCPD) crates/biomcp/tests/runner/protocol.rs crates/biomcp/tests/runner/protocol_schemas.rs crates/biomcp/tests/runner/mcp_reply_form.rs --format rust --max-size 10mb --reporters json --output target/0587-proofs/jscpd-tests

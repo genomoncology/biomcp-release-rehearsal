@@ -38,6 +38,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("binary", type=Path)
     parser.add_argument("--baseline", type=Path)
+    parser.add_argument("--mcp-baseline", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--revision")
     parser.add_argument("--baseline-revision")
@@ -92,6 +93,24 @@ def main():
             retained = args.output / "installed/bin/biomcp"
             retained.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(binary, retained)
+        if args.mcp_baseline:
+            mcp_measurements = {}
+            for label, executable in (("before", args.mcp_baseline), ("after", binary)):
+                frame = {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {"_meta": {
+                    "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                    "io.modelcontextprotocol/clientCapabilities": {}}}}
+                process = subprocess.run([str(executable), "serve", "--offline"], input=json.dumps(frame) + "\n",
+                                         env=env, capture_output=True, text=True, timeout=30)
+                assert process.returncode == 0 and not process.stderr, process.stderr
+                tools = json.loads(process.stdout)["result"]["tools"]
+                (args.output / f"mcp-{label}.json").write_text(process.stdout)
+                tool = next(tool for tool in tools if tool["name"] == "biomcp")
+                mcp_measurements[label] = {}
+                for field in ("description", "inputSchema", "outputSchema"):
+                    value = tool[field] if field == "description" else json.dumps(tool[field], ensure_ascii=False, separators=(",", ":"))
+                    mcp_measurements[label][field] = {"bytes": len(value.encode()), "characters": len(value)}
+            (args.output / "mcp-sizes.json").write_text(json.dumps(mcp_measurements, indent=2) + "\n")
+            print(json.dumps({"mcp_sizes": mcp_measurements}))
         raw = args.output / "help"
         raw.mkdir(exist_ok=True)
         measurements = []

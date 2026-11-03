@@ -1,6 +1,7 @@
 # MCP replies carry the payload once, and the tool states its call shape
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: beee5a1d787850e2717918709811574a6df5dbf4
 Milestone: 5
 Depends on: 0586
 

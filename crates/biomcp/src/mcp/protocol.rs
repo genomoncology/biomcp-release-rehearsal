@@ -42,13 +42,22 @@ pub(super) fn valid_params(method: &str, params: &Value) -> bool {
 pub(super) const SCHEMA_DIALECT: &str = "https://json-schema.org/draft/2020-12/schema";
 const RESULT_CHARACTER_CAP: usize = 150_000;
 
+use crate::config::ReplyForm;
+
+const DESCRIPTION: &str = concat!(
+    "Run a BioMCP CLI command. arguments has exactly one field: args, an array of command words (strings), ",
+    "without the biomcp executable. Example: {\"args\":[\"help\"]}. Start with help for the command map; ",
+    "use help <command> for options and schema <id> for a complete reply schema. ",
+    "Replies are JSON source evidence with status, problems and next commands; inspect them before interpreting results."
+);
+
 pub(super) fn tool(root: &crate::grammar::Root, read_only: bool) -> std::io::Result<Value> {
-    Ok(
-        json!({"name":"biomcp", "description":crate::help::tree(root),
+    Ok(json!({"name":"biomcp", "description":DESCRIPTION,
         "annotations":{"readOnlyHint":read_only,"destructiveHint":false,"openWorldHint":true},
-        "inputSchema":{"$schema":SCHEMA_DIALECT,"type":"object","properties":{"args":{"type":"array","items":{"type":"string"}}},
-            "required":["args"],"additionalProperties":false},"outputSchema":super::output_schema::for_tool(root, "biomcp")?}),
-    )
+        "inputSchema":{"$schema":SCHEMA_DIALECT,"type":"object","properties":{
+            "args":{"type":"array","items":{"type":"string"},
+                "description":"CLI command words, without biomcp. Example: [\"help\"]"}},
+            "required":["args"],"additionalProperties":false},"outputSchema":super::output_schema::for_tool(root, "biomcp")?}))
 }
 
 pub(super) fn tools(root: &crate::grammar::Root, read_only: bool) -> std::io::Result<Vec<Value>> {
@@ -68,9 +77,14 @@ pub(super) fn result(id: Value, mut value: Value, modern: bool) -> Value {
     json!({"jsonrpc":"2.0","id":id,"result":value})
 }
 
-// Tool results include both content forms and the negotiated protocol metadata.
+// Tool results use the configured content form and negotiated protocol metadata.
 // JSON-RPC correlation IDs belong to the outer response, outside CallToolResult.
-pub(super) fn tool_result(id: Value, outcome: &crate::command::Outcome, modern: bool) -> Value {
+pub(super) fn tool_result(
+    id: Value,
+    outcome: &crate::command::Outcome,
+    modern: bool,
+    form: ReplyForm,
+) -> Value {
     let failed = !matches!(
         outcome.status,
         crate::exit::Status::Success | crate::exit::Status::Absent
@@ -78,7 +92,7 @@ pub(super) fn tool_result(id: Value, outcome: &crate::command::Outcome, modern: 
     let Ok(value) = outcome.value() else {
         return self::error(id, -32603, "Internal error");
     };
-    let reply = result(id.clone(), content(value.clone(), failed), modern);
+    let reply = result(id.clone(), content(value.clone(), failed, form), modern);
     if reply.get("result").is_some_and(within_cap) {
         return reply;
     }
@@ -89,11 +103,20 @@ pub(super) fn tool_result(id: Value, outcome: &crate::command::Outcome, modern: 
     )) else {
         return self::error(id, -32603, "Internal error");
     };
-    result(id, content(error, true), modern)
+    result(id, content(error, true, form), modern)
 }
-fn content(value: Value, failed: bool) -> Value {
-    let text = value.to_string();
-    json!({"structuredContent":value, "content":[{"type":"text","text":text}], "isError":failed})
+fn content(value: Value, failed: bool, form: ReplyForm) -> Value {
+    match form {
+        ReplyForm::Both => json!({"content":[{"type":"text","text":value.to_string()}],
+            "structuredContent":value, "isError":failed}),
+        ReplyForm::StructuredOnly => {
+            json!({"content":[{"type":"text","text":"JSON reply is in structuredContent."}],
+            "structuredContent":value, "isError":failed})
+        }
+        ReplyForm::TextOnly => {
+            json!({"content":[{"type":"text","text":value.to_string()}], "isError":failed})
+        }
+    }
 }
 pub(super) fn within_cap(result: &Value) -> bool {
     // Count Unicode scalars after JSON escaping, not UTF-8 bytes or source text.

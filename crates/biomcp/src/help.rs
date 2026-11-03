@@ -312,10 +312,6 @@ fn argument(name: &str, node: &Value, root: &Value) -> HelpArgument {
 fn text(node: &Value, key: &str) -> String {
     node[key].as_str().unwrap_or_default().into()
 }
-pub(crate) fn tree(_root: &crate::grammar::Root) -> String {
-    FRONT_MAP.into()
-}
-
 fn field<'a>(node: &'a Value, key: &str) -> &'a Value {
     node.get(key).unwrap_or(&Value::Null)
 }

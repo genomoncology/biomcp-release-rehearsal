@@ -1,3 +1,5 @@
+#[path = "mcp_reply_form.rs"]
+mod reply_form;
 #[path = "protocol_schemas.rs"]
 mod schemas;
 use super::{
@@ -45,6 +47,9 @@ pub(super) fn trials() -> Vec<Trial> {
             discovery().map_err(Into::into)
         }),
     ];
+    trials.push(transcript_trial("mcp-parity/reply-forms", || {
+        reply_form::check().map_err(Into::into)
+    }));
     trials.extend(super::store_clean::trials());
     trials.extend(super::store_coexistence::trials());
     trials
@@ -354,7 +359,8 @@ fn discovery() -> Check {
             != Some(&json!({
                 "$schema":"https://json-schema.org/draft/2020-12/schema",
                 "type":"object",
-                "properties":{"args":{"type":"array","items":{"type":"string"}}},
+                "properties":{"args":{"type":"array","items":{"type":"string"},
+                    "description":"CLI command words, without biomcp. Example: [\"help\"]"}},
                 "required":["args"],
                 "additionalProperties":false
             }))
@@ -400,20 +406,22 @@ fn discovery_description(text: &str) -> Check {
     if text.len() > crate::runner::output_limit("command-description")? {
         return Err("command description exceeds budget".into());
     }
-    let output = environment()?
-        .command(env!("CARGO_BIN_EXE_biomcp"), &["help".into()])
-        .output()
-        .map_err(|e| e.to_string())?;
-    if !output.status.success() {
-        return Err("front-door help failed".into());
-    }
-    let help: Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
-    if help
-        .pointer("/result/commands/0/description")
-        .and_then(Value::as_str)
-        != Some(text)
-    {
-        return Err("tool description differs from the generated front-door map".into());
+    let example = text
+        .split("Example: ")
+        .nth(1)
+        .and_then(|rest| rest.split(". Start").next())
+        .ok_or("description has no copyable example")?;
+    let arguments: Value = serde_json::from_str(example).map_err(|e| e.to_string())?;
+    let replies = exchange(
+        &environment()?,
+        &[request(
+            json!("example"),
+            "tools/call",
+            json!({"name":"biomcp","arguments":arguments}),
+        )],
+    )?;
+    if reply(&replies, &json!("example"))?.pointer("/result/isError") != Some(&json!(false)) {
+        return Err("call written from tool description failed".into());
     }
     Ok(())
 }

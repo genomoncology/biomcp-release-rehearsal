@@ -336,7 +336,12 @@ impl Service {
                 },
                 true,
             ) {
-                Ok(outcome) => super::protocol::tool_result(id, &outcome, modern),
+                Ok(outcome) => super::protocol::tool_result(
+                    id,
+                    &outcome,
+                    modern,
+                    crate::config::mcp_reply_form(&self.settings),
+                ),
                 Err(_) => super::protocol::error(id, -32603, "Internal error"),
             }
         };
