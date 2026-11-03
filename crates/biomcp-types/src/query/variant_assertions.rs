@@ -12,11 +12,14 @@ pub struct VariantAssertionsGet(Fields<AssertionId>);
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "schema", schemars(rename = "Fields"))]
 struct Fields<I = Text> {
-    /// Checked Variation ID for ClinVar, or CAid for ERepo.
+    /// Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
     #[cfg_attr(feature="schema",schemars(extend("x-positional"=0)))]
     input: VariantInput,
-    /// One native source; no fallback or text search.
+    /// One native assertion source; shared identity conversion precedes source access when needed.
     source: AssertionSource,
+    /// Identity lookup assembly; omitted uses the shared GRCh38 default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    build: Option<crate::Build>,
     /// Native assertion accession or document ID.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     assertion: Option<I>,
@@ -39,12 +42,13 @@ crate::query::validation::checked_query!(VariantAssertionsGet, Fields);
 impl TryFrom<Fields> for VariantAssertionsGet {
     type Error = super::gene::QueryInvalid;
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let expected = match fields.source {
-            AssertionSource::Clinvar => VariantNamespace::ClinVar,
-            AssertionSource::Erepo => VariantNamespace::Ca,
-        };
-        if fields.input.namespace() != expected {
-            return Err(super::gene::QueryInvalid::new(&["input", "source"]));
+        crate::VariantGet::new(
+            fields.input.clone(),
+            crate::VariantResolver::Car,
+            fields.build,
+        )?;
+        if fields.input.namespace() == VariantNamespace::Unsupported {
+            return Err(super::gene::QueryInvalid::new(&["input"]));
         }
         if fields.limit.is_some_and(|n| !(1..=50).contains(&n)) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
@@ -81,6 +85,7 @@ impl TryFrom<Fields> for VariantAssertionsGet {
         Ok(Self(Fields {
             input: fields.input,
             source: fields.source,
+            build: fields.build,
             assertion,
             version: fields.version,
             limit: fields.limit,
@@ -92,6 +97,16 @@ impl VariantAssertionsGet {
     /// Checked source-specific identity.
     pub fn input(&self) -> &VariantInput {
         &self.0.input
+    }
+    /// Keep assertion and page selectors after shared identity resolution.
+    pub fn with_input(&self, input: VariantInput) -> Self {
+        let mut query = self.clone();
+        query.0.input = input;
+        query
+    }
+    /// Caller assembly for identity resolution.
+    pub fn build(&self) -> Option<crate::Build> {
+        self.0.build
     }
     /// Explicit evidence source.
     pub fn source(&self) -> AssertionSource {
@@ -124,6 +139,7 @@ impl VariantAssertionsGet {
         Fields {
             input,
             source,
+            build: None,
             assertion: None,
             version: None,
             limit: None,
@@ -138,7 +154,9 @@ impl VariantAssertionsGet {
         offset: u32,
     ) -> Result<Self, crate::QueryInvalid> {
         let source = match &id {
-            crate::VariantId::ClinVarVariation(_) => AssertionSource::Clinvar,
+            crate::VariantId::ClinVarVariation(_) | crate::VariantId::Vcv(_) => {
+                AssertionSource::Clinvar
+            }
             crate::VariantId::Ca(_) => AssertionSource::Erepo,
             _ => return Err(crate::QueryInvalid::new(&["input", "source"])),
         };
@@ -150,6 +168,7 @@ impl VariantAssertionsGet {
         Ok(Self(Fields {
             input,
             source,
+            build: None,
             assertion: None,
             version: None,
             limit: Some(limit),

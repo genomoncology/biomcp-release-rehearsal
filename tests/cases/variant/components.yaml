@@ -13,7 +13,9 @@
         "conservation",
         "cosmic",
         "--disable-sources",
-        "restricted"
+        "restricted",
+        "--build",
+        "GRCh37"
       ],
       "max_bytes": 32583,
       "expect": {

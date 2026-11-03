@@ -405,9 +405,22 @@ fn source_fixture(
         false,
         messages,
         Some(support::HttpReply {
-            hosts: vec!["gdmscience.googleapis.com".into(), "reg.genome.network".into(), "myvariant.info".into()],
-            replies: vec![("GET /allele".into(), allele.to_string().into_bytes()),
-                ("GET /v1/query?".into(), json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022"}}]}).to_string().into_bytes())],
+            hosts: vec![
+                "gdmscience.googleapis.com".into(),
+                "reg.genome.network".into(),
+                "myvariant.info".into(),
+            ],
+            replies: vec![
+                ("GET /allele".into(), allele.to_string().into_bytes()),
+                (
+                    "GET /v1/query?".into(),
+                    json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T",
+                        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+                        "clingen":{"caid":"CA123643"},"dbsnp":{"rsid":"rs113488022"}}]})
+                    .to_string()
+                    .into_bytes(),
+                ),
+            ],
         }),
         status,
     )

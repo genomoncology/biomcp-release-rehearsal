@@ -1541,7 +1541,7 @@ Commands:
   gene           Get one to twenty human gene inputs in their original order.
   article        Get one to twenty article inputs in caller order.
   trial          Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.
-  variant        Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
+  variant        Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or single-base genomic coordinates such as 7-140753336-A-T through the shared resolver. MyVariant identity lookups default to GRCh38; --build overrides it. Chromosome genomic HGVS requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
 
 Options:
       --format <format>
@@ -2624,20 +2624,20 @@ Optional intact source sections. Default cards only; diseases and summary requir
 ## biomcp get variant
 
 ```text
-Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
+Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or single-base genomic coordinates such as 7-140753336-A-T through the shared resolver. MyVariant identity lookups default to GRCh38; --build overrides it. Chromosome genomic HGVS requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
 
 Usage: biomcp get variant [OPTIONS] <input> [section]...
 
 Arguments:
   <input>
-          Published rsID, CAid, ClinVar Variation ID or reference-qualified HGVS.
+          rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or single-base genomic coordinates.
 
   [section]...
           Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.
 
 Options:
       --build <build>
-          Required for chromosome notation; no assembly is guessed.
+          MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build.
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
@@ -2689,13 +2689,13 @@ Options:
 
 ```
 
-Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Sources: alphagenome, car, civic, clinvar, erepo, gnomad, gwas, hotspots, mutalyzer, myvariant, oncokb, variantvalidator.
+Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or single-base genomic coordinates such as 7-140753336-A-T through the shared resolver. Sources: alphagenome, car, civic, clinvar, erepo, gnomad, gwas, hotspots, mutalyzer, myvariant, oncokb, variantvalidator.
 
-- `--build`: Required for chromosome notation; no assembly is guessed.
+- `--build`: MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build.
 - `--civic-cursor`: Source CIViC cursor, retained unchanged.
 - `--civic-kind`: Source CIViC claim collection within the selected profile.
 - `--civic-profile`: Selected CIViC molecular profile for source claim paging.
-- `input`: Published rsID, CAid, ClinVar Variation ID or reference-qualified HGVS.
+- `input`: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or single-base genomic coordinates.
 - `--limit`: Candidate rows per page; more remain reachable through typed next commands.
 - `--offset`: Candidate rows to skip in source order.
 - `--resolver`: Resolver for reference-qualified notation; never repairs the input locally.
@@ -4031,7 +4031,7 @@ Usage: biomcp variant assertions [OPTIONS] --source <source> <input>
 
 Arguments:
   <input>
-          Checked Variation ID for ClinVar, or CAid for ERepo.
+          Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
 
 Options:
       --assertion <assertion>
@@ -4043,14 +4043,14 @@ Options:
           [default: json]
           [possible values: json, md]
 
+      --build <build>
+          Identity lookup assembly; omitted uses the shared GRCh38 default.
+
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
       --limit <limit>
           Assertions per page; omitted uses the native source default.
-
-      --offset <offset>
-          Assertions to skip in source order.
 
       --source_pacing <source_pacing>
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
@@ -4058,8 +4058,11 @@ Options:
       --config <config>
           Read configuration from this file.
 
+      --offset <offset>
+          Assertions to skip in source order.
+
       --source <source>
-          One native source; no fallback or text search.
+          One native assertion source; shared identity conversion precedes source access when needed.
 
       --version <version>
           VCV archive or ERepo document version; RCV/SCV selectors match a returned native version.
@@ -4075,10 +4078,11 @@ Options:
 Page assertions from one explicitly selected evidence source. Sources: clinvar, erepo.
 
 - `--assertion`: Source assertion accession or document ID.
-- `input`: Checked Variation ID for ClinVar, or CAid for ERepo.
+- `--build`: Identity lookup assembly; omitted uses the shared GRCh38 default.
+- `input`: Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
 - `--limit`: Assertions per page; omitted uses the source default.
 - `--offset`: Assertions to skip in source order.
-- `--source`: One source; no fallback or text search.
+- `--source`: One source assertion source; shared identity conversion precedes source access when needed.
 - `--version`: VCV archive or ERepo document version; RCV/SCV selectors match a returned source version.
 
 ## biomcp variant population
@@ -4152,29 +4156,32 @@ Arguments:
           Published variant identity; ambiguous identities are never selected silently.
 
 Options:
+      --build <build>
+          Identity lookup assembly; omitted uses the shared GRCh38 default.
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
 
           [default: json]
           [possible values: json, md]
 
-      --gene <gene>
-          HGNC symbol resolved to the source's Entrez gene identifier.
-
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --gene <gene>
+          HGNC symbol resolved to the source's Entrez gene identifier.
+
       --limit <limit>
           Source mutation rows per page, including excluded alleles.
-
-      --page <page>
-          Zero-based native source page.
 
       --source_pacing <source_pacing>
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
+
+      --page <page>
+          Zero-based native source page.
 
       --profile <profile>
           Explicit mutation molecular profile.
@@ -4198,6 +4205,7 @@ Options:
 
 Observe exact-allele samples within one caller-selected source page. Sources: cbioportal.
 
+- `--build`: Identity lookup assembly; omitted uses the shared GRCh38 default.
 - `--gene`: HGNC symbol resolved to the source's Entrez gene identifier.
 - `input`: Published variant identity; ambiguous identities are never selected silently.
 - `--limit`: Source mutation rows per page, including excluded alleles.

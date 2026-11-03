@@ -93,7 +93,7 @@ fn read(
         return read;
     }
     if let Ok(identity) = query.identity() {
-        let found = super::population_identity::read(cx, &identity, deadline, true);
+        let found = super::identity::read(cx, &identity, deadline);
         read.dropped = found.dropped;
         read.sources = found.sources;
         read.problems = found.problems;
@@ -113,6 +113,7 @@ fn read(
                 code: biomcp_types::ProblemCode::ValueUnknown,
             });
         }
+        read.problems.push(super::identity::missing(Source::Gnomad));
         return read;
     };
     let (section, groups, source, error, dropped) = load(
@@ -140,7 +141,7 @@ fn choices(
     candidates
         .iter()
         .filter_map(|row| {
-            let (request, source) = super::population_identity::choice(row, problems)?;
+            let (request, source) = super::identity::choice(row, problems)?;
             let (request, sources) = match request {
                 Request::GetVariant(identity) if candidates.len() > 1 => {
                     let query = crate::next::checked(

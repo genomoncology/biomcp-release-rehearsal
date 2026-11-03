@@ -74,7 +74,10 @@ fn run() -> Result<(), String> {
         .filter(|(_, r)| r.starts_with("GET /api/v1/annotate/"))
         .count()
         != 1
-        || requests.len() - added != 4
+        // Shared identity projection reuses the rsID lookup for the later all request.
+        || requests.iter().filter(|(_, r)| r.starts_with("GET /v1/query?")).count() != 1
+        || requests.iter().filter(|(_, r)| r.starts_with("GET /allele/CA123643?")).count() != 1
+        || requests.len() - added != 3
     {
         return Err(format!(
             "keyless or contextless request escaped, or warm cache missed: {}",
@@ -144,7 +147,10 @@ fn reply(request: &str) -> Result<String, String> {
         .to_string());
     }
     if request.starts_with("GET /v1/query?") {
-        return Ok(json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}}}]}).to_string());
+        return Ok(json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T",
+        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+        "dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}}}]})
+        .to_string());
     }
     oncokb::reply(request)
 }
@@ -180,7 +186,7 @@ fn component_requests(requests: &[(String, String)]) -> Result<usize, String> {
             .iter()
             .filter(|(_, request)| {
                 request.starts_with("GET /v1/variant/chr7%3Ag.140753336A%3ET?")
-                    && request.contains(&format!("?{fields}&assembly=hg19 "))
+                    && request.contains(&format!("?{fields}&assembly=hg38 "))
             })
             .count();
         if count != 1 {

@@ -44,9 +44,11 @@ impl TryFrom<Fields> for VariantNormalize {
             || !(hgvs.hgvs().is_some()
                 || f.source == NormalizationSource::Car
                     && f.build.is_some()
-                    && hgvs.namespace() == VariantNamespace::Chromosome)
+                    && hgvs.namespace() == VariantNamespace::Chromosome
+                    && !hgvs.coordinate_form())
         {
-            return Err(super::gene::QueryInvalid::new(&["hgvs"]));
+            return Err(super::gene::QueryInvalid::new(&["hgvs"])
+                .with_message(crate::ErrorMessage::VariantNormalizeForms));
         }
         if f.build
             .is_some_and(|build| !Self::supports_build(hgvs.hgvs(), build))

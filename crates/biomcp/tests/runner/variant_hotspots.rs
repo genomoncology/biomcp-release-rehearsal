@@ -88,7 +88,10 @@ fn candidate() -> Result<(), String> {
 }
 pub(super) fn body(request: &str) -> Result<String, String> {
     if request.starts_with("GET /v1/variant/") {
-        Ok(json!({"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}}).to_string())
+        Ok(json!({"_id":"chr7:g.140753336A>T",
+        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+        "dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}})
+        .to_string())
     } else {
         // Counts are deliberately synthetic; provider data rights remain unverified.
         Ok(json!(

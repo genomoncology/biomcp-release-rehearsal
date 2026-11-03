@@ -11,7 +11,7 @@ use biomcp_types::{
 pub(crate) fn get(cx: &Ctx<'_>, query: &VariantAssertionsGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let (section, sources, problems, local, dropped) = read(cx, query, deadline);
+    let (section, sources, problems, local, dropped) = resolved(cx, query, deadline);
     let (status, body) = match section {
         Section::Data { data, .. } => (crate::status::item_status(true, false, dropped), data),
         Section::Empty { .. } => (
@@ -63,8 +63,10 @@ pub(super) fn section(
             .find(|id| {
                 matches!(
                     (source, id),
-                    (AssertionSource::Clinvar, VariantId::ClinVarVariation(_))
-                        | (AssertionSource::Erepo, VariantId::Ca(_))
+                    (
+                        AssertionSource::Clinvar,
+                        VariantId::ClinVarVariation(_) | VariantId::Vcv(_)
+                    ) | (AssertionSource::Erepo, VariantId::Ca(_))
                 )
             })
     });
@@ -95,6 +97,105 @@ pub(super) fn section(
     };
     read(cx, &q, deadline)
 }
+fn resolved(
+    cx: &Ctx<'_>,
+    query: &VariantAssertionsGet,
+    deadline: Deadline<'_>,
+) -> super::sections::Result<VariantAssertions> {
+    let native = query.input().identity().is_some_and(|id| {
+        matches!(
+            (query.source(), id),
+            (
+                AssertionSource::Clinvar,
+                VariantId::ClinVarVariation(_) | VariantId::Vcv(_)
+            ) | (AssertionSource::Erepo, VariantId::Ca(_))
+        )
+    });
+    if native {
+        return read(cx, query, deadline);
+    }
+    let identity = match VariantGet::new(
+        query.input().clone(),
+        biomcp_types::VariantResolver::Car,
+        query.build(),
+    ) {
+        Ok(identity) => identity,
+        Err(_) => return missing(query, Vec::new(), Vec::new(), None, false),
+    };
+    let found = super::identity::read(cx, &identity, deadline);
+    let input = match selection(query, &found.rows) {
+        Ok(input) => input,
+        Err(_) => {
+            return missing(
+                query,
+                found.sources,
+                found.problems,
+                found.local,
+                found.dropped,
+            );
+        }
+    };
+    let converted = query.with_input(input);
+    let (section, sources, problems, local, dropped) =
+        read(cx, &converted, deadline.after_stage(found.elapsed));
+    let mut all_sources = found.sources;
+    all_sources.extend(sources);
+    let mut all_problems = found.problems;
+    all_problems.extend(problems);
+    (
+        section,
+        all_sources,
+        all_problems,
+        found.local.or(local),
+        found.dropped || dropped,
+    )
+}
+fn selection(
+    query: &VariantAssertionsGet,
+    candidates: &[VariantHeader],
+) -> Result<biomcp_types::VariantInput, biomcp_types::QueryInvalid> {
+    let [row] = candidates else {
+        return Err(biomcp_types::QueryInvalid::new(&["input"]));
+    };
+    let mut ids = row
+        .identity
+        .ids
+        .iter()
+        .filter(|id| {
+            matches!(
+                (query.source(), id),
+                (
+                    AssertionSource::Clinvar,
+                    VariantId::ClinVarVariation(_) | VariantId::Vcv(_)
+                ) | (AssertionSource::Erepo, VariantId::Ca(_))
+            )
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    if ids.len() != 1 {
+        return Err(biomcp_types::QueryInvalid::new(&["input"]));
+    }
+    let id = ids
+        .pop_first()
+        .ok_or_else(|| biomcp_types::QueryInvalid::new(&["input"]))?;
+    biomcp_types::VariantInput::from_identity(id.clone())
+        .map_err(|_| biomcp_types::QueryInvalid::new(&["input"]))
+}
+fn missing(
+    query: &VariantAssertionsGet,
+    sources: Vec<biomcp_types::SourceOutcome>,
+    mut problems: Vec<biomcp_types::Problem>,
+    local: Option<biomcp_fetch::RequestError>,
+    dropped: bool,
+) -> super::sections::Result<VariantAssertions> {
+    problems.push(super::identity::missing(query.source().source()));
+    (
+        Section::unavailable(query.source().source(), Reason::NoJoinId),
+        sources,
+        problems,
+        local,
+        dropped,
+    )
+}
 fn read(
     cx: &Ctx<'_>,
     query: &VariantAssertionsGet,
@@ -105,7 +206,8 @@ fn read(
         AssertionSource::Erepo => &biomcp_adapters::erepo::SPEC,
     };
     let leg = cx.fetch.leg(spec, deadline).fresh(cx.fresh);
-    let input = query.input().as_str();
+    let native = query.input().source_id();
+    let input = native.as_ref();
     let result = match query.source() {
         AssertionSource::Clinvar => biomcp_adapters::clinvar::assertions(
             &leg,

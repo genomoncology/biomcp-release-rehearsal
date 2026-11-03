@@ -134,5 +134,8 @@ fn car_body(_: &str) -> Result<String, String> {
 }
 
 fn myvariant_body(_: &str) -> Result<String, String> {
-    Ok(json!({"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}}).to_string())
+    Ok(json!({"_id":"chr7:g.140753336A>T",
+        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+        "dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}})
+    .to_string())
 }

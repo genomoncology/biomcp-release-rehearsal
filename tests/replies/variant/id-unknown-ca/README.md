@@ -1,0 +1,1 @@
+Synthetic metadata-omission variant of id-unknown with its existing public CA123643 cross-reference retained. CAR supplies only its qualified GRCh38 allele. Predictor replay exists only for that qualified GRCh38 expression, so an unknown-build MyVariant parent cannot borrow CAR assembly for its own old key.

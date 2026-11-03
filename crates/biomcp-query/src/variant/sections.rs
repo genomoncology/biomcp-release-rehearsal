@@ -194,6 +194,13 @@ pub(super) fn retain<T>(
 ) -> Section<T> {
     let (section, more, issues, error, dropped) = value;
     *incomplete |= dropped || matches!(section, Section::Unavailable { .. });
+    if let Section::Unavailable {
+        source,
+        reason: Reason::NoJoinId,
+    } = &section
+    {
+        problems.push(super::identity::missing(*source));
+    }
     sources.extend(more);
     problems.extend(issues);
     *local = local.or(error);

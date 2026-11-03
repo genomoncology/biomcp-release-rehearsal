@@ -1,0 +1,22 @@
+{
+  "method": "GET",
+  "source": "cbioportal",
+  "url": "https://www.cbioportal.org/api/molecular-profiles/msk_impact_2017_mutations",
+  "exchanges": [
+    {
+      "fetched": 1792870637,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 104,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "studyId": "msk_impact_2017",
+          "molecularProfileId": "msk_impact_2017_mutations",
+          "molecularAlterationType": "MUTATION_EXTENDED"
+        }
+      }
+    }
+  ]
+}

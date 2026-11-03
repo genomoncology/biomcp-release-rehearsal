@@ -23,16 +23,14 @@ pub(super) fn skipped<T>() -> super::sections::Result<T> {
 }
 pub(super) fn target(candidates: &[VariantHeader]) -> Option<(String, Build)> {
     let [candidate] = candidates else { return None };
-    if candidate.source == Source::MyVariant {
-        candidate
-            .identity
-            .representations
-            .iter()
-            .find_map(|r| r.build)
-            .map(|build| (candidate.record.id.to_string(), build))
-    } else {
-        super::join_id(candidate).map(|id| (id, Build::GRCh37))
+    if candidate.source == Source::MyVariant
+        && let Some(build) = super::identity::native_build(candidate)
+    {
+        return Some((candidate.record.id.to_string(), build));
     }
+    [biomcp_types::VariantGet::DEFAULT_BUILD, Build::GRCh37]
+        .into_iter()
+        .find_map(|build| super::join_for_build(candidate, build).map(|id| (id, build)))
 }
 pub(super) fn measurements(
     cx: &Ctx<'_>,

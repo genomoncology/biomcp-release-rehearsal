@@ -1,6 +1,10 @@
 use crate::{Error, text_value};
 use std::{borrow::Cow, fmt, str::FromStr};
-/// Published variant identifier grammar, without interpreting the allele expression.
+/// Published rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS,
+/// chromosome genomic HGVS, or single-base chromosome-position-reference-alternate coordinates.
+/// Multi-base coordinates are unsupported: use reference-qualified HGVS and
+/// variant normalize --source car --hgvs <HGVS> to validate source forms.
+/// Ambiguous candidates remain separate.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VariantInput {
     text: crate::Text,
@@ -11,6 +15,7 @@ enum InputKind {
     Id(crate::VariantId),
     Hgvs(crate::HgvsText),
     Chromosome,
+    Coordinates(String),
 }
 /// Namespace selected solely from the published identifier form.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -29,6 +34,8 @@ pub enum VariantNamespace {
     Unsupported,
 }
 impl VariantInput {
+    pub(crate) const COORDINATE_PATTERN: &'static str =
+        r"^(chr)?([1-9]|1[0-9]|2[0-2]|X|Y|M|MT)-[1-9][0-9]*-[ACGT]-[ACGT]$";
     pub(crate) const CHROMOSOME_PATTERN: &'static str =
         r"^chr([1-9]|1[0-9]|2[0-2]|X|Y|M|MT):g\.[\x21-\x7e]*[0-9][\x21-\x7e]*$";
 
@@ -53,6 +60,8 @@ impl VariantInput {
                     .parse()
                     .map_err(|_| Error::VariantInputInvalid)?,
             )
+        } else if let Some(hgvs) = coordinates(value.as_ref()) {
+            InputKind::Coordinates(hgvs)
         } else if let Ok(hgvs) = value.parse::<crate::HgvsText>() {
             InputKind::Hgvs(hgvs)
         } else if crate::Expression::new(crate::ExpressionSyntax::HgvsG, text.clone(), None).is_ok()
@@ -70,6 +79,27 @@ impl VariantInput {
             text,
             kind: InputKind::Id(id),
         })
+    }
+    /// Coordinates use GRCh38 unless the caller supplies another assembly.
+    pub fn coordinate_form(&self) -> bool {
+        matches!(self.kind, InputKind::Coordinates(_))
+    }
+    /// Source lookup identity; VCV archive versions do not change the Variation ID.
+    pub fn source_id(&self) -> Cow<'_, str> {
+        if let Some(crate::VariantId::Vcv(id)) = self.identity() {
+            let value = id.to_string();
+            let digits = value
+                .strip_prefix("VCV")
+                .unwrap_or_default()
+                .split('.')
+                .next()
+                .unwrap_or_default();
+            return Cow::Owned(format!("clinvar:{}", digits.trim_start_matches('0')));
+        }
+        if let Some(id @ crate::VariantId::ClinVarVariation(_)) = self.identity() {
+            return Cow::Owned(id.to_string());
+        }
+        self.native_hgvs()
     }
     /// Return the checked identifier with a canonical ClinVar prefix.
     pub fn as_str(&self) -> &str {
@@ -92,6 +122,12 @@ impl VariantInput {
     }
     /// Native resolver input omits a checked parenthetical gene label.
     pub fn native_hgvs(&self) -> Cow<'_, str> {
+        if let InputKind::Coordinates(hgvs) = &self.kind {
+            return Cow::Borrowed(hgvs);
+        }
+        if let Some(body) = self.as_str().strip_prefix("chrM:") {
+            return Cow::Owned(format!("chrMT:{body}"));
+        }
         if let Some((accession, _)) = self.reference_gene()
             && let Some((_, body)) = self.as_str().split_once(':')
         {
@@ -119,12 +155,46 @@ impl VariantInput {
         match &self.kind {
             InputKind::Id(crate::VariantId::Rs(_)) => VariantNamespace::Rs,
             InputKind::Id(crate::VariantId::Ca(_)) => VariantNamespace::Ca,
-            InputKind::Id(crate::VariantId::ClinVarVariation(_)) => VariantNamespace::ClinVar,
+            InputKind::Id(crate::VariantId::ClinVarVariation(_) | crate::VariantId::Vcv(_)) => {
+                VariantNamespace::ClinVar
+            }
             InputKind::Id(_) => VariantNamespace::Unsupported,
             InputKind::Hgvs(_) => VariantNamespace::Hgvs,
-            InputKind::Chromosome => VariantNamespace::Chromosome,
+            InputKind::Chromosome | InputKind::Coordinates(_) => VariantNamespace::Chromosome,
         }
     }
+}
+fn coordinates(value: &str) -> Option<String> {
+    let mut parts = value.split('-');
+    let chromosome = parts
+        .next()?
+        .strip_prefix("chr")
+        .unwrap_or(value.split('-').next()?);
+    let chromosome = if chromosome == "M" { "MT" } else { chromosome };
+    let position = parts.next()?;
+    let reference = parts.next()?;
+    let alternate = parts.next()?;
+    if parts.next().is_some()
+        || position.starts_with('0')
+        || position.parse::<u64>().ok()? == 0
+        || reference.len() != 1
+        || alternate.len() != 1
+        || !reference
+            .bytes()
+            .chain(alternate.bytes())
+            .all(|b| b"ACGT".contains(&b))
+    {
+        return None;
+    }
+    // Coordinate spelling is converted to the same checked genomic expression used elsewhere.
+    let expression = format!("chr{chromosome}:g.{position}{reference}>{alternate}");
+    crate::Expression::new(
+        crate::ExpressionSyntax::HgvsG,
+        crate::Text::new(&expression).ok()?,
+        None,
+    )
+    .ok()?;
+    Some(expression)
 }
 fn input_text(value: &str) -> Result<crate::Text, Error> {
     if value.is_empty()
@@ -153,11 +223,15 @@ text_value!(
     VariantInput,
     "VariantInput",
     format!(
-        "^(?=[\\x21-\\x7e]{{1,{}}}$)({}|{}|{}|{})",
+        "^(?=[\\x21-\\x7e]{{1,{}}}$)({}|{}|{}|{}|{})",
         Self::MAX_BYTES,
         crate::VariantId::pattern().replace("clinvar:", "[cC][lL][iI][nN][vV][aA][rR]:"),
         crate::HgvsText::pattern(),
         biodata::ClinVarVariationId::pattern().replace("clinvar:", ""),
-        Self::CHROMOSOME_PATTERN
-    )
+        Self::CHROMOSOME_PATTERN,
+        Self::COORDINATE_PATTERN
+    ),
+    "Accepted forms: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS, chromosome genomic HGVS, \
+    or single-base chromosome-position-reference-alternate coordinates. Multi-base coordinates are unsupported; \
+    use reference-qualified HGVS and variant normalize --source car --hgvs <HGVS> to validate source forms."
 );
