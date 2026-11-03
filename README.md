@@ -52,7 +52,7 @@ These commands come from recorded cases. Live replies can change. Inspect source
 
 JSON is the default output. Use `--format md` for readable Markdown with tables and copyable next commands, or set `"format": "md"` in configuration. MCP always returns JSON. The [command reference](docs/reference/commands.md) lists every command, option and section. The [worked commands](docs/recipes.md) provide more examples. The [source and entity cautions](docs/cautions.md) explain interpretation limits.
 
-Some sources use local bundles. Missing stored bundles offer an explicit sync command. HGNC and ClinGen can synchronize missing or stale bundles within the configured read budget. Other stored sources require explicit synchronization. Offline mode never synchronizes. Stale stored rows remain readable with a stale marker.
+Some sources use local bundles. Missing stored bundles offer an explicit sync command. HGNC and ClinGen can synchronize missing bundles within the configured read budget. Live servers return stale HGNC and ClinGen rows immediately, marked stale, while refreshing in the background. One-shot commands and `--fresh` reads wait for refresh. Other stored sources require explicit synchronization. Offline mode never synchronizes. Stale stored rows remain readable with a stale marker.
 
 ## Connect an MCP client
 

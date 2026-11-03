@@ -189,12 +189,22 @@ pub struct Fetch {
     recordings: std::sync::Arc<record::Recordings>,
     clock: Option<std::sync::Arc<deadline::VirtualClock>>,
     config: std::sync::Arc<FetchConfig>,
+    background_refresh: Option<std::sync::Arc<BundleRefresh>>,
     bundle_imports: std::sync::Arc<std::sync::Mutex<std::collections::BTreeSet<&'static str>>>,
     disabled_sources: std::collections::BTreeSet<biomcp_types::Source>,
     disabled_uses: std::collections::BTreeSet<biomcp_types::Use>,
     legacy_restricted: bool,
 }
 
+#[expect(
+    clippy::disallowed_types,
+    reason = "The server owns and joins at most one refresh worker per declared bundle"
+)]
+struct BundleRefresh {
+    agents: std::sync::Arc<network::Agents>,
+    running:
+        std::sync::Mutex<std::collections::BTreeMap<&'static str, std::thread::JoinHandle<()>>>,
+}
 impl fmt::Debug for Fetch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Fetch")
@@ -204,6 +214,21 @@ impl fmt::Debug for Fetch {
 }
 
 impl Fetch {
+    /// Retain automatic stale refreshes until the last server transport is dropped.
+    /// One-shot commands keep their synchronous read behavior.
+    #[expect(
+        clippy::disallowed_types,
+        reason = "The server owns and joins at most one refresh worker per declared bundle"
+    )]
+    pub fn with_background_refresh(mut self) -> Self {
+        if self.background_refresh.is_none() {
+            self.background_refresh = Some(std::sync::Arc::new(BundleRefresh {
+                agents: self.agents.clone(),
+                running: std::sync::Mutex::new(std::collections::BTreeMap::new()),
+            }));
+        }
+        self
+    }
     /// Bounded nonfatal settings notices for local health diagnostics.
     pub fn configuration_health(&self) -> Option<&biomcp_types::ConfigurationHealth> {
         self.config.network.configuration()
@@ -257,6 +282,7 @@ impl Fetch {
             legacy_restricted: config.legacy_restricted,
             config: std::sync::Arc::new(config),
             limiters: std::sync::Arc::default(),
+            background_refresh: None,
             bundle_imports: std::sync::Arc::default(),
         })
     }

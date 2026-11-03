@@ -1,6 +1,7 @@
 # A stale offline copy answers at once while it refreshes
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c131b96f8a75ce1325dc3cbc6c5f1db7083766ce
 Milestone: 5
 
 ## Outcome

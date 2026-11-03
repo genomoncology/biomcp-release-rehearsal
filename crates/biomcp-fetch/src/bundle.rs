@@ -4,6 +4,7 @@ mod native;
 mod parse;
 mod publish;
 mod read;
+pub(crate) mod refresh;
 mod replay;
 mod set;
 mod transfer;

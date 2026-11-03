@@ -67,7 +67,8 @@ pub(crate) fn serve(
     }
     let (max_calls, max_connections) = crate::config::http_capacity(&globals, &settings)
         .map_err(|error| StartError::Configuration(error.into()))?;
-    let fetch = crate::config::fetch(&globals, &settings).map(Arc::new);
+    let fetch = crate::config::fetch(&globals, &settings)
+        .map(|fetch| Arc::new(fetch.with_background_refresh()));
     if let Err(error) = &fetch
         && error.is_pacing()
     {

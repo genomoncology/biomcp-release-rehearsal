@@ -61,7 +61,7 @@ pub(crate) fn serve(
         globals,
         root,
         settings,
-        fetch: fetch.map(std::sync::Arc::new),
+        fetch: fetch.map(|fetch| std::sync::Arc::new(fetch.with_background_refresh())),
         recovery,
     };
     let mut output = io::stdout().lock();
@@ -263,7 +263,9 @@ impl Recovery {
             return Ok((snapshot.clone(), false));
         }
         let settings = std::sync::Arc::new(crate::config::file::read_file(globals.config.as_ref()));
-        let fetch = std::sync::Arc::new(crate::config::fetch(globals, &settings)?);
+        let fetch = std::sync::Arc::new(
+            crate::config::fetch(globals, &settings)?.with_background_refresh(),
+        );
         let snapshot = Snapshot { fetch, settings };
         *stored = Some(snapshot.clone());
         Ok((snapshot, true))

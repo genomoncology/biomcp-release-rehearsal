@@ -85,7 +85,7 @@ fn first_reader(expires: bool) -> Result<(), String> {
     result
 }
 
-fn native_body(replay: &std::path::Path, source: &str) -> Result<String, String> {
+pub(super) fn native_body(replay: &std::path::Path, source: &str) -> Result<String, String> {
     let recording = fs::read_dir(replay.join(source))
         .map_err(|e| e.to_string())?
         .next()
@@ -165,7 +165,7 @@ fn reader(env: &Environment, publish: mpsc::Sender<()>, expires: bool) -> Result
         Ok(())
     })
 }
-fn wait_for_reader(
+pub(super) fn wait_for_reader(
     path: &std::path::Path,
     completion: &mpsc::Receiver<Result<Value, String>>,
 ) -> Result<(), String> {

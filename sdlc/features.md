@@ -1,6 +1,6 @@
 gene-identity: A caller resolves approved symbols, aliases, previous symbols and identifiers without guessing between ambiguous candidates.
 gene-search: A caller searches genes by words, chromosome band and locus group with totals and bounded pages.
-gene-bundle: A caller synchronizes the HGNC bundle and reads gene identity offline.
+gene-bundle: A caller synchronizes the HGNC bundle and reads gene identity offline; live servers return stale rows while refreshing in the background, and missing or explicitly fresh reads wait.
 gene-help: A caller discovers gene arguments, section names and executable examples through help.
 gene-sections: A caller requests named gene sections separately or together, sees each source and availability, and waits within a configurable deadline for an active first bundle publication.
 gene-protein: A caller sees every reviewed human protein linked by the gene's identifiers.
