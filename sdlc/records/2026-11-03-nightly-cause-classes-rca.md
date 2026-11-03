@@ -1,0 +1,27 @@
+# Nightly failure causes
+
+Ticket: [Nightly cause classes](../tickets/0583-nightly-cause-classes.md). Evidence: every stored report dated 2026-10-27 through 2026-11-03 under the scheduled evidence store on Yellow. Seven reports exist, dated October 28 through November 3; October 27 is missing. No live requests were made for this analysis.
+
+The recurring cause is classification at the drift-string level before command-level transport evidence is considered. A provider's 429 removes downstream requests and continuation, so recognizing only its HTTP change still fails the command. No-response and 5xx transitions from baseline 200, and failed/partial baseline recovery to complete, also lacked general classes. Prior narrow changes in tickets 0389, 0497, 0515 and 0577 therefore left the same class behind. The small fix classifies the whole command by transport cause, keeps source/case lists, and checks the preceding two calendar nights for persistent source outages. Schema, invariant, unexplained plan and missing evidence failures remain failures.
+
+## Historical evidence retained as failures
+
+The October 28–30 reports lack `eligible`; selection completeness cannot be proved. Their retained cases are still inspected individually, without inventing that count. Their old aggregate classification counts remain historical values and do not describe the replay's per-case classifications.
+
+| Night | Retained failures and reason |
+| --- | --- |
+| October 28 | `article/edges/references.yaml`: incomplete historical diagnostics; `article/fold/live-date.yaml`, `article/fold/live-rank.yaml`, `article/search/gene-terms.yaml`: omitted diagnostics; `article/search/not-found-words.yaml`, `article/search/pubmed-floor.yaml`, `article/search/window.yaml`, `trial/walk.yaml`: insufficient plan evidence (walk also reports HTTP 400); `gene/retired.yaml`: absent-baseline output and unexplained request additions; `gene/sections/pathways-tp53.yaml`: removed Reactome `releaseStatus` field. |
+| October 29 | `article/fold/live-author.yaml`, `article/fold/live-date.yaml`, `article/fold/live-rank.yaml`: incomplete historical diagnostics despite provider outages; `article/preprint/reader.yaml`: retained runner error; `article/search/gene-terms.yaml`, `article/search/pubmed-floor.yaml`: omitted diagnostics; `article/search/not-found-words.yaml`, `article/search/window.yaml`, `trial/walk.yaml`: insufficient plan evidence; `gene/retired.yaml`: absent-baseline output and unexplained requests; `gene/sections/pathways-tp53.yaml`: removed Reactome `releaseStatus` field. |
+| October 30 | `article/edges/no-contexts.yaml`, `article/fold/live-reverse.yaml`: unexplained plan changes; `article/filters/include-retracted.yaml`, `article/fold/live-date.yaml`, `article/fold/live-rank.yaml`, `article/search/gene-terms.yaml`, `article/search/pubmed-floor.yaml`: omitted diagnostics; `article/search/not-found-words.yaml`, `article/search/window.yaml`, `trial/walk.yaml`: insufficient plan evidence; `article/sections/grammar.yaml`: incomplete historical diagnostics despite 429; `gene/retired.yaml`: absent-baseline output and unexplained requests; `gene/sections/pathways-tp53.yaml`: removed Reactome `releaseStatus` field. |
+| October 31 | `adverse-event/native-search.yaml`, `article/recommendations/single.yaml`, `pathway-sections/all.yaml`, `pathway-sections/examples.yaml`, `trial/name-fallback.yaml`: removed fields; `article/recommendations/multi.yaml`: unexplained plan; `drug/label-discovery.yaml`: HTTP 404; `gene/retired.yaml`: unexplained additions/output change; `pathway/examples.yaml`, `pathway/markdown.yaml`, `pathway/summary.yaml`: HTTP 406. |
+| November 1 | `article/citations/citing.yaml`: unexplained plan change. |
+
+October 31 additionally starts with four `research fetch/search compact_bytes` diagnostic lines. The remainder from its first `{` parses unambiguously as one complete JSON report, with no trailing text. Replay inspects that report but retains the raw-format failure. Original bytes remain untouched on Yellow. Old licensed-source and pathway records are read as stored evidence only; replay makes no source calls.
+
+The November 2 report reclassifies three ChEMBL cases as outage and the protein section as recovery; recommendation changes are proved discovery churn by the current classifier. November 3 reclassifies two Semantic Scholar cases as throttled, one ChEMBL case as outage, and the protein section as recovered. Recovery is InterPro returning HTTP 200, not a UniProt outage. ChEMBL has two consecutive outage nights, not three.
+
+## Proof and maintenance
+
+The tracked `scripts/reclassify_nightly.py` entrypoint replays all seven files on M5 through pm job and writes derived evidence separately on Yellow under `0583-reclassified/`; raw scheduled evidence stays unchanged. Job j27740 at `c8860c497` passes the offline wrapper tests and replay, with the retained failures above and zero failures on November 2–3. Its derived report is `0583-reclassified/c8860c497.json`. Synthetic tests retain shape and unexplained-plan failures and fail an outage on the third consecutive calendar night, with a missing night breaking the streak.
+
+As required by PM notices m21034/m21043, the obsolete `lightGate` key was removed from `sdlc/pm.json`; neither obsolete `lanes` nor `landingInstall` was present. No product behavior, licensed calls, live rerun, release or evaluation changed.

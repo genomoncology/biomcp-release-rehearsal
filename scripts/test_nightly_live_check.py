@@ -11,9 +11,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 if __package__:
-    from .nightly_recommendation_cases import recommendation_case, reranked_tail_case
+    from .nightly_recommendation_cases import classification_case, recommendation_case, reranked_tail_case
 else:
-    from nightly_recommendation_cases import recommendation_case, reranked_tail_case
+    from nightly_recommendation_cases import classification_case, recommendation_case, reranked_tail_case
 CARGO = '''#!/usr/bin/env python3
 import json, os, sys
 from pathlib import Path
@@ -25,6 +25,9 @@ sys.exit(int(os.environ.get('FAKE_EXIT', '0')))
 SSH = '''#!/usr/bin/env python3
 import io, os, subprocess, sys, tarfile
 assert sys.argv[-2] == os.environ.get('FAKE_HOST', 'offline-store')
+if '# nightly-history' in sys.argv[-1]:
+    print(os.environ.get('FAKE_HISTORY', '[]'))
+    sys.exit(0)
 if os.environ.get('FAKE_COPY') == 'fail':
     sys.exit(23)
 payload = sys.stdin.buffer.read()
@@ -41,78 +44,6 @@ if os.environ.get('FAKE_COPY') == 'manifest':
 result = subprocess.run(sys.argv[-1], shell=True, input=payload)
 sys.exit(result.returncode)
 '''
-
-
-def classification_case(change):
-    def request(identity, role, digest, status=200):
-        return {"identity": identity, "source": "pubmed", "role": role,
-                "status": status, "cached": False, "response_digest": digest,
-                "url": "https://example.org/" + role, "shape": {}}
-    discovery = request('search', 'discovery', 'old')
-    discovery['provenance'] = {"discovery": {"namespace": "pmid", "ids": ["old-id"]}}
-    dependent = request('old-id', 'detail', 'detail')
-    dependent['provenance'] = {"input_context": "fixed-checked-request", "inputs": {
-        "namespace": "pmid", "ids": ["old-id"]}}
-    live_discovery = dict(discovery, provenance={"discovery": {
-        "namespace": "pmid", "ids": ["new-id" if change == 'discovery' else "old-id"]}})
-    live_dependent = dict(dependent, identity='new-id', provenance={
-        "input_context": "fixed-checked-request", "inputs": {
-        "namespace": "pmid", "ids": ["new-id"]}})
-    drift = ['old-id: request-plan-changed']
-    if change == 'order':
-        live_dependent = dependent
-    if change in ('429', '500'):
-        live_dependent = dict(dependent, status=int(change))
-        drift = ['old-id: HTTP status Some(200) -> Some(' + change + ')']
-    if change == 'invariant':
-        drift = ['search: field removed: /ids']
-    if change == 'missing':
-        live_dependent.pop('provenance')
-    if change == 'unrelated':
-        live_discovery['provenance']['discovery']['ids'] = ['unrelated-id']
-    if change == 'schema':
-        drift.append('output schema failure')
-    if change in ('rank', 'unused-tail', 'parameter', 'omitted', 'omitted-count'):
-        discovery['provenance']['discovery']['ids'] = ['a', 'b', 'x']
-        live_discovery['provenance']['discovery']['ids'] = ['b', 'a', 'x']
-        dependent['provenance']['inputs']['ids'] = ['a']
-        live_dependent['provenance']['inputs']['ids'] = ['b']
-    if change == 'unused-tail':
-        live_discovery['provenance']['discovery']['ids'] = ['a', 'b', 'y']
-        dependent['provenance']['inputs']['ids'] = ['a', 'b']
-        live_dependent['provenance']['inputs']['ids'] = ['b', 'a']
-    if change == 'parameter':
-        live_dependent['provenance']['input_context'] = 'changed-non-id-parameter'
-    if change == 'omitted':
-        drift.append('more drift details omitted; counts are in command exchanges')
-    if change in ('429-output', '429-schema', '429-other-error', '500-output'):
-        live_dependent = dict(dependent, status=500 if change == '500-output' else 429)
-        drift = ['old-id: HTTP status Some(200) -> Some(' + str(live_dependent['status']) + ')',
-                 'command 1: output status changed: Some(String("complete")) -> Some(String("failed"))']
-        if change == '429-schema':
-            drift.append('output schema failure')
-    before = [discovery, dependent]
-    after = [live_discovery, live_dependent]
-    if change == 'order':
-        after.reverse()
-    witness = [{"ordinal": 1,
-                "baseline": {"requests": before}, "live": {"requests": after}}]
-    if change in ('429-output', '429-schema', '429-other-error', '500-output'):
-        witness[0]['baseline']['output'] = {'status': 'complete'}
-        witness[0]['live']['output'] = {'status': 'failed', 'sources': [
-            {'source': 'pubmed', 'state': 'failed', 'reason': 'rate-limited'}]}
-        if change == '429-other-error':
-            witness[0]['live']['output']['sources'].append(
-                {'source': 'icite', 'state': 'failed', 'reason': 'bad_reply'})
-    if change in ('cut', 'clean-cut'):
-        if change == 'clean-cut':
-            drift = []
-        witness = {"cut": True}
-    result = {"drift": drift, "commands": [{'ordinal': 1, 'exchanges': {
-        'items': [], 'omitted': 0, 'drift': drift, 'drift_omitted': 0}}]}
-    if change == 'omitted-count':
-        result['commands'] = [{'ordinal': 1, 'exchanges': {'drift_omitted': 1}}]
-    return {"case": change, "result": result, "witness": witness}
 
 
 def publication_growth_case(change='addition', count=1590, insertion=650):
@@ -361,11 +292,84 @@ class NightlyCommand(unittest.TestCase):
         for change, expected, code in [
                 ('discovery', 'churn', 0), ('unchanged', 'failure', 1),
                 ('order', 'healthy', 0), ('schema', 'failure', 1),
-                ('500', 'failure', 1), ('429', 'throttled', 0),
+                ('500', 'outage', 0), ('429', 'throttled', 0),
                 ('cut', 'failure', 1), ('clean-cut', 'failure', 1), ('missing', 'uncertain', 1),
                 ('unrelated', 'failure', 1), ('invariant', 'failure', 1)]:
             with self.subTest(change=change):
                 self.classified(classification_case(change), expected, code)
+
+    def test_throttle_explains_downstream_drift_only_in_its_command(self):
+        row = classification_case('429-output')
+        row['witness'][0]['baseline']['requests'].append({
+            'identity': 'downstream', 'source': 'icite', 'status': 200})
+        row['result']['drift'].extend(['downstream: request-plan-removed',
+                                       'page continuation changed'])
+        self.classified(row, 'throttled', 0)
+        second = classification_case('unchanged')['witness'][0]
+        second['ordinal'] = 2
+        row['witness'].append(second)
+        row['result']['commands'].append({'ordinal': 2})
+        self.classified(row, 'failure', 1)
+
+    def test_recovery_keeps_schema_and_invariant_failures(self):
+        for change, expected in [('recovery', 'recovered'), ('shape', 'failure')]:
+            row = classification_case('429-output')
+            command = row['witness'][0]
+            command['baseline']['requests'][-1]['status'] = None
+            command['live']['requests'][-1]['status'] = 200
+            row['result']['commands'][0].update(before_status='partial', after_status='complete')
+            row['result']['drift'] = [
+                'old-id: HTTP status None -> Some(200)',
+                'command 1: output status changed: partial -> complete']
+            if change == 'shape':
+                row['result']['drift'].append('old-id: field removed: /id')
+            self.classified(row, expected, int(expected == 'failure'))
+
+    def test_recovery_does_not_explain_unrelated_plan_changes(self):
+        row = classification_case('unchanged')
+        row['result']['commands'][0].update(before_status='partial', after_status='complete')
+        self.classified(row, 'failure', 1)
+
+    def test_provider_failure_does_not_hide_same_source_bad_reply(self):
+        for change in ('429-output', '500-output'):
+            for reason in ('bad_reply', 'bad-reply'):
+                with self.subTest(change=change, reason=reason):
+                    row = classification_case(change)
+                    row['witness'][0]['live']['output']['sources'][0]['reason'] = reason
+                    self.classified(row, 'failure', 1)
+                    row['result']['drift'] = row['result']['drift'][:1]
+                    row['witness'][0]['baseline']['output']['status'] = 'failed'
+                    self.classified(row, 'failure', 1)
+
+    def test_recovery_retains_case_and_output_source_without_failed_request(self):
+        row = classification_case('order')
+        row['result']['drift'] = ['command 1: output status changed: partial -> complete']
+        row['result']['commands'][0].update(before_status='partial', after_status='complete')
+        row['witness'][0]['baseline']['output'] = {'status': 'partial', 'sources': [
+            {'source': 'pubmed', 'state': 'failed', 'reason': 'unavailable'}]}
+        row['witness'][0]['live']['output'] = {'status': 'complete'}
+        self.classified(row, 'recovered', 0)
+        saved = json.loads((self.copied() / 'report.json').read_text())
+        self.assertEqual(saved['cause_classes']['recovered'], {
+            'cases': ['order'], 'sources': ['pubmed']})
+
+    def test_outage_fails_on_third_calendar_night_and_resets_after_gap(self):
+        import datetime
+        row = classification_case('500')
+        report = {'eligible': 1, 'checked': 1, 'drift_cases': 1, 'error_cases': 0,
+                  'case_sample': [row]}
+        today = datetime.datetime.now(datetime.timezone.utc).date()
+        history = [[(today - datetime.timedelta(days=offset)).strftime('%Y%m%d'),
+                    json.dumps(report)] for offset in (2, 1)]
+        result = self.run_command(FAKE_REPORT=json.dumps(report), FAKE_HISTORY=json.dumps(history))
+        self.assertNotEqual(result.returncode, 0, result.stderr)
+        saved = json.loads((self.copied() / 'report.json').read_text())
+        self.assertEqual(saved['persistent_outage_sources'], ['pubmed'])
+        shutil.rmtree(self.store)
+        result = self.run_command(FAKE_REPORT=json.dumps(report), FAKE_HISTORY=json.dumps(history[:1]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads((self.copied() / 'report.json').read_text())[
+            'persistent_outage_sources'], [])
 
     def test_complete_recommendation_replacements_follow_exact_discovery(self):
         for story in ('multi', 'single'):
@@ -374,7 +378,9 @@ class NightlyCommand(unittest.TestCase):
                     self.classified(recommendation_case(story, day), 'churn', 0)
             for change in ('unrelated', 'context', 'failed-discovery', 'subset', 'partial'):
                 with self.subTest(story=story, change=change):
-                    self.classified(recommendation_case(story, change=change), 'failure', 1)
+                    self.classified(recommendation_case(story, change=change),
+                                    'outage' if change == 'failed-discovery' else 'failure',
+                                    0 if change == 'failed-discovery' else 1)
 
     def test_reranked_source_tail_requires_complete_provider_owned_selection(self):
         for change in ('boundary', 'prefix', 'filter', 'offset', 'limit', 'missing-batch',
@@ -406,7 +412,7 @@ class NightlyCommand(unittest.TestCase):
                 ('omitted-count', 'failure', 1),
                 ('429-output', 'throttled', 0), ('429-schema', 'failure', 1),
                 ('429-other-error', 'failure', 1),
-                ('500-output', 'failure', 1)]:
+                ('500-output', 'outage', 0)]:
             with self.subTest(change=change):
                 self.classified(classification_case(change), expected, code)
 

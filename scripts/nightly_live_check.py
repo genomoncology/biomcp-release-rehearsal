@@ -233,34 +233,76 @@ def same_window(old, new, left, right):
     return False
 
 
-def command_classification(capture, discoveries, peers, complete=False):
+def command_causes(command):
+    if not isinstance(command, dict) or not all(
+            isinstance(command.get(side), dict) and isinstance(command[side].get('requests'), list)
+            for side in ('baseline', 'live')):
+        return {cause: set() for cause in ('throttled', 'outage', 'recovered')}
+    before = terminal(command['baseline']['requests'])
+    after = terminal(command['live']['requests'])
+    throttled = {item['source'] for item in after.values() if item.get('status') == 429}
+    outage = {item['source'] for key, item in after.items()
+              if key in before and before[key].get('status') == 200
+              and (item.get('status') is None or
+                   type(item.get('status')) is int and 500 <= item['status'] < 600)}
+    recovered = {item['source'] for key, item in after.items()
+                 if key in before and before[key].get('status') != 200
+                 and item.get('status') == 200}
+    recovered.update(source['source']
+                     for source in command['baseline'].get('output', {}).get('sources', [])
+                     if source.get('state') in ('failed', 'stale')
+                     and command['live'].get('output', {}).get('status') == 'complete')
+    return {'throttled': throttled, 'outage': outage, 'recovered': recovered}
+
+
+def command_classification(capture, discoveries, peers, complete=False, comparison=None):
     before = terminal(capture['baseline']['requests'])
     after = terminal(capture['live']['requests'])
-    statuses = [item.get('status') for item in after.values()]
-    if any(type(status) is not int or not (200 <= status < 300 or status == 429)
-           for status in statuses):
-        return 'failure'
+    causes = command_causes(capture)
+    for item in after.values():
+        status = item.get('status')
+        if not (type(status) is int and (200 <= status < 300 or status == 429)):
+            if not (item['identity'] in before and before[item['identity']].get('status') == 200
+                    and (status is None or type(status) is int and 500 <= status < 600)):
+                return 'failure'
+    # A provider failure ends discovery and its downstream work in this command.
+    # Other commands still have to explain their own request plans.
+    for cause in ('outage', 'throttled'):
+        if causes[cause]:
+            return cause if explained_source_failures(capture) else 'failure'
+    comparison = comparison or {}
     removed = [before[key] for key in before.keys() - after.keys()]
     added = [after[key] for key in after.keys() - before.keys()]
-    # Proven 429-only outcomes are nonfatal; unrelated plan changes still need proof.
-    plan = dependent_change(removed, added, discoveries, before, after, peers, complete) if removed or added else 'healthy'
-    if plan in ('failure', 'uncertain'):
-        return plan
-    return 'throttled' if 429 in statuses else plan
+    plan = (dependent_change(removed, added, discoveries, before, after, peers, complete)
+            if removed or added else 'healthy')
+    if (plan in ('healthy', 'churn')
+            and comparison.get('before_status') in ('partial', 'failed')
+            and comparison.get('after_status') == 'complete'):
+        return 'recovered'
+    return plan
 
 
-def throttled_output(command):
-    """A status transition needs the checked product's source failure reason too."""
+def explained_source_failures(command):
+    causes = command_causes(command)
+    affected = causes['throttled'] | causes['outage']
+    failed = [source for source in command['live'].get('output', {}).get('sources', [])
+              if source.get('state') in ('failed', 'stale')]
+    return all(source.get('source') in affected
+               and source.get('reason') in ('rate-limited', 'unavailable', 'deadline-exceeded')
+               for source in failed)
+
+
+def explained_output(command, comparison, outcome):
     before = command['baseline'].get('output', {})
     after = command['live'].get('output', {})
-    sources = after.get('sources', [])
-    failed = [source for source in sources if source.get('state') in ('failed', 'stale')]
-    throttled = {request['source'] for request in terminal(command['live']['requests']).values()
-                 if request.get('status') == 429}
-    return (before.get('status') in ('complete', 'partial')
-            and after.get('status') in ('partial', 'failed') and bool(failed)
-            and all(source.get('reason') == 'rate-limited'
-                    and source.get('source') in throttled for source in failed))
+    old = comparison.get('before_status', before.get('status'))
+    new = comparison.get('after_status', after.get('status'))
+    if outcome == 'recovered':
+        return old in ('partial', 'failed') and new == 'complete'
+    if outcome not in ('throttled', 'outage'):
+        return False
+    return (old in ('complete', 'partial', 'failed') and new in ('partial', 'failed')
+            and explained_source_failures(command))
 
 
 def omitted_diagnostics(value):
@@ -312,7 +354,7 @@ def classify_case(row):
         return 'failure'
     # Schema and equivalent-request invariants always retain their failure status.
     invariant = any(not (': request-plan-' in item or ': HTTP status ' in item
-                         or ': output status changed:' in item) for item in drift)
+                         or ': output status changed:' in item or item == 'page continuation changed') for item in drift)
     if invariant:
         return 'failure'
     discoveries = {}
@@ -333,23 +375,26 @@ def classify_case(row):
             current[:] = [change for change in current if change['request'] not in replaced]
             current.extend(changes)
         complete = comparison.get('before_status') == comparison.get('after_status') == 'complete'
-        outcomes.append(command_classification(command, discoveries, peers, complete))
+        outcomes.append(command_classification(command, discoveries, peers, complete, comparison))
         matched = {item for item in output_changes
                    if item.startswith('command ' + str(command['ordinal'])
                                       + ': output status changed:')}
         if matched:
-            if outcomes[-1] != 'throttled' or not throttled_output(command):
+            if not explained_output(command, comparison, outcomes[-1]):
                 return 'failure'
             output_changes -= matched
+    if 'page continuation changed' in drift and not any(
+            outcome in ('throttled', 'outage', 'recovered', 'churn') for outcome in outcomes):
+        return 'failure'
     if output_changes:
         return 'failure'
-    for outcome in ('failure', 'uncertain', 'throttled', 'churn'):
+    for outcome in ('failure', 'uncertain', 'outage', 'throttled', 'recovered', 'churn'):
         if outcome in outcomes:
             return outcome
     return 'healthy'
 
 
-def classify_report(report):
+def classify_report(report, previous=(), night=None):
     eligible, checked = report.get('eligible'), report.get('checked')
     if (type(eligible) is not int or type(checked) is not int
             or eligible < 0 or checked != eligible):
@@ -361,22 +406,40 @@ def classify_report(report):
     if not isinstance(rows, list):
         raise ValueError('invalid case sample')
     totals = {name + '_cases': 0 for name in
-              ('healthy', 'churn', 'throttled', 'uncertain', 'failure')}
+              ('healthy', 'churn', 'throttled', 'outage', 'recovered', 'uncertain', 'failure')}
+    classes = {name: {'cases': [], 'sources': []} for name in
+               ('throttled', 'outage', 'recovered')}
     for row in rows:
         outcome = classify_case(row)
         row['classification'] = outcome
         totals[outcome + '_cases'] += 1
+        if outcome == 'recovered':
+            classes['recovered']['cases'].append(row['case'])
+        # Keep all observed causes even when another command makes the case fail.
+        for command in row.get('witness', []) if isinstance(row.get('witness'), list) else []:
+            for cause, sources in command_causes(command).items():
+                if sources and (cause != 'recovered' or outcome == 'recovered'):
+                    classes[cause]['cases'].append(row['case'])
+                    classes[cause]['sources'].extend(sources)
     # A partial report cannot clear diagnostics hidden outside its sample.
     drift_rows = sum(bool(row.get('result', {}).get('drift')) for row in rows)
     error_rows = sum(row.get('error') is not None for row in rows)
     if drift_rows != counts[0] or error_rows != counts[1]:
         raise ValueError('diagnostic counts do not match retained cases')
     report.update(totals)
-    report['classification_version'] = 1
-    return bool(totals['failure_cases'] or totals['uncertain_cases'])
+    report['classification_version'] = 2
+    report['cause_classes'] = {cause: {key: sorted(set(values)) for key, values in data.items()}
+                              for cause, data in classes.items()}
+    persistent = set(classes['outage']['sources'])
+    for offset in (1, 2):
+        date = (night - datetime.timedelta(days=offset)).isoformat() if night else None
+        prior = next((item for day, item in previous if day == date), None)
+        persistent &= set(prior.get('cause_classes', {}).get('outage', {}).get('sources', [])) if prior else set()
+    report['persistent_outage_sources'] = sorted(persistent)
+    return bool(totals['failure_cases'] or totals['uncertain_cases'] or persistent)
 
 
-def run_check(scratch):
+def run_check(scratch, previous=()):
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
     (scratch / 'run.json').write_text(json.dumps({
         'revision': revision, 'command': COMMAND,
@@ -390,7 +453,7 @@ def run_check(scratch):
     (scratch / 'exit-status').write_text(str(result) + '\n')
     try:
         report = json.loads((scratch / 'report.json').read_text())
-        failed = classify_report(report)
+        failed = classify_report(report, previous, datetime.datetime.now(datetime.timezone.utc).date())
         (scratch / 'report.json').write_text(json.dumps(report) + '\n')
         return result != 0 or failed
     except (ValueError, KeyError, TypeError, AttributeError) as error:
@@ -412,6 +475,31 @@ def deliver(scratch, host, evidence_dir):
         subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=30',
                         host, command], stdin=source, check=True)
     print('Verified evidence: ' + host + ':' + str(destination))
+
+
+def read_previous(host, evidence_dir, night):
+    """Read only the preceding two calendar nights; never rewrite raw evidence."""
+    dates = [(night - datetime.timedelta(days=offset)).strftime('%Y%m%d') for offset in (2, 1)]
+    reader = """# nightly-history
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+rows = []
+for date in sys.argv[2:]:
+    paths = sorted(root.glob(date + '*/report.json'))
+    if paths:
+        rows.append([date, paths[-1].read_text()])
+print(json.dumps(rows))
+"""
+    command = shlex.join(['python3', '-c', reader, str(evidence_dir), *dates])
+    output = subprocess.check_output(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=30',
+                                      host, command], text=True)
+    previous = []
+    for date, raw in json.loads(output):
+        report = json.loads(raw)
+        day = datetime.datetime.strptime(date, '%Y%m%d').date()
+        classify_report(report)
+        previous.append((day.isoformat(), report))
+    return previous
 
 
 def main():
@@ -440,7 +528,9 @@ def main():
         datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ-'), dir=scratch_root))
     print('Owned scratch: ' + str(scratch), flush=True)
     try:
-        failed = run_check(scratch)
+        previous = read_previous(args.host, args.evidence_dir,
+                                 datetime.datetime.now(datetime.timezone.utc).date())
+        failed = run_check(scratch, previous)
         deliver(scratch, args.host, Path(args.evidence_dir))
     except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
         print('Nightly check failed; retained scratch: ' + str(scratch) + ': ' + str(error),
