@@ -55,7 +55,7 @@ jsonschema = { version = "0.46.0", default-features = false }
 
 sha2 = { version = "0.11.1", default-features = false }
 httpdate = "1.0.3"
-calamine = { version = "0.37.0", default-features = false }
+calamine = { version = "0.38.0", default-features = false }
 csv = "1.4.0"
 flate2 = "1.1.10"
 zip = { version = "9.0", default-features = false, features = ["deflate"] }

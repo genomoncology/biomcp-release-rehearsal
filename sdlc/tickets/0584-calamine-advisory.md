@@ -1,6 +1,7 @@
 # Spreadsheet reader takes the calamine security fix
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 04ec714e94fbdd8b646da66031958cdb511d3269
 Milestone: 5
 
 ## Outcome
