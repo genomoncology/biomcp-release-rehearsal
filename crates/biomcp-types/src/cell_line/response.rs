@@ -280,3 +280,13 @@ pub struct CellLineRelease {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub updated: Option<PartialDate>,
 }
+
+/// Native filtered cell-line headers; the literal-search reply contract remains unchanged.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct CellLineFilteredPage(pub CellLinePage);
+impl ResponseBody for CellLineFilteredPage {
+    const SCHEMA: &'static str = "biomcp.cell-line-filtered-page/1";
+    type Query = super::CellLineSearchCommand;
+}

@@ -1,8 +1,14 @@
 use crate::QueryInvalid;
 use biodata::{CellLineSourceId, CellosaurusAccession, ChemblCellId, Text};
 use serde::{Deserialize, Serialize};
-fn default_limit() -> u32 {
+pub(super) fn default_limit() -> u32 {
     5
+}
+pub(super) fn check_search_limit(limit: u32) -> Result<(), QueryInvalid> {
+    if !(1..=25).contains(&limit) {
+        return Err(QueryInvalid::new(&["limit"]));
+    }
+    Ok(())
 }
 biodata::wire_enum! { described
     /// Named disclosure sections; all requests each bounded first page without an assay count.
@@ -63,13 +69,18 @@ crate::query::validation::checked_query!(CellLineSearch, SearchFields);
 impl TryFrom<SearchFields> for CellLineSearch {
     type Error = QueryInvalid;
     fn try_from(v: SearchFields) -> Result<Self, Self::Error> {
-        if !(1..=25).contains(&v.limit) {
-            return Err(QueryInvalid::new(&["limit"]));
-        }
+        check_search_limit(v.limit)?;
         Ok(Self(v))
     }
 }
 impl CellLineSearch {
+    pub(super) fn from_parts(query: Text, limit: u32, offset: u32) -> Self {
+        Self(SearchFields {
+            query,
+            limit,
+            offset,
+        })
+    }
     /// Literal checked search text.
     pub fn query(&self) -> &Text {
         &self.0.query

@@ -28,6 +28,9 @@ pub(super) fn attach(cx: &Ctx<'_>, deadline: biomcp_fetch::Deadline<'_>, out: &m
         ReplyData::CellLinePage {
             body: Some(page), ..
         } => page.release = release.clone(),
+        ReplyData::CellLineFilteredPage {
+            body: Some(page), ..
+        } => page.0.release = release.clone(),
         ReplyData::CellLineCard {
             body: Some(card), ..
         } => card.release = release.clone(),

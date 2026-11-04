@@ -127,7 +127,8 @@ fn navigation(body: &biomcp_types::ReplyData) -> Navigation<'_> {
         | ReplyData::BiomarkerResult { .. }
         | ReplyData::OrganizationPage { .. }
         | ReplyData::AuthorPage { .. }
-        | ReplyData::CellLinePage { .. } => Navigation::NativeOrder,
+        | ReplyData::CellLinePage { .. }
+        | ReplyData::CellLineFilteredPage { .. } => Navigation::NativeOrder,
         ReplyData::AuthorCards { .. } => Navigation::BoundedPma,
         ReplyData::CellLineChembl { .. } | ReplyData::CellLineAssayCount { .. } => {
             Navigation::BoundedPma

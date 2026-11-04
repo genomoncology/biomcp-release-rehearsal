@@ -42,9 +42,9 @@ macro_rules! command_types {
                 "biomcp.cell-line-assay-count-query/1", 6, Direct
             );
             /// Discover unchanged literal Cellosaurus candidates.
-            SearchCellLine(CellLineSearch) => (
-                "search", "cell-line", CellLineSearch, "cell-line-search-query", "biomcp.cell-line-search-query/2", CellLineSearch,
-                "cell-line-search-query", "biomcp.cell-line-search-query/2", "biomcp.cell-line-search-query/2", 7, SearchCellLine
+            SearchCellLine(CellLineSearchCommand) => (
+                "search", "cell-line", CellLineSearchCommand, "cell-line-search-command", "biomcp.cell-line-search-command/1", CellLineSearchCommand,
+                "cell-line-search-command", "biomcp.cell-line-search-command/1", "biomcp.cell-line-search-command/1", 7, SearchCellLine
             );
             /// Read an exact accession or verified qualified source identity.
             GetCellLine(CellLineGet) => (

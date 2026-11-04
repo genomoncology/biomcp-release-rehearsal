@@ -107,7 +107,7 @@ protein-sections: A caller reads native protein features, alternative products, 
 protein-domains-complexes: Read source-native InterPro matches and exact-participant Complex Portal pages without inferred membership.
 pathway-help: Discover every pathway source, selector, section and paging option through generated help and parsed case examples.
 protein-docs-accounting: Discover every protein command, native section and selector through generated help and parsed CLI/MCP examples.
-cell-line-identity: A caller searches literal Cellosaurus headers and retrieves exact accession or verified source-qualified cell identities.
+cell-line-identity: A caller searches Cellosaurus headers by literal text, native species or NCIt disease, and retrieves exact accession or verified source-qualified cell identities.
 cell-line-chembl: A caller reads exact accession-linked ChEMBL metadata and requests native assay totals separately, with source terms and independent release provenance.
 cell-line-sections: A caller pages complete native Cellosaurus names, identities, cross-references and variation rows without inference.
 cell-line-all: A caller receives every bounded first section page with independent source failures, skips and provenance, while deferred routes return fixed guidance before provider requests.

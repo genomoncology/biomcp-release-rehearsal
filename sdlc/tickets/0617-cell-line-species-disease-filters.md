@@ -1,6 +1,7 @@
 # Cell-line search filters by species and disease
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 31ee54125d65d2ee88b70a00a33a11cfd443b82a
 Milestone: 5
 
 ## Outcome

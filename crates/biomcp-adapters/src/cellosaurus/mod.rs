@@ -11,7 +11,7 @@ use biomcp_fetch::{
     Arg, BadReply, Freshness, InputError, KeyUse, Leg, PathSegment, ReplyMetadata, RequestError,
     SourceSpec, Terms,
 };
-use biomcp_types::{CellLineCard, CellLineHeader, CellLineSearch, Source, Use};
+use biomcp_types::{CellLineCard, CellLineHeader, CellLineSearchCommand, Source, Use};
 pub use sections::complete;
 use std::time::Duration;
 /// Publisher access and attribution policy, shared by admission and health.
@@ -65,13 +65,26 @@ pub fn literal(field: &str, value: &str) -> String {
         value.replace('\\', "\\\\").replace('"', "\\\"")
     )
 }
-/// Search one checked accession or unchanged literal name with its native window.
-pub fn search(leg: &Leg<'_>, q: &CellLineSearch) -> Result<Page, RequestError> {
-    let accession = q.query().as_str().parse::<CellosaurusAccession>().ok();
-    let query = literal(
-        if accession.is_some() { "ac" } else { "idsy" },
-        q.query().as_str(),
-    );
+/// Search literal text and native taxonomy/disease fields within one checked window.
+pub fn search(leg: &Leg<'_>, q: &CellLineSearchCommand) -> Result<Page, RequestError> {
+    let accession = q
+        .query()
+        .and_then(|v| v.as_str().parse::<CellosaurusAccession>().ok());
+    let mut terms = Vec::new();
+    if let Some(text) = q.query() {
+        terms.push(literal(
+            if accession.is_some() { "ac" } else { "idsy" },
+            text.as_str(),
+        ));
+    }
+    // Native fields, including their source ontology identifiers; no local disease inference.
+    // https://api.cellosaurus.org/api-fields documents ox and the NCIt-only din field.
+    for (field, value) in [("ox", q.species()), ("din", q.disease())] {
+        if let Some(value) = value {
+            terms.push(literal(field, value.as_str()));
+        }
+    }
+    let query = terms.join(" AND ");
     candidates(
         leg,
         &query,

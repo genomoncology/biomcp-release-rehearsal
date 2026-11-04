@@ -8,10 +8,12 @@
           "includes_all_of": [
             "query",
             "--limit",
-            "--offset"
+            "--offset",
+            "--species",
+            "--disease"
           ]
         },
-        "/result/commands/0/description": "One exact cell line search, with source order and no total claim. Sources: cellosaurus.",
+        "/result/commands/0/description": "One source cell line search with optional text, species and NCIt disease filters. Sources: cellosaurus.",
         "/result/commands/0/examples": {
           "count": 1
         },

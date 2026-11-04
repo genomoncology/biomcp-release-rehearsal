@@ -178,6 +178,15 @@ fn selector_unions_accept_only_required_lists_and_detect_narrowing() {
     narrow["anyOf"] = json!([{"required":["query"]}]);
     assert!(check(&base, &narrow).is_err());
     assert!(check(&narrow, &base).is_ok());
+    // Required query inputs already satisfy an added query-or-filter selector.
+    let mut required = base.clone();
+    required.as_object_mut().unwrap().remove("anyOf");
+    required["required"] = json!(["query"]);
+    assert!(check(&required, &base).is_ok());
+    let mut unrelated = base.clone();
+    unrelated["anyOf"] = json!([{"required":["band"]}]);
+    assert!(check(&required, &unrelated).is_err());
+    assert!(check_reviewed(&required, &base, ContractKind::Reply, &Reviews::default()).is_err());
     let referenced = |contract: &Value| json!({"$id":"biodata.example/1", "$defs":{"Search":contract}, "$ref":"#/$defs/Search"});
     assert!(check(&referenced(&base), &referenced(&narrow)).is_err());
     for branches in [

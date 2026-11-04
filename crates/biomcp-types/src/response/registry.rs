@@ -100,6 +100,7 @@ macro_rules! reply_types {
             protein_structures: $crate::ProteinStructures => "protein-structures",
             protein_sequence_result: $crate::ProteinSequenceResult => "protein-sequence",
             protein_function_result: $crate::ProteinFunctionResult => "protein-function",
+            cell_line_filtered_page: $crate::CellLineFilteredPage => "cell-line-filtered-page",
             cell_line_page: $crate::CellLinePage => "cell-line-page",
             cell_line_card: $crate::CellLineCard => "cell-line-card",
             cell_line_names: $crate::CellLineNames => "cell-line-names",

@@ -1,0 +1,105 @@
+{
+  "feature": "cell-line-identity",
+  "live_check": "public",
+  "story": "Species and NCIt disease constraints are sent to Cellosaurus before its native window; human melanoma excludes mouse B16 and a specific disease name and ID identify the same source line.",
+  "verified": "Unchanged public Cellosaurus API reply bodies captured 2026-11-04, CC BY 4.0; cite Bairoch (2018). Native ox (NCBI Taxonomy) and din (NCIt-only disease) fields documented at https://api.cellosaurus.org/api-fields. Disease name/ID comparison uses the complete one-row Desmoplastic melanoma result; no inferred disease mapping or local result filtering.",
+  "replay": "cell-line/filters",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--species",
+        "Homo sapiens",
+        "--disease",
+        "Melanoma"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/accession": {
+          "equals": [
+            "CVCL_B7MW",
+            "CVCL_VU91",
+            "CVCL_U803",
+            "CVCL_M777",
+            "CVCL_9U99"
+          ]
+        },
+        "/result/items/*/species/items/*/id": {
+          "equals": [
+            "9606",
+            "9606",
+            "9606",
+            "9606",
+            "9606"
+          ]
+        },
+        "/next/*/args/*": {
+          "includes_all_of": [
+            "--species",
+            "Homo sapiens",
+            "--disease",
+            "Melanoma",
+            "--offset"
+          ]
+        },
+        "/result/items/*/name": {
+          "excludes": "B16"
+        }
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--species",
+        "9606",
+        "--disease",
+        "Desmoplastic melanoma",
+        "--limit",
+        "25"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/accession": {
+          "equals": [
+            "CVCL_8718"
+          ]
+        },
+        "/result/items/*/species/items/*/id": {
+          "equals": [
+            "9606"
+          ]
+        }
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--species",
+        "9606",
+        "--disease",
+        "C37257",
+        "--limit",
+        "25"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/accession": {
+          "equals": [
+            "CVCL_8718"
+          ]
+        },
+        "/result/items/*/species/items/*/id": {
+          "equals": [
+            "9606"
+          ]
+        }
+      },
+      "max_bytes": 9000
+    }
+  ]
+}

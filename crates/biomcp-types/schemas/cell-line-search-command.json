@@ -1,0 +1,64 @@
+{
+  "$defs": {
+    "Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    }
+  },
+  "$id": "biomcp.cell-line-search-command/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "required": [
+        "query"
+      ]
+    },
+    {
+      "required": [
+        "species"
+      ]
+    },
+    {
+      "required": [
+        "disease"
+      ]
+    }
+  ],
+  "description": "One native cell line search with optional text, species and NCIt disease filters.",
+  "properties": {
+    "disease": {
+      "$ref": "#/$defs/Text",
+      "description": "Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224)."
+    },
+    "limit": {
+      "default": 5,
+      "description": "Native page size.",
+      "format": "uint32",
+      "maximum": 25,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "offset": {
+      "default": 0,
+      "description": "Native start offset.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "query": {
+      "$ref": "#/$defs/Text",
+      "description": "Literal source query from the positional argument.",
+      "x-positional": 0
+    },
+    "species": {
+      "$ref": "#/$defs/Text",
+      "description": "Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606)."
+    }
+  },
+  "title": "CellLineSearchCommand",
+  "type": "object"
+}

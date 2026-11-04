@@ -120,10 +120,18 @@ fn compatible(
             .is_some_and(|n| old.minimum.is_none_or(|o| n > o))
         || lowered(old.maximum, new.maximum)
         || new.selectors.as_ref().is_some_and(|new| {
-            old.selectors.as_ref().is_none_or(|old| {
-                old.iter()
-                    .any(|old| !new.iter().any(|new| new.is_subset(old)))
-            })
+            old.selectors.as_ref().map_or_else(
+                || !new.iter().any(|branch| branch.is_subset(&old.required)),
+                |alternatives| {
+                    alternatives.iter().any(|branch| {
+                        !new.iter().any(|required| {
+                            required
+                                .iter()
+                                .all(|field| old.required.contains(field) || branch.contains(field))
+                        })
+                    })
+                },
+            )
         })
         || old.open_enum && !new.open_enum
         || old.types != new.types

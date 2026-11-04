@@ -112,6 +112,7 @@ fn registry() -> Vec<Contract> {
         HttpHealth => ("http-health", "biomcp.http-health/2"),
         Markdown => ("markdown", "biodata.markdown/2"),
         ErrorEnvelope => ("error", "biomcp.error/4"),
+        CellLineSearch => ("cell-line-search-query", "biomcp.cell-line-search-query/2", query),
         Request => ("request", "biomcp.request/32", query),
         HgncId => ("hgnc-id", "biodata.hgnc-id/2"),
         PartialDate => ("partial-date", "biodata.partial-date/2"),

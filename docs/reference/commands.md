@@ -99,7 +99,7 @@ Commands:
   biomarker      Find NCI biomarker concepts by name or synonym. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. These concepts differ from diagnostic --biomarker filters and literal trial --variant text. Use search trial --source nci --biomarker-code CODE for trials that list an exact concept. Native criteria do not establish patient eligibility.
   author         Literal author name query and native window; positional text maps to query.
   organization   Find NCI organizations. Names are not unique; trial counts cover every status, including closed trials. No organization ID or get is available.
-  cell-line      One literal cell line search, with native order and no total claim.
+  cell-line      One native cell line search with optional text, species and NCIt disease filters.
   gwas           Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic.
   protein        Search five reviewed human UniProt headers by literal text or exact gene.
                  No variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs.
@@ -341,26 +341,29 @@ Find NCI organizations. Sources: nci.
 ## biomcp search cell-line
 
 ```text
-One literal cell line search, with native order and no total claim.
+One native cell line search with optional text, species and NCIt disease filters.
 
-Usage: biomcp search cell-line [OPTIONS] <query>
+Usage: biomcp search cell-line [OPTIONS] [query]
 
 Arguments:
-  <query>
+  [query]
           Literal source query from the positional argument.
 
 Options:
+      --disease <disease>
+          Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224).
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
 
           [default: json]
           [possible values: json, md]
 
-  -l, --limit <limit>
-          Native page size.
-
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
+
+  -l, --limit <limit>
+          Native page size.
 
       --offset <offset>
           Native start offset.
@@ -371,6 +374,9 @@ Options:
       --config <config>
           Read configuration from this file.
 
+      --species <species>
+          Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606).
+
       --offline
           Read local data without source requests.
 
@@ -379,11 +385,13 @@ Options:
 
 ```
 
-One exact cell line search, with source order and no total claim. Sources: cellosaurus.
+One source cell line search with optional text, species and NCIt disease filters. Sources: cellosaurus.
 
+- `--disease`: Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224).
 - `--limit`: Source page size.
 - `--offset`: Source start offset.
 - `query`: Exact source query from the positional argument.
+- `--species`: Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606).
 
 ## biomcp search gwas
 

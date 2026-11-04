@@ -1,0 +1,66 @@
+{
+  "method": "GET",
+  "source": "cellosaurus",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=ox%3A%229606%22%20AND%20din%3A%22Desmoplastic%20melanoma%22&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca&rows=25",
+  "exchanges": [
+    {
+      "fetched": 1793809247,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_8718"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C37257",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C37257",
+                    "label": "Desmoplastic melanoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C37257"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "HS-Sch-2"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "HS-sch-2"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "HSSCH2"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
