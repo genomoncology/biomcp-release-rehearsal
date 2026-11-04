@@ -59,6 +59,7 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - 0459 lists the code tickets that must land before the BioData switch, and 0336 lists those that must land before the cut. A new must-ship ticket goes on 0336's Depends line, or on 0459's when the switch needs it.
 - Switch to the extracted BioData 1.0 crate once every code ticket lands, with an empty reply diff and an unchanged schema comparison (0459).
 - Fix the agent benchmark's general causes and bugs before the cut (Ian, 2026-11-03): the generated front-door map 0586, MCP replies sent once 0587, every variant ID form 0588, bugs and errors 0589, lean default replies 0590. Experiment 513's ranked list may add more. Hosting's launch needs come first.
+- Build the evals recommendations of 2026-11-04 (`planning/eval-recommendations-2026-11-04.md`) before the cut: drug names in `get drug` 0599, indel coordinates 0600, approvals newest first 0601, a map that pairs sections with sources 0602, and an empty-result note 0603. Main already uses one CLI-argument MCP tool and gives up on a cold download within the command budget. The Gaps list waits for evals to recheck it on main.
 - Cut the release candidate from main once every ticket above lands (0336).
 
 - Rehearse the final candidate on every platform (0293).
