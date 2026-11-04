@@ -49,9 +49,8 @@ mod drug_label;
 mod drug_next;
 mod evidence;
 mod faers_get;
-mod source_pacing;
-tool_only! { mod hgnc_sync; }
 mod held_proxy;
+mod hgnc_sync;
 mod hosted_deadline;
 mod hosted_pacing;
 mod housekeeping;
@@ -65,6 +64,7 @@ pub(super) mod launch;
 mod recurrence;
 mod remote_tools;
 mod replay;
+mod source_pacing;
 tool_only! { pub(crate) mod live; }
 tool_only! { mod live_follow_proof; }
 tool_only! { mod live_proof; }
@@ -255,6 +255,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(bundle_wait::trials());
     trials.extend(bundle_refresh::trials());
     trials.extend(bundle_sync::trials());
+    trials.push(hgnc_sync::live_trial());
     trials.extend(source_pacing::trials());
     trials.extend(recurrence::trials());
     trials.extend(replay::trials());

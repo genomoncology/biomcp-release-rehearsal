@@ -1,6 +1,7 @@
 # 0596 — HGNC sync proofs distinguish ordinary and fresh reads
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7216c50d98475da1e999576a37efc36a44926cee
 
 Milestone: 5
 
