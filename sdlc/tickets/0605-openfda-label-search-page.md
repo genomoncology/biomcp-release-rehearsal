@@ -1,6 +1,7 @@
 # openFDA label search fills its page and names every row
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: e3060f64016111a4cc918a5591a07757db44f1af
 Milestone: 5
 
 ## Outcome

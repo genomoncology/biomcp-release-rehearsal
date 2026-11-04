@@ -75,21 +75,13 @@ fn discover(
         let name = literal(name.as_str());
         format!("openfda.brand_name{suffix}:{name} OR openfda.generic_name{suffix}:{name}")
     };
-    let mut exact = page(leg, &selector(".exact"), limit, offset, None)?;
-    exact
-        .window
-        .rows
-        .retain(|record| record.name_match(name).is_some());
-    if !exact.window.rows.is_empty() {
+    let exact = candidates(leg, &selector(".exact"), limit, offset)?;
+    if exact.window.total().is_some_and(|total| total > 0) {
         return Ok(exact);
     }
-    let mut fallback = page(leg, &selector(""), limit, offset, None)?;
-    fallback
-        .window
-        .rows
-        .retain(|record| record.name_match(name).is_some());
-    // Keep continuation within the word selector when it has native candidates,
-    // including pages whose candidates all fail the complete-name check.
+    let fallback = candidates(leg, &selector(""), limit, offset)?;
+    // Preserve native matches, totals and offsets, even when a word match is
+    // not a complete product name. Select by total so later pages never switch queries.
     if fallback.window.total().is_some_and(|total| total > 0) {
         return Ok(fallback);
     }
@@ -101,5 +93,32 @@ fn discover(
     );
     // The publisher searched label text, so a matching passage need not name
     // this product. Preserve its candidates and mark exact name matches separately.
-    page(leg, &selector, limit, offset, None)
+    candidates(leg, &selector, limit, offset)
+}
+
+// openFDA reports an exhausted offset as a 404 without a total. Probe the same
+// selector at zero before paging, so absence never broadens an existing search.
+fn candidates(
+    leg: &Leg<'_>,
+    selector: &str,
+    limit: u32,
+    offset: u32,
+) -> Result<Page, RequestError> {
+    if offset == 0 {
+        return page(leg, selector, limit, offset, None);
+    }
+    let mut first = page(leg, selector, 1, 0, None)?;
+    let total = first.window.total().unwrap_or(0);
+    if u64::from(offset) >= total {
+        first.window = crate::NativeWindow::new(
+            Vec::new(),
+            offset,
+            limit,
+            Some(total),
+            0,
+            crate::Refusal::None,
+        );
+        return Ok(first);
+    }
+    page(leg, selector, limit, offset, None)
 }

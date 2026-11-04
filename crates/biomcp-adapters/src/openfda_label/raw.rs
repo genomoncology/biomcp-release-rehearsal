@@ -20,6 +20,7 @@ pub(super) struct Record {
     /// Rejected native nonidentity fields.
     pub problems: Vec<biomcp_types::Problem>,
     pub(super) openfda: Names,
+    pub(super) spl_product_data_elements: Option<Vec<NativeText>>,
     pub(super) boxed_warning: Option<Vec<String>>,
     pub(super) dosage_and_administration: Option<Vec<String>>,
     pub(super) drug_interactions: Option<Vec<String>>,

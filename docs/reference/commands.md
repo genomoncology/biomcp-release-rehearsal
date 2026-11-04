@@ -1133,8 +1133,10 @@ Usage: biomcp search drug [OPTIONS] [query]
 
 Arguments:
   [query]
-          Literal name phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,
-          exact names before word matches. Harmonized recall names match but never become display names.
+          Search phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,
+          exact names before word matches. openFDA labels search exact then word brand/generic names,
+          then label text (including indications) when no names match; source matches need not be exact names.
+          Harmonized recall names match but never become display names.
 
 Options:
       --classification <classification>
@@ -1205,8 +1207,10 @@ Search one drug source. Sources: chembl, civic, ddinter, drugsfda, ema, fda-drug
 - `--limit`: Source candidate rows per page.
 - `--name-selector`: Explicit ChEMBL source name selector; omitted means preferred name.
 - `--offset`: Source rows to skip.
-- `query`: Exact name phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,
-exact names before word matches. Harmonized recall names match but never become display names.
+- `query`: Search phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,
+exact names before word matches. openFDA labels search exact then word brand/generic names,
+then label text (including indications) when no names match; source matches need not be exact names.
+Harmonized recall names match but never become display names.
 - `--reason`: Phrase in the published recall reason; drug recalls only.
 - `--source`: Exactly one source; default MyChem never fans out.
 - `--status`: Exact source recall status; drug recalls only.

@@ -26,25 +26,20 @@
         },
         "/result/items/0": {
           "omits": [
-            "name",
             "matched_name"
           ]
         },
         "/sources/0/notices/0/message": "Exact and word name searches found no matching product; searched label free text.",
-        "/sources/0/term": "\"CAVHANZA\""
+        "/sources/0/term": "\"CAVHANZA\"",
+        "/result/items/0/name": "CAVHANZA Nilotinib NILOTINIB NILOTINIB HYPROMELLOSE ACETATE SUCCINATE, UNSPECIFIED BUTYLATED HYDROXYTOLUENE Microcrystalline Cellulose MANNITOL 1-ACETATE CROSPOVIDONE Magnesium Stearate SILICON DIOXIDE STARCH, CORN 15;5 CAVHANZA Nilotinib NILOTINIB NILOTINIB HYPROMELLOSE ACETATE SUCCINATE, UNSPECIFIED BUTYLATED HYDROXYTOLUENE Microcrystalline Cellulose MANNITOL 1-ACETATE CROSPOVIDONE Magnesium Stearate SILICON DIOXIDE STARCH, CORN 15;7"
       },
-      "max_bytes": 1600
+      "max_bytes": 2139
     },
     {
       "follow": "disambiguate",
       "expect": {
         "/status": "complete",
         "/result/header/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
-        "/result/header": {
-          "omits": [
-            "name"
-          ]
-        },
         "/result": {
           "omits": [
             "alternate_names"
@@ -54,9 +49,10 @@
           "omits": [
             "problems"
           ]
-        }
+        },
+        "/result/header/name": "CAVHANZA Nilotinib NILOTINIB NILOTINIB HYPROMELLOSE ACETATE SUCCINATE, UNSPECIFIED BUTYLATED HYDROXYTOLUENE Microcrystalline Cellulose MANNITOL 1-ACETATE CROSPOVIDONE Magnesium Stearate SILICON DIOXIDE STARCH, CORN 15;5 CAVHANZA Nilotinib NILOTINIB NILOTINIB HYPROMELLOSE ACETATE SUCCINATE, UNSPECIFIED BUTYLATED HYDROXYTOLUENE Microcrystalline Cellulose MANNITOL 1-ACETATE CROSPOVIDONE Magnesium Stearate SILICON DIOXIDE STARCH, CORN 15;7"
       },
-      "max_bytes": 1500
+      "max_bytes": 2039
     },
     {
       "run": [

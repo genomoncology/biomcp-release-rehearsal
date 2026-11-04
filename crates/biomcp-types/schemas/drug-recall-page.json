@@ -229,7 +229,7 @@
         },
         "query": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Literal name phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,\nexact names before word matches. Harmonized recall names match but never become display names.",
+          "description": "Search phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,\nexact names before word matches. openFDA labels search exact then word brand/generic names,\nthen label text (including indications) when no names match; source matches need not be exact names.\nHarmonized recall names match but never become display names.",
           "x-positional": 0
         },
         "reason": {

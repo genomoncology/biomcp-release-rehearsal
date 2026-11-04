@@ -34,6 +34,8 @@ impl From<wire::Record> for Record {
             version: p.field("version", row.version),
             effective_time,
             openfda,
+            spl_product_data_elements: p
+                .optional_fields("spl_product_data_elements", row.spl_product_data_elements),
             boxed_warning: p.optional_fields("boxed_warning", row.boxed_warning),
             dosage_and_administration: p
                 .optional_fields("dosage_and_administration", row.dosage_and_administration),

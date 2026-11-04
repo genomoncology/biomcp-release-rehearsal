@@ -1,0 +1,60 @@
+{
+  "projection": "Native identity, harmonized fields and product data only; wrapper request identities use the original native query.",
+  "originals": [
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name.exact%3A%22imatinib%22%20OR%20openfda.generic_name.exact%3A%22imatinib%22&limit=3&sort=effective_time%3Adesc",
+      "sha256": "57b1e7534d003e4246182162fd2469cdf038de39405056f44fc006715e5496da",
+      "status": 404
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22imatinib%22%20OR%20openfda.generic_name%3A%22imatinib%22&limit=3&sort=effective_time%3Adesc",
+      "sha256": "dc3623f0814ef6dd7a506b899659647fe2e6cff3e02d788687cc69fb9c1cb432",
+      "status": 200
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name.exact%3A%22imatinib%22%20OR%20openfda.generic_name.exact%3A%22imatinib%22&limit=10&sort=effective_time%3Adesc",
+      "sha256": "57b1e7534d003e4246182162fd2469cdf038de39405056f44fc006715e5496da",
+      "status": 404
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22imatinib%22%20OR%20openfda.generic_name%3A%22imatinib%22&limit=10&sort=effective_time%3Adesc",
+      "sha256": "d8273b9cd11302ec13af594e99eafceba3af16c5e52407e285be1cc857f68c5d",
+      "status": 200
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name.exact%3A%22imatinib%22%20OR%20openfda.generic_name.exact%3A%22imatinib%22&limit=10&sort=effective_time%3Adesc&skip=10",
+      "sha256": "57b1e7534d003e4246182162fd2469cdf038de39405056f44fc006715e5496da",
+      "status": 404
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22imatinib%22%20OR%20openfda.generic_name%3A%22imatinib%22&limit=10&sort=effective_time%3Adesc&skip=10",
+      "sha256": "5eb9b2ef53820372c4e4bc52009219936c9b76cf9fbefdb67e0c6acd58dbc003",
+      "status": 200
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name.exact%3A%22chronic%20myeloid%20leukemia%22%20OR%20openfda.generic_name.exact%3A%22chronic%20myeloid%20leukemia%22&limit=10&sort=effective_time%3Adesc",
+      "sha256": "57b1e7534d003e4246182162fd2469cdf038de39405056f44fc006715e5496da",
+      "status": 404
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22chronic%20myeloid%20leukemia%22%20OR%20openfda.generic_name%3A%22chronic%20myeloid%20leukemia%22&limit=10&sort=effective_time%3Adesc",
+      "sha256": "57b1e7534d003e4246182162fd2469cdf038de39405056f44fc006715e5496da",
+      "status": 404
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=%22chronic%20myeloid%20leukemia%22&limit=10&sort=effective_time%3Adesc",
+      "sha256": "ead0dc63e23fef63d3707ad723911e5353292e54cecddd38b6f01edb26930a2b",
+      "status": 200
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name.exact%3A%22imatinib%22%20OR%20openfda.generic_name.exact%3A%22imatinib%22&limit=1&sort=effective_time%3Adesc",
+      "sha256": "57b1e7534d003e4246182162fd2469cdf038de39405056f44fc006715e5496da",
+      "status": 404
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22imatinib%22%20OR%20openfda.generic_name%3A%22imatinib%22&limit=1&sort=effective_time%3Adesc",
+      "sha256": "531a09121d2bf791596bb000a6c7e5f47dc15190957f5b62a09a349ac7d33b62",
+      "status": 200
+    }
+  ]
+}

@@ -13,6 +13,7 @@ pub(super) struct Record {
     /// Native YYYYMMDD revision date.
     pub effective_time: Option<Field<String>>,
     pub(super) openfda: Option<Field<Names>>,
+    pub(super) spl_product_data_elements: Option<Field<Vec<Field<NativeText>>>>,
     pub(super) boxed_warning: Option<Field<Vec<Field<String>>>>,
     pub(super) dosage_and_administration: Option<Field<Vec<Field<String>>>>,
     pub(super) drug_interactions: Option<Field<Vec<Field<String>>>>,
