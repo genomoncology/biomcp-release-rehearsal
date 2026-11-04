@@ -13,7 +13,7 @@ fn closed(address: SocketAddr, data: &[u8]) -> Check {
         .map_err(|e| e.to_string())?;
     socket.write_all(data).map_err(|e| e.to_string())?;
     let mut byte = [0];
-    match socket.read(&mut byte) {
+    match super::socket_read::read(&mut socket, &mut byte) {
         Ok(0) => Ok(()),
         Err(e)
             if matches!(
@@ -66,7 +66,7 @@ pub(super) fn check() -> Check {
         .map_err(|e| e.to_string())?;
     server.stop()?;
     let mut byte = [0];
-    match held.read(&mut byte) {
+    match super::socket_read::read(&mut held, &mut byte) {
         Ok(0) => (),
         Err(error) if error.kind() == std::io::ErrorKind::ConnectionReset => (),
         other => return Err(format!("HTTP shutdown retained a client socket: {other:?}")),
@@ -78,6 +78,9 @@ pub(super) fn check() -> Check {
 }
 
 fn slow_header(address: SocketAddr) -> Check {
+    // wire::READ_BUDGET is two seconds from server admission. Start before
+    // connecting so client setup consumes that same budget, not a new one.
+    let connected = Instant::now();
     let mut slow = TcpStream::connect(address).map_err(|e| e.to_string())?;
     // Keep the socket timeout beyond the asserted bound so EOF proves closure.
     // The server budget is two seconds; allow scheduler delay under coverage.
@@ -99,9 +102,10 @@ fn slow_header(address: SocketAddr) -> Check {
         }
     });
     let mut byte = [0];
-    let result = slow.read(&mut byte);
+    let result = super::socket_read::read(&mut slow, &mut byte);
     // Measure the observed read event before stopping and joining the writer.
     let close_elapsed = started.elapsed();
+    let connection_elapsed = connected.elapsed();
     let cleanup_started = Instant::now();
     let _ = stop.send(());
     let _ = slow.shutdown(std::net::Shutdown::Both);
@@ -112,14 +116,38 @@ fn slow_header(address: SocketAddr) -> Check {
         Err(error) => error.kind() == std::io::ErrorKind::ConnectionReset,
         _ => false,
     };
-    if !ended || close_elapsed > Duration::from_secs(8) || joined.is_err() {
+    if !ended
+        || connection_elapsed < Duration::from_secs(2)
+        || close_elapsed > Duration::from_secs(8)
+        || joined.is_err()
+    {
         return Err(format!(
             "slow header deadline: read={result:?}, close_elapsed={close_elapsed:?}, \
-             cleanup_elapsed={cleanup_elapsed:?}, writer_panicked={}",
+             connection_elapsed={connection_elapsed:?}, cleanup_elapsed={cleanup_elapsed:?}, writer_panicked={}",
             joined.is_err()
         ));
     }
     Ok(())
+}
+
+tool_only! {
+pub(super) fn early_close_proof() -> Check {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
+    let address = listener.local_addr().map_err(|e| e.to_string())?;
+    let peer = std::thread::spawn(move || -> std::io::Result<()> {
+        let (mut socket, _) = listener.accept()?;
+        socket.set_read_timeout(Some(Duration::from_secs(4)))?;
+        super::socket_read::read(&mut socket, &mut [0; 1024])?;
+        socket.shutdown(std::net::Shutdown::Both)
+    });
+    let result = slow_header(address);
+    peer.join().map_err(|_| "early-close peer panicked")?
+        .map_err(|e| e.to_string())?;
+    match result {
+        Err(error) if error.starts_with("slow header deadline:") => Ok(()),
+        other => Err(format!("early closing peer was not rejected: {other:?}")),
+    }
+}
 }
 
 fn chunked() -> Check {

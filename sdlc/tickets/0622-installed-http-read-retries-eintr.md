@@ -1,6 +1,7 @@
 # Installed HTTP deadline case retries an interrupted read
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 5afd004f16c24d57be61c8f7bbd60e8278cd6fc0
 Milestone: 5
 
 ## Outcome
