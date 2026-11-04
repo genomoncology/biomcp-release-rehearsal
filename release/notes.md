@@ -21,6 +21,10 @@ The [upgrade table](https://github.com/genomoncology/biomcp/blob/main/sdlc/plann
 - Article downloads use exact file selections and `--save PATH`. Text readers, PDFs and supplements have separate commands. HTTP MCP refuses file saves.
 - Variant normalization uses `--source`, `--hgvs` and explicit builds. Variant source assertions, population and recurrence use their named commands. No source score becomes a clinical classification.
 
+## Added population fields
+
+Variant population replies add source-published `homozygote_count` for exome and genome totals and `joint` AC, AN and homozygote totals. A joint section with `state: empty` means gnomAD supplied no joint data; BioMCP never adds exome and genome counts. `dataset_version` names a release only when matching same-response exome and genome totals independently report the same version. Joint counts have no invented independent release or frequency. Existing counts, filters and ancestry pagination retain their meanings.
+
 ## Hosted use and source terms
 
 Hosted HTTP requests accept `x-biomcp-use: restricted`, `commercial` or `academic`. Missing headers select restricted use. Restricted use admits open and attribution sources and commercially permitted full-text records; caller keys do not enable noncommercial or separately licensed sources. Commercial use also admits a source licensed by the caller's own key. Academic use retains every configured source. Server exclusions always apply. Ordinary CLI and stdio defaults keep every configured source available.

@@ -23,6 +23,7 @@ pub(super) fn variant(value: Option<Field<raw::Variant>>, id: &str) -> Mapped<Op
             variant_id: value.variant_id,
             exome: subset(value.exome, "exome", &mut problems),
             genome: subset(value.genome, "genome", &mut problems),
+            joint: subset(value.joint, "joint", &mut problems),
             va: problems.field("va", value.va).map(|value| Va {
                 exome: cohorts(value.exome, "va.exome", &mut problems),
                 genome: cohorts(value.genome, "va.genome", &mut problems),
@@ -89,6 +90,8 @@ fn subset(
     Some(Subset {
         ac,
         an,
+        homozygote_count: problems
+            .field(&format!("{name}.homozygote_count"), value.homozygote_count),
         filters,
         populations,
     })

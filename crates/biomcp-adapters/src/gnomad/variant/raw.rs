@@ -31,6 +31,8 @@ pub(super) struct Variant {
     pub(super) exome: Option<Field<Subset>>,
     /// Genome observation, absent when source says null.
     pub(super) genome: Option<Field<Subset>>,
+    /// Nullable source-published joint totals.
+    pub(super) joint: Option<Field<Subset>>,
 }
 /// Source VA cohorts, kept separate for each sequencing dataset.
 #[derive(Debug, Deserialize)]
@@ -72,6 +74,8 @@ pub(super) struct Subset {
     pub(super) ac: Option<Field<u64>>,
     /// Source allele number.
     pub(super) an: Option<Field<u64>>,
+    /// Source total homozygote count.
+    pub(super) homozygote_count: Option<Field<u64>>,
     /// Source filters, including an explicitly empty list.
     pub(super) filters: Option<Field<Vec<Field<Text>>>>,
     /// Every group in native source order, including sex-specific groups.

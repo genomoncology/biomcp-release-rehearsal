@@ -93,7 +93,7 @@ impl Registry {
             .get("schema")
             .and_then(Value::as_str)
             .ok_or("schema validation: result requires a string schema identity")?;
-        reject_empty_lists(value, "")?;
+        reject_empty_lists(value, "", id)?;
         reject_nulls(value, "", id)?;
         let validator = self
             .validators
@@ -112,24 +112,56 @@ impl Registry {
     }
 }
 
-fn reject_empty_lists(value: &Value, path: &str) -> Result<(), String> {
+fn reject_empty_lists(value: &Value, path: &str, schema: &str) -> Result<(), String> {
     match value {
         Value::Array(items) => {
-            if items.is_empty() {
+            if items.is_empty() && !gnomad_filters(path, schema) {
                 return Err(format!("product reply contains an empty list at {path}"));
             }
             for (index, item) in items.iter().enumerate() {
-                reject_empty_lists(item, &format!("{path}/{index}"))?;
+                reject_empty_lists(item, &format!("{path}/{index}"), schema)?;
             }
         }
         Value::Object(fields) => {
             for (name, item) in fields {
-                reject_empty_lists(item, &format!("{path}/{name}"))?;
+                let name = name.replace('~', "~0").replace('/', "~1");
+                reject_empty_lists(item, &format!("{path}/{name}"), schema)?;
             }
         }
         _ => {}
     }
     Ok(())
+}
+
+// GnomadCounts.filters preserves supplied [] separately from an absent source field.
+// See gnomad/variant/raw.rs and response/variant_population.rs; other empty lists still fail.
+fn gnomad_filters(path: &str, schema: &str) -> bool {
+    use biomcp_types::{ResponseBody, VariantCard, VariantPage, VariantPopulationResult};
+    let population = if schema == VariantPopulationResult::SCHEMA {
+        if let Some(index) = path
+            .strip_prefix("/result/groups/")
+            .and_then(|p| p.strip_suffix("/filters"))
+        {
+            return index.parse::<usize>().is_ok();
+        }
+        path.strip_prefix("/result/population/data/")
+    } else {
+        let candidates = if schema == VariantCard::SCHEMA {
+            path.strip_prefix("/result/candidates/")
+        } else if schema == VariantPage::SCHEMA {
+            path.strip_prefix("/result/items/")
+        } else {
+            None
+        };
+        candidates
+            .and_then(|p| p.split_once('/'))
+            .filter(|(index, _)| index.parse::<usize>().is_ok())
+            .and_then(|(_, p)| p.strip_prefix("sections/population/data/"))
+    };
+    matches!(
+        population,
+        Some("exome/filters" | "genome/filters" | "joint/data/filters")
+    )
 }
 
 // DiseaseAssociation explicitly preserves a publisher null separately from a missing aggregator.

@@ -1,0 +1,68 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/variant/chr1%3Ag.11796321G%3EA?fields=_id%2Cdbsnp.rsid%2Cdbsnp.gene.symbol%2Cclinvar.variant_id%2Csnpeff.ann%2Cchrom%2Chg19%2Chg38%2Cclingen.caid&assembly=hg38",
+  "exchanges": [
+    {
+      "fetched": 1793813631,
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "_id": "chr1:g.11796321G>A",
+          "_version": 2,
+          "chrom": "1",
+          "clingen": {
+            "caid": "CA170990"
+          },
+          "clinvar": {
+            "_license": "http://bit.ly/2SQdcI0",
+            "variant_id": 3520
+          },
+          "dbsnp": {
+            "_license": "http://bit.ly/2AqoLOc",
+            "gene": {
+              "symbol": "MTHFR"
+            },
+            "rsid": "rs1801133"
+          },
+          "hg38": {
+            "end": 11796321,
+            "start": 11796321
+          },
+          "snpeff": {
+            "_license": "http://bit.ly/2suyRKt",
+            "ann": {
+              "cdna": {
+                "length": "7150",
+                "position": "894"
+              },
+              "cds": {
+                "length": "1971",
+                "position": "665"
+              },
+              "effect": "missense_variant",
+              "feature_id": "NM_005957.4",
+              "feature_type": "transcript",
+              "gene_id": "MTHFR",
+              "genename": "MTHFR",
+              "hgvs_c": "c.665C>T",
+              "hgvs_p": "p.Ala222Val",
+              "protein": {
+                "length": "656",
+                "position": "222"
+              },
+              "putative_impact": "MODERATE",
+              "rank": "5",
+              "total": "12",
+              "transcript_biotype": "protein_coding"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

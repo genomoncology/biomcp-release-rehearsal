@@ -1,0 +1,41 @@
+{
+  "feature": "variant-population",
+  "replay": "variant-population/homozygotes-joint",
+  "live_check": "recorded public source response",
+  "story": "The same source response publishes five independent homozygote and joint counts, with matching exome/genome release metadata.",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "population",
+        "1-11796321-G-A",
+        "--detail",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/dataset": "gnomad_r4",
+        "/result/population/data/exome/homozygote_count": 80805,
+        "/result/population/data/genome/homozygote_count": 6918,
+        "/page/total": 305,
+        "/result/population/data/dataset_version": "4.1.0",
+        "/result/groups/0": {
+          "omits": [
+            "homozygote_count"
+          ]
+        },
+        "/result/population/data/joint/data/ac": 513548,
+        "/result/population/data/joint/data/an": 1613846,
+        "/result/population/data/joint/data/homozygote_count": 87723,
+        "/result/population/data/joint/data/data_type": "joint",
+        "/result/population/data/joint/data": {
+          "omits": [
+            "frequency"
+          ]
+        },
+        "/result/population/data/joint/state": "data"
+      }
+    }
+  ]
+}

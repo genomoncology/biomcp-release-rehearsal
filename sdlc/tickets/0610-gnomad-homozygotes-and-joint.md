@@ -1,6 +1,7 @@
 # gnomAD population shows homozygotes and joint totals
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 16727e1a50c452dba843fea85333483c78bb27a8
 Milestone: 5
 
 ## Outcome

@@ -65,6 +65,7 @@ fn results(registry: &Registry) -> Result<(), String> {
         return Err("unbounded schema identity diagnostic".into());
     }
     nulls()?;
+    gnomad_filters()?;
     Ok(())
 }
 }
@@ -104,6 +105,42 @@ fn nulls() -> Result<(), String> {
             .is_err_and(|error| error.starts_with("product reply contains null at "))
         {
             return Err("runner admitted null outside the explicit association value".into());
+        }
+    }
+    Ok(())
+}
+}
+
+tool_only! {
+fn gnomad_filters() -> Result<(), String> {
+    use biomcp_types::{ResponseBody, VariantCard, VariantPage, VariantPopulationResult};
+    let population = VariantPopulationResult::SCHEMA;
+    let card = VariantCard::SCHEMA;
+    let page = VariantPage::SCHEMA;
+    let unrelated = "fixture.empty-lists/1";
+    let registry = Registry::new([population, card, page, unrelated].into_iter()
+        .map(|id| (id.into(), json!({"$id":id}))).collect())?;
+    for value in [
+        json!({"schema":population,"result":{"population":{"data":{
+            "exome":{"filters":[]},"genome":{"filters":[]},"joint":{"data":{"filters":[]}}
+        }},"groups":[{"filters":[]}]}}),
+        json!({"schema":card,"result":{"candidates":[{"sections":{"population":{"data":{
+            "exome":{"filters":[]}
+        }}}}]}}),
+        json!({"schema":page,"result":{"items":[{"sections":{"population":{"data":{
+            "genome":{"filters":[]}
+        }}}}]}}),
+    ] { registry.validate(&value, &[], true)?; }
+    for value in [
+        json!({"schema":unrelated,"result":{"population":{"data":{"exome":{"filters":[]}}}}}),
+        json!({"schema":population,"result":{"population":{"data":{"exome":{"unrelated":[]}}}}}),
+        json!({"schema":population,"result":{"groups":[]}}),
+        json!({"schema":population,"result/population/data/exome/filters":[]}),
+        json!({"schema":card,"result":{"candidates":[{"filters":[]}]}}),
+    ] {
+        if !registry.validate(&value, &[], true).is_err_and(|error|
+            error.starts_with("product reply contains an empty list at ")) {
+            return Err("runner admitted an empty list outside typed gnomAD filters".into());
         }
     }
     Ok(())

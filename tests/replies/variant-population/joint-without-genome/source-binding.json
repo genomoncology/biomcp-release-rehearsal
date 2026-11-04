@@ -1,0 +1,11 @@
+{
+  "response_sha256": "144e091b9f97e70ac8833369ad1758c92b170206595af5285c90be71f51c204c",
+  "source": "https://gnomad.broadinstitute.org/api",
+  "request": {
+    "query": "query($id:String!){variant(variantId:$id,dataset:gnomad_r4){variant_id exome{ac an homozygote_count filters populations{id ac an}} genome{ac an homozygote_count filters populations{id ac an}} joint{ac an homozygote_count} va{exome{derivedFrom{version} focusAlleleCount locusAlleleCount cohort{id}} genome{derivedFrom{version} focusAlleleCount locusAlleleCount cohort{id}}}}}",
+    "variables": {
+      "id": "7-140753336-A-T"
+    }
+  },
+  "observation": "Source genome is null; source joint AN 1612922 differs from exome AN 1460618. Source homozygote count zero is retained. No source totals are summed."
+}

@@ -2452,6 +2452,15 @@
           ],
           "description": "Complete native group ID, including its source sex suffix when present."
         },
+        "homozygote_count": {
+          "description": "Source-published total homozygote count, never calculated from other counts.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "sex": {
           "anyOf": [
             {
@@ -3994,6 +4003,122 @@
         "exponent"
       ],
       "type": "object"
+    },
+    "Reply_Section_GnomadCounts": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_GnomadCounts",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "Reply_Section_VariantAlphaGenome": {
       "description": "A requested section has exactly one state.",
@@ -7455,6 +7580,17 @@
           "$ref": "#/$defs/Reply_Text",
           "description": "Source dataset selector."
         },
+        "dataset_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Release shared by independently checked exome and genome totals in this response."
+        },
         "exome": {
           "anyOf": [
             {
@@ -7476,6 +7612,14 @@
             }
           ],
           "description": "Genome observation; omitted when the source dataset is null."
+        },
+        "joint": {
+          "$ref": "#/$defs/Reply_Section_GnomadCounts",
+          "default": {
+            "source": "gnomad",
+            "state": "empty"
+          },
+          "description": "Independent source joint totals, or an explicit empty state when none were supplied."
         },
         "variant": {
           "$ref": "#/$defs/Reply_Text",

@@ -1,0 +1,45 @@
+{
+  "feature": "variant-population",
+  "replay": "variant-population/conflicting-release",
+  "live_check": "synthetic response-only control over recorded public source values",
+  "story": "A response-only release-conflict control preserves raw joint counts without inventing a shared release.",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "population",
+        "1-11796321-G-A",
+        "--detail",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/dataset": "gnomad_r4",
+        "/result/population/data/exome/homozygote_count": 80805,
+        "/result/population/data/genome/homozygote_count": 6918,
+        "/page/total": 305,
+        "/result/population/data": {
+          "omits": [
+            "dataset_version"
+          ]
+        },
+        "/problems/*/field": {
+          "includes_all_of": [
+            "joint.dataset_version"
+          ]
+        },
+        "/result/population/data/joint/data/ac": 513548,
+        "/result/population/data/joint/data/an": 1613846,
+        "/result/population/data/joint/data/homozygote_count": 87723,
+        "/result/population/data/joint/data/data_type": "joint",
+        "/result/population/data/joint/data": {
+          "omits": [
+            "frequency"
+          ]
+        },
+        "/result/population/data/joint/state": "data"
+      }
+    }
+  ]
+}

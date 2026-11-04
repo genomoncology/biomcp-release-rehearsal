@@ -131,27 +131,52 @@ pub(super) fn summary(
         );
         Box::new(native)
     };
+    let exome = raw.exome.as_ref().map(|s| {
+        project(
+            s,
+            PopulationDataType::Exomes,
+            raw.va.as_ref().and_then(|v| v.exome.as_ref()),
+            "exome",
+        )
+    });
+    let genome = raw.genome.as_ref().map(|s| {
+        project(
+            s,
+            PopulationDataType::Genomes,
+            raw.va.as_ref().and_then(|v| v.genome.as_ref()),
+            "genome",
+        )
+    });
+    let dataset_version = super::population_release::shared_release(
+        raw,
+        exome.as_deref(),
+        genome.as_deref(),
+        problems,
+    );
     Ok(VariantPopulation {
         variant: raw.variant_id.clone(),
         dataset: text(gnomad::variant::DATASET)?,
         build: Build::GRCh38,
-        exome: raw.exome.as_ref().map(|s| {
-            project(
-                s,
-                PopulationDataType::Exomes,
-                raw.va.as_ref().and_then(|v| v.exome.as_ref()),
-                "exome",
-            )
-        }),
-        genome: raw.genome.as_ref().map(|s| {
-            project(
-                s,
-                PopulationDataType::Genomes,
-                raw.va.as_ref().and_then(|v| v.genome.as_ref()),
-                "genome",
-            )
-        }),
+        dataset_version,
+        exome,
+        genome,
+        joint: joint(raw, problems),
     })
+}
+fn joint(raw: &gnomad::variant::Variant, problems: &[Problem]) -> Section<Box<GnomadCounts>> {
+    match &raw.joint {
+        Some(subset) => Section::Data {
+            source: Source::Gnomad,
+            data: Box::new(counts(subset, PopulationDataType::Joint, None)),
+        },
+        None if problems.iter().any(|p| p.field.as_ref() == "joint") => {
+            Section::unavailable(Source::Gnomad, Reason::BadReply)
+        }
+        None => Section::Empty {
+            source: Source::Gnomad,
+            record: None,
+        },
+    }
 }
 pub(super) fn counts(
     raw: &gnomad::variant::Subset,
@@ -167,6 +192,11 @@ pub(super) fn counts(
         sex,
         ac: group.map_or(raw.ac, |g| g.ac),
         an: group.map_or(raw.an, |g| g.an),
+        homozygote_count: if group.is_none() {
+            raw.homozygote_count
+        } else {
+            None
+        },
         filters: raw.filters.clone().map(Into::into),
     }
 }
