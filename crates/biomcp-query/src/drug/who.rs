@@ -15,13 +15,10 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         })
         .with_query(query.clone()),
     );
-    let Some(name) = query.query() else {
-        return super::unsupported(query.source(), out);
-    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&who_pq::SPEC, deadline).fresh(cx.fresh);
-    let result = who_pq::search(&leg, name.as_str());
+    let result = who_pq::search(&leg, query);
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
     out.sources

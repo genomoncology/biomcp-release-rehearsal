@@ -82,7 +82,7 @@ diagnostic-pma: Read an exact native FDA base or supplement and page its own reg
 pgx-retirements: Refuse retired PGx spellings and unsupported source pairings before requests without rewriting queries or inferring phase.
 diagnostic-510k: Retrieve one exact native FDA clearance with source-owned identity, native decision fields and companion-table navigation.
 diagnostic-retirements: Retired diagnostic spellings return fixed supported routes before any source request.
-drug-who-medicines: Explicit WHO finished-product sync publishes a validated local bundle; explicit source reads preserve native prequalification rows without downloading.
+drug-who-medicines: Explicit WHO finished-product sync publishes a validated local bundle; explicit source reads preserve native prequalification rows without downloading, with optional name and inclusive year, month or day date ranges and date-only results newest first.
 vaers-summary: Read explicit supported vaccine aggregate tables without inferring individual risks or silently changing sources.
 diagnostic-who-search: Search stored WHO product headers by literal marker and manufacturer words.
 mcp-research: Search citable source headers and fetch the same CLI record through research compatibility tools.

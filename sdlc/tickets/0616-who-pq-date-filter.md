@@ -1,6 +1,7 @@
 # WHO prequalification search filters by date, with the name optional
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 73474e29814a326a1390fc2b18b3fbda9927b497
 Milestone: 5
 
 ## Outcome

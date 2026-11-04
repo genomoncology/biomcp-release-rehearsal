@@ -15,13 +15,15 @@ pub use fda::{
 };
 mod query;
 mod response;
+mod search;
 mod source;
-pub use query::{DrugGet, DrugSearch, DrugSection};
+pub use query::{DrugGet, DrugSection};
 pub use response::{
     DrugApprovals, DrugCard, DrugCivic, DrugHeader, DrugIndications, DrugInteractions, DrugLabel,
     DrugLabelFragment, DrugLabelText, DrugNameResolution, DrugPage, DrugRecords, DrugRegulatory,
     DrugTargets, DrugXrefs,
 };
+pub use search::DrugSearch;
 
 pub use source::DrugSource;
 

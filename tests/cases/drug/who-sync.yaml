@@ -32,6 +32,40 @@
         "/result/bytes": 562
       },
       "max_bytes": 175
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "Trastuzumab",
+        "--source",
+        "who-pq"
+      ],
+      "expect": {
+        "/page/total": 2,
+        "/result/items/1/reference": "BT-ON002",
+        "/result/items/1/date_of_prequalification": ""
+      },
+      "max_bytes": 4000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "Trastuzumab",
+        "--source",
+        "who-pq",
+        "--prequalified-from",
+        "2019",
+        "--prequalified-to",
+        "2019"
+      ],
+      "expect": {
+        "/page/total": 1,
+        "/result/items/0/reference": "BT-ON001",
+        "/result/items/0/date_of_prequalification": "18  Dec,  2019"
+      },
+      "max_bytes": 3000
     }
   ]
 }

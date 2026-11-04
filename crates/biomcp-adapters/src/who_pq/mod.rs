@@ -42,14 +42,63 @@ pub fn sync(fetch: &Fetch) -> Result<crate::Mapped<biomcp_types::SyncResult>, Re
         .sync_set(&SET)
         .map(|info| crate::mapped::bundle_sync(SPEC.source, info))
 }
-/// Literal whole-word matches in native order; read never downloads or resolves synonyms.
-pub fn search(leg: &Leg<'_>, text: &str) -> Result<Vec<DrugWhoRow>, RequestError> {
-    let (rows, _) = leg.stored_set_rows(&SET, Find::Words(text))?;
-    Ok(rows
+/// Literal whole-word names and inclusive native dates; read never downloads or resolves synonyms.
+pub fn search(
+    leg: &Leg<'_>,
+    query: &biomcp_types::DrugSearch,
+) -> Result<Vec<DrugWhoRow>, RequestError> {
+    let find = query.query().map_or(Find::Prefix(KeyKind::Id, ""), |name| {
+        Find::Words(name.as_str())
+    });
+    let (rows, _) = leg.stored_set_rows(&SET, find)?;
+    let from = query.prequalified_from();
+    let to = query.prequalified_to();
+    let mut rows: Vec<_> = rows
         .into_iter()
-        .filter(|row| row.value.matches(text))
-        .map(|row| row.value.into())
-        .collect())
+        .filter_map(|row| {
+            let row = row.value;
+            if query
+                .query()
+                .is_some_and(|name| !row.matches(name.as_str()))
+            {
+                return None;
+            }
+            let date = row.prequalified_date();
+            if (from.is_some() || to.is_some())
+                && !date.is_ok_and(|date| {
+                    let key = (
+                        date.year(),
+                        date.month().unwrap_or(1),
+                        date.day().unwrap_or(1),
+                    );
+                    from.is_none_or(|bound| {
+                        key >= (
+                            bound.year(),
+                            bound.month().unwrap_or(1),
+                            bound.day().unwrap_or(1),
+                        )
+                    }) && to.is_none_or(|bound| {
+                        key <= (
+                            bound.year(),
+                            bound.month().unwrap_or(12),
+                            bound.day().unwrap_or(31),
+                        )
+                    })
+                })
+            {
+                return None;
+            }
+            Some((date, row))
+        })
+        .collect();
+    if query.query().is_none() {
+        rows.sort_by_key(|(date, _)| {
+            std::cmp::Reverse(
+                date.map_or(None, |date| Some((date.year(), date.month(), date.day()))),
+            )
+        });
+    }
+    Ok(rows.into_iter().map(|(_, row)| row.into()).collect())
 }
 /// Exact case-sensitive native reference, preserving spaces and all native cells.
 pub fn get(

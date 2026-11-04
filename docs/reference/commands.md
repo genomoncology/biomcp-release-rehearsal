@@ -116,7 +116,7 @@ Commands:
   diagnostic     Search five source records by default. FDA device recalls cover every medical device; totals count recall records, without harm inference.
   adverse-event  Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.
   disease        Literal discovery text or an explicit SEER catalog page.
-  drug           Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. Other sources require a name.
+  drug           Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. WHO prequalification accepts a name or date range. Other sources require a name.
   gene           Search genes by text, cytoband, or their intersection.
   article        Checked search selectors and pool cursor.
   trial          Search ClinicalTrials.gov or keyed NCI with native counts. NCI --facility matches exact organization names; a listed site is not necessarily enrolling.
@@ -1139,13 +1139,13 @@ Exact discovery text or an explicit SEER catalog page. Sources: monarch, mydisea
 ## biomcp search drug
 
 ```text
-Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. Other sources require a name.
+Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. WHO prequalification accepts a name or date range. Other sources require a name.
 
 Usage: biomcp search drug [OPTIONS] [query]
 
 Arguments:
   [query]
-          Search phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,
+          Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,
           exact names before word matches. openFDA labels search exact then word brand/generic names,
           then label text (including indications) when no names match; source matches need not be exact names.
           Harmonized recall names match but never become display names.
@@ -1187,8 +1187,8 @@ Options:
       --offset <offset>
           Native rows to skip.
 
-      --reason <reason>
-          Phrase in the published recall reason; drug recalls only.
+      --prequalified-from <prequalified_from>
+          Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
 
       --offline[=<offline>]
           Read local data without source requests.
@@ -1196,14 +1196,20 @@ Options:
           [default: false]
           [possible values: true, false]
 
-      --source <source>
-          Exactly one source; default MyChem never fans out.
+      --prequalified-to <prequalified_to>
+          Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
 
       --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
+
+      --reason <reason>
+          Phrase in the published recall reason; drug recalls only.
+
+      --source <source>
+          Exactly one source; default MyChem never fans out.
 
       --status <status>
           Literal native recall status; drug recalls only.
@@ -1219,7 +1225,9 @@ Search one drug source. Sources: chembl, civic, ddinter, drugsfda, ema, fda-drug
 - `--limit`: Source candidate rows per page.
 - `--name-selector`: Explicit ChEMBL source name selector; omitted means preferred name.
 - `--offset`: Source rows to skip.
-- `query`: Search phrase; optional for FDA drug recalls. Drugs@FDA searches brands and ingredients,
+- `--prequalified-from`: Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+- `--prequalified-to`: Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+- `query`: Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,
 exact names before word matches. openFDA labels search exact then word brand/generic names,
 then label text (including indications) when no names match; source matches need not be exact names.
 Harmonized recall names match but never become display names.

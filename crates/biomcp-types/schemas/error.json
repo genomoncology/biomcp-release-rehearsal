@@ -97,6 +97,7 @@
         "organization search is too broad; narrow --name, --city, --state, --country, --postal-code, --family or --lat/--lon/--distance",
         "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first",
         "--p-value threshold must be a positive probability in scientific notation",
+        "WHO PQ search requires a name or --prequalified-from/--prequalified-to date range",
         "choose one of the source selector values",
         "a selected source does not support the requested filters",
         "citation ordering exceeds the PMID limit; narrow the search",
