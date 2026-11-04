@@ -33,3 +33,7 @@ pub(super) fn describe(mut command: Command) -> Command {
     }
     command
 }
+
+/// Source-specific replacement filters; error formatting consumes this declaration.
+pub(super) const FILTER_EQUIVALENTS: &[(&str, &str, &str, &str, &str)] =
+    &[("search", "diagnostic", "fda-cdx", "gene", "biomarker")];

@@ -140,3 +140,204 @@ pub(super) fn checked_invalid(
         usage,
     }
 }
+
+/// Derive source/filter compatibility from the same checked constructors as execution.
+pub(super) fn source_filter(
+    via: biomcp_types::Rewrite,
+    verb: &str,
+    entity: &str,
+    value: &serde_json::Value,
+    cause: &biomcp_types::QueryInvalid,
+) -> Option<super::ParseInvalid> {
+    if !cause
+        .arguments()
+        .iter()
+        .any(|name| name.as_ref() == "source")
+    {
+        return None;
+    }
+    let schema = super::validation::schema(verb, entity)?;
+    let properties = schema.get("properties")?;
+    let selected = selected_sources(value, &schema)?;
+    for name in cause
+        .arguments()
+        .iter()
+        .map(AsRef::as_ref)
+        .filter(|name| *name != "source")
+    {
+        if properties
+            .get(name)
+            .is_none_or(|property| property.get("x-positional").is_some())
+        {
+            continue;
+        }
+        let Some(filter_value) = value.get(name) else {
+            continue;
+        };
+        let valid = accepting_sources(via, (verb, entity), value, &schema, name)?;
+        if valid.is_empty()
+            || selected
+                .iter()
+                .all(|source| valid.iter().any(|candidate| candidate.as_str() == *source))
+        {
+            continue;
+        }
+        let equivalent = super::metadata::FILTER_EQUIVALENTS
+            .iter()
+            .find(|(v, e, s, from, _)| {
+                (*v, *e, *from) == (verb, entity, name) && selected.as_slice() == [*s]
+            });
+        let next = if let Some((_, _, _, _, replacement)) = equivalent {
+            let mut corrected = value.clone();
+            corrected.as_object_mut()?.remove(name);
+            corrected
+                .as_object_mut()?
+                .insert((*replacement).into(), filter_value.clone());
+            replacement_step(verb, entity, &schema, &corrected)?
+        } else {
+            super::validation::help([verb, entity])
+        };
+        return Some(super::ParseInvalid {
+            argument: None,
+            usage: Some(UsageError::Arguments(UsageArguments {
+                argument: Some(format!("--{}", name.replace('_', "-")).into()),
+                message: cause
+                    .message()
+                    .or(Some(biomcp_types::ErrorMessage::UnsupportedFilter)),
+                valid_values: Some(valid.into()),
+                next: vec![next],
+            })),
+        });
+    }
+    None
+}
+
+fn selected_sources<'a>(
+    value: &'a serde_json::Value,
+    schema: &'a serde_json::Value,
+) -> Option<Vec<&'a str>> {
+    let source = value
+        .get("source")
+        .or_else(|| schema.get("properties")?.get("source")?.get("default"))?;
+    let values = source
+        .as_array()
+        .map_or_else(|| std::slice::from_ref(source), Vec::as_slice);
+    values.iter().map(serde_json::Value::as_str).collect()
+}
+
+fn accepting_sources(
+    via: biomcp_types::Rewrite,
+    path: (&str, &str),
+    value: &serde_json::Value,
+    schema: &serde_json::Value,
+    name: &str,
+) -> Option<Vec<biodata::Text>> {
+    let sources = super::validation::accepted(schema, schema.get("properties")?.get("source")?)?;
+    Some(
+        sources
+            .iter()
+            .filter(|source| {
+                accepts_filter(via, path, value, schema, name, source.as_str()).unwrap_or(false)
+            })
+            .cloned()
+            .collect(),
+    )
+}
+
+// Remove only other filters a candidate source rejects. Keep positional operands
+// and dependent filters, so the owning constructor remains the compatibility rule.
+fn accepts_filter(
+    via: biomcp_types::Rewrite,
+    path: (&str, &str),
+    value: &serde_json::Value,
+    schema: &serde_json::Value,
+    name: &str,
+    source: &str,
+) -> Option<bool> {
+    let mut isolated = value.as_object()?.clone();
+    let source = if value.get("source").is_some_and(serde_json::Value::is_array)
+        || super::property_type(schema.get("properties")?.get("source")?) == Some("array")
+    {
+        serde_json::Value::Array(vec![source.into()])
+    } else {
+        source.into()
+    };
+    isolated.insert("source".into(), source);
+    loop {
+        let Err(cause) = super::rewrite::request(
+            via,
+            path.0,
+            path.1,
+            serde_json::Value::Object(isolated.clone()),
+        ) else {
+            return Some(true);
+        };
+        if !cause
+            .arguments()
+            .iter()
+            .any(|name| name.as_ref() == "source")
+        {
+            return Some(false);
+        }
+        let mut removed = false;
+        for other in cause.arguments().iter().map(AsRef::as_ref) {
+            if other == name
+                || other == "source"
+                || schema
+                    .get("properties")?
+                    .get(other)
+                    .is_none_or(|property| property.get("x-positional").is_some())
+                || schema
+                    .get("required")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some_and(|required| {
+                        required.iter().any(|value| value.as_str() == Some(other))
+                    })
+            {
+                continue;
+            }
+            removed |= isolated.remove(other).is_some();
+        }
+        if !removed {
+            return Some(false);
+        }
+    }
+}
+
+fn replacement_step(
+    verb: &str,
+    entity: &str,
+    schema: &serde_json::Value,
+    value: &serde_json::Value,
+) -> Option<biomcp_types::Step> {
+    let mut args: Vec<Box<str>> = vec![verb.into(), entity.into()];
+    let properties = schema.get("properties")?.as_object()?;
+    for (name, property) in properties {
+        if property.get("x-positional").is_some()
+            && let Some(value) = value.get(name).and_then(serde_json::Value::as_str)
+        {
+            args.push(value.into());
+        }
+    }
+    for (name, value) in value.as_object()? {
+        if properties.get(name)?.get("x-positional").is_some() {
+            continue;
+        }
+        let values = value
+            .as_array()
+            .map_or_else(|| vec![value], |values| values.iter().collect());
+        for value in values {
+            args.push(format!("--{}", name.replace('_', "-")).into());
+            args.push(
+                value
+                    .as_str()
+                    .map_or_else(|| value.to_string(), str::to_owned)
+                    .into(),
+            );
+        }
+    }
+    Some(biomcp_types::Step {
+        kind: biomcp_types::StepKind::Configure,
+        args: args.into(),
+    })
+}

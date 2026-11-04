@@ -9,6 +9,7 @@ mod metadata;
 mod tree;
 pub(crate) use tree::Root;
 mod validation;
+pub(crate) use arguments::boolean_argument;
 use arguments::command_for;
 mod gwas;
 mod local;
@@ -112,7 +113,7 @@ fn global_arguments() -> Command {
         );
     }
     for name in ["offline", "fresh"] {
-        root = root.arg(
+        root = root.arg(boolean_argument(
             Arg::new(name)
                 .long(name)
                 .help(if name == "offline" {
@@ -121,9 +122,8 @@ fn global_arguments() -> Command {
                     "Request fresh source data instead of cached replies."
                 })
                 .global(true)
-                .action(ArgAction::SetTrue)
                 .overrides_with(name),
-        );
+        ));
     }
     root
 }
@@ -175,7 +175,12 @@ fn scan_command_words<'a>(
         }
         let takes_value = argument.is_some_and(|arg| arg.get_action().takes_values());
         words.next();
-        if takes_value && !inline {
+        if !inline
+            && (takes_value
+                || argument.is_some_and(|argument| {
+                    arguments::boolean_value(argument, words.peek().copied())
+                }))
+        {
             words.next();
         }
     }
@@ -247,6 +252,7 @@ pub(crate) struct ParseInvalid {
 }
 pub(crate) fn parse(root: &Command, args: &[OsString]) -> Result<Parsed, ParseInvalid> {
     let args = entry::arguments(args, root);
+    let args = arguments::boolean_literals(&args, root);
     let matches = root
         .clone()
         .try_get_matches_from(std::iter::once(OsString::from("biomcp")).chain(args))
@@ -292,8 +298,7 @@ pub(crate) fn parse(root: &Command, args: &[OsString]) -> Result<Parsed, ParseIn
         }
     } else {
         let (entity, matches) = matches.subcommand().ok_or_else(ParseInvalid::default)?;
-        let request = request(verb, entity, matches)
-            .map_err(|cause| errors::checked_invalid(verb, entity, &cause))?;
+        let request = request(verb, entity, matches)?;
         Action::Run {
             request,
             fresh: globals.fresh,
@@ -317,6 +322,7 @@ pub(crate) fn presentation(
 ) -> Option<(Option<Format>, Option<PathBuf>)> {
     let parser = root.clone().ignore_errors(true);
     let args = entry::arguments(args, &parser);
+    let args = arguments::boolean_literals(&args, &parser);
     let matches = parser
         .try_get_matches_from(std::iter::once(OsString::from("biomcp")).chain(args))
         .ok()?;
@@ -383,8 +389,8 @@ fn arguments(matches: &clap::ArgMatches, schema: &Value) -> Result<Value, ParseI
             continue;
         }
         if property_type(property) == Some("boolean") {
-            if matches.get_flag(name) {
-                result.insert(name.clone(), Value::Bool(true));
+            if matches.value_source(name) == Some(clap::parser::ValueSource::CommandLine) {
+                result.insert(name.clone(), Value::Bool(matches.get_flag(name)));
             }
             continue;
         }
@@ -492,18 +498,16 @@ fn split_sections(result: &mut Map<String, Value>, schema: &Value) -> Result<(),
     Ok(())
 }
 
-fn request(
-    verb: &str,
-    entity: &str,
-    matches: &clap::ArgMatches,
-) -> Result<Request, biomcp_types::QueryInvalid> {
-    let value = request_arguments(verb, entity, matches)
-        .map_err(|_| biomcp_types::QueryInvalid::default())?;
+fn request(verb: &str, entity: &str, matches: &clap::ArgMatches) -> Result<Request, ParseInvalid> {
+    let value = request_arguments(verb, entity, matches)?;
     let command = biomcp_types::COMMANDS
         .iter()
         .find(|command| (command.verb, command.entity) == (verb, entity))
-        .ok_or_else(biomcp_types::QueryInvalid::default)?;
-    rewrite::request(command.via, verb, entity, value)
+        .ok_or_else(ParseInvalid::default)?;
+    rewrite::request(command.via, verb, entity, value.clone()).map_err(|cause| {
+        errors::source_filter(command.via, verb, entity, &value, &cause)
+            .unwrap_or_else(|| errors::checked_invalid(verb, entity, &cause))
+    })
 }
 
 fn request_arguments(

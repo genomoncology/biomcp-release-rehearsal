@@ -4,10 +4,10 @@ pub(super) fn serve_command() -> Command {
     Command::new("serve")
         .after_help("Example: biomcp serve\nExample: biomcp help serve")
         .arg(
-            Arg::new("hosted")
+            super::boolean_argument(Arg::new("hosted")
                 .long("hosted")
                 .help("Refuse host file saves, health details and store or key changes over MCP.")
-                .action(ArgAction::SetTrue),
+                ),
         )
         .arg(
             Arg::new("rate-share")
@@ -115,10 +115,10 @@ pub(super) fn housekeeping_commands() -> [Command; 3] {
         Command::new("version").after_help("Example: biomcp version")
             .about("Print version; --verbose adds build, schema and path provenance. No source requests or key reads.")
             .arg(
-                Arg::new("verbose")
+                super::boolean_argument(Arg::new("verbose")
                     .long("verbose")
                     .help("Include commit, target, schema versions, config and cache paths.")
-                    .action(ArgAction::SetTrue),
+                    ),
             ),
         Command::new("mcp-config").after_help("Example: biomcp mcp-config")
             .about(

@@ -120,7 +120,7 @@ housekeeping: Print build provenance and ready-to-paste local MCP configuration 
 store-coexistence: Allowed bundle reads import only names missing from the current generation through a verified atomic transfer, preserve both files, and retain current published bundles on conflicts.
 agent-skill: Agents read case-backed guidance and install managed guidance only inside an explicit directory.
 variant-alphagenome: Read independently paged native scoring groups for one source-resolved GRCh38 variant with the caller's required key.
-query-validation: A caller sees argument names for typed input failures, conflicting fields and invalid ranges without rejected values.
+query-validation: A caller sees argument identities and accepted forms for input failures, accepting sources and declared replacements for incompatible filters, and optional true or false values for boolean flags.
 local-file-persistence: Create private Unix cache files and update symlinked credential configuration targets while retaining field order.
 diagnostic-device-recall: Search native device recall records, inspect exact recall numbers and follow product codes to MAUDE without inferring harm.
 organization-nci: Find source-native NCI organizations with bounded snapshots and local paging.

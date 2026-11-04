@@ -1,6 +1,6 @@
 //! Human-only credential registration; no credential enters a command argument.
 use biomcp_fetch::SecretName;
-use clap::{Arg, ArgAction};
+use clap::Arg;
 use serde_json::{Value, json};
 use std::io::{self, BufRead, IsTerminal};
 
@@ -38,12 +38,11 @@ pub(crate) fn grammar() -> clap::Command {
             clap::Command::new("set")
                 .after_help("Example: biomcp key set oncokb")
                 .arg(source())
-                .arg(
+                .arg(crate::grammar::boolean_argument(
                     Arg::new("replace")
                         .long("replace")
-                        .help("Replace an existing stored credential.")
-                        .action(ArgAction::SetTrue),
-                ),
+                        .help("Replace an existing stored credential."),
+                )),
         )
         .subcommand(
             clap::Command::new("remove")

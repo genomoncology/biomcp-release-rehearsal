@@ -2,6 +2,21 @@
 use super::{gwas, properties, property_type};
 use clap::{Arg, ArgAction, Command, builder::TypedValueParser};
 use serde_json::Value;
+/// Shared literal semantics for actual booleans; fixed-value enum switches opt out.
+pub(crate) fn boolean_argument(argument: Arg) -> Arg {
+    argument
+        .action(ArgAction::SetTrue)
+        .num_args(0..=1)
+        .require_equals(true)
+        .default_missing_value("true")
+}
+
+pub(super) fn boolean_value(argument: &Arg, value: Option<&std::ffi::OsString>) -> bool {
+    matches!(argument.get_action(), ArgAction::SetTrue)
+        && argument.is_require_equals_set()
+        && value.is_some_and(|value| matches!(value.to_str(), Some("true" | "false")))
+}
+
 pub(super) fn command_for(
     name: &'static str,
     schema: &Value,
@@ -60,7 +75,7 @@ pub(super) fn command_for(
             };
         }
         command = command.arg(if property_type(property) == Some("boolean") {
-            argument.action(ArgAction::SetTrue)
+            boolean_argument(argument)
         } else {
             value_argument(argument, property)
         });
@@ -144,4 +159,51 @@ impl TypedValueParser for QueryValueParser {
         }
         Ok(value)
     }
+}
+
+/// Optional boolean literals are consumed only when they are exactly true or false.
+pub(super) fn boolean_literals(
+    args: &[std::ffi::OsString],
+    root: &Command,
+) -> Vec<std::ffi::OsString> {
+    let mut result = Vec::new();
+    let mut command = root;
+    let mut words = args.iter().peekable();
+    while let Some(word) = words.next() {
+        let Some(text) = word.to_str() else {
+            result.push(word.clone());
+            continue;
+        };
+        if text == "--" {
+            result.push(word.clone());
+            result.extend(words.cloned());
+            break;
+        }
+        if let Some(child) = command.find_subcommand(text) {
+            command = child;
+        }
+        let argument =
+            super::entry::argument(command, text).or_else(|| super::entry::argument(root, text));
+        if let Some((argument, inline)) = argument {
+            if !inline && boolean_value(argument, words.peek().copied()) {
+                let value = words
+                    .next()
+                    .and_then(|value| value.to_str())
+                    .unwrap_or_default();
+                result.push(format!("{text}={value}").into());
+                continue;
+            }
+            result.push(word.clone());
+            if !inline
+                && argument.get_action().takes_values()
+                && !argument.is_require_equals_set()
+                && let Some(value) = words.next()
+            {
+                result.push(value.clone());
+            }
+            continue;
+        }
+        result.push(word.clone());
+    }
+    result
 }

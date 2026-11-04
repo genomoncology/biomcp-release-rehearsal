@@ -1,7 +1,7 @@
 //! Embedded, case-backed agent guidance with explicit local installation.
 mod install;
 mod status;
-use clap::{Arg, ArgAction, Command};
+use clap::{Arg, Command};
 use std::{io, path::PathBuf};
 pub(super) const ASSETS: &[(&str, &str)] = include!(concat!(env!("OUT_DIR"), "/skills.rs"));
 #[derive(Debug)]
@@ -33,7 +33,7 @@ pub(crate) fn grammar() -> Command {
             .about("Install into DIR/skills/biomcp; a skills or biomcp directory is accepted directly. \
             Existing files remain unchanged without --force.")
             .arg(directory())
-            .arg(Arg::new("force").long("force").action(ArgAction::SetTrue).help("Repair managed files; retain unrelated files.")))
+            .arg(crate::grammar::boolean_argument(Arg::new("force").long("force").help("Repair managed files; retain unrelated files."))))
         .allow_external_subcommands(true)
 }
 pub(crate) fn parse(matches: &clap::ArgMatches) -> Option<Skill> {

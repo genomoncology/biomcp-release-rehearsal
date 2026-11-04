@@ -1,0 +1,175 @@
+{
+  "feature": "query-validation",
+  "live_check": "synthetic",
+  "story": "Source-incompatible filters name accepting sources and a declared replacement, while invalid source values keep their own identity.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "pump",
+        "--source",
+        "maude",
+        "--reaction",
+        "Headache"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--reaction",
+        "/error/valid_values": [
+          "faers"
+        ],
+        "/next/0/args": [
+          "help",
+          "search",
+          "adverse-event"
+        ],
+        "/error/message": "a selected source does not support the requested filters"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "artemether",
+        "--source",
+        "who-pq",
+        "--initiated-from",
+        "2026-01-01"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--initiated-from",
+        "/error/valid_values": [
+          "fda-drug-recall"
+        ],
+        "/next/0/args": [
+          "help",
+          "search",
+          "drug"
+        ],
+        "/error/message": "a selected source does not support the requested filters"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-cdx",
+        "--gene",
+        "BRAF"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--gene",
+        "/error/valid_values": [
+          "gtr"
+        ],
+        "/next/0/args": [
+          "search",
+          "diagnostic",
+          "--biomarker",
+          "BRAF",
+          "--source",
+          "fda-cdx"
+        ],
+        "/error/message": "a selected source does not support the requested filters"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "gtr",
+        "--gene",
+        "BRAF",
+        "--marker",
+        "malaria"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--marker",
+        "/error/valid_values": [
+          "who-ivd"
+        ],
+        "/next/0/args": [
+          "help",
+          "search",
+          "diagnostic"
+        ],
+        "/error/message": "a selected source does not support the requested filters"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "pathway",
+        "--source",
+        "wikipathways",
+        "--gene",
+        "BRAF"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--gene",
+        "/error/valid_values": [
+          "reactome"
+        ],
+        "/next/0/args": [
+          "help",
+          "search",
+          "pathway"
+        ],
+        "/error/message": "a selected source does not support the requested filters"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "pathway",
+        "--source",
+        "reactome,wikipathways",
+        "--top-level"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--top-level",
+        "/error/valid_values": [
+          "reactome"
+        ],
+        "/next/0/args": [
+          "help",
+          "search",
+          "pathway"
+        ],
+        "/error/message": "a selected source does not support the requested filters"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "biomarker",
+        "--source",
+        "gtr",
+        "--name",
+        "BRAF"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--source",
+        "/error/valid_values": [
+          "nci"
+        ]
+      }
+    }
+  ]
+}
