@@ -4,6 +4,8 @@ pub mod get;
 mod raw;
 mod receive;
 mod scope;
+mod studies;
+pub use studies::{Studies, studies};
 mod search;
 use crate::quotas;
 use biodata::VariantId;

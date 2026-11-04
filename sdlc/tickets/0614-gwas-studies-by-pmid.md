@@ -1,6 +1,7 @@
 # GWAS studies are found from their paper, and large association pages finish
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 620c4aebdc7fcbcf96952791076a84e904327412
 Milestone: 5
 
 ## Outcome

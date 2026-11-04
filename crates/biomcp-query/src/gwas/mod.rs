@@ -5,6 +5,7 @@ mod get;
 pub(crate) mod map;
 pub(crate) use get::get;
 mod next;
+mod studies;
 mod threshold;
 use crate::{Ctx, Outcome, status};
 use biomcp_adapters::gwas;
@@ -14,6 +15,9 @@ use biomcp_types::{
 };
 /// One bounded native page; no per-hit metadata calls.
 pub(crate) fn search(cx: &Ctx<'_>, q: &GwasSearch) -> Outcome {
+    if q.studies() {
+        return studies::search(cx, q);
+    }
     if q.p_value().is_some() {
         return threshold::search(cx, q);
     }

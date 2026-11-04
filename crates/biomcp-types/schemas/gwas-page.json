@@ -464,6 +464,10 @@
           "$ref": "#/$defs/Reply_Pmid",
           "description": "Exact source publication identity."
         },
+        "studies": {
+          "description": "Return study records for the selected publication instead of associations.",
+          "type": "boolean"
+        },
         "study": {
           "$ref": "#/$defs/Reply_GwasStudyId",
           "description": "Exact source study accession."

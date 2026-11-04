@@ -220,3 +220,31 @@ pub enum GwasPageQuery {
     /// Exact study associations relation.
     Get(GwasGet),
 }
+
+/// One publication's native study page, without inferred clinical meaning.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct GwasStudyPage {
+    /// Source study records and their native association totals.
+    pub items: Box<[GwasStudyRow]>,
+    /// Native study page scope and total.
+    pub page: PageInfo,
+    /// Same publication and study result mode.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub continuation: Option<GwasSearch>,
+}
+impl ResponseBody for GwasStudyPage {
+    const SCHEMA: &'static str = "biomcp.gwas-study-page/1";
+    type Query = GwasSearch;
+}
+/// Source study metadata and the count from its association page.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct GwasStudyRow {
+    /// The same source metadata returned by an exact study lookup.
+    #[serde(flatten)]
+    pub study: GwasStudy,
+    /// Catalog association total; absent when the count request fails.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_count: Option<u64>,
+}

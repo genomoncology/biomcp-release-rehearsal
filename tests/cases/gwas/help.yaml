@@ -18,7 +18,8 @@
             "--p-value",
             "--limit",
             "--offset",
-            "--pool"
+            "--pool",
+            "--studies"
           ]
         },
         "/result/commands/0/command": [
@@ -31,7 +32,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 3775,
+      "max_bytes": 4500,
       "run": [
         "help",
         "search",

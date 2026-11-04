@@ -1,7 +1,7 @@
 //! Exact native identities and independent bounded context collections.
 use biomcp_fetch::Input;
 mod raw;
-mod study;
+pub(super) mod study;
 use super::{SPEC, raw::Association};
 use biodata::{GwasAssociationId, GwasStudyId};
 use biomcp_fetch::{BadReply, Freshness, Leg, Reply, RequestError};

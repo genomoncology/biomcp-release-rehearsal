@@ -121,9 +121,9 @@ quotas! {
     /// search; retain conservative local ceiling.
     HOTSPOTS = Quota::new(SourceKey::declare("hotspots"), Rate::per_second(1), None, 1);
 
-    /// Checked 2026-11-01: https://www.ebi.ac.uk/gwas/docs/programmatic-access/rest-api/ . Published per-IP limits: 100 per minute AND 15 per second. Space
-    /// 100/minute evenly without bursts to respect both.
-    GWAS = Quota::new(SourceKey::declare("gwas"), Rate::per_period(100, 60), None, 1);
+    /// Checked 2026-11-04: https://www.ebi.ac.uk/gwas/docs/programmatic-access/rest-api/ . Published per-IP limits: 100 per minute AND 15 per second. Space
+    /// 100/minute evenly without bursts to respect both. Allow five bounded page reads to overlap so slow replies do not serialize a result window.
+    GWAS = Quota::new(SourceKey::declare("gwas"), Rate::per_period(100, 60), None, 5);
 
     /// Checked 2026-11-01: https://www.ebi.ac.uk/chembl/api/data/docs . No numeric data-API limit found in API docs and provider-domain search; Beaker
     /// utilities are a separate service.

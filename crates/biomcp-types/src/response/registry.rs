@@ -26,6 +26,7 @@ macro_rules! reply_types {
             gene_page: $crate::GenePage => "gene-page",
             store_clean: $crate::StoreClean => "store-clean",
             sync_result: $crate::SyncResult => "sync",
+            gwas_study_page: $crate::GwasStudyPage => "gwas-study-page",
             gwas_page: $crate::GwasPage => "gwas-page",
             gwas_association_card: $crate::GwasAssociationCard => "gwas-association",
             gwas_loci: $crate::GwasLoci => "gwas-loci",

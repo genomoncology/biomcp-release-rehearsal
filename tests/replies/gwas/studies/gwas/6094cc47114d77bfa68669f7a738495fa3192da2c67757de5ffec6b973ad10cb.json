@@ -1,0 +1,17 @@
+{
+  "source": "gwas",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/associations?accession_id=GCST000044&direction=asc&page=0&size=1&sort=p_value",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1000,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"_embedded\": {\"associations\": [{\"association_id\": 2004, \"accession_id\": \"GCST000044\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic trait\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 1e-09, \"pvalue_mantissa\": 1, \"pvalue_exponent\": -9}]}, \"page\": {\"size\": 1, \"totalElements\": 5, \"totalPages\": 5, \"number\": 0}, \"_links\": {\"self\": {\"href\": \"https://www.ebi.ac.uk/gwas/rest/api/v2/associations?accession_id=GCST000044&direction=asc&page=0&size=1&sort=p_value\"}}}"
+      }
+    }
+  ]
+}

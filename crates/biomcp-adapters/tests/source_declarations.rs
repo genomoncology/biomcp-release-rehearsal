@@ -42,8 +42,20 @@ fn every_registry_entry_records_primary_policy_or_bounded_absence() {
             names.insert(policy.quota.key().name()),
             "duplicate provider bucket"
         );
+        let citation = policy
+            .citation
+            .trim_start()
+            .strip_prefix("Checked ")
+            .and_then(|text| text.split_once(": "));
         assert!(
-            policy.citation.contains("Checked 2026-11-01: https://"),
+            citation.is_some_and(|(date, text)| {
+                date.parse::<biodata::PartialDate>()
+                    .is_ok_and(|date| date.day().is_some())
+                    && text.split_whitespace().next().is_some_and(|url| {
+                        url.starts_with("https://")
+                            && biomcp_fetch::check_annotation_url(url).is_ok()
+                    })
+            }),
             "missing dated primary citation: {policy:?}"
         );
         assert!(

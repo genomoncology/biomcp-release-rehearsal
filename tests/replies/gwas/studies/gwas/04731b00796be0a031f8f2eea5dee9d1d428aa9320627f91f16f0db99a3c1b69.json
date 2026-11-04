@@ -1,0 +1,17 @@
+{
+  "source": "gwas",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/associations?direction=asc&page=0&pubmed_id=17554301&size=12&sort=p_value",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"_embedded\": {\"associations\": [{\"association_id\": 3100, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554301\", \"reported_trait\": [\"Synthetic optional metadata\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 1e-09}, {\"association_id\": 3101, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554301\", \"reported_trait\": [\"Synthetic optional metadata\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 2e-09, \"pvalue_mantissa\": 2, \"pvalue_exponent\": -9}]}, \"_links\": {\"self\": {\"href\": \"https://www.ebi.ac.uk/gwas/rest/api/v2/associations?direction=asc&page=0&pubmed_id=17554301&size=12&sort=p_value\"}}, \"page\": {\"size\": 12, \"number\": 0, \"totalElements\": 2, \"totalPages\": 1}}"
+      }
+    }
+  ]
+}

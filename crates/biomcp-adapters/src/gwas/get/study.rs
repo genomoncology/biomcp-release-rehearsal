@@ -5,11 +5,11 @@ use biomcp_types::{GwasStudy, GwasTrait};
 use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 #[serde(from = "ReceivedStudy")]
-pub(super) struct Study {
+pub(in crate::gwas) struct Study {
     refusals: crate::Refusal,
     problems: Vec<biomcp_types::Problem>,
     pub accession_id: GwasStudyId,
-    pubmed_id: Option<u64>,
+    pub(in crate::gwas) pubmed_id: Option<u64>,
     disease_trait: Option<biodata::Text>,
     efo_traits: Vec<super::super::raw::Trait>,
     initial_sample_size: Option<NativeText>,
@@ -30,7 +30,7 @@ pub(super) struct Study {
     terms_of_license: Option<Text>,
 }
 #[derive(Debug, Deserialize)]
-pub(super) struct ReceivedStudy {
+pub(in crate::gwas) struct ReceivedStudy {
     pub accession_id: GwasStudyId,
     pubmed_id: Option<crate::raw::Field<u64>>,
     disease_trait: Option<crate::raw::Field<NativeText>>,
@@ -123,7 +123,7 @@ impl Reply for Study {
     }
 }
 impl Study {
-    pub(super) fn card(self) -> crate::Mapped<GwasStudy> {
+    pub(in crate::gwas) fn card(self) -> crate::Mapped<GwasStudy> {
         let mut problems = crate::mapped::Problems {
             source: biomcp_types::Source::Gwas,
             record: crate::mapped::record(&self.accession_id),

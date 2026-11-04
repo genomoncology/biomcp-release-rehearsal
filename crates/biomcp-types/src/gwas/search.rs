@@ -23,6 +23,9 @@ pub struct GwasSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
+    /// Return study records for the selected publication instead of associations.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    studies: bool,
     /// Exact source rsID.
     #[serde(
         default,
@@ -125,6 +128,17 @@ impl crate::CheckedQuery for GwasSearch {
 impl TryFrom<SearchFields> for GwasSearch {
     type Error = QueryInvalid;
     fn try_from(f: SearchFields) -> Result<Self, Self::Error> {
+        if f.studies
+            && (f.pubmed.is_none()
+                || f.variant.is_some()
+                || f.r#trait.is_some()
+                || f.trait_id.is_some()
+                || f.gene.is_some()
+                || f.study.is_some()
+                || f.p_value.is_some())
+        {
+            return Err(QueryInvalid::new(&["studies", "pubmed"]));
+        }
         if f.variant.is_none()
             && f.r#trait.is_none()
             && f.trait_id.is_none()
@@ -155,6 +169,7 @@ impl GwasSearch {
     /// Reuse the native search selector for a checked study section window.
     pub fn study_page(id: GwasStudyId, page: &super::GwasSectionPage) -> Self {
         Self(SearchFields {
+            studies: false,
             variant: None,
             r#trait: None,
             trait_id: None,
@@ -169,6 +184,18 @@ impl GwasSearch {
             offset: page.offset(),
             pool: None,
         })
+    }
+
+    /// Select publication studies rather than association rows.
+    pub fn studies(&self) -> bool {
+        self.0.studies
+    }
+
+    /// Read only one association to obtain a native study total.
+    pub fn study_count(id: GwasStudyId) -> Self {
+        let mut query = Self::study_page(id, &super::GwasSectionPage::default());
+        query.0.limit = 1;
+        query
     }
 
     /// Checked variant selector.

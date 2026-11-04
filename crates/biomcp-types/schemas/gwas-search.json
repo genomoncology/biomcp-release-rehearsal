@@ -94,6 +94,10 @@
       "description": "Exact native mapped gene; legacy positional query aliases this field.",
       "x-positional": 0
     },
+    "studies": {
+      "description": "Return study records for the selected publication instead of associations.",
+      "type": "boolean"
+    },
     "study": {
       "$ref": "#/$defs/GwasStudyId",
       "description": "Exact source study accession."
