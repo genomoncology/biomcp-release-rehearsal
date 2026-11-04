@@ -1,6 +1,6 @@
 # Drug labels found only on DailyMed are readable
 
-Status: OPEN.
+Status: WITHDRAWN. Ian, 2026-11-04: "I don't want to include daily med." DailyMed labels are company submissions with no DailyMed-specific license for reuse (m24740).
 Milestone: 5
 
 ## Outcome
