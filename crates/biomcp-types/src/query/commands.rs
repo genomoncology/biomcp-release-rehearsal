@@ -179,8 +179,8 @@ macro_rules! command_types {
             );
             /// Search source-native adverse event reports.
             SearchAdverseEvent(AdverseEventSearch) => (
-                "search", "adverse-event", AdverseEventSearch, "adverse-event-search", "biomcp.adverse-event-search/4", AdverseEventSearch,
-                "adverse-event-search", "biomcp.adverse-event-search/4", "biomcp.adverse-event-search/4", 32, Direct
+                "search", "adverse-event", AdverseEventSearch, "adverse-event-search", "biomcp.adverse-event-search/4", AdverseEventSearchCommand,
+                "adverse-event-search-command", "biomcp.adverse-event-search-command/1", "biomcp.adverse-event-search/4", 32, Direct
             );
             /// Read one exact source report, without source probing.
             GetAdverseEvent(AdverseEventGet) => (

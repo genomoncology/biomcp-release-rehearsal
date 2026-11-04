@@ -30,6 +30,15 @@ pub fn expression(query: &AdverseEventSearch) -> String {
     if let Some(text) = query.problem() {
         selectors.push(phrase("product_problems", text));
     }
+    if query.received_from().is_some() || query.received_to().is_some() {
+        let from = query
+            .received_from()
+            .map_or_else(|| "*".into(), |date| date.to_string().replace('-', ""));
+        let to = query
+            .received_to()
+            .map_or_else(|| "*".into(), |date| date.to_string().replace('-', ""));
+        selectors.push(format!("date_received:[{from} TO {to}]"));
+    }
     selectors.join(" AND ")
 }
 /// Read one source-ordered report page after component admission.

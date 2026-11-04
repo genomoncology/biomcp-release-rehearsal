@@ -432,6 +432,22 @@ fn generated_metadata_preserves_partial_dates_and_describes_error_codes() {
     for field in ["received_from", "received_to"] {
         assert_eq!(full_dates["properties"][field]["format"], "date");
     }
+    let input = generate::<biomcp_types::AdverseEventSearchCommand>();
+    let input_validator = jsonschema::validator_for(&input).unwrap();
+    for source in ["faers", "maude"] {
+        for date in ["2024-02", "2024-02-29"] {
+            let value = serde_json::json!({"text":"x", "source":source,
+                "received_from":date, "received_to":date});
+            assert!(input_validator.is_valid(&value));
+            let query: biomcp_types::AdverseEventSearch = serde_json::from_value(value).unwrap();
+            // Month input becomes a full-day reply query accepted by the retained schema.
+            assert!(
+                jsonschema::validator_for(&full_dates)
+                    .unwrap()
+                    .is_valid(&serde_json::to_value(query).unwrap())
+            );
+        }
+    }
     let timestamp = generate::<biodata::StudyImportTime>();
     assert!(
         timestamp.get("format").is_none(),

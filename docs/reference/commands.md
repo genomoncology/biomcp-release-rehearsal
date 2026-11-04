@@ -904,10 +904,10 @@ Options:
           FAERS MedDRA term phrase match, not exact equality.
 
       --received-from <received_from>
-          Inclusive first FDA receipt lower bound, YYYY-MM-DD.
+          Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
 
       --received-to <received_to>
-          Inclusive first FDA receipt upper bound, YYYY-MM-DD.
+          Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
 
       --offline
           Read local data without source requests.
@@ -934,8 +934,8 @@ Search five report headers by default. Sources: faers, maude, vaers.
 - `--problem`: MAUDE phrase on source product_problems.
 - `--product-code`: MAUDE exact source device.device_report_product_code; repeated codes join with OR.
 - `--reaction`: FAERS MedDRA term phrase match, not exact equality.
-- `--received-from`: Inclusive first FDA receipt lower bound, YYYY-MM-DD.
-- `--received-to`: Inclusive first FDA receipt upper bound, YYYY-MM-DD.
+- `--received-from`: Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
+- `--received-to`: Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
 - `section`: Independent VAERS table; omitted means reported symptoms.
 - `--serious`: FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
 - `--snapshot`: Retained VAERS table for source-free continuation.

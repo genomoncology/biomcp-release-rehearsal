@@ -1,0 +1,168 @@
+{
+  "feature": "maude-reports",
+  "story": "A caller uses inclusive month or day receipt bounds; leap years and month ends expand identically in the request.",
+  "live_check": "Synthetic local rows test source request selection, not native report counts.",
+  "replay": "adverse-event/maude-filters-synthetic",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2020-01",
+        "--received-to",
+        "2020-01"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2020-01-01",
+        "/query/received_to": "2020-01-31",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20200101 TO 20200131]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2020-01-01",
+        "--received-to",
+        "2020-01-31"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2020-01-01",
+        "/query/received_to": "2020-01-31",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20200101 TO 20200131]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2024-02",
+        "--received-to",
+        "2024-02"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2024-02-01",
+        "/query/received_to": "2024-02-29",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20240201 TO 20240229]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2024-02-01",
+        "--received-to",
+        "2024-02-29"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2024-02-01",
+        "/query/received_to": "2024-02-29",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20240201 TO 20240229]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2023-02",
+        "--received-to",
+        "2023-02"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2023-02-01",
+        "/query/received_to": "2023-02-28",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20230201 TO 20230228]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2023-02-01",
+        "--received-to",
+        "2023-02-28"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2023-02-01",
+        "/query/received_to": "2023-02-28",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20230201 TO 20230228]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2024-04",
+        "--received-to",
+        "2024-04"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2024-04-01",
+        "/query/received_to": "2024-04-30",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20240401 TO 20240430]",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "insulin pump",
+        "--source",
+        "maude",
+        "--received-from",
+        "2024-04-01",
+        "--received-to",
+        "2024-04-30"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/received_from": "2024-04-01",
+        "/query/received_to": "2024-04-30",
+        "/result/source_query": "device.generic_name:\"insulin pump\" AND date_received:[20240401 TO 20240430]",
+        "/page/total": 1
+      }
+    }
+  ]
+}

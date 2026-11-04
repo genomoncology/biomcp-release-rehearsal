@@ -292,20 +292,21 @@ fn eight_consumer_envelopes_validate_and_identifier_pages_keep_closed_native_sco
     .unwrap();
 }
 #[test]
-fn request_boundaries_reject_missing_text_null_limits_partial_dates_and_removed_options() {
+fn request_boundaries_reject_missing_text_null_limits_invalid_dates_and_removed_options() {
     for value in [
         json!({}),
         json!({"text":""}),
         json!({"text":"x","limit":0}),
         json!({"text":"x","limit":51}),
         json!({"text":"x","limit":null}),
-        json!({"text":"x","received_to":"2024-02"}),
+        json!({"text":"x","received_to":"2024"}),
+        json!({"text":"x","source":"maude","received_from":"2020"}),
+        json!({"text":"x","source":"maude","received_from":"2020-02","received_to":"2020-01"}),
+        json!({"text":"MMR","source":"vaers","received_from":"2020-01"}),
         json!({"text":"x","count":"reaction"}),
         json!({"query":"x"}),
         json!({"text":"x","source":"vaccine"}),
         json!({"text":"x","source":"maude","serious":"death"}),
-        json!({"text":"x","source":"maude","received_from":"2024-01-01"}),
-        json!({"text":"x","source":"maude","received_to":"2024-12-31"}),
     ] {
         assert!(serde_json::from_value::<AdverseEventSearch>(value).is_err());
     }

@@ -132,7 +132,7 @@
           "type": "null"
         }
       ],
-      "description": "Inclusive first FDA receipt lower bound, YYYY-MM-DD.",
+      "description": "Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
       "format": "date"
     },
     "received_to": {
@@ -144,7 +144,7 @@
           "type": "null"
         }
       ],
-      "description": "Inclusive first FDA receipt upper bound, YYYY-MM-DD.",
+      "description": "Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
       "format": "date"
     },
     "section": {
