@@ -1,0 +1,241 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies/NCT07041320",
+  "exchanges": [
+    {
+      "fetched": 1793809031,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "protocolSection": {
+            "identificationModule": {
+              "nctId": "NCT07041320",
+              "orgStudyIdInfo": {
+                "id": "Anhui Chest Hospital"
+              },
+              "organization": {
+                "fullName": "Anhui Chest Hospital",
+                "class": "OTHER"
+              },
+              "briefTitle": "Oral Metronomic Vinorelbine and PD-1 Inhibitors in Elderly Non-small Cell Lung Cancer",
+              "officialTitle": "Effect and Safety of Oral Metronomic Vinorelbine and PD-1 Inhibitors in Elderly Patients With Non-small Cell Lung Cancer"
+            },
+            "statusModule": {
+              "statusVerifiedDate": "2025-03",
+              "overallStatus": "RECRUITING",
+              "expandedAccessInfo": {
+                "hasExpandedAccess": false
+              },
+              "startDateStruct": {
+                "date": "2023-06-15",
+                "type": "ACTUAL"
+              },
+              "primaryCompletionDateStruct": {
+                "date": "2026-12-31",
+                "type": "ESTIMATED"
+              },
+              "completionDateStruct": {
+                "date": "2026-12-31",
+                "type": "ESTIMATED"
+              },
+              "studyFirstSubmitDate": "2025-03-31",
+              "studyFirstSubmitQcDate": "2025-06-19",
+              "studyFirstPostDateStruct": {
+                "date": "2025-06-27",
+                "type": "ACTUAL"
+              },
+              "lastUpdateSubmitDate": "2025-06-19",
+              "lastUpdatePostDateStruct": {
+                "date": "2025-06-27",
+                "type": "ACTUAL"
+              }
+            },
+            "sponsorCollaboratorsModule": {
+              "responsibleParty": {
+                "type": "PRINCIPAL_INVESTIGATOR",
+                "investigatorFullName": "Guan Maojing",
+                "investigatorTitle": "Associate chief physician",
+                "investigatorAffiliation": "Anhui Chest Hospital"
+              },
+              "leadSponsor": {
+                "name": "Anhui Chest Hospital",
+                "class": "OTHER"
+              }
+            },
+            "oversightModule": {
+              "oversightHasDmc": true,
+              "isFdaRegulatedDrug": false,
+              "isFdaRegulatedDevice": false,
+              "isUsExport": false
+            },
+            "descriptionModule": {
+              "briefSummary": "The goal of this observational study is to evaluate the efficacy and safety of oral metronomic vinorelbine and PD-1 inhibitors in elderly patients with unoperable, locally advanced or metastatic non-small-cell lung cancer. The primary end point was objective response rate (ORR), and the second end points included disease control rate (DCR), progression-free survival (PFS), and safety. Participants over 65 years old, received oral metronomic vinorelbine 40mg every week (20mg for patients over 80 years old), combined with PD-1 inhibitors every 3 weeks."
+            },
+            "conditionsModule": {
+              "conditions": [
+                "Lung Cancer (NSCLC)",
+                "Elderly (People Aged 65 or More)"
+              ],
+              "keywords": [
+                "Oral metronomic vinorelbine",
+                "PD-1 inhibitors"
+              ]
+            },
+            "designModule": {
+              "studyType": "OBSERVATIONAL",
+              "patientRegistry": true,
+              "targetDuration": "2 Years",
+              "designInfo": {
+                "observationalModel": "COHORT",
+                "timePerspective": "OTHER"
+              },
+              "enrollmentInfo": {
+                "count": 40,
+                "type": "ESTIMATED"
+              }
+            },
+            "armsInterventionsModule": {
+              "armGroups": [
+                {
+                  "label": "The goal of this observational study is to evaluate the efficacy and safety of oral metronomic vinor",
+                  "description": "Participants over 65 years old, received oral metronomic vinorelbine 40mg every week (20mg for patients over 80 years old), combined with PD-1 inhibitors every 3 weeks."
+                }
+              ]
+            },
+            "outcomesModule": {
+              "primaryOutcomes": [
+                {
+                  "measure": "objective response rate(ORR)",
+                  "description": "CR+PR/All patients(%)",
+                  "timeFrame": "at the end of every 2 cycles(each cycle is 21 days),through study completion, an average of 2 years"
+                }
+              ],
+              "secondaryOutcomes": [
+                {
+                  "measure": "disease control rate (DCR)",
+                  "description": "CR+PR+SD/All patients(%)",
+                  "timeFrame": "at the end of every 2 cycles(each cycle is 21 days),through study completion, an average of 2 years"
+                },
+                {
+                  "measure": "progression-free survival (PFS)",
+                  "description": "PFS was calculated from treatment initiation to disease progression or death",
+                  "timeFrame": "at the end of every 2 cycles(each cycle is 21 days),through study completion, an average of 2 years"
+                }
+              ]
+            },
+            "eligibilityModule": {
+              "eligibilityCriteria": "Inclusion Criteria:\n\n* 1\\) All patients are histologically or cytologically confirmed non-small cell lung cancer. Genetic testing identifies no driver gene mutations.\n\n  2\\) Male or female, age \u2265 65 years 3) Patients had not received first-line treatment. 4) KPS score \u2265 70 points (ECOG score 0-1 points), the expected survival \u22653 months; 5) No dysfunction of major organs. EcG, liver function, renal function, and blood count tests before treatment are normal or basically normal, but must meet the following experimental results:\n  1. Blood routine test:\n\n     Leukocyte WBC\u22653.5\u00d7109/L; Neutrophil count (ANC) \u2265 1.5\u00d7109/L; Platelet (PLT) \u2265 80\u00d7109/L;\n  2. Blood biochemical test:\n\n     Total bilirubin (TBIL) \u2264 1.5 times the upper limit of normal values; Alanine aminotransferase (ALT/SGPT) and alanine transaminases (AST/SGOT) \u2264 2.5 times the normal high value (ULN), or \u2264 5 times the upper limit of normal value in patients with liver metastases; Serum creatinine (Cr) \u2264 1.5 times the upper limit of normal values;\n  3. Cardiac function test: 50% of the left ventricular ejection function of the heart \\>; 6) The subject has good compliance, and can cooperates with follow-up.\n\n     Exclusion Criteria:\n* previously treated",
+              "healthyVolunteers": false,
+              "sex": "ALL",
+              "minimumAge": "65 Years",
+              "stdAges": [
+                "OLDER_ADULT"
+              ],
+              "studyPopulation": "Patients over 65 years old with unoperable, locally advanced or metastatic non-small-cell lung cancer",
+              "samplingMethod": "NON_PROBABILITY_SAMPLE"
+            },
+            "contactsLocationsModule": {
+              "centralContacts": [
+                {
+                  "name": "Maojing Guan, Doctor",
+                  "role": "CONTACT",
+                  "phone": "021-0551-63773020",
+                  "email": "guanmaojing0623@126.com"
+                }
+              ],
+              "overallOfficials": [
+                {
+                  "name": "Qingming Shi, Doctor",
+                  "affiliation": "Anhui Chest Hosptial",
+                  "role": "PRINCIPAL_INVESTIGATOR"
+                }
+              ],
+              "locations": [
+                {
+                  "facility": "Anhui Chest Hosptial",
+                  "status": "RECRUITING",
+                  "city": "Hefei",
+                  "state": "Anhui",
+                  "zip": "230022",
+                  "country": "China",
+                  "contacts": [
+                    {
+                      "name": "Yan Liu",
+                      "role": "CONTACT",
+                      "phone": "021-0551-63615370",
+                      "email": "ahsxkyykjk@126.com"
+                    }
+                  ],
+                  "geoPoint": {
+                    "lat": 31.86389,
+                    "lon": 117.28083
+                  }
+                }
+              ]
+            },
+            "ipdSharingStatementModule": {
+              "ipdSharing": "NO"
+            }
+          },
+          "derivedSection": {
+            "miscInfoModule": {
+              "versionHolder": "2026-11-04"
+            },
+            "conditionBrowseModule": {
+              "meshes": [
+                {
+                  "id": "D008175",
+                  "term": "Lung Neoplasms"
+                },
+                {
+                  "id": "D002289",
+                  "term": "Carcinoma, Non-Small-Cell Lung"
+                }
+              ],
+              "ancestors": [
+                {
+                  "id": "D012142",
+                  "term": "Respiratory Tract Neoplasms"
+                },
+                {
+                  "id": "D013899",
+                  "term": "Thoracic Neoplasms"
+                },
+                {
+                  "id": "D009371",
+                  "term": "Neoplasms by Site"
+                },
+                {
+                  "id": "D009369",
+                  "term": "Neoplasms"
+                },
+                {
+                  "id": "D008171",
+                  "term": "Lung Diseases"
+                },
+                {
+                  "id": "D012140",
+                  "term": "Respiratory Tract Diseases"
+                },
+                {
+                  "id": "D002283",
+                  "term": "Carcinoma, Bronchogenic"
+                },
+                {
+                  "id": "D001984",
+                  "term": "Bronchial Neoplasms"
+                }
+              ]
+            }
+          },
+          "hasResults": false
+        }
+      }
+    }
+  ]
+}

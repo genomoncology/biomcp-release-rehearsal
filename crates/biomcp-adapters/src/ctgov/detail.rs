@@ -1,7 +1,9 @@
 //! One registry record request with a typed protocol projection, checked against its requested identity before caching.
 use biomcp_fetch::{Input, Read};
+mod arms;
 mod dates;
 mod publications;
+mod results;
 mod sites;
 use crate::{mapped::Problems, raw::Field};
 use biodata::{
@@ -38,6 +40,10 @@ pub struct Detail {
     pub arms: Box<[TrialArm]>,
     /// Whole source intervention rows.
     pub interventions: Box<[TrialIntervention]>,
+    /// Posted native results in source order.
+    pub results: Box<[biomcp_types::TrialResultRecord]>,
+    /// Results first publicly posted date from the protocol status.
+    pub results_first_posted: Option<biodata::PartialDate>,
     /// Actual refused native records, including refused document manifest records.
     #[serde(default = "super::refusals::none", with = "super::refusals")]
     pub refusals: crate::Refusal,
@@ -74,6 +80,11 @@ pub fn get(leg: &Leg<'_>, id: NctId) -> Result<(Detail, ReplyMetadata), RequestE
         .map_or_else(Box::default, |d| {
             d.mapped(id, &mut problems, &mut detail.document_refusals)
         });
+    detail.results = problems
+        .field("resultsSection", raw.results_section)
+        .map_or_else(Box::default, |r| {
+            r.rows(&mut problems, &mut detail.refusals)
+        });
     detail.refusals.include(detail.document_refusals);
     detail.problems = problems.list;
     Ok((detail, metadata))
@@ -83,6 +94,7 @@ pub fn get(leg: &Leg<'_>, id: NctId) -> Result<(Detail, ReplyMetadata), RequestE
 struct Study {
     protocol_section: Protocol,
     document_section: Option<Field<publications::Documents>>,
+    results_section: Option<Field<results::Results>>,
 }
 impl Reply for Study {
     fn check(&self) -> Result<(), BadReply> {
@@ -114,6 +126,7 @@ struct Identification {
 #[serde(rename_all = "camelCase")]
 struct Status {
     overall_status: Option<Field<TrialStatus>>,
+    results_first_post_date_struct: Option<Field<RawDate>>,
     last_update_post_date_struct: Option<Field<RawDate>>,
     start_date_struct: Option<Field<RawDate>>,
     primary_completion_date_struct: Option<Field<RawDate>>,
@@ -223,8 +236,11 @@ impl Protocol {
                 || (Box::default(), Box::default(), Box::default()),
                 |sites| sites.rows(&mut problems, &mut refusals),
             );
-        let card = self.card(&interventions, &mut problems);
+        let mut results_first_posted = None;
+        let card = self.card(&interventions, &mut problems, &mut results_first_posted);
         Detail {
+            results: Box::default(),
+            results_first_posted,
             references: problems
                 .field("referencesModule", self.references_module)
                 .map_or_else(Box::default, |r| r.rows(&mut problems, &mut refusals)),
@@ -246,10 +262,21 @@ impl Protocol {
             document_refusals: crate::Refusal::None,
         }
     }
-    fn card(&mut self, interventions: &[TrialIntervention], problems: &mut Problems) -> TrialCard {
+    fn card(
+        &mut self,
+        interventions: &[TrialIntervention],
+        problems: &mut Problems,
+        results_first_posted: &mut Option<biodata::PartialDate>,
+    ) -> TrialCard {
         let status = problems
             .field("statusModule", self.status_module.take())
             .unwrap_or_default();
+        *results_first_posted = RawDate::field(
+            "resultsFirstPostDateStruct",
+            status.results_first_post_date_struct,
+            problems,
+        )
+        .map(|d| d.date);
         let design = problems
             .field("designModule", self.design_module.take())
             .unwrap_or_default();
@@ -355,39 +382,5 @@ fn age(
         Some(value) => problems
             .native_text(field, Some(value))
             .map(|raw| TrialAgeBound::Source { raw }),
-    }
-}
-
-impl Arms {
-    fn rows(
-        self,
-        problems: &mut Problems,
-        refusals: &mut crate::Refusal,
-    ) -> (Box<[TrialArm]>, Box<[TrialIntervention]>) {
-        (
-            super::refusals::records(problems, refusals, "armGroups", self.arm_groups)
-                .into_vec()
-                .into_iter()
-                .map(|v| TrialArm {
-                    label: problems.required_native_text("armGroups.label", v.label),
-                    kind: problems.field("armGroups.type", v.kind),
-                    description: problems.field("armsInterventions.description", v.description),
-                    intervention_names: problems
-                        .native_texts("armGroups.interventionNames", v.intervention_names),
-                })
-                .collect(),
-            super::refusals::records(problems, refusals, "interventions", self.interventions)
-                .into_vec()
-                .into_iter()
-                .map(|v| TrialIntervention {
-                    name: problems.required_native_text("interventions.name", v.name),
-                    kind: problems.field("interventions.type", v.kind),
-                    description: problems.field("armsInterventions.description", v.description),
-                    arm_group_labels: problems
-                        .native_texts("interventions.armGroupLabels", v.arm_group_labels),
-                    other_names: problems.native_texts("interventions.otherNames", v.other_names),
-                })
-                .collect(),
-        )
     }
 }

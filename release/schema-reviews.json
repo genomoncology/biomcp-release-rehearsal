@@ -1706,6 +1706,40 @@
         "pool selectors do not match this search"
       ],
       "review": "0588: add only the fixed normalization accepted-forms and get-variant conversion guidance for source identities that normalization cannot consume."
+    },
+    {
+      "schemas": [
+        "biomcp.trial-cards/9",
+        "biomcp.nci-trial-cards/8",
+        "biomcp.nci-trial-page/10"
+      ],
+      "path": "/$defs/Reply_TrialSection/enum",
+      "from": [
+        "eligibility",
+        "outcomes",
+        "arms",
+        "locations",
+        "contacts",
+        "references",
+        "documents",
+        "all",
+        "diseases",
+        "summary"
+      ],
+      "to": [
+        "eligibility",
+        "outcomes",
+        "results",
+        "arms",
+        "locations",
+        "contacts",
+        "references",
+        "documents",
+        "all",
+        "diseases",
+        "summary"
+      ],
+      "review": "0607: the approved posted-trial-results exception adds only results to the shared section vocabulary; NCI retains its explicit unsupported-section behavior. Existing values retain their meaning."
     }
   ]
 }

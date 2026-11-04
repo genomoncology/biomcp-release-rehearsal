@@ -1064,6 +1064,122 @@
         }
       ]
     },
+    "Reply_Section_TrialRecords_TrialResultRecord": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_TrialRecords_TrialResultRecord",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
       "type": "string",
@@ -1597,6 +1713,33 @@
       "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
+    "Reply_TrialAdverseEvents": {
+      "description": "Native event reporting scope, repeated nowhere else.",
+      "properties": {
+        "description": {
+          "description": "Native `description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frequencyThreshold": {
+          "description": "Native `frequency_threshold` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timeFrame": {
+          "description": "Native `time_frame` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "Reply_TrialAgeBound": {
       "description": "Source age limit; absence is explicit and never a fabricated number.",
       "oneOf": [
@@ -1726,155 +1869,13 @@
         }
       ]
     },
-    "Reply_TrialCard": {
-      "description": "Complete default registry card.",
-      "properties": {
-        "brief_summary": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_Markdown"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Whole brief summary, preserving whitespace."
-        },
-        "completion": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_TrialDate"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Source completion date, when present."
-        },
-        "conditions": {
-          "description": "All registered condition names.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "interventions": {
-          "description": "All registered intervention names.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "nct_id": {
-          "$ref": "#/$defs/Reply_NctId",
-          "description": "Exact registry identity."
-        },
-        "phases": {
-          "description": "Source phases without inferred defaults.",
-          "items": {
-            "$ref": "#/$defs/Reply_TrialPhase"
-          },
-          "type": "array"
-        },
-        "primary_completion": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_TrialDate"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Source primary completion date, when present."
-        },
-        "sponsor": {
-          "description": "Lead sponsor as registered.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "start": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_TrialDate"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Source start date, when present."
-        },
-        "status": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_TrialStatus"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Source overall status, absent when missing or rejected."
-        },
-        "study_type": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_StudyType"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Native study type, absent when missing or rejected."
-        },
-        "title": {
-          "description": "Source brief title, absent when missing or rejected.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "updated": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_PartialDate"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Last posted registry update, absent when missing or rejected."
-        },
-        "updated_kind": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_TrialDateKind"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Native qualifier for the posted update date, absent when the registry omitted it."
-        },
-        "url": {
-          "description": "Canonical publisher record URL.",
-          "format": "uri",
-          "type": "string"
-        }
-      },
-      "required": [
-        "nct_id",
-        "url"
-      ],
-      "type": "object"
-    },
     "Reply_TrialCardItem": {
       "description": "Result for one exact requested NCT identity.",
       "properties": {
         "card": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reply_TrialCard"
+              "$ref": "#/$defs/Reply_TrialPostedCard"
             },
             {
               "type": "null"
@@ -2273,6 +2274,175 @@
       ],
       "type": "object"
     },
+    "Reply_TrialEvent": {
+      "description": "Native event term and its group statistics.",
+      "properties": {
+        "assessmentType": {
+          "description": "Native `assessment_type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "description": "Native `notes` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "organSystem": {
+          "description": "Native `organ_system` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceVocabulary": {
+          "description": "Native `source_vocabulary` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stats": {
+          "description": "Native `stats` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialEventStats"
+          },
+          "type": "array"
+        },
+        "term": {
+          "description": "Native `term` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialEventGroup": {
+      "description": "Native event group and source counts; no rates are derived.",
+      "properties": {
+        "deathsNumAffected": {
+          "description": "Native `deaths_num_affected` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "deathsNumAtRisk": {
+          "description": "Native `deaths_num_at_risk` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "description": {
+          "description": "Native `description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Native `id` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "otherNumAffected": {
+          "description": "Native `other_num_affected` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "otherNumAtRisk": {
+          "description": "Native `other_num_at_risk` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "seriousNumAffected": {
+          "description": "Native `serious_num_affected` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "seriousNumAtRisk": {
+          "description": "Native `serious_num_at_risk` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "title": {
+          "description": "Native `title` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialEventStats": {
+      "description": "Native adverse-event group statistics.",
+      "properties": {
+        "groupId": {
+          "description": "Native `group_id` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "numAffected": {
+          "description": "Native `num_affected` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "numAtRisk": {
+          "description": "Native `num_at_risk` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "numEvents": {
+          "description": "Native `num_events` field.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "Reply_TrialGet": {
       "description": "Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.",
       "properties": {
@@ -2559,6 +2729,277 @@
       ],
       "type": "string"
     },
+    "Reply_TrialPostedCard": {
+      "description": "Original trial card plus the posted results date from the same record.",
+      "properties": {
+        "brief_summary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Markdown"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Whole brief summary, preserving whitespace."
+        },
+        "completion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TrialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source completion date, when present."
+        },
+        "conditions": {
+          "description": "All registered condition names.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "interventions": {
+          "description": "All registered intervention names.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "nct_id": {
+          "$ref": "#/$defs/Reply_NctId",
+          "description": "Exact registry identity."
+        },
+        "phases": {
+          "description": "Source phases without inferred defaults.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialPhase"
+          },
+          "type": "array"
+        },
+        "primary_completion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TrialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source primary completion date, when present."
+        },
+        "results_first_posted": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "First public posting date, distinct from submission and update dates."
+        },
+        "sponsor": {
+          "description": "Lead sponsor as registered.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "start": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TrialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source start date, when present."
+        },
+        "status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TrialStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source overall status, absent when missing or rejected."
+        },
+        "study_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_StudyType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native study type, absent when missing or rejected."
+        },
+        "title": {
+          "description": "Source brief title, absent when missing or rejected.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "updated": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Last posted registry update, absent when missing or rejected."
+        },
+        "updated_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TrialDateKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native qualifier for the posted update date, absent when the registry omitted it."
+        },
+        "url": {
+          "description": "Canonical publisher record URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nct_id",
+        "url"
+      ],
+      "type": "object"
+    },
+    "Reply_TrialPostedOutcome": {
+      "description": "Posted outcome measure.",
+      "properties": {
+        "analyses": {
+          "description": "Native `analyses` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultAnalysis"
+          },
+          "type": "array"
+        },
+        "calculatePct": {
+          "description": "Native `calculate_pct` field.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "classes": {
+          "description": "Native `classes` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultClass"
+          },
+          "type": "array"
+        },
+        "denomUnits": {
+          "description": "Native `denom_units` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "denoms": {
+          "description": "Native `denoms` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultDenominator"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "Native `description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dispersionType": {
+          "description": "Native `dispersion_type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "groups": {
+          "description": "Native `groups` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultGroup"
+          },
+          "type": "array"
+        },
+        "paramType": {
+          "description": "Native `param_type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "populationDescription": {
+          "description": "Native `population_description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reportingStatus": {
+          "description": "Native `reporting_status` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timeFrame": {
+          "description": "Native `time_frame` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "description": "Native `title` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "description": "Native `type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "typeUnits": {
+          "description": "Native `type_units` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unitOfMeasure": {
+          "description": "Native `unit_of_measure` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "Reply_TrialRecords_TrialArmRecord": {
       "description": "Whole-record page retaining collection order.",
       "properties": {
@@ -2799,6 +3240,46 @@
       ],
       "type": "object"
     },
+    "Reply_TrialRecords_TrialResultRecord": {
+      "description": "Whole-record page retaining collection order.",
+      "properties": {
+        "continuation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_TrialGet"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Checked request for the next intact records, absent when complete."
+        },
+        "items": {
+          "description": "Complete records in source order.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultRecord"
+          },
+          "type": "array"
+        },
+        "offset": {
+          "description": "Offset in the unchanged source collection.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total": {
+          "description": "Original collection size.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "offset",
+        "total"
+      ],
+      "type": "object"
+    },
     "Reply_TrialReference": {
       "description": "An unchanged registry reference in source order.",
       "properties": {
@@ -2843,11 +3324,410 @@
       ],
       "type": "string"
     },
+    "Reply_TrialResultAnalysis": {
+      "description": "Source statistical analysis and comparison identities.",
+      "properties": {
+        "ciLowerLimit": {
+          "description": "Native `ci_lower_limit` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ciLowerLimitComment": {
+          "description": "Native `ci_lower_limit_comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ciNumSides": {
+          "description": "Native `ci_num_sides` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ciPctValue": {
+          "description": "Native `ci_pct_value` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ciUpperLimit": {
+          "description": "Native `ci_upper_limit` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ciUpperLimitComment": {
+          "description": "Native `ci_upper_limit_comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dispersionType": {
+          "description": "Native `dispersion_type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dispersionValue": {
+          "description": "Native `dispersion_value` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estimateComment": {
+          "description": "Native `estimate_comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "groupDescription": {
+          "description": "Native `group_description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "groupIds": {
+          "description": "Native `group_ids` field.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "nonInferiorityComment": {
+          "description": "Native `non_inferiority_comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nonInferiorityType": {
+          "description": "Native `non_inferiority_type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "otherAnalysisDescription": {
+          "description": "Native `other_analysis_description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pValue": {
+          "description": "Native `p_value` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pValueComment": {
+          "description": "Native `p_value_comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "paramType": {
+          "description": "Native `param_type` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "paramValue": {
+          "description": "Native `param_value` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "statisticalComment": {
+          "description": "Native `statistical_comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "statisticalMethod": {
+          "description": "Native `statistical_method` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultCategory": {
+      "description": "Native category containing reported measurements.",
+      "properties": {
+        "measurements": {
+          "description": "Native `measurements` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultMeasurement"
+          },
+          "type": "array"
+        },
+        "title": {
+          "description": "Native `title` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultClass": {
+      "description": "Native outcome class; no regrouping.",
+      "properties": {
+        "categories": {
+          "description": "Native `categories` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultCategory"
+          },
+          "type": "array"
+        },
+        "denoms": {
+          "description": "Native `denoms` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultDenominator"
+          },
+          "type": "array"
+        },
+        "title": {
+          "description": "Native `title` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultCount": {
+      "description": "Reported count, with source group identity.",
+      "properties": {
+        "groupId": {
+          "description": "Native `group_id` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": {
+          "description": "Native `value` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultDenominator": {
+      "description": "Reported denominator with its original units.",
+      "properties": {
+        "counts": {
+          "description": "Native `counts` field.",
+          "items": {
+            "$ref": "#/$defs/Reply_TrialResultCount"
+          },
+          "type": "array"
+        },
+        "units": {
+          "description": "Native `units` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultGroup": {
+      "description": "Native outcome group.",
+      "properties": {
+        "description": {
+          "description": "Native `description` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Native `id` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "description": "Native `title` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultMeasurement": {
+      "description": "Reported value and dispersion; strings are never recomputed.",
+      "properties": {
+        "comment": {
+          "description": "Native `comment` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "groupId": {
+          "description": "Native `group_id` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lowerLimit": {
+          "description": "Native `lower_limit` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "spread": {
+          "description": "Native `spread` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "upperLimit": {
+          "description": "Native `upper_limit` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": {
+          "description": "Native `value` field.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_TrialResultRecord": {
+      "description": "Whole native records in outcome, adverse-event metadata, group, serious and other order.",
+      "oneOf": [
+        {
+          "description": "Posted measure, including group denominators, values and analyses.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_TrialPostedOutcome"
+            },
+            "record": {
+              "const": "outcome",
+              "type": "string"
+            }
+          },
+          "required": [
+            "record",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Native adverse-event collection scope.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_TrialAdverseEvents"
+            },
+            "record": {
+              "const": "adverse-events",
+              "type": "string"
+            }
+          },
+          "required": [
+            "record",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Native adverse-event group and reported counts.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_TrialEventGroup"
+            },
+            "record": {
+              "const": "adverse-event-group",
+              "type": "string"
+            }
+          },
+          "required": [
+            "record",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "One serious adverse-event term with group statistics.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_TrialEvent"
+            },
+            "record": {
+              "const": "serious-event",
+              "type": "string"
+            }
+          },
+          "required": [
+            "record",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "One other adverse-event term with group statistics.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_TrialEvent"
+            },
+            "record": {
+              "const": "other-event",
+              "type": "string"
+            }
+          },
+          "required": [
+            "record",
+            "data"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "Reply_TrialSection": {
       "description": "Available source protocol sections.",
       "enum": [
         "eligibility",
         "outcomes",
+        "results",
         "arms",
         "locations",
         "contacts",
@@ -2861,6 +3741,7 @@
       "x-enum-descriptions": [
         " Intact criteria and structured age/sex fields.",
         " Primary, secondary and other outcome records.",
+        " Posted outcome values, analyses and adverse-event tables (ClinicalTrials.gov).",
         " Arms and interventions with original relationships.",
         " Whole source sites with their attached contacts.",
         " Central contacts and overall officials in their original roles.",
@@ -2950,6 +3831,17 @@
             }
           ],
           "description": "Source publication records, without inferred roles."
+        },
+        "results": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Section_TrialRecords_TrialResultRecord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Posted results, followed by adverse-event groups and terms, in source order."
         }
       },
       "type": "object"

@@ -8,6 +8,9 @@ use biomcp_fetch::{CacheError, RequestError};
 use biomcp_types::{
     ReplyData, Request, Source, SourceState, Status, StepKind, TrialCardItem, TrialCards, TrialGet,
 };
+// Older protocol-only projections cannot supply posted results; restart before decoding them.
+const SNAPSHOT_NAMESPACE: &str = "trial-results/1";
+
 /// Retrieve independent input states under one shared command deadline.
 pub(crate) fn get(cx: &Ctx<'_>, query: &TrialGet) -> Outcome {
     if query.source() == biomcp_types::TrialSource::Nci {
@@ -76,7 +79,7 @@ fn fetch(
                     crate::publish::keep(
                         source_snapshot::write(
                             cx,
-                            &source_snapshot::key("trial", id)?,
+                            &source_snapshot::key(SNAPSHOT_NAMESPACE, id)?,
                             &snapshot,
                             &snapshot.sources,
                             deadline,
@@ -128,7 +131,7 @@ fn restore(
     }
     let snapshot: Option<Snapshot> = source_snapshot::read(
         cx,
-        &source_snapshot::key("trial", &id)?,
+        &source_snapshot::key(SNAPSHOT_NAMESPACE, &id)?,
         query.pool().map_or("", |p| p.as_str()),
         deadline,
     )?;

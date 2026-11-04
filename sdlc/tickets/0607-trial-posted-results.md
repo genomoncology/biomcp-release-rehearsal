@@ -1,6 +1,7 @@
 # Trials show their posted results
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 336ff2ba9e9267cbcef1fdcc901e8e78a013783c
 Milestone: 5
 
 ## Outcome

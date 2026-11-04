@@ -56,6 +56,11 @@ pub(crate) const TRIAL: (&str, &[&str]) = (
     ],
 );
 
+pub(crate) const TRIAL_RESULTS: (&str, &[&str]) = (
+    "trial-results/posted-values-and-event-pages",
+    &["section get trial results"],
+);
+
 pub(crate) const ARTICLE_SAVES: (&str, &[&str]) = (
     "article-saves/explicit-original-files",
     &[

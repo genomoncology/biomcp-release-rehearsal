@@ -14,8 +14,8 @@
     "Cisplatin",
     "Carboplatin",
     "Pemetrexed",
-    "Folic acid 350-1000 μg",
-    "Vitamin B12 1000 μg",
+    "Folic acid 350-1000 \u03bcg",
+    "Vitamin B12 1000 \u03bcg",
     "Dexamethasone 4 mg",
     "Saline solution"
   ],
@@ -35,5 +35,6 @@
   "updated": "2024-09-20",
   "brief_summary": "This is an efficacy and safety study of pembrolizumab (MK-3475) combined with pemetrexed/platinum chemotherapy versus pemetrexed/platinum chemotherapy alone in participants with advanced or metastatic nonsquamous non-small cell lung cancer (NSCLC) who have not previously received systemic therapy for advanced disease. Participants will be randomly assigned to receive pembrolizumab combined with pemetrexed/platinum (Investigators choice of cisplatin or carboplatin), OR pemetrexed/platinum (Investigators choice of cisplatin or carboplatin).\n\nWith Amendment 10 (effective date 23-Dec-2019), active participants, investigator, and sponsor personnel or delegate(s) involved in the treatment administration or clinical evaluation of the participants will be unblinded, and all participants in the 'control' arm will discontinue saline placebo.\n\nWith Amendment 11 (effective date 31-Jan-2022), once the study objectives have been met or the study has ended, participants will be discontinued from this study and will be enrolled in an extension study to continue protocol-defined assessments and treatment.\n\nThe primary hypothesis is that pembrolizumab in combination with pemetrexed/platinum chemotherapy prolongs Progression-Free Survival (PFS) and Overall Survival (OS) compared to pemetrexed/platinum chemotherapy alone.",
   "url": "https://clinicaltrials.gov/study/NCT02578680",
-  "updated_kind": "ACTUAL"
+  "updated_kind": "ACTUAL",
+  "results_first_posted": "2018-11-28"
 }

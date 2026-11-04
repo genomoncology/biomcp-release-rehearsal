@@ -114,6 +114,7 @@ mod store_coexistence;
 mod study_catalog;
 mod transcript;
 mod trial_get;
+mod trial_results;
 mod trial_sites;
 mod vaers;
 mod variant;
@@ -285,6 +286,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(variant_hotspots::trials());
     trials.extend(vaers::trials());
     trials.extend(trial_get::trials());
+    trials.extend(trial_results::trials());
     trials.push(trial_sites::trial());
     trials.extend(snapshot_errors::trials());
     trials.extend(cache_errors::trials());

@@ -7,7 +7,7 @@ pub(super) fn trial() -> libtest_mimic::Trial {
     })
 }
 fn old_owner() -> Check {
-    for version in [1, 2, 3] {
+    for version in [1, 2, 3, 4] {
         old_version(version)?;
     }
     Ok(())
@@ -30,8 +30,12 @@ fn old_version(version: u32) -> Check {
     })?;
     let db = fetch.cache_access()?.connect()?;
     use sha2::{Digest, Sha256};
-    let old_key =
-        Sha256::digest(format!("biomcp.trial_snapshot/{version}\0NCT03734029").as_bytes()).to_vec();
+    let old_key = if version == 4 {
+        // This source snapshot predates the posted-results projection, not the source data.
+        serde_json::to_vec(&("biomcp.source_snapshot/1", "trial", "NCT03734029"))?
+    } else {
+        Sha256::digest(format!("biomcp.trial_snapshot/{version}\0NCT03734029").as_bytes()).to_vec()
+    };
     db.execute(
         "UPDATE trial_snapshot SET request_key=?1,payload='[\"old positional snapshot\"]'",
         [old_key],

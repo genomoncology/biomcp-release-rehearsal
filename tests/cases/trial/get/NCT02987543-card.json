@@ -1,6 +1,6 @@
 {
   "nct_id": "NCT02987543",
-  "title": "Study of Olaparib (Lynparza™) Versus Enzalutamide or Abiraterone Acetate in Men With Metastatic Castration-Resistant Prostate Cancer (PROfound Study)",
+  "title": "Study of Olaparib (Lynparza\u2122) Versus Enzalutamide or Abiraterone Acetate in Men With Metastatic Castration-Resistant Prostate Cancer (PROfound Study)",
   "status": "COMPLETED",
   "phases": [
     "PHASE3"
@@ -32,5 +32,6 @@
   "updated": "2023-10-06",
   "brief_summary": "The purpose of this study is to evaluate the efficacy and safety of olaparib versus enzalutamide or abiraterone acetate in subjects with metastatic castration-resistant prostate cancer who have failed prior treatment with a new hormonal agent and have homologous recombination repair gene mutations.",
   "url": "https://clinicaltrials.gov/study/NCT02987543",
-  "updated_kind": "ACTUAL"
+  "updated_kind": "ACTUAL",
+  "results_first_posted": "2020-10-12"
 }

@@ -69,6 +69,7 @@
         "/result/commands/0/sections/*/word": [
           "eligibility",
           "outcomes",
+          "results",
           "arms",
           "locations",
           "contacts",

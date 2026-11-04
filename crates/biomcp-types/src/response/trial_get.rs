@@ -1,6 +1,6 @@
 use crate::{
-    NctId, Section, Status, TrialAgeBound, TrialArm, TrialCard, TrialIntervention, TrialOutcome,
-    TrialSection, TrialSex,
+    NctId, Section, Status, TrialAgeBound, TrialArm, TrialIntervention, TrialOutcome,
+    TrialPostedCard, TrialSection, TrialSex,
 };
 use serde::{Deserialize, Serialize};
 /// Trial answers in original input order, retaining independent states.
@@ -30,7 +30,7 @@ pub struct TrialCardItem {
     pub status: Status,
     /// Source card, absent after confirmed 404 or failed lookup.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub card: Option<TrialCard>,
+    pub card: Option<TrialPostedCard>,
     /// Original record retrieval timestamp.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fetched: Option<u64>,
@@ -63,6 +63,9 @@ pub struct TrialSections {
     /// Whole registered outcomes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub outcomes: Option<Section<TrialRecords<TrialOutcome>>>,
+    /// Posted results, followed by adverse-event groups and terms, in source order.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub results: Option<Section<TrialRecords<crate::TrialResultRecord>>>,
     /// Whole source arm and intervention records.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arms: Option<Section<TrialRecords<TrialArmRecord>>>,
