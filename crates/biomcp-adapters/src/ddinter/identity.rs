@@ -43,6 +43,7 @@ pub(super) fn identity(id: &str, name: Option<&str>) -> Result<DrugIdentity, bio
 }
 pub(super) fn header(identity: DrugIdentity) -> DrugHeader {
     DrugHeader {
+        name_resolution: None,
         matched_name: None,
         id: identity.id,
         source: DrugSource::Ddinter,

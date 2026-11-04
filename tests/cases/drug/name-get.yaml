@@ -1,0 +1,334 @@
+{
+  "feature": "drug-name-get",
+  "story": "Complete source names resolve deterministically, source selection follows sections, alternatives are bounded and partial names never select a record.",
+  "live_check": "Synthetic source-shaped responses; no live provider observation.",
+  "replay": "drug/name-get",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "Example ingredient",
+        "approvals"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "NDA021335",
+        "/query/input": "NDA021335",
+        "/query/source": "drugsfda",
+        "/result/identity/name_resolution/input": "Example ingredient",
+        "/result/identity/name_resolution/total": 8,
+        "/result/identity/name_resolution/alternatives": {
+          "count": 5
+        },
+        "/result/identity/name_resolution/alternatives/0/args": [
+          "get",
+          "drug",
+          "NDA021588",
+          "--source",
+          "drugsfda"
+        ],
+        "/result/identity/name_resolution/basis": "generic"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "eXaMpLe BrAnD",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "exit": 0,
+      "expect": {
+        "/result/identity/id": "NDA021335",
+        "/result/identity/name_resolution/total": 7,
+        "/result/identity/name_resolution/basis": "brand"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Shared name",
+        "approvals"
+      ],
+      "exit": 0,
+      "expect": {
+        "/result/identity/id": "ANDA000002",
+        "/result/identity/name_resolution/total": 2,
+        "/result/identity/name_resolution/basis": "brand"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Missing name",
+        "approvals"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "Missing name",
+          "--source",
+          "drugsfda"
+        ]
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Example",
+        "approvals"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "Example",
+          "--source",
+          "drugsfda"
+        ]
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Broken name",
+        "approvals"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/query/query": "Broken name",
+        "/query/source": "drugsfda"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "EXAMPLE LABEL",
+        "label",
+        "--label-section",
+        "warnings_and_cautions"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "11111111-1111-1111-1111-111111111111",
+        "/result/identity/name_resolution/total": 1,
+        "/query/source": "openfda-label"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Label ingredient",
+        "--source",
+        "openfda-label"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "11111111-1111-1111-1111-111111111111",
+        "/result/header/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "sync",
+        "ema"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "gLiVeC",
+        "regulatory"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "EMEA/H/C/000406",
+        "/query/source": "ema",
+        "/result/identity/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Example ingredient",
+        "regulatory"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "EMEA/H/C/000406",
+        "/result/identity/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Example medicine"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/query/source": "mychem",
+        "/query/input": "KTUFNOKKBVMGRW-UHFFFAOYSA-N",
+        "/result/header/id": "KTUFNOKKBVMGRW-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Compound one",
+        "approvals"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "NDA001111",
+        "/result/identity/name_resolution/basis": "generic"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Compound one hydrochloride",
+        "approvals"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "NDA001111",
+        "/result/identity/name_resolution/basis": "generic"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Brand salt",
+        "approvals"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "NDA001111",
+        "/result/identity/name_resolution/basis": "brand"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Compound",
+        "approvals"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "Compound",
+          "--source",
+          "drugsfda"
+        ]
+      },
+      "max_bytes": 1500
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Unlisted medicine",
+        "approvals"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "Unlisted medicine",
+          "--source",
+          "drugsfda"
+        ]
+      },
+      "max_bytes": 1500
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Double medicine",
+        "approvals"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "Double medicine",
+          "--source",
+          "drugsfda"
+        ]
+      },
+      "max_bytes": 1500
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Test therapy",
+        "--source",
+        "chembl"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/query/query": "Test therapy",
+        "/problems/0/field": "molecule_chembl_id"
+      },
+      "max_bytes": 3000
+    }
+  ]
+}

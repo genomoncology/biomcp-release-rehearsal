@@ -64,7 +64,7 @@
   "$id": "biomcp.drug-get-command/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Exact native ID retrieval with an explicitly selected source.",
+  "description": "Retrieve a drug by source-native ID, brand or generic name, with explicit source-scoped sections.",
   "properties": {
     "civic_cursor": {
       "anyOf": [
@@ -100,7 +100,7 @@
     },
     "input": {
       "$ref": "#/$defs/Text",
-      "description": "Exact source-native ID; WHO references retain native spaces. No name or alias resolution.",
+      "description": "Source-native ID or complete brand or generic name; WHO references retain native spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines",
       "x-positional": 0
     },
     "label_section": {
@@ -154,12 +154,11 @@
     },
     "source": {
       "$ref": "#/$defs/DrugSource",
-      "description": "Required source; there is no default exact-ID resolver."
+      "description": "Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem."
     }
   },
   "required": [
-    "input",
-    "source"
+    "input"
   ],
   "title": "DrugGetCommand",
   "type": "object",

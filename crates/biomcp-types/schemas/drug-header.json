@@ -53,6 +53,43 @@
         "both"
       ]
     },
+    "Reply_DrugNameResolution": {
+      "description": "Exact source name choice; brand before generic, original FDA application then earliest approval, otherwise source order.",
+      "properties": {
+        "alternatives": {
+          "description": "Up to five other exact records as ready get commands.",
+          "items": {
+            "$ref": "#/$defs/Reply_Step"
+          },
+          "type": "array"
+        },
+        "basis": {
+          "$ref": "#/$defs/Reply_DrugNameMatch",
+          "description": "Name basis selected after demoting a brand identical to its own ingredient."
+        },
+        "input": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Original complete name matched case-insensitively."
+        },
+        "ranking": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Applied ambiguity ordering, emitted only from fixed nonempty rule text."
+        },
+        "total": {
+          "description": "Total exact source records, including the selected record.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input",
+        "basis",
+        "ranking",
+        "total"
+      ],
+      "type": "object"
+    },
     "Reply_DrugSource": {
       "description": "A supported drug data source.",
       "type": "string",
@@ -68,6 +105,42 @@
         "ema",
         "ddinter"
       ]
+    },
+    "Reply_Step": {
+      "description": "A command argument list spelled from a typed action.",
+      "properties": {
+        "args": {
+          "description": "CLI and MCP arguments.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/Reply_StepKind",
+          "description": "Purpose of the action."
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    },
+    "Reply_StepKind": {
+      "description": "Purpose of an available next command.",
+      "enum": [
+        "restart",
+        "section",
+        "sort",
+        "page",
+        "fresh",
+        "disambiguate",
+        "pivot",
+        "sync",
+        "key",
+        "configure"
+      ],
+      "type": "string"
     },
     "Reply_Text": {
       "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
@@ -103,6 +176,17 @@
     "name": {
       "$ref": "#/$defs/Reply_Text",
       "description": "Original source display name."
+    },
+    "name_resolution": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_DrugNameResolution"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact name choice, ranking rule and bounded alternative commands; omitted for native ID calls."
     },
     "source": {
       "$ref": "#/$defs/Reply_DrugSource",

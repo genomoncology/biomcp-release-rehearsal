@@ -24,6 +24,7 @@ fn native_header(
     p: &mut Problems,
 ) -> Result<DrugHeader, Error> {
     Ok(DrugHeader {
+        name_resolution: None,
         matched_name: None,
         id: id.parse()?,
         source: DrugSource::Opentargets,

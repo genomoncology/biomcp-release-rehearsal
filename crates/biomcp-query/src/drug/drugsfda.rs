@@ -55,19 +55,18 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     out
 }
 pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
-    let is_approvals = query.sections() == [DrugSection::Approvals];
-    let mut out = empty(if is_approvals {
-        biomcp_types::DrugApprovals::into_reply(query.clone(), None)
-    } else {
-        biomcp_types::DrugCard::into_reply(query.clone(), None)
-    });
+    let (is_approvals, mut out) = empty_get(query);
     if !query.supports_sections() {
         return unsupported(query.source(), out);
     }
+    let id = match query.native_input() {
+        Ok(id) => id,
+        Err(_) => return super::rejected_input(query.source(), "input", out),
+    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&source::SPEC, deadline).fresh(cx.fresh);
-    let result = source::get(&leg, query.input());
+    let result = source::get(&leg, &id);
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
     out.sources
@@ -136,6 +135,16 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
+fn empty_get(query: &DrugGet) -> (bool, Outcome) {
+    let is_approvals = query.sections() == [DrugSection::Approvals];
+    let out = empty(if is_approvals {
+        biomcp_types::DrugApprovals::into_reply(query.clone(), None)
+    } else {
+        biomcp_types::DrugCard::into_reply(query.clone(), None)
+    });
+    (is_approvals, out)
+}
+
 fn label_steps(cx: &Ctx<'_>, row: &source::Application, out: &mut Outcome) {
     for id in row.label_ids() {
         if let Some(request) = crate::next::checked(

@@ -60,8 +60,9 @@ impl From<ReceivedSynonym> for Synonym {
             list: Vec::new(),
         };
         let molecule_synonym = problems.required_field("molecule_synonym", row.molecule_synonym);
-        let _ = problems.required_field("syn_type", row.syn_type);
+        let syn_type = problems.required_field("syn_type", row.syn_type);
         Self {
+            syn_type,
             molecule_synonym,
             problems: problems.list,
         }

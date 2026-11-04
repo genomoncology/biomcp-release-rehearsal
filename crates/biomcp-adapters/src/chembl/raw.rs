@@ -26,6 +26,7 @@ pub(super) struct Molecule {
 #[derive(Debug, Deserialize)]
 #[serde(from = "super::receive::ReceivedSynonym")]
 pub(super) struct Synonym {
+    pub syn_type: Option<String>,
     /// Rejected native metadata.
     pub problems: Vec<biomcp_types::Problem>,
     /// Original name.

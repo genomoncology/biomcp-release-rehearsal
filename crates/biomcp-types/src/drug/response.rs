@@ -9,6 +9,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugHeader {
+    /// Exact name choice, ranking rule and bounded alternative commands; omitted for native ID calls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_resolution: Option<DrugNameResolution>,
     /// Published native identifier.
     pub id: DrugId,
     /// The single source responsible for this header.
@@ -263,4 +266,22 @@ pub struct DrugXrefs {
 impl ResponseBody for DrugXrefs {
     const SCHEMA: &'static str = "biomcp.drug-xrefs/5";
     type Query = DrugGet;
+}
+
+/// Exact source name choice; brand before generic, original FDA application then earliest approval, otherwise source order.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct DrugNameResolution {
+    /// Original complete name matched case-insensitively.
+    pub input: Text,
+    /// Name basis selected after demoting a brand identical to its own ingredient.
+    pub basis: super::DrugNameMatch,
+    /// Applied ambiguity ordering, emitted only from fixed nonempty rule text.
+    #[cfg_attr(feature = "schema", schemars(with = "Text"))]
+    pub ranking: Box<str>,
+    /// Total exact source records, including the selected record.
+    pub total: u64,
+    /// Up to five other exact records as ready get commands.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub alternatives: Box<[Step]>,
 }

@@ -1,4 +1,5 @@
 use super::DrugSource;
+use super::source::{civic_id, inferred_source};
 use crate::{CivicClaimKind, QueryInvalid};
 use biodata::{DrugId, Text};
 use serde::{Deserialize, Serialize};
@@ -114,6 +115,23 @@ impl TryFrom<SearchFields> for DrugSearch {
     }
 }
 impl DrugSearch {
+    /// Construct a literal name search through the same checked fields as every input surface.
+    pub fn named(query: Text, source: DrugSource, limit: u32) -> Result<Self, QueryInvalid> {
+        SearchFields {
+            query: Some(query),
+            source,
+            limit,
+            offset: 0,
+            firm: None,
+            classification: None,
+            status: None,
+            reason: None,
+            initiated_from: None,
+            initiated_to: None,
+            name_selector: None,
+        }
+        .try_into()
+    }
     /// Checked native selector, with preferred name as the ChEMBL default.
     pub fn name_selector(&self) -> super::DrugNameSelector {
         self.0
@@ -121,11 +139,10 @@ impl DrugSearch {
             .unwrap_or(super::DrugNameSelector::Preferred)
     }
 }
-/// Exact native ID retrieval with an explicitly selected source.
+/// Retrieve a native ID or a complete source name.
+/// Brands rank first; Drugs@FDA then prefers original applications and earliest approval, otherwise source search order.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "GetFields")]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "schema", schemars(with = "GetFields"))]
 pub struct DrugGet {
     #[serde(flatten)]
     fields: GetFields,
@@ -137,16 +154,19 @@ enum NativeDrugId {
     Recall(biodata::DrugRecallNumber),
     Civic(std::num::NonZeroU32),
     Other,
+    Name,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct GetFields {
-    /// Published source-native identifier, never SOURCE:ID or a selected name.
+    /// Published source-native identifier or complete brand or generic name.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
-    input: DrugId,
-    /// Required source; there is no default exact-ID resolver.
-    source: DrugSource,
+    input: Text,
+    /// Source inferred from an unambiguous requested section; otherwise MyChem.
+    #[serde(default, deserialize_with = "selected_source")]
+    #[cfg_attr(feature = "schema", schemars(with = "DrugSource", extend("default" = "mychem")))]
+    source: Option<DrugSource>,
     /// Explicit named disclosures; empty means identity only.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 1)))]
@@ -178,25 +198,43 @@ struct GetFields {
 crate::query::validation::checked_query!(DrugGet, GetFields);
 impl TryFrom<GetFields> for DrugGet {
     type Error = QueryInvalid;
-    fn try_from(fields: GetFields) -> Result<Self, Self::Error> {
+    fn try_from(mut fields: GetFields) -> Result<Self, Self::Error> {
+        let source = fields
+            .source
+            .unwrap_or_else(|| inferred_source(&fields.section));
+        fields.source = Some(source);
         validate_sections(&fields)?;
-        let native_id = match fields.source {
-            DrugSource::FdaDrugRecall => NativeDrugId::Recall(
-                fields
-                    .input
-                    .to_string()
-                    .parse()
-                    .map_err(|_| QueryInvalid::new(&["source", "input"]))?,
-            ),
-            DrugSource::Civic => NativeDrugId::Civic(
-                civic_id(&fields.input.to_string())
-                    .ok_or_else(|| QueryInvalid::new(&["source", "input"]))?,
-            ),
-            source => {
-                if !source.accepts(&fields.input) {
-                    return Err(QueryInvalid::new(&["source", "input"]));
+        let native_id = if !fields
+            .input
+            .as_str()
+            .parse::<DrugId>()
+            .is_ok_and(|id| source.native_id(&id))
+        {
+            NativeDrugId::Name
+        } else {
+            match source {
+                DrugSource::FdaDrugRecall => NativeDrugId::Recall(
+                    fields
+                        .input
+                        .to_string()
+                        .parse()
+                        .map_err(|_| QueryInvalid::new(&["source", "input"]))?,
+                ),
+                DrugSource::Civic => NativeDrugId::Civic(
+                    civic_id(&fields.input.to_string())
+                        .ok_or_else(|| QueryInvalid::new(&["source", "input"]))?,
+                ),
+                source => {
+                    if !fields
+                        .input
+                        .as_str()
+                        .parse::<DrugId>()
+                        .is_ok_and(|id| source.accepts(&id))
+                    {
+                        return Err(QueryInvalid::new(&["source", "input"]));
+                    }
+                    NativeDrugId::Other
                 }
-                NativeDrugId::Other
             }
         };
         validate_civic(&fields)?;
@@ -222,7 +260,7 @@ fn validate_sections(fields: &GetFields) -> Result<(), QueryInvalid> {
     if fields.product_number.is_some() && !fields.section.contains(&DrugSection::Approvals) {
         return Err(QueryInvalid::new(&["product_number", "section"]));
     }
-    if fields.source == DrugSource::FdaDrugRecall && !fields.section.is_empty() {
+    if fields.source == Some(DrugSource::FdaDrugRecall) && !fields.section.is_empty() {
         return Err(QueryInvalid::new(&["source", "section"]));
     }
     Ok(())
@@ -241,7 +279,8 @@ fn validate_civic(fields: &GetFields) -> Result<(), QueryInvalid> {
         return Err(QueryInvalid::new(&["civic_cursor", "civic_kind"]));
     }
     if fields.civic_kind.is_some()
-        && (fields.source != DrugSource::Civic || !fields.section.contains(&DrugSection::Civic))
+        && (fields.source != Some(DrugSource::Civic)
+            || !fields.section.contains(&DrugSection::Civic))
     {
         return Err(QueryInvalid::new(&["civic_kind", "source", "section"]));
     }
@@ -255,6 +294,16 @@ impl DrugGet {
             fields,
             native_id: self.native_id.clone(),
         })
+    }
+    /// Whether this input requires exact source name resolution.
+    pub fn is_name(&self) -> bool {
+        self.native_id == NativeDrugId::Name
+    }
+    /// Preserve section selectors while replacing a resolved name with its native ID.
+    pub fn with_native_id(&self, input: DrugId) -> Result<Self, QueryInvalid> {
+        let mut fields = self.fields.clone();
+        fields.input = Text::new(&input.to_string()).map_err(|_| QueryInvalid::new(&["input"]))?;
+        fields.try_into()
     }
     /// FDA recall identity retained by the checked boundary.
     pub fn recall_number(&self) -> Option<&biodata::DrugRecallNumber> {
@@ -273,8 +322,8 @@ impl DrugGet {
     /// Select one exact native identity, with no sections requested.
     pub fn new(input: DrugId, source: DrugSource) -> Result<Self, QueryInvalid> {
         GetFields {
-            input,
-            source,
+            input: Text::new(&input.to_string()).map_err(|_| QueryInvalid::new(&["input"]))?,
+            source: Some(source),
             section: Box::default(),
             section_limit: None,
             section_offset: None,
@@ -323,12 +372,20 @@ impl DrugGet {
         self.fields.civic_cursor.as_ref()
     }
     /// Unchanged published identifier.
-    pub fn input(&self) -> &DrugId {
+    pub fn input(&self) -> &Text {
         &self.fields.input
+    }
+    /// Source-native identity after name resolution.
+    pub fn native_input(&self) -> Result<DrugId, QueryInvalid> {
+        self.fields
+            .input
+            .as_str()
+            .parse()
+            .map_err(|_| QueryInvalid::new(&["input"]))
     }
     /// Required selected source.
     pub fn source(&self) -> DrugSource {
-        self.fields.source
+        self.fields.source.unwrap_or(DrugSource::Mychem)
     }
     /// Explicit page bound; command handlers apply their existing default when absent.
     pub fn section_limit(&self) -> Option<u32> {
@@ -345,43 +402,6 @@ impl DrugGet {
         self.fields.section_offset
     }
 }
-impl DrugSource {
-    /// Check only published ID grammar for this endpoint, without inferring identity level or joining records.
-    pub fn accepts(self, id: &DrugId) -> bool {
-        let id = id.to_string();
-        if id.split_once(':').is_some_and(|(prefix, _)| {
-            Self::ALL
-                .into_iter()
-                .any(|source| source.as_str().eq_ignore_ascii_case(prefix))
-        }) {
-            return false;
-        }
-        let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
-        match self {
-            Self::FdaDrugRecall => id.parse::<biodata::DrugRecallNumber>().is_ok(),
-            Self::WhoPq => false,
-            Self::Mychem => true,
-            Self::Chembl | Self::Opentargets => id.strip_prefix("CHEMBL").is_some_and(digits),
-            Self::Civic => civic_id(&id).is_some(),
-            Self::Ddinter => id.strip_prefix("DDInter").is_some_and(digits),
-            Self::Drugsfda => ["NDA", "ANDA", "BLA"].iter().any(|p| {
-                id.strip_prefix(p)
-                    .is_some_and(|s| s.len() == 6 && digits(s))
-            }),
-            Self::Ema => id
-                .strip_prefix("EMEA/H/C/")
-                .is_some_and(|s| s.len() == 6 && digits(s)),
-            Self::OpenfdaLabel => {
-                let pieces: Vec<_> = id.split('-').collect();
-                pieces.iter().map(|s| s.len()).eq([8, 4, 4, 4, 12])
-                    && pieces
-                        .iter()
-                        .all(|s| s.bytes().all(|b| b.is_ascii_hexdigit()))
-            }
-        }
-    }
-}
-
 fn present_query<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Option<Text>, D::Error> {
     Text::deserialize(d).map(Some)
 }
@@ -492,12 +512,34 @@ impl DrugGet {
     }
 }
 
-fn civic_id(value: &str) -> Option<std::num::NonZeroU32> {
-    if !value.bytes().all(|byte| byte.is_ascii_digit()) {
-        return None;
+fn selected_source<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Option<DrugSource>, D::Error> {
+    DrugSource::deserialize(d).map(Some)
+}
+
+#[cfg(feature = "schema")]
+impl schemars::JsonSchema for DrugGet {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "DrugGet".into()
     }
-    value
-        .parse::<std::num::NonZeroU32>()
-        .ok()
-        .filter(|id| id.get() <= i32::MAX as u32)
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let mut schema = GetFields::json_schema(generator);
+        schema.insert(
+            "description".into(),
+            "A source-selected drug request echoed with a native ID after name resolution.".into(),
+        );
+        if let Some(properties) = schema.get_mut("properties").and_then(|p| p.as_object_mut()) {
+            properties.insert(
+                "input".into(),
+                generator.subschema_for::<DrugId>().to_value(),
+            );
+            properties.insert(
+                "source".into(),
+                generator.subschema_for::<DrugSource>().to_value(),
+            );
+        }
+        if let Some(required) = schema.get_mut("required").and_then(|r| r.as_array_mut()) {
+            required.push("source".into());
+        }
+        schema
+    }
 }

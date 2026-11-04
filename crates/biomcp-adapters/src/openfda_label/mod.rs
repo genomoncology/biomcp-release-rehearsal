@@ -44,7 +44,7 @@ fn literal(value: &str) -> String {
     format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }
 mod search;
-pub use search::{Search, search};
+pub use search::{Search, search, search_names};
 fn normalize_name(value: &str) -> String {
     value
         .chars()

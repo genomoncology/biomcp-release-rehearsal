@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=products.brand_name%3A%22Broken%20name%22%20OR%20products.active_ingredients.name%3A%22Broken%20name%22&limit=50",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 403,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "error": "synthetic failure"
+        }
+      }
+    }
+  ]
+}

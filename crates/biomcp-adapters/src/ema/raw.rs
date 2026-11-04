@@ -75,11 +75,14 @@ impl Row for Medicine {
     fn keys(&self) -> Keys {
         Keys {
             exact: vec![(KeyKind::Id, self.id.to_string().into())],
-            words: self
-                .field("name_of_medicine")
-                .and_then(Result::ok)
-                .map(|name| vec![name.into()])
-                .unwrap_or_default(),
+            words: [
+                "name_of_medicine",
+                "active_substance",
+                "international_non_proprietary_name_common_name",
+            ]
+            .into_iter()
+            .filter_map(|field| self.field(field).and_then(Result::ok).map(Into::into))
+            .collect(),
         }
     }
 }

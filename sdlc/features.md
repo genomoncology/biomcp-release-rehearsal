@@ -130,4 +130,6 @@ variant-clinvar-haplotype: Preserve native ClinVar haplotype kind, version, chro
 mcp-hosted: A server operator refuses host file saves, health details and store or key changes over every MCP transport in hosted mode; HTTP calls declare commercial or academic use with commercial defaults and server exclusions preserved, use caller source headers under declared fallback tiers without retaining credentials, pace each effective key independently, share keyless pacing, scale provider rates with --rate-share and cap whole-call time and active hosted HTTP work.
 
 source-pacing: Operators can lower source rates and simultaneous requests within documented source ceilings.
+
+drug-name-get: Resolve source names with the fixed single-term salt/ester rule in one get call, infer an unambiguous section source, report bounded alternatives and direct unresolved names to source search.
 trial-results: A caller pages posted outcome measures, source group values, dispersion and analyses, and adverse-event tables from the same registry record, with its first posting date.

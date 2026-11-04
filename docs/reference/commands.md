@@ -1557,7 +1557,7 @@ Commands:
   diagnostic     Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.
   adverse-event  Exact native report identity and an optional independently paged section.
   disease        Exact concept or native SEER site with independently paged section.
-  drug           Exact native ID retrieval with an explicitly selected source.
+  drug           Retrieve a drug by source-native ID, brand or generic name, with explicit source-scoped sections.
   gene           Get one to twenty human gene inputs in their original order.
   article        Get one to twenty article inputs in caller order.
   trial          Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.
@@ -2384,13 +2384,13 @@ One named section; absent means identity card only.
 ## biomcp get drug
 
 ```text
-Exact native ID retrieval with an explicitly selected source.
+Retrieve a drug by source-native ID, brand or generic name, with explicit source-scoped sections.
 
-Usage: biomcp get drug [OPTIONS] --source <source> <input> [section]...
+Usage: biomcp get drug [OPTIONS] <input> [section]...
 
 Arguments:
   <input>
-          Exact source-native ID; WHO references retain native spaces. No name or alias resolution.
+          Source-native ID or complete brand or generic name; WHO references retain native spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
 
   [section]...
           Explicit named disclosures; empty means identity only.
@@ -2433,7 +2433,7 @@ Options:
           Named section continuation, refused on an identity-only card.
 
       --source <source>
-          Required source; there is no default exact-ID resolver.
+          Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 
       --offline
           Read local data without source requests.
@@ -2443,18 +2443,18 @@ Options:
 
 ```
 
-Exact source ID retrieval with an explicitly selected source. Sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq.
+Retrieve a drug by source ID, brand or generic name, with explicit source-scoped sections. Sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq.
 
 - `--civic-cursor`: Source continuation cursor for that exact drug, profile and claim collection.
 - `--civic-kind`: Independent source evidence or assertion collection within the selected profile.
 - `--civic-profile`: Selected source CIViC molecular profile for a drug-scoped claim stream.
-- `input`: Exact source ID; WHO references retain source spaces. No name or alias resolution.
+- `input`: Source-source ID or complete brand or generic name; WHO references retain source spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
 - `--label-section`: Exact source label heading, required only for the label section.
 - `--product-number`: Explicit source application product number, only for approvals.
 - `section`: Explicit named disclosures; empty means identity only.
 - `--section-limit`: Named section page size, refused on an identity-only card.
 - `--section-offset`: Named section continuation, refused on an identity-only card.
-- `--source`: Required source; there is no default exact-ID resolver.
+- `--source`: Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 
 Explicit named disclosures; empty means identity only.
 

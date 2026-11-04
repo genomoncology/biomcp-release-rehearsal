@@ -62,6 +62,22 @@ pub fn search(leg: &Leg<'_>, text: &Text, limit: u32, offset: u32) -> Result<Pag
     }
     page(leg, &selector(""), limit, offset, None)
 }
+/// Name resolution uses the existing word selector to retain all exact and approved single-term generic forms.
+pub fn search_names(
+    leg: &Leg<'_>,
+    text: &Text,
+    limit: u32,
+    offset: u32,
+) -> Result<Page, RequestError> {
+    let name = literal(text.as_str());
+    page(
+        leg,
+        &format!("products.brand_name:{name} OR products.active_ingredients.name:{name}"),
+        limit,
+        offset,
+        None,
+    )
+}
 /// Read exactly the named native application; reject a wrong identity before caching it.
 pub fn get(leg: &Leg<'_>, id: &DrugId) -> Result<Page, RequestError> {
     if !DrugSource::Drugsfda.accepts(id) {
@@ -140,6 +156,7 @@ impl RawApplication {
     /// An application endpoint establishes application identity, without choosing a brand.
     pub(super) fn header(&self) -> DrugHeader {
         DrugHeader {
+            name_resolution: None,
             matched_name: None,
             id: self.application_number.clone(),
             source: DrugSource::Drugsfda,

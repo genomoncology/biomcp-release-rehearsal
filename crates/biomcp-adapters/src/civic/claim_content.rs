@@ -43,6 +43,7 @@ pub(super) fn therapies(
                 source: DrugSource::Civic,
                 name: label.clone(),
                 identity_level: biodata::DrugIdentityLevel::Unknown,
+                name_resolution: None,
                 matched_name: None,
                 r#type: None,
                 version: None,

@@ -191,6 +191,27 @@ pub struct Mechanism(pub(super) RawMechanism);
 #[derive(Debug)]
 pub struct Indication(pub(super) RawIndication);
 impl Molecule {
+    /// Match complete native preferred or synonym names, retaining native trade-name classification.
+    pub fn name_match(&self, name: &str) -> Option<biomcp_types::DrugNameMatch> {
+        let exact = |value: &str| biomcp_types::DrugNameMatch::same_name(value, name);
+        let brand = self.0.molecule_synonyms.iter().any(|s| {
+            s.molecule_synonym.as_deref().is_some_and(exact)
+                && s.syn_type.as_deref() == Some("TRADE_NAME")
+                && !self.0.pref_name.as_deref().is_some_and(exact)
+        });
+        let generic = self
+            .0
+            .pref_name
+            .as_deref()
+            .is_some_and(|value| biomcp_types::DrugNameMatch::generic_name(value, name))
+            || self.0.molecule_synonyms.iter().any(|s| {
+                s.molecule_synonym
+                    .as_deref()
+                    .is_some_and(|value| biomcp_types::DrugNameMatch::generic_name(value, name))
+                    && s.syn_type.as_deref() != Some("TRADE_NAME")
+            });
+        biomcp_types::DrugNameMatch::from_fields(brand, generic)
+    }
     /// Actual refused native child identities.
     pub fn refusals(&self) -> crate::Refusal {
         self.0.refusals

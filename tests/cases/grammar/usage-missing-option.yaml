@@ -14,19 +14,10 @@
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/error/option": "--source",
+        "/error/option": "--label-section",
         "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
         "/error/valid_values": [
-          "who-pq",
-          "fda-drug-recall",
-          "mychem",
-          "chembl",
-          "opentargets",
-          "civic",
-          "openfda-label",
-          "drugsfda",
-          "ema",
-          "ddinter"
+          "Bounded nonempty text with surrounding Unicode whitespace removed. Minimum length: 1. Maximum length: 1048576."
         ],
         "/next/0/args": [
           "help",

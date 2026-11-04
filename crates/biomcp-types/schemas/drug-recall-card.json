@@ -23,7 +23,7 @@
       "type": "string"
     },
     "Reply_DrugGet": {
-      "description": "Exact native ID retrieval with an explicitly selected source.",
+      "description": "A source-selected drug request echoed with a native ID after name resolution.",
       "properties": {
         "civic_cursor": {
           "anyOf": [
@@ -58,9 +58,7 @@
           ]
         },
         "input": {
-          "$ref": "#/$defs/Reply_DrugId",
-          "description": "Published source-native identifier, never SOURCE:ID or a selected name.",
-          "x-positional": 0
+          "$ref": "#/$defs/Reply_DrugId"
         },
         "label_section": {
           "anyOf": [
@@ -112,8 +110,7 @@
           ]
         },
         "source": {
-          "$ref": "#/$defs/Reply_DrugSource",
-          "description": "Required source; there is no default exact-ID resolver."
+          "$ref": "#/$defs/Reply_DrugSource"
         }
       },
       "required": [

@@ -41,6 +41,7 @@ fn header_and_card_exclude_deeper_disclosures_from_the_public_contract() {
             "identity_level",
             "matched_name",
             "name",
+            "name_resolution",
             "source",
             "type",
             "url",

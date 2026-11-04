@@ -13,6 +13,7 @@ pub(super) fn header(row: &Molecule) -> Result<crate::Mapped<DrugHeader>, Error>
     let value = DrugHeader {
         id: row.molecule_chembl_id.parse()?,
         source: DrugSource::Chembl,
+        name_resolution: None,
         matched_name: None,
         name: problems.text("pref_name", row.pref_name.as_deref()),
         r#type: problems.checked_text("molecule_type", row.molecule_type.as_deref()),

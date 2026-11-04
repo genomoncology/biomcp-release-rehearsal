@@ -1,4 +1,5 @@
 use super::links::{native_xrefs, strings};
+use super::names::name;
 use super::raw::{Component, Hit, Page};
 pub(super) use crate::mapped::text;
 use biodata::{DrugIdentityLevel, DrugIdentityRelation};
@@ -34,16 +35,10 @@ fn components(
     }
     (hit.id, problems.field("_version", hit.version), rows)
 }
-fn name(c: &Component) -> Option<&str> {
-    c.name
-        .as_deref()
-        .or(c.pref_name.as_deref())
-        .or(c.display_name.as_deref())
-        .or(c.proprietaryname.as_deref())
-        .or(c.nonproprietaryname.as_deref())
-}
+
 fn header(id: &str, rows: &[(&str, Component)]) -> Result<DrugHeader, BadReply> {
     Ok(DrugHeader {
+        name_resolution: None,
         matched_name: None,
         id: id.parse().map_err(|_| BadReply)?,
         source: DrugSource::Mychem,
@@ -68,7 +63,11 @@ fn header(id: &str, rows: &[(&str, Component)]) -> Result<DrugHeader, BadReply> 
         url: Some(text(&format!("https://mychem.info/v1/chem/{id}"))?),
     })
 }
-pub(super) fn page(page: Page, leg: &Leg<'_>) -> Result<crate::Mapped<DrugPage>, BadReply> {
+pub(super) fn page(
+    page: Page,
+    leg: &Leg<'_>,
+    query: &str,
+) -> Result<crate::Mapped<DrugPage>, BadReply> {
     let mut problems = crate::mapped::Problems {
         source: biomcp_types::Source::Mychem,
         record: None,
@@ -88,7 +87,9 @@ pub(super) fn page(page: Page, leg: &Leg<'_>) -> Result<crate::Mapped<DrugPage>,
             continue;
         }
         let (id, _, rows) = components(hit, leg, &mut problems);
-        items.push(header(&id, &rows)?);
+        let mut item = header(&id, &rows)?;
+        item.matched_name = super::names::matching(&rows, query);
+        items.push(item);
     }
     Ok(crate::Mapped {
         refusals,

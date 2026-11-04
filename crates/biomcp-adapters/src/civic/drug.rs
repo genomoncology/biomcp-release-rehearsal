@@ -22,8 +22,26 @@ pub(super) struct Therapy {
     pub id: Option<Field<u64>>,
     pub name: Option<Field<NativeText>>,
     pub link: Option<Field<Text>>,
+    pub therapy_aliases: Option<Field<Vec<Field<NativeText>>>>,
 }
 impl Therapy {
+    fn search_header(self, cx: &mut Problems, text: &Text) -> Option<DrugHeader> {
+        let exact_alias = self
+            .therapy_aliases
+            .as_ref()
+            .and_then(Field::as_ref)
+            .is_some_and(|names| {
+                names.iter().filter_map(Field::as_ref).any(|name| {
+                    biomcp_types::DrugNameMatch::same_name(name.as_str(), text.as_str())
+                })
+            });
+        self.header(cx).map(|mut header| {
+            if exact_alias {
+                header.matched_name = Some(biomcp_types::DrugNameMatch::Generic);
+            }
+            header
+        })
+    }
     pub(super) fn header(self, cx: &mut Problems) -> Option<DrugHeader> {
         let id = variant_map::identity(self.id, "id", cx)?;
         cx.record = crate::mapped::record(id);
@@ -31,6 +49,7 @@ impl Therapy {
         let link = cx.field("link", self.link);
         let record = variant_map::record(id, link.as_ref(), cx)?;
         Some(DrugHeader {
+            name_resolution: None,
             matched_name: None,
             id: cx.optional("id", Some(id.to_string().parse()))?,
             source: DrugSource::Civic,
@@ -130,7 +149,7 @@ pub fn drug_search(
                     .into_iter()
                     .filter_map(|row| {
                         cx.record = None;
-                        match row.header(&mut cx) {
+                        match row.search_header(&mut cx, text) {
                             Some(row) => Some(row),
                             None => {
                                 refusals = crate::Refusal::Refused;

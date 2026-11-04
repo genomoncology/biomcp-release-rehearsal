@@ -20,6 +20,7 @@ pub static SPEC: SourceSpec = SourceSpec {
 };
 mod links;
 mod map;
+mod names;
 mod normalize;
 mod raw;
 use biomcp_fetch::{Arg, Endpoint, Freshness, Leg, PathSegment, RequestError};
@@ -45,7 +46,25 @@ pub fn search(
     limit: u32,
     offset: u32,
 ) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
-    let fields = crate::drug_sources::components::allowed_fields(leg, SEARCH_FIELDS);
+    search_fields(leg, query, limit, offset, SEARCH_FIELDS)
+}
+/// Search the same source with its complete native brand and generic name fields for exact resolution.
+pub fn search_names(
+    leg: &Leg<'_>,
+    query: &str,
+    limit: u32,
+    offset: u32,
+) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
+    search_fields(leg, query, limit, offset, CARD_FIELDS)
+}
+fn search_fields(
+    leg: &Leg<'_>,
+    query: &str,
+    limit: u32,
+    offset: u32,
+    requested: &str,
+) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
+    let fields = crate::drug_sources::components::allowed_fields(leg, requested);
     let reply = leg
         .call(
             &SEARCH,
@@ -61,7 +80,7 @@ pub fn search(
         )?
         .value;
     let received = reply.hits.len() as u32;
-    map::page(reply, leg)
+    map::page(reply, leg, query)
         .map(|page| (page, received))
         .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))
 }

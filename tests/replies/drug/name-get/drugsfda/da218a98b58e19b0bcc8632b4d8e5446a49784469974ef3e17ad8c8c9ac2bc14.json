@@ -1,0 +1,221 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=products.brand_name%3A%22Example%22%20OR%20products.active_ingredients.name%3A%22Example%22&limit=50",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2026-10-28",
+            "results": {
+              "skip": 0,
+              "limit": 50,
+              "total": 8
+            }
+          },
+          "results": [
+            {
+              "application_number": "ANDA090001",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example ingredient",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20000101"
+                }
+              ]
+            },
+            {
+              "application_number": "NDA021588",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20030401"
+                }
+              ]
+            },
+            {
+              "application_number": "NDA021335",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20010510"
+                }
+              ]
+            },
+            {
+              "application_number": "ANDA090002",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20020101"
+                }
+              ]
+            },
+            {
+              "application_number": "ANDA090003",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20020101"
+                }
+              ]
+            },
+            {
+              "application_number": "ANDA090004",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20020101"
+                }
+              ]
+            },
+            {
+              "application_number": "ANDA090005",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20020101"
+                }
+              ]
+            },
+            {
+              "application_number": "ANDA090006",
+              "sponsor_name": "Synthetic sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Example brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Example ingredient",
+                      "strength": "100 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20020101"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

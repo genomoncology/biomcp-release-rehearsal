@@ -1,6 +1,7 @@
 # `get drug` accepts a brand or generic name
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 521a5d8a7362be81f4a0bb77ac12f2b7a2730b56
 Milestone: 5
 
 ## Outcome

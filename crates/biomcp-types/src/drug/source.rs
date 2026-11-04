@@ -1,3 +1,5 @@
+use super::DrugSection;
+use biodata::DrugId;
 use serde::{Deserialize, Serialize};
 /// One explicitly selected drug source; omitted search source means MyChem alone.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -112,5 +114,93 @@ impl DrugSource {
             Self::Ddinter => &[Interactions],
             Self::WhoPq | Self::FdaDrugRecall => &[],
         }
+    }
+}
+
+impl DrugSource {
+    /// Check only published ID grammar for this endpoint, without inferring identity level or joining records.
+    pub fn accepts(self, id: &DrugId) -> bool {
+        let id = id.to_string();
+        if id.split_once(':').is_some_and(|(prefix, _)| {
+            Self::ALL
+                .into_iter()
+                .any(|source| source.as_str().eq_ignore_ascii_case(prefix))
+        }) {
+            return false;
+        }
+        let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+        match self {
+            Self::FdaDrugRecall => id.parse::<biodata::DrugRecallNumber>().is_ok(),
+            Self::WhoPq => false,
+            Self::Mychem => true,
+            Self::Chembl | Self::Opentargets => id.strip_prefix("CHEMBL").is_some_and(digits),
+            Self::Civic => civic_id(&id).is_some(),
+            Self::Ddinter => id.strip_prefix("DDInter").is_some_and(digits),
+            Self::Drugsfda => ["NDA", "ANDA", "BLA"].iter().any(|p| {
+                id.strip_prefix(p)
+                    .is_some_and(|s| s.len() == 6 && digits(s))
+            }),
+            Self::Ema => id
+                .strip_prefix("EMEA/H/C/")
+                .is_some_and(|s| s.len() == 6 && digits(s)),
+            Self::OpenfdaLabel => {
+                let pieces: Vec<_> = id.split('-').collect();
+                pieces.iter().map(|s| s.len()).eq([8, 4, 4, 4, 12])
+                    && pieces
+                        .iter()
+                        .all(|s| s.bytes().all(|b| b.is_ascii_hexdigit()))
+            }
+        }
+    }
+}
+
+pub(super) fn civic_id(value: &str) -> Option<std::num::NonZeroU32> {
+    if !value.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    value
+        .parse::<std::num::NonZeroU32>()
+        .ok()
+        .filter(|id| id.get() <= i32::MAX as u32)
+}
+
+pub(super) fn inferred_source(sections: &[DrugSection]) -> DrugSource {
+    let candidates: Vec<_> = DrugSource::ALL
+        .into_iter()
+        .filter(|source| {
+            !sections.is_empty()
+                && sections
+                    .iter()
+                    .all(|section| source.sections().contains(section))
+        })
+        .collect();
+    match candidates.as_slice() {
+        [source] => *source,
+        _ => DrugSource::Mychem,
+    }
+}
+impl DrugSource {
+    /// Distinguish native MyChem keys from names; other sources use their existing ID grammar.
+    pub fn native_id(self, input: &DrugId) -> bool {
+        if self != Self::Mychem {
+            return self.accepts(input);
+        }
+        if !self.accepts(input) {
+            return false;
+        }
+        let value = input.to_string();
+        value.len() == 10
+            && value
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+            || value.bytes().all(|b| b.is_ascii_digit() || b == b'-')
+                && value.bytes().any(|b| b.is_ascii_digit())
+            || value.len() == 27
+                && value.as_bytes().get(14) == Some(&b'-')
+                && value.as_bytes().get(25) == Some(&b'-')
+            || value.contains(':')
+            || value.starts_with("CHEMBL")
+            || value.starts_with("DB") && value[2..].bytes().all(|b| b.is_ascii_digit())
+            || value.bytes().all(|b| b.is_ascii_digit())
     }
 }

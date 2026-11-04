@@ -10,6 +10,7 @@ pub(super) fn header(row: &raw::Medicine, problems: &mut crate::mapped::Problems
             .and_then(crate::raw::Field::as_ref),
     );
     DrugHeader {
+        name_resolution: None,
         matched_name: None,
         id: row.id.clone(),
         source: DrugSource::Ema,

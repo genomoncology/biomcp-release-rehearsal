@@ -19,6 +19,22 @@ pub fn search(leg: &Leg<'_>, name: &Text, limit: u32, offset: u32) -> Search {
     let page = discover(leg, name, limit, offset, &mut free_text);
     Search { page, free_text }
 }
+/// Retain native word-search candidates for strict complete-name and approved single-term get matching.
+pub fn search_names(
+    leg: &Leg<'_>,
+    name: &Text,
+    limit: u32,
+    offset: u32,
+) -> Result<Page, RequestError> {
+    let name = literal(name.as_str());
+    page(
+        leg,
+        &format!("openfda.brand_name:{name} OR openfda.generic_name:{name}"),
+        limit,
+        offset,
+        None,
+    )
+}
 fn discover(
     leg: &Leg<'_>,
     name: &Text,

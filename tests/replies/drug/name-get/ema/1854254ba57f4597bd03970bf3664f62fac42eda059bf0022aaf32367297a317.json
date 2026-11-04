@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "ema",
+  "url": "https://www.ema.europa.eu/en/documents/report/medicines-output-medicines_json-report_en.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"total_records\":6,\"timestamp\":\"2026-10-24T18:22:32Z\"},\"data\":[{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/000406\",\"name_of_medicine\":\"Glivec\",\"medicine_status\":\"Authorised\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/glivec\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\",\"marketing_authorisation_date\":\"07/11/2001\",\"active_substance\":\"Example ingredient\"},{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/004124\",\"name_of_medicine\":\"Tagrisso\",\"medicine_status\":\"Authorised\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/tagrisso\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\",\"marketing_authorisation_date\":\"01/02/2016\"},{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/004480\",\"name_of_medicine\":\"Yescarta\",\"medicine_status\":\"Authorised\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/yescarta\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\",\"marketing_authorisation_date\":\"23/08/2018\"},{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/005621\",\"name_of_medicine\":\"Exkivity\",\"medicine_status\":\"Application withdrawn\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/exkivity\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\",\"withdrawal_of_application_date\":\"20/07/2022\"},{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/005936\",\"name_of_medicine\":\"Tibsovo\",\"medicine_status\":\"Authorised\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/tibsovo\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\"},{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/005056\",\"name_of_medicine\":\"Tibsovo\",\"medicine_status\":\"Application withdrawn\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/tibsovo\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\"}]}"
+      }
+    }
+  ]
+}

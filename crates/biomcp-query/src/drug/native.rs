@@ -106,7 +106,11 @@ fn search_page(
             .window
             .rows
             .iter()
-            .map(|row| identity::chembl_header(row, problems))
+            .map(|row| {
+                let mut header = identity::chembl_header(row, problems)?;
+                header.matched_name = row.name_match(name.as_str());
+                Ok::<_, biodata::Error>(header)
+            })
             .collect::<Result<Vec<_>, _>>()
             .map_err(|_| failure(source))?;
         Ok(page.window.with_rows(items))

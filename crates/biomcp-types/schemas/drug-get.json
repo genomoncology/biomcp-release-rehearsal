@@ -64,7 +64,7 @@
   "$id": "biomcp.drug-get/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Exact native ID retrieval with an explicitly selected source.",
+  "description": "A source-selected drug request echoed with a native ID after name resolution.",
   "properties": {
     "civic_cursor": {
       "anyOf": [
@@ -99,9 +99,7 @@
       ]
     },
     "input": {
-      "$ref": "#/$defs/DrugId",
-      "description": "Published source-native identifier, never SOURCE:ID or a selected name.",
-      "x-positional": 0
+      "$ref": "#/$defs/DrugId"
     },
     "label_section": {
       "anyOf": [
@@ -153,8 +151,7 @@
       ]
     },
     "source": {
-      "$ref": "#/$defs/DrugSource",
-      "description": "Required source; there is no default exact-ID resolver."
+      "$ref": "#/$defs/DrugSource"
     }
   },
   "required": [

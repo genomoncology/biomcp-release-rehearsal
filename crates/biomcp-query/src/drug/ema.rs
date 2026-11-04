@@ -56,11 +56,15 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     if !query.supports_sections() {
         return unsupported(query.source(), out);
     }
+    let id = match query.native_input() {
+        Ok(id) => id,
+        Err(_) => return super::rejected_input(query.source(), "input", out),
+    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&ema::SPEC, deadline).fresh(cx.fresh);
     let result = if regulatory {
-        ema::regulatory(&leg, query.input()).map(|body| {
+        ema::regulatory(&leg, &id).map(|body| {
             out.include_refusals(body.refusals);
             out.problems.extend(body.problems);
             let body = body.value;
@@ -72,7 +76,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
             found
         })
     } else {
-        ema::card(&leg, query.input()).map(|card| {
+        ema::card(&leg, &id).map(|card| {
             out.include_refusals(card.refusals);
             out.problems.extend(card.problems);
             let card = card.value;
