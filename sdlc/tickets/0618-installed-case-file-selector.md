@@ -1,6 +1,7 @@
 # Installed cases are selected by their exact file
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d314a82df7bcafc1ee884e5eb28879f43e25cd8c
 Milestone: 5
 
 ## Outcome

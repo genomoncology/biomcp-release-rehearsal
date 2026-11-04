@@ -30,7 +30,7 @@ if '--list' in sys.argv:
         print('discovery stdout context')
         print('cases: malformed YAML', file=sys.stderr)
         sys.exit(int(os.environ['DISCOVERY_EXIT']))
-    print('literal/case.yaml: test')
+    print(os.environ.get('TRIAL_CATALOG', 'literal/case.yaml: test'))
 else:
     print(json.dumps({'arguments':sys.argv[1:], 'cwd':str(Path.cwd()),
                       'product':os.environ.get('BIOMCP_TEST_EXECUTABLE')}))
@@ -83,6 +83,33 @@ class FocusedCommand(unittest.TestCase):
             self.assertEqual(calls[0][:2], ['vendor', '--locked'])
             self.assertEqual(calls[1][:1], ['test'])
 
+    def test_case_file_cli_uses_catalog_before_building_or_running(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            runner = directory / 'runner'
+            runner.write_text(RUNNER.replace('#!/usr/bin/env python3', '#!' + sys.executable, 1))
+            runner.chmod(0o755)
+            command = [sys.executable, str(ROOT / 'scripts/trials.py'),
+                       '--runner', str(runner), '--executable', str(runner), '--installed']
+            environment = dict(os.environ, PATH=str(directory),
+                               TRIAL_CATALOG='markdown-view/view-empty/empty-section.yaml: test')
+            # Only the runner's absolute Python interpreter is available; no Cargo.
+            for path in ['view-empty/empty-section.yaml', 'view-empty/empty-section',
+                         'unknown.yaml']:
+                with self.subTest(path=path):
+                    result = subprocess.run([*command, '--case-file', path], cwd=directory,
+                                            env=environment, capture_output=True, text=True)
+                    if path.endswith('empty-section.yaml'):
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        output = json.loads(result.stdout)
+                        self.assertEqual(output['arguments'],
+                            ['markdown-view/view-empty/empty-section.yaml', '--exact'])
+                        self.assertNotEqual(output['cwd'], str(ROOT / 'crates/biomcp'))
+                    else:
+                        self.assertNotEqual(result.returncode, 0)
+                        self.assertIn('markdown-view/view-empty/empty-section.yaml', result.stderr)
+                        self.assertEqual(result.stdout, '')
+
     def test_discovery_preserves_rust_case_and_custom_trial_modes(self):
         from trials import main
         for options in [['--target', 'tools', '--proofs'], ['--cases', str(ROOT / 'tests/cases')]]:
@@ -129,6 +156,22 @@ class TrialSelection(unittest.TestCase):
                                  [str(target), "--proofs", "--list"])
                 self.assertEqual(run.call_args_list[1].args[0],
                     [str(target), "--proofs", "schema-discovery/persistent-native-evidence", "--exact"])
+
+    def test_ambiguous_case_file_refuses_before_preparation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            cwd = Path(temporary)
+            target = cwd / 'cases'
+            target.touch()
+            catalog = 'first/dir/case.yaml: test\nsecond/dir/case.yaml: test\n'
+            with patch('trials.subprocess.run', return_value=
+                       subprocess.CompletedProcess([], 0, catalog)) as run:
+                def prepare():
+                    self.fail('ambiguous file reached product preparation')
+                with self.assertRaisesRegex(ValueError,
+                        'found 2.*first/dir/case.yaml, second/dir/case.yaml'):
+                    run_selected([str(target)], cwd, [], prepare,
+                                 case_files=['dir/case.yaml'])
+                self.assertEqual(run.call_count, 1)
 
     def test_unknown_and_empty_names_refuse_before_preparation(self):
         with tempfile.TemporaryDirectory() as temporary:

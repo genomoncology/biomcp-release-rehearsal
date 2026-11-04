@@ -6,12 +6,7 @@ export RUSTUP_TOOLCHAIN=1.95.0
 run_installed() {
     runner_target=$1
     shift
-    build_output="${CARGO_TARGET_DIR:-target}/study-rows-$runner_target.json"
-    mkdir -p "$(dirname "$build_output")"
-    cargo build --locked -p biomcp --bin biomcp
-    cargo test --locked -p biomcp --test "$runner_target" --no-run --message-format=json > "$build_output"
-    runner_path=$(python3 -c 'import json,sys; rows=[json.loads(line) for line in open(sys.argv[1])]; print(next(row["executable"] for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable") and row["target"]["name"]==sys.argv[2]))' "$build_output" "$runner_target")
-    python3 scripts/trials.py --runner "$runner_path" --executable "${CARGO_TARGET_DIR:-target}/debug/biomcp" --installed "$@"
+    python3 scripts/trials.py --target "$runner_target" --installed "$@"
 }
 case "${1:-focused}" in
   generate)
@@ -30,7 +25,7 @@ case "${1:-focused}" in
   scans)
     cargo fmt --all -- --check
     cargo clippy --locked -p biomcp-adapters -p biomcp-query -p biomcp-types --features biomcp-types/schema --all-targets -- -D warnings
-    run_installed cases study-rows/study/rows.yaml
+    run_installed cases --case-file study/rows.yaml
     ;;
   routine)
     exec sh scripts/check_nightly_tests.sh routine
