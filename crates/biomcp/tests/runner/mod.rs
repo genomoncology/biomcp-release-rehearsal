@@ -43,6 +43,7 @@ mod diagnostic_cdx;
 mod diagnostic_retirements;
 mod diagnostic_who;
 mod disease_monarch;
+mod drug_approvals;
 mod drug_civic;
 mod drug_civic_fixtures;
 mod drug_label;
@@ -316,6 +317,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(gwas_get::trials());
     trials.extend(phenotype::trials());
     trials.extend(drug_next::trials());
+    trials.extend(drug_approvals::trials());
     trials.extend(nci::trials());
     trials.extend(drug_civic::trials());
     trials.push(citation_values::trial());

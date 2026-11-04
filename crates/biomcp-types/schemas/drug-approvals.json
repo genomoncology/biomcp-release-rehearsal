@@ -233,6 +233,10 @@
           "$ref": "#/$defs/Reply_DrugHeader",
           "description": "Selected native identity, checked independently of section facts."
         },
+        "order": {
+          "description": "Presentation order of application submissions, without interpreting their statuses.",
+          "type": "string"
+        },
         "products": {
           "description": "Native products, filtered only by an explicit product number; independent of submissions.",
           "items": {
@@ -254,7 +258,8 @@
       },
       "required": [
         "identity",
-        "approvals"
+        "approvals",
+        "order"
       ],
       "type": "object"
     },

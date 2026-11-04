@@ -188,6 +188,13 @@ pub struct DrugApprovals {
     pub source_updated: Option<crate::SourceUpdated>,
     /// Existing typed section state, preserving empty, unavailable and skipped outcomes.
     pub approvals: Section<DrugRecords<super::DrugFdaSubmission>>,
+    /// Presentation order of application submissions, without interpreting their statuses.
+    pub order: Box<str>,
+}
+impl DrugApprovals {
+    /// Shared order descriptor for every approvals page.
+    pub const ORDER: &'static str =
+        "submission status date descending, then submission number descending; missing dates last";
 }
 /// Source-scoped regulator events preserving date roles and original status.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

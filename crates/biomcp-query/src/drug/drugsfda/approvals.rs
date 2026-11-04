@@ -76,6 +76,7 @@ pub(super) fn select(
         products,
         source_updated: updated.map(Into::into),
         approvals,
+        order: DrugApprovals::ORDER.into(),
     })
     .with_query(query.clone());
     Ok(())

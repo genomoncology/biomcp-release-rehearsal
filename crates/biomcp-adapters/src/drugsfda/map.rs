@@ -156,18 +156,33 @@ impl Application {
     pub fn submission_count(&self) -> usize {
         self.0.submissions.len()
     }
-    /// Map an application-owned submission window in native order.
+    /// Map the newest status dates first, then descending submission numbers; undated rows last.
     pub fn submissions(
         &self,
         offset: u32,
         limit: u32,
     ) -> Result<Box<[DrugFdaSubmission]>, RequestError> {
-        self.0
-            .submissions
-            .iter()
+        let mut rows: Vec<_> = self.0.submissions.iter().collect();
+        let date_key = |s: &Submission| {
+            s.submission_status_date
+                .map(|d| (d.year(), d.month(), d.day()))
+        };
+        rows.sort_by(|a, b| {
+            date_key(b).cmp(&date_key(a)).then_with(|| {
+                submission_number_key(b.submission_number.as_str())
+                    .cmp(&submission_number_key(a.submission_number.as_str()))
+            })
+        });
+        rows.into_iter()
             .skip(offset as usize)
             .take(limit as usize)
             .map(|s| s.mapped(&self.0))
             .collect()
     }
+}
+
+// Decimal text can exceed integer widths; the original wording stays on every returned record.
+fn submission_number_key(value: &str) -> (usize, &str) {
+    let value = value.trim_start_matches('0');
+    (value.len(), value)
 }

@@ -1,6 +1,7 @@
 # Drug approvals list newest first
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: afcafd4d118ecb71ea38b81010f2a55fe2eac6e6
 Milestone: 5
 
 ## Outcome
