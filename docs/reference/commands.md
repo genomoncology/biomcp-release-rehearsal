@@ -878,29 +878,32 @@ Arguments:
           Independent VAERS table; omitted means reported symptoms.
 
 Options:
+      --drug <drug>...
+          FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
 
           [default: json]
           [possible values: json, md]
 
-      --limit <limit>
-          Native report headers or VAERS rows per page; default five.
-
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --limit <limit>
+          Native report headers or VAERS rows per page; default five.
+
       --manufacturer <manufacturer>
           MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
-
-      --offset <offset>
-          Native row offset. VAERS continuation requires its retained snapshot.
 
       --source_pacing <source_pacing>
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
+
+      --offset <offset>
+          Native row offset. VAERS continuation requires its retained snapshot.
 
       --problem <problem>
           MAUDE phrase on native product_problems.
@@ -914,17 +917,17 @@ Options:
       --received-from <received_from>
           Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
 
-      --received-to <received_to>
-          Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
-
       --offline
           Read local data without source requests.
 
-      --serious <serious>
-          FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
+      --received-to <received_to>
+          Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
 
       --fresh
           Request fresh source data instead of cached replies.
+
+      --serious <serious>
+          FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
 
       --snapshot <snapshot>
           Retained VAERS table for provider-free continuation.
@@ -936,6 +939,7 @@ Options:
 
 Search five report headers by default. Sources: faers, maude, vaers.
 
+- `--drug`: FAERS exact drug name; repeat --drug for OR. OR inside one quoted value stays exact. Other filters AND with the names. BioMCP caps the escaped source query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
 - `--limit`: Source report headers or VAERS rows per page; default five.
 - `--manufacturer`: MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
 - `--offset`: Source row offset. VAERS continuation requires its retained snapshot.

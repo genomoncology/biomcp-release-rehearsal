@@ -1,4 +1,5 @@
 //! Source-specific adverse event requests and bounded report responses.
+mod faers;
 mod query;
 mod receipt;
 mod response;

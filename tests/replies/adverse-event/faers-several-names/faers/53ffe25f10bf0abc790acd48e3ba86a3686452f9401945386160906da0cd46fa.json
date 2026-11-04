@@ -1,0 +1,33 @@
+{
+  "method": "GET",
+  "source": "faers",
+  "url": "https://api.fda.gov/drug/event.json?search=%28%28patient.drug.openfda.generic_name%3A%22synthetic%20%5C%22A%5C%22%22%20OR%20patient.drug.openfda.brand_name%3A%22synthetic%20%5C%22A%5C%22%22%20OR%20patient.drug.medicinalproduct%3A%22synthetic%20%5C%22A%5C%22%22%29%20OR%20%28patient.drug.openfda.generic_name%3A%22synthetic%5C%5CB%22%20OR%20patient.drug.openfda.brand_name%3A%22synthetic%5C%5CB%22%20OR%20patient.drug.medicinalproduct%3A%22synthetic%5C%5CB%22%29%29%20AND%20patient.reaction.reactionmeddrapt%3A%22synthetic%20reaction%22%20AND%20seriousnessdeath%3A1%20AND%20receivedate%3A%5B20240101%20TO%2020241231%5D&limit=1&skip=0&sort=receivedate%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1793793600,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2024-09-01",
+            "results": {
+              "limit": 1,
+              "skip": 0,
+              "total": 2
+            }
+          },
+          "results": [
+            {
+              "safetyreportid": "100",
+              "receivedate": "20240102"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,7 +3,6 @@ use biomcp_types::ErrorMessage;
 use std::ffi::OsString;
 const FLAGS: &[(&str, ErrorMessage)] = &[
     ("-d", ErrorMessage::AdverseText),
-    ("--drug", ErrorMessage::AdverseText),
     ("--device", ErrorMessage::AdverseMaude),
     ("--outcome", ErrorMessage::AdverseOutcome),
     ("--date-from", ErrorMessage::AdverseFrom),
@@ -54,7 +53,7 @@ pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMe
         if adverse
             && matches!(
                 flag,
-                "--reaction" | "--serious" | "--received-from" | "--received-to"
+                "--drug" | "--reaction" | "--serious" | "--received-from" | "--received-to"
             )
         {
             faers_filter = true;

@@ -1,6 +1,7 @@
 # FAERS search takes several drug names at once
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b9d43c36ca9c935430bb7c13eef8f8d1a9d62ed5
 Milestone: 5
 
 ## Outcome

@@ -2,9 +2,7 @@ use super::{SPEC, raw};
 use biodata::PartialDate;
 use biomcp_fetch::Input;
 use biomcp_fetch::{Arg, BadReply, Freshness, Leg, ReplyMetadata, RequestError};
-use biomcp_types::{
-    AdverseEventHeader, AdverseEventSearch, AdverseEventSerious, AdverseEventSource,
-};
+use biomcp_types::{AdverseEventHeader, AdverseEventSearch, AdverseEventSource};
 /// One native ordered report page; no drug/reaction-array join.
 #[derive(Debug)]
 pub struct Page {
@@ -23,43 +21,9 @@ pub struct Page {
     /// Original received record metadata.
     pub metadata: ReplyMetadata,
 }
-fn literal(value: &str) -> String {
-    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
-}
 /// Exact literal source expression with analyzed reaction phrase-match semantics.
 pub fn expression(query: &AdverseEventSearch) -> String {
-    let text = literal(query.text().map_or("", biodata::Text::as_str));
-    let mut selector = format!(
-        "(patient.drug.openfda.generic_name:{text} OR patient.drug.openfda.brand_name:{text} OR patient.drug.medicinalproduct:{text})"
-    );
-    if let Some(reaction) = query.reaction() {
-        selector.push_str(&format!(
-            " AND patient.reaction.reactionmeddrapt:{}",
-            literal(reaction.as_str())
-        ));
-    }
-    if let Some(flag) = query.serious() {
-        let field = match flag {
-            AdverseEventSerious::Any => "serious",
-            AdverseEventSerious::Death => "seriousnessdeath",
-            AdverseEventSerious::Hospitalization => "seriousnesshospitalization",
-            AdverseEventSerious::Lifethreatening => "seriousnesslifethreatening",
-            AdverseEventSerious::Disabling => "seriousnessdisabling",
-            AdverseEventSerious::CongenitalAnomaly => "seriousnesscongenitalanomali",
-            AdverseEventSerious::Other => "seriousnessother",
-        };
-        selector.push_str(&format!(" AND {field}:1"));
-    }
-    if query.received_from().is_some() || query.received_to().is_some() {
-        let from = query
-            .received_from()
-            .map_or_else(|| "*".into(), |v| v.to_string().replace('-', ""));
-        let to = query
-            .received_to()
-            .map_or_else(|| "*".into(), |v| v.to_string().replace('-', ""));
-        selector.push_str(&format!(" AND receivedate:[{from} TO {to}]"));
-    }
-    selector
+    query.faers_expression()
 }
 /// Read one checked native page; component policy applies before cache, replay or HTTP.
 pub fn search(leg: &Leg<'_>, query: &AdverseEventSearch) -> Result<Page, RequestError> {

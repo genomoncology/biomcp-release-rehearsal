@@ -1,0 +1,30 @@
+{
+  "feature": "adverse-event-search",
+  "story": "A caller asks for either literal drug name in one native request and sees the source report total.",
+  "live_check": "public",
+  "verified": "Native openFDA response SHA256 302d8de895e464e68c634c534b8b70029d3f85d5459b595af9e515b895898371; raw response retained outside Git. Projection keeps only report header identity, version, seriousness and receipt date; total and metadata remain unchanged. No drug, patient or reaction terminology retained.",
+  "replay": "adverse-event/faers-several-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "--drug",
+        "imatinib",
+        "--drug",
+        "nilotinib",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/page/total": 72577,
+        "/result/source_query": "((patient.drug.openfda.generic_name:\"imatinib\" OR patient.drug.openfda.brand_name:\"imatinib\" OR patient.drug.medicinalproduct:\"imatinib\") OR (patient.drug.openfda.generic_name:\"nilotinib\" OR patient.drug.openfda.brand_name:\"nilotinib\" OR patient.drug.medicinalproduct:\"nilotinib\"))",
+        "/query/drug": [
+          "imatinib",
+          "nilotinib"
+        ],
+        "/result/items/0/id": "27325179"
+      }
+    }
+  ]
+}

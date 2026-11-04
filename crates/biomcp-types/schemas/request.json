@@ -2791,6 +2791,13 @@
           "const": "search-adverse-event",
           "type": "string"
         },
+        "drug": {
+          "description": "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
+          "items": {
+            "$ref": "#/$defs/Text"
+          },
+          "type": "array"
+        },
         "limit": {
           "default": 5,
           "description": "Native report headers or VAERS rows per page; default five.",

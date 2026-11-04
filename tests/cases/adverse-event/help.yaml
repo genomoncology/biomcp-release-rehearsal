@@ -22,7 +22,8 @@
             "--offset",
             "--manufacturer",
             "--product-code",
-            "--problem"
+            "--problem",
+            "--drug"
           ]
         },
         "/result/commands/0/command": [

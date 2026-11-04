@@ -34,6 +34,11 @@ struct SearchFields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     text: Option<Text>,
+    #[doc = "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. \
+        Other filters AND with the names. BioMCP caps the escaped native query, including filters, \
+        at FAERS_QUERY_MAX_BYTES (4096 bytes)."]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    drug: Vec<Text>,
     /// MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     manufacturer: Option<Text>,
@@ -89,13 +94,19 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "problem",
             ]));
         }
-        if v.text.is_none() && !(v.source == AdverseEventSource::Maude && maude_filter) {
+        if v.text.is_none()
+            && v.drug.is_empty()
+            && !(v.source == AdverseEventSource::Maude && maude_filter)
+        {
             return Err(QueryInvalid::new(&[
                 "text",
                 "manufacturer",
                 "product_code",
                 "problem",
             ]));
+        }
+        if v.source != AdverseEventSource::Faers && !v.drug.is_empty() {
+            return Err(QueryInvalid::new(&["source", "drug"]));
         }
         if !(1..=50).contains(&v.limit) {
             return Err(QueryInvalid::new(&["limit"]));
@@ -137,7 +148,20 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "received_to",
             ]));
         }
-        Ok(Self(v))
+        let query = Self(v);
+        if query.source() == AdverseEventSource::Faers
+            && query.faers_expression().len() > super::faers::FAERS_QUERY_MAX_BYTES
+        {
+            return Err(QueryInvalid::new(&[
+                "text",
+                "drug",
+                "reaction",
+                "received_from",
+                "received_to",
+            ])
+            .with_message(crate::ErrorMessage::FaersQueryLength));
+        }
+        Ok(query)
     }
 }
 impl AdverseEventSearch {
@@ -145,6 +169,7 @@ impl AdverseEventSearch {
     pub fn maude_product(code: Text) -> Result<Self, QueryInvalid> {
         Self::try_from(SearchFields {
             text: None,
+            drug: Vec::new(),
             manufacturer: None,
             product_code: vec![code],
             problem: None,
@@ -193,6 +218,10 @@ impl AdverseEventSearch {
     /// Literal source text.
     pub fn text(&self) -> Option<&Text> {
         self.0.text.as_ref()
+    }
+    /// Explicit FAERS literal drug names, ORed with any positional text.
+    pub fn drug(&self) -> &[Text] {
+        &self.0.drug
     }
     /// Native MAUDE manufacturer phrase.
     pub fn manufacturer(&self) -> Option<&Text> {
