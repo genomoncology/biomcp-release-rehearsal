@@ -1,0 +1,39 @@
+{
+  "feature": "markdown-view",
+  "live_check": "local presentation over existing retained replies",
+  "story": "Markdown names the source that answered with no section data.",
+  "replay": "gene/expression",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "gene",
+        "MIR21",
+        "expression",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/sections/expression/state": "empty"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "gene",
+        "MIR21",
+        "expression",
+        "--format",
+        "md"
+      ],
+      "exit": 0,
+      "expect": {
+        "": {
+          "includes": "hpa returned no data."
+        }
+      }
+    }
+  ]
+}

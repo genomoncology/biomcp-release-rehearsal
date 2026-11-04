@@ -1,0 +1,40 @@
+{
+  "feature": "markdown-view",
+  "live_check": "local presentation over existing retained replies",
+  "story": "Markdown identifies a failed section with its reason and recovery step.",
+  "replay": "gene/civic/synthetic-500",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "gene",
+        "ERBB2",
+        "civic",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "partial",
+        "/result/items/0/sections/civic/reason": "unavailable"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "gene",
+        "ERBB2",
+        "civic",
+        "--format",
+        "md"
+      ],
+      "exit": 0,
+      "expect": {
+        "": {
+          "includes": "civic failed (reason: unavailable); resolve this reason and retry the request."
+        }
+      }
+    }
+  ],
+  "cache_acquired": 42
+}
