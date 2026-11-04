@@ -110,6 +110,7 @@ impl Submission {
                         .map(|d| {
                             Ok(DrugFdaDocument {
                                 id: d.id.clone(),
+                                text: None,
                                 url: d.url.clone(),
                                 date: d.date,
                                 r#type: d.r#type.clone(),

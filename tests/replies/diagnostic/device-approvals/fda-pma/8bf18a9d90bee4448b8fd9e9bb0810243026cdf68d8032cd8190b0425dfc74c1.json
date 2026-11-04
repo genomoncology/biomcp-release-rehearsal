@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "fda-pma",
+  "url": "https://api.fda.gov/device/pma.json?limit=5&skip=0&sort=decision_date%3Adesc&search=applicant%3A%22Foundation%20Medicine%22%20AND%20decision_date%3A%5B2017-11-30%20TO%202017-11-30%5D",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "8bf18a9d90bee4448b8fd9e9bb0810243026cdf68d8032cd8190b0425dfc74c1-0.bin"
+      }
+    }
+  ]
+}

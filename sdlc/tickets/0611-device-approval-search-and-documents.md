@@ -1,6 +1,7 @@
 # Device approvals are searchable, and approval documents are readable
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 96f9febbc6734c716ecb6b820f4753713ab8a5c9
 Milestone: 5
 
 ## Outcome

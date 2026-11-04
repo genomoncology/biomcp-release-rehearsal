@@ -21,6 +21,7 @@ debug = "line-tables-only"
 debug = false
 
 [workspace.dependencies]
+lopdf = { version = "=0.47.0", default-features = false }
 biomcp-test-support = { version = "=1.0.0", path = "crates/biomcp-test-support" }
 # BioData v1.0.0, pinned to the annotated tag's commit.
 biodata = { version = "=1.0.0", git = "https://github.com/genomoncology/biodata", rev = "8bcd2456cab32d04daaac5ea0a17ea4151d4224e", features = ["schema"] }

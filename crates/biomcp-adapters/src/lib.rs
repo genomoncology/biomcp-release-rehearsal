@@ -156,3 +156,5 @@ mod openfda;
 
 /// Adapter-owned source and bundle declarations.
 pub mod decl;
+
+mod device_search;

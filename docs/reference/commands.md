@@ -888,6 +888,12 @@ Options:
       --config <config>
           Read configuration from this file.
 
+      --decision-from <decision_from>
+          Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+
+      --decision-to <decision_to>
+          Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+
       --device-id <device_id>
           Exact PMA application, application/supplement or native K identity.
 
@@ -899,12 +905,6 @@ Options:
 
       --gene-id <gene_id>
           Exact source GeneID, exclusive with gene symbol.
-
-      --initiated-from <initiated_from>
-          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
-
-      --initiated-to <initiated_to>
-          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
 
       --offline[=<offline>]
           Read local data without source requests.
@@ -918,14 +918,23 @@ Options:
           [default: false]
           [possible values: true, false]
 
+      --initiated-from <initiated_from>
+          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+
+      --initiated-to <initiated_to>
+          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+
       --limit <limit>
           Five results by default; at most fifty source rows or product headers.
 
       --manufacturer <manufacturer>
-          WHO manufacturer words or native FDA recalling_firm phrase.
+          WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase.
 
       --marker <marker>
           Literal whole-word phrase in WHO's Pathogen/Disease/Marker cell.
+
+      --name <name>
+          Native trade_name (PMA) or device_name (510(k)) phrase.
 
       --offset <offset>
           Zero-based source result offset.
@@ -934,18 +943,20 @@ Options:
           Exact native FDA device recall product code.
 
       --source <source>
-          Explicit native GTR, WHO IVD, FDA companion or medical device recall discovery.
+          Explicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
 
       --type <type>
           Exact native test_type value.
 
 ```
 
-Search five source records by default. Sources: fda-cdx, fda-device-recall, gtr, who-ivd.
+Search five source records by default. Sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd.
 
 - `--biomarker`: Exact table-0 biomarker cell; unsupported in the group table.
 - `--bundle-revision`: Immutable stored bundle revision retained by a continuation.
 - `--condition-id`: Exact MedGen:CUI identifier only.
+- `--decision-from`: Inclusive source decision date, YYYY-MM-DD; PMA and 510(k) only.
+- `--decision-to`: Inclusive source decision date, YYYY-MM-DD; PMA and 510(k) only.
 - `--device-id`: Exact PMA application, application/supplement or source K identity.
 - `--drug-application`: Cell-owned typed NDA/BLA application.
 - `--gene`: Exact source gene_symbol field, without alias expansion.
@@ -953,11 +964,12 @@ Search five source records by default. Sources: fda-cdx, fda-device-recall, gtr,
 - `--initiated-from`: Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
 - `--initiated-to`: Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
 - `--limit`: Five results by default; at most fifty source rows or product headers.
-- `--manufacturer`: WHO manufacturer words or source FDA recalling_firm phrase.
+- `--manufacturer`: WHO manufacturer words, source FDA applicant (PMA/510(k)) or recalling_firm phrase.
 - `--marker`: Exact whole-word phrase in WHO's Pathogen/Disease/Marker cell.
+- `--name`: Source trade_name (PMA) or device_name (510(k)) phrase.
 - `--offset`: Zero-based source result offset.
 - `--product-code`: Exact source FDA device recall product code.
-- `--source`: Explicit source GTR, WHO IVD, FDA companion or medical device recall discovery.
+- `--source`: Explicit source GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
 - `--type`: Exact source test_type value.
 
 ## biomcp search adverse-event
@@ -2361,7 +2373,7 @@ Arguments:
           Exact native identity, including version for GTR.
 
   [section]
-          GTR: genes, conditions, methods. PMA: regulatory, supplements.
+          GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.
           WHO, 510(k) and device recalls have no sections; omit for the card.
 
 Options:
@@ -2414,7 +2426,7 @@ Get one exact source record or supported section. Sources: fda-510k, fda-device-
 
 - `--bundle-revision`: Immutable stored bundle revision retained by a continuation.
 - `id`: Exact source identity, including version for GTR.
-- `section`: GTR: genes, conditions, methods. PMA: regulatory, supplements.
+- `section`: GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.
 WHO, 510(k) and device recalls have no sections; omit for the card.
 - `--section-limit`: Maximum source rows; omitted means five rows, or one regulatory fragment.
 - `--section-offset`: Zero-based source row or fragment offset.
@@ -2422,12 +2434,13 @@ WHO, 510(k) and device recalls have no sections; omit for the card.
 510(k) K number or device recall Z-NNNN-YYYY.
 - `--supplement`: Exact source PMA supplement; absent selects the base row.
 
-GTR: genes, conditions, methods. PMA: regulatory, supplements.
+GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.
 WHO, 510(k) and device recalls have no sections; omit for the card.
 
 - `genes`: GTR source gene rows; five per page.
 - `conditions`: GTR source condition rows; five per page.
 - `methods`: GTR source method entries; five per page.
+- `summary`: FDA SSED PDF text: 25 MiB, 100 pages and 6144 escaped bytes per fragment; scans without text are explicit.
 - `regulatory`: Selected PMA submission statement; one fragment per page.
 - `supplements`: PMA base application supplement headers; five per page.
 
@@ -2652,6 +2665,10 @@ Options:
       --config <config>
           Read configuration from this file.
 
+      --document-id <document_id>
+          Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
+          and 6144 escaped bytes per fragment. No-text scans are explicit.
+
       --label-section <label_section>
           Exact published openFDA SPL section field, including table fields; required for the label section.
 
@@ -2664,14 +2681,14 @@ Options:
       --section-offset <section_offset>
           Named section continuation, refused on an identity-only card.
 
-      --source <source>
-          Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
-
       --offline[=<offline>]
           Read local data without source requests.
 
           [default: false]
           [possible values: true, false]
+
+      --source <source>
+          Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 
       --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
@@ -2686,6 +2703,8 @@ Retrieve a drug by source ID, brand or generic name, with explicit source-scoped
 - `--civic-cursor`: Source continuation cursor for that exact drug, profile and claim collection.
 - `--civic-kind`: Independent source evidence or assertion collection within the selected profile.
 - `--civic-profile`: Selected source CIViC molecular profile for a drug-scoped claim stream.
+- `--document-id`: Exact source Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
+and 6144 escaped bytes per fragment. No-text scans are explicit.
 - `input`: Source-source ID or complete brand or generic name; WHO references retain source spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
 - `--label-section`: Exact published openFDA SPL section field, including table fields; required for the label section.
 - `--product-number`: Explicit source application product number, only for approvals.

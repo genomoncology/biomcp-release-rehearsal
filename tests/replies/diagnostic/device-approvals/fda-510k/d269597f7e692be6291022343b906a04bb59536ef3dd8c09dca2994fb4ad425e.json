@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "fda-510k",
+  "url": "https://api.fda.gov/device/510k.json?limit=5&skip=0&sort=decision_date%3Adesc&search=applicant%3A%22Abbott%20Diabetes%22",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "d269597f7e692be6291022343b906a04bb59536ef3dd8c09dca2994fb4ad425e-0.bin"
+      }
+    }
+  ]
+}

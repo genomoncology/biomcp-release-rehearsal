@@ -9,10 +9,11 @@ pub(super) fn select(
     cx: &Ctx<'_>,
     query: &DrugGet,
     row: &source::Application,
-    fetched: Option<i64>,
-    updated: Option<biodata::PartialDate>,
+    metadata: (Option<i64>, Option<biodata::PartialDate>),
+    deadline: biomcp_fetch::Deadline<'_>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
+    let (fetched, updated) = metadata;
     let products: Box<[_]> = row
         .products()
         .into_vec()
@@ -26,6 +27,18 @@ pub(super) fn select(
     let approvals = if query.product_number().is_some() && products.is_empty() {
         crate::status::item(out, true, false, true);
         Section::unavailable(Source::Drugsfda, Reason::NotFound)
+    } else if let Some(records) = super::letter::select(cx, query, row, deadline, out)? {
+        Section::Data {
+            source: Source::Drugsfda,
+            data: DrugRecords {
+                records,
+                offset: 0,
+                total: Some(1),
+                truncated: None,
+                version: None,
+                retrieved: received_date(fetched),
+            },
+        }
     } else {
         let offset = query.section_offset().unwrap_or(0);
         let records = row.submissions(

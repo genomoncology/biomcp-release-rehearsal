@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2020/021588Orig1s056,s057ltr.pdf",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/pdf",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "6ad661740e5fac4b127c68cb6cf46847d5f7bba35db211b637e0a77a85b52eb7-0.bin"
+      }
+    }
+  ]
+}

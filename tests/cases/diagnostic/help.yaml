@@ -10,7 +10,7 @@
         "diagnostic"
       ],
       "expect": {
-        "/result/commands/0/description": "Search five source records by default. Sources: fda-cdx, fda-device-recall, gtr, who-ivd.",
+        "/result/commands/0/description": "Search five source records by default. Sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd.",
         "/result/commands/0/examples": {
           "count": 1
         },
@@ -29,17 +29,14 @@
             "--offset",
             "--product-code",
             "--initiated-from",
-            "--initiated-to"
+            "--initiated-to",
+            "--name",
+            "--decision-from",
+            "--decision-to"
           ]
-        },
-        "/result/commands/0/arguments/14/choices": [
-          "gtr",
-          "fda-cdx",
-          "who-ivd",
-          "fda-device-recall"
-        ]
+        }
       },
-      "max_bytes": 3955
+      "max_bytes": 6500
     },
     {
       "run": [
@@ -74,11 +71,12 @@
           "genes",
           "conditions",
           "methods",
+          "summary",
           "regulatory",
           "supplements"
         ]
       },
-      "max_bytes": 3799
+      "max_bytes": 5000
     },
     {
       "run": [

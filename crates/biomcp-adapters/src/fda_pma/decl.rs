@@ -7,7 +7,7 @@ pub(crate) static DECL: SourceDecl = SourceDecl {
     registry_order: Some(7),
     probe: Probe::Get("", &[("limit", Arg::Num(1))]),
     components: &[],
-    auxiliary: &[],
+    auxiliary: &[&super::DOCUMENTS],
     bundles: &[],
     guidance: Guidance {
         deadline: None,

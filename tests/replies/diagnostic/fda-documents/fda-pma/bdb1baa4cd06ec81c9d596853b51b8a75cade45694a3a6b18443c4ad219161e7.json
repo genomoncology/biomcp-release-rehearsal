@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "fda-pma",
+  "url": "https://www.accessdata.fda.gov/cdrh_docs/pdf/P010013B.pdf",
+  "exchanges": [
+    {
+      "fetched": 1793816913,
+      "status": 200,
+      "content_type": "application/pdf",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "bdb1baa4cd06ec81c9d596853b51b8a75cade45694a3a6b18443c4ad219161e7-0.bin"
+      }
+    }
+  ]
+}

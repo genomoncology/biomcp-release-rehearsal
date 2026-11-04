@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "fda-pma",
+  "url": "https://api.fda.gov/device/pma.json?limit=5&skip=0&sort=decision_date%3Adesc&search=trade_name%3A%22FoundationOne%20CDx%22",
+  "exchanges": [
+    {
+      "fetched": 1793814283,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "ac43777e91f7a816a7af1eca25383e47fcbe9529137836d9359be889ee0aeec0-0.bin"
+      }
+    }
+  ]
+}

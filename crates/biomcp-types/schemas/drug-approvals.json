@@ -264,7 +264,7 @@
       "type": "object"
     },
     "Reply_DrugFdaDocument": {
-      "description": "A native application document link; the command does not download it.",
+      "description": "A native application document link, with embedded text only when its document ID is selected.",
       "properties": {
         "date": {
           "anyOf": [
@@ -280,6 +280,17 @@
         "id": {
           "$ref": "#/$defs/Reply_Text",
           "description": "Source document identifier."
+        },
+        "text": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PdfText"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Bounded embedded letter text, present only when selected by document ID."
         },
         "type": {
           "anyOf": [
@@ -550,6 +561,17 @@
             "integer",
             "null"
           ]
+        },
+        "document_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
         },
         "input": {
           "$ref": "#/$defs/Reply_DrugId"
@@ -943,6 +965,64 @@
     "Reply_PartialDate": {
       "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
       "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+      "type": "string"
+    },
+    "Reply_PdfText": {
+      "description": "One small contiguous source-text window, without summary or interpretation.",
+      "properties": {
+        "offset": {
+          "description": "Zero-based mechanical text-fragment offset.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pages": {
+          "description": "Native PDF pages when readable.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/Reply_PdfTextState",
+          "description": "Extraction outcome; no-text includes scanned PDFs and does not imply OCR."
+        },
+        "text": {
+          "description": "Verbatim extracted text in document order; omitted when unavailable.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "total": {
+          "description": "Number of fragments in the readable document.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "url": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Original FDA document URL.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "url",
+        "state",
+        "offset",
+        "total"
+      ],
+      "type": "object"
+    },
+    "Reply_PdfTextState": {
+      "description": "Bounded PDF text reader outcome.",
+      "enum": [
+        "text",
+        "no-text",
+        "too-large"
+      ],
       "type": "string"
     },
     "Reply_PoolInfo": {

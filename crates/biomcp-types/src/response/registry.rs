@@ -81,6 +81,7 @@ macro_rules! reply_types {
             diagnostic_genes: $crate::DiagnosticGenes => "diagnostic-genes",
             diagnostic_conditions: $crate::DiagnosticConditions => "diagnostic-conditions",
             diagnostic_methods: $crate::DiagnosticMethods => "diagnostic-methods",
+            diagnostic_summary: $crate::DiagnosticSummary => "diagnostic-summary",
             diagnostic_regulatory: $crate::DiagnosticRegulatory => "diagnostic-regulatory",
             diagnostic_supplements: $crate::DiagnosticSupplements => "diagnostic-supplements",
             diagnostic_companion: $crate::DiagnosticCompanion => "diagnostic-companion",

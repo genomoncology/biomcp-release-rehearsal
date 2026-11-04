@@ -171,3 +171,15 @@ impl RawApplication {
 
 /// Complete source policy and command declaration.
 pub(crate) mod decl;
+
+/// FDA document downloads retain their API source identity and never send its key.
+pub static DOCUMENTS: biomcp_fetch::SourceSpec = biomcp_fetch::SourceSpec {
+    destinations: biomcp_fetch::Destinations::Primary,
+    user_agent: None,
+    source: biomcp_types::Source::Drugsfda,
+    base: "https://www.accessdata.fda.gov",
+    terms: SPEC.terms,
+    key: biomcp_fetch::KeyUse::None,
+    quota: &crate::quotas::OPENFDA,
+    deadline: std::time::Duration::from_secs(15),
+};

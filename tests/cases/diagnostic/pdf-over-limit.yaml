@@ -1,0 +1,29 @@
+{
+  "live_check": "Synthetic PDF reader boundary; authored PDF bytes, not an FDA source observation",
+  "feature": "fda-document-text",
+  "story": "The bounded reader explicitly reports too-large without manufactured text.",
+  "replay": "diagnostic/pdf-over-limit",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "P170019",
+        "summary",
+        "--source",
+        "fda-pma"
+      ],
+      "expect": {
+        "/result/document/state": "too-large",
+        "/result/document/pages": 101,
+        "/page/returned": 0,
+        "/result/document": {
+          "omits": [
+            "text"
+          ]
+        }
+      },
+      "max_bytes": 2000
+    }
+  ]
+}

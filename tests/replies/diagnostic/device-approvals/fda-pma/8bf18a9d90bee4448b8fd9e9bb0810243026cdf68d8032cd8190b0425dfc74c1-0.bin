@@ -1,0 +1,76 @@
+{
+  "meta": {
+    "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+    "terms": "https://open.fda.gov/terms/",
+    "license": "https://open.fda.gov/license/",
+    "last_updated": "2026-10-26",
+    "results": {
+      "skip": 0,
+      "limit": 5,
+      "total": 1
+    }
+  },
+  "results": [
+    {
+      "pma_number": "P170019",
+      "supplement_number": "",
+      "applicant": "Foundation Medicine, Inc.",
+      "street_1": "400 Summer St.",
+      "street_2": "",
+      "city": "Boston",
+      "state": "MA",
+      "zip": "02210",
+      "zip_ext": "",
+      "generic_name": "Next generation sequencing oncology panel, somatic or germline variant detection system",
+      "trade_name": "FoundationOne CDx",
+      "product_code": "PQP",
+      "advisory_committee": "PA",
+      "advisory_committee_description": "Pathology",
+      "supplement_type": "",
+      "supplement_reason": "",
+      "expedited_review_flag": "Y",
+      "date_received": "2017-06-02",
+      "decision_date": "2017-11-30",
+      "docket_number": "17M-6799",
+      "fed_reg_notice_date": "2017-12-15",
+      "decision_code": "APPR",
+      "ao_statement": "Approval for the FoundationOne CDx (F1CDx).  This device is a next generation sequencing based in vitro diagnostic device for detection of substitutions, insertion and deletion alterations (indels), and copy number alterations (CNAs) in 324 genes and select gene rearrangements, as well as genomic signatures including microsatellite instability (MSI) and tumor mutational burden (TMB) using DNA isolated from formalin-fixed paraffin embedded (FFPE) tumor tissue specimens. The test is intended as a companion diagnostic to identify patients who may benefit from treatment with the targeted therapies listed in Table 1 in accordance with the approved therapeutic product labeling. Additionally, F1CDx is intended to provide tumor mutation profiling to be used by qualified health care professionals in accordance with professional guidelines in oncology for patients with solid malignant neoplasms. The F1CDx assay is a single-site assay performed at Foundation Medicine, Inc.Table 1: Companion diagnostic indicationsIndication:\t Non-small cell lung cancer (NSCLC). \t - Biomarker:  EGFR exon 19 deletions and EGFR exon 21 L858R alterations. Therapy: Gilotrif® (afatinib), Iressa® (gefitinib), or Tarceva® (erlotinib).  - Biomarker:  EGFR exon 20 T790M alterations.  Therapy: Tagrisso® (osimertinib). - Biomarker:  ALK rearrangements.  Therapy: Alecensa® (alectinib), Xalkori® (crizotinib), or Zykadia® (ceritinib). - Biomarker:  BRAF V600E.  Therapy: Tafinlar® (dabrafenib) in combination with Mekinist® (trametinib).Indication: Melanoma. \t - Biomarker: BRAF V600E.  Therapy: Tafinlar® (dabrafenib) or Zelboraf® (vemurafenib) - Biomarker: BRAF V600E and V600K.  Therapy:  Mekinist® (trametinib) or Cotellic® (cobimetinib) in combination with Zelboraf® (vemurafenib).Indication: Breast cancer.  Biomarker:  ERBB2 (HER2) amplification.  Therapy: Herceptin® (trastuzumab), Kadcyla® (ado-trastuzumab-emtansine), orPerjeta® (pertuzumab).Indication:  Colorectal cancer.   - Biomarker: KRAS wild-type (absence of mutations in codons 12 and 13).  Therapy: Erbitux® (cetuximab)  - Biomarker: KRAS wild-type (absence of mutations in exons 2, 3, and 4) and NRAS wild type (absence of mutations in exons 2, 3, and 4). Therapy: Vectibix® (panitumumab)Indication: Ovarian cancer.  Biomarker: BRCA1/2 alterations. Therapy: Rubraca® (rucaparib)",
+      "openfda": {
+        "registration_number": [
+          "3007287152",
+          "3017020141",
+          "3010679023",
+          "3011104381",
+          "3012090384",
+          "3020703032",
+          "3011805506",
+          "3003335080",
+          "3013200421",
+          "3031598391",
+          "3030654068",
+          "3003218906",
+          "3010889807"
+        ],
+        "fei_number": [
+          "3016560486",
+          "3007287152",
+          "3010679023",
+          "3011104381",
+          "3012090384",
+          "3008335090",
+          "3011805506",
+          "3003335080",
+          "3013200421",
+          "3031598391",
+          "3030654068",
+          "3003218906",
+          "3010889807"
+        ],
+        "device_name": "Next Generation Sequencing Oncology Panel, Somatic Or Germline Variant Detection System",
+        "medical_specialty_description": "Unknown",
+        "regulation_number": "",
+        "device_class": "3"
+      }
+    }
+  ]
+}

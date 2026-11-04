@@ -131,5 +131,7 @@ mcp-hosted: A server operator refuses host file saves, health details and store 
 
 source-pacing: Operators can lower source rates and simultaneous requests within documented source ceilings.
 
+device-approval-search: Search native FDA PMA and 510(k) submission records by name, manufacturer and decision date.
+fda-document-text: Read FDA-published PMA SSED and selected drug approval letter text in bounded continuable fragments, with explicit no-text and oversized states.
 drug-name-get: Resolve source names with the fixed single-term salt/ester rule in one get call, infer an unambiguous section source, report bounded alternatives and direct unresolved names to source search.
 trial-results: A caller pages posted outcome measures, source group values, dispersion and analyses, and adverse-event tables from the same registry record, with its first posting date.

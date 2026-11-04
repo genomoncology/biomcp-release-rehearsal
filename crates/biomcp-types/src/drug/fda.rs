@@ -76,7 +76,7 @@ pub struct DrugFdaProperty {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub code: Option<Text>,
 }
-/// A native application document link; the command does not download it.
+/// A native application document link, with embedded text only when its document ID is selected.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaDocument {
@@ -89,6 +89,9 @@ pub struct DrugFdaDocument {
     /// Native document date, independent of event dates.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub date: Option<PartialDate>,
+    /// Bounded embedded letter text, present only when selected by document ID.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<crate::PdfText>,
     /// Original document type.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub r#type: Option<Text>,

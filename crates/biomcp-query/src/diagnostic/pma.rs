@@ -9,6 +9,9 @@ use biomcp_types::{
     DiagnosticSupplements, PageInfo, Problem, ProblemCode, Request, Source, Status, StepKind,
 };
 pub(super) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
+    if q.section() == Some(DiagnosticSection::Summary) {
+        return super::summary::get(cx, q);
+    }
     let mut out = empty(biomcp_types::DiagnosticCard::into_reply(q.clone(), None));
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
@@ -102,10 +105,7 @@ fn card(
     let sections: Box<[_]> = if q.supplement().is_some() {
         vec![DiagnosticSection::Regulatory]
     } else {
-        vec![
-            DiagnosticSection::Regulatory,
-            DiagnosticSection::Supplements,
-        ]
+        q.source().sections().to_vec()
     }
     .into();
     for section in &sections {

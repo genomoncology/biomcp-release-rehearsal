@@ -1,0 +1,83 @@
+{
+  "live_check": "FDA-published P170019 SSED and NDA021588 letter id64255; original PDF source bytes retained without editing",
+  "feature": "fda-document-text",
+  "story": "A PMA SSED and a selected native approval letter expose bounded original embedded text with continuations.",
+  "replay": "diagnostic/fda-documents",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "P170019",
+        "summary",
+        "--source",
+        "fda-pma"
+      ],
+      "expect": {
+        "/result/document/pages": 58,
+        "/result/document/state": "text",
+        "/result/document/offset": 0,
+        "/next/0/kind": "page",
+        "/result/document/text": {
+          "equals_file": "P170019-first-fragment.json"
+        }
+      },
+      "max_bytes": 9500
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA021588",
+        "approvals",
+        "--source",
+        "drugsfda",
+        "--document-id",
+        "64255"
+      ],
+      "expect": {
+        "/result/approvals/data/records/0/application_docs/0/id": "64255",
+        "/result/approvals/data/records/0/application_docs/0/text/state": "text",
+        "/result/approvals/data/records/0/application_docs/0/url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2020/021588Orig1s056,s057ltr.pdf",
+        "/result/approvals/data/records/0/application_docs/0/text/text": {
+          "max_bytes": 6146
+        },
+        "/result/approvals/data/records/0/application_docs/0/text/pages": 4
+      },
+      "max_bytes": 20000
+    },
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "P020014",
+        "summary",
+        "--source",
+        "fda-pma"
+      ],
+      "expect": {
+        "/result/document/url": "https://www.accessdata.fda.gov/cdrh_docs/pdf2/P020014B.pdf",
+        "/result/document/pages": 24,
+        "/result/document/state": "text"
+      },
+      "max_bytes": 9500
+    },
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "P010013",
+        "summary",
+        "--source",
+        "fda-pma"
+      ],
+      "expect": {
+        "/result/document/url": "https://www.accessdata.fda.gov/cdrh_docs/pdf/P010013B.pdf",
+        "/result/document/pages": 21,
+        "/result/document/state": "text"
+      },
+      "max_bytes": 9500
+    }
+  ],
+  "verified": "The expected P170019 text fragment preserves pinned lopdf spacing and matches the FDA SSED source (SHA-256 e2a018c7af76a5a63f4a428c8ffbb14473b4a76c9f8d12de85f561d943317d3f). Letter selection is independently bound to native ID, URL and its four PDF pages. No source text is normalized or summarized."
+}

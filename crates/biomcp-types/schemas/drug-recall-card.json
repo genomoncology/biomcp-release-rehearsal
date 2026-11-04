@@ -57,6 +57,17 @@
             "null"
           ]
         },
+        "document_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+        },
         "input": {
           "$ref": "#/$defs/Reply_DrugId"
         },

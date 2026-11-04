@@ -1,7 +1,9 @@
 mod id;
+mod search_validation;
 use super::QueryInvalid;
 use biodata::{DiagnosticDeviceId, FdaDrugApplication, GeneSymbol, NcbiGeneId, PartialDate, Text};
 pub use id::DiagnosticId;
+use search_validation::{validate_device, validate_recall};
 use serde::{Deserialize, Serialize};
 mod get;
 pub use get::DiagnosticGet;
@@ -10,6 +12,8 @@ biodata::wire_enum! {
     /// One explicit diagnostic discovery source.
     DiagnosticSearchSource { #[doc = "Native Gtr spelling."] Gtr => "gtr",
  #[doc = "Native FdaCdx spelling."] FdaCdx => "fda-cdx",
+ #[doc = "Native PMA submission records."] FdaPma => "fda-pma",
+ #[doc = "Native 510(k) clearance records."] Fda510k => "fda-510k",
  #[doc = "Stored WHO product headers."] WhoIvd => "who-ivd",
  #[doc = "Native recalls for every medical device."] FdaDeviceRecall => "fda-device-recall" }
 }
@@ -28,6 +32,7 @@ biodata::wire_enum! {
         #[doc = "GTR native gene rows; five per page."] Genes => "genes",
         #[doc = "GTR native condition rows; five per page."] Conditions => "conditions",
         #[doc = "GTR native method entries; five per page."] Methods => "methods",
+        #[doc = "FDA SSED PDF text: 25 MiB, 100 pages and 6144 escaped bytes per fragment; scans without text are explicit."] Summary => "summary",
         #[doc = "Selected PMA submission statement; one fragment per page."] Regulatory => "regulatory",
         #[doc = "PMA base application supplement headers; five per page."] Supplements => "supplements"
     }
@@ -45,7 +50,7 @@ pub struct DiagnosticSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Explicit native GTR, WHO IVD, FDA companion or medical device recall discovery.
+    /// Explicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
     source: DiagnosticSearchSource,
     /// Exact source GeneID, exclusive with gene symbol.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -72,7 +77,7 @@ struct SearchFields {
     /// Literal whole-word phrase in WHO's Pathogen/Disease/Marker cell.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     marker: Option<Text>,
-    /// WHO manufacturer words or native FDA recalling_firm phrase.
+    /// WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     manufacturer: Option<Text>,
     /// Exact native FDA device recall product code.
@@ -84,6 +89,15 @@ struct SearchFields {
     /// Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     initiated_to: Option<PartialDate>,
+    /// Native trade_name (PMA) or device_name (510(k)) phrase.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    name: Option<Text>,
+    /// Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    decision_from: Option<PartialDate>,
+    /// Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    decision_to: Option<PartialDate>,
     /// Five results by default; at most fifty source rows or product headers.
     #[serde(default = "limit")]
     #[cfg_attr(feature = "schema", schemars(range(min = 1, max = 50)))]
@@ -107,6 +121,7 @@ impl TryFrom<SearchFields> for DiagnosticSearch {
         let who = v.marker.is_some() || v.manufacturer.is_some();
         let recall =
             v.product_code.is_some() || v.initiated_from.is_some() || v.initiated_to.is_some();
+        validate_device(&v, gtr || cdx || v.marker.is_some() || recall)?;
         validate_recall(&v, gtr || cdx, recall)?;
         if !(1..=50).contains(&v.limit) {
             return Err(QueryInvalid::new(&["limit"]));
@@ -194,6 +209,9 @@ impl DiagnosticSearch {
             biomarker: None,
             marker: None,
             manufacturer: None,
+            name: None,
+            decision_from: None,
+            decision_to: None,
             product_code: None,
             initiated_from: None,
             initiated_to: None,
@@ -239,7 +257,7 @@ impl DiagnosticSearch {
     pub fn marker(&self) -> Option<&Text> {
         self.0.marker.as_ref()
     }
-    /// WHO manufacturer words or native FDA recalling_firm phrase.
+    /// WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase.
     pub fn manufacturer(&self) -> Option<&Text> {
         self.0.manufacturer.as_ref()
     }
@@ -254,6 +272,18 @@ impl DiagnosticSearch {
     /// Inclusive source initiation range.
     pub fn initiated_to(&self) -> Option<PartialDate> {
         self.0.initiated_to
+    }
+    /// Native device name phrase.
+    pub fn name(&self) -> Option<&Text> {
+        self.0.name.as_ref()
+    }
+    /// Inclusive native decision range lower bound.
+    pub fn decision_from(&self) -> Option<PartialDate> {
+        self.0.decision_from
+    }
+    /// Inclusive native decision range upper bound.
+    pub fn decision_to(&self) -> Option<PartialDate> {
+        self.0.decision_to
     }
     /// Native rows per page.
     pub fn limit(&self) -> u32 {
@@ -282,49 +312,6 @@ impl crate::Paged for DiagnosticSearch {
     }
 }
 
-fn validate_recall(v: &SearchFields, other: bool, filters: bool) -> Result<(), QueryInvalid> {
-    if v.source != DiagnosticSearchSource::FdaDeviceRecall {
-        if filters {
-            return Err(QueryInvalid::new(&[
-                "source",
-                "product_code",
-                "initiated_from",
-                "initiated_to",
-            ]));
-        }
-        return Ok(());
-    }
-    if other || v.marker.is_some() || v.bundle_revision.is_some() {
-        return Err(QueryInvalid::new(&[
-            "source",
-            "gene_id",
-            "gene",
-            "condition_id",
-            "type",
-            "device_id",
-            "drug_application",
-            "biomarker",
-            "marker",
-            "bundle_revision",
-        ]));
-    }
-    for (name, date) in [
-        ("initiated_from", v.initiated_from),
-        ("initiated_to", v.initiated_to),
-    ] {
-        if date.is_some_and(|d| d.day().is_none()) {
-            return Err(QueryInvalid::new(&[name]));
-        }
-    }
-    if v.initiated_from
-        .zip(v.initiated_to)
-        .is_some_and(|(a, b)| a.to_string() > b.to_string())
-    {
-        return Err(QueryInvalid::new(&["initiated_from", "initiated_to"]));
-    }
-    Ok(())
-}
-
 impl DiagnosticGetSource {
     /// Source identity for this explicit native selector.
     pub const fn source(self) -> crate::Source {
@@ -344,6 +331,8 @@ impl DiagnosticSearchSource {
         match self {
             Self::Gtr => crate::Source::Gtr,
             Self::FdaCdx => crate::Source::FdaCdx,
+            Self::FdaPma => crate::Source::FdaPma,
+            Self::Fda510k => crate::Source::Fda510k,
             Self::WhoIvd => crate::Source::WhoIvd,
             Self::FdaDeviceRecall => crate::Source::FdaDeviceRecall,
         }
@@ -353,10 +342,10 @@ impl DiagnosticSearchSource {
 impl DiagnosticGetSource {
     /// Named disclosures implemented by the exact-record endpoint.
     pub const fn sections(self) -> &'static [DiagnosticSection] {
-        use DiagnosticSection::{Conditions, Genes, Methods, Regulatory, Supplements};
+        use DiagnosticSection::{Conditions, Genes, Methods, Regulatory, Summary, Supplements};
         match self {
             Self::Gtr => &[Genes, Conditions, Methods],
-            Self::FdaPma => &[Regulatory, Supplements],
+            Self::FdaPma => &[Regulatory, Supplements, Summary],
             Self::WhoIvd | Self::Fda510k | Self::FdaDeviceRecall => &[],
         }
     }

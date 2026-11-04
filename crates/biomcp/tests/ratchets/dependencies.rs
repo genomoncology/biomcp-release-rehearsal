@@ -49,6 +49,7 @@ const LAYERS: &[(&str, &[&str])] = &[
             "quick-xml",
             "thiserror",
             "calamine",
+            "lopdf",
             "csv",
             "zip",
         ],

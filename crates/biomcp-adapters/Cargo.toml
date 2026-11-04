@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+lopdf.workspace = true
 prost = { workspace = true, features = ["derive"] }
 biomcp-types = { workspace = true }
 biodata = { workspace = true }

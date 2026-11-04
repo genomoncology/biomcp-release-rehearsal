@@ -42,6 +42,16 @@ pub struct GtrHeader {
 #[serde(tag = "identity_status", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum DiagnosticCandidate {
+    /// Native PMA submission; supplements retain their own identity.
+    PmaSubmission {
+        /// Exact native submission header.
+        header: DiagnosticPmaHeader,
+    },
+    /// Native 510(k) record.
+    Clearance {
+        /// Native clearance fields.
+        header: DiagnosticClearance,
+    },
     /// One native product recall record; repeated event numbers remain separate records.
     DeviceRecall {
         /// Source-owned compact recall fields.
@@ -183,6 +193,8 @@ biodata::wire_enum! {
     DiagnosticCountUnit {
         /// Native product recall records, without deduplication by event or harm inference.
         RecallRecords => "recall-records",
+        /// Native PMA submissions or 510(k) clearances.
+        DeviceSubmissions => "device-submissions",
         /// Distinct WHO Product IDs, grouping repeated code rows.
         ProductIdentities => "product-identities",
         /// Distinct exact GTR accession and version identities.
@@ -200,7 +212,7 @@ page!(
     DiagnosticCandidate,
     DiagnosticSearch,
     "biomcp.diagnostic-page/5",
-    "Source-ordered GTR test candidates or WHO product headers."
+    "Source-ordered native diagnostic and medical-device submission candidates."
 );
 page!(
     diagnostic,
@@ -341,4 +353,16 @@ pub struct DiagnosticClearance {
     /// Native product_code; missing and empty remain distinct.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub product_code: Option<Box<str>>,
+}
+
+/// FDA-published SSED text for one PMA base application.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct DiagnosticSummary {
+    /// Mechanical document text with explicit extraction state.
+    pub document: super::PdfText,
+}
+impl ResponseBody for DiagnosticSummary {
+    const SCHEMA: &'static str = "biomcp.diagnostic-summary/1";
+    type Query = DiagnosticGet;
 }

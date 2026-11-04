@@ -3,10 +3,12 @@ use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 mod clearance;
 mod companion;
+mod device_search;
 mod get;
 mod next;
 mod pma;
 mod recall;
+mod summary;
 mod who;
 pub(super) use crate::status::empty;
 use crate::{Action, Bundle, Ctx, Outcome, status};
@@ -55,6 +57,12 @@ fn finish_bundle(
 }
 /// Search only stored source-native GTR relations and retain matched selectors.
 pub(crate) fn search(cx: &Ctx<'_>, q: &DiagnosticSearch) -> Outcome {
+    if matches!(
+        q.source(),
+        DiagnosticSearchSource::FdaPma | DiagnosticSearchSource::Fda510k
+    ) {
+        return device_search::search(cx, q);
+    }
     if q.source() == DiagnosticSearchSource::FdaDeviceRecall {
         return recall::search(cx, q);
     }

@@ -106,14 +106,16 @@ fn guidance(words: Words<'_>) -> Option<ErrorMessage> {
         });
     }
     if words.manufacturer
-        && (verb != "search" || !matches!(words.source, Some("who-ivd" | "fda-device-recall")))
+        && (verb != "search"
+            || !matches!(
+                words.source,
+                Some("who-ivd" | "fda-device-recall" | "fda-pma" | "fda-510k")
+            ))
     {
         return Some(ErrorMessage::DiagnosticManufacturer);
     }
     match (verb, words.source) {
         ("search", Some("who-ivd")) if words.test_type => Some(ErrorMessage::DiagnosticWhoType),
-        ("search", Some("fda-pma")) => Some(ErrorMessage::DiagnosticPma),
-        ("search", Some("fda-510k")) => Some(ErrorMessage::Diagnostic510k),
         _ => None,
     }
 }

@@ -18,6 +18,7 @@
       "description": "Meaning of the envelope's total for a source-owned diagnostic page.",
       "enum": [
         "recall-records",
+        "device-submissions",
         "product-identities",
         "test-identities",
         "native-relation-rows",
@@ -53,7 +54,7 @@
               "type": "null"
             }
           ],
-          "description": "GTR: genes, conditions, methods. PMA: regulatory, supplements.\nWHO, 510(k) and device recalls have no sections; omit for the card.",
+          "description": "GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.\nWHO, 510(k) and device recalls have no sections; omit for the card.",
           "x-positional": 1
         },
         "section_limit": {
@@ -167,6 +168,7 @@
         "genes",
         "conditions",
         "methods",
+        "summary",
         "regulatory",
         "supplements"
       ],
@@ -175,6 +177,7 @@
         "GTR native gene rows; five per page.",
         "GTR native condition rows; five per page.",
         "GTR native method entries; five per page.",
+        "FDA SSED PDF text: 25 MiB, 100 pages and 6144 escaped bytes per fragment; scans without text are explicit.",
         "Selected PMA submission statement; one fragment per page.",
         "PMA base application supplement headers; five per page."
       ]

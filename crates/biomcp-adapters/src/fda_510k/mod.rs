@@ -89,3 +89,8 @@ fn identity(reply: &raw::Response, q: &DiagnosticGet) -> bool {
 
 /// Complete source policy and command declaration.
 pub(crate) mod decl;
+
+mod search;
+pub use search::search;
+
+pub use crate::device_search::Page as SearchPage;
