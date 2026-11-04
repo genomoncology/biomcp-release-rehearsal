@@ -1,6 +1,7 @@
 """Latest pointers move only after every install passes and version ordering admits it."""
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -90,6 +91,66 @@ if name == 'gh' and sys.argv[1:3] == ['release', 'edit'] and os.environ['GITHUB_
                     self.assertEqual(actual[2][:3], ['gh', 'release', 'edit'])
                 else:
                     self.assertEqual(len(actual), 1, 'failed or ineligible promotion must leave both pointers unchanged')
+
+
+class PluginInstall(unittest.TestCase):
+    def test_changed_candidate_sidecar_cannot_qualify_an_older_wheel(self):
+        from release.artifacts import candidate_record
+        from release.test_licenses import wheel_fixture
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, record = wheel_fixture(root, 'manylinux_2_28_x86_64')
+            record['revision'] = 'b' * 40
+            (root / 'release.json').write_text(json.dumps(record))
+            with self.assertRaisesRegex(ValueError, 'sidecar differs'):
+                candidate_record(root, 'b' * 40)
+
+    def test_missing_claude_does_not_report_plugin_pass(self):
+        from release.published import plugin
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaisesRegex(ValueError, 'was not run'):
+                plugin(root, '1.0.0', root, root / 'biomcp', claude=str(root / 'absent'))
+
+    @unittest.skipUnless(os.environ.get('BIOMCP_TEST_CLAUDE_INSTALL'), 'requires real Claude CLI')
+    def test_real_claude_installs_plugin_in_scratch_home(self):
+        from release.published import plugin
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binary = root / 'biomcp'
+            binary.write_text('#!' + sys.executable + '\n' + '''import json, sys
+for line in sys.stdin:
+    frame = json.loads(line)
+    if 'id' not in frame: continue
+    reply = {1: {'serverInfo': {'version': '1.0.0'}},
+             2: {'tools': [{'name': 'biomcp'}]},
+             3: {'isError': False, 'structuredContent': {'result': {'commands': ['help']}}}}[frame['id']]
+    print(json.dumps({'jsonrpc': '2.0', 'id': frame['id'], 'result': reply}), flush=True)
+''')
+            binary.chmod(0o700)
+            source = root / 'plugin-source'
+            for name in ('.claude-plugin', 'skills'):
+                shutil.copytree(Path.cwd() / name, source / name)
+            plugin(root, '1.0.0', source, binary)
+            self.assertTrue((root / 'home/.claude/plugins/installed_plugins.json').is_file())
+
+    def test_installed_plugin_command_must_return_user_visible_help(self):
+        from release.smoke import mcp_probe
+        from release.smoke import environment
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binary = root / 'server.py'
+            binary.write_text('''import json, sys
+for line in sys.stdin:
+    frame = json.loads(line)
+    if 'id' not in frame: continue
+    reply = {1: {'serverInfo': {'version': '1.0.0'}},
+             2: {'tools': [{'name': 'biomcp'}]},
+             3: {'isError': False, 'structuredContent': {'result': {'commands': []}}}}[frame['id']]
+    print(json.dumps({'jsonrpc': '2.0', 'id': frame['id'], 'result': reply}), flush=True)
+''')
+            with self.assertRaisesRegex(ValueError, 'did not return help commands'):
+                mcp_probe([sys.executable, str(binary)], environment(root), root, '1.0.0', call_args=['help'])
 
 
 if __name__ == '__main__':

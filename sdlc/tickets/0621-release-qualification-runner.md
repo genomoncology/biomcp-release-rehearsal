@@ -1,6 +1,7 @@
 # Release qualification exercises every channel it claims
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 07a9cb7f6a07142f30c647a897e1fc9341e392fe
 Milestone: 5
 
 ## Outcome

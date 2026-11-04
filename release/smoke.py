@@ -86,12 +86,12 @@ def case_suite(command, env, root, fixtures, timeout=None, expected_filtered=Non
             "elapsed_seconds": elapsed, "timeout_seconds": elapsed * 1.15}
 
 
-def mcp_probe(command, env, root, version):
+def mcp_probe(command, env, root, version, call_args=None):
     frames = [
         {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "installed-gate", "version": "1"}}},
         {"jsonrpc": "2.0", "method": "notifications/initialized"},
         {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
-        {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "biomcp", "arguments": {"args": ["get", "gene", "KRAS", "--offline"]}}},
+        {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "biomcp", "arguments": {"args": call_args or ["get", "gene", "KRAS", "--offline"]}}},
     ]
     result = subprocess.run(command, input="".join(json.dumps(f) + "\n" for f in frames), env=env, cwd=root, capture_output=True, text=True, timeout=60)
     replies = [json.loads(line) for line in result.stdout.splitlines()]
@@ -102,4 +102,9 @@ def mcp_probe(command, env, root, version):
     require(indexed[1]["result"]["serverInfo"]["version"] == version, "MCP version differs")
     require(indexed[2]["result"]["tools"][0]["name"] == "biomcp", "MCP tool differs")
 
+    if call_args == ["help"]:
+        reply = indexed[3]["result"]
+        value = reply.get("structuredContent") or json.loads(reply["content"][0]["text"])
+        require(not reply.get("isError") and value["result"]["commands"],
+                "installed plugin command did not return help commands")
     return [tool["name"] for tool in indexed[2]["result"]["tools"]]

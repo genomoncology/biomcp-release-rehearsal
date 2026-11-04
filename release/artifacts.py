@@ -138,6 +138,19 @@ def inspect(path):
         return record
 
 
+def candidate_record(artifacts, revision, version=None):
+    """Bind requested source identity to the same inspected wheel the gate uses."""
+    wheels = list(artifacts.glob('*.whl'))
+    if len(wheels) != 1:
+        raise ValueError('candidate must contain exactly one wheel')
+    record = inspect(wheels[0])
+    if record != json.loads((artifacts / 'release.json').read_text()):
+        raise ValueError('candidate sidecar differs from inspected wheel')
+    if record['revision'] != revision or (version is not None and record['version'] != version):
+        raise ValueError('candidate source revision or version differs')
+    return record
+
+
 def channels(output, binary, provenance):
     source = Path(__file__).resolve().parent.parent
     check(source)

@@ -11,13 +11,15 @@ windows_vm_traps() {
     trap 'exit 143' TERM
 }
 windows_vm_claim() {
+    windows_expected_ticket=${1:-0573}
+    case "$windows_expected_ticket" in [0-9][0-9][0-9][0-9]) ;; *) return 1 ;; esac
     windows_job_id=$(basename "$(dirname "${JOB_LABEL_FILE:-missing}")")
     case "${windows_job_id#j}" in ''|*[!0-9]*) return 1 ;; esac
     case "$windows_job_id" in j*) ;; *) return 1 ;; esac
     # Validate only our own label fields; never print or copy the control file.
     [ -f "${JOB_LABEL_FILE:-}" ] &&
         grep -qx 'pm.repo=biomcp-redux' "$JOB_LABEL_FILE" &&
-        grep -qx 'pm.ticket=0573' "$JOB_LABEL_FILE" || return 1
+        grep -qx "pm.ticket=$windows_expected_ticket" "$JOB_LABEL_FILE" || return 1
     windows_lock_owner="biomcp-redux $windows_job_id"
     while :; do
         if windows_vm_ssh "if mkdir ~/.windows-vm-lock 2>/dev/null; then
