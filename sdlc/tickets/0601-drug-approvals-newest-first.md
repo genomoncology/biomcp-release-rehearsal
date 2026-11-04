@@ -11,5 +11,5 @@ The Drugs@FDA approvals section lists submissions newest first by status date, s
 - Starts from: `submissions()` in `map.rs` and `approvals.rs` in `crates/biomcp-query/src/drug/drugsfda/`.
 - Rules: sort by submission status date descending, then submission number descending; a submission with no date sorts last. Paging and totals keep working on the sorted order. The reply says the order.
 - Proof: an installed-binary case on a drug with more than 10 submissions shows the newest first, and page two continues without repeats or gaps.
-- Changes: the adapter sort, the section text, and cases.
+- Changes: `crates/biomcp-adapters/src/drugsfda/**`, `crates/biomcp-query/src/drug/drugsfda/**`, `tests/cases/drug/drugsfda/**`, `tests/replies/drugsfda/**`; the adapter sort, the section text, and cases.
 - Defers: nothing.

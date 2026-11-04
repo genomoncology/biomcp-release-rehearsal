@@ -11,5 +11,5 @@ In the markdown reply, a section whose source answered with no data says so in o
 - Starts from: the generic walk in `view/mod.rs` and the `Section` and `Status::Absent` types in `crates/biomcp-types/src/response/`.
 - Rules: markdown only; JSON replies stay byte-identical. One fixed sentence per state, generated from the state and source, never per command.
 - Proof: installed-binary cases show an empty section, a failed section and an all-absent reply, each with its sentence, and the JSON form unchanged.
-- Changes: the markdown view and its cases.
+- Changes: `crates/biomcp/src/view/mod.rs`, `tests/cases/view-empty/**`; the markdown view and its cases.
 - Defers: nothing.

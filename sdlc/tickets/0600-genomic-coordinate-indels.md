@@ -11,5 +11,5 @@ Every variant command accepts gnomAD-style coordinates whose reference and alter
 - Starts from: `COORDINATE_PATTERN` and `coordinates()` in `variant_input.rs`, the shared resolver from 0588, and its case matrix.
 - Rules: coordinates are read as VCF style on GRCh38, the assembly setting from 0588 applying. A shared leading anchor base is trimmed, and the result becomes genomic HGVS (deletion, insertion, duplication only where the source confirms it, or delins). The reference bases are checked against a source BioMCP already calls before any answer; a mismatch is an error naming the expected base. No new source.
 - Proof: the 0588 installed-binary matrix gains a deletion, an insertion and a delins row for every variant command, each answering or giving the named-forms error; a wrong reference base is refused; the single-base cases are unchanged.
-- Changes: `variant_input.rs`, the resolver, its tests (the refusal test becomes acceptance), help text naming the form, and cases.
+- Changes: `crates/biomcp-types/src/query/variant_input.rs`, `crates/biomcp-types/tests/variant_values.rs`, `crates/biomcp-query/src/variant/**`, `tests/cases/variant/**`, `tests/replies/variant/**`; `variant_input.rs`, the resolver, its tests (the refusal test becomes acceptance), help text naming the form, and cases.
 - Defers: nothing.

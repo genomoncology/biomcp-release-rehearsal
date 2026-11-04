@@ -11,5 +11,5 @@ The generated map at the top of help, the skill and the MCP instructions names e
 - Starts from: `crates/biomcp/build/front_map.rs` (line format and `DEFAULT_CHARACTER_LIMIT`), and the appendix map in the recommendations file as a model of the shape, not text to paste.
 - Rules: the map stays generated from the command registry, never hand-written. Each section shows its source in parentheses, and a source shared by every section of an entity is named once. The character limit rises to 4,000. The trap lines stay. Help, the skill and the MCP instructions show the same map.
 - Proof: a test proves every section in the registry appears with its source and the map fits the limit; an installed-binary check shows the same map in all three places.
-- Changes: `front_map.rs`, its tests, and the generated help, skill and instructions.
+- Changes: `crates/biomcp/build/front_map.rs`, `crates/biomcp/build.rs`, `skills/**`; `front_map.rs`, its tests, and the generated help, skill and instructions.
 - Defers: nothing.

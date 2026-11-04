@@ -17,5 +17,5 @@ Milestone: 5
   - No exact match: exit 2 with the usage error, whose `next` is the exact `search drug <input> --source <source>` command, never only `help`.
   - No silent fuzzy match: a partial name never answers a `get`.
 - Proof: installed-binary cases. `get drug imatinib approvals` answers from Drugs@FDA with the brand NDA and lists other matches. `get drug Gleevec approvals --source drugsfda` gives the same record. One EMA and one openFDA label name case. One unresolvable name gives the exact search step. Every existing ID case is byte-identical.
-- Changes: the drug query type and schema, drug name resolution, the usage error's next step, help text and cases.
+- Changes: `crates/biomcp-types/src/drug/**`, `crates/biomcp-query/src/drug.rs`, `crates/biomcp-query/src/drug/**`, `crates/biomcp/src/grammar/errors.rs`, `crates/biomcp-types/schemas/drug-*.json`, `tests/cases/drug/**`, `tests/replies/drug/**`; the drug query type and schema, drug name resolution, the usage error's next step, help text and cases.
 - Defers: name matching across several sources in one call.
