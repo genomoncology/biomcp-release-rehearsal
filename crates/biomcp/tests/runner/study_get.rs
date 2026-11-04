@@ -124,6 +124,8 @@ pub(super) fn recording_raw(
 fn synthetic_reply(request: &str) -> Result<String, String> {
     Ok(if request.contains("/molecular-profiles?") {
         profiles()
+    } else if request.contains("/samples?") {
+        json!([{ "sampleId": "synthetic_sample", "studyId": "synthetic_0", "sampleType": "Primary" }])
     } else if request.contains("/sample-lists?") {
         lists()
     } else {
@@ -195,6 +197,12 @@ fn pages() -> Check {
             }
         }
     }
+    record(
+        &replay,
+        "samples",
+        json!([{ "sampleId": "synthetic_sample", "studyId": "synthetic_0", "sampleType": "Primary" }]),
+        200,
+    )?;
     super::study_files::seed_files(&replay)?;
     let all = call(
         &env,

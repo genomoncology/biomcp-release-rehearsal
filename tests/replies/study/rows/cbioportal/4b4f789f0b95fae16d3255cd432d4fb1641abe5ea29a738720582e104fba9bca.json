@@ -1,0 +1,18 @@
+{
+  "source": "cbioportal",
+  "method": "GET",
+  "url": "https://www.cbioportal.org/api/genes/BRAF",
+  "exchanges": [
+    {
+      "status": 200,
+      "fetched": 1793809358,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"entrezGeneId\":673,\"hugoGeneSymbol\":\"BRAF\",\"type\":\"protein-coding\"}"
+      }
+    }
+  ]
+}

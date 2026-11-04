@@ -35,12 +35,14 @@
     {
       "expect": {
         "": {
-          "max_bytes": 2817
+          "max_bytes": 6000
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--section-limit",
-            "--section-offset"
+            "--section-offset",
+            "--gene",
+            "--molecular-profile"
           ]
         },
         "/result/commands/0/command": [
@@ -54,12 +56,14 @@
         "/result/commands/0/sections/*/word": [
           "profiles",
           "sample-lists",
+          "mutations",
+          "samples",
           "files",
           "all"
         ],
         "/status": "complete"
       },
-      "max_bytes": 2818,
+      "max_bytes": 6000,
       "run": [
         "help",
         "get",

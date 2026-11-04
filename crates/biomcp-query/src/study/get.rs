@@ -1,6 +1,7 @@
 //! Stored cards and independently acquired bounded metadata sections.
 use biomcp_types::ReplyBody;
 mod files;
+mod rows;
 use super::{empty, finish};
 use crate::{Ctx, Outcome};
 use biomcp_adapters::cbioportal::{SPEC, studies};
@@ -18,6 +19,8 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &StudyGet) -> Outcome {
         Some(StudySection::SampleLists) => {
             biomcp_types::StudySampleLists::into_reply(q.clone(), None)
         }
+        Some(StudySection::Mutations) => biomcp_types::StudyMutations::into_reply(q.clone(), None),
+        Some(StudySection::Samples) => biomcp_types::StudySamples::into_reply(q.clone(), None),
         Some(StudySection::Files) => biomcp_types::StudyFiles::into_reply(q.clone(), None),
         _ => biomcp_types::StudyCard::into_reply(q.clone(), None),
     });
@@ -30,8 +33,17 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &StudyGet) -> Outcome {
                 StudySection::Profiles,
                 StudySection::SampleLists,
                 StudySection::Files,
+                StudySection::Samples,
             ] {
                 next(&mut out, cx, StepKind::Section, q.with_section(section));
+            }
+            if q.gene().is_some() {
+                next(
+                    &mut out,
+                    cx,
+                    StepKind::Section,
+                    q.with_section(StudySection::Mutations),
+                );
             }
         }
     }
@@ -43,6 +55,7 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &StudyGet) -> Outcome {
     }
     sections(cx, q, deadline, &mut out);
     files::section(cx, q, deadline, &mut out);
+    rows::section(cx, q, deadline, &mut out);
     command.finish(deadline.remaining());
     out
 }
@@ -108,6 +121,8 @@ fn card(leg: &Leg<'_>, q: &StudyGet, out: &mut Outcome) -> Result<(), RequestErr
             profiles: None,
             sample_lists: None,
             files: None,
+            mutations: None,
+            samples: None,
         }),
     );
     Ok(())

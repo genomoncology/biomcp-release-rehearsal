@@ -47,6 +47,12 @@ pub struct StudyCard {
     /// Requested file-reference page, with no downloaded data.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub files: Option<Section<StudyFiles>>,
+    /// Requested source mutation rows.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mutations: Option<Section<StudyMutations>>,
+    /// Requested sample identities and types.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub samples: Option<Section<StudySamples>>,
 }
 impl ResponseBody for StudyCard {
     const SCHEMA: &'static str = "biomcp.study-card/7";
@@ -90,5 +96,66 @@ pub struct StudyFiles {
 }
 impl ResponseBody for StudyFiles {
     const SCHEMA: &'static str = "biomcp.study-files/3";
+    type Query = StudyGet;
+}
+
+/// A source sample identity and type, without patient or clinical attributes.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct StudySample {
+    /// Native sample ID within this study.
+    pub sample_id: Text,
+    /// Native sample type, when supplied.
+    pub sample_type: Option<Text>,
+}
+/// A source mutation observation, without clinical interpretation.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct StudyMutation {
+    /// Native sample ID within this study.
+    pub sample_id: Text,
+    /// Source protein change, without normalization.
+    pub protein_change: Option<Text>,
+    /// Native mutation class.
+    pub mutation_type: Option<Text>,
+}
+/// Source sample identities and types from one complete received collection.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct StudySamples {
+    /// Exact native study scope.
+    pub study_id: StudyId,
+    /// Source sample identities and types in native order.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub items: Box<[StudySample]>,
+    /// Bounds within the received collection.
+    pub page: PageInfo,
+    /// Source collection acquisition time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acquired: Option<u64>,
+}
+impl ResponseBody for StudySamples {
+    const SCHEMA: &'static str = "biomcp.study-samples/1";
+    type Query = StudyGet;
+}
+/// Source mutation rows and the explicit gene/profile scope used to obtain them.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct StudyMutations {
+    /// Exact source study ID.
+    pub study_id: StudyId,
+    /// Selected mutation profile, including an automatically chosen default.
+    pub molecular_profile_id: biodata::StudyProfileId,
+    /// Exact cBioPortal gene identifier.
+    pub entrez_gene_id: biodata::NcbiGeneId,
+    /// Source mutation observations in source order.
+    pub items: Box<[StudyMutation]>,
+    /// Bounds within the received collection.
+    pub page: PageInfo,
+    /// Source collection acquisition time.
+    pub acquired: Option<u64>,
+}
+impl ResponseBody for StudyMutations {
+    const SCHEMA: &'static str = "biomcp.study-mutations/1";
     type Query = StudyGet;
 }

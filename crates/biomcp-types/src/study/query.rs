@@ -13,9 +13,13 @@ biodata::wire_enum! {
         Profiles => "profiles",
         /// Five sample-list metadata records, without member sample IDs.
         SampleLists => "sample-lists",
+        /// Source mutation rows for the required gene and selected mutation profile.
+        Mutations => "mutations",
+        /// Source sample identities and types only.
+        Samples => "samples",
         /// Five repository file references; no automatic download.
         Files => "files",
-        /// Each named section's bounded first page; never a gene aggregate request.
+        /// Bounded first pages; mutations are included only when gene is supplied.
         All => "all"
     }
 }
@@ -133,6 +137,12 @@ struct GetFields {
     /// Offset within one named section; all requires zero.
     #[serde(default)]
     section_offset: u32,
+    /// Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    gene: Option<Text>,
+    /// Exact mutation profile ID; omitted selects the study's first mutation profile.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    molecular_profile: Option<biodata::StudyProfileId>,
 }
 crate::query::validation::checked_query!(StudyGet, GetFields);
 impl TryFrom<GetFields> for StudyGet {
@@ -143,6 +153,16 @@ impl TryFrom<GetFields> for StudyGet {
         }
         if matches!(v.section, None | Some(StudySection::All)) && v.section_offset != 0 {
             return Err(QueryInvalid::new(&["section", "section_offset"]));
+        }
+        if (v.section == Some(StudySection::Mutations) || v.molecular_profile.is_some())
+            && v.gene.is_none()
+        {
+            return Err(QueryInvalid::new(&["gene"]));
+        }
+        if (v.gene.is_some() || v.molecular_profile.is_some())
+            && !matches!(v.section, Some(StudySection::Mutations | StudySection::All))
+        {
+            return Err(QueryInvalid::new(&["section", "gene", "molecular_profile"]));
         }
         Ok(Self(v))
     }
@@ -155,9 +175,25 @@ impl StudyGet {
             section: None,
             section_limit: limit(),
             section_offset: 0,
+            gene: None,
+            molecular_profile: None,
         })
     }
 
+    /// Caller gene selector, resolved only by cBioPortal.
+    pub fn gene(&self) -> Option<&Text> {
+        self.0.gene.as_ref()
+    }
+    /// Caller-selected mutation profile, otherwise chosen from study metadata.
+    pub fn molecular_profile(&self) -> Option<&biodata::StudyProfileId> {
+        self.0.molecular_profile.as_ref()
+    }
+    /// Bind subsequent mutation pages to the selected source profile.
+    pub fn with_molecular_profile(&self, profile: biodata::StudyProfileId) -> Self {
+        let mut q = self.clone();
+        q.0.molecular_profile = Some(profile);
+        q
+    }
     /// Exact checked study ID.
     pub fn id(&self) -> &StudyId {
         &self.0.id
@@ -178,6 +214,10 @@ impl StudyGet {
     pub fn with_section(&self, section: StudySection) -> Self {
         let mut q = self.clone();
         q.0.section = Some(section);
+        if !matches!(section, StudySection::Mutations | StudySection::All) {
+            q.0.gene = None;
+            q.0.molecular_profile = None;
+        }
         q.0.section_offset = 0;
         q
     }

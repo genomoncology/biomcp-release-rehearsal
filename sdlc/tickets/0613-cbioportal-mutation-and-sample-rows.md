@@ -1,6 +1,7 @@
 # cBioPortal studies return mutation and sample rows
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: e795ab88264ab270d244f67eb72f4ee360888323
 Milestone: 5
 
 ## Outcome

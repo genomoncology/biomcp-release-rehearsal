@@ -26,6 +26,11 @@
       "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
+    "Reply_NcbiGeneId": {
+      "description": "A positive NCBI Gene identifier in canonical decimal text.",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
+      "type": "string"
+    },
     "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
@@ -322,6 +327,122 @@
         }
       ]
     },
+    "Reply_Section_StudyMutations": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudyMutations",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "Reply_Section_StudyProfiles": {
       "description": "A requested section has exactly one state.",
       "oneOf": [
@@ -446,6 +567,122 @@
           "properties": {
             "data": {
               "$ref": "#/$defs/Reply_StudySampleLists",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Section_StudySamples": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudySamples",
               "description": "Whole section data."
             },
             "source": {
@@ -1143,6 +1380,17 @@
           ],
           "description": "Requested file-reference page, with no downloaded data."
         },
+        "mutations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Section_StudyMutations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Requested source mutation rows."
+        },
         "profiles": {
           "anyOf": [
             {
@@ -1164,6 +1412,17 @@
             }
           ],
           "description": "Requested sample-list metadata page, without member IDs."
+        },
+        "samples": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Section_StudySamples"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Requested sample identities and types."
         },
         "snapshot": {
           "$ref": "#/$defs/Reply_StudySnapshot",
@@ -1296,10 +1555,32 @@
     "Reply_StudyGet": {
       "description": "Exact case-sensitive study card or bounded metadata section. No frequency, denominator, survival or comparison is calculated. Source counts keep their native names.",
       "properties": {
+        "gene": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations."
+        },
         "id": {
           "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact source study ID; no default or repair.",
           "x-positional": 0
+        },
+        "molecular_profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_StudyProfileId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact mutation profile ID; omitted selects the study's first mutation profile."
         },
         "section": {
           "anyOf": [
@@ -1415,6 +1696,86 @@
       "description": "Native study import timestamp with unstated timezone; never an acquisition time. The parser additionally validates the calendar day, including leap years.",
       "pattern": "^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$",
       "type": "string"
+    },
+    "Reply_StudyMutation": {
+      "description": "A source mutation observation, without clinical interpretation.",
+      "properties": {
+        "mutation_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native mutation class."
+        },
+        "protein_change": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source protein change, without normalization."
+        },
+        "sample_id": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Native sample ID within this study."
+        }
+      },
+      "required": [
+        "sample_id"
+      ],
+      "type": "object"
+    },
+    "Reply_StudyMutations": {
+      "description": "Source mutation rows and the explicit gene/profile scope used to obtain them.",
+      "properties": {
+        "acquired": {
+          "description": "Source collection acquisition time.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "entrez_gene_id": {
+          "$ref": "#/$defs/Reply_NcbiGeneId",
+          "description": "Exact cBioPortal gene identifier."
+        },
+        "items": {
+          "description": "Source mutation observations in source order.",
+          "items": {
+            "$ref": "#/$defs/Reply_StudyMutation"
+          },
+          "type": "array"
+        },
+        "molecular_profile_id": {
+          "$ref": "#/$defs/Reply_StudyProfileId",
+          "description": "Selected mutation profile, including an automatically chosen default."
+        },
+        "page": {
+          "$ref": "#/$defs/Reply_PageInfo",
+          "description": "Bounds within the received collection."
+        },
+        "study_id": {
+          "$ref": "#/$defs/Reply_StudyId",
+          "description": "Exact source study ID."
+        }
+      },
+      "required": [
+        "study_id",
+        "molecular_profile_id",
+        "entrez_gene_id",
+        "items",
+        "page"
+      ],
+      "type": "object"
     },
     "Reply_StudyProfile": {
       "description": "Molecular profile reference with exact study membership.",
@@ -1616,6 +1977,30 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
+    "Reply_StudySample": {
+      "description": "A source sample identity and type, without patient or clinical attributes.",
+      "properties": {
+        "sample_id": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Native sample ID within this study."
+        },
+        "sample_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native sample type, when supplied."
+        }
+      },
+      "required": [
+        "sample_id"
+      ],
+      "type": "object"
+    },
     "Reply_StudySampleList": {
       "description": "Sample-list metadata without a representation for member sample IDs.",
       "properties": {
@@ -1707,11 +2092,47 @@
       ],
       "type": "object"
     },
+    "Reply_StudySamples": {
+      "description": "Source sample identities and types from one complete received collection.",
+      "properties": {
+        "acquired": {
+          "description": "Source collection acquisition time.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "items": {
+          "description": "Source sample identities and types in native order.",
+          "items": {
+            "$ref": "#/$defs/Reply_StudySample"
+          },
+          "type": "array"
+        },
+        "page": {
+          "$ref": "#/$defs/Reply_PageInfo",
+          "description": "Bounds within the received collection."
+        },
+        "study_id": {
+          "$ref": "#/$defs/Reply_StudyId",
+          "description": "Exact native study scope."
+        }
+      },
+      "required": [
+        "study_id",
+        "page"
+      ],
+      "type": "object"
+    },
     "Reply_StudySection": {
       "description": "Supported bounded study metadata sections; gene counts are deferred.",
       "enum": [
         "profiles",
         "sample-lists",
+        "mutations",
+        "samples",
         "files",
         "all"
       ],
@@ -1719,8 +2140,10 @@
       "x-enum-descriptions": [
         " Five exact native molecular profile references.",
         " Five sample-list metadata records, without member sample IDs.",
+        " Source mutation rows for the required gene and selected mutation profile.",
+        " Source sample identities and types only.",
         " Five repository file references; no automatic download.",
-        " Each named section's bounded first page; never a gene aggregate request."
+        " Bounded first pages; mutations are included only when gene is supplied."
       ]
     },
     "Reply_StudySnapshot": {

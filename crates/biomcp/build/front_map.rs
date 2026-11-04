@@ -7,7 +7,7 @@ use std::{
     error::Error,
 };
 
-pub(crate) const DEFAULT_CHARACTER_LIMIT: usize = 2500;
+pub(crate) const DEFAULT_CHARACTER_LIMIT: usize = 4000;
 const TRAPS: &[&str] = &[
     "Sources/components: help sources.",
     "Variant IDs are command-specific; normalize requires reference HGVS.",

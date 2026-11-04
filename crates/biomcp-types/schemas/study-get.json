@@ -5,11 +5,18 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
+    "StudyProfileId": {
+      "description": "Exact cBioPortal molecular profile identity.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
+      "type": "string"
+    },
     "StudySection": {
       "description": "Supported bounded study metadata sections; gene counts are deferred.",
       "enum": [
         "profiles",
         "sample-lists",
+        "mutations",
+        "samples",
         "files",
         "all"
       ],
@@ -17,9 +24,18 @@
       "x-enum-descriptions": [
         " Five exact native molecular profile references.",
         " Five sample-list metadata records, without member sample IDs.",
+        " Source mutation rows for the required gene and selected mutation profile.",
+        " Source sample identities and types only.",
         " Five repository file references; no automatic download.",
-        " Each named section's bounded first page; never a gene aggregate request."
+        " Bounded first pages; mutations are included only when gene is supplied."
       ]
+    },
+    "Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
     }
   },
   "$id": "biomcp.study-get/1",
@@ -27,10 +43,32 @@
   "additionalProperties": false,
   "description": "Exact case-sensitive study card or bounded metadata section. No frequency, denominator, survival or comparison is calculated. Source counts keep their native names.",
   "properties": {
+    "gene": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations."
+    },
     "id": {
       "$ref": "#/$defs/StudyId",
       "description": "Exact source study ID; no default or repair.",
       "x-positional": 0
+    },
+    "molecular_profile": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StudyProfileId"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact mutation profile ID; omitted selects the study's first mutation profile."
     },
     "section": {
       "anyOf": [

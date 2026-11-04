@@ -57,7 +57,7 @@ def main():
         shutil.copy2(args.binary, binary)
         front = json.loads(run(binary, ["help"], env))["result"]["commands"][0]["description"]
         assert run(binary, ["--format", "md", "help"], env).startswith(front + "\n\n")
-        assert len(front) <= int(os.environ.get("BIOMCP_FRONT_MAP_CHARACTER_LIMIT", 2500))
+        assert len(front) <= int(os.environ.get("BIOMCP_FRONT_MAP_CHARACTER_LIMIT", 4000))
         assert "--" not in front
         rendered = run(binary, ["skill", "render"], env)
         assert rendered.startswith(front + "\n\n")

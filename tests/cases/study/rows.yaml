@@ -1,0 +1,163 @@
+{
+  "feature": "study-rows",
+  "story": "Public SKCM BRAF V600E mutation observations retain sample identities and the selected mutation profile; sample ID/type pages keep exact totals and native order.",
+  "live_check": "Native public cBioPortal API replies captured unchanged on 2026-11-04; API schema https://www.cbioportal.org/api/v3/api-docs.",
+  "replay": "study/rows",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "study",
+        "skcm_tcga_pan_can_atlas_2018",
+        "mutations"
+      ],
+      "is_error": true,
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      },
+      "max_bytes": 4000
+    },
+    {
+      "run": [
+        "get",
+        "study",
+        "skcm_tcga_pan_can_atlas_2018",
+        "mutations",
+        "--gene",
+        "BRAF",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "45"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/molecular_profile_id": "skcm_tcga_pan_can_atlas_2018_mutations",
+        "/result/entrez_gene_id": "673",
+        "/result/items/0/sample_id": "TCGA-BF-A1PU-01",
+        "/result/items/0/protein_change": "V600E",
+        "/result/items/0/mutation_type": "Missense_Mutation",
+        "/page/total": 245,
+        "/page/returned": 1,
+        "/page/offset": 45
+      },
+      "max_bytes": 7000
+    },
+    {
+      "run": [
+        "get",
+        "study",
+        "skcm_tcga_pan_can_atlas_2018",
+        "mutations",
+        "--gene",
+        "BRAF",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "46",
+        "--molecular-profile",
+        "skcm_tcga_pan_can_atlas_2018_mutations"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/molecular_profile_id": "skcm_tcga_pan_can_atlas_2018_mutations",
+        "/result/entrez_gene_id": "673",
+        "/result/items/0/sample_id": "TCGA-BF-A1PX-01",
+        "/result/items/0/protein_change": "V600E",
+        "/result/items/0/mutation_type": "Missense_Mutation",
+        "/page/total": 245,
+        "/page/returned": 1,
+        "/page/offset": 46
+      },
+      "max_bytes": 7000
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/status": "complete",
+        "/query/molecular_profile": "skcm_tcga_pan_can_atlas_2018_mutations",
+        "/query/gene": "BRAF",
+        "/page/offset": 47,
+        "/page/total": 245,
+        "/result/items/0/sample_id": "TCGA-BF-A3DJ-01"
+      },
+      "max_bytes": 7000
+    },
+    {
+      "run": [
+        "get",
+        "study",
+        "skcm_tcga_pan_can_atlas_2018",
+        "samples",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "0"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/offset": 0,
+        "/page/total": 448,
+        "/page/returned": 1,
+        "/result/items/0/sample_id": "TCGA-3N-A9WB-06",
+        "/result/items/0/sample_type": "Metastatic",
+        "/result/items/0": {
+          "omits": [
+            "patient_id",
+            "patientId",
+            "clinical_data"
+          ]
+        }
+      },
+      "max_bytes": 7000
+    },
+    {
+      "run": [
+        "get",
+        "study",
+        "skcm_tcga_pan_can_atlas_2018",
+        "samples",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/offset": 1,
+        "/page/total": 448,
+        "/page/returned": 1,
+        "/result/items/0/sample_id": "TCGA-3N-A9WC-06",
+        "/result/items/0/sample_type": "Metastatic",
+        "/result/items/0": {
+          "omits": [
+            "patient_id",
+            "patientId",
+            "clinical_data"
+          ]
+        }
+      },
+      "max_bytes": 7000
+    },
+    {
+      "run": [
+        "get",
+        "study",
+        "skcm_tcga_pan_can_atlas_2018",
+        "samples",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "448"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/offset": 448,
+        "/page/total": 448,
+        "/page/returned": 0
+      },
+      "max_bytes": 7000
+    }
+  ]
+}

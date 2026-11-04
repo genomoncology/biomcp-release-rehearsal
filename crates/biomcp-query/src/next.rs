@@ -154,6 +154,8 @@ fn navigation(body: &biomcp_types::ReplyData) -> Navigation<'_> {
         } => protein_navigation(card),
         ReplyData::StudyProfiles { .. }
         | ReplyData::StudySampleLists { .. }
+        | ReplyData::StudySamples { .. }
+        | ReplyData::StudyMutations { .. }
         | ReplyData::StudyFiles { .. } => Navigation::Bounded,
         ReplyData::PathwayPage { .. } | ReplyData::PhenotypePage { .. } => Navigation::Selectable,
         ReplyData::PhenotypeTermCard { .. }
