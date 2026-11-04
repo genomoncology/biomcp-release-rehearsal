@@ -68,3 +68,5 @@ Flag fields override file fields for that source. Other fields and sources remai
 ## MCP reply form
 
 `mcp_reply_form` accepts `both` (JSON text plus `structuredContent`), `structured-only` (JSON in `structuredContent` plus a one-line text note), or `text-only` (JSON text). It applies to all MCP tools over stdio and HTTP, including error replies. The default is `both` for local and hosted servers. Choose `structured-only` only for clients that read `structuredContent`. The output schema describes that JSON value regardless of reply form.
+
+Hosted HTTP servers can set `"hosted_max_use": "restricted"` in JSON configuration to allow only `restricted` declarations, even when callers supply source keys. The setting accepts `restricted`, `commercial` or `academic` and defaults to `academic`. Requests above the ceiling are refused with an error naming the allowed modes; missing headers still select `restricted`. Ordinary CLI and stdio are unchanged.

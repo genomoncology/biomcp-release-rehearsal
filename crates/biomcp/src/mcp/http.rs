@@ -25,6 +25,7 @@ pub(crate) enum StartError {
 struct Service {
     calls: Calls,
     connections: admission::Slots,
+    hosted_max_use: crate::command::DeclaredUse,
     max_calls: usize,
     max_connections: usize,
     address: SocketAddr,
@@ -67,6 +68,8 @@ pub(crate) fn serve(
     }
     let (max_calls, max_connections) = crate::config::http_capacity(&globals, &settings)
         .map_err(|error| StartError::Configuration(error.into()))?;
+    let hosted_max_use = crate::config::hosted_max_use(&settings)
+        .map_err(|error| StartError::Configuration(error.into()))?;
     let fetch = crate::config::fetch(&globals, &settings)
         .map(|fetch| Arc::new(fetch.with_background_refresh()));
     if let Err(error) = &fetch
@@ -80,6 +83,7 @@ pub(crate) fn serve(
     let service = Arc::new(Service {
         calls: Calls::default(),
         connections: admission::Slots::new(max_connections),
+        hosted_max_use,
         max_calls,
         max_connections,
         address,
@@ -247,12 +251,12 @@ impl Service {
         };
         let declared_use = if self.globals.hosted {
             match request.declared_use() {
-                Ok(usage) => Some(usage),
-                Err(_) => {
+                Ok(usage) if self.hosted_max_use.permits(usage) => Some(usage),
+                _ => {
                     return (
                         400,
                         Some(
-                            json!({"error":"Invalid x-biomcp-use header; allowed values: restricted, commercial, academic"}),
+                            json!({"error":format!("Invalid x-biomcp-use header; allowed values: {}", self.hosted_max_use.allowed())}),
                         ),
                         Some(revision),
                     );

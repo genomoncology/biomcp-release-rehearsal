@@ -3,6 +3,7 @@ use super::{http::Server, launch::Environment, network_stub::Stub, request_keys:
 use crate::runner::transcript::trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
+mod ceiling;
 mod components;
 mod continuation;
 mod legacy;
@@ -22,6 +23,12 @@ const ONCOKB: &[&str] = &["get", "gene", "TP53", "oncokb"];
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
+        trial("mcp-hosted/use/mode-ceiling", || {
+            ceiling::check().map_err(Into::into)
+        }),
+        trial("mcp-hosted/use/optional-rate-keys", || {
+            ceiling::optional_keys().map_err(Into::into)
+        }),
         trial("mcp-hosted/use/legacy-group-membership", || {
             legacy::check().map_err(Into::into)
         }),

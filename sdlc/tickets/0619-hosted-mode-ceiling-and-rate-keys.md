@@ -1,6 +1,7 @@
 # Hosted modes follow Ian's 2026-11-04 ruling exactly
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 4df18406263b2535010af2e810358ff2e008de67
 Milestone: 5
 
 ## Outcome

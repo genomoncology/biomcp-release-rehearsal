@@ -50,6 +50,7 @@ impl ConfigError {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ConfigFile {
+    pub(super) hosted_max_use: Option<crate::command::DeclaredUse>,
     pub(super) mcp_reply_form: Option<ReplyForm>,
     pub(super) format: Option<crate::grammar::Format>,
     pub(super) proxy: Option<String>,
@@ -164,6 +165,7 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         })
         .transpose()?;
     let file = ConfigFile {
+        hosted_max_use: take(&mut map, "hosted_max_use")?,
         mcp_reply_form: take(&mut map, "mcp_reply_form")?,
         format: take(&mut map, "format")?,
         proxy: take(&mut map, "proxy")?,

@@ -175,6 +175,7 @@ mod tests {
     )]
     fn expired_calls_keep_capacity_and_shutdown_waits_for_actual_worker_exit() {
         let service = Service {
+            hosted_max_use: Default::default(),
             root: std::sync::Arc::new(crate::grammar::root().unwrap()),
             settings: std::sync::Arc::new(Ok(None)),
             calls: Calls::default(),
@@ -330,6 +331,7 @@ mod tests {
             let listener = TcpListener::bind("127.0.0.1:0")?;
             let address = listener.local_addr()?;
             let service = Arc::new(Service {
+                hosted_max_use: Default::default(),
                 calls: Calls::default(),
                 connections: super::super::super::admission::Slots::new(super::MAX_CONNECTIONS),
                 max_calls: super::MAX_CONNECTIONS,

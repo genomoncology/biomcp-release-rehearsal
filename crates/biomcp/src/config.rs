@@ -35,6 +35,14 @@ pub(crate) fn http_capacity(
     Ok((calls, connections))
 }
 
+pub(crate) fn hosted_max_use(
+    settings: &Settings,
+) -> Result<crate::command::DeclaredUse, ConfigError> {
+    Ok(configured(settings)?
+        .and_then(|file| file.hosted_max_use)
+        .unwrap_or_default())
+}
+
 pub(crate) fn mcp_reply_form(settings: &Settings) -> ReplyForm {
     settings
         .as_ref()
