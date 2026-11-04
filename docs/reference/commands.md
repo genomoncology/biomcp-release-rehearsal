@@ -2669,17 +2669,17 @@ Options:
           Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
           and 6144 escaped bytes per fragment. No-text scans are explicit.
 
+      --evidence-level <evidence_level>...
+          Native CIViC evidence levels; repeat to include several levels.
+
+      --evidence-status <evidence_status>
+          Native CIViC evidence status; omitted preserves the source's existing default.
+
       --label-section <label_section>
           Exact published openFDA SPL section field, including table fields; required for the label section.
 
       --product-number <product_number>
           Explicit native application product number, only for approvals.
-
-      --section-limit <section_limit>
-          Named section page size, refused on an identity-only card.
-
-      --section-offset <section_offset>
-          Named section continuation, refused on an identity-only card.
 
       --offline[=<offline>]
           Read local data without source requests.
@@ -2687,14 +2687,20 @@ Options:
           [default: false]
           [possible values: true, false]
 
-      --source <source>
-          Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
+      --section-limit <section_limit>
+          Named section page size, refused on an identity-only card.
 
       --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
+
+      --section-offset <section_offset>
+          Named section continuation, refused on an identity-only card.
+
+      --source <source>
+          Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 
 ```
 
@@ -2705,6 +2711,8 @@ Retrieve a drug by source ID, brand or generic name, with explicit source-scoped
 - `--civic-profile`: Selected source CIViC molecular profile for a drug-scoped claim stream.
 - `--document-id`: Exact source Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
 and 6144 escaped bytes per fragment. No-text scans are explicit.
+- `--evidence-level`: Source CIViC evidence levels; repeat to include several levels.
+- `--evidence-status`: Source CIViC evidence status; omitted preserves the source's existing default.
 - `input`: Source-source ID or complete brand or generic name; WHO references retain source spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
 - `--label-section`: Exact published openFDA SPL section field, including table fields; required for the label section.
 - `--product-number`: Explicit source application product number, only for approvals.
@@ -2969,17 +2977,17 @@ Options:
       --config <config>
           Read configuration from this file.
 
+      --evidence-level <evidence_level>...
+          Native CIViC evidence levels; repeat to include several levels.
+
+      --evidence-status <evidence_status>
+          Native CIViC evidence status; omitted preserves the source's existing default.
+
       --limit <limit>
           Candidate rows per page; more remain reachable through typed next commands.
 
       --offset <offset>
           Candidate rows to skip in source order.
-
-      --resolver <resolver>
-          Resolver for reference-qualified notation; never repairs the input locally.
-
-      --section-limit <section_limit>
-          Rows per named source section page; omitted uses the native source default.
 
       --offline[=<offline>]
           Read local data without source requests.
@@ -2987,14 +2995,20 @@ Options:
           [default: false]
           [possible values: true, false]
 
-      --section-offset <section_offset>
-          Source rows to skip independently of identity candidate paging.
+      --resolver <resolver>
+          Resolver for reference-qualified notation; never repairs the input locally.
 
       --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
+
+      --section-limit <section_limit>
+          Rows per named source section page; omitted uses the native source default.
+
+      --section-offset <section_offset>
+          Source rows to skip independently of identity candidate paging.
 
       --tumor-type <tumor_type>
           Explicit tumor context for keyed OncoKB annotation.
@@ -3007,6 +3021,8 @@ Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-st
 - `--civic-cursor`: Source CIViC cursor, retained unchanged.
 - `--civic-kind`: Source CIViC claim collection within the selected profile.
 - `--civic-profile`: Selected CIViC molecular profile for source claim paging.
+- `--evidence-level`: Source CIViC evidence levels; repeat to include several levels.
+- `--evidence-status`: Source CIViC evidence status; omitted preserves the source's existing default.
 - `input`: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.
 - `--limit`: Candidate rows per page; more remain reachable through typed next commands.
 - `--offset`: Candidate rows to skip in source order.

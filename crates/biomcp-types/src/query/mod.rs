@@ -27,6 +27,8 @@ pub use article_recommend::ArticleRecommend;
 
 mod recurrence;
 pub use recurrence::{RecurrenceSource, VariantRecurrenceQuery};
+mod civic_filter;
+pub use civic_filter::{CivicEvidenceFilter, CivicEvidenceLevel, CivicEvidenceStatus};
 mod variant;
 mod variant_normalize;
 pub use variant::{CivicClaimKind, VariantGet, VariantResolver, VariantSection};

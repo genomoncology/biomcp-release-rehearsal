@@ -1161,6 +1161,17 @@
       },
       "type": "object"
     },
+    "Reply_CivicEvidenceLevel": {
+      "description": "Native CIViC evidence level.",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "type": "string"
+    },
     "Reply_CivicEvidenceLevelCode": {
       "description": "Source-defined CIViC evidence levels.",
       "enum": [
@@ -1169,6 +1180,15 @@
         "c",
         "d",
         "e"
+      ],
+      "type": "string"
+    },
+    "Reply_CivicEvidenceStatus": {
+      "description": "Native CIViC evidence review status.",
+      "enum": [
+        "accepted",
+        "submitted",
+        "rejected"
       ],
       "type": "string"
     },
@@ -7255,6 +7275,24 @@
             "null"
           ]
         },
+        "evidence_level": {
+          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "items": {
+            "$ref": "#/$defs/Reply_CivicEvidenceLevel"
+          },
+          "type": "array"
+        },
+        "evidence_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CivicEvidenceStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+        },
         "input": {
           "$ref": "#/$defs/Reply_VariantInput",
           "description": "rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.",
@@ -7374,6 +7412,24 @@
             "integer",
             "null"
           ]
+        },
+        "evidence_level": {
+          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "items": {
+            "$ref": "#/$defs/Reply_CivicEvidenceLevel"
+          },
+          "type": "array"
+        },
+        "evidence_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CivicEvidenceStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/Reply_VariantInput",

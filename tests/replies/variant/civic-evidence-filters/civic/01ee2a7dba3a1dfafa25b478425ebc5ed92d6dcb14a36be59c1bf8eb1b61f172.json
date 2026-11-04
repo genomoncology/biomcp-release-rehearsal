@@ -1,0 +1,76 @@
+{
+  "method": "POST",
+  "source": "civic",
+  "url": "https://civicdb.org/api/graphql",
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "0793a4a02db82d68df13f356908008cfac2b989e6c6a24e163c1adc0e66e7642"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "evidenceItems": {
+              "totalCount": 3,
+              "nodes": [
+                {
+                  "id": 910001,
+                  "status": "SUBMITTED",
+                  "evidenceType": "DIAGNOSTIC",
+                  "evidenceLevel": "A",
+                  "evidenceDirection": "SUPPORTS",
+                  "significance": "POSITIVE",
+                  "disease": {
+                    "name": "Thyroid Cancer",
+                    "doid": "1781"
+                  },
+                  "therapies": [],
+                  "therapyInteractionType": null,
+                  "source": {
+                    "citationId": "21594703",
+                    "sourceType": "PUBMED"
+                  }
+                },
+                {
+                  "id": 910002,
+                  "status": "SUBMITTED",
+                  "evidenceType": "PREDICTIVE",
+                  "evidenceLevel": "A",
+                  "evidenceDirection": "SUPPORTS",
+                  "significance": "SENSITIVITYRESPONSE",
+                  "disease": {
+                    "name": "Melanoma",
+                    "doid": "1909"
+                  },
+                  "therapies": [
+                    {
+                      "name": "Dabrafenib"
+                    },
+                    {
+                      "name": "Trametinib"
+                    }
+                  ],
+                  "therapyInteractionType": "COMBINATION",
+                  "source": {
+                    "citationId": "24583796",
+                    "sourceType": "PUBMED"
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": true,
+                "endCursor": "E2"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

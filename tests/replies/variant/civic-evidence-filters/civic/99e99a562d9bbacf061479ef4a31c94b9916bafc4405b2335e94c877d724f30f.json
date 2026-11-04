@@ -1,0 +1,51 @@
+{
+  "method": "POST",
+  "source": "civic",
+  "url": "https://civicdb.org/api/graphql",
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "27f047e1a2c8aae47993330af8e5cdb9c8923cad1ce88b92c1a6480390d09867"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "evidenceItems": {
+              "totalCount": 3,
+              "nodes": [
+                {
+                  "id": 910003,
+                  "status": "SUBMITTED",
+                  "evidenceType": "DIAGNOSTIC",
+                  "evidenceLevel": "A",
+                  "evidenceDirection": "SUPPORTS",
+                  "significance": "POSITIVE",
+                  "disease": {
+                    "name": "Thyroid Cancer",
+                    "doid": "1781"
+                  },
+                  "therapies": [],
+                  "therapyInteractionType": null,
+                  "source": {
+                    "citationId": "21594703",
+                    "sourceType": "PUBMED"
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false,
+                "endCursor": null
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

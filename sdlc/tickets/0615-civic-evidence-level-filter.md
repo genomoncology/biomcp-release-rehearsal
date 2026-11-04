@@ -1,6 +1,7 @@
 # CIViC drug evidence filters by level and status
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 3029368f27c4cfd7851fbabe1361b1ef0670493a
 Milestone: 5
 
 ## Outcome

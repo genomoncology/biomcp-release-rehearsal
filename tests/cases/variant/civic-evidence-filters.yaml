@@ -1,0 +1,74 @@
+{
+  "feature": "variant-civic",
+  "live_check": "synthetic",
+  "story": "Variant evidence selectors use root native filters and retain source totals and profile-scoped continuation.",
+  "verified": "Synthetic evidence IDs, levels, status and counts; profile metadata reused from the retained public native-civic fixture. No clinical meaning inferred.",
+  "replay": "variant/civic-evidence-filters",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "CA123643",
+        "civic",
+        "--disable-sources",
+        "myvariant",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "A",
+        "--evidence-status",
+        "submitted"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/civic/data/profiles/0/evidence_page/total": 3,
+        "/result/candidates/0/sections/civic/data/profiles/0/evidence_page/returned": 2,
+        "/result/candidates/0/sections/civic/data/profiles/0/statements/0/record/id": "EID910001"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "CA123643",
+        "civic",
+        "--disable-sources",
+        "myvariant",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "A",
+        "--evidence-status",
+        "submitted",
+        "--civic-profile",
+        "12",
+        "--civic-kind",
+        "evidence",
+        "--civic-cursor",
+        "0:E2"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/civic/data/profiles/0/evidence_page/total": 3,
+        "/result/candidates/0/sections/civic/data/profiles/0/evidence_page/returned": 1,
+        "/result/candidates/0/sections/civic/data/profiles/0/statements/0/record/id": "EID910003"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "CA123643",
+        "civic",
+        "--disable-sources",
+        "myvariant",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "A"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/civic/data/profiles/0/evidence_page/total": 3
+      }
+    }
+  ]
+}

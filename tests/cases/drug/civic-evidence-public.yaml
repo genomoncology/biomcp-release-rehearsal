@@ -1,0 +1,51 @@
+{
+  "feature": "drug-civic",
+  "live_check": "public",
+  "story": "Accepted level A is selected by CIViC for native therapy 5, retaining its seven-source total.",
+  "verified": "CIViC CC0 public response and exact request retained in tests/fixtures/drug/civic-evidence/provenance.json and accepted-A.body; synthetic replies are separate.",
+  "replay": "drug/civic-evidence-public",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "25",
+        "--evidence-level",
+        "A",
+        "--evidence-status",
+        "accepted"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 7,
+        "/result/civic/data/evidence/page/returned": 7
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "25",
+        "--evidence-level",
+        "A"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 7,
+        "/result/civic/data/evidence/page/returned": 7
+      }
+    }
+  ]
+}

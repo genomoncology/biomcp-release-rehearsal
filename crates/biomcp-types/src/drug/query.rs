@@ -200,6 +200,8 @@ struct GetFields {
     /// Native continuation cursor for that exact drug, profile and claim collection.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_cursor: Option<Text>,
+    #[serde(flatten)]
+    evidence_filter: crate::CivicEvidenceFilter,
 }
 crate::query::validation::checked_query!(DrugGet, GetFields);
 impl TryFrom<GetFields> for DrugGet {
@@ -278,6 +280,13 @@ fn validate_sections(fields: &GetFields) -> Result<(), QueryInvalid> {
     Ok(())
 }
 fn validate_civic(fields: &GetFields) -> Result<(), QueryInvalid> {
+    if !fields.evidence_filter.is_empty() && fields.civic_kind != Some(CivicClaimKind::Evidence) {
+        return Err(QueryInvalid::new(&[
+            "evidence_level",
+            "evidence_status",
+            "civic_kind",
+        ]));
+    }
     if fields
         .civic_profile
         .is_some_and(|id| id == 0 || id > i32::MAX as u64)
@@ -345,6 +354,7 @@ impl DrugGet {
             civic_profile: None,
             civic_kind: None,
             civic_cursor: None,
+            evidence_filter: Default::default(),
         }
         .try_into()
     }
@@ -379,6 +389,10 @@ impl DrugGet {
     /// Selected independent native claim collection.
     pub fn civic_kind(&self) -> Option<CivicClaimKind> {
         self.fields.civic_kind
+    }
+    /// Native evidence selectors retained across pages.
+    pub fn evidence_filter(&self) -> &crate::CivicEvidenceFilter {
+        &self.fields.evidence_filter
     }
     /// Original native cursor for that selected claim collection.
     pub fn civic_cursor(&self) -> Option<&Text> {

@@ -258,6 +258,17 @@
       },
       "type": "object"
     },
+    "Reply_CivicEvidenceLevel": {
+      "description": "Native CIViC evidence level.",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "type": "string"
+    },
     "Reply_CivicEvidenceLevelCode": {
       "description": "Source-defined CIViC evidence levels.",
       "enum": [
@@ -266,6 +277,15 @@
         "c",
         "d",
         "e"
+      ],
+      "type": "string"
+    },
+    "Reply_CivicEvidenceStatus": {
+      "description": "Native CIViC evidence review status.",
+      "enum": [
+        "accepted",
+        "submitted",
+        "rejected"
       ],
       "type": "string"
     },
@@ -1135,7 +1155,7 @@
       "type": "object"
     },
     "Reply_DrugCivicStreams": {
-      "description": "Independent accepted therapy claim collections, without profile count inference.",
+      "description": "Independent native therapy claim collections, without profile count inference.",
       "properties": {
         "assertions": {
           "anyOf": [
@@ -1207,6 +1227,24 @@
             }
           ],
           "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+        },
+        "evidence_level": {
+          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "items": {
+            "$ref": "#/$defs/Reply_CivicEvidenceLevel"
+          },
+          "type": "array"
+        },
+        "evidence_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CivicEvidenceStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/Reply_DrugId"
@@ -3756,6 +3794,24 @@
             "integer",
             "null"
           ]
+        },
+        "evidence_level": {
+          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "items": {
+            "$ref": "#/$defs/Reply_CivicEvidenceLevel"
+          },
+          "type": "array"
+        },
+        "evidence_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CivicEvidenceStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/Reply_VariantInput",

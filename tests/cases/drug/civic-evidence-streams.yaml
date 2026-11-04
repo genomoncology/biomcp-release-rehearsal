@@ -1,0 +1,159 @@
+{
+  "feature": "drug-civic",
+  "live_check": "synthetic",
+  "story": "Distinct native level streams retain source totals, cursor boundaries, explicit submitted and rejected statuses, and the existing unfiltered request.",
+  "verified": "Synthetic counts and IDs declared by scripts/civic_evidence_fixtures.py, using source-stated profile context solely as a valid container. No clinical claim is made.",
+  "replay": "drug/civic-evidence-streams",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "B",
+        "--evidence-level",
+        "A",
+        "--evidence-level",
+        "A",
+        "--evidence-status",
+        "accepted"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 5,
+        "/result/civic/data/evidence/page/returned": 2,
+        "/result/civic/data/evidence/records/*/claim/record/id": [
+          "EID900001",
+          "EID900002"
+        ]
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "B",
+        "--evidence-level",
+        "A",
+        "--evidence-level",
+        "A",
+        "--evidence-status",
+        "accepted",
+        "--civic-cursor",
+        "0:A2"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 5,
+        "/result/civic/data/evidence/page/returned": 2,
+        "/result/civic/data/evidence/records/*/claim/record/id": [
+          "EID900003",
+          "EID900004"
+        ]
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "B",
+        "--evidence-level",
+        "A",
+        "--evidence-level",
+        "A",
+        "--evidence-status",
+        "accepted",
+        "--civic-cursor",
+        "1:B1"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 5,
+        "/result/civic/data/evidence/page/returned": 1,
+        "/result/civic/data/evidence/records/*/claim/record/id": [
+          "EID900005"
+        ]
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "2",
+        "--evidence-level",
+        "C",
+        "--evidence-status",
+        "submitted"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "2",
+        "--evidence-status",
+        "rejected"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "5",
+        "civic",
+        "--source",
+        "civic",
+        "--civic-kind",
+        "evidence",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/civic/data/evidence/page/total": 5
+      }
+    }
+  ]
+}

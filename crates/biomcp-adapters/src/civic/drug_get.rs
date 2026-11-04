@@ -1,108 +1,14 @@
 //! Exact therapy selection preserves independently filtered native claim streams.
-use super::{GENES, drug_map, drug_raw as raw, variant::failure, variant_raw::Connection};
+use super::{
+    drug_map, drug_raw as raw, drug_request::fetch, variant::failure, variant_raw::Connection,
+};
 use crate::Mapped;
-use biodata::Text;
-use biomcp_fetch::{Input, Read};
 use biomcp_fetch::{Leg, RequestError};
 use biomcp_types::{
     CivicClaimKind, CivicClaimPage, DrugCivic, DrugCivicPage, DrugCivicStreams, DrugGet, Reason,
     Section, Source,
 };
-use serde::Serialize;
 
-const MEMBERS: &str = "molecularProfile{id name rawName link isComplex variants{id name link feature{id name} ... on \
-    GeneVariant{alleleRegistryId hgvsDescriptions coordinates{referenceBuild}}}}";
-const COMMON: &str =
-    "id status significance disease{name doid} therapies{id name} therapyInteractionType";
-#[derive(Serialize)]
-struct Request<'a> {
-    query: String,
-    variables: Variables<'a>,
-}
-#[derive(Serialize)]
-struct Variables<'a> {
-    id: u64,
-    after: Option<&'a Text>,
-}
-
-fn fetch(
-    leg: &Leg<'_>,
-    id: std::num::NonZeroU32,
-    query: &DrugGet,
-    kind: Option<CivicClaimKind>,
-    after: Option<&Text>,
-    count: u32,
-) -> Result<raw::Data, RequestError> {
-    let profile = query
-        .civic_profile()
-        .map_or(String::new(), |id| format!(",molecularProfileId:{id}"));
-    let connection = |kind| {
-        let (name, fields) = match kind {
-            CivicClaimKind::Evidence => (
-                "evidenceItems",
-                "evidenceType evidenceLevel evidenceDirection source{citationId sourceType}",
-            ),
-            CivicClaimKind::Assertions => (
-                "assertions",
-                "assertionType assertionDirection ampLevel variantOrigin",
-            ),
-        };
-        format!(
-            "{name}(therapyId:$id{profile},status:ACCEPTED,first:{count},after:$after){{totalCount \
-                pageInfo{{hasNextPage endCursor}} nodes{{{COMMON} {fields} {MEMBERS}}}}}"
-        )
-    };
-    let fields = kind.map_or_else(
-        || {
-            format!(
-                "{} {}",
-                connection(CivicClaimKind::Evidence),
-                connection(CivicClaimKind::Assertions)
-            )
-        },
-        connection,
-    );
-    let body = Request {
-        query: format!("query($id:Int!,$after:String){{therapy(id:$id){{id name link}} {fields}}}"),
-        variables: Variables {
-            id: u64::from(id.get()),
-            after,
-        },
-    };
-    let reply: raw::ReplyBody = leg
-        .call(
-            &GENES,
-            Input::json(&[], &body),
-            Read::json().cache_if(&|reply: &raw::ReplyBody| {
-                matches(&reply.data, kind, after, count) && raw::cacheable(&reply.data, query)
-            }),
-        )?
-        .value;
-    if reply.data.therapy.is_none() {
-        return Err(failure(Reason::NotFound));
-    }
-    if !matches(&reply.data, kind, after, count) {
-        return Err(failure(Reason::BadReply));
-    }
-    Ok(reply.data)
-}
-fn matches(
-    data: &raw::Data,
-    kind: Option<CivicClaimKind>,
-    after: Option<&Text>,
-    count: u32,
-) -> bool {
-    (kind == Some(CivicClaimKind::Assertions)
-        || data
-            .evidence_items
-            .as_ref()
-            .is_some_and(|rows| rows.nodes.len() <= count as usize && rows.progresses(after)))
-        && (kind == Some(CivicClaimKind::Evidence)
-            || data
-                .assertions
-                .as_ref()
-                .is_some_and(|rows| rows.nodes.len() <= count as usize && rows.progresses(after)))
-}
 fn seek<T>(
     leg: &Leg<'_>,
     id: std::num::NonZeroU32,
@@ -162,7 +68,7 @@ fn page<T>(
         next,
     })
 }
-/// Retrieve only the exact native therapy and its requested accepted claim collections.
+/// Retrieve only the exact native therapy and its requested native claim collections.
 /// Claim profiles retain their own native context; collection totals never become profile counts.
 pub fn drug_civic(
     leg: &Leg<'_>,

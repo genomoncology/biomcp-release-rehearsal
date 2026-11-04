@@ -299,3 +299,19 @@ mcp-reply-scan:
 	$(JSCPD) --version
 	$(JSCPD) crates/biomcp/src/config.rs crates/biomcp/src/config crates/biomcp/src/help.rs crates/biomcp/src/mcp.rs crates/biomcp/src/mcp --format rust --max-size 10mb --reporters json --output target/0587-proofs/jscpd-product
 	$(JSCPD) crates/biomcp/tests/runner/protocol.rs crates/biomcp/tests/runner/protocol_schemas.rs crates/biomcp/tests/runner/mcp_reply_form.rs --format rust --max-size 10mb --reporters json --output target/0587-proofs/jscpd-tests
+
+.PHONY: civic-evidence-build
+civic-evidence-build:
+	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json
+
+.PHONY: civic-evidence-focused
+civic-evidence-focused:
+	+sh scripts/check_civic_evidence.sh focused
+
+.PHONY: civic-evidence-structure
+civic-evidence-structure:
+	cargo test --locked -p biomcp --test ratchets repository_obeys_structural_contract -- --exact $(if $(strip $(RUST_TEST_THREADS)),--test-threads $(RUST_TEST_THREADS))
+
+.PHONY: civic-evidence-combined
+civic-evidence-combined:
+	+sh scripts/check_civic_evidence.sh combined

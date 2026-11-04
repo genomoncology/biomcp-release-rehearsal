@@ -48,13 +48,13 @@ trial-help: Discover trial commands through schema-generated help and executable
 variant-recurrence: Retrieve bounded exact-allele sample observations in an explicitly selected cBioPortal cohort without inferring a denominator.
 variant-normalization: A caller sends unchanged HGVS to named services and receives independent source mappings, warnings and versions.
 variant-assertions: Retrieve source-native ClinVar and ClinGen assertions without merging classification domains or mistaking source absence for unknown allele identity.
-variant-civic: Preserve CIViC exact profile membership and separate native claim pages.
+variant-civic: Preserve CIViC exact profile membership and separate native claim pages, with shared native evidence level and status selectors.
 variant-hotspots: Retain native transcript and residue counts without an inferred variant join.
 variant-oncokb: Retrieve only user-keyed OncoKB annotations with explicit assembly and tumor context, preserving source protein claims and native implication groups.
 variant-help: Variant help gives executable examples and explicit migration steps without clinical interpretation.
 drug-native-sources: Retrieve native ChEMBL and Open Targets drug candidates, identities, mechanisms and indications without inferring authorization.
 drug-ema: Explicitly synchronize EMA medicines and read separate native candidates, exact identity cards and source-scoped regulatory dates without implicit synchronization.
-drug-civic: Search literal CIViC therapy candidates and retrieve independent native evidence and assertion pages with their complete profile context.
+drug-civic: Search literal CIViC therapy candidates and retrieve independent native evidence and assertion pages with their complete profile context and shared native evidence level and status selectors.
 drug-mychem: Search literal MyChem candidate pages and retrieve exact native document identities with attributed cross-references.
 drug-label: Search source brand, generic and label-text matches without dropping native page rows, preserve source display names and exact-match facts, and read exact SPL identities and native label fields with complete bounded text continuation, preserving revision, original text and source outcomes.
 drug-approvals: Read source-native application candidates, independent product status and application submission history newest status date first, with explicit product selection and configurable submission pages.

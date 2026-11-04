@@ -48,7 +48,9 @@ pub use query::{
 pub use query::{ArticleGet, ArticleSection, ArticleSectionWord};
 pub use query::{ArticleSupplement, ArticleText, SheetRows};
 pub use query::{COMMANDS, CommandSpec, Rewrite, command_paths};
-pub use query::{CivicClaimKind, VariantSection};
+pub use query::{
+    CivicClaimKind, CivicEvidenceFilter, CivicEvidenceLevel, CivicEvidenceStatus, VariantSection,
+};
 pub use query::{GeneGet, GeneSearch, GeneSection, GeneSectionWord, Request};
 pub use query::{
     MyVariantQuery, VariantRegion, VariantSearch, VariantSearchField, VariantSearchSource,

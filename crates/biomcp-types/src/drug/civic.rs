@@ -3,7 +3,7 @@ use crate::{CivicClaimPage, CivicMember, CivicStatement, SourceRecord};
 use biodata::Text;
 use serde::{Deserialize, Serialize};
 
-/// Independent accepted therapy claim collections, without profile count inference.
+/// Independent native therapy claim collections, without profile count inference.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivicStreams {

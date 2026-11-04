@@ -49,6 +49,8 @@ struct Fields {
     /// Native CIViC cursor, retained unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_cursor: Option<crate::Text>,
+    #[serde(flatten)]
+    evidence_filter: crate::CivicEvidenceFilter,
     /// Resolver for reference-qualified notation; never repairs the input locally.
     #[serde(default = "resolver")]
     resolver: VariantResolver,
@@ -80,6 +82,19 @@ crate::query::validation::checked_query!(VariantGet, Fields);
 impl TryFrom<Fields> for VariantGet {
     type Error = super::gene::QueryInvalid;
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
+        if !fields.evidence_filter.is_empty()
+            && !fields
+                .section
+                .iter()
+                .any(|s| matches!(s, VariantSection::Civic | VariantSection::All))
+        {
+            return Err(super::gene::QueryInvalid::new(&[
+                "evidence_level",
+                "evidence_status",
+                "civic_kind",
+                "section",
+            ]));
+        }
         if !(1..=50).contains(&fields.limit) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
         }
@@ -129,6 +144,7 @@ impl TryFrom<Fields> for VariantGet {
         query.0.civic_profile = fields.civic_profile;
         query.0.civic_kind = fields.civic_kind;
         query.0.civic_cursor = fields.civic_cursor;
+        query.0.evidence_filter = fields.evidence_filter;
         query.0.section_limit = fields.section_limit;
         query.0.section_offset = fields.section_offset;
         query.0.section = fields.section;
@@ -168,6 +184,7 @@ impl VariantGet {
             tumor_type: None,
             civic_kind: None,
             civic_cursor: None,
+            evidence_filter: Default::default(),
             resolver,
             build,
             limit: default_limit(),
@@ -202,6 +219,10 @@ impl VariantGet {
     /// Selected native CIViC claim collection.
     pub fn civic_kind(&self) -> Option<CivicClaimKind> {
         self.0.civic_kind
+    }
+    /// Native evidence selectors retained across pages.
+    pub fn evidence_filter(&self) -> &crate::CivicEvidenceFilter {
+        &self.0.evidence_filter
     }
     /// Selected native CIViC cursor.
     pub fn civic_cursor(&self) -> Option<&crate::Text> {
@@ -344,9 +365,9 @@ biodata::canonical_enum! {
 biodata::wire_enum! {
     /// CIViC native claim collection.
     CivicClaimKind {
-        /// Accepted evidence items.
+        /// Native evidence items.
         Evidence=>"evidence",
-        /// Accepted assertions.
+        /// Native assertions.
         Assertions=>"assertions",
     }
 }

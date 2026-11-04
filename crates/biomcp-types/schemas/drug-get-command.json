@@ -8,6 +8,26 @@
       ],
       "type": "string"
     },
+    "CivicEvidenceLevel": {
+      "description": "Native CIViC evidence level.",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "type": "string"
+    },
+    "CivicEvidenceStatus": {
+      "description": "Native CIViC evidence review status.",
+      "enum": [
+        "accepted",
+        "submitted",
+        "rejected"
+      ],
+      "type": "string"
+    },
     "DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
@@ -108,6 +128,24 @@
         }
       ],
       "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+    },
+    "evidence_level": {
+      "description": "Native CIViC evidence levels; repeat to include several levels.",
+      "items": {
+        "$ref": "#/$defs/CivicEvidenceLevel"
+      },
+      "type": "array"
+    },
+    "evidence_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CivicEvidenceStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Native CIViC evidence status; omitted preserves the source's existing default."
     },
     "input": {
       "$ref": "#/$defs/Text",

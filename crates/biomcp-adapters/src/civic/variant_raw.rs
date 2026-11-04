@@ -132,7 +132,8 @@ impl Profiles {
         use biomcp_types::CivicClaimKind;
         self.data.molecular_profiles.progresses(after)
             && self.data.molecular_profiles.nodes.iter().all(|profile| {
-                (query.civic_kind() == Some(CivicClaimKind::Assertions)
+                (!query.evidence_filter().is_empty()
+                    || query.civic_kind() == Some(CivicClaimKind::Assertions)
                     || profile.evidence_items.progresses(query.civic_cursor()))
                     && (query.civic_kind() == Some(CivicClaimKind::Evidence)
                         || profile.assertions.progresses(query.civic_cursor()))

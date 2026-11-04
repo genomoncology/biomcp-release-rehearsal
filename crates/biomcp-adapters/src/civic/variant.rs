@@ -67,6 +67,10 @@ pub fn variant(
             || offset >= query.section_offset()
             || !connection.page_info.has_next_page
         {
+            let mut connection = connection;
+            if !query.evidence_filter().is_empty() {
+                super::variant_filter::apply(leg, query, &mut connection)?;
+            }
             let mut mapped = map::page(connection, query, &allele)?;
             if partial {
                 mapped.problems.push(biomcp_types::Problem {
@@ -92,6 +96,11 @@ fn request<'a>(query: &'a VariantGet, allele: &'a str, after: Option<&'a Text>) 
         Some(CivicClaimKind::Assertions) => (0, limit),
         None => (limit.min(2), 1),
     };
+    let evidence = if query.evidence_filter().is_empty() {
+        evidence
+    } else {
+        0
+    };
     let (ids_variable, ids_argument) = if query.civic_profile().is_some() {
         (",$ids:[Int!]", ",ids:$ids")
     } else {
@@ -114,7 +123,9 @@ fn request<'a>(query: &'a VariantGet, allele: &'a str, after: Option<&'a Text>) 
             allele,
             after,
             ids: query.civic_profile().map(|id| [id]),
-            evidence_after: if query.civic_kind() == Some(CivicClaimKind::Evidence) {
+            evidence_after: if query.evidence_filter().is_empty()
+                && query.civic_kind() == Some(CivicClaimKind::Evidence)
+            {
                 query.civic_cursor()
             } else {
                 None
