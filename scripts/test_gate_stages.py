@@ -1,5 +1,7 @@
 """Check stage diagnostics and incremental secret history against real Git."""
+import json
 import os
+import shutil
 import re
 import secrets
 from pathlib import Path
@@ -15,6 +17,36 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class GateStages(unittest.TestCase):
+    def test_ticket_launchers_submit_configured_gate_and_preserve_exit(self):
+        launchers = (('tls_cause_job.sh', 'gate'), ('hgnc_sync_proof_job.sh', 'routine'),
+                     ('check_nightly_tests.sh', 'routine'))
+        configured = json.loads((ROOT / 'sdlc/pm.json').read_text())['ticketsGate']
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for directory in ('scripts', 'sdlc', 'bin', 'elsewhere'):
+                (root / directory).mkdir()
+            for name, _ in launchers:
+                shutil.copy2(ROOT / 'scripts' / name, root / 'scripts' / name)
+            for name in ('python3', 'python3.13'):
+                (root / 'bin' / name).symlink_to(sys.executable)
+            capture = 'import json, sys\nprint(json.dumps(sys.argv[1:]))\nsys.exit(23)\n'
+            for name, body in {'sh': capture, 'make': capture, 'git': '',
+                               'uv': 'print(' + repr(str(root / 'bin/python3')) + ')',
+                               'cargo': "print('0.9.2')"}.items():
+                tool = root / 'bin' / name
+                tool.write_text('#!' + sys.executable + '\n' + body)
+                tool.chmod(0o755)
+            env = {**environment(root), 'PATH': str(root / 'bin') + os.pathsep + os.defpath}
+            for command in (configured, "printf 'quoted \"value\"';\nexit 23\n"):
+                (root / 'sdlc/pm.json').write_text(json.dumps({'ticketsGate': command}))
+                for name, mode in launchers:
+                    with self.subTest(launcher=name, command=command):
+                        result = subprocess.run(['/bin/sh', str(root / 'scripts' / name), mode],
+                                                cwd=root / 'elsewhere', env=env,
+                                                capture_output=True, text=True)
+                        self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
+                        self.assertEqual(json.loads(result.stdout.splitlines()[-1]), ['-c', command])
+
     def test_stage_reports_failure_and_stops(self):
         result = subprocess.run([sys.executable, str(ROOT / 'scripts/timed_stage.py'),
                                  'fixture', sys.executable, '-c', 'raise SystemExit(7)'],

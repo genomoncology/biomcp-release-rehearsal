@@ -1,6 +1,10 @@
 #!/bin/sh
 # Exercise installed TLS diagnostics against local fixtures; never contact a provider.
 set -eu
+if [ "${1:-focused}" = gate ]; then
+    cd "$(dirname "$0")/.."
+    exec python3 -c 'import json, os; os.execlp("sh", "sh", "-c", json.load(open("sdlc/pm.json"))["ticketsGate"])'
+fi
 python="$(uv python find --offline 3.13.17)"
 export PATH="$(dirname "$python"):$HOME/.cargo/bin:$PATH"
 export RUSTUP_TOOLCHAIN=1.95.0
@@ -91,11 +95,6 @@ PYSCAN
         cargo clippy --keep-going --workspace --all-targets --locked -- -D warnings
         cargo clippy --keep-going --locked -p biomcp --test tools -- -D warnings
         cargo test --locked -p biomcp --test ratchets repository_obeys_structural_contract -- --exact
-        ;;
-    gate)
-        python3 --version
-        test "$(cargo machete --version)" = "0.9.2"
-        make landing-gate
         ;;
     *) exit 2 ;;
 esac

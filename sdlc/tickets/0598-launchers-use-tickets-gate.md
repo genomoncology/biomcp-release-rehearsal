@@ -1,6 +1,7 @@
 # Ticket launchers submit the configured gate command unchanged
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 744ba55cb3d8cbb527246737b3ce22c3cb0ce374
 Milestone: 5
 Depends on: 0597
 

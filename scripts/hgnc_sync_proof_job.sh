@@ -1,6 +1,10 @@
 #!/bin/sh
 # Run the existing HGNC checks with this host's already installed pinned tools.
 set -eu
+if [ "${1:-focused}" = routine ]; then
+    cd "$(dirname "$0")/.."
+    exec python3 -c 'import json, os; os.execlp("sh", "sh", "-c", json.load(open("sdlc/pm.json"))["ticketsGate"])'
+fi
 export PATH="$HOME/.rustup/toolchains/1.95.0-x86_64-unknown-linux-gnu/bin:$HOME/.local/share/uv/python/cpython-3.13.17-linux-x86_64-gnu/bin:$PATH"
 export RUSTUP_TOOLCHAIN=1.95.0
 out=target/0596-proofs
@@ -38,6 +42,5 @@ case "${1:-focused}" in
             --reporters console,json --output "$out/jscpd-tests"
         echo 'Product unchanged; no product scan needed.'
         ;;
-    routine) make landing-gate ;;
     *) exit 2 ;;
 esac

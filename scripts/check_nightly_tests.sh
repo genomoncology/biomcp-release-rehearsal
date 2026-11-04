@@ -4,9 +4,7 @@ set -eu
 cd "$(dirname "$0")/.."
 case "${1:-focused}" in
   routine)
-    gate_python_bin=$(python3.13 -c 'from pathlib import Path; import sys; print(Path(sys.executable).resolve().parent)')
-    export PATH="$gate_python_bin:$PATH"
-    exec make landing-gate ;;
+    exec python3 -c 'import json, os; os.execlp("sh", "sh", "-c", json.load(open("sdlc/pm.json"))["ticketsGate"])' ;;
   scans)
     baseline=${2:?scans requires the reviewed baseline commit}
     mkdir -p target/nightly-scans/baseline
