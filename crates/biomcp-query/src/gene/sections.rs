@@ -99,7 +99,7 @@ pub(super) fn prepare(query: &GeneGet, items: &mut [GeneItem]) -> Vec<(HgncId, G
                 civic: requested
                     .contains(&GeneSection::Civic)
                     .then_some(Section::Empty {
-                        source: biomcp_types::Source::Civic,
+                        source: GeneSection::Civic.source(),
                         record: None,
                     }),
                 gencc: requested

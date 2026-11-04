@@ -3,7 +3,7 @@ use crate::{Ctx, status};
 use biodata::{Gene, HgncId};
 use biomcp_adapters::clingen;
 use biomcp_fetch::{Deadline, Leg, LegReport, RequestError};
-use biomcp_types::{ClinGenGene, Section, Source, SourceOutcome};
+use biomcp_types::{ClinGenGene, GeneSection, Section, SourceOutcome};
 
 pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]) -> SectionResult {
     let leg = cx.fetch.leg(&clingen::SPEC, deadline).fresh(cx.fresh);
@@ -54,7 +54,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
             (
                 *id,
                 SectionValue::ClinGen(Section::Data {
-                    source: Source::ClinGen,
+                    source: GeneSection::ClinGen.source(),
                     data,
                 }),
             )
@@ -63,7 +63,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
     SectionResult {
         dropped,
         values,
-        source: status::source(Source::ClinGen, report, error),
+        source: status::source(GeneSection::ClinGen.source(), report, error),
         problems,
         local,
     }
@@ -80,5 +80,5 @@ fn part_status(
     combined
         .cache_problems
         .extend(report.cache_problems.iter().copied());
-    status::source(Source::ClinGen, report, error)
+    status::source(GeneSection::ClinGen.source(), report, error)
 }

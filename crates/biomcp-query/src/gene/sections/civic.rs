@@ -4,7 +4,7 @@ use biodata::{Gene, HgncId, Text};
 
 use biomcp_adapters::civic;
 use biomcp_fetch::Deadline;
-use biomcp_types::{Problem, ProblemCode, Reason, Section, Source};
+use biomcp_types::{GeneSection, Problem, ProblemCode, Reason, Section, Source};
 pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]) -> SectionResult {
     let ids: Vec<_> = genes
         .iter()
@@ -17,7 +17,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
         civic::genes(&leg, &ids)
     };
     let error = result.as_ref().err().copied();
-    let mut source = status::source(Source::Civic, leg.finish(), error);
+    let mut source = status::source(GeneSection::Civic.source(), leg.finish(), error);
     let mut dropped = false;
     let mut problems = Vec::new();
     let values = genes
@@ -34,10 +34,10 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
                             status::append(&mut problems, value.civic.problems.clone());
                             value.civic.value.clone()
                         }
-                        None => Section::unavailable(Source::Civic, Reason::BadReply),
+                        None => Section::unavailable(GeneSection::Civic.source(), Reason::BadReply),
                     },
                     Err(error) => Section::unavailable(
-                        Source::Civic,
+                        GeneSection::Civic.source(),
                         crate::status::reason(*error).unwrap_or(biomcp_types::Reason::Unavailable),
                     ),
                 }
@@ -48,7 +48,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
                     field: "entrez_id".into(),
                     code: ProblemCode::ValueUnknown,
                 });
-                Section::unavailable(Source::Civic, Reason::NoJoinId)
+                Section::unavailable(GeneSection::Civic.source(), Reason::NoJoinId)
             };
             (*id, SectionValue::Civic(section))
         })

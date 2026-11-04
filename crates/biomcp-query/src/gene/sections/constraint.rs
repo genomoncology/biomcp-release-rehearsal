@@ -4,7 +4,7 @@ use biodata::{Gene, HgncId, LocusGroup};
 
 use biomcp_adapters::gnomad;
 use biomcp_fetch::Deadline;
-use biomcp_types::{Reason, Section, Source};
+use biomcp_types::{GeneSection, Reason, Section};
 
 pub(super) fn applicable(gene: &Gene) -> bool {
     gene.locus_group == Some(LocusGroup::ProteinCoding) && gene.ensembl_id.is_some()
@@ -18,7 +18,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
     let leg = cx.fetch.leg(&gnomad::SPEC, deadline).fresh(cx.fresh);
     let result = gnomad::constraints(&leg, &ids);
     let error = result.as_ref().err().copied();
-    let source = status::source(Source::Gnomad, leg.finish(), error);
+    let source = status::source(GeneSection::Constraint.source(), leg.finish(), error);
     let mut dropped = false;
     let mut problems = Vec::new();
     let mut sections = Vec::new();
@@ -40,24 +40,26 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
                             .iter()
                             .any(|problem| problem.field.as_ref() == "gene_id")
                         {
-                            Section::unavailable(Source::Gnomad, Reason::BadReply)
+                            Section::unavailable(GeneSection::Constraint.source(), Reason::BadReply)
                         } else if let Some(data) = &value.constraint.value {
                             Section::Data {
-                                source: Source::Gnomad,
+                                source: GeneSection::Constraint.source(),
                                 data: data.clone(),
                             }
                         } else {
                             Section::Empty {
-                                source: Source::Gnomad,
+                                source: GeneSection::Constraint.source(),
                                 record: None,
                             }
                         }
                     }
-                    None => Section::unavailable(Source::Gnomad, Reason::BadReply),
+                    None => {
+                        Section::unavailable(GeneSection::Constraint.source(), Reason::BadReply)
+                    }
                 }
             }
             Err(error) => Section::unavailable(
-                Source::Gnomad,
+                GeneSection::Constraint.source(),
                 crate::status::reason(*error).unwrap_or(biomcp_types::Reason::Unavailable),
             ),
         };

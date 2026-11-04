@@ -217,3 +217,20 @@ impl ProteinGet {
 }
 mod relation;
 pub use relation::*;
+
+impl ProteinSection {
+    /// Publisher owning a named section; all expands across publishers.
+    pub const fn source(self) -> Option<crate::Source> {
+        use crate::Source;
+        match self {
+            Self::Domains => Some(Source::InterPro),
+            Self::Complexes => Some(Source::ComplexPortal),
+            Self::Features
+            | Self::Isoforms
+            | Self::Structures
+            | Self::Function
+            | Self::Sequence => Some(Source::UniProt),
+            Self::All => None,
+        }
+    }
+}

@@ -402,3 +402,16 @@ impl DiseaseGet {
         self.fields.interval.as_ref()
     }
 }
+
+impl DiseaseSection {
+    /// Publishers implementing this native section.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        use crate::Source;
+        match self {
+            Self::Synonyms | Self::Xrefs => &[Source::Ols, Source::MyDisease],
+            Self::Hierarchy => &[Source::MyDisease],
+            Self::Genes | Self::Phenotypes => &[Source::Monarch],
+            Self::Incidence | Self::Survival => &[Source::Seer],
+        }
+    }
+}

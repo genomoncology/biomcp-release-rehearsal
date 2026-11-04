@@ -4,7 +4,7 @@ use biodata::{Gene, HgncId};
 
 use biomcp_adapters::hpa;
 use biomcp_fetch::Deadline;
-use biomcp_types::{Section, Source};
+use biomcp_types::{GeneSection, Section};
 pub(super) fn applicable(gene: &Gene) -> bool {
     gene.ensembl_id.is_some()
 }
@@ -28,19 +28,19 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
                     dropped |= mapped.refusals == biomcp_adapters::Refusal::Refused;
                     status::append(&mut problems, mapped.problems);
                     Section::Data {
-                        source: Source::Hpa,
+                        source: GeneSection::Expression.source(),
                         data: mapped.value,
                     }
                 }
                 Ok(None) => Section::Empty {
-                    source: Source::Hpa,
+                    source: GeneSection::Expression.source(),
                     record: None,
                 },
                 Err(failure) => {
                     error = Some(failure);
                     local = local.or(status::local(failure));
                     Section::unavailable(
-                        Source::Hpa,
+                        GeneSection::Expression.source(),
                         crate::status::reason(failure).unwrap_or(biomcp_types::Reason::Unavailable),
                     )
                 }
@@ -51,7 +51,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
     SectionResult {
         dropped,
         values,
-        source: status::source(Source::Hpa, leg.finish(), error),
+        source: status::source(GeneSection::Expression.source(), leg.finish(), error),
         problems,
         local,
     }

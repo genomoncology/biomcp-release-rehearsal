@@ -52,3 +52,81 @@ pub fn command_implicit_sources(verb: &str, entity: &str) -> &'static [Source] {
         _ => &[],
     }
 }
+
+/// Section publishers from their checked type owners; no renderer owns these bindings.
+/// None leaves single-source command discovery to the command declaration.
+pub fn command_section_sources(
+    verb: &str,
+    entity: &str,
+    word: &str,
+    candidates: &[Source],
+) -> Option<Vec<Source>> {
+    use crate::{
+        AdverseEventSection, ArticleSection, AuthorPaperSection, CellLineSection,
+        DiagnosticGetSource, DiagnosticSection, DiseaseSection, DrugSection, DrugSource,
+        GeneSection, PathwaySection, PgxSection, PhenotypeSection, ProteinSection, TrialSection,
+        TrialSource, VaersSection, VariantSection,
+    };
+    match (verb, entity) {
+        ("author", "papers") => many(word, AuthorPaperSection::sources),
+        ("get", "gene") => one(word, GeneSection::source),
+        ("get", "variant") => one(word, |s: VariantSection| {
+            s.direct_source().unwrap_or(Source::MyVariant)
+        }),
+        ("get", "protein") => word
+            .parse::<ProteinSection>()
+            .ok()
+            .and_then(|s| s.source())
+            .map(|s| vec![s]),
+        ("get", "article") => many(word, ArticleSection::sources),
+        ("get", "cell-line") => many(word, CellLineSection::sources),
+        ("get", "disease") => many(word, DiseaseSection::sources),
+        ("get", "pathway") => many(word, PathwaySection::sources),
+        ("get", "phenotype") => many(word, PhenotypeSection::sources),
+        ("get", "pgx") => one(word, PgxSection::source),
+        ("get", "adverse-event") => one(word, |s: AdverseEventSection| s.source().source()),
+        ("search", "adverse-event") => one(word, |_: VaersSection| Source::Vaers),
+        ("get", "drug") => word.parse::<DrugSection>().ok().map(|s| {
+            DrugSource::ALL
+                .into_iter()
+                .filter(|source| source.sections().contains(&s))
+                .map(DrugSource::source)
+                .collect()
+        }),
+        ("get", "trial") => supported(word, candidates, |source, s: TrialSection| {
+            source
+                .to_string()
+                .parse::<TrialSource>()
+                .is_ok_and(|source| source.sections().contains(&s))
+        }),
+        ("get", "diagnostic") => supported(word, candidates, |source, s: DiagnosticSection| {
+            source
+                .to_string()
+                .parse::<DiagnosticGetSource>()
+                .is_ok_and(|source| source.sections().contains(&s))
+        }),
+        _ => None,
+    }
+}
+fn one<T: std::str::FromStr>(word: &str, source: impl FnOnce(T) -> Source) -> Option<Vec<Source>> {
+    word.parse().ok().map(|section| vec![source(section)])
+}
+fn many<T: std::str::FromStr>(
+    word: &str,
+    sources: impl FnOnce(T) -> &'static [Source],
+) -> Option<Vec<Source>> {
+    word.parse().ok().map(|section| sources(section).to_vec())
+}
+fn supported<T: std::str::FromStr + Copy>(
+    word: &str,
+    candidates: &[Source],
+    accepts: impl Fn(Source, T) -> bool,
+) -> Option<Vec<Source>> {
+    word.parse().ok().map(|section| {
+        candidates
+            .iter()
+            .copied()
+            .filter(|source| accepts(*source, section))
+            .collect()
+    })
+}

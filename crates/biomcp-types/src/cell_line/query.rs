@@ -193,3 +193,15 @@ pub struct CellLineAssayCountQuery {
 }
 
 crate::query::validation::checked_query!(CellLineAssayCountQuery);
+
+impl CellLineSection {
+    /// Publishers owning the requested data, separate from identity resolution.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        use crate::Source;
+        match self {
+            Self::Chembl => &[Source::Chembl],
+            Self::Names | Self::Identity | Self::Xrefs | Self::Variants => &[Source::Cellosaurus],
+            Self::All => &[Source::Cellosaurus, Source::Chembl],
+        }
+    }
+}

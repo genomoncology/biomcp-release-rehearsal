@@ -4,10 +4,10 @@ use biodata::{Gene, HgncId};
 
 use biomcp_adapters::oncokb;
 use biomcp_fetch::{Deadline, SecretName};
-use biomcp_types::{Reason, Section, Source, SourceState};
+use biomcp_types::{GeneSection, Reason, Section, SourceState};
 
 pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]) -> SectionResult {
-    if cx.fetch.disabled(Source::Oncokb) {
+    if cx.fetch.disabled(GeneSection::Oncokb.source()) {
         return skipped(genes, Reason::Disabled);
     }
     if !cx.fetch.has_key(SecretName::OncokbApiKey) {
@@ -33,7 +33,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
                 local = local.or(status::local(failure));
                 (
                     Section::unavailable(
-                        Source::Oncokb,
+                        GeneSection::Oncokb.source(),
                         crate::status::reason(failure).unwrap_or(biomcp_types::Reason::Unavailable),
                     ),
                     None,
@@ -65,7 +65,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
             }
         }
     }
-    let source = status::source(Source::Oncokb, leg.finish(), error);
+    let source = status::source(GeneSection::Oncokb.source(), leg.finish(), error);
     if source.state == SourceState::Stale {
         for (_, value) in &mut values {
             if let SectionValue::Oncokb(_, Some(_), partial) = value {
@@ -92,7 +92,7 @@ fn skipped(genes: &[(HgncId, Gene)], reason: Reason) -> SectionResult {
                     *id,
                     SectionValue::Oncokb(
                         Section::Skipped {
-                            source: Source::Oncokb,
+                            source: GeneSection::Oncokb.source(),
                             reason,
                         },
                         None,
@@ -102,7 +102,7 @@ fn skipped(genes: &[(HgncId, Gene)], reason: Reason) -> SectionResult {
             })
             .collect(),
         source: biomcp_adapters::registry::outcome(
-            Source::Oncokb,
+            GeneSection::Oncokb.source(),
             SourceState::Skipped,
             Some(reason),
         ),
@@ -121,20 +121,20 @@ fn mapped_value(
     match data {
         Some(data) => (
             Section::Data {
-                source: Source::Oncokb,
+                source: GeneSection::Oncokb.source(),
                 data: data.section,
             },
             Some(data.card),
             partial,
         ),
         None if partial => (
-            Section::unavailable(Source::Oncokb, Reason::BadReply),
+            Section::unavailable(GeneSection::Oncokb.source(), Reason::BadReply),
             None,
             true,
         ),
         None => (
             Section::Empty {
-                source: Source::Oncokb,
+                source: GeneSection::Oncokb.source(),
                 record: None,
             },
             None,

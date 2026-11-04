@@ -350,3 +350,21 @@ biodata::wire_enum! {
         Assertions=>"assertions",
     }
 }
+
+impl VariantSection {
+    /// Direct publisher; component sections retain their MyVariant route.
+    pub const fn direct_source(self) -> Option<crate::Source> {
+        use crate::Source;
+        match self {
+            Self::Clinvar => Some(Source::ClinVar),
+            Self::Erepo => Some(Source::Erepo),
+            Self::Population => Some(Source::Gnomad),
+            Self::Gwas => Some(Source::Gwas),
+            Self::Civic => Some(Source::Civic),
+            Self::Oncokb => Some(Source::Oncokb),
+            Self::AlphaGenome => Some(Source::AlphaGenome),
+            Self::Hotspots => Some(Source::CancerHotspots),
+            Self::Predict | Self::Conservation | Self::Cosmic | Self::All => None,
+        }
+    }
+}

@@ -146,17 +146,7 @@ impl Collected {
     }
 }
 pub(super) fn source(section: VariantSection) -> Option<Source> {
-    match section {
-        VariantSection::Clinvar => Some(Source::ClinVar),
-        VariantSection::Erepo => Some(Source::Erepo),
-        VariantSection::Population => Some(Source::Gnomad),
-        VariantSection::Gwas => Some(Source::Gwas),
-        VariantSection::Civic => Some(Source::Civic),
-        VariantSection::Oncokb => Some(Source::Oncokb),
-        VariantSection::AlphaGenome => Some(Source::AlphaGenome),
-        VariantSection::Hotspots => Some(Source::CancerHotspots),
-        _ => None,
-    }
+    section.direct_source()
 }
 fn permitted<T>(
     cx: &Ctx<'_>,

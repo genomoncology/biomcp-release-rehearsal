@@ -245,3 +245,12 @@ impl crate::Paged for AuthorPapersQuery {
         self.0.pool = None;
     }
 }
+
+impl AuthorPaperSection {
+    /// Publishers implementing this disclosure for their exact author identities.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        match self {
+            Self::Details => &[crate::Source::SemanticScholar, crate::Source::Orcid],
+        }
+    }
+}

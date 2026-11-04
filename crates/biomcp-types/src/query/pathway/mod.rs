@@ -61,3 +61,14 @@ impl PathwaySource {
         }
     }
 }
+
+impl PathwaySection {
+    /// Publishers implementing this disclosure.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        use crate::Source;
+        match self {
+            Self::Events => &[Source::Reactome],
+            Self::Summary | Self::Genes | Self::All => &[Source::Reactome, Source::WikiPathways],
+        }
+    }
+}

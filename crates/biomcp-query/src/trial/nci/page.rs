@@ -7,13 +7,6 @@ use biomcp_types::{
     NciEligibilityPage, NciTrialItem, NciTrialSections, Request, Section, Source, StepKind,
     TrialGet, TrialSection, TrialSource,
 };
-const SECTIONS: [TrialSection; 5] = [
-    TrialSection::Eligibility,
-    TrialSection::Outcomes,
-    TrialSection::Arms,
-    TrialSection::Diseases,
-    TrialSection::Summary,
-];
 const SECTION_BYTES: usize = 6000;
 pub(super) fn valid(q: &TrialGet, s: &Snapshot) -> bool {
     let n = match q.sections().first() {
@@ -93,7 +86,7 @@ pub(super) fn render(
     let unsupported: Box<[_]> = q
         .sections()
         .iter()
-        .filter(|s| **s != TrialSection::All && !SECTIONS.contains(s))
+        .filter(|s| **s != TrialSection::All && !TrialSource::Nci.sections().contains(s))
         .copied()
         .collect();
     let incomplete = s.detail.refusals == biomcp_adapters::Refusal::Refused
@@ -233,8 +226,10 @@ fn eligibility(
 }
 
 fn omitted(q: &TrialGet, id: biodata::NctId, out: &mut Outcome) -> Box<[TrialSection]> {
-    let more: Box<[_]> = SECTIONS
-        .into_iter()
+    let more: Box<[_]> = biomcp_types::TrialSource::Nci
+        .sections()
+        .iter()
+        .copied()
         .filter(|s| !q.sections().contains(s) && !q.sections().contains(&TrialSection::All))
         .collect();
     for section in &more {

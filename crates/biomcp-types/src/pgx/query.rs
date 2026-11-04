@@ -141,7 +141,9 @@ impl TryFrom<GetFields> for PgxGet {
         let limit = v
             .section_limit
             .unwrap_or_else(|| section_default(v.source, v.kind));
-        if (v.source == PgxSource::Clinpgx) != annotations {
+        if v.section.map_or(v.source == PgxSource::Clinpgx, |section| {
+            section.source() != v.source.source()
+        }) {
             return Err(QueryInvalid::new(&["source", "section"]));
         }
         if !(1..=50).contains(&limit) {

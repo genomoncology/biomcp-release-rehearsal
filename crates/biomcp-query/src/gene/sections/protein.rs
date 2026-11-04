@@ -4,7 +4,7 @@ use biodata::{Gene, HgncId};
 
 use biomcp_adapters::uniprot;
 use biomcp_fetch::Deadline;
-use biomcp_types::{Section, Source};
+use biomcp_types::{GeneSection, Section};
 pub(super) fn applicable(gene: &Gene) -> bool {
     !gene.uniprot.is_empty()
 }
@@ -16,7 +16,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
     let result = uniprot::proteins(&leg, &ids);
     let error = result.as_ref().err().copied();
-    let source = status::source(Source::UniProt, leg.finish(), error);
+    let source = status::source(GeneSection::Protein.source(), leg.finish(), error);
     let mut dropped = false;
     let mut problems = Vec::new();
     if let Ok(mapped) = &result {
@@ -42,18 +42,18 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
                         .collect();
                     if data.is_empty() {
                         Section::Empty {
-                            source: Source::UniProt,
+                            source: GeneSection::Protein.source(),
                             record: None,
                         }
                     } else {
                         Section::Data {
-                            source: Source::UniProt,
+                            source: GeneSection::Protein.source(),
                             data: data.into_boxed_slice(),
                         }
                     }
                 }
                 Err(error) => Section::unavailable(
-                    Source::UniProt,
+                    GeneSection::Protein.source(),
                     crate::status::reason(*error).unwrap_or(biomcp_types::Reason::Unavailable),
                 ),
             };

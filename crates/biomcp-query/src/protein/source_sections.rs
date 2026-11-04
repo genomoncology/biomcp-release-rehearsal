@@ -22,8 +22,9 @@ pub(super) fn supplement(
             .iter()
             .copied()
             .filter(|s| match s {
-                ProteinSection::Domains => !cx.fetch.disabled(Source::InterPro),
-                ProteinSection::Complexes => !cx.fetch.disabled(Source::ComplexPortal),
+                ProteinSection::Domains | ProteinSection::Complexes => {
+                    s.source().is_none_or(|source| !cx.fetch.disabled(source))
+                }
                 _ => true,
             })
             .collect();

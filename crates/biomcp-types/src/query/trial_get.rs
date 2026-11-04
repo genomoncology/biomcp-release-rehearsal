@@ -157,3 +157,26 @@ biodata::wire_enum! {
         Summary => "summary",
     }
 }
+
+impl TrialSource {
+    /// Implemented protocol sections in source presentation order.
+    pub const fn sections(self) -> &'static [TrialSection] {
+        use TrialSection::{
+            Arms, Contacts, Diseases, Documents, Eligibility, Locations, Outcomes, References,
+            Results, Summary,
+        };
+        match self {
+            Self::Ctgov => &[
+                Eligibility,
+                Outcomes,
+                Arms,
+                Locations,
+                Contacts,
+                References,
+                Documents,
+                Results,
+            ],
+            Self::Nci => &[Eligibility, Outcomes, Arms, Diseases, Summary],
+        }
+    }
+}

@@ -196,23 +196,9 @@ impl DiagnosticGet {
 }
 
 fn validate_source<I>(v: &GetFields<I>) -> Result<(), QueryInvalid> {
-    let valid_section = match v.source {
-        DiagnosticGetSource::Gtr => matches!(
-            v.section,
-            None | Some(
-                DiagnosticSection::Genes
-                    | DiagnosticSection::Conditions
-                    | DiagnosticSection::Methods
-            )
-        ),
-        DiagnosticGetSource::FdaPma => matches!(
-            v.section,
-            None | Some(DiagnosticSection::Regulatory | DiagnosticSection::Supplements)
-        ),
-        DiagnosticGetSource::WhoIvd
-        | DiagnosticGetSource::Fda510k
-        | DiagnosticGetSource::FdaDeviceRecall => v.section.is_none(),
-    };
+    let valid_section = v
+        .section
+        .is_none_or(|section| v.source.sections().contains(&section));
     if !valid_section {
         return Err(QueryInvalid::new(&["section", "source"]));
     }

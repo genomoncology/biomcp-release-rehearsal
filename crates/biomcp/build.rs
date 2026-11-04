@@ -313,10 +313,10 @@ fn embed_skills(map: &str) -> Result<(), Box<dyn Error>> {
     if guide.matches("{{front-map}}").count() != 1 {
         return Err("skill template requires exactly one front-map marker".into());
     }
-    *guide = guide.replace("{{front-map}}", map);
     if guide.len() > 4096 {
-        return Err("embedded agent skill exceeds 4 KB".into());
+        return Err("agent skill template exceeds 4 KB".into());
     }
+    *guide = guide.replace("{{front-map}}", map);
     let entries = assets
         .iter()
         .map(|(name, text)| format!("({name:?}, {text:?}),\n"))

@@ -252,20 +252,30 @@ pub(crate) fn get_sources(query: &ArticleGet) -> Vec<Source> {
         .collect::<Vec<_>>();
     for section in query.sections() {
         match section {
-            Section::Annotations => sources.push(Source::PubTator),
-            Section::Citations => sources.push(Source::Icite),
-            Section::Tldr | Section::Pdf => sources.push(Source::SemanticScholar),
-            Section::Supplements => sources.push(Source::PmcOa),
+            Section::Annotations => {
+                sources.extend(biomcp_types::ArticleSection::Annotations.sources())
+            }
+            Section::Citations => sources.extend(biomcp_types::ArticleSection::Citations.sources()),
+            Section::Tldr | Section::Pdf => {
+                sources.extend(biomcp_types::ArticleSection::Tldr.sources())
+            }
+            Section::Supplements => {
+                sources.extend(biomcp_types::ArticleSection::Supplements.sources())
+            }
             Section::Fulltext => sources.extend(query.input().iter().map(|input| match input {
                 ArticleInput::EuropePmc(_) => Source::EuropePmc,
                 _ => Source::PmcOa,
             })),
-            Section::All => sources.extend([
-                Source::PubTator,
-                Source::Icite,
-                Source::SemanticScholar,
-                Source::PmcOa,
-            ]),
+            Section::All => sources.extend(
+                [
+                    biomcp_types::ArticleSection::Annotations,
+                    biomcp_types::ArticleSection::Citations,
+                    biomcp_types::ArticleSection::Tldr,
+                    biomcp_types::ArticleSection::Supplements,
+                ]
+                .into_iter()
+                .flat_map(biomcp_types::ArticleSection::sources),
+            ),
             _ => {}
         }
     }

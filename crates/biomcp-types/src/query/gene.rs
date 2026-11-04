@@ -225,3 +225,20 @@ biodata::canonical_enum! {
         Oncokb => "oncokb",
     }
 }
+
+impl GeneSection {
+    /// Publisher owning this independent section.
+    pub const fn source(self) -> crate::Source {
+        use crate::Source;
+        match self {
+            Self::Protein => Source::UniProt,
+            Self::Civic => Source::Civic,
+            Self::ClinGen => Source::ClinGen,
+            Self::Gencc => Source::Gencc,
+            Self::Constraint => Source::Gnomad,
+            Self::Expression => Source::Hpa,
+            Self::Pathways => Source::Reactome,
+            Self::Oncokb => Source::Oncokb,
+        }
+    }
+}

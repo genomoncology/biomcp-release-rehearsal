@@ -1,6 +1,7 @@
 # The front-door map pairs each section with its source
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d73a0226692647bb5b8a60410adc8c0e91ce0b64
 Milestone: 5
 
 ## Outcome
