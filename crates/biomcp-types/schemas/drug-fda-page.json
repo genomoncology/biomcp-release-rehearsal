@@ -1,34 +1,38 @@
 {
   "$defs": {
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "DrugFdaCandidate": {
-      "additionalProperties": false,
+    "Reply_DrugFdaCandidate": {
       "description": "One candidate application and its independent source-listed products.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/DrugId",
+          "$ref": "#/$defs/Reply_DrugId",
           "description": "Exact application identifier, shared with the retained application identity."
         },
         "identity": {
-          "$ref": "#/$defs/DrugHeader",
+          "$ref": "#/$defs/Reply_DrugHeader",
           "description": "Exact native application identity; no product has been selected."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact brand wording shared by every product; omitted for zero or differing brands."
         },
         "products": {
           "description": "Complete native product candidates within this application.",
           "items": {
-            "$ref": "#/$defs/DrugFdaProduct"
+            "$ref": "#/$defs/Reply_DrugFdaProduct"
           },
           "type": "array"
         }
@@ -39,39 +43,41 @@
       ],
       "type": "object"
     },
-    "DrugFdaIngredient": {
-      "additionalProperties": false,
+    "Reply_DrugFdaIngredient": {
       "description": "An unchanged native ingredient and strength, without local normalization.",
       "properties": {
         "name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native ingredient name."
         },
         "strength": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Full source strength wording."
         }
       },
-      "required": [
-        "name"
-      ],
       "type": "object"
     },
-    "DrugFdaPage": {
-      "additionalProperties": false,
+    "Reply_DrugFdaPage": {
       "description": "A source-owned application page preserving complete product context and source order.",
       "properties": {
         "items": {
           "description": "Native applications and products; a phrase match never establishes equivalence.",
           "items": {
-            "$ref": "#/$defs/DrugFdaCandidate"
+            "$ref": "#/$defs/Reply_DrugFdaCandidate"
           },
           "type": "array"
         },
         "source_updated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_SourceUpdated"
             },
             {
               "type": "null"
@@ -91,41 +97,68 @@
       ],
       "type": "object"
     },
-    "DrugFdaProduct": {
-      "additionalProperties": false,
+    "Reply_DrugFdaProduct": {
       "description": "One explicit native product within the selected FDA application.",
       "properties": {
         "active_ingredients": {
           "description": "Complete source-listed ingredient and strength pairs.",
           "items": {
-            "$ref": "#/$defs/DrugFdaIngredient"
+            "$ref": "#/$defs/Reply_DrugFdaIngredient"
           },
           "type": "array"
         },
         "brand_name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Source brand wording, without inferred ingredient equivalence."
         },
         "dosage_form": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native dosage form."
         },
         "marketing_status": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Product marketing status, independent of submission history."
         },
         "product_number": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact source product number, scoped by the response application."
         },
         "reference_drug": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Original source reference-drug designation."
         },
         "reference_standard": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -136,7 +169,7 @@
         "route": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -147,7 +180,7 @@
         "te_code": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -157,30 +190,25 @@
         }
       },
       "required": [
-        "product_number",
-        "brand_name",
-        "dosage_form",
-        "marketing_status",
-        "reference_drug"
+        "product_number"
       ],
       "type": "object"
     },
-    "DrugHeader": {
-      "additionalProperties": false,
+    "Reply_DrugHeader": {
       "description": "One source candidate, without authorization, targets, label text or interactions.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/DrugId",
+          "$ref": "#/$defs/Reply_DrugId",
           "description": "Published native identifier."
         },
         "identity_level": {
-          "$ref": "#/$defs/DrugIdentityLevel",
+          "$ref": "#/$defs/Reply_DrugIdentityLevel",
           "description": "Level established only by the endpoint or record type."
         },
         "matched_name": {
           "anyOf": [
             {
-              "$ref": "#/$defs/DrugNameMatch"
+              "$ref": "#/$defs/Reply_DrugNameMatch"
             },
             {
               "type": "null"
@@ -189,17 +217,28 @@
           "description": "Complete native name fields matching the search input; omitted outside label searches."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original source display name."
         },
+        "name_resolution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_DrugNameResolution"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact name choice, ranking rule and bounded alternative commands; omitted for native ID calls."
+        },
         "source": {
-          "$ref": "#/$defs/DrugSource",
+          "$ref": "#/$defs/Reply_DrugSource",
           "description": "The single source responsible for this header."
         },
         "type": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -210,7 +249,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -222,7 +261,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -238,28 +277,13 @@
       ],
       "type": "object"
     },
-    "DrugId": {
+    "Reply_DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
       "type": "string"
     },
-    "DrugIdentityLevel": {
+    "Reply_DrugIdentityLevel": {
       "description": "Identity level established by the source endpoint or record type, never inferred from ID shape.",
-      "enum": [
-        "ingredient",
-        "salt",
-        "clinical_formulation",
-        "branded_product",
-        "spl_set",
-        "spl_version",
-        "ndc_package",
-        "fda_application",
-        "fda_product",
-        "ema_authorization",
-        "ema_application",
-        "orphan_designation",
-        "unknown"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Source-stated ingredient identity.",
@@ -275,38 +299,147 @@
         " Source-stated ema application identity.",
         " Source-stated orphan designation identity.",
         " Source-stated unknown identity."
+      ],
+      "x-extensible-enum": [
+        "ingredient",
+        "salt",
+        "clinical_formulation",
+        "branded_product",
+        "spl_set",
+        "spl_version",
+        "ndc_package",
+        "fda_application",
+        "fda_product",
+        "ema_authorization",
+        "ema_application",
+        "orphan_designation",
+        "unknown"
       ]
     },
-    "DrugNameMatch": {
+    "Reply_DrugNameMatch": {
       "description": "Complete native name fields matching the requested label name.",
-      "enum": [
-        "brand",
-        "generic",
-        "both"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The complete brand name matches.",
         " The complete generic name matches.",
         " Both complete name fields match."
+      ],
+      "x-extensible-enum": [
+        "brand",
+        "generic",
+        "both"
       ]
     },
-    "DrugNameSelector": {
-      "description": "One explicit ChEMBL name filter without fallback or synonym expansion.",
-      "enum": [
-        "preferred",
-        "synonym"
+    "Reply_DrugNameResolution": {
+      "description": "Exact source name choice; brand before generic, original FDA application then earliest approval, otherwise source order.",
+      "properties": {
+        "alternatives": {
+          "description": "Up to five other exact records as ready get commands.",
+          "items": {
+            "$ref": "#/$defs/Reply_Step"
+          },
+          "type": "array"
+        },
+        "basis": {
+          "$ref": "#/$defs/Reply_DrugNameMatch",
+          "description": "Name basis selected after demoting a brand identical to its own ingredient."
+        },
+        "input": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Original complete name matched case-insensitively."
+        },
+        "ranking": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Applied ambiguity ordering, emitted only from fixed nonempty rule text."
+        },
+        "total": {
+          "description": "Total exact source records, including the selected record.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input",
+        "basis",
+        "ranking",
+        "total"
       ],
+      "type": "object"
+    },
+    "Reply_DrugNameSelector": {
+      "description": "One explicit ChEMBL name filter without fallback or synonym expansion.",
       "type": "string",
       "x-enum-descriptions": [
         " Match the native preferred name exactly, ignoring case.",
         " Match an explicit native synonym exactly, ignoring case."
+      ],
+      "x-extensible-enum": [
+        "preferred",
+        "synonym"
       ]
     },
-    "DrugSearch": {
-      "additionalProperties": false,
-      "description": "Literal single-source candidate discovery, without an implicit identity selection.",
+    "Reply_DrugRecallClassification": {
+      "description": "FDA's native recall classification, with no local ranking.",
+      "type": "string",
+      "x-enum-descriptions": [
+        " Native Class I.",
+        " Native Class II.",
+        " Native Class III."
+      ],
+      "x-extensible-enum": [
+        "Class I",
+        "Class II",
+        "Class III"
+      ]
+    },
+    "Reply_DrugSearch": {
+      "description": "Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. WHO prequalification accepts a name or date range. Other sources require a name.",
       "properties": {
+        "classification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_DrugRecallClassification"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native FDA classification; drug recalls only."
+        },
+        "firm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Literal published recalling firm phrase; drug recalls only."
+        },
+        "initiated_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only."
+        },
+        "initiated_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only."
+        },
         "limit": {
           "default": 10,
           "description": "Native candidate rows per page.",
@@ -316,7 +449,7 @@
           "type": "integer"
         },
         "name_selector": {
-          "$ref": "#/$defs/DrugNameSelector",
+          "$ref": "#/$defs/Reply_DrugNameSelector",
           "description": "Explicit ChEMBL native name selector; omitted means preferred name."
         },
         "offset": {
@@ -326,26 +459,69 @@
           "minimum": 0,
           "type": "integer"
         },
+        "prequalified_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only."
+        },
+        "prequalified_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only."
+        },
         "query": {
-          "$ref": "#/$defs/Text",
-          "description": "Literal source name selector, unchanged by the consumer.",
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,\nexact names before word matches. openFDA labels search exact then word brand/generic names,\nthen label text (including indications) when no names match; source matches need not be exact names.\nHarmonized recall names match but never become display names.",
           "x-positional": 0
         },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Phrase in the published recall reason; drug recalls only."
+        },
         "source": {
-          "$ref": "#/$defs/DrugSource",
+          "$ref": "#/$defs/Reply_DrugSource",
           "default": "mychem",
           "description": "Exactly one source; default MyChem never fans out."
+        },
+        "status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Literal native recall status; drug recalls only."
         }
       },
-      "required": [
-        "query"
-      ],
       "type": "object"
     },
-    "DrugSource": {
+    "Reply_DrugSource": {
       "description": "A supported drug data source.",
-      "enum": [
+      "type": "string",
+      "x-extensible-enum": [
         "who-pq",
+        "fda-drug-recall",
         "mychem",
         "chembl",
         "opentargets",
@@ -354,11 +530,9 @@
         "drugsfda",
         "ema",
         "ddinter"
-      ],
-      "type": "string"
+      ]
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -370,7 +544,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -405,13 +579,12 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -427,7 +600,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -445,12 +618,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -460,7 +632,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -469,7 +641,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -480,43 +652,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -538,83 +689,31 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -684,21 +783,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -722,11 +897,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -741,15 +915,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -760,15 +933,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -779,11 +951,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -798,11 +969,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -824,17 +994,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -846,8 +1015,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -859,26 +1027,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -886,18 +1045,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -915,7 +1083,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -928,7 +1096,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -939,7 +1107,52 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_SourceTimestamp": {
+      "description": "Checked source timestamp with its stated precision and offset.",
+      "properties": {
+        "timezone": {
+          "$ref": "#/$defs/Reply_SourceTimestampTimezone",
+          "description": "Whether the native timestamp includes a timezone."
+        },
+        "value": {
+          "$ref": "#/$defs/Reply_SourceTimestampValue",
+          "description": "Checked RFC 3339 source timestamp.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "value",
+        "timezone"
+      ],
+      "type": "object"
+    },
+    "Reply_SourceTimestampTimezone": {
+      "description": "Availability of timezone information in a native timestamp.",
+      "enum": [
+        "in-value",
+        "source-gave-none"
+      ],
+      "type": "string"
+    },
+    "Reply_SourceTimestampValue": {
+      "description": "RFC 3339 source text preserving offset and precision. The parser additionally validates the calendar day and UTC month-end position of leap seconds. Years follow PartialDate's 0001–9999 range.",
+      "pattern": "^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?([Zz]|[+-]([01][0-9]|2[0-3]):[0-5][0-9])(?![\\s\\S])",
+      "type": "string"
+    },
+    "Reply_SourceUpdated": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_PartialDate",
+          "description": "A source date keeps its year, month or day precision."
+        },
+        {
+          "$ref": "#/$defs/Reply_SourceTimestamp",
+          "description": "A source timestamp keeps its stated fractional precision and offset."
+        }
+      ],
+      "description": "Source update metadata preserving the date or timestamp supplied by its publisher."
+    },
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -949,8 +1162,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -961,7 +1173,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -970,7 +1182,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -986,31 +1198,33 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.drug-fda-page/2",
+  "$id": "biomcp.drug-fda-page/7",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1021,14 +1235,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1039,18 +1253,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/DrugSearch",
+      "$ref": "#/$defs/Reply_DrugSearch",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/DrugFdaPage"
+          "$ref": "#/$defs/Reply_DrugFdaPage"
         },
         {
           "type": "null"
@@ -1059,18 +1273,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.drug-fda-page/2",
+      "const": "biomcp.drug-fda-page/7",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

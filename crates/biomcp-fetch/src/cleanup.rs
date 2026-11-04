@@ -9,11 +9,11 @@ use std::{fs, path::Path};
 impl Fetch {
     /// Remove expired transport replies only when the caller explicitly requests cleanup.
     pub fn clean_expired_replies(&self, deadline: Deadline<'_>) -> Result<u64, CacheError> {
-        let cache = self.cache.as_ref().ok_or(CacheError::Database)?;
+        let cache = self.cache.as_ref().ok_or(CacheError::Internal)?;
         cache.write_sql(deadline, |c| {
             c.execute("DELETE FROM reply WHERE fresh_until<=?1", [now()])
                 .map(|n| n as u64)
-                .map_err(db_error)
+                .map_err(|error| db_error(error))
         })
     }
 }
@@ -37,9 +37,9 @@ impl crate::CacheAccess {
             return Ok(0);
         };
         let mut removed = 0;
-        for entry in fs::read_dir(parent).map_err(|_| CacheError::Database)? {
-            let entry = entry.map_err(|_| CacheError::Database)?;
-            let kind = entry.file_type().map_err(|_| CacheError::Database)?;
+        for entry in fs::read_dir(parent).map_err(|_| CacheError::Filesystem)? {
+            let entry = entry.map_err(|_| CacheError::Filesystem)?;
+            let kind = entry.file_type().map_err(|_| CacheError::Filesystem)?;
             let name = entry.file_name();
             let Some(version) = name.to_str().and_then(namespace) else {
                 continue;
@@ -79,9 +79,9 @@ fn owned_file(path: &Path, owners: &[SchemaOwner]) -> Result<bool, CacheError> {
     };
     let declared = statement
         .query_map([], |r| r.get::<_, String>(0))
-        .map_err(db_error)?
+        .map_err(|error| db_error(error))?
         .collect::<Result<Vec<_>, _>>()
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     if declared.is_empty()
         || declared
             .iter()
@@ -91,12 +91,12 @@ fn owned_file(path: &Path, owners: &[SchemaOwner]) -> Result<bool, CacheError> {
     }
     let mut tables = connection
         .prepare("SELECT name FROM sqlite_master WHERE type='table'")
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     let names = tables
         .query_map([], |r| r.get::<_, String>(0))
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
     for name in names {
-        let name = name.map_err(db_error)?;
+        let name = name.map_err(|error| db_error(error))?;
         if name == "bundle" {
             // An empty predecessor can receive a publication after inspection. Keep its file.
             return Ok(false);
@@ -121,6 +121,7 @@ fn transport_table(name: &str) -> bool {
             | "bundle_row"
             | "bundle_key"
             | "bundle_content"
+            | "bundle_rejection"
             | "bundle_words"
             | "bundle_words_data"
             | "bundle_words_idx"
@@ -131,14 +132,14 @@ fn transport_table(name: &str) -> bool {
 }
 
 fn remove_database(path: &Path) -> Result<(), CacheError> {
-    fs::remove_file(path).map_err(|_| CacheError::Database)?;
+    fs::remove_file(path).map_err(|_| CacheError::Filesystem)?;
     for suffix in ["-wal", "-shm"] {
         let mut sidecar = path.as_os_str().to_os_string();
         sidecar.push(suffix);
         match fs::remove_file(sidecar) {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(_) => return Err(CacheError::Database),
+            Err(_) => return Err(CacheError::Filesystem),
         }
     }
     Ok(())

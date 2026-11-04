@@ -1,0 +1,22 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic response-only failure over existing recorded request identities",
+  "story": "A source failure remains distinct from a valid returned identity and is never cached as a successful record.",
+  "replay": "variant/not-found",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "--build",
+        "GRCh37"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/sources/0/reason": "not-found"
+      }
+    }
+  ]
+}

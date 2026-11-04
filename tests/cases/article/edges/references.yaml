@@ -12,13 +12,6 @@
         "--source",
         "semantic-scholar"
       ],
-      "mcp": [
-        "article",
-        "references",
-        "33123537",
-        "--source",
-        "semantic-scholar"
-      ],
       "expect": {
         "/status": "complete",
         "/page/total": 116,
@@ -44,30 +37,6 @@
         "max_pages": 30
       },
       "max_bytes": 8843
-    },
-    {
-      "run": [
-        "article",
-        "references",
-        "33123537",
-        "--source",
-        "semantic-scholar",
-        "--offset",
-        "100"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/items/7/pmid": "30192171",
-        "/result/items/7/contexts/total": 1,
-        "/problems": {
-          "includes": {
-            "source": "pubmed",
-            "record": "30192171",
-            "field": "summary",
-            "code": "value.unknown"
-          }
-        }
-      }
     }
   ],
   "live_check": "public"

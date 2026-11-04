@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-sections",
+  "feature": "gene-expression",
   "story": "HPA owns MIR21 absence as an empty section",
   "replay": "gene/expression",
   "steps": [
@@ -19,13 +19,7 @@
           "excludes": "gnomad"
         }
       },
-      "max_bytes": 3500,
-      "mcp": [
-        "get",
-        "gene",
-        "MIR21",
-        "expression"
-      ]
+      "max_bytes": 3500
     }
   ]
 }

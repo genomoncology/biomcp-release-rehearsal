@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 /// Configuration names for one keyed source; never includes credential values.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct KeyHelp {
     /// Optional source-specific key guidance.
@@ -15,8 +14,8 @@ pub struct KeyHelp {
     pub environment: crate::Text,
 }
 impl super::ResponseBody for KeyHelp {
-    const SCHEMA: &'static str = "biomcp.key/2";
-    type Query = ();
+    const SCHEMA: &'static str = "biomcp.key/5";
+    type Query = super::EmptyQuery;
 }
 
 biodata::wire_enum! {
@@ -30,9 +29,17 @@ biodata::wire_enum! {
         None => "none"
     }
 }
+biodata::wire_enum! {
+    /// Whether hosted calls may use the server's configured source credential.
+    KeyTier {
+        /// Only the caller may supply this source credential.
+        NoFallback => "no-fallback",
+        /// Use the server credential when the caller supplies none.
+        Fallback => "fallback"
+    }
+}
 /// Credential identity and redacted presence.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct RegisteredKey {
     /// Source accepted by key set.
@@ -41,12 +48,17 @@ pub struct RegisteredKey {
     pub config: crate::Text,
     /// Environment fallback name.
     pub environment: crate::Text,
+    /// Header accepted by the hosted HTTP transport.
+    pub header: crate::Text,
+    /// Declared server credential fallback policy.
+    pub tier: KeyTier,
+    /// Publisher use label for the whole source.
+    pub usage: crate::Use,
     /// Current credential origin.
     pub state: KeyState,
 }
 /// Results of human credential registration.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct RegisteredKeys {
     /// Redacted credential identities.
@@ -54,6 +66,6 @@ pub struct RegisteredKeys {
     pub entries: Vec<RegisteredKey>,
 }
 impl super::ResponseBody for RegisteredKeys {
-    const SCHEMA: &'static str = "biomcp.registered-keys/2";
-    type Query = ();
+    const SCHEMA: &'static str = "biomcp.registered-keys/5";
+    type Query = super::EmptyQuery;
 }

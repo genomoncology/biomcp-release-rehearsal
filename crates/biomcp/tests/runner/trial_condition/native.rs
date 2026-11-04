@@ -1,5 +1,6 @@
 //! Native positives remain outside Git; actual record/replay exercises both public callers.
 use super::{Stub, invoke, setup};
+use crate::runner::launch::native_budget as budget;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, fs, path::Path};
@@ -46,12 +47,7 @@ pub(in crate::runner) fn run(root: &Path) -> Result<(), String> {
         fs::write(output.join(format!("{name}.json")), &full).map_err(|e| e.to_string())?;
         copy(&directory, &output.join(name))?;
         let comparable = crate::runner::source_terms::size(&value, "")?;
-        let ceiling: usize = match name {
-            "ctgov-primary" => 6777,
-            "nci-unique" => 3027,
-            "nci-alias-ambiguous" => 2318,
-            _ => 996,
-        };
+        let ceiling = budget(&format!("trial-condition/{name}"))?;
         let step = json!({"run":words,"mcp":words,"exit":exit,"is_error":exit != 0,"expect":expect,"max_bytes":ceiling,"max_tokens":ceiling.div_ceil(4)});
         let case = json!(
             {"feature":"trial-search","story":"Exact captured concept determines only the literal source filter","replay":output.join(name),
@@ -63,7 +59,7 @@ pub(in crate::runner) fn run(root: &Path) -> Result<(), String> {
             serde_json::to_vec_pretty(&case).map_err(|e| e.to_string())?,
         )
         .map_err(|e| e.to_string())?;
-        crate::runner::run_case(&file, &crate::runner::schema::Registry::embedded()?)?;
+        crate::runner::run_case(&file, crate::runner::schema::Registry::embedded()?.as_ref())?;
         fs::write(
             output.join(format!("{name}-size.json")),
             json!(
@@ -214,7 +210,7 @@ fn copy(from: &Path, to: &Path) -> Result<(), String> {
 fn explicit(output: &Path) -> Result<(), String> {
     let value = crate::runner::run_case(
         &crate::runner::launch::fixtures().join("cases/trial/nci-condition-id.yaml"),
-        &crate::runner::schema::Registry::embedded()?,
+        crate::runner::schema::Registry::embedded()?.as_ref(),
     )?;
     fs::write(
         output.join("nci-explicit.json"),

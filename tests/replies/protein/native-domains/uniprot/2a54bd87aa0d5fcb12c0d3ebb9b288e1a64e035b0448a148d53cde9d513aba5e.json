@@ -1,0 +1,4131 @@
+{
+  "method": "GET",
+  "source": "uniprot",
+  "url": "https://rest.uniprot.org/uniprotkb/Q8N726.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "entryType": "UniProtKB reviewed (Swiss-Prot)",
+          "primaryAccession": "Q8N726",
+          "secondaryAccessions": [
+            "D3DRK2",
+            "Q13195",
+            "Q13399",
+            "Q16360",
+            "Q7KZR9"
+          ],
+          "uniProtkbId": "ARF_HUMAN",
+          "entryAudit": {
+            "firstPublicDate": "2005-10-11",
+            "lastAnnotationUpdateDate": "2026-09-02",
+            "lastSequenceUpdateDate": "2012-04-18",
+            "entryVersion": 201,
+            "sequenceVersion": 2
+          },
+          "annotationScore": 5.0,
+          "organism": {
+            "scientificName": "Homo sapiens",
+            "commonName": "Human",
+            "taxonId": 9606,
+            "lineage": [
+              "Eukaryota",
+              "Metazoa",
+              "Chordata",
+              "Craniata",
+              "Vertebrata",
+              "Euteleostomi",
+              "Mammalia",
+              "Eutheria",
+              "Euarchontoglires",
+              "Primates",
+              "Haplorrhini",
+              "Catarrhini",
+              "Hominidae",
+              "Homo"
+            ]
+          },
+          "proteinExistence": "1: Evidence at protein level",
+          "proteinDescription": {
+            "recommendedName": {
+              "fullName": {
+                "evidences": [
+                  {
+                    "evidenceCode": "ECO:0000305"
+                  }
+                ],
+                "value": "Tumor suppressor ARF"
+              }
+            },
+            "alternativeNames": [
+              {
+                "fullName": {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000303",
+                      "source": "PubMed",
+                      "id": "9724636"
+                    }
+                  ],
+                  "value": "Alternative reading frame"
+                },
+                "shortNames": [
+                  {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000303",
+                        "source": "PubMed",
+                        "id": "9724636"
+                      }
+                    ],
+                    "value": "ARF"
+                  }
+                ]
+              },
+              {
+                "fullName": {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000312",
+                      "source": "HGNC",
+                      "id": "HGNC:1787"
+                    }
+                  ],
+                  "value": "Cyclin-dependent kinase inhibitor 2A"
+                }
+              },
+              {
+                "fullName": {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000303",
+                      "source": "PubMed",
+                      "id": "9724636"
+                    }
+                  ],
+                  "value": "p14ARF"
+                }
+              }
+            ]
+          },
+          "genes": [
+            {
+              "geneName": {
+                "evidences": [
+                  {
+                    "evidenceCode": "ECO:0000312",
+                    "source": "EMBL",
+                    "id": "AAM77919.1"
+                  },
+                  {
+                    "evidenceCode": "ECO:0000312",
+                    "source": "HGNC",
+                    "id": "HGNC:1787"
+                  }
+                ],
+                "value": "CDKN2A"
+              },
+              "synonyms": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000312",
+                      "source": "EMBL",
+                      "id": "AAC60649.1"
+                    }
+                  ],
+                  "value": "CDKN2"
+                },
+                {
+                  "value": "MLM"
+                }
+              ]
+            }
+          ],
+          "comments": [
+            {
+              "texts": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000250",
+                      "source": "UniProtKB",
+                      "id": "Q64364"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "11314011"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "11314038"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "12660818"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "14636574"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15361825"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15567177"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15876874"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15989956"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "16713577"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "18305112"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "22094112"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "9724636"
+                    }
+                  ],
+                  "value": "Capable of inducing cell cycle arrest in G1 and G2 phases. Acts as a tumor suppressor. Binds to MDM2 and blocks its nucleocytoplasmic shuttling by sequestering it in the nucleolus. This inhibits the oncogenic action of MDM2 by blocking MDM2-induced degradation of p53 and enhancing p53-dependent transactivation and apoptosis. Also induces G2 arrest and apoptosis in a p53-independent manner by preventing the activation of cyclin B1/CDC2 complexes. Binds to BCL6 and down-regulates BCL6-induced transcriptional repression. Binds to E2F1 and MYC and blocks their transcriptional activator activity but has no effect on MYC transcriptional repression. Binds to TOP1/TOPOI and stimulates its activity. This complex binds to rRNA gene promoters and may play a role in rRNA transcription and/or maturation. Interacts with NPM1/B23 and promotes its polyubiquitination and degradation, thus inhibiting rRNA processing. Plays a role in inhibiting ribosome biogenesis, perhaps by binding to the nucleolar localization sequence of transcription termination factor TTF1, and thereby preventing nucleolar localization of TTF1 (By similarity). Interacts with COMMD1 and promotes its 'Lys63'-linked polyubiquitination. Interacts with UBE2I/UBC9 and enhances sumoylation of a number of its binding partners including MDM2 and E2F1. Binds to HUWE1 and represses its ubiquitin ligase activity. May play a role in controlling cell proliferation and apoptosis during mammary gland development"
+                }
+              ],
+              "commentType": "FUNCTION"
+            },
+            {
+              "texts": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "16713577"
+                    }
+                  ],
+                  "value": "May be involved in regulation of autophagy and caspase-independent cell death; the short-lived mitochondrial isoform is stabilized by C1QBP"
+                }
+              ],
+              "commentType": "FUNCTION",
+              "molecule": "Isoform smARF"
+            },
+            {
+              "texts": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000250",
+                      "source": "UniProtKB",
+                      "id": "Q64364"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "11314011"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "11314038"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "12154087"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "12446718"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "12581788"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "14636574"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15361825"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15567177"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15876874"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "15989956"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "16173922"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "17110379"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "17486078"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "18305112"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "27323397"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "9724636"
+                    }
+                  ],
+                  "value": "Does not interact with cyclins, CDK1, CDK2, CDK4, CDK5 or CDK6. Binds to BCL6, E2F1, HUWE1, MDM2, MYC, NPM1/B23, TOP1/TOPOI and UBE2I/UBC9. Interacts with TBRG1 and COMMD1. Interacts with CDKN2AIP and E4F1. Interacts with CDK5RAP3 and MDM2; form a ternary complex involved in regulation of p53/TP53 (PubMed:16173922). Interacts with NOP53; the interaction is direct and promotes ARF nucleoplasmic relocalization and ubiquitin-mediated proteasomal degradation (PubMed:27323397). Interacts with TTF1 (via the N-terminal region (NRD) and a C-terminal region); the interaction is direct and inhibits the nucleolar localization of TTF1 (By similarity)"
+                }
+              ],
+              "commentType": "SUBUNIT"
+            },
+            {
+              "texts": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "16713577"
+                    }
+                  ],
+                  "value": "Interacts with C1QBP"
+                }
+              ],
+              "commentType": "SUBUNIT",
+              "molecule": "Isoform smARF"
+            },
+            {
+              "commentType": "INTERACTION",
+              "interactions": [
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q07021",
+                    "geneName": "C1QBP",
+                    "intActId": "EBI-347528"
+                  },
+                  "numberOfExperiments": 3,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q9UER7",
+                    "geneName": "DAXX",
+                    "intActId": "EBI-77321"
+                  },
+                  "numberOfExperiments": 8,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "P18146",
+                    "geneName": "EGR1",
+                    "intActId": "EBI-2834611"
+                  },
+                  "numberOfExperiments": 4,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q7Z6Z7",
+                    "geneName": "HUWE1",
+                    "intActId": "EBI-625934"
+                  },
+                  "numberOfExperiments": 5,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q00987",
+                    "geneName": "MDM2",
+                    "intActId": "EBI-389668"
+                  },
+                  "numberOfExperiments": 5,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q13330",
+                    "geneName": "MTA1",
+                    "intActId": "EBI-714236"
+                  },
+                  "numberOfExperiments": 2,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "P04198",
+                    "geneName": "MYCN",
+                    "intActId": "EBI-878369"
+                  },
+                  "numberOfExperiments": 3,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "P06748",
+                    "geneName": "NPM1",
+                    "intActId": "EBI-78579"
+                  },
+                  "numberOfExperiments": 2,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "P08047",
+                    "geneName": "SP1",
+                    "intActId": "EBI-298336"
+                  },
+                  "numberOfExperiments": 4,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q14669",
+                    "geneName": "TRIP12",
+                    "intActId": "EBI-308443"
+                  },
+                  "numberOfExperiments": 4,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q8TAQ5",
+                    "geneName": "ZNF420",
+                    "intActId": "EBI-3923307"
+                  },
+                  "numberOfExperiments": 8,
+                  "organismDiffer": false
+                },
+                {
+                  "interactantOne": {
+                    "uniProtKBAccession": "Q8N726",
+                    "intActId": "EBI-625922"
+                  },
+                  "interactantTwo": {
+                    "uniProtKBAccession": "Q8AZK7",
+                    "geneName": "EBNA-LP",
+                    "intActId": "EBI-1185167"
+                  },
+                  "numberOfExperiments": 5,
+                  "organismDiffer": true
+                }
+              ]
+            },
+            {
+              "commentType": "SUBCELLULAR LOCATION",
+              "subcellularLocations": [
+                {
+                  "location": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "16173922"
+                      },
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "18305112"
+                      },
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "22094112"
+                      },
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "27323397"
+                      }
+                    ],
+                    "value": "Nucleus, nucleolus",
+                    "id": "SL-0188"
+                  }
+                },
+                {
+                  "location": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "18305112"
+                      },
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "27323397"
+                      }
+                    ],
+                    "value": "Nucleus, nucleoplasm",
+                    "id": "SL-0190"
+                  }
+                }
+              ]
+            },
+            {
+              "commentType": "SUBCELLULAR LOCATION",
+              "molecule": "Isoform smARF",
+              "subcellularLocations": [
+                {
+                  "location": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000269",
+                        "source": "PubMed",
+                        "id": "16713577"
+                      }
+                    ],
+                    "value": "Mitochondrion",
+                    "id": "SL-0173"
+                  }
+                }
+              ]
+            },
+            {
+              "commentType": "ALTERNATIVE PRODUCTS",
+              "events": [
+                "Alternative splicing"
+              ],
+              "isoforms": [
+                {
+                  "name": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000303",
+                        "source": "PubMed",
+                        "id": "11314011"
+                      }
+                    ],
+                    "value": "tumor suppressor ARF"
+                  },
+                  "synonyms": [
+                    {
+                      "evidences": [
+                        {
+                          "evidenceCode": "ECO:0000303",
+                          "source": "PubMed",
+                          "id": "9724636"
+                        }
+                      ],
+                      "value": "p14ARF"
+                    },
+                    {
+                      "value": "p19ARF"
+                    }
+                  ],
+                  "isoformIds": [
+                    "Q8N726-1"
+                  ],
+                  "isoformSequenceStatus": "Displayed"
+                },
+                {
+                  "name": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000305"
+                      }
+                    ],
+                    "value": "1"
+                  },
+                  "synonyms": [
+                    {
+                      "evidences": [
+                        {
+                          "evidenceCode": "ECO:0000305"
+                        }
+                      ],
+                      "value": "p16INK4a"
+                    }
+                  ],
+                  "isoformIds": [
+                    "P42771-1"
+                  ],
+                  "isoformSequenceStatus": "External"
+                },
+                {
+                  "name": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000305"
+                      }
+                    ],
+                    "value": "2"
+                  },
+                  "isoformIds": [
+                    "P42771-2"
+                  ],
+                  "isoformSequenceStatus": "External"
+                },
+                {
+                  "name": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000305"
+                      }
+                    ],
+                    "value": "3"
+                  },
+                  "synonyms": [
+                    {
+                      "evidences": [
+                        {
+                          "evidenceCode": "ECO:0000305"
+                        }
+                      ],
+                      "value": "p12"
+                    }
+                  ],
+                  "isoformIds": [
+                    "P42771-3"
+                  ],
+                  "isoformSequenceStatus": "External"
+                },
+                {
+                  "name": {
+                    "value": "5"
+                  },
+                  "synonyms": [
+                    {
+                      "value": "p16gamma"
+                    }
+                  ],
+                  "isoformIds": [
+                    "P42771-4"
+                  ],
+                  "isoformSequenceStatus": "External"
+                },
+                {
+                  "name": {
+                    "value": "smARF"
+                  },
+                  "isoformIds": [
+                    "Q8N726-2"
+                  ],
+                  "sequenceIds": [
+                    "VSP_044962"
+                  ],
+                  "isoformSequenceStatus": "Described"
+                }
+              ],
+              "note": {
+                "texts": [
+                  {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000250",
+                        "source": "UniProtKB",
+                        "id": "Q64364"
+                      }
+                    ],
+                    "value": "Isoform 1 and isoform tumor suppressor ARF arise due to the use of two alternative first exons joined to a common exon 2 at the same acceptor site but in different reading frames, resulting in two completely different isoforms."
+                  }
+                ]
+              }
+            },
+            {
+              "texts": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "20208519"
+                    },
+                    {
+                      "evidenceCode": "ECO:0000269",
+                      "source": "PubMed",
+                      "id": "27323397"
+                    }
+                  ],
+                  "value": "Ubiquitinated in normal cells by TRIP12 via the ubiquitin fusion degradation (UFD) pathway, a process that mediates ubiquitination at the N-terminus, regardless of the absence of lysine residues. Ubiquitination leads to its proteasomal degradation. In cancer cells, however, TRIP12 is located in a different cell compartment, preventing ubiquitination and degradation"
+                }
+              ],
+              "commentType": "PTM"
+            },
+            {
+              "texts": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000305"
+                    }
+                  ],
+                  "value": "The proteins described here are encoded by the gene CDKN2A, but are completely unrelated in terms of sequence and function to cyclin-dependent kinase inhibitor 2A (AC P42771) which is encoded by the same gene"
+                }
+              ],
+              "commentType": "CAUTION"
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "AAB01737.1",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "AAC60649.1",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "AAH15960.3",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "AAH21998.3",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "AAM77919.1",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "CAH70601.1",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "EAW58600.1",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "SEQUENCE CAUTION",
+              "sequenceCautionType": "Erroneous initiation",
+              "sequence": "EAW58601.1",
+              "note": "Extended N-terminus.",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "commentType": "WEB RESOURCE",
+              "resourceName": "Atlas of Genetics and Cytogenetics in Oncology and Haematology",
+              "resourceUrl": "https://atlasgeneticsoncology.org/gene/146/CDKN2a",
+              "ftp": false
+            }
+          ],
+          "features": [
+            {
+              "type": "Chain",
+              "location": {
+                "start": {
+                  "value": 1,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 132,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "Tumor suppressor ARF",
+              "featureId": "PRO_0000144180"
+            },
+            {
+              "type": "Region",
+              "location": {
+                "start": {
+                  "value": 1,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 64,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "Interaction with CDK5RAP3 and MDM2",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000269",
+                  "source": "PubMed",
+                  "id": "16173922"
+                }
+              ]
+            },
+            {
+              "type": "Region",
+              "location": {
+                "start": {
+                  "value": 56,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 132,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "Disordered",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000256",
+                  "source": "SAM",
+                  "id": "MobiDB-lite"
+                }
+              ]
+            },
+            {
+              "type": "Compositional bias",
+              "location": {
+                "start": {
+                  "value": 71,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 83,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "Low complexity",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000256",
+                  "source": "SAM",
+                  "id": "MobiDB-lite"
+                }
+              ]
+            },
+            {
+              "type": "Compositional bias",
+              "location": {
+                "start": {
+                  "value": 84,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 99,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "Basic residues",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000256",
+                  "source": "SAM",
+                  "id": "MobiDB-lite"
+                }
+              ]
+            },
+            {
+              "type": "Compositional bias",
+              "location": {
+                "start": {
+                  "value": 103,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 117,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "Gly residues",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000256",
+                  "source": "SAM",
+                  "id": "MobiDB-lite"
+                }
+              ]
+            },
+            {
+              "type": "Alternative sequence",
+              "location": {
+                "start": {
+                  "value": 1,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 47,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in isoform smARF",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ],
+              "featureId": "VSP_044962",
+              "alternativeSequence": {}
+            },
+            {
+              "type": "Natural variant",
+              "location": {
+                "start": {
+                  "value": 17,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 17,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in dbSNP:rs3731190",
+              "featureCrossReferences": [
+                {
+                  "database": "dbSNP",
+                  "id": "rs3731190"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000269",
+                  "source": "Reference",
+                  "id": "Ref.3"
+                }
+              ],
+              "featureId": "VAR_029287",
+              "alternativeSequence": {
+                "originalSequence": "P",
+                "alternativeSequences": [
+                  "S"
+                ]
+              }
+            },
+            {
+              "type": "Natural variant",
+              "location": {
+                "start": {
+                  "value": 106,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 106,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in dbSNP:rs4987127",
+              "featureCrossReferences": [
+                {
+                  "database": "dbSNP",
+                  "id": "rs4987127"
+                }
+              ],
+              "featureId": "VAR_053033",
+              "alternativeSequence": {
+                "originalSequence": "G",
+                "alternativeSequences": [
+                  "R"
+                ]
+              }
+            },
+            {
+              "type": "Natural variant",
+              "location": {
+                "start": {
+                  "value": 113,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 113,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in dbSNP:rs34886500",
+              "featureCrossReferences": [
+                {
+                  "database": "dbSNP",
+                  "id": "rs34886500"
+                }
+              ],
+              "featureId": "VAR_053034",
+              "alternativeSequence": {
+                "originalSequence": "P",
+                "alternativeSequences": [
+                  "L"
+                ]
+              }
+            },
+            {
+              "type": "Natural variant",
+              "location": {
+                "start": {
+                  "value": 116,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 116,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in dbSNP:rs35741010",
+              "featureCrossReferences": [
+                {
+                  "database": "dbSNP",
+                  "id": "rs35741010"
+                }
+              ],
+              "featureId": "VAR_053035",
+              "alternativeSequence": {
+                "originalSequence": "G",
+                "alternativeSequences": [
+                  "D"
+                ]
+              }
+            },
+            {
+              "type": "Sequence conflict",
+              "location": {
+                "start": {
+                  "value": 28,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 30,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in Ref. 6; AAH15960/AAH21998 and 7; AAP35666",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ],
+              "alternativeSequence": {
+                "originalSequence": "PRL",
+                "alternativeSequences": [
+                  "SWF"
+                ]
+              }
+            },
+            {
+              "type": "Sequence conflict",
+              "location": {
+                "start": {
+                  "value": 94,
+                  "modifier": "EXACT"
+                },
+                "end": {
+                  "value": 94,
+                  "modifier": "EXACT"
+                }
+              },
+              "description": "in Ref. 2; AAB01737",
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ],
+              "alternativeSequence": {
+                "originalSequence": "P",
+                "alternativeSequences": [
+                  "L"
+                ]
+              }
+            }
+          ],
+          "keywords": [
+            {
+              "id": "KW-0025",
+              "category": "Coding sequence diversity",
+              "name": "Alternative splicing"
+            },
+            {
+              "id": "KW-0053",
+              "category": "Biological process",
+              "name": "Apoptosis"
+            },
+            {
+              "id": "KW-0131",
+              "category": "Biological process",
+              "name": "Cell cycle"
+            },
+            {
+              "id": "KW-0238",
+              "category": "Molecular function",
+              "name": "DNA-binding"
+            },
+            {
+              "id": "KW-0496",
+              "category": "Cellular component",
+              "name": "Mitochondrion"
+            },
+            {
+              "id": "KW-0539",
+              "category": "Cellular component",
+              "name": "Nucleus"
+            },
+            {
+              "id": "KW-1267",
+              "category": "Technical term",
+              "name": "Proteomics identification"
+            },
+            {
+              "id": "KW-1185",
+              "category": "Technical term",
+              "name": "Reference proteome"
+            },
+            {
+              "id": "KW-0698",
+              "category": "Biological process",
+              "name": "rRNA processing"
+            },
+            {
+              "id": "KW-0804",
+              "category": "Biological process",
+              "name": "Transcription"
+            },
+            {
+              "id": "KW-0805",
+              "category": "Biological process",
+              "name": "Transcription regulation"
+            },
+            {
+              "id": "KW-0043",
+              "category": "Disease",
+              "name": "Tumor suppressor"
+            },
+            {
+              "id": "KW-0832",
+              "category": "PTM",
+              "name": "Ubl conjugation"
+            },
+            {
+              "id": "KW-0833",
+              "category": "Biological process",
+              "name": "Ubl conjugation pathway"
+            }
+          ],
+          "references": [
+            {
+              "referenceNumber": 1,
+              "citation": {
+                "id": "7606716",
+                "citationType": "journal article",
+                "authors": [
+                  "Stone S.",
+                  "Jiang P.",
+                  "Dayananth P.",
+                  "Tavtigian S.V.",
+                  "Katcher H.",
+                  "Parry D.",
+                  "Peters G.",
+                  "Kamb A."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "7606716"
+                  }
+                ],
+                "title": "Complex structure and regulation of the P16 (MTS1) locus.",
+                "publicationDate": "1995",
+                "journal": "Cancer Res.",
+                "firstPage": "2988",
+                "lastPage": "2994",
+                "volume": "55"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [MRNA]"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "AAC60649.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 2,
+              "citation": {
+                "id": "CI-BV583I3V77RL0",
+                "citationType": "submission",
+                "authors": [
+                  "Linnenbach A.J."
+                ],
+                "title": "mRNA isoform with alternate first exon-encoded sequences at the cyclin-dependent kinase inhibitor 2 (p16INK4/MTS1) locus and mapping analysis of the region by using long-PCR.",
+                "publicationDate": "OCT-1995",
+                "submissionDatabase": "EMBL/GenBank/DDBJ databases"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [MRNA]"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                },
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "AAB01737.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 3,
+              "citation": {
+                "id": "CI-6QALB6QA9OC0B",
+                "citationType": "submission",
+                "authoringGroup": [
+                  "NIEHS SNPs program"
+                ],
+                "publicationDate": "JUL-2002",
+                "submissionDatabase": "EMBL/GenBank/DDBJ databases"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [GENOMIC DNA]",
+                "VARIANT SER-17"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                },
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "AAB01737.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 4,
+              "citation": {
+                "id": "15164053",
+                "citationType": "journal article",
+                "authors": [
+                  "Humphray S.J.",
+                  "Oliver K.",
+                  "Hunt A.R.",
+                  "Plumb R.W.",
+                  "Loveland J.E.",
+                  "Howe K.L.",
+                  "Andrews T.D.",
+                  "Searle S.",
+                  "Hunt S.E.",
+                  "Scott C.E.",
+                  "Jones M.C.",
+                  "Ainscough R.",
+                  "Almeida J.P.",
+                  "Ambrose K.D.",
+                  "Ashwell R.I.S.",
+                  "Babbage A.K.",
+                  "Babbage S.",
+                  "Bagguley C.L.",
+                  "Bailey J.",
+                  "Banerjee R.",
+                  "Barker D.J.",
+                  "Barlow K.F.",
+                  "Bates K.",
+                  "Beasley H.",
+                  "Beasley O.",
+                  "Bird C.P.",
+                  "Bray-Allen S.",
+                  "Brown A.J.",
+                  "Brown J.Y.",
+                  "Burford D.",
+                  "Burrill W.",
+                  "Burton J.",
+                  "Carder C.",
+                  "Carter N.P.",
+                  "Chapman J.C.",
+                  "Chen Y.",
+                  "Clarke G.",
+                  "Clark S.Y.",
+                  "Clee C.M.",
+                  "Clegg S.",
+                  "Collier R.E.",
+                  "Corby N.",
+                  "Crosier M.",
+                  "Cummings A.T.",
+                  "Davies J.",
+                  "Dhami P.",
+                  "Dunn M.",
+                  "Dutta I.",
+                  "Dyer L.W.",
+                  "Earthrowl M.E.",
+                  "Faulkner L.",
+                  "Fleming C.J.",
+                  "Frankish A.",
+                  "Frankland J.A.",
+                  "French L.",
+                  "Fricker D.G.",
+                  "Garner P.",
+                  "Garnett J.",
+                  "Ghori J.",
+                  "Gilbert J.G.R.",
+                  "Glison C.",
+                  "Grafham D.V.",
+                  "Gribble S.",
+                  "Griffiths C.",
+                  "Griffiths-Jones S.",
+                  "Grocock R.",
+                  "Guy J.",
+                  "Hall R.E.",
+                  "Hammond S.",
+                  "Harley J.L.",
+                  "Harrison E.S.I.",
+                  "Hart E.A.",
+                  "Heath P.D.",
+                  "Henderson C.D.",
+                  "Hopkins B.L.",
+                  "Howard P.J.",
+                  "Howden P.J.",
+                  "Huckle E.",
+                  "Johnson C.",
+                  "Johnson D.",
+                  "Joy A.A.",
+                  "Kay M.",
+                  "Keenan S.",
+                  "Kershaw J.K.",
+                  "Kimberley A.M.",
+                  "King A.",
+                  "Knights A.",
+                  "Laird G.K.",
+                  "Langford C.",
+                  "Lawlor S.",
+                  "Leongamornlert D.A.",
+                  "Leversha M.",
+                  "Lloyd C.",
+                  "Lloyd D.M.",
+                  "Lovell J.",
+                  "Martin S.",
+                  "Mashreghi-Mohammadi M.",
+                  "Matthews L.",
+                  "McLaren S.",
+                  "McLay K.E.",
+                  "McMurray A.",
+                  "Milne S.",
+                  "Nickerson T.",
+                  "Nisbett J.",
+                  "Nordsiek G.",
+                  "Pearce A.V.",
+                  "Peck A.I.",
+                  "Porter K.M.",
+                  "Pandian R.",
+                  "Pelan S.",
+                  "Phillimore B.",
+                  "Povey S.",
+                  "Ramsey Y.",
+                  "Rand V.",
+                  "Scharfe M.",
+                  "Sehra H.K.",
+                  "Shownkeen R.",
+                  "Sims S.K.",
+                  "Skuce C.D.",
+                  "Smith M.",
+                  "Steward C.A.",
+                  "Swarbreck D.",
+                  "Sycamore N.",
+                  "Tester J.",
+                  "Thorpe A.",
+                  "Tracey A.",
+                  "Tromans A.",
+                  "Thomas D.W.",
+                  "Wall M.",
+                  "Wallis J.M.",
+                  "West A.P.",
+                  "Whitehead S.L.",
+                  "Willey D.L.",
+                  "Williams S.A.",
+                  "Wilming L.",
+                  "Wray P.W.",
+                  "Young L.",
+                  "Ashurst J.L.",
+                  "Coulson A.",
+                  "Blocker H.",
+                  "Durbin R.M.",
+                  "Sulston J.E.",
+                  "Hubbard T.",
+                  "Jackson M.J.",
+                  "Bentley D.R.",
+                  "Beck S.",
+                  "Rogers J.",
+                  "Dunham I."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "15164053"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/nature02465"
+                  }
+                ],
+                "title": "DNA sequence and analysis of human chromosome 9.",
+                "publicationDate": "2004",
+                "journal": "Nature",
+                "firstPage": "369",
+                "lastPage": "374",
+                "volume": "429"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA]"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "CAH70601.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 5,
+              "citation": {
+                "id": "CI-5GBD0VIIJ7C63",
+                "citationType": "submission",
+                "authors": [
+                  "Mural R.J.",
+                  "Istrail S.",
+                  "Sutton G.G.",
+                  "Florea L.",
+                  "Halpern A.L.",
+                  "Mobarry C.M.",
+                  "Lippert R.",
+                  "Walenz B.",
+                  "Shatkay H.",
+                  "Dew I.",
+                  "Miller J.R.",
+                  "Flanigan M.J.",
+                  "Edwards N.J.",
+                  "Bolanos R.",
+                  "Fasulo D.",
+                  "Halldorsson B.V.",
+                  "Hannenhalli S.",
+                  "Turner R.",
+                  "Yooseph S.",
+                  "Lu F.",
+                  "Nusskern D.R.",
+                  "Shue B.C.",
+                  "Zheng X.H.",
+                  "Zhong F.",
+                  "Delcher A.L.",
+                  "Huson D.H.",
+                  "Kravitz S.A.",
+                  "Mouchard L.",
+                  "Reinert K.",
+                  "Remington K.A.",
+                  "Clark A.G.",
+                  "Waterman M.S.",
+                  "Eichler E.E.",
+                  "Adams M.D.",
+                  "Hunkapiller M.W.",
+                  "Myers E.W.",
+                  "Venter J.C."
+                ],
+                "publicationDate": "SEP-2005",
+                "submissionDatabase": "EMBL/GenBank/DDBJ databases"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA]"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                },
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "AAB01737.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 6,
+              "citation": {
+                "id": "15489334",
+                "citationType": "journal article",
+                "authoringGroup": [
+                  "The MGC Project Team"
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "15489334"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1101/gr.2596504"
+                  }
+                ],
+                "title": "The status, quality, and expansion of the NIH full-length cDNA project: the Mammalian Gene Collection (MGC).",
+                "publicationDate": "2004",
+                "journal": "Genome Res.",
+                "firstPage": "2121",
+                "lastPage": "2127",
+                "volume": "14"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [LARGE SCALE MRNA]"
+              ],
+              "referenceComments": [
+                {
+                  "value": "Skin",
+                  "type": "TISSUE"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 7,
+              "citation": {
+                "id": "7624129",
+                "citationType": "journal article",
+                "authors": [
+                  "Duro D.",
+                  "Bernard O.",
+                  "Della Valle V.",
+                  "Berger R.",
+                  "Larsen C.J."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "7624129"
+                  }
+                ],
+                "title": "A new type of p16INK4/MTS1 gene transcript expressed in B-cell malignancies.",
+                "publicationDate": "1995",
+                "journal": "Oncogene",
+                "firstPage": "21",
+                "lastPage": "29",
+                "volume": "11"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [MRNA]"
+              ],
+              "referenceComments": [
+                {
+                  "evidences": [
+                    {
+                      "evidenceCode": "ECO:0000312",
+                      "source": "EMBL",
+                      "id": "AAA82236.1"
+                    }
+                  ],
+                  "value": "Hematopoietic",
+                  "type": "TISSUE"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                },
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "AAA82236.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 8,
+              "citation": {
+                "id": "CI-4IUTJLP3044AK",
+                "citationType": "submission",
+                "authors": [
+                  "Kalnine N.",
+                  "Chen X.",
+                  "Rolfs A.",
+                  "Halleck A.",
+                  "Hines L.",
+                  "Eisenstein S.",
+                  "Koundinya M.",
+                  "Raphael J.",
+                  "Moreira D.",
+                  "Kelley T.",
+                  "LaBaer J.",
+                  "Lin Y.",
+                  "Phelan M.",
+                  "Farmer A."
+                ],
+                "title": "Cloning of human full-length CDSs in BD Creator(TM) system donor vector.",
+                "publicationDate": "MAY-2003",
+                "submissionDatabase": "EMBL/GenBank/DDBJ databases"
+              },
+              "referencePositions": [
+                "NUCLEOTIDE SEQUENCE [LARGE SCALE MRNA]"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                },
+                {
+                  "evidenceCode": "ECO:0000312",
+                  "source": "EMBL",
+                  "id": "AAB01737.1"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 9,
+              "citation": {
+                "id": "9724636",
+                "citationType": "journal article",
+                "authors": [
+                  "Stott F.J.",
+                  "Bates S.",
+                  "James M.C.",
+                  "McConnell B.B.",
+                  "Starborg M.",
+                  "Brookes S.",
+                  "Palmero I.",
+                  "Ryan K.",
+                  "Hara E.",
+                  "Vousden K.H.",
+                  "Peters G."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "9724636"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1093/emboj/17.17.5001"
+                  }
+                ],
+                "title": "The alternative product from the human CDKN2A locus, p14(ARF), participates in a regulatory feedback loop with p53 and MDM2.",
+                "publicationDate": "1998",
+                "journal": "EMBO J.",
+                "firstPage": "5001",
+                "lastPage": "5014",
+                "volume": "17"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH MDM2"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 10,
+              "citation": {
+                "id": "11314011",
+                "citationType": "journal article",
+                "authors": [
+                  "Karayan L.",
+                  "Riou J.-F.",
+                  "Seite P.",
+                  "Migeon J.",
+                  "Cantereau A.",
+                  "Larsen C.-J."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "11314011"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/sj.onc.1204170"
+                  }
+                ],
+                "title": "Human ARF protein interacts with topoisomerase I and stimulates its activity.",
+                "publicationDate": "2001",
+                "journal": "Oncogene",
+                "firstPage": "836",
+                "lastPage": "848",
+                "volume": "20"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH TOP1"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 11,
+              "citation": {
+                "id": "11314038",
+                "citationType": "journal article",
+                "authors": [
+                  "Eymin B.",
+                  "Karayan L.",
+                  "Seite P.",
+                  "Brambilla C.",
+                  "Brambilla E.",
+                  "Larsen C.-J.",
+                  "Gazzeri S."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "11314038"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/sj.onc.1204220"
+                  }
+                ],
+                "title": "Human ARF binds E2F1 and inhibits its transcriptional activity.",
+                "publicationDate": "2001",
+                "journal": "Oncogene",
+                "firstPage": "1033",
+                "lastPage": "1041",
+                "volume": "20"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH E2F1"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 12,
+              "citation": {
+                "id": "12154087",
+                "citationType": "journal article",
+                "authors": [
+                  "Hasan M.K.",
+                  "Yaguchi T.",
+                  "Sugihara T.",
+                  "Kumar P.K.R.",
+                  "Taira K.",
+                  "Reddel R.R.",
+                  "Kaul S.C.",
+                  "Wadhwa R."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "12154087"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1074/jbc.m204177200"
+                  }
+                ],
+                "title": "CARF is a novel protein that cooperates with mouse p19ARF (human p14ARF) in activating p53.",
+                "publicationDate": "2002",
+                "journal": "J. Biol. Chem.",
+                "firstPage": "37765",
+                "lastPage": "37770",
+                "volume": "277"
+              },
+              "referencePositions": [
+                "INTERACTION WITH CDKN2AIP"
+              ]
+            },
+            {
+              "referenceNumber": 13,
+              "citation": {
+                "id": "12581788",
+                "citationType": "journal article",
+                "authors": [
+                  "Wadhwa R.",
+                  "Sugihara T.",
+                  "Hasan M.K.",
+                  "Duncan E.L.",
+                  "Taira K.",
+                  "Kaul S.C."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "12581788"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1016/s0531-5565(02)00180-8"
+                  }
+                ],
+                "title": "A novel putative collaborator of p19ARF.",
+                "publicationDate": "2003",
+                "journal": "Exp. Gerontol.",
+                "firstPage": "245",
+                "lastPage": "252",
+                "volume": "38"
+              },
+              "referencePositions": [
+                "INTERACTION WITH CDKN2AIP"
+              ]
+            },
+            {
+              "referenceNumber": 14,
+              "citation": {
+                "id": "12446718",
+                "citationType": "journal article",
+                "authors": [
+                  "Rizos H.",
+                  "Diefenbach E.",
+                  "Badhwar P.",
+                  "Woodruff S.",
+                  "Becker T.M.",
+                  "Rooney R.J.",
+                  "Kefford R.F."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "12446718"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1074/jbc.m210978200"
+                  }
+                ],
+                "title": "Association of p14ARF with the p120E4F transcriptional repressor enhances cell cycle inhibition.",
+                "publicationDate": "2003",
+                "journal": "J. Biol. Chem.",
+                "firstPage": "4981",
+                "lastPage": "4989",
+                "volume": "278"
+              },
+              "referencePositions": [
+                "INTERACTION WITH E4F1"
+              ]
+            },
+            {
+              "referenceNumber": 15,
+              "citation": {
+                "id": "14636574",
+                "citationType": "journal article",
+                "authors": [
+                  "Itahana K.",
+                  "Bhat K.P.",
+                  "Jin A.",
+                  "Itahana Y.",
+                  "Hawke D.",
+                  "Kobayashi R.",
+                  "Zhang Y."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "14636574"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1016/s1097-2765(03)00431-3"
+                  }
+                ],
+                "title": "Tumor suppressor ARF degrades B23, a nucleolar protein involved in ribosome biogenesis and cell proliferation.",
+                "publicationDate": "2003",
+                "journal": "Mol. Cell",
+                "firstPage": "1151",
+                "lastPage": "1164",
+                "volume": "12"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH NPM1"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 16,
+              "citation": {
+                "id": "12660818",
+                "citationType": "journal article",
+                "authors": [
+                  "Eymin B.",
+                  "Leduc C.",
+                  "Coll J.-L.",
+                  "Brambilla E.",
+                  "Gazzeri S."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "12660818"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/sj.onc.1206303"
+                  }
+                ],
+                "title": "p14ARF induces G2 arrest and apoptosis independently of p53 leading to regression of tumours established in nude mice.",
+                "publicationDate": "2003",
+                "journal": "Oncogene",
+                "firstPage": "1822",
+                "lastPage": "1835",
+                "volume": "22"
+              },
+              "referencePositions": [
+                "FUNCTION"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 17,
+              "citation": {
+                "id": "15361825",
+                "citationType": "journal article",
+                "authors": [
+                  "Ayrault O.",
+                  "Andrique L.",
+                  "Larsen C.-J.",
+                  "Seite P."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "15361825"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/sj.onc.1207968"
+                  }
+                ],
+                "title": "Human Arf tumor suppressor specifically interacts with chromatin containing the promoter of rRNA genes.",
+                "publicationDate": "2004",
+                "journal": "Oncogene",
+                "firstPage": "8097",
+                "lastPage": "8104",
+                "volume": "23"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH TOP1"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 18,
+              "citation": {
+                "id": "15567177",
+                "citationType": "journal article",
+                "authors": [
+                  "Suzuki H.",
+                  "Kurita M.",
+                  "Mizumoto K.",
+                  "Moriyama M.",
+                  "Aiso S.",
+                  "Nishimoto I.",
+                  "Matsuoka M."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "15567177"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1016/j.bbrc.2004.11.016"
+                  }
+                ],
+                "title": "The ARF tumor suppressor inhibits BCL6-mediated transcriptional repression.",
+                "publicationDate": "2005",
+                "journal": "Biochem. Biophys. Res. Commun.",
+                "firstPage": "242",
+                "lastPage": "248",
+                "volume": "326"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH BCL6"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 19,
+              "citation": {
+                "id": "15989956",
+                "citationType": "journal article",
+                "authors": [
+                  "Chen D.",
+                  "Kon N.",
+                  "Li M.",
+                  "Zhang W.",
+                  "Qin J.",
+                  "Gu W."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "15989956"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1016/j.cell.2005.03.037"
+                  }
+                ],
+                "title": "ARF-BP1/Mule is a critical mediator of the ARF tumor suppressor.",
+                "publicationDate": "2005",
+                "journal": "Cell",
+                "firstPage": "1071",
+                "lastPage": "1083",
+                "volume": "121"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH HUWE1"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 20,
+              "citation": {
+                "id": "15876874",
+                "citationType": "journal article",
+                "authors": [
+                  "Rizos H.",
+                  "Woodruff S.",
+                  "Kefford R.F."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "15876874"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.4161/cc.4.4.1597"
+                  }
+                ],
+                "title": "p14ARF interacts with the SUMO-conjugating enzyme Ubc9 and promotes the sumoylation of its binding partners.",
+                "publicationDate": "2005",
+                "journal": "Cell Cycle",
+                "firstPage": "597",
+                "lastPage": "603",
+                "volume": "4"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "INTERACTION WITH UBE2I"
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000305"
+                }
+              ]
+            },
+            {
+              "referenceNumber": 21,
+              "citation": {
+                "id": "16173922",
+                "citationType": "journal article",
+                "authors": [
+                  "Wang J.",
+                  "He X.",
+                  "Luo Y.",
+                  "Yarbrough W.G."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "16173922"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1042/bj20050960"
+                  }
+                ],
+                "title": "A novel ARF-binding protein (LZAP) alters ARF regulation of HDM2.",
+                "publicationDate": "2006",
+                "journal": "Biochem. J.",
+                "firstPage": "489",
+                "lastPage": "501",
+                "volume": "393"
+              },
+              "referencePositions": [
+                "INTERACTION WITH CDK5RAP3 AND MDM2",
+                "SUBCELLULAR LOCATION",
+                "REGION"
+              ]
+            },
+            {
+              "referenceNumber": 22,
+              "citation": {
+                "id": "16713577",
+                "citationType": "journal article",
+                "authors": [
+                  "Reef S.",
+                  "Zalckvar E.",
+                  "Shifman O.",
+                  "Bialik S.",
+                  "Sabanay H.",
+                  "Oren M.",
+                  "Kimchi A."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "16713577"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1016/j.molcel.2006.04.014"
+                  }
+                ],
+                "title": "A short mitochondrial form of p19ARF induces autophagy and caspase-independent cell death.",
+                "publicationDate": "2006",
+                "journal": "Mol. Cell",
+                "firstPage": "463",
+                "lastPage": "475",
+                "volume": "22"
+              },
+              "referencePositions": [
+                "FUNCTION (ISOFORM SMARF)",
+                "ALTERNATIVE SPLICING (ISOFORM SMARF)",
+                "SUBCELLULAR LOCATION (ISOFORM SMARF)"
+              ]
+            },
+            {
+              "referenceNumber": 23,
+              "citation": {
+                "id": "17110379",
+                "citationType": "journal article",
+                "authors": [
+                  "Tompkins V.S.",
+                  "Hagen J.",
+                  "Frazier A.A.",
+                  "Lushnikova T.",
+                  "Fitzgerald M.P.",
+                  "di Tommaso A.D.",
+                  "Ladeveze V.",
+                  "Domann F.E.",
+                  "Eischen C.M.",
+                  "Quelle D.E."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "17110379"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1074/jbc.m609612200"
+                  }
+                ],
+                "title": "A novel nuclear interactor of ARF and MDM2 (NIAM) that maintains chromosomal stability.",
+                "publicationDate": "2007",
+                "journal": "J. Biol. Chem.",
+                "firstPage": "1322",
+                "lastPage": "1333",
+                "volume": "282"
+              },
+              "referencePositions": [
+                "INTERACTION WITH TBRG1"
+              ]
+            },
+            {
+              "referenceNumber": 24,
+              "citation": {
+                "id": "17486078",
+                "citationType": "journal article",
+                "authors": [
+                  "Reef S.",
+                  "Shifman O.",
+                  "Oren M.",
+                  "Kimchi A."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "17486078"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/sj.onc.1210485"
+                  }
+                ],
+                "title": "The autophagic inducer smARF interacts with and is stabilized by the mitochondrial p32 protein.",
+                "publicationDate": "2007",
+                "journal": "Oncogene",
+                "firstPage": "6677",
+                "lastPage": "6683",
+                "volume": "26"
+              },
+              "referencePositions": [
+                "INTERACTION WITH C1QBP"
+              ]
+            },
+            {
+              "referenceNumber": 25,
+              "citation": {
+                "id": "18305112",
+                "citationType": "journal article",
+                "authors": [
+                  "Huang Y.",
+                  "Wu M.",
+                  "Li H.Y."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "18305112"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1074/jbc.m708544200"
+                  }
+                ],
+                "title": "Tumor suppressor ARF promotes non-classic proteasome-independent polyubiquitination of COMMD1.",
+                "publicationDate": "2008",
+                "journal": "J. Biol. Chem.",
+                "firstPage": "11453",
+                "lastPage": "11460",
+                "volume": "283"
+              },
+              "referencePositions": [
+                "INTERACTION WITH COMMD1",
+                "FUNCTION",
+                "SUBCELLULAR LOCATION"
+              ]
+            },
+            {
+              "referenceNumber": 26,
+              "citation": {
+                "id": "20208519",
+                "citationType": "journal article",
+                "authors": [
+                  "Chen D.",
+                  "Shan J.",
+                  "Zhu W.G.",
+                  "Qin J.",
+                  "Gu W."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "20208519"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1038/nature08820"
+                  }
+                ],
+                "title": "Transcription-independent ARF regulation in oncogenic stress-mediated p53 responses.",
+                "publicationDate": "2010",
+                "journal": "Nature",
+                "firstPage": "624",
+                "lastPage": "627",
+                "volume": "464"
+              },
+              "referencePositions": [
+                "UBIQUITINATION BY TRIP12"
+              ]
+            },
+            {
+              "referenceNumber": 27,
+              "citation": {
+                "id": "22094112",
+                "citationType": "journal article",
+                "authors": [
+                  "Watari A.",
+                  "Li Y.",
+                  "Higashiyama S.",
+                  "Yutsudo M."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "22094112"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.1016/j.yexcr.2011.10.019"
+                  }
+                ],
+                "title": "A novel proapoptotic gene PANO encodes a post-translational modulator of the tumor suppressor p14ARF.",
+                "publicationDate": "2012",
+                "journal": "Exp. Cell Res.",
+                "firstPage": "187",
+                "lastPage": "195",
+                "volume": "318"
+              },
+              "referencePositions": [
+                "FUNCTION",
+                "SUBCELLULAR LOCATION"
+              ]
+            },
+            {
+              "referenceNumber": 28,
+              "citation": {
+                "id": "27323397",
+                "citationType": "journal article",
+                "authors": [
+                  "Lee S.",
+                  "Cho Y.E.",
+                  "Kim S.H.",
+                  "Kim Y.J.",
+                  "Park J.H."
+                ],
+                "citationCrossReferences": [
+                  {
+                    "database": "PubMed",
+                    "id": "27323397"
+                  },
+                  {
+                    "database": "DOI",
+                    "id": "10.18632/oncotarget.9957"
+                  }
+                ],
+                "title": "GLTSCR2 promotes the nucleoplasmic translocation and subsequent degradation of nucleolar ARF.",
+                "publicationDate": "2017",
+                "journal": "Oncotarget",
+                "firstPage": "16293",
+                "lastPage": "16302",
+                "volume": "8"
+              },
+              "referencePositions": [
+                "INTERACTION WITH NOP53",
+                "SUBCELLULAR LOCATION",
+                "UBIQUITINATION"
+              ]
+            }
+          ],
+          "uniProtKBCrossReferences": [
+            {
+              "database": "EMBL",
+              "id": "S78535",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAC60649.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "mRNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "U38945",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAB01737.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "mRNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "AF527803",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAM77919.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "Genomic_DNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "AL449423",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "CAH70601.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "Genomic_DNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "CH471071",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "EAW58600.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "Genomic_DNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "CH471071",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "EAW58601.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "Genomic_DNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "BC015960",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAH15960.3"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "mRNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "BC021998",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAH21998.3"
+                },
+                {
+                  "key": "Status",
+                  "value": "ALT_INIT"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "mRNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "U26727",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAA82236.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "-"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "mRNA"
+                }
+              ]
+            },
+            {
+              "database": "EMBL",
+              "id": "BT007020",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "AAP35666.1"
+                },
+                {
+                  "key": "Status",
+                  "value": "-"
+                },
+                {
+                  "key": "MoleculeType",
+                  "value": "mRNA"
+                }
+              ]
+            },
+            {
+              "database": "CCDS",
+              "id": "CCDS6511.2",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "PIR",
+              "id": "I39004",
+              "properties": [
+                {
+                  "key": "EntryName",
+                  "value": "I39004"
+                }
+              ]
+            },
+            {
+              "database": "RefSeq",
+              "id": "NP_478102.2",
+              "properties": [
+                {
+                  "key": "NucleotideSequenceId",
+                  "value": "NM_058195.4"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "AlphaFoldDB",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "BioGRID",
+              "id": "107463",
+              "properties": [
+                {
+                  "key": "Interactions",
+                  "value": "352"
+                }
+              ]
+            },
+            {
+              "database": "CORUM",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "DIP",
+              "id": "DIP-24171N",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "IntAct",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Interactions",
+                  "value": "75"
+                }
+              ]
+            },
+            {
+              "database": "MINT",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "NDEx",
+              "id": "IQUERY-CP-CDKN2A",
+              "properties": [
+                {
+                  "key": "Evidences",
+                  "value": "42 NDEx IQuery Curated Pathways"
+                }
+              ]
+            },
+            {
+              "database": "iPTMnet",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "PhosphoSitePlus",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "BioMuta",
+              "id": "CDKN2A",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "DMDM",
+              "id": "384872321",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "jPOST",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "MassIVE",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "PeptideAtlas",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "ProteomicsDB",
+              "id": "72258",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "Pumba",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "Antibodypedia",
+              "id": "3608",
+              "properties": [
+                {
+                  "key": "antibodies",
+                  "value": "1774 antibodies from 58 providers"
+                }
+              ]
+            },
+            {
+              "database": "DNASU",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "Ensembl",
+              "id": "ENST00000530628.2",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "ENSP00000432664.2"
+                },
+                {
+                  "key": "GeneId",
+                  "value": "ENSG00000147889.18"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "Ensembl",
+              "id": "ENST00000579755.2",
+              "properties": [
+                {
+                  "key": "ProteinId",
+                  "value": "ENSP00000462950.1"
+                },
+                {
+                  "key": "GeneId",
+                  "value": "ENSG00000147889.18"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "GeneID",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "UCSC",
+              "id": "uc003zpl.4",
+              "properties": [
+                {
+                  "key": "OrganismName",
+                  "value": "human"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "AGR",
+              "id": "HGNC:1787",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "CIViC",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "Number of evidences",
+                  "value": "62 evidence items across 42 molecular profiles"
+                }
+              ]
+            },
+            {
+              "database": "ClinPGx",
+              "id": "PA106",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "CTD",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "DisGeNET",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "GeneCards",
+              "id": "CDKN2A",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "GeneReviews",
+              "id": "CDKN2A",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "HGNC",
+              "id": "HGNC:1787",
+              "properties": [
+                {
+                  "key": "GeneName",
+                  "value": "CDKN2A"
+                }
+              ]
+            },
+            {
+              "database": "HPA",
+              "id": "ENSG00000147889",
+              "properties": [
+                {
+                  "key": "ExpressionPatterns",
+                  "value": "Tissue enhanced (choroid plexus, pituitary gland)"
+                }
+              ]
+            },
+            {
+              "database": "MalaCards",
+              "id": "CDKN2A",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "MIM",
+              "id": "600160",
+              "properties": [
+                {
+                  "key": "Type",
+                  "value": "gene"
+                }
+              ]
+            },
+            {
+              "database": "OpenTargets",
+              "id": "ENSG00000147889",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "VEuPathDB",
+              "id": "HostDB:ENSG00000147889",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "GeneTree",
+              "id": "ENSGT00940000163078",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "HOGENOM",
+              "id": "CLU_134503_0_0_1",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "OrthoDB",
+              "id": "539213at2759",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "PathwayCommons",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-111471",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Apoptotic factor-mediated response"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-2559580",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Oxidative Stress Induced Senescence"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-2559585",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Oncogene Induced Senescence"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-3108214",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "SUMOylation of DNA damage response and repair proteins"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-3232118",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "SUMOylation of transcription factors"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-6804757",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Regulation of TP53 Degradation"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-69541",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Stabilization of p53"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-8941858",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Regulation of RUNX3 expression and activity"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-9645722",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Defective Intrinsic Pathway for Apoptosis Due to p14ARF Loss of Function"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-9646303",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Evasion of Oncogene Induced Senescence Due to p14ARF Defects"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-9646304",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Evasion of Oxidative Stress Induced Senescence Due to p14ARF Defects"
+                }
+              ]
+            },
+            {
+              "database": "Reactome",
+              "id": "R-HSA-9759194",
+              "properties": [
+                {
+                  "key": "PathwayName",
+                  "value": "Nuclear events mediated by NFE2L2"
+                }
+              ]
+            },
+            {
+              "database": "SignaLink",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "SIGNOR",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "Agora",
+              "id": "ENSG00000147889",
+              "properties": [
+                {
+                  "key": "NominatedTarget",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "BioGRID-ORCS",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "hits",
+                  "value": "29 hits in 1179 CRISPR screens"
+                }
+              ]
+            },
+            {
+              "database": "CD-CODE",
+              "id": "91857CE7",
+              "properties": [
+                {
+                  "key": "EntryName",
+                  "value": "Nucleolus"
+                }
+              ]
+            },
+            {
+              "database": "ChiTaRS",
+              "id": "CDKN2A",
+              "properties": [
+                {
+                  "key": "OrganismName",
+                  "value": "human"
+                }
+              ]
+            },
+            {
+              "database": "GenomeRNAi",
+              "id": "1029",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ]
+            },
+            {
+              "database": "Pharos",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "DevelopmentLevel",
+                  "value": "Tbio"
+                }
+              ]
+            },
+            {
+              "database": "Proteomes",
+              "id": "UP000005640",
+              "properties": [
+                {
+                  "key": "Component",
+                  "value": "Chromosome 9"
+                }
+              ]
+            },
+            {
+              "database": "Bgee",
+              "id": "ENSG00000147889",
+              "properties": [
+                {
+                  "key": "ExpressionPatterns",
+                  "value": "Expressed in parotid gland and 174 other cell types or tissues"
+                }
+              ]
+            },
+            {
+              "database": "ExpressionAtlas",
+              "id": "Q8N726",
+              "properties": [
+                {
+                  "key": "ExpressionPatterns",
+                  "value": "baseline and differential"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0005829",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:cytosol"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "TAS:Reactome"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0005759",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:mitochondrial matrix"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "TAS:Reactome"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0005739",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:mitochondrion"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:ParkinsonsUK-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000269",
+                  "source": "PubMed",
+                  "id": "16713577"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0005730",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:nucleolus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "18305112"
+                },
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "22094112"
+                },
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "27323397"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0005654",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:nucleoplasm"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "18305112"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0005634",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:nucleus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "11800646"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0032991",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "C:protein-containing complex"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0097718",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:disordered domain specific binding"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IPI:CAFA"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000353",
+                  "source": "PubMed",
+                  "id": "12630860"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0055104",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:ligase inhibitor activity"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:ARUK-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0097371",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:MDM2/MDM4 family protein binding"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IPI:UniProtKB"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0002039",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:p53 binding"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IPI:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0061629",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:RNA polymerase II-specific DNA-binding transcription factor binding"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IPI:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000353",
+                  "source": "PubMed",
+                  "id": "19057511"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0019789",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:SUMO transferase activity"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "EXP:Reactome"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000269",
+                  "source": "PubMed",
+                  "id": "15355988"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1990948",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:ubiquitin ligase inhibitor activity"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:CAFA"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "18560357"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0055105",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "F:ubiquitin-protein transferase inhibitor activity"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "ISS:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1990000",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:amyloid fibril formation"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:DisProt"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000315",
+                  "source": "PubMed",
+                  "id": "12630860"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0097190",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:apoptotic signaling pathway"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000315",
+                  "source": "PubMed",
+                  "id": "12082630"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0000422",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:autophagy of mitochondrion"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:ParkinsonsUK-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0090398",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:cellular senescence"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000315",
+                  "source": "PubMed",
+                  "id": "14966292"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0051882",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:mitochondrial depolarization"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:ParkinsonsUK-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0030889",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:negative regulation of B cell proliferation"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "ISS:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0008285",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:negative regulation of cell population proliferation"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "17569660"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0033088",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:negative regulation of immature T cell proliferation in thymus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "ISS:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:2000059",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:negative regulation of ubiquitin-dependent protein catabolic process"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:CAFA"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "18560357"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0030575",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:nuclear body organization"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "EXP:DisProt"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0043065",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of apoptotic process"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000315",
+                  "source": "PubMed",
+                  "id": "22094112"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0043517",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of DNA damage response, signal transduction by p53 class mediator"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0045893",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of DNA-templated transcription"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "17569660"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1900182",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of protein localization to nucleus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0033235",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of protein sumoylation"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000315",
+                  "source": "PubMed",
+                  "id": "19057511"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1901798",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of signal transduction by p53 class mediator"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0045944",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:positive regulation of transcription by RNA polymerase II"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "17569660"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0031648",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein destabilization"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "9529249"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0070534",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein K63-linked ubiquitination"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "18305112"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1902570",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein localization to nucleolus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "EXP:DisProt"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0034504",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein localization to nucleus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:DisProt"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0000209",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein polyubiquitination"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:UniProtKB"
+                }
+              ],
+              "evidences": [
+                {
+                  "evidenceCode": "ECO:0000314",
+                  "source": "PubMed",
+                  "id": "18305112"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0050821",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein stabilization"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0016925",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:protein sumoylation"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "TAS:Reactome"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0051726",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:regulation of cell cycle"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IDA:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0046825",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:regulation of protein export from nucleus"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1903747",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:regulation of protein localization to mitochondrion"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IMP:ParkinsonsUK-UCL"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0031647",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:regulation of protein stability"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IEP:DisProt"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:1904666",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:regulation of ubiquitin protein ligase activity"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "IPI:DisProt"
+                }
+              ]
+            },
+            {
+              "database": "GO",
+              "id": "GO:0048103",
+              "properties": [
+                {
+                  "key": "GoTerm",
+                  "value": "P:somatic stem cell division"
+                },
+                {
+                  "key": "GoEvidenceType",
+                  "value": "ISS:BHF-UCL"
+                }
+              ]
+            },
+            {
+              "database": "DisProt",
+              "id": "DP02167",
+              "properties": [
+                {
+                  "key": "Description",
+                  "value": "-"
+                }
+              ],
+              "isoformId": "Q8N726-1"
+            },
+            {
+              "database": "InterPro",
+              "id": "IPR010868",
+              "properties": [
+                {
+                  "key": "EntryName",
+                  "value": "Tumor_suppres_ARF"
+                }
+              ]
+            },
+            {
+              "database": "Pfam",
+              "id": "PF07392",
+              "properties": [
+                {
+                  "key": "EntryName",
+                  "value": "P19Arf_N"
+                },
+                {
+                  "key": "MatchStatus",
+                  "value": "1"
+                }
+              ]
+            }
+          ],
+          "sequence": {
+            "value": "MVRRFLVTLRIRRACGPPRVRVFVVHIPRLTGEWAAPGAPAAVALVLMLLRSQRLGQQPLPRRPGHDDGQRPSGGAAAAPRRGAQLRRPRHSHPTRARRCPGGLPGHAGGAAPGRGAAGRARCLGPSARGPG",
+            "length": 132,
+            "molWeight": 13903,
+            "crc64": "7739A9050C21BC96",
+            "md5": "C43DAC53729956F6D11E91832437527C"
+          },
+          "extraAttributes": {
+            "countByCommentType": {
+              "FUNCTION": 2,
+              "SUBUNIT": 2,
+              "INTERACTION": 12,
+              "SUBCELLULAR LOCATION": 2,
+              "ALTERNATIVE PRODUCTS": 6,
+              "PTM": 1,
+              "CAUTION": 1,
+              "SEQUENCE CAUTION": 8,
+              "WEB RESOURCE": 1
+            },
+            "countByFeatureType": {
+              "Chain": 1,
+              "Region": 2,
+              "Compositional bias": 3,
+              "Alternative sequence": 1,
+              "Natural variant": 4,
+              "Sequence conflict": 2
+            },
+            "uniParcId": "UPI000003C67C"
+          }
+        }
+      }
+    }
+  ]
+}

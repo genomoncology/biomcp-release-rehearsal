@@ -1,4 +1,5 @@
 //! One structural view of serialized JSON and its schema presentation hints.
+mod article;
 mod escape;
 mod help;
 mod hints;
@@ -18,6 +19,18 @@ pub(crate) fn markdown(value: &Value) -> io::Result<Vec<u8>> {
         .unwrap_or(Value::Null);
     let hint = hints::find(identity);
     let mut out = String::new();
+    if value.get("status").and_then(Value::as_str) == Some("absent") {
+        for source in value
+            .get("sources")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            if source.get("state").and_then(Value::as_str) == Some("ok") {
+                no_data(&source["source"], &mut out);
+            }
+        }
+    }
     for source in value
         .get("sources")
         .and_then(Value::as_array)
@@ -30,17 +43,17 @@ pub(crate) fn markdown(value: &Value) -> io::Result<Vec<u8>> {
             .into_iter()
             .flatten()
         {
-            if notice.get("kind").and_then(Value::as_str) == Some("litvar_rsid_hint") {
+            if notice.get("kind").and_then(Value::as_str) == Some("litvar-rsid-hint") {
                 out.push_str(&scalar(&notice["message"]));
                 out.push_str("\n\n");
             }
-            if notice.get("kind").and_then(Value::as_str) == Some("pubmed_warning") {
+            if notice.get("kind").and_then(Value::as_str) == Some("pubmed-warning") {
                 out.push_str("**PubMed warning ");
                 out.push_str(&scalar(&notice["name"]));
                 out.push_str(":** ");
                 out.push_str(&scalar(&notice["phrases"]));
                 out.push_str("\n\n");
-            } else if notice.get("kind").and_then(Value::as_str) == Some("not_found_words") {
+            } else if notice.get("kind").and_then(Value::as_str) == Some("not-found-words") {
                 out.push_str("**PubMed dropped supplied words:** ");
                 out.push_str(&scalar(&notice["words"]));
                 out.push_str("\n\n");
@@ -72,8 +85,13 @@ impl View<'_> {
         let Some(fields) = value.as_object() else {
             return;
         };
+        state_note(value, out);
         for (name, value) in fields {
-            if name == "schema" || (name == "query" && value.is_null()) {
+            if name == "schema"
+                || (name == "query"
+                    && (value.is_null()
+                        || value.as_object().is_some_and(serde_json::Map::is_empty)))
+            {
                 continue;
             }
             let node = property(schema, name, self.root).unwrap_or(&Value::Null);
@@ -81,7 +99,12 @@ impl View<'_> {
                 heading(name, depth, out);
                 if name == "next" {
                     steps(value, out);
-                } else {
+                } else if !(name == "parts"
+                    && self
+                        .hint
+                        .is_some_and(|hint| hint.schema == biomcp_types::ArticleCards::SCHEMA)
+                    && article::parts(value, out))
+                {
                     View {
                         root: self.root,
                         hint: self.hint,
@@ -128,6 +151,9 @@ impl View<'_> {
             && !items.iter().any(nested_records)
             && !contains_markdown(item_schema, self.root)
         {
+            for item in items {
+                table_notes(item, out);
+            }
             table(
                 items,
                 self.hint.map_or(&[], |h| h.columns),
@@ -144,6 +170,36 @@ impl View<'_> {
             }
             out.push('\n');
         }
+    }
+}
+// Tables flatten nested objects, so visit their source states before flattening.
+fn table_notes(value: &Value, out: &mut String) {
+    state_note(value, out);
+    if let Some(fields) = value.as_object() {
+        for field in fields.values().filter(|field| field.is_object()) {
+            table_notes(field, out);
+        }
+    }
+}
+fn no_data(source: &Value, out: &mut String) {
+    out.push_str(&format!("{} returned no data.\n\n", scalar(source)));
+}
+fn state_note(value: &Value, out: &mut String) {
+    let Some(source) = value.get("source").filter(|source| source.is_string()) else {
+        return;
+    };
+    match value.get("state").and_then(Value::as_str) {
+        Some("empty") => no_data(source, out),
+        Some("unavailable" | "failed") => {
+            if let Some(reason) = value.get("reason") {
+                out.push_str(&format!(
+                    "{} failed (reason: {}); resolve this reason and retry the request.\n\n",
+                    scalar(source),
+                    scalar(reason)
+                ));
+            }
+        }
+        _ => {}
     }
 }
 fn heading(name: &str, depth: usize, out: &mut String) {
@@ -175,8 +231,8 @@ fn nonfinite(value: &Value) -> Option<&'static str> {
     let object = value.as_object().filter(|object| object.len() == 1)?;
     match object.get("kind")?.as_str()? {
         "nan" => Some("NaN"),
-        "positive_infinity" => Some("+Inf"),
-        "negative_infinity" => Some("-Inf"),
+        "positive-infinity" => Some("+Inf"),
+        "negative-infinity" => Some("-Inf"),
         _ => None,
     }
 }
@@ -328,20 +384,28 @@ fn property<'a>(node: &'a Value, name: &str, root: &'a Value) -> Option<&'a Valu
         .and_then(|properties| properties.get(name))
         .or_else(|| alternatives(node).find_map(|branch| property(branch, name, root)))
 }
-fn marked(node: &Value, root: &Value) -> bool {
-    let node = resolve(node, root);
-    node.get("format").and_then(Value::as_str) == Some("markdown")
-        || alternatives(node).any(|branch| marked(branch, root))
-}
 fn contains_markdown(node: &Value, root: &Value) -> bool {
+    markdown_in_graph(node, root, &mut Vec::new())
+}
+// Recursive schema definitions describe finite response values. Visit each schema
+// node once so presentation discovery also terminates on recursive definitions.
+fn markdown_in_graph<'a>(node: &'a Value, root: &'a Value, seen: &mut Vec<&'a Value>) -> bool {
     let node = resolve(node, root);
-    marked(node, root)
+    if seen.iter().any(|previous| std::ptr::eq(*previous, node)) {
+        return false;
+    }
+    seen.push(node);
+    node.get("format").and_then(Value::as_str) == Some("markdown")
         || node
             .get("properties")
             .and_then(Value::as_object)
-            .is_some_and(|properties| properties.values().any(|p| contains_markdown(p, root)))
+            .is_some_and(|properties| {
+                properties
+                    .values()
+                    .any(|p| markdown_in_graph(p, root, seen))
+            })
         || node
             .get("items")
-            .is_some_and(|item| contains_markdown(item, root))
-        || alternatives(node).any(|branch| contains_markdown(branch, root))
+            .is_some_and(|item| markdown_in_graph(item, root, seen))
+        || alternatives(node).any(|branch| markdown_in_graph(branch, root, seen))
 }

@@ -13,7 +13,45 @@ TEST_THREADS = $(if $(strip $(RUST_TEST_THREADS)),-- --test-threads $(RUST_TEST_
 
 .PHONY: landing-gate plain-cli-build fmt lint ratchets test audit coverage unreached
 
-landing-gate: workflow-lint plain-cli-build fmt lint docs-check tensor-proto-check coverage audit secrets
+landing-gate:
+	+python3 scripts/landing_gate.py
+
+# Keep these sequential even when the caller uses make -j.
+.PHONY: pre-job check-cheap proof-check proof-list proof proof-unpack gate-stage-check
+pre-job: check-cheap
+
+LINT_GOALS = unused-dependencies check-no-default-features lint-workspace lint-tools
+
+check-cheap:
+	python3 scripts/check_docs.py
+	+$(MAKE) --no-print-directory --keep-going -j1 shell-check fmt $(LINT_GOALS) ratchets
+
+.PHONY: shell-check
+shell-check:
+	python3 scripts/check_shell.py
+
+# Retained proof archives use the platform tar, including Python 3.9 machines.
+proof-unpack:
+	@test -n "$(ARCHIVE)" -a -n "$(OUT)" || (echo 'Set ARCHIVE and OUT'; exit 1)
+	mkdir -p "$(OUT)"
+	tar -xf "$(ARCHIVE)" -C "$(OUT)"
+
+# Select literal names printed by proof-list, for example make proof PROOFS='name'.
+proof-list: pre-job
+	python3 scripts/trials.py --target tools --proofs --list
+
+proof: pre-job
+	python3 scripts/trials.py --target tools --proofs $(PROOFS)
+
+# Reuse the committed proof discovery and comparison checks.
+proof-check:
+	python3 scripts/test_trials.py
+	python3 scripts/test_reply_diff.py
+	python3 scripts/test_schema_release.py
+	+$(MAKE) --no-print-directory gate-stage-check
+
+gate-stage-check:
+	python3 -m unittest scripts.test_gate_stages
 
 plain-cli-build:
 	cargo build --locked -p biomcp --bin biomcp --timings
@@ -21,42 +59,74 @@ plain-cli-build:
 fmt:
 	cargo fmt --all -- --check
 
+.PHONY: $(LINT_GOALS)
 lint:
-	cargo clippy --workspace --all-targets --locked -- -D warnings
+	+$(MAKE) --no-print-directory --keep-going -j1 $(LINT_GOALS)
 
-ratchets:
+check-no-default-features:
+	cargo check --keep-going --locked -p biodata -p biomcp-types --no-default-features
+
+lint-workspace:
+	cargo clippy --keep-going --workspace --all-targets --locked -- -D warnings
+
+lint-tools:
+	cargo clippy --keep-going --locked -p biomcp --test tools -- -D warnings
+
+ratchets: plain-cli-build
 	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)
 
 test:
 	cargo test --workspace --locked $(TEST_THREADS)
 
+.PHONY: public-dump-check
+public-dump-check:
+	cargo build --locked -p biomcp-types --example public_dump_values
+	PUBLIC_DUMP_VALUES="$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/examples/public_dump_values" python3 scripts/test_public_dump_sweep.py
+
 audit:
 	cargo deny --locked check licenses advisories bans sources
 
-coverage:
+.PHONY: library-tests
+library-tests:
+	cargo test --workspace --exclude biomcp --features biomcp-types/schema --locked $(TEST_THREADS)
+	cargo test --locked -p biomcp --bin biomcp $(TEST_THREADS)
+
+coverage: schema-shape-check
 	sh scripts/coverage.sh run
+
+.PHONY: schema-shape-check
+schema-shape-check: docs-check library-tests
+	cargo test --locked -p biomcp --test cases mcp-research/research-registry-projection-paths $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-research/research-search-fetch-parity $(TEST_THREADS)
 
 unreached:
 	sh scripts/coverage.sh unreached
 
 .PHONY: docs-check
 docs-check:
+	cargo test --locked -p biomcp --test cases readme/ $(TEST_THREADS)
 	cargo test --locked -p biomcp --bin biomcp grammar::reference::reference_matches_grammar $(TEST_THREADS)
-	cargo test --locked -p biomcp --test cases article-help/executable-examples $(TEST_THREADS)
 	python3 release/toolchain.py check
 	python3 -m unittest release.test_toolchain
 	python3 release/tools.py
-	python3 -m unittest release.test_tools release.test_linux
+	python3 -m unittest release.test_tools release.test_linux release.test_mutations
 	python3 scripts/check_docs.py
+	python3 scripts/check_front_map.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
+	python3 scripts/article_licenses.py
+	python3 scripts/test_article_licenses.py
 	python3 scripts/test_docs.py
 	python3 scripts/test_source_capture.py
 	python3 scripts/test_source_capture_plan.py
 	python3 scripts/test_coverage.py
+	python3 scripts/test_reply_diff.py
+	python3 scripts/test_schema_release.py
+	+$(MAKE) --no-print-directory gate-stage-check
 	python3 scripts/test_build_workers.py
+	python3 scripts/test_trials.py
 	python3 scripts/test_nightly_live_check.py
-	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows
-	python3 -m unittest release.test_workflow release.test_security release.test_licenses
-	python3 -m unittest release.test_source_revision release.test_workflow_contracts
+	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows release.test_artifacts.ReleaseCommands
+	python3 -m unittest release.test_workflow release.test_security release.test_licenses release.test_docs
+	python3 -m unittest release.test_source_revision release.test_workflow_contracts release.test_publication release.test_promotion
 .PHONY: release-linux
 release-linux:
 	sh release/linux.sh $(CONTAINER_ARGS)
@@ -76,17 +146,16 @@ source-capture:
 .PHONY: docs-generate
 docs-generate:
 	cargo test --locked -p biomcp --bin biomcp grammar::reference::write_reference $(if $(strip $(RUST_TEST_THREADS)),-- --test-threads $(RUST_TEST_THREADS) --ignored,-- --ignored)
-.PHONY: schema-release-check
+.PHONY: schema-generate schema-release-check
+schema-generate:
+	python3 scripts/schema_release.py --generate
+
 schema-release-check:
 	python3 scripts/schema_release.py
 
-.PHONY: parity-run
-parity-run:
-	sh scripts/parity_runner.sh "$(abspath $(PLAN))" "$(BASELINE)" "$(abspath $(OUT))"
-
-.PHONY: parity-inventory
-parity-inventory:
-	cargo test --locked -p biomcp --test cases -- --parity-inventory "$(abspath $(PLAN))" "$(CURDIR)/tests/cases" "$(abspath $(OUT))"
+.PHONY: current-schema-check
+current-schema-check:
+	cargo test --locked -p biomcp-types --features schema --test schemas checked_in_schemas_match_types -- --exact
 
 .PHONY: tensor-proto-check
 tensor-proto-check:
@@ -94,6 +163,13 @@ tensor-proto-check:
 
 .PHONY: secrets
 secrets:
+	python3 release/secrets.py history . --since "$(SECRET_SCAN_BASE)"
+
+# This ancestor was covered by the retained j24209 full-history scan.
+# Advance only after the replacement ancestor has passed secret screening.
+SECRET_SCAN_BASE ?= $(shell cat release/secrets-main)
+.PHONY: secrets-full
+secrets-full:
 	python3 release/secrets.py history .
 
 COLD_REPORT ?= $(CURDIR)/dist/cold-report.json
@@ -102,6 +178,140 @@ COLD_REPORT ?= $(CURDIR)/dist/cold-report.json
 release-cold:
 	python3 release/rehearse.py cold --report "$(COLD_REPORT)" -- $(CONTAINER_ARGS)
 
+.PHONY: release-mutations
+release-mutations:
+	@test -n "$(MUTATION_REPORT)" || (echo 'Set MUTATION_REPORT to a job-owned stage report'; exit 1)
+	python3 release/rehearse.py mutation --report "$(MUTATION_REPORT)" -- $(MUTATION_ARGS)
+
 .PHONY: workflow-lint
 workflow-lint:
+	cargo check --locked -p biodata -p biomcp-types --no-default-features
 	actionlint
+
+.PHONY: publication-check
+publication-check:
+	actionlint
+	python3 -m unittest release.test_publication release.test_workflow release.test_workflow_contracts release.test_toolchain release.test_promotion
+	python3 release/toolchain.py check
+	python3 scripts/check_docs.py
+.PHONY: unused-dependencies dependency-graph dependency-proof
+unused-dependencies:
+	python3 release/toolchain.py install-machete
+	cargo machete
+
+dependency-graph:
+	cargo tree --locked -p biomcp --edges normal,build
+	cargo tree --locked --target all --edges normal,build --prefix none --format "{p}"
+
+# Deliberately add an unused dependency and require the real lint entry point to fail.
+dependency-proof:
+	python3 -m unittest release.test_toolchain
+	python3 scripts/dependency_proof.py
+.PHONY: bundle-tests
+bundle-tests:
+	cargo test --locked -p biomcp-fetch --test bundle $(TEST_FILTER) $(TEST_THREADS)
+
+.PHONY: bundle-checks
+bundle-checks: fmt
+	cargo clippy --locked -p biomcp-fetch --all-targets -- -D warnings
+	$(MAKE) ratchets
+.PHONY: cli-fixes-check
+cli-fixes-check: fmt lint ratchets
+	$(MAKE) schema-generate docs-generate
+	mkdir -p dist
+	COPYFILE_DISABLE=1 tar -czf dist/cli-generated.tar.gz crates/biomcp-types/schemas docs/reference/commands.md
+	cargo test --locked -p biomcp --bin biomcp grammar::reference::reference_matches_grammar $(TEST_THREADS)
+	python3 scripts/check_docs.py
+	$(MAKE) cli-fixes-cases
+
+CLI_FIX_CASES ?= local/ key-registration/ article-saves/ trial/name-fallback-continuation trial/input-boundaries author/help author/papers-help author/source-alias cell-line/aliases cell-line/examples mcp-parity/discovers-artifact-command-tree
+
+.PHONY: cli-fixes-cases
+cli-fixes-cases:
+	@set -e; for selection in $(CLI_FIX_CASES); do \
+		cargo test --locked -p biomcp --test cases "$$selection" $(TEST_THREADS); \
+	done
+.PHONY: http-edge-check
+http-edge-check: fmt
+	cargo clippy --locked -p biomcp --all-targets -- -D warnings
+	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+
+.PHONY: hosted-http-load
+hosted-http-load:
+	cargo test --locked -p biomcp --bin biomcp hosted_http_sync_load -- --ignored --nocapture
+
+.PHONY: cli-candidate-check
+cli-candidate-check: fmt
+	cargo clippy --locked -p biomcp --test cases -- -D warnings
+	$(MAKE) ratchets
+	python3 -c 'import json,subprocess,sys; out=subprocess.run([sys.argv[1], "mcp-config", "--client", "mcp-servers", "--absolute-path", "--offline"],capture_output=True,check=False); print("REMOVED_CONFIG_OPTION bytes="+str(len(out.stdout))+" exit="+str(out.returncode)); print(out.stdout[:1024].decode()); assert out.returncode == 2; assert json.loads(out.stdout)["error"]["code"] == "usage.arguments"' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
+	$(MAKE) cli-fixes-cases CLI_FIX_CASES='trial/ housekeeping/ local/mcp-config local/removed-options local/key-list-help'
+
+.PHONY: test-support-checks
+test-support-checks: pre-job
+	cargo test --locked -p biomcp-fetch --lib stream_worker_shutdown_cancels_and_joins_active_network_work $(TEST_THREADS)
+	cargo test --locked -p biomcp-types --test response $(TEST_THREADS)
+	cargo test --locked -p biomcp-fetch --test alphagenome --test grpc_worker --test grpc_persistence --test bundle $(TEST_THREADS)
+	cargo test --locked -p biomcp-adapters --test mapped_refusals --test custom_refusals --test ctgov_refusals $(TEST_THREADS)
+	cargo test --locked -p biomcp-query --test article_search --test gene_resolution --test query_refusals --test collection_refusals $(TEST_THREADS)
+	python3 scripts/trials.py --target tools --proofs schema-discovery/terms-subtraction-keeps-payload-ceilings schema-discovery/markdown-terms-subtraction-keeps-payload-ceilings schema-discovery/capture-retains-replay-owner schema-discovery/persistent-fixture-evidence
+	python3 scripts/trials.py --target cases variant-alphagenome/alphagenome-source-identity-refusals
+
+.PHONY: public-docs-check
+public-docs-check:
+	+$(MAKE) --no-print-directory pre-job
+	+$(MAKE) --no-print-directory docs-check
+
+.PHONY: http-busy-diagnosis
+http-busy-diagnosis: fmt
+	cargo test --locked -p biomcp --test cases mcp-http/framing-resource-deadlines-and-shutdown $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-http/framing-resource-deadlines-and-shutdown $(TEST_THREADS)
+
+.PHONY: http-edge-coverage
+http-edge-coverage:
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases mcp-hosted/ $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test cases key-registration/ $(TEST_THREADS)
+	cargo llvm-cov test --no-report --locked -p biomcp --test tools -- --proofs schema-discovery/isolates-child-environments $(if $(strip $(RUST_TEST_THREADS)),--test-threads $(RUST_TEST_THREADS))
+
+.PHONY: http-capacity-check
+http-capacity-check: pre-job docs-check
+	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+
+.PHONY: mcp-reply-focused mcp-reply-gate
+mcp-reply-focused mcp-reply-gate: export PATH := /Users/ian/.local/share/uv/python/cpython-3.13.17-macos-aarch64-none/bin:$(HOME)/.cargo/bin:$(PATH)
+mcp-reply-focused mcp-reply-gate: export RUSTUP_TOOLCHAIN := 1.95.0
+mcp-reply-focused: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/0587-proofs/replies
+mcp-reply-focused:
+	cargo fmt --all -- --check
+	mkdir -p target/mcp-reply/installed
+	cargo install --locked --debug --path crates/biomcp --root target/mcp-reply/installed --force
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/mcp-reply/installed/bin/biomcp" cargo test --locked -p biomcp --test cases mcp-parity/ $(TEST_THREADS)
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/mcp-reply/installed/bin/biomcp" cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/mcp-reply/installed/bin/biomcp" cargo test --locked -p biomcp --test cases mcp-hosted/ $(TEST_THREADS)
+	python3 scripts/check_front_map.py target/mcp-reply/installed/bin/biomcp --mcp-baseline target/0587-proofs/baseline-installed/biomcp --output target/0587-proofs/candidate
+mcp-reply-gate: landing-gate
+
+JSCPD ?= jscpd
+.PHONY: mcp-reply-scan
+mcp-reply-scan:
+	$(JSCPD) --version
+	$(JSCPD) crates/biomcp/src/config.rs crates/biomcp/src/config crates/biomcp/src/help.rs crates/biomcp/src/mcp.rs crates/biomcp/src/mcp --format rust --max-size 10mb --reporters json --output target/0587-proofs/jscpd-product
+	$(JSCPD) crates/biomcp/tests/runner/protocol.rs crates/biomcp/tests/runner/protocol_schemas.rs crates/biomcp/tests/runner/mcp_reply_form.rs --format rust --max-size 10mb --reporters json --output target/0587-proofs/jscpd-tests
+
+.PHONY: civic-evidence-build
+civic-evidence-build:
+	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json
+
+.PHONY: civic-evidence-focused
+civic-evidence-focused:
+	+sh scripts/check_civic_evidence.sh focused
+
+.PHONY: civic-evidence-structure
+civic-evidence-structure:
+	cargo test --locked -p biomcp --test ratchets repository_obeys_structural_contract -- --exact $(if $(strip $(RUST_TEST_THREADS)),--test-threads $(RUST_TEST_THREADS))
+
+.PHONY: civic-evidence-combined
+civic-evidence-combined:
+	+sh scripts/check_civic_evidence.sh combined

@@ -1,3 +1,4 @@
+use crate::{native_text::NativeText, raw::Field};
 use biodata::Text;
 use biomcp_fetch::{BadReply, Reply};
 use serde::Deserialize;
@@ -28,69 +29,73 @@ pub(super) struct Page {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Profile {
-    pub id: u64,
-    pub name: Text,
-    pub link: Text,
-    pub is_complex: bool,
-    pub variants: Vec<Member>,
+    pub id: Option<Field<u64>>,
+    pub name: Option<Field<NativeText>>,
+    pub raw_name: Option<Field<Text>>,
+    pub link: Option<Field<Text>>,
+    pub is_complex: Option<Field<bool>>,
+    pub variants: Option<Field<Vec<Field<Member>>>>,
     pub evidence_items: Connection<Evidence>,
     pub assertions: Connection<Assertion>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Member {
-    pub id: u64,
-    pub name: Text,
-    pub link: Text,
-    pub allele_registry_id: Option<Text>,
-    pub hgvs_descriptions: Option<Vec<Text>>,
-    pub feature: Feature,
+    pub id: Option<Field<u64>>,
+    pub name: Option<Field<NativeText>>,
+    pub link: Option<Field<Text>>,
+    pub allele_registry_id: Option<Field<Text>>,
+    pub hgvs_descriptions: Option<Field<Vec<Field<Text>>>>,
+    pub feature: Option<Field<Feature>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Feature {
-    pub name: Text,
+    pub id: Option<Field<u64>>,
+    pub name: Option<Field<NativeText>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Evidence {
-    pub id: u64,
-    pub status: biomcp_types::CivicStatus,
-    pub evidence_type: biodata::SourceText,
-    pub evidence_level: Text,
-    pub evidence_direction: Text,
-    pub significance: biodata::SourceText,
-    pub disease: Option<Disease>,
-    pub therapies: Vec<Therapy>,
-    pub source: Citation,
+    pub id: Option<Field<u64>>,
+    pub status: Option<Field<biomcp_types::CivicStatus>>,
+    pub evidence_type: Option<Field<biodata::SourceText>>,
+    pub evidence_level: Option<Field<Text>>,
+    pub evidence_direction: Option<Field<Text>>,
+    pub significance: Option<Field<biodata::SourceText>>,
+    pub disease: Option<Field<Disease>>,
+    pub therapies: Option<Field<Vec<Field<Therapy>>>>,
+    pub therapy_interaction_type: Option<Field<Text>>,
+    pub source: Option<Field<Citation>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Assertion {
-    pub id: u64,
-    pub status: biomcp_types::CivicStatus,
-    pub assertion_type: biodata::SourceText,
-    pub assertion_direction: Text,
-    pub significance: biodata::SourceText,
-    pub amp_level: Option<Text>,
-    pub disease: Option<Disease>,
-    pub therapies: Vec<Therapy>,
-    pub variant_origin: Text,
+    pub id: Option<Field<u64>>,
+    pub status: Option<Field<biomcp_types::CivicStatus>>,
+    pub assertion_type: Option<Field<biodata::SourceText>>,
+    pub assertion_direction: Option<Field<Text>>,
+    pub significance: Option<Field<biodata::SourceText>>,
+    pub amp_level: Option<Field<Text>>,
+    pub disease: Option<Field<Disease>>,
+    pub therapies: Option<Field<Vec<Field<Therapy>>>>,
+    pub therapy_interaction_type: Option<Field<Text>>,
+    pub variant_origin: Option<Field<Text>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Disease {
-    pub name: Text,
-    pub doid: Option<Text>,
+    pub name: Option<Field<NativeText>>,
+    pub doid: Option<Field<Text>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Therapy {
-    pub id: Option<u64>,
-    pub name: Text,
+    pub id: Option<Field<u64>>,
+    pub name: Option<Field<NativeText>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Citation {
-    pub citation_id: Option<Text>,
-    pub source_type: Text,
+    pub citation_id: Option<Field<Text>>,
+    pub source_type: Option<Field<Text>>,
 }
 impl<T> Connection<T> {
     pub(super) fn progresses(&self, previous: Option<&Text>) -> bool {
@@ -127,7 +132,8 @@ impl Profiles {
         use biomcp_types::CivicClaimKind;
         self.data.molecular_profiles.progresses(after)
             && self.data.molecular_profiles.nodes.iter().all(|profile| {
-                (query.civic_kind() == Some(CivicClaimKind::Assertions)
+                (!query.evidence_filter().is_empty()
+                    || query.civic_kind() == Some(CivicClaimKind::Assertions)
                     || profile.evidence_items.progresses(query.civic_cursor()))
                     && (query.civic_kind() == Some(CivicClaimKind::Evidence)
                         || profile.assertions.progresses(query.civic_cursor()))
@@ -135,12 +141,21 @@ impl Profiles {
     }
     pub(super) fn matches(&self, allele: &str, profile: Option<u64>) -> bool {
         self.data.molecular_profiles.nodes.iter().all(|p| {
-            profile.is_none_or(|id| p.id == id)
-                && p.variants.iter().any(|m| {
-                    m.allele_registry_id
-                        .as_ref()
-                        .is_some_and(|id| id.as_str() == allele)
-                })
+            profile.is_none_or(|id| p.id.as_ref().and_then(Field::as_ref) == Some(&id))
+                && p.variants
+                    .as_ref()
+                    .and_then(Field::as_ref)
+                    .is_some_and(|members| {
+                        members.iter().filter_map(Field::as_ref).any(|m| {
+                            m.id.as_ref()
+                                .and_then(Field::as_ref)
+                                .is_some_and(|value| id(*value))
+                                && m.allele_registry_id
+                                    .as_ref()
+                                    .and_then(Field::as_ref)
+                                    .is_some_and(|id| id.as_str() == allele)
+                        })
+                    })
         })
     }
 }
@@ -148,21 +163,12 @@ impl Reply for Profiles {
     fn check(&self) -> Result<(), BadReply> {
         self.data.molecular_profiles.check()?;
         for profile in &self.data.molecular_profiles.nodes {
-            if !id(profile.id)
-                || profile.variants.is_empty()
-                || !profile.link.as_str().starts_with("/molecular-profiles/")
-                || profile.variants.iter().any(|v| !id(v.id))
-                || profile.evidence_items.nodes.iter().any(|row| !id(row.id))
-                || profile.assertions.nodes.iter().any(|row| !id(row.id))
-            {
-                return Err(BadReply);
-            }
             profile.evidence_items.check()?;
             profile.assertions.check()?;
         }
         Ok(())
     }
 }
-fn id(value: u64) -> bool {
+pub(super) fn id(value: u64) -> bool {
     value > 0 && value <= i32::MAX as u64
 }

@@ -4,21 +4,21 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub(super) struct Export {
     #[serde(rename = "PubTator3")]
-    pub documents: Vec<Document>,
+    pub documents: Vec<Field<Document>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Document {
     pub id: Pmid,
-    pub passages: Vec<Passage>,
+    pub passages: Option<Field<Vec<Field<Passage>>>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Passage {
-    pub annotations: Option<Vec<Annotation>>,
+    pub annotations: Option<Field<Vec<Field<Annotation>>>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Annotation {
     pub infons: Infons,
-    pub text: Option<String>,
+    pub text: Option<Field<String>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Infons {
@@ -33,7 +33,12 @@ pub(super) struct Infons {
 impl biomcp_fetch::Reply for Export {
     fn check(&self) -> Result<(), biomcp_fetch::BadReply> {
         let mut ids = std::collections::BTreeSet::new();
-        if self.documents.iter().any(|d| !ids.insert(d.id)) {
+        if self
+            .documents
+            .iter()
+            .filter_map(Field::as_ref)
+            .any(|d| !ids.insert(d.id))
+        {
             return Err(biomcp_fetch::BadReply);
         }
         Ok(())

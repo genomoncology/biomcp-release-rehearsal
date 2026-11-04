@@ -1,0 +1,30 @@
+{
+  "feature": "variant-normalization",
+  "live_check": "synthetic",
+  "story": "One malformed native normalization field preserves the independent source result.",
+  "replay": "variant/adapter-values/mutalyzer",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "normalize",
+        "--source",
+        "mutalyzer",
+        "--hgvs",
+        "NM_004333.4:c.1799T>A"
+      ],
+      "expect": {
+        "/result/results/0/outcome": "resolved",
+        "/problems/*/field": [
+          "corrected_description"
+        ],
+        "/result/results/0/normalized": "NM_004333.4:c.1799T>A",
+        "/result/results/0": {
+          "omits": [
+            "corrected"
+          ]
+        }
+      }
+    }
+  ]
+}

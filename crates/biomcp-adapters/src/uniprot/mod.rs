@@ -1,4 +1,5 @@
 //! Reviewed human proteins fetched only by HGNC-listed accessions.
+use biomcp_fetch::{Input, Read};
 mod entry;
 mod map;
 mod raw;
@@ -38,13 +39,19 @@ pub fn proteins(leg: &Leg<'_>, ids: &[UniProtAcc]) -> Result<Mapped<Vec<Protein>
     ids.sort_unstable();
     ids.dedup();
     let text: Vec<Box<str>> = ids.iter().map(|id| id.to_string().into()).collect();
-    let raw = leg.json::<raw::Proteins>(
-        &PROTEINS,
-        &[
-            ("accessions", Arg::Ids(&text)),
-            ("fields", Arg::Text(FIELDS)),
-            ("format", Arg::Text("json")),
-        ],
-    )?;
+    let raw = leg
+        .call(
+            &PROTEINS,
+            Input::Params(&[
+                ("accessions", Arg::Ids(&text)),
+                ("fields", Arg::Text(FIELDS)),
+                ("format", Arg::Text("json")),
+            ]),
+            Read::<raw::Proteins>::json(),
+        )?
+        .value;
     Ok(map::proteins(raw, &ids))
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

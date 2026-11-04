@@ -1,0 +1,38 @@
+{
+  "feature": "study-get",
+  "live_check": "Authored malformed identity and optional-field replies for local cache admission; no live provider equivalent.",
+  "story": "A repeated call preserves the native count and refused identity problem.",
+  "replay": "cache-admission",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "study",
+        "synthetic_0",
+        "sample-lists"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 1,
+        "/problems/*/field": {
+          "includes": "sampleListId"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "study",
+        "synthetic_0",
+        "sample-lists"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 1,
+        "/problems/*/field": {
+          "includes": "sampleListId"
+        }
+      }
+    }
+  ]
+}

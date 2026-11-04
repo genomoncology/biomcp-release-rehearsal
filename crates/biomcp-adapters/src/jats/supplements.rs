@@ -13,10 +13,13 @@ pub struct Supplement {
     /// Optional source caption.
     pub caption: Option<Markdown>,
 }
-pub(super) fn read(xml: &str) -> Result<Vec<Supplement>, BadReply> {
+pub(super) fn read(
+    xml: &str,
+    problems: &mut crate::mapped::Problems,
+) -> Result<Vec<Supplement>, BadReply> {
     let mut out = Vec::new();
     for item in super::blocks::descendants(xml, "supplementary-material")? {
-        let label = label(item)?;
+        let label = label(item, problems)?;
         let caption = caption(item)?;
         let kind = mime(item)?;
         if let Some(href) = item.attr("xlink:href")? {
@@ -32,7 +35,7 @@ pub(super) fn read(xml: &str) -> Result<Vec<Supplement>, BadReply> {
                 out.push(Supplement {
                     href,
                     kind: mime(media)?.or(kind),
-                    label: label.clone().or(self::label(media)?),
+                    label: label.clone().or(self::label(media, problems)?),
                     caption: caption.clone().or(self::caption(media)?),
                 });
             }
@@ -40,11 +43,14 @@ pub(super) fn read(xml: &str) -> Result<Vec<Supplement>, BadReply> {
     }
     Ok(out)
 }
-fn label(item: crate::xml_element::Element<'_>) -> Result<Option<Text>, BadReply> {
-    item.value(&["label"])?
+fn label(
+    item: crate::xml_element::Element<'_>,
+    problems: &mut crate::mapped::Problems,
+) -> Result<Option<Text>, BadReply> {
+    Ok(item
+        .value(&["label"])?
         .filter(|v| !v.trim().is_empty())
-        .map(|v| Text::new(&v).map_err(|_| BadReply))
-        .transpose()
+        .and_then(|v| problems.optional("supplements.label", Some(Text::from_source(&v)))))
 }
 fn caption(item: crate::xml_element::Element<'_>) -> Result<Option<Markdown>, BadReply> {
     let Some(caption) = item.child("caption")? else {

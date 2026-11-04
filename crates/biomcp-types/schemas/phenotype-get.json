@@ -36,12 +36,14 @@
       ]
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.phenotype-get/1",
+  "$id": "biomcp.phenotype-get/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Read an exact HP term from HPO or Monarch, or page native source sections. A term lookup answers terminology; an association answers what its publisher asserts. Neither establishes a diagnosis.",

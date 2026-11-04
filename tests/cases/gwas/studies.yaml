@@ -1,0 +1,140 @@
+{
+  "feature": "gwas-search",
+  "story": "Publication studies keep source samples and counts; complete bounded matches sort exact p values, and partial windows retain native global ordering.",
+  "live_check": "synthetic timing and study page boundary cases",
+  "replay": "gwas/studies",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17554300",
+        "--studies",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/schema": "biomcp.gwas-study-page/1",
+        "/result/items": {
+          "count": 7
+        },
+        "/result/items/0/id": "GCST000040",
+        "/result/items/0/association_count": 1,
+        "/result/items/6/association_count": 7,
+        "/result/items/0/initial_sample_description": "Synthetic discovery sample 0",
+        "/result/page/total": 7
+      },
+      "max_bytes": 8500
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17554300",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items": {
+          "count": 50
+        },
+        "/result/items/0/id": "association:10000",
+        "/result/items/49/id": "association:10049",
+        "/result/page/total": 50
+      },
+      "max_bytes": 26000
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17554300",
+        "--limit",
+        "12",
+        "--offset",
+        "13"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items": {
+          "count": 11
+        },
+        "/result/items/0/id": "association:10013",
+        "/result/items/10/id": "association:10023",
+        "/result/continuation/query/offset": 24,
+        "/result/page/total": 50
+      },
+      "max_bytes": 8000
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17554300",
+        "--limit",
+        "12"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items": {
+          "count": 12
+        },
+        "/result/items/0/id": "association:10000",
+        "/result/items/11/id": "association:10011",
+        "/result/continuation/query/offset": 12,
+        "/result/page/total": 50
+      },
+      "max_bytes": 8500
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17554301",
+        "--limit",
+        "12"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items": {
+          "count": 2
+        },
+        "/result/items/0/id": "association:3100",
+        "/result/items/0/p_value": 1e-09,
+        "/result/page/total": 2
+      },
+      "max_bytes": 5000
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17554302",
+        "--limit",
+        "12"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/result/items": {
+          "count": 1
+        },
+        "/result/items/0/id": "association:3101",
+        "/result/page/total": 2,
+        "/problems/*/field": {
+          "includes_all_of": [
+            "association_id"
+          ]
+        }
+      },
+      "max_bytes": 5000
+    }
+  ]
+}

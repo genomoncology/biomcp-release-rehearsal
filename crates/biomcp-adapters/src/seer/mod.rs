@@ -1,5 +1,6 @@
 //! Canonical seer publisher declaration.
 use crate::mapped::problem;
+use biomcp_fetch::Input;
 use biomcp_fetch::{KeyUse, SourceSpec, Terms};
 use biomcp_types::{Source, Use};
 use std::time::Duration;
@@ -11,7 +12,7 @@ use biomcp_fetch::{Arg, Endpoint, Freshness, Leg, ReplyMetadata, RequestError};
 use biomcp_types::DiseaseSite;
 pub use selectors::{Selector, SelectorError};
 /// Resolve source selectors once before any network access.
-pub fn selection(query: &biomcp_types::DiseaseGet) -> Result<Selection, SelectorError> {
+pub fn selection(query: &biomcp_types::DiseaseGet, id: &Text) -> Result<Selection, SelectorError> {
     let statistic = if query.section() == Some(biomcp_types::DiseaseSection::Survival) {
         Statistic::Survival {
             interval: Selector::Interval.resolve(query.interval())?,
@@ -22,7 +23,7 @@ pub fn selection(query: &biomcp_types::DiseaseGet) -> Result<Selection, Selector
         }
     };
     Ok(Selection {
-        site: query.id().clone(),
+        site: id.clone(),
         sex: Selector::Sex.resolve(query.sex())?,
         race: Selector::Race.resolve(query.race())?,
         age_range: Selector::AgeRange.resolve(query.age_range())?,
@@ -63,10 +64,8 @@ pub struct Selection {
 /// A locally paged checked source response.
 #[derive(Debug)]
 pub struct Page<T> {
-    /// Rows in native order.
-    pub rows: Vec<T>,
-    /// Total native rows before local paging.
-    pub total: u64,
+    /// Accepted rows and native traversal facts.
+    pub window: crate::NativeWindow<T>,
     /// Original response metadata, never the page-read time.
     pub metadata: ReplyMetadata,
     /// Source fields that remain unverified or contradict a request.
@@ -91,31 +90,62 @@ const CATALOG: Endpoint = SPEC.get("/get_var_formats.php").fresh(Freshness::Days
 const SERIES: Endpoint = SPEC.get("/render_region_5.php").fresh(Freshness::Days(1));
 /// Read the native catalog without selecting an ontology mapping.
 pub fn catalog(leg: &Leg<'_>, limit: u32, offset: u32) -> Result<Page<DiseaseSite>, RequestError> {
-    let (raw, metadata) = leg.json_received::<raw::Catalog>(&CATALOG, &[])?;
+    let (raw, metadata) = leg
+        .call(
+            &CATALOG,
+            Input::Params(&[]),
+            biomcp_fetch::Read::<raw::Catalog>::json(),
+        )
+        .map(|received| (received.value, received.meta))?;
     let total = raw.sites.len() as u64;
-    let labels = &raw.formats.site;
-    let rows = raw
+    let mut problems = crate::mapped::Problems {
+        source: Source::Seer,
+        record: None,
+        list: vec![
+            problem(Source::Seer, None, "catalog.publisher_date"),
+            problem(Source::Seer, None, "catalog.publisher_version"),
+        ],
+    };
+    let labels = problems.field("VariableFormats.site", raw.formats.site);
+    let mut rows = Vec::new();
+    let mut refusals = crate::Refusal::None;
+    let window: Vec<_> = raw
         .sites
         .into_iter()
         .skip(offset as usize)
         .take(limit as usize)
-        .filter_map(|site| {
-            let code = site.value.to_string().parse().ok()?;
-            Some(DiseaseSite {
-                label: labels.get(&site.value.to_string())?.clone(),
-                code,
-                active: site.active,
-            })
-        })
         .collect();
+    let received = window.len() as u32;
+    for site in window {
+        problems.record = None;
+        if let Some(site) = problems.field("CancerSites.value", Some(site)) {
+            let code = crate::mapped::text(&site.value.to_string())
+                .map_err(|_| biomcp_fetch::InputError::Serialization)?;
+            problems.record = Some(code.clone());
+            let label = problems
+                .required(
+                    "VariableFormats.site",
+                    labels
+                        .as_ref()
+                        .and_then(|v| v.get(&site.value.to_string()))
+                        .and_then(crate::raw::Field::as_ref)
+                        .cloned(),
+                )
+                .map(Into::into);
+            let active = problems.required_field("CancerSites.active", site.active);
+            rows.push(DiseaseSite {
+                code,
+                label,
+                active,
+            });
+        } else {
+            refusals = crate::Refusal::Refused;
+        }
+    }
     Ok(Page {
-        rows,
-        total,
+        window: crate::NativeWindow::new(rows, offset, limit, Some(total), received, refusals),
         metadata,
-        problems: vec![
-            problem(Source::Seer, None, "catalog.publisher_date"),
-            problem(Source::Seer, None, "catalog.publisher_version"),
-        ],
+        problems: problems.list,
     })
 }
 impl Selection {
@@ -150,42 +180,47 @@ pub fn statistics(
     limit: u32,
     offset: u32,
 ) -> Result<Page<DiseaseStatistic>, RequestError> {
-    let (raw, metadata) =
-        leg.json_string_received_checked::<raw::Document>(&SERIES, &query.params(), |r| {
-            let expected = if matches!(query.statistic, Statistic::Survival { .. }) {
-                "rel_rate"
-            } else {
-                "rate"
-            };
-            let site_index = r.info.keys.iter().position(|key| key == "site");
-            let matching_site = site_index.is_some_and(|index| {
-                r.data
-                    .iter()
-                    .all(|(key, _)| key.split('_').nth(index) == Some(query.site.as_str()))
-            });
-            if r.info.measure == expected && matching_site {
-                Ok(())
-            } else {
-                Err(biomcp_fetch::BadReply)
-            }
-        })?;
+    let (raw, metadata) = leg
+        .call(
+            &SERIES,
+            Input::Params(&query.params()),
+            biomcp_fetch::Read::<raw::Document>::json_string()
+                .check(&|r| {
+                    let expected = if matches!(query.statistic, Statistic::Survival { .. }) {
+                        "rel_rate"
+                    } else {
+                        "rate"
+                    };
+                    let site_index = r.info.keys.iter().position(|key| key == "site");
+                    let matching_site = site_index.is_some_and(|index| {
+                        r.data
+                            .iter()
+                            .all(|(key, _)| key.split('_').nth(index) == Some(query.site.as_str()))
+                    });
+                    if r.info.measure == expected && matching_site {
+                        Ok(())
+                    } else {
+                        Err(biomcp_fetch::BadReply)
+                    }
+                })
+                .cache_if(&map::identities_admitted),
+        )
+        .map(|received| (received.value, received.meta))?;
     let (rows, problems) = map::rows(raw, query).map_err(|_| {
         RequestError::Source(biomcp_fetch::SourceError {
             source: Source::Seer,
             reason: biomcp_types::Reason::BadReply,
             status: Some(200),
+            tls_cause: None,
             retry_after: None,
         })
     })?;
-    let total = rows.len() as u64;
     Ok(Page {
-        rows: rows
-            .into_iter()
-            .skip(offset as usize)
-            .take(limit as usize)
-            .collect(),
-        total,
+        window: crate::NativeWindow::local(rows, offset, limit),
         metadata,
         problems,
     })
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

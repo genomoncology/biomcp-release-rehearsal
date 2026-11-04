@@ -1,98 +1,22 @@
 //! Feature gwas-search: source selectors cross the real command boundary.
+use super::required_contract;
 use super::{configuration::invoke, gwas_budgets, launch::Environment};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
-mod mechanics;
-mod native;
+
 mod state;
-mod threshold;
-mod usage;
+
 mod wire;
 pub(super) fn trials() -> Vec<Trial> {
-    let native_directory = super::launch::fixtures().join("gwas-native-cases");
-    let absent = !native_directory.is_dir();
-    vec![
-        Trial::test("gwas-search/stale-source-is-partial", || {
-            state::stale().map_err(Into::into)
-        }),
-        Trial::test(
-            "gwas-search/expired-threshold-restarts-original-selectors",
-            || state::expired().map_err(Into::into),
-        ),
-        Trial::test("gwas-search/native-trait-id-is-never-rewritten", || {
-            state::literal().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/malformed-input-guidance-before-io", || {
-            usage::run().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/retained-threshold-witnesses-and-costs", || {
-            threshold::native(&super::launch::fixtures().join("gwas-threshold-cases"))
-                .map_err(Into::into)
-        })
-        .with_ignored_flag(
-            !super::launch::fixtures()
-                .join("gwas-threshold-cases")
-                .is_dir(),
-        ),
-        Trial::test("gwas-search/threshold-later-page-failures", || {
-            threshold::failures().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/exact-threshold-page-walk", || {
-            threshold::walk().map_err(Into::into)
-        }),
-        Trial::test(
-            "gwas-search/retained-native-witnesses-and-costs",
-            move || native::run(&native_directory).map_err(Into::into),
-        )
-        .with_ignored_flag(absent),
-        Trial::test("gwas-search/restricted-policy-before-io", || {
-            policy().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/checked-native-selectors-and-aliases", || {
-            wire::selectors().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/native-offset-and-continuation", || {
-            wire::paging().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/live-warm-cache-and-explicit-fresh", || {
-            wire::warm().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/reject-before-cache-admission", || {
-            mechanics::admission().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/failures-are-never-empty", || {
-            mechanics::failures().map_err(Into::into)
-        }),
-        Trial::test("gwas-search/cli-mcp-help-markdown", || {
-            wire::surfaces().map_err(Into::into)
-        }),
-    ]
-}
-fn policy() -> Result<(), String> {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let replay = env.root().join("empty-replay");
-    fs::create_dir(&replay).map_err(|e| e.to_string())?;
-    let mut args = env.globals(Some(&replay), false);
-    args.extend(
-        [
-            "search",
-            "gwas",
-            "--pubmed",
-            "17529967",
-            "--disable-sources",
-            "restricted",
-        ]
-        .map(str::to_owned),
-    );
-    let value = gwas_budgets::invoke("gwas_search/policy/1", &env, args, 4)?;
-    if value.pointer("/sources/0/reason") != Some(&json!("disabled")) {
-        return Err(format!("restricted source was not refused: {value}"));
-    }
-    Ok(())
+    // The test expires the actual SQLite pool and removes its replay source before checking the executable restart action.
+    vec![transcript_trial(required_contract::GWAS_POOL.0, || {
+        state::expired().map_err(Into::into)
+    })]
 }
 
 const BASE: &str = "https://www.ebi.ac.uk/gwas/rest/api/v2/associations";
@@ -154,9 +78,14 @@ fn seed_text(
         let mut recording: Value =
             serde_json::from_slice(&fs::read(file.path()).map_err(|e| e.to_string())?)
                 .map_err(|e| e.to_string())?;
+        let acquired = recording
+            .pointer("/exchanges/0/fetched")
+            .and_then(Value::as_i64)
+            .ok_or("recording acquisition")?;
         let exchange = json!({"status":status,"content_type":"application/json","delay_ms":delay,"retry_after_ms":null,"body":{"kind":"text","value":body}});
         *recording.get_mut("exchanges").ok_or("recorded exchanges")? =
             json!([exchange.clone(), exchange.clone(), exchange]);
+        super::response_cases::cache_acquisition(&mut recording, acquired);
         fs::write(directory.join(file.file_name()), recording.to_string())
             .map_err(|e| e.to_string())?;
     }

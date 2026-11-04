@@ -1,0 +1,80 @@
+live_check: "local-only command help, validation or stored-state behavior; no recorded source replies"
+feature: query-validation
+story: Each public command refuses an unsupported argument before it reads a source.
+steps:
+- run:
+  - get
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - adverse-event
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - cell-line
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - diagnostic
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.retired
+- run:
+  - get
+  - disease
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - drug
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - gene
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - pgx
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.retired
+- run:
+  - get
+  - protein
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - study
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - get
+  - variant
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments

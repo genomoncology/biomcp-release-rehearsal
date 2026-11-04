@@ -6,23 +6,25 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
-tonic = { version = "=0.14.7", default-features = false, features = ["channel", "codegen", "tls-ring"] }
-h2 = { version = "0.4", default-features = false }
+prost.workspace = true
+tonic = { workspace = true, features = ["codegen"] }
+h2 = { workspace = true }
 hyper = { version = "1", default-features = false, features = ["http2"] }
-tokio = { version = "1", default-features = false, features = ["rt", "net", "time", "sync", "io-util", "macros"] }
-tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+tokio = { workspace = true }
+tokio-rustls = { workspace = true }
 base64.workspace = true
-prost = { version = "=0.14.3", default-features = false, features = ["derive", "std"] }
 zstd = { version = "=0.14.3", default-features = false }
 csv.workspace = true
 flate2.workspace = true
 biomcp-types = { workspace = true }
 url.workspace = true
-biodata = { workspace = true }
+idna_adapter.workspace = true
 serde.workspace = true
 serde_json = { workspace = true, features = ["raw_value"] }
 ureq.workspace = true
 rustls.workspace = true
+# Typed CA-as-leaf diagnostics reuse rustls' already locked verifier error.
+webpki = { package = "rustls-webpki", version = "=0.103.16", default-features = false, features = ["std"] }
 rustls-platform-verifier.workspace = true
 sha2.workspace = true
 httpdate.workspace = true
@@ -32,8 +34,12 @@ rusqlite.workspace = true
 tempfile.workspace = true
 
 [dev-dependencies]
-rcgen = { version = "0.13.2", default-features = false, features = ["crypto", "ring", "pem"] }
+biomcp-test-support.workspace = true
 rusqlite = { workspace = true, features = ["trace"] }
 
 [lints]
 workspace = true
+
+[package.metadata.cargo-machete]
+# This exact direct constraint selects url's ASCII-only IDNA backend.
+ignored = ["idna_adapter"]

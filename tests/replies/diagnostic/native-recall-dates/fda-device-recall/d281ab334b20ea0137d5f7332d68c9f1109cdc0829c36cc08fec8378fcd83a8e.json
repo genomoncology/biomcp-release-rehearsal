@@ -1,0 +1,33 @@
+{
+  "method": "GET",
+  "source": "fda-device-recall",
+  "url": "https://api.fda.gov/device/recall.json?search=event_date_initiated%3A%5B2024-01-01%20TO%202024-12-31%5D&limit=1&skip=0&sort=event_date_initiated%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 3279
+            }
+          },
+          "results": [
+            {
+              "product_res_number": "Z-0991-2025",
+              "event_date_initiated": "2024-12-31",
+              "recall_status": "Open, Classified",
+              "product_code": "LRO"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

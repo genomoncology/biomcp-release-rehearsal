@@ -3,13 +3,14 @@ use crate::{Ctx, Outcome, status};
 use biodata::Pmid;
 use biomcp_adapters::pubmed;
 use biomcp_fetch::{Leg, RequestError};
+use biomcp_types::ReplyBody;
 use biomcp_types::{Article, ArticleInput};
 use biomcp_types::{
-    ArticleCardItem, ArticleCards, ArticleGet, ArticleMatch, ArticleResolution, QueryBody, Source,
+    ArticleCardItem, ArticleCards, ArticleGet, ArticleMatch, ArticleResolution, ReplyData, Source,
     SourceState, Status,
 };
 /// Resolve and hydrate article cards under one absolute command deadline.
-pub fn get(cx: &Ctx<'_>, query: &ArticleGet) -> Outcome {
+pub(crate) fn get(cx: &Ctx<'_>, query: &ArticleGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&pubmed::SPEC, deadline).fresh(cx.fresh);
@@ -44,27 +45,40 @@ pub fn get(cx: &Ctx<'_>, query: &ArticleGet) -> Outcome {
     let mut items = Vec::new();
     for (input, resolution) in query.input().iter().zip(resolutions) {
         match resolution {
-            Err(_) => items.push(item(input, Status::Failed, None)),
+            Err(_) => items.push(item(
+                input,
+                crate::status::item_status(false, true, false),
+                None,
+            )),
             Ok(ids) => append(input, &ids, &records, &failures, stale, &mut items),
         }
     }
-    let mut out = Outcome {
-        status: status::status(items.iter().map(|i| i.status)),
-        body: QueryBody::ArticleCards(ArticleCards {
-            items: items.into(),
-        }),
-        sources: sources(query, source),
-        page: None,
-        problems: records
-            .iter()
-            .flat_map(|(record, _)| record.problems.iter().cloned())
-            .collect(),
-        next: Vec::new(),
-        local,
-    };
+    let mut out = crate::status::finish(
+        [status::status(items.iter().map(|i| i.status))],
+        crate::status::Parts {
+            dropped: records
+                .iter()
+                .any(|(record, _)| record.refusals == biomcp_adapters::Refusal::Refused),
+            body: (ArticleCards {
+                items: items.into(),
+            })
+            .with_query(query.clone()),
+            sources: sources(query, source),
+            page: None,
+            problems: records
+                .iter()
+                .flat_map(|(record, _)| record.problems.iter().cloned())
+                .collect(),
+            next: Vec::new(),
+            local,
+        },
+    );
     let mut deadline = deadline.after_stage(started.saturating_sub(remaining));
     super::preprint::cards(cx, &mut deadline, &mut out);
-    let requested = if let QueryBody::ArticleCards(cards) = &mut out.body {
+    let requested = if let ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    {
         super::sections::prepare(query, &mut cards.items)
     } else {
         false
@@ -77,7 +91,7 @@ pub fn get(cx: &Ctx<'_>, query: &ArticleGet) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-pub(super) type Record = (pubmed::FetchedArticle, i64);
+pub(super) type Record = (pubmed::FetchedArticle, Option<i64>);
 type Failure = (Pmid, RequestError);
 fn fetch(leg: &Leg<'_>, ids: &[Pmid], cx: &Ctx<'_>) -> (Vec<Record>, Vec<Failure>) {
     let chunks: Vec<_> = ids.chunks(200).collect();
@@ -142,15 +156,15 @@ fn append(
             found = true;
             items.push(item(
                 input,
-                if stale {
-                    Status::Partial
+                if stale || card.refusals == biomcp_adapters::Refusal::Refused {
+                    crate::status::item_status(true, false, true)
                 } else {
-                    Status::Complete
+                    crate::status::item_status(true, false, false)
                 },
                 Some(ArticleResolution::Resolved {
                     card: card.article.clone().card(),
                     r#match: ArticleMatch { kind: input.kind() },
-                    fetched: u64::try_from(*fetched).unwrap_or_default(),
+                    fetched: fetched.and_then(|value| u64::try_from(value).ok()),
                 }),
             ));
         }
@@ -159,11 +173,15 @@ fn append(
         .iter()
         .any(|id| failures.iter().any(|(failed, _)| id == failed));
     if failed {
-        items.push(item(input, Status::Failed, None));
+        items.push(item(
+            input,
+            crate::status::item_status(false, true, false),
+            None,
+        ));
     } else if !found {
         items.push(item(
             input,
-            Status::Absent,
+            crate::status::item_status(false, false, false),
             Some(ArticleResolution::NotFound),
         ));
     }

@@ -9,6 +9,7 @@ const NESTING: usize = 64;
 #[derive(Clone, Copy)]
 pub(crate) enum Codec {
     Json,
+    JsonText,
     Xml,
     Bytes(&'static str),
     Probe,
@@ -17,6 +18,7 @@ impl Codec {
     pub(crate) fn name(self) -> &'static str {
         match self {
             Self::Json => "application/json",
+            Self::JsonText => "text/plain",
             Self::Xml => "application/xml",
             Self::Bytes(media) => media,
             Self::Probe => "*/*",
@@ -28,8 +30,10 @@ impl Codec {
         match self {
             Self::Bytes(_) => true,
             Self::Probe => true,
-            Self::Json => {
-                name == self.name() || name.starts_with("application/") && name.ends_with("+json")
+            Self::Json | Self::JsonText => {
+                name == "application/json"
+                    || name.starts_with("application/") && name.ends_with("+json")
+                    || matches!(self, Self::JsonText) && name == "text/plain"
             }
             Self::Xml => {
                 (name == self.name()
@@ -72,152 +76,7 @@ pub trait XmlReply: Reply {
     }
 }
 
-type BodyCheck<'a> = dyn Fn(&[u8]) -> Result<(), biomcp_types::Reason> + 'a;
-type ReplyCheck<'a, T> = dyn Fn(&T) -> Result<(), crate::BadReply> + 'a;
-type RangeCheck<'a, T> =
-    dyn Fn(&T, Option<crate::ContentRange>, u16) -> Result<(), crate::BadReply> + 'a;
-type BodyNormalizer = for<'a> fn(&str, &'a [u8]) -> Cow<'a, [u8]>;
-pub(crate) struct Decoder<'a, T> {
-    validate: Option<&'a BodyCheck<'a>>,
-    check: Option<&'a ReplyCheck<'a, T>>,
-    cache_if: Option<&'a dyn Fn(&T) -> bool>,
-    codec: Codec,
-    xml_media: Option<fn(&str) -> bool>,
-    normalize_body: Option<BodyNormalizer>,
-    pub(crate) limit: Option<u64>,
-    pub(crate) json_rejections: bool,
-    pub(crate) json_absence: bool,
-    octet_stream: Option<&'static str>,
-    parse: fn(&[u8]) -> Option<T>,
-    range_check: Option<&'a RangeCheck<'a, T>>,
-}
-impl<'a, T: Reply> Decoder<'a, T> {
-    pub(crate) fn checked_json(check: &'a dyn Fn(&T) -> Result<(), crate::BadReply>) -> Self {
-        let mut codec = Self::json();
-        codec.check = Some(check);
-        codec
-    }
-    pub(crate) fn counted_json(check: &'a RangeCheck<'a, T>) -> Self {
-        let mut codec = Self::json();
-        codec.range_check = Some(check);
-        codec
-    }
-    pub(crate) fn decode_response(
-        &self,
-        body: &[u8],
-        range: Option<&str>,
-        status: u16,
-    ) -> Option<T> {
-        let reply = self.decode(body)?;
-        reply.check_status(status).ok()?;
-        if let Some(check) = self.range_check {
-            check(&reply, range.and_then(crate::ContentRange::parse), status).ok()?;
-        }
-        Some(reply)
-    }
-    pub(crate) fn checked_json_string(
-        check: &'a dyn Fn(&T) -> Result<(), crate::BadReply>,
-    ) -> Self {
-        let mut codec = Self::checked_json(check);
-        codec.parse = |body| {
-            let inner: String = serde_json::from_slice(body).ok()?;
-            serde_json::from_str(&inner).ok()
-        };
-        codec
-    }
-    pub(crate) fn json() -> Self {
-        Self {
-            codec: Codec::Json,
-            xml_media: None,
-            normalize_body: None,
-            validate: None,
-            check: None,
-            cache_if: None,
-            range_check: None,
-            octet_stream: None,
-            limit: None,
-            json_rejections: false,
-            json_absence: false,
-            parse: |body| serde_json::from_slice(body).ok(),
-        }
-    }
-    pub(crate) fn checked_xml(check: &'a dyn Fn(&T) -> Result<(), crate::BadReply>) -> Self
-    where
-        T: XmlReply,
-    {
-        let mut codec = Self::xml();
-        codec.check = Some(check);
-        codec
-    }
-    pub(crate) fn xml() -> Self
-    where
-        T: XmlReply,
-    {
-        Self {
-            codec: Codec::Xml,
-            xml_media: Some(T::accepts_media),
-            normalize_body: Some(T::normalize_body),
-            validate: None,
-            check: None,
-            cache_if: None,
-            range_check: None,
-            octet_stream: None,
-            limit: None,
-            json_rejections: false,
-            json_absence: false,
-            parse: |body| {
-                let text = std::str::from_utf8(body).ok()?;
-                let text = text.strip_prefix('\u{feff}').unwrap_or(text);
-                validate(text)?;
-                T::decode_xml(text).ok()
-            },
-        }
-    }
-    pub(crate) fn cache_if(mut self, predicate: &'a dyn Fn(&T) -> bool) -> Self {
-        self.cache_if = Some(predicate);
-        self
-    }
-    pub(crate) fn cacheable(&self, reply: &T) -> bool {
-        self.cache_if.is_none_or(|predicate| predicate(reply))
-    }
-    pub(crate) fn validate(&self, bytes: &[u8]) -> Result<(), biomcp_types::Reason> {
-        self.validate.map_or(Ok(()), |check| check(bytes))
-    }
-    pub(crate) fn binary(&self) -> bool {
-        matches!(self.codec, Codec::Bytes(_))
-    }
-    pub(crate) fn octet_stream(mut self, accepted: Option<&'static str>) -> Self {
-        self.octet_stream = accepted;
-        self
-    }
-    pub(crate) fn name(&self) -> &'static str {
-        self.codec.name()
-    }
-    pub(crate) fn accepts(&self, media: &str) -> bool {
-        self.xml_media
-            .map_or_else(|| self.codec.accepts(media), |accepts| accepts(media))
-            || self.octet_stream.is_some_and(|accepted| {
-                media
-                    .split(';')
-                    .next()
-                    .is_some_and(|value| value.trim().eq_ignore_ascii_case(accepted))
-            })
-    }
-    pub(crate) fn normalized_body<'b>(&self, media: &str, body: &'b [u8]) -> Cow<'b, [u8]> {
-        self.normalize_body
-            .map_or(Cow::Borrowed(body), |normalize| normalize(media, body))
-    }
-    pub(crate) fn decode(&self, body: &[u8]) -> Option<T> {
-        let reply = (self.parse)(body)?;
-        reply.check().ok()?;
-        if let Some(check) = self.check {
-            check(&reply).ok()?;
-        }
-        Some(reply)
-    }
-}
-
-fn validate(text: &str) -> Option<()> {
+pub(crate) fn validate(text: &str) -> Option<()> {
     let mut reader = Reader::from_str(text);
     reader.config_mut().enable_all_checks(true);
     let mut depth = 0;
@@ -364,26 +223,9 @@ impl Reply for Probe {
         Ok(())
     }
 }
-impl Decoder<'_, Probe> {
-    pub(crate) fn probe() -> Self {
-        Self {
-            codec: Codec::Probe,
-            xml_media: None,
-            normalize_body: None,
-            validate: None,
-            check: None,
-            cache_if: None,
-            range_check: None,
-            limit: None,
-            json_rejections: false,
-            json_absence: false,
-            octet_stream: None,
-            parse: |_| Some(Probe),
-        }
-    }
-}
-#[derive(serde::Deserialize)]
-pub(crate) struct Bytes(pub(crate) Vec<u8>);
+#[derive(Debug, serde::Deserialize)]
+/// Original bytes returned by a checked binary read.
+pub struct Bytes(pub Vec<u8>);
 impl Reply for Bytes {
     fn check(&self) -> Result<(), crate::BadReply> {
         Ok(())
@@ -395,48 +237,5 @@ impl Reply for Bytes {
         } else {
             Err(crate::BadReply)
         }
-    }
-}
-impl<'a> Decoder<'a, Bytes> {
-    pub(crate) fn document_media(mut self, media: crate::DocumentMedia) -> Self {
-        self.codec = Codec::Bytes(media.media());
-        self
-    }
-
-    pub(crate) fn checked_bytes(
-        limit: u64,
-        check: &'a dyn Fn(&[u8]) -> Result<(), biomcp_types::Reason>,
-    ) -> Self {
-        let mut codec = Self::bytes(limit);
-        codec.validate = Some(check);
-        codec
-    }
-    pub(crate) fn bytes(limit: u64) -> Self {
-        Self {
-            codec: Codec::Bytes("application/octet-stream"),
-            xml_media: None,
-            normalize_body: None,
-            validate: None,
-            check: None,
-            cache_if: None,
-            range_check: None,
-            octet_stream: None,
-            limit: Some(limit),
-            json_rejections: false,
-            json_absence: false,
-            parse: |body| Some(Bytes(body.to_vec())),
-        }
-    }
-}
-
-impl crate::Leg<'_> {
-    /// Apply a request-bound XML check on cache/replay reads and before live cache admission.
-    pub fn xml_received_checked<T: XmlReply>(
-        &self,
-        ep: &crate::Endpoint,
-        params: &[(&str, crate::Arg<'_>)],
-        check: impl Fn(&T) -> Result<(), crate::BadReply>,
-    ) -> Result<(T, crate::ReplyMetadata), crate::RequestError> {
-        self.parameters(ep, params, Decoder::checked_xml(&check))
     }
 }

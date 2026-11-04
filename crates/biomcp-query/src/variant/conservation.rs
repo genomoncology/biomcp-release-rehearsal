@@ -9,7 +9,7 @@ pub(super) fn section(
     candidates: &[VariantHeader],
     deadline: &mut Deadline<'_>,
 ) -> super::sections::Result<VariantConservation> {
-    let (section, sources, problems, local) =
+    let (section, sources, problems, local, dropped) =
         super::components::measurements(cx, query, candidates, deadline, true);
     let section = match section {
         Section::Data { source, data } => Section::Data {
@@ -26,5 +26,5 @@ pub(super) fn section(
         Section::Skipped { source, reason } => Section::Skipped { source, reason },
         Section::NotApplicable => Section::NotApplicable,
     };
-    (section, sources, problems, local)
+    (section, sources, problems, local, dropped)
 }

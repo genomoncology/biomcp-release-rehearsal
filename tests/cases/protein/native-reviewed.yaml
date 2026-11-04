@@ -1,0 +1,23 @@
+{
+  "feature": "protein-search",
+  "live_check": "public",
+  "story": "A caller explicitly keeps reviewed human scope while searching the existing exact gene.",
+  "verified": "UniProt CC BY 4.0. Original body SHA256 512a575aa491b7de33fc93fcbb49a017637941a0c795767294ba0e2641134687. Pagination comes from original X-Total-Results and Link headers, retained with the original body outside Git. Captured 2026-10-30.",
+  "replay": "protein/native-reviewed",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "protein",
+        "--gene",
+        "EGFR",
+        "--reviewed"
+      ],
+      "expect": {
+        "/result/items/0/protein/accession": "P00533",
+        "/page/total": 1,
+        "/query/reviewed": true
+      }
+    }
+  ]
+}

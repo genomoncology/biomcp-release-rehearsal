@@ -1,5 +1,9 @@
 # Source and entity cautions
 
+## Cache and store storage
+
+Keep cache and store folders on a local disk, or a local Docker named volume. Sharing one cache between several processes through a Docker Desktop host bind mount or a network filesystem is unsupported and can lose cache writes. [SQLite WAL](https://www.sqlite.org/wal.html#overview) requires processes to share memory on the same host and does not support network filesystems. See [cache and store configuration](configuration.md#cache-and-store-folders) for folder selection and Docker storage.
+
 ## Article text and supplement saves
 
 CLI saves require `--replace` for existing files. Stdio MCP allows new-file saves and refuses `--save` with `--replace` before provider requests or file changes. HTTP server calls refuse saves. CLI and stdio MCP saves belong to the caller and create no download directory or saved-file registry.
@@ -7,6 +11,10 @@ CLI saves require `--replace` for existing files. Stdio MCP allows new-file save
 ## Trial documents
 
 The reply preserves the source URL, document metadata and license without granting reuse rights. Documents are downloaded as bounded PDF bytes and never read as text.
+
+## FDA approval documents
+
+`get diagnostic P170019 summary --source fda-pma` reads FDA's published SSED. `get drug NDA021588 approvals --source drugsfda --document-id 64255` reads the native submission's approval letter. The reader returns mechanically extracted embedded text, without summaries or clinical interpretation. It admits at most 25 MiB, 100 pages, and 4 MiB of expanded stream or total text. Each continuation returns at most 6144 escaped text bytes. `no-text` means no embedded text was found, including scanned documents; OCR is not run. `too-large` reports a reader bound. Native document URLs and submission ownership remain visible.
 
 ## Variant profiles, normalization and search
 
@@ -132,3 +140,34 @@ Each source keeps its own outcome and release dates. Composite reads never reque
 Each record keeps GenCC's submission ID, version, submitter, disease, inheritance, classification and dates in file order. BioMCP neither merges submissions nor ranks classifications. An empty section means the stored export contains no matching rows.
 
 GenCC documents its new-format CSV export, weekly publication cadence, conditional requests and download policy on its [download page](https://thegencc.org/download). Its [terms](https://thegencc.org/terms) identify CC0 1.0 and request attribution to GenCC and its contributors. The [GenCC publication](https://pmc.ncbi.nlm.nih.gov/articles/PMC7613247/) describes the submission fields.
+
+ClinicalTrials.gov records keep valid fields when a status, date, phase or other nonidentity value cannot map. The reply reports a field problem and omits the rejected value. An invalid NCT ID excludes its study from a search page or fails that exact record request. Overall status values follow the [publisher enum metadata](https://clinicaltrials.gov/api/v2/studies/enums), including `TEMPORARILY_NOT_AVAILABLE`.
+
+The trial page, trial card, trial header and trial document result schemas change major versions because rejected source fields can now be null. Existing valid source values keep their wire representation.
+
+A rejected registry age value stays unknown. It does not become the source’s missing-age state. Nonblank native text keeps its original bytes; blank native text is omitted with a field problem.
+
+
+## NCI organizations
+
+`search organization --source nci` sends NCI's documented name, city, state or province, country, postal code, organization family and coordinate radius selectors. `--name` uses the publisher's partial match. Names are not unique, and NCI publishes no organization ID. Each search row includes the exact source name, location, trial count and optional published address, coordinates, family and public contacts. There is no organization get command.
+
+The count covers trials of every status, including closed trials. It does not count recruiting trials alone. One bounded unsized request supplies the complete organization observation. Returned page commands retain that snapshot and page it locally. A too-broad refusal names the filters that can narrow the request. Source bucket failures remain failures and never establish zero matches.
+
+NCI trial facility searches use `sites.org_name` for an exact case-insensitive organization name. Each organization row offers this search as its next command. Each trial header shows the first locally equal site in publisher order and the number of equal sites. Site name, city, state and recruitment status retain source values. A listed site is not necessarily enrolling. If no returned site equals the requested name, the trial keeps its position and reports a `sites.org_name` problem. NCI facility searches refuse radius filters because NCI does not document that these filters bind one site.
+
+## NCI biomarker concepts
+
+`search biomarker --source nci --name PD-L1` searches NCI's native concept names and synonyms. `get biomarker C96022` searches by an exact NCIt code. Both require the user's NCI key. The public tier returns codes, name, type, trial count, synonyms, parent and ancestor codes, and native `eligibility_criterion` values. A code can return several native rows; BioMCP then returns candidates without choosing one. Counts cover NCI trials across statuses.
+
+These commands return terminology. `search diagnostic --biomarker` filters diagnostic tests, and `search trial --variant` searches literal variant text. Native inclusion and exclusion values remain source assertions and do not establish patient eligibility. Search pages retain one bounded observation. A broad request can return narrowing guidance; a source failure never establishes zero concepts.
+
+## Medical device recalls
+
+`search diagnostic --source fda-device-recall` covers every medical device. It searches the native recalling firm phrase, exact product code and inclusive initiation dates. The [FDA field mapping](https://github.com/FDA/openfda/blob/master/schemas/device_recall_mapping.json) defines `product_code` as a keyword field and `product_res_number.exact` as the exact recall identity. Totals count product recall records, including separate records under one event number. A count makes no claim about harm.
+
+The card preserves the recall's reason, root cause, product description and distribution pattern. Its submission numbers come only from top-level `k_numbers` and `pma_numbers` in the [device recall fields](https://open.fda.gov/apis/device/recall/searchable-fields/). Harmonized `openfda` identifiers describe the product code and never populate the card. One exact [device enforcement](https://open.fda.gov/apis/device/enforcement/) recall-number lookup supplies classification when present; absence leaves classification absent. A failed lookup preserves the recall card and discloses a partial result.
+
+The MAUDE next step selects the recall's product code across manufacturers. Recall records and adverse-event reports remain separate source facts. Neither establishes product-specific harm or clinical suitability.
+
+openFDA label search first tries exact brand and generic fields, then word matches, then label text (including indications) when the name fields have no results. A source match need not be the complete product name; `matched_name` records complete name matches separately. Display names use the first brand, generic, or `spl_product_data_elements` value, in that order, falling back to the source SPL set ID when all are absent. Product data is original source text, not an inferred name. Paging preserves the selected source query and its native total.

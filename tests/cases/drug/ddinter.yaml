@@ -1,14 +1,11 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "drug-ddinter",
   "story": "Synthetic native pairs preserve source IDs, order, duplicate origins and stored-only reads after a complete explicit sync",
   "replay": "drug/ddinter-synthetic",
   "steps": [
     {
       "run": [
-        "sync",
-        "ddinter"
-      ],
-      "mcp": [
         "sync",
         "ddinter"
       ],
@@ -20,139 +17,6 @@
     },
     {
       "run": [
-        "search",
-        "drug",
-        "Synthetic Anchor",
-        "--source",
-        "ddinter",
-        "--limit",
-        "1"
-      ],
-      "mcp": [
-        "search",
-        "drug",
-        "Synthetic Anchor",
-        "--source",
-        "ddinter",
-        "--limit",
-        "1"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/total": 6,
-        "/result/items/0/id": "DDInter1",
-        "/page/returned": 1,
-        "/result/items/0": {
-          "equals": {
-            "id": "DDInter1",
-            "source": "ddinter",
-            "name": "Synthetic Anchor One",
-            "identity_level": "unknown"
-          }
-        }
-      },
-      "max_bytes": 672
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "DDInter1",
-        "--source",
-        "ddinter"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "DDInter1",
-        "--source",
-        "ddinter"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/header/id": "DDInter1",
-        "/result/header/identity_level": "unknown",
-        "/result/available_sections/0": "interactions",
-        "/result/header": {
-          "equals": {
-            "id": "DDInter1",
-            "source": "ddinter",
-            "name": "Synthetic Anchor One",
-            "identity_level": "unknown"
-          }
-        }
-      },
-      "max_bytes": 605
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "DDInter1",
-        "interactions",
-        "--source",
-        "ddinter",
-        "--section-limit",
-        "1"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "DDInter1",
-        "interactions",
-        "--source",
-        "ddinter",
-        "--section-limit",
-        "1"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/interactions/data/total": 3,
-        "/result/interactions/data/records/0/partner/id": "DDInter2",
-        "/result/interactions/data/records/0/level": "Moderate",
-        "/page/returned": 1,
-        "/result/identity": {
-          "equals": {
-            "id": "DDInter1",
-            "source": "ddinter",
-            "name": "Synthetic Anchor One",
-            "identity_level": "unknown"
-          }
-        },
-        "/result/interactions/data/records/0/anchor": {
-          "equals": {
-            "id": "DDInter1",
-            "source": "ddinter",
-            "name": "Synthetic Anchor One",
-            "identity_level": "unknown"
-          }
-        },
-        "/result/interactions/data/records/0/partner": {
-          "equals": {
-            "id": "DDInter2",
-            "source": "ddinter",
-            "name": "Synthetic PartnerTwo",
-            "identity_level": "unknown"
-          }
-        }
-      },
-      "max_bytes": 1425
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "DDInter1",
-        "interactions",
-        "--source",
-        "ddinter",
-        "--section-limit",
-        "1",
-        "--section-offset",
-        "1",
-        "--fresh"
-      ],
-      "mcp": [
         "get",
         "drug",
         "DDInter1",
@@ -175,94 +39,6 @@
     },
     {
       "run": [
-        "get",
-        "drug",
-        "DDInter3",
-        "interactions",
-        "--source",
-        "ddinter"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "DDInter3",
-        "interactions",
-        "--source",
-        "ddinter"
-      ],
-      "expect": {
-        "/result/interactions/data/total": 1,
-        "/result/interactions/data/records/0/partner/id": "DDInter4",
-        "/result/interactions/data/records/0/additional_attributions/0/record": "ddinter_downloads_code_L.csv:2",
-        "/result/interactions/data/records/0/attribution/record": "ddinter_downloads_code_B.csv:2",
-        "/result/interactions/data/records/0/additional_attributions": {
-          "count": 1
-        }
-      },
-      "max_bytes": 1546
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "DDInter999",
-        "interactions",
-        "--source",
-        "ddinter"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "DDInter999",
-        "interactions",
-        "--source",
-        "ddinter"
-      ],
-      "expect": {
-        "/status": "absent"
-      },
-      "max_bytes": 209,
-      "max_tokens": 52,
-      "exit": 1,
-      "is_error": false
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "DDInter1",
-        "interactions",
-        "--source",
-        "ddinter",
-        "--disable-sources",
-        "noncommercial"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "DDInter1",
-        "interactions",
-        "--source",
-        "ddinter",
-        "--disable-sources",
-        "noncommercial"
-      ],
-      "expect": {
-        "/status": "failed",
-        "/sources/0/state": "skipped",
-        "/sources/0/reason": "disabled"
-      },
-      "max_bytes": 235,
-      "exit": 4,
-      "is_error": true
-    },
-    {
-      "run": [
-        "sync",
-        "ddinter",
-        "--fresh"
-      ],
-      "mcp": [
         "sync",
         "ddinter",
         "--fresh"

@@ -9,12 +9,7 @@
           "--offset",
           "--ontology",
           "--source",
-          "text",
-          "--format",
-          "--disable-sources",
-          "--config",
-          "--offline",
-          "--fresh"
+          "text"
         ],
         "/result/commands/0/arguments/2/choices": [
           "mondo",
@@ -26,16 +21,11 @@
           "disease"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
       "max_bytes": 2311,
-      "mcp": [
-        "help",
-        "search",
-        "disease"
-      ],
       "run": [
         "help",
         "search",
@@ -56,19 +46,14 @@
           "--section-limit",
           "--section-offset",
           "--sex",
-          "--source",
-          "--format",
-          "--disable-sources",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--source"
         ],
         "/result/commands/0/command": [
           "get",
           "disease"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "synonyms",
@@ -82,11 +67,6 @@
         "/status": "complete"
       },
       "max_bytes": 4433,
-      "mcp": [
-        "help",
-        "get",
-        "disease"
-      ],
       "run": [
         "help",
         "get",

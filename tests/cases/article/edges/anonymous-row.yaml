@@ -16,17 +16,6 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "article",
-        "references",
-        "33123537",
-        "--source",
-        "semantic-scholar",
-        "--offset",
-        "112",
-        "--limit",
-        "1"
-      ],
       "expect": {
         "/status": "complete",
         "/page/total": 116,

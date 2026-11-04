@@ -1,0 +1,37 @@
+{
+  "deadline_seconds": 25,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "manufacturer",
+      "source": "maude",
+      "url": "https://api.fda.gov/device/event.json?search=device.manufacturer_d_name%3A%22ABBOTT%22&limit=1&skip=0&sort=date_received%3Adesc",
+      "response_format": "json"
+    },
+    {
+      "id": "code",
+      "source": "maude",
+      "url": "https://api.fda.gov/device/event.json?search=device.device_report_product_code.exact%3A%22OOI%22&limit=1&skip=0&sort=date_received%3Adesc",
+      "response_format": "json"
+    },
+    {
+      "id": "codes",
+      "source": "maude",
+      "url": "https://api.fda.gov/device/event.json?search=%28device.device_report_product_code.exact%3A%22OOI%22+OR+device.device_report_product_code.exact%3A%22QKP%22%29&limit=1&skip=0&sort=date_received%3Adesc",
+      "response_format": "json"
+    },
+    {
+      "id": "problem",
+      "source": "maude",
+      "url": "https://api.fda.gov/device/event.json?search=product_problems%3A%22False+Positive+Result%22&limit=1&skip=0&sort=date_received%3Adesc",
+      "response_format": "json"
+    },
+    {
+      "id": "unknown",
+      "source": "maude",
+      "url": "https://api.fda.gov/device/event.json?search=device.device_report_product_code.exact%3A%22UNKNOWNCODE%22&limit=1&skip=0&sort=date_received%3Adesc",
+      "response_format": "json"
+    }
+  ]
+}

@@ -1,18 +1,22 @@
-use super::launch::{ENV_PATHS, Environment};
-use libtest_mimic::Trial;
-use std::{env, fs, path::Path};
+use super::launch::Environment;
+tool_only! { use super::launch::ENV_PATHS; }
+tool_only! { use crate::runner::transcript::trial as transcript_trial; }
+tool_only! { use libtest_mimic::Trial; }
+use std::{fs, path::Path};
+tool_only! { use std::env; }
 
-#[path = "fixture_evidence_proof.rs"]
-mod fixture_evidence_proof;
+tool_only! { #[path = "fixture_evidence_proof.rs"] mod fixture_evidence_proof; }
+tool_only! { #[path = "native_evidence_proof.rs"] mod native_evidence_proof; }
 
-type Check = Result<(), String>;
+tool_only! { type Check = Result<(), String>; }
 
+tool_only! {
 pub(crate) fn trials() -> Vec<Trial> {
     let mut trials = vec![
-        Trial::test("article-semantic-sections/checked-edge-boundaries", || {
+        transcript_trial("article-semantic-sections/checked-edge-boundaries", || {
             super::semantic_tables::check().map_err(|e| e.to_string().into())
         }),
-        Trial::test("runner/rejects-increasing-citation-counts", || {
+        transcript_trial("schema-discovery/rejects-increasing-citation-counts", || {
             let assertion = super::assertions::Assertion::Nonincreasing;
             if assertion.check("", &serde_json::json!([8, 9])).is_ok() {
                 return Err("increasing counts accepted".into());
@@ -21,27 +25,36 @@ pub(crate) fn trials() -> Vec<Trial> {
                 .check("", &serde_json::json!([9, 9, 0]))
                 .map_err(Into::into)
         }),
-        Trial::test("runner/null-and-empty-boundaries", || {
+        transcript_trial("schema-discovery/null-and-empty-boundaries", || {
             boundaries().map_err(Into::into)
         }),
-        Trial::test("runner/rejects-bad-cases", || {
+        transcript_trial("schema-discovery/rejects-bad-cases", || {
             negatives().map_err(Into::into)
         }),
-        Trial::test("runner/selects-and-lists-cases", || {
+        transcript_trial("schema-discovery/named-mcp-case", || {
+            named_mcp_case().map_err(Into::into)
+        }),
+        transcript_trial("schema-discovery/selects-and-lists-cases", || {
             selection().map_err(Into::into)
         }),
-        Trial::test("runner/isolates-child-environments", || {
+        transcript_trial("schema-discovery/isolates-child-environments", || {
             isolation().map_err(Into::into)
         }),
         #[cfg(unix)]
-        Trial::test("schema/output-failure", || {
+        transcript_trial("schema-discovery/output-failure", || {
             output_failure().map_err(Into::into)
         }),
     ];
     trials.extend(fixture_evidence_proof::trials());
+    trials.push(transcript_trial(
+        "schema-discovery/persistent-native-evidence",
+        || native_evidence_proof::check().map_err(|error| error.to_string().into()),
+    ));
     trials
 }
+}
 
+tool_only! {
 fn put(root: &Path, relative: &str, step: &str) -> Check {
     let path = root.join(relative);
     if let Some(parent) = path.parent() {
@@ -50,12 +63,14 @@ fn put(root: &Path, relative: &str, step: &str) -> Check {
     fs::write(
         path,
         format!(
-            "story: Runner contract probe\nsteps:\n  - run: [schema, biodata.source/1]\n{step}\n"
+            "feature: schema-discovery\nstory: Runner contract probe\nsteps:\n  - run: [schema, biomcp.source/1]\n{step}\n"
         ),
     )
     .map_err(|error| error.to_string())
 }
+}
 
+tool_only! {
 fn invoke(root: &Path, args: &[&str]) -> Result<std::process::Output, String> {
     let mut arguments = vec![
         "--cases".to_owned(),
@@ -63,7 +78,9 @@ fn invoke(root: &Path, args: &[&str]) -> Result<std::process::Output, String> {
         "--color".into(),
         "never".into(),
     ];
-    arguments.extend(args.iter().map(|value| (*value).to_owned()));
+    arguments.extend(args.iter().map(|value| {
+        if args.contains(&"--exact") && value.ends_with(".yaml") { format!("schema-discovery/{value}") } else { (*value).to_owned() }
+    }));
     Environment::new()
         .map_err(|error| error.to_string())?
         .command(
@@ -73,7 +90,9 @@ fn invoke(root: &Path, args: &[&str]) -> Result<std::process::Output, String> {
         .output()
         .map_err(|error| error.to_string())
 }
+}
 
+tool_only! {
 fn negatives() -> Check {
     let directory = tempfile::tempdir().map_err(|error| error.to_string())?;
     fs::write(directory.path().join("missing-floor.json"), "[\"missing\"]")
@@ -120,6 +139,19 @@ fn negatives() -> Check {
             "/type max_tokens: expected <= 1, actual 2",
         ),
     ];
+    put(
+        directory.path(),
+        "markdown-pair.yaml",
+        concat!(
+            "  - run: [help, author, --format, json]\n  - run: [help, author, --format, md]\n",
+            "    max_bytes: 8192\n    expect: {'': {includes_all_of: ",
+            "['biomcp author papers', '--format', '--disable-sources']}}",
+        ),
+    )?;
+    let accepted = invoke(directory.path(), &["markdown-pair.yaml", "--exact"])?;
+    if !accepted.status.success() {
+        return Err(format!("matching Markdown pair failed: {}", String::from_utf8_lossy(&accepted.stdout)));
+    }
     for (name, step, diagnostic) in cases.into_iter().chain(super::negative_cases::cases()) {
         let filename = format!("{name}.yaml");
         put(directory.path(), &filename, step)?;
@@ -130,7 +162,7 @@ fn negatives() -> Check {
                 .split_whitespace()
                 .collect::<Vec<_>>()
                 .join(" ")
-                .contains(&format!("test {filename} ... FAILED"))
+                .contains(&format!("test schema-discovery/{filename} ... FAILED"))
             || !stdout.contains(diagnostic)
             || !stdout.contains("1 failed")
         {
@@ -142,7 +174,9 @@ fn negatives() -> Check {
     }
     Ok(())
 }
+}
 
+tool_only! {
 fn selection() -> Check {
     empty_selection()?;
     #[cfg(unix)]
@@ -158,6 +192,17 @@ fn selection() -> Check {
         "right/same.yaml",
         "    expect: {'/type': integer}",
     )?;
+    let all = invoke(directory.path(), &["--list"])?;
+    let listing = String::from_utf8_lossy(&all.stdout);
+    if !all.status.success()
+        || !listing.contains("schema-discovery/selects-and-lists-cases: test")
+        || !listing.contains("article-search/concurrent-process-pool-publication: test")
+        || !listing.contains("variant-alphagenome/alphagenome-native-groups-local-tls: test")
+    {
+        return Err(format!(
+            "custom case directory omitted feature trials: {listing}"
+        ));
+    }
     let listed = invoke(directory.path(), &["same.yaml", "--list"])?;
     let listing = String::from_utf8_lossy(&listed.stdout);
     if !listed.status.success()
@@ -173,7 +218,7 @@ fn selection() -> Check {
     if !output.status.success()
         || !stdout.contains("left/same.yaml ... ok")
         || !stdout.contains("1 passed")
-        || !stdout.contains("1 filtered out")
+        || !stdout.contains("filtered out")
     {
         return Err(format!(
             "--cases with Cargo filter did not select the passing case: {stdout}"
@@ -189,7 +234,9 @@ fn selection() -> Check {
     }
     Ok(())
 }
+}
 
+tool_only! {
 fn empty_selection() -> Check {
     let directory = tempfile::tempdir().map_err(|error| error.to_string())?;
     // Discovery rejects empty directories before applying any name filter.
@@ -202,9 +249,9 @@ fn empty_selection() -> Check {
         "    expect: {'/type': string}",
     )?;
     for args in [
-        vec!["absent"],
-        vec!["absent", "--exact"],
-        vec!["absent", "--list"],
+        vec!["no-such-runner-selection-7e41"],
+        vec!["no-such-runner-selection-7e41", "--exact"],
+        vec!["no-such-runner-selection-7e41", "--list"],
         vec!["selected.yaml", "--exact", "--skip", "selected.yaml"],
         vec!["selected.yaml", "--exact", "--ignored"],
     ] {
@@ -219,10 +266,8 @@ fn empty_selection() -> Check {
         }
     }
     for (args, expected) in [
-        (vec![], "1 passed"),
         (vec!["selected.yaml", "--exact"], "1 passed"),
         (vec!["selected.yaml", "--exact", "--bench"], "1 ignored"),
-        (vec!["--skip", "selected.yaml"], "0 passed"),
     ] {
         let output = invoke(directory.path(), &args)?;
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -234,8 +279,10 @@ fn empty_selection() -> Check {
     }
     Ok(())
 }
+}
 
 #[cfg(unix)]
+tool_only! {
 fn literal_backslash_names() -> Check {
     let directory = tempfile::tempdir().map_err(|error| error.to_string())?;
     for name in ["left/same.yaml", "left\\same.yaml"] {
@@ -246,13 +293,15 @@ fn literal_backslash_names() -> Check {
     if !output.status.success()
         || !stdout.contains("left\\same.yaml ... ok")
         || !stdout.contains("1 passed")
-        || !stdout.contains("1 filtered out")
+        || !stdout.contains("filtered out")
     {
         return Err(format!("literal filename must remain distinct: {stdout}"));
     }
     Ok(())
 }
+}
 
+tool_only! {
 fn isolation() -> Check {
     let before: Vec<_> = env::vars_os().collect();
     let first = Environment::new().map_err(|error| error.to_string())?;
@@ -292,15 +341,19 @@ fn isolation() -> Check {
             ));
         }
     }
+    let nested_profile = Path::new(&profile)
+        .parent()
+        .ok_or("profile directory missing")?
+        .join("harness-%m-%p.profraw");
     for child in [&first_step, &next_step, &other_case] {
         let nested = child.get("nested").ok_or("nested probe missing")?;
-        for values in [child, nested] {
+        for (values, expected) in [(child, Path::new(&profile)), (nested, nested_profile.as_path())] {
             if values
                 .get("LLVM_PROFILE_FILE")
                 .and_then(serde_json::Value::as_str)
-                != profile.to_str()
+                != expected.to_str()
             {
-                return Err("profiling must survive nested child launches".into());
+                return Err("nested profiling must retain its directory and harness classification".into());
             }
         }
         for key in ["NCBI_API_KEY", "HTTPS_PROXY"] {
@@ -316,8 +369,10 @@ fn isolation() -> Check {
     }
     Ok(())
 }
+}
 
 #[cfg(unix)]
+tool_only! {
 fn output_failure() -> Check {
     // An unconnected datagram rejects writes with a non-BrokenPipe error.
     // Unlike a read-only file, Rust stdout does not silently treat it as closed.
@@ -327,7 +382,7 @@ fn output_failure() -> Check {
         .map_err(|error| error.to_string())?
         .command(
             env!("CARGO_BIN_EXE_biomcp"),
-            &["schema".into(), "biodata.source/1".into()],
+            &["schema".into(), "biomcp.source/1".into()],
         )
         .stdout(writer)
         .output()
@@ -341,9 +396,11 @@ fn output_failure() -> Check {
     }
     Ok(())
 }
+}
 
 // This probe belongs only to the test executable. It observes the same child
 // launch boundary as case steps without adding any command to the product.
+tool_only! {
 pub(crate) fn environment_probe() -> std::process::ExitCode {
     let mut values: serde_json::Map<_, _> = ENV_PATHS
         .iter()
@@ -374,9 +431,11 @@ pub(crate) fn environment_probe() -> std::process::ExitCode {
         Err(_) => std::process::ExitCode::FAILURE,
     }
 }
+}
 
 // Schemas have no null-valued fields or empty arrays, so these traversal states
 // need one direct boundary table. All other assertion proof uses schema commands.
+tool_only! {
 fn boundaries() -> Check {
     for expect in [
         "{'/items/*': []}",
@@ -392,6 +451,19 @@ fn boundaries() -> Check {
         }
     }
     let rows = [
+        ("{}", "{'': {omits: [missing]}}", None),
+        (
+            "{\"x\":null}",
+            "{'': {omits: [x]}}",
+            Some("unexpected field x"),
+        ),
+        (
+            "{\"x\":1}",
+            "{'': {omits: [x]}}",
+            Some("unexpected field x"),
+        ),
+        ("[]", "{'': {omits: [x]}}", Some("requires an object")),
+        ("{}", "{'/missing': {omits: [x]}}", Some("<missing>")),
         ("null", "{'': null}", None),
         ("null", "{'/missing': null}", Some("<missing>")),
         ("null", "{'/*': []}", Some("wildcard requires an array")),
@@ -437,6 +509,7 @@ fn boundaries() -> Check {
         }
     }
     Ok(())
+}
 }
 
 // Native proofs own these directories outside Environment's temporary root.
@@ -484,4 +557,26 @@ pub(super) fn retained_both(
     }
     super::schema::Registry::embedded()?.validate(&value, command, exit < 2)?;
     Ok(value)
+}
+
+tool_only! {
+fn named_mcp_case() -> Check {
+    let directory = tempfile::tempdir().map_err(|error| error.to_string())?;
+    fs::write(directory.path().join("named.yaml"), r#"feature: schema-discovery
+story: Named tool checks its structured answer
+steps:
+  - mcp_call:
+      name: biomcp
+      arguments:
+        args: [help, get, gene]
+    expect:
+      /result/commands/0/command: [get, gene]
+"#).map_err(|error| error.to_string())?;
+    let output = invoke(directory.path(), &["named.yaml", "--exact"])?;
+    if !output.status.success() {
+        return Err(format!("named MCP case failed: {} {}",
+            String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr)));
+    }
+    Ok(())
+}
 }

@@ -1,9 +1,9 @@
 # biodata is the base data layer
 
-Decided 2026-10-23 by Ian.
+Decided 2026-10-23 by Ian. Updated 2026-10-31 to describe the approved separation of neutral values and consumer contracts.
 
-- This repo has a `biodata` crate. It holds the typed values for every entity BioMCP serves: genes, variants, articles, trials, drugs, diseases and the rest, with their identifiers, closed sets, query types, response types and schemas.
-- `biodata` has no command of its own. The `biomcp` binary is its only command.
-- `biodata` does no I/O, and its `clippy.toml` enforces that. Adapters map source replies into its values. It never fetches, caches or ranks.
-- It names no other project and depends on no other crate in this workspace, because it may later merge with another biodata crate into one open-source crate.
-- Its rules are in `planning/rust-standards.md`.
+The `biodata` crate holds neutral entity values, identifiers, coordinates, notation and vocabularies. It has no command, imports no workspace crate and performs no I/O. Adapters map publisher values into these checked values. It never fetches, caches or ranks.
+
+`biomcp-types` holds BioMCP requests, replies, source identities and their schemas. It imports `biodata` without a reverse dependency. These consumer contracts no longer belong to the neutral value crate.
+
+`crates/biomcp/tests/ratchets/dependencies.rs` enforces the dependency direction. `crates/biodata/clippy.toml` enforces I/O and mutable-state restrictions. `crates/biomcp-types/tests/schemas/ownership.rs` checks schema ownership. The architecture describes the layers; source declarations and schema registries own their inventories.

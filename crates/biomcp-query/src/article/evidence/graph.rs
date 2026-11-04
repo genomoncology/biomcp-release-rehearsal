@@ -1,4 +1,4 @@
-use super::{Snapshot, bad, source};
+use super::{Snapshot, source};
 use crate::{Ctx, Outcome, status};
 use biodata::{Doi, Pmid};
 
@@ -38,15 +38,16 @@ pub(super) fn target<'a>(
             input => pubmed::resolve_ids(&leg, input, cx.ncbi_email.as_ref())?,
         };
         if ids.len() != 1 {
-            return Err(bad());
+            return Err(biomcp_fetch::bad_reply(Source::SemanticScholar, None));
         }
         let mapped = pubmed::summaries(&leg, &ids, cx.ncbi_email.as_ref())?;
+        out.include_refusals(mapped.refusals);
         status::append(&mut out.problems, mapped.problems);
         let header = mapped
             .value
             .into_iter()
             .find(|h| h.pmid == ids.first().copied())
-            .ok_or_else(bad)?;
+            .ok_or_else(|| biomcp_fetch::bad_reply(Source::SemanticScholar, None))?;
         Ok(Target {
             pmid: header.pmid,
             doi: header.doi,
@@ -101,20 +102,11 @@ pub(super) fn read<'a>(
     for _ in 0..5 {
         match semantic_scholar::edges(&leg, query.citing(), true, snapshot.cursor) {
             Ok(reply) => {
+                out.include_refusals(reply.refusals);
+                out.problems.extend(reply.problems);
                 for edge in reply.data {
-                    let matches = edge
-                        .cited_paper
-                        .as_ref()
-                        .and_then(|p| p.external_ids.as_ref())
-                        .is_some_and(|ids| {
-                            target.pmid.is_some() && ids.pubmed == target.pmid
-                                || ids
-                                    .doi
-                                    .as_ref()
-                                    .zip(target.doi.as_ref())
-                                    .is_some_and(|(a, b)| a == b)
-                        });
-                    if matches {
+                    out.problems.extend(edge.problems.clone());
+                    if matches_target(&edge, &target) {
                         retain(snapshot, edge)?;
                     }
                 }
@@ -128,7 +120,7 @@ pub(super) fn read<'a>(
                         snapshot.cursor = Some(next)
                     }
                     Some(_) => {
-                        result = Err(bad());
+                        result = Err(biomcp_fetch::bad_reply(Source::SemanticScholar, None));
                         break;
                     }
                 }
@@ -169,7 +161,8 @@ fn retain(snapshot: &mut Snapshot, edge: semantic_scholar::Edge) -> Result<(), R
     for (index, text) in edge.contexts.unwrap_or_default().into_iter().enumerate() {
         for (offset, text) in super::page::split(&text) {
             contexts.push(EvidenceContext {
-                position: u32::try_from(index + 1).map_err(|_| bad())?,
+                position: u32::try_from(index + 1)
+                    .map_err(|_| biomcp_fetch::bad_reply(Source::SemanticScholar, None))?,
                 character_offset: offset,
                 text: text.into(),
             });
@@ -231,4 +224,18 @@ fn finish(snapshot: &mut Snapshot) {
             },
         };
     }
+}
+
+fn matches_target(edge: &semantic_scholar::Edge, target: &Target) -> bool {
+    edge.cited_paper
+        .as_ref()
+        .and_then(|p| p.external_ids.as_ref())
+        .is_some_and(|ids| {
+            target.pmid.is_some() && ids.pubmed == target.pmid
+                || ids
+                    .doi
+                    .as_ref()
+                    .zip(target.doi.as_ref())
+                    .is_some_and(|(a, b)| a == b)
+        })
 }

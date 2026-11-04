@@ -1,6 +1,7 @@
 //! Public checked query boundaries used by CLI and MCP.
 use biodata::Text;
 use biomcp_types::GeneInput;
+use biomcp_types::Paged;
 use biomcp_types::{GeneGet, GeneSearch};
 use serde_json::json;
 #[test]

@@ -1,36 +1,44 @@
 //! Transport-owned SQLite schema. Other owners and tables remain untouched.
-#![expect(
-    clippy::disallowed_types,
-    reason = "Serialize only SQL on one connection shared by transport legs"
-)]
 use crate::{CacheError, Deadline};
 use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
+mod admission;
 #[cfg(test)]
 mod contention;
 mod schema;
 pub use schema::{SchemaOwner, check_owners};
 pub(crate) use schema::{check_current_owners, check_predecessor, db_error};
+#[expect(
+    clippy::disallowed_types,
+    reason = "Share bounded transport state across the request owners named by this module"
+)]
 use std::{
     path::Path,
-    sync::Mutex,
+    sync::{Mutex, RwLock},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 /// Transport SQLite schema version checked by other owners of the shared database.
-pub const VERSION: u32 = 4;
+pub const VERSION: u32 = 5;
 /// Compatible cache namespace used by callers when naming shared cache files.
 pub const CACHE_NAMESPACE_VERSION: u32 = 1;
 const OWNER: &str = "biomcp-fetch";
+/// Retain expired replies for stale and offline fallback before automatic pruning.
+pub const STALE_GRACE_SECONDS: i64 = 30 * 24 * 60 * 60;
 const OPEN_WAIT: Duration = Duration::from_secs(5);
 
 // One connection is shared by source legs. Its lock covers only SQLite work;
 // callers decode and check owned bytes after the guard has been released.
 #[derive(Debug)]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Serialize only SQL on the connection shared by transport legs"
+)]
 pub(crate) struct Cache(
     Mutex<Connection>,
     pub(crate) std::path::PathBuf,
     pub(crate) std::path::PathBuf,
     Mutex<()>,
+    RwLock<()>,
 );
 
 #[derive(Debug, serde::Serialize)]
@@ -67,19 +75,22 @@ impl Cache {
             &self.2,
             OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_URI,
         )
-        .map_err(db_error)?;
+        .map_err(|error| db_error(error))?;
         let version = connection
             .query_row("SELECT version FROM meta WHERE owner=?1", [OWNER], |row| {
                 row.get::<_, u32>(0)
             })
             .optional()
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         if version != Some(VERSION) {
             return Err(CacheError::Version);
         }
         Ok(connection)
     }
-
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Serialize only SQL on the connection shared by transport legs"
+    )]
     pub(crate) fn open_with_owners(
         path: &Path,
         owners: &[SchemaOwner],
@@ -95,27 +106,30 @@ impl Cache {
             {
                 Ok(_) => {}
                 Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
-                Err(_) => return Err(CacheError::Database),
+                Err(_) => return Err(CacheError::Filesystem),
             }
         }
-        let mut connection = Connection::open(path).map_err(db_error)?;
+        let mut connection = Connection::open(path).map_err(|error| db_error(error))?;
         check_owners(&connection, owners)?;
-        connection.busy_timeout(OPEN_WAIT).map_err(db_error)?;
+        connection
+            .busy_timeout(OPEN_WAIT)
+            .map_err(|error| db_error(error))?;
         Self::initialize(&mut connection)?;
         // Ownership is validated before changing the file's journal mode.
         let journal: String = connection
             .pragma_query_value(None, "journal_mode", |row| row.get(0))
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         if !journal.eq_ignore_ascii_case("wal") {
             connection
                 .pragma_update(None, "journal_mode", "WAL")
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
         }
         Ok(Self(
             Mutex::new(connection),
             path.with_extension("parts"),
             path.to_owned(),
             Mutex::new(()),
+            RwLock::new(()),
         ))
     }
 
@@ -126,9 +140,22 @@ impl Cache {
         deadline: Deadline<'_>,
         operation: impl FnOnce(&Connection) -> Result<T, CacheError>,
     ) -> Result<T, CacheError> {
-        let connection = wait_mutex(&self.0, deadline, &deadline.local())?;
+        let connection = wait_mutex(&self.0, deadline, &deadline.local(), None)?;
         sql_deadline(&connection, deadline)?;
         operation(&connection)
+    }
+
+    // Other schema owners retain the same connection guard around their callback.
+    // Optional transport reads may bypass this hold so network work can progress.
+    pub(crate) fn admit<T>(
+        &self,
+        deadline: Deadline<'_>,
+        operation: impl FnOnce() -> Result<T, CacheError>,
+    ) -> Result<T, CacheError> {
+        let connection = wait_mutex(&self.0, deadline, &deadline.local(), None)?;
+        sql_deadline(&connection, deadline)?;
+        let _owner = admission::Owner::enter(&self.4, &connection, deadline)?;
+        operation()
     }
 
     // Ordinary transport mutations take the connection before write admission.
@@ -138,8 +165,8 @@ impl Cache {
         operation: impl FnOnce(&Connection) -> Result<T, CacheError>,
     ) -> Result<T, CacheError> {
         let wall_bound = deadline.local();
-        let connection = wait_mutex(&self.0, deadline, &wall_bound)?;
-        let _writer = wait_mutex(&self.3, deadline, &wall_bound)?;
+        let connection = wait_mutex(&self.0, deadline, &wall_bound, None)?;
+        let _writer = wait_mutex(&self.3, deadline, &wall_bound, None)?;
         sql_deadline(&connection, deadline)?;
         operation(&connection)
     }
@@ -150,7 +177,7 @@ impl Cache {
         deadline: Deadline<'_>,
         operation: impl FnOnce() -> Result<T, CacheError>,
     ) -> Result<T, CacheError> {
-        let _writer = wait_mutex(&self.3, deadline, &deadline.local())?;
+        let _writer = wait_mutex(&self.3, deadline, &deadline.local(), None)?;
         operation()
     }
 
@@ -181,7 +208,7 @@ impl Cache {
                     },
                 )
                 .optional()
-                .map_err(db_error)?;
+                .map_err(|error| db_error(error))?;
             match entry {
                 Some((
                     status,
@@ -229,7 +256,8 @@ impl Cache {
         }
     }
 
-    // Discretionary reply caching must leave the budget available to the source.
+    // Sibling legs share this connection. Wait for their local SQL work within
+    // the command budget; external SQLite contention still falls through at once.
     fn try_sql<T>(
         &self,
         deadline: Deadline<'_>,
@@ -238,8 +266,10 @@ impl Cache {
         if deadline.expired() {
             return Err(CacheError::Busy);
         }
-        let connection = try_mutex(&self.0)?;
-        connection.busy_timeout(Duration::ZERO).map_err(db_error)?;
+        let connection = wait_mutex(&self.0, deadline, &deadline.local(), Some(&self.4))?;
+        connection
+            .busy_timeout(Duration::ZERO)
+            .map_err(|error| db_error(error))?;
         operation(&connection)
     }
 
@@ -251,7 +281,7 @@ impl Cache {
         let _writer = try_mutex(&self.3)?;
         connection
             .execute("DELETE FROM reply WHERE key=?1", [key])
-            .map_err(db_error)?;
+            .map_err(|error| db_error(error))?;
         Ok(())
     }
 
@@ -264,15 +294,14 @@ impl Cache {
         deadline: Deadline<'_>,
     ) -> Result<(), CacheError> {
         self.write_sql(deadline, |connection| {
-            let tx = connection.unchecked_transaction().map_err(db_error)?;
-            tx.execute("DELETE FROM reply WHERE fresh_until<=?1", [now()]).map_err(db_error)?;
+            let tx = connection.unchecked_transaction().map_err(|error| db_error(error))?;
+            tx.execute("DELETE FROM reply WHERE fresh_until<=?1", [now().saturating_sub(STALE_GRACE_SECONDS)]).map_err(|error| db_error(error))?;
             tx.execute(
                 "INSERT INTO reply(key,source,url,status,content_type,body,fetched_at,fresh_until,content_range,pagination) \
         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
                 ON CONFLICT(key) DO UPDATE SET \
-        source=excluded.source,url=excluded.url,status=excluded.status,content_type=excluded.content_type,bo\
-        dy=excluded.body,fetched_at=excluded.fetched_at,fresh_until=excluded.fresh_until,content_range=exclu\
-        ded.content_range,pagination=excluded.pagination",
+        source=excluded.source,url=excluded.url,status=excluded.status,content_type=excluded.content_type,body=excluded.body,\
+                    fetched_at=excluded.fetched_at,fresh_until=excluded.fresh_until,content_range=excluded.content_range,pagination=excluded.pagination",
                 params![
                     key,
                     source.to_string(),
@@ -288,11 +317,11 @@ impl Cache {
                         .as_ref()
                         .map(serde_json::to_string)
                         .transpose()
-                        .map_err(|_| CacheError::Database)?
+                        .map_err(|_| CacheError::Encoding)?
                 ],
             )
-            .map_err(db_error)?;
-            tx.commit().map_err(db_error)
+            .map_err(|error| db_error(error))?;
+            tx.commit().map_err(|error| db_error(error))
         })
     }
 }
@@ -302,13 +331,11 @@ pub(crate) fn write_transaction(
     connection: &Connection,
 ) -> Result<rusqlite::Transaction<'_>, CacheError> {
     rusqlite::Transaction::new_unchecked(connection, rusqlite::TransactionBehavior::Immediate)
-        .map_err(db_error)
+        .map_err(|error| db_error(error))
 }
 
-pub(crate) fn sql_deadline(
-    connection: &Connection,
-    deadline: Deadline<'_>,
-) -> Result<(), CacheError> {
+/// Configure SQLite's lock wait from the deadline; replay clocks never wait on OS locks.
+pub fn sql_deadline(connection: &Connection, deadline: Deadline<'_>) -> Result<(), CacheError> {
     if deadline.expired() {
         return Err(CacheError::Busy);
     }
@@ -318,20 +345,27 @@ pub(crate) fn sql_deadline(
         } else {
             deadline.remaining()
         })
-        .map_err(db_error)
+        .map_err(|error| db_error(error))
 }
-
+#[expect(
+    clippy::disallowed_types,
+    reason = "Serialize only SQL on the connection shared by transport legs"
+)]
 fn try_mutex<T>(mutex: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>, CacheError> {
     mutex.try_lock().map_err(|error| match error {
         std::sync::TryLockError::WouldBlock => CacheError::Busy,
-        std::sync::TryLockError::Poisoned(_) => CacheError::Database,
+        std::sync::TryLockError::Poisoned(_) => CacheError::Internal,
     })
 }
-
+#[expect(
+    clippy::disallowed_types,
+    reason = "Serialize only SQL on the connection shared by transport legs"
+)]
 fn wait_mutex<'a, T>(
     mutex: &'a Mutex<T>,
     deadline: Deadline<'_>,
     wall_bound: &crate::LocalDeadline,
+    admission: Option<&RwLock<()>>,
 ) -> Result<std::sync::MutexGuard<'a, T>, CacheError> {
     loop {
         if deadline.expired() || wall_bound.expired() {
@@ -339,6 +373,15 @@ fn wait_mutex<'a, T>(
         }
         match try_mutex(mutex) {
             Err(CacheError::Busy) => {
+                if let Some(owner) = admission {
+                    match owner.try_read() {
+                        Ok(probe) => drop(probe),
+                        Err(std::sync::TryLockError::WouldBlock) => return Err(CacheError::Busy),
+                        Err(std::sync::TryLockError::Poisoned(_)) => {
+                            return Err(CacheError::Internal);
+                        }
+                    }
+                }
                 std::thread::park_timeout(Duration::from_millis(1).min(deadline.remaining()))
             }
             result => return result,
@@ -347,11 +390,12 @@ fn wait_mutex<'a, T>(
 }
 
 pub(crate) fn now() -> i64 {
-    i64::try_from(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs(),
-    )
-    .unwrap_or(i64::MAX)
+    timestamp().unwrap_or_default()
+}
+
+pub(crate) fn timestamp() -> Option<i64> {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .ok()
+        .and_then(|duration| i64::try_from(duration.as_secs()).ok())
 }

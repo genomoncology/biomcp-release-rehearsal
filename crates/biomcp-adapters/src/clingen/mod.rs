@@ -1,7 +1,7 @@
 //! Published ClinGen validity and dosage bundles, keyed only by HGNC identity.
 mod raw;
-use crate::quotas;
-use biodata::HgncId;
+use crate::{Mapped, mapped::Problems, quotas};
+use biodata::{GeneSymbol, HgncId};
 use biomcp_fetch::{
     Bundle, Fetch, Find, Freshness, KeyKind, KeyUse, Leg, RequestError, RowFormat, SourceSpec,
 };
@@ -39,63 +39,108 @@ const DOSAGE: Bundle<raw::Dosage> = Bundle {
     row: PhantomData,
 };
 /// Synchronize both required files and sum their published metadata.
-pub fn sync(fetch: &Fetch) -> Result<SyncResult, RequestError> {
+pub fn sync(fetch: &Fetch) -> Result<crate::Mapped<SyncResult>, RequestError> {
     let validity = fetch.sync(&VALIDITY)?;
     let dosage = fetch.sync(&DOSAGE)?;
-    Ok(SyncResult {
-        snapshot: None,
-        etag: None,
-        last_modified: None,
-        duplicate_identities: None,
-        rows: validity.rows + dosage.rows,
-        bytes: validity.bytes + dosage.bytes,
-        downloaded_bytes: validity.downloaded_bytes + dosage.downloaded_bytes,
+    let mut problems = crate::mapped::bundle_problems(Source::ClinGen, &validity);
+    problems.extend(crate::mapped::bundle_problems(Source::ClinGen, &dosage));
+    let mut refusals = crate::bundle_mapping::bundle_refusals(&validity);
+    refusals.include(crate::bundle_mapping::bundle_refusals(&dosage));
+    Ok(crate::Mapped {
+        refusals,
+        problems,
+        value: SyncResult {
+            native_rows: None,
+            snapshot: None,
+            etag: None,
+            last_modified: None,
+            duplicate_identities: None,
+            rows: validity.rows + dosage.rows,
+            bytes: validity.bytes + dosage.bytes,
+            downloaded_bytes: validity.downloaded_bytes + dosage.downloaded_bytes,
+        },
     })
 }
 /// Read gene–disease validity without depending on the dosage summary.
-pub fn validity(leg: &Leg<'_>, id: HgncId) -> Result<Box<[ClinGenValidity]>, RequestError> {
-    leg.rows(&VALIDITY, Find::Exact(KeyKind::Id, &id.to_string()))?
+pub fn validity(
+    leg: &Leg<'_>,
+    id: HgncId,
+    symbol: &GeneSymbol,
+) -> Result<Mapped<Box<[ClinGenValidity]>>, RequestError> {
+    let mut problems = Problems {
+        source: Source::ClinGen,
+        record: crate::mapped::record(id),
+        list: Vec::new(),
+    };
+    let key = id.to_string();
+    let rejected = raw::rejected_key(symbol);
+    let mut refusals = crate::Refusal::None;
+    let value = leg
+        .rows(&VALIDITY, Find::AnyExact(KeyKind::Id, &[&key, &rejected]))?
         .into_iter()
-        .map(raw::Validity::checked)
-        .collect()
+        .filter_map(|row| match row.checked(&mut problems) {
+            Some(row) => Some(row),
+            None => {
+                refusals = crate::Refusal::Refused;
+                None
+            }
+        })
+        .collect();
+    Ok(Mapped {
+        refusals,
+        value,
+        problems: problems.list,
+    })
 }
 /// Checked dosage fields from the independent dosage summary.
 #[derive(Debug)]
 pub struct Dosage {
     /// Published haploinsufficiency assessment.
-    pub haploinsufficiency: biodata::Text,
+    pub haploinsufficiency: Option<biodata::Text>,
     /// Published triplosensitivity assessment.
-    pub triplosensitivity: biodata::Text,
+    pub triplosensitivity: Option<biodata::Text>,
     /// Published assessment date.
-    pub date: biodata::Text,
+    pub date: Option<biodata::Text>,
 }
 /// Read dosage sensitivity without depending on the validity summary.
-pub fn dosage(leg: &Leg<'_>, id: HgncId) -> Result<Option<Dosage>, RequestError> {
-    let rows = leg.rows(&DOSAGE, Find::Exact(KeyKind::Id, &id.to_string()))?;
-    if rows.len() > 1 {
-        return Err(bad());
-    }
-    rows.into_iter()
-        .next()
-        .map(|row| {
-            Ok(Dosage {
-                haploinsufficiency: row.haploinsufficiency.ok_or_else(bad)?,
-                triplosensitivity: row.triplosensitivity.ok_or_else(bad)?,
-                date: row.date.ok_or_else(bad)?,
-            })
-        })
-        .transpose()
-}
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
+pub fn dosage(
+    leg: &Leg<'_>,
+    id: HgncId,
+    symbol: &GeneSymbol,
+) -> Result<Mapped<Option<Dosage>>, RequestError> {
+    let key = id.to_string();
+    let rejected = raw::rejected_key(symbol);
+    let rows = leg.rows(&DOSAGE, Find::AnyExact(KeyKind::Id, &[&key, &rejected]))?;
+    let mut problems = Problems {
         source: Source::ClinGen,
-        reason: biomcp_types::Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
+        record: None,
+        list: Vec::new(),
+    };
+    let mut refusals = crate::Refusal::None;
+    let mut rows: Vec<_> = rows
+        .into_iter()
+        .filter_map(|row| match row.checked(&mut problems) {
+            Some(row) => Some(row),
+            None => {
+                refusals = crate::Refusal::Refused;
+                None
+            }
+        })
+        .collect();
+    let value = match rows.len() {
+        0 => None,
+        1 => rows.pop(),
+        _ => {
+            refusals = crate::Refusal::Refused;
+            problems.required::<Dosage>("HGNC ID", None)
+        }
+    };
+    Ok(Mapped {
+        refusals,
+        value,
+        problems: problems.list,
+    })
 }
-
 /// Small publisher landing page, never a validity or dosage export.
 pub(crate) const HEALTH_PATH: &str = "/kb";
 /// Both source-owned stored files are required for complete local readiness.
@@ -104,3 +149,6 @@ pub(crate) fn bundle_state(leg: &Leg<'_>) -> Result<biomcp_types::LocalBundleSta
         .stored_bundle_state(&VALIDITY)?
         .with(leg.stored_bundle_state(&DOSAGE)?))
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

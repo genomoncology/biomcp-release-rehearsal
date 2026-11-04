@@ -11,12 +11,6 @@
         "semantic-scholar:123",
         "details"
       ],
-      "mcp": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "details"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items/0/header/paper_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -26,7 +20,28 @@
           "Repeated synthetic name",
           "Repeated synthetic name"
         ],
-        "/result/items/0/is_open_access": false
+        "/result/items/0/is_open_access": false,
+        "/problems": {
+          "equals": [
+            {
+              "source": "semantic-scholar",
+              "record": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "field": "open_access_pdf.url",
+              "code": "value.unknown"
+            }
+          ]
+        },
+        "/result/author": "semantic-scholar:123",
+        "/result/items/0/header/pmid": "12345678",
+        "/result/items/0/header/title": "Synthetic whole paper title",
+        "/result/items/0/open_access_pdf": {
+          "equals": {
+            "status": "CLOSED",
+            "disclaimer": "Synthetic access disclaimer."
+          }
+        },
+        "/sources/0/source": "semantic-scholar",
+        "/sources/0/state": "ok"
       },
       "max_bytes": 1359,
       "full_output_bytes": true
@@ -38,12 +53,6 @@
         "semantic-scholar:123",
         "--full"
       ],
-      "mcp": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--full"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items/0/header/paper_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -53,7 +62,28 @@
           "Repeated synthetic name",
           "Repeated synthetic name"
         ],
-        "/result/items/0/is_open_access": false
+        "/result/items/0/is_open_access": false,
+        "/problems": {
+          "equals": [
+            {
+              "source": "semantic-scholar",
+              "record": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "field": "open_access_pdf.url",
+              "code": "value.unknown"
+            }
+          ]
+        },
+        "/result/author": "semantic-scholar:123",
+        "/result/items/0/header/pmid": "12345678",
+        "/result/items/0/header/title": "Synthetic whole paper title",
+        "/result/items/0/open_access_pdf": {
+          "equals": {
+            "status": "CLOSED",
+            "disclaimer": "Synthetic access disclaimer."
+          }
+        },
+        "/sources/0/source": "semantic-scholar",
+        "/sources/0/state": "ok"
       },
       "max_bytes": 1359,
       "full_output_bytes": true

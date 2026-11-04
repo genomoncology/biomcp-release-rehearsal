@@ -1,11 +1,12 @@
 //! Exercise diagnostic dependency planning through the runner, without live sources.
 use super::launch::{Environment, fixtures};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
 
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test(
+    vec![transcript_trial(
         "live-source-checks/follow-predecessors",
         || check().map_err(|e| e.to_string().into()),
     )]
@@ -15,11 +16,25 @@ fn check() -> Result<(), Box<dyn std::error::Error>> {
     let root = env.root().join("fixtures");
     fs::create_dir_all(root.join("cases"))?;
     let witnessed = fixtures().join("cases/article/search/checked-request.yaml");
-    fs::copy(&witnessed, root.join("cases/checked.yaml"))?;
+    let mut checked: Value = serde_saphyr::from_str(&fs::read_to_string(&witnessed)?)?;
+    checked
+        .as_object_mut()
+        .ok_or("missing case object")?
+        .insert("live_check".into(), json!("public"));
+    checked
+        .get_mut("steps")
+        .ok_or("missing steps")?
+        .as_array_mut()
+        .ok_or("missing steps")?
+        .push(json!({"follow":"page"}));
+    fs::write(
+        root.join("cases/checked.yaml"),
+        serde_json::to_vec(&checked)?,
+    )?;
     fs::write(
         root.join("cases/excluded.yaml"),
         serde_json::to_vec(&json!({
-            "live_check": "public", "story": "An offline source predecessor stays excluded.",
+            "feature":"live-source-checks", "live_check": "public", "story": "An offline source predecessor stays excluded.",
             "replay": "article/search/live", "steps": [
                 {"run": ["search", "article", "AKT1 E17K"], "offline": true},
                 {"follow": "page"}, {"follow": "page"}
@@ -29,7 +44,7 @@ fn check() -> Result<(), Box<dyn std::error::Error>> {
     fs::write(
         root.join("cases/eligible.yaml"),
         serde_json::to_vec(&json!({
-            "live_check": "public", "story": "An eligible source permits its follow.",
+            "feature":"live-source-checks", "live_check": "public", "story": "An eligible source permits its follow.",
             "replay": "article/search/live", "steps": [
                 {"run": ["search", "article", "AKT1 E17K"]}, {"follow": "page"}
             ]
@@ -49,6 +64,7 @@ fn check() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     if cases.len() != 3
+        || plan.get("eligible") != Some(&json!(1))
         || !cases.iter().any(|case| {
             case.get("case") == Some(&json!("eligible.yaml"))
                 && case.get("eligible") == Some(&json!(true))
@@ -59,16 +75,47 @@ fn check() -> Result<(), Box<dyn std::error::Error>> {
     // Remove the live case before execution: this proof never contacts a source.
     fs::remove_file(root.join("cases/eligible.yaml"))?;
     let report = diagnostic(&env, &root, false)?;
+    let excluded_plan = diagnostic(&env, &root, true)?;
     if report.get("discovered") != Some(&json!(2))
-        || report.get("checked") != Some(&json!(0))
+        || report.get("checked") != excluded_plan.get("eligible")
+        || report.get("eligible") != excluded_plan.get("eligible")
         || report.get("error_cases") != Some(&json!(0))
         || report.pointer("/skipped/follow predecessor is ineligible") != Some(&json!(2))
     {
         return Err(format!("skipped diagnostic counts changed: {report}").into());
     }
-    // Ordinary replay still executes the local error and follows its real restart.
-    super::run_case(&witnessed, &super::schema::Registry::embedded()?)?;
+    // Ordinary replay still checks the local error through the kept case.
+    super::run_case(&witnessed, super::schema::Registry::embedded()?.as_ref())?;
+    missing_marker(&env, &root)?;
     continuation_context()?;
+    Ok(())
+}
+fn missing_marker(
+    env: &Environment,
+    root: &std::path::Path,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // Plant an actual kept recording case, then remove only its declaration.
+    let path = fixtures().join("cases/readme/gene.yaml");
+    let mut case: Value = serde_saphyr::from_str(&fs::read_to_string(path)?)?;
+    case.as_object_mut()
+        .ok_or("missing case object")?
+        .remove("live_check");
+    fs::write(
+        root.join("cases/unreviewed.yaml"),
+        serde_json::to_vec(&case)?,
+    )?;
+    let output = env
+        .command(
+            std::env::current_exe()?,
+            &["--live-check".into(), "--list".into()],
+        )
+        .env("BIOMCP_TEST_FIXTURES", root)
+        .output()?;
+    if output.status.success()
+        || !String::from_utf8_lossy(&output.stderr).contains("unreviewed.yaml: missing live_check")
+    {
+        return Err("discovery accepted a real recording without its declaration".into());
+    }
     Ok(())
 }
 fn continuation_context() -> Result<(), Box<dyn std::error::Error>> {

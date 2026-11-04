@@ -1,5 +1,6 @@
 //! Cleanup is exercised through the isolated real command and shared SQLite file.
 use super::launch::Environment;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use rusqlite::{Connection, params};
 use serde_json::{Value, json};
@@ -8,10 +9,10 @@ type Check<T = ()> = Result<T, Box<dyn std::error::Error>>;
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
-        Trial::test("store-clean/expired-owned-state", || {
+        transcript_trial("store-clean/expired-owned-state", || {
             clean().map_err(|e| e.to_string().into())
         }),
-        Trial::test("store-clean/publish-preserves-live-reader", || {
+        transcript_trial("store-clean/publish-preserves-live-reader", || {
             publish().map_err(|e| e.to_string().into())
         }),
     ]
@@ -23,7 +24,9 @@ fn run(env: &Environment, args: &[&str]) -> Check<Value> {
     if !output.status.success() {
         return Err(format!("command failed: {value}").into());
     }
-    if args.first().is_some_and(|s| s == "store") && output.stdout.len() > 250 {
+    if args.first().is_some_and(|s| s == "store")
+        && output.stdout.len() > crate::runner::output_limit("store-clean")?
+    {
         return Err(format!("cleanup exceeded 250 bytes: {}", output.stdout.len()).into());
     }
     Ok(value)

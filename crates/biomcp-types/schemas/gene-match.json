@@ -1,17 +1,7 @@
 {
   "$defs": {
-    "MatchKind": {
+    "Reply_MatchKind": {
       "description": "How a source matched a gene input.",
-      "enum": [
-        "symbol",
-        "previous_symbol",
-        "alias",
-        "ncbi_alias",
-        "hgnc_id",
-        "entrez_id",
-        "ensembl_id",
-        "band"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Current symbol.",
@@ -22,25 +12,36 @@
         " NCBI Gene identifier.",
         " Ensembl gene identifier.",
         " Cytogenetic band."
+      ],
+      "x-extensible-enum": [
+        "symbol",
+        "previous_symbol",
+        "alias",
+        "ncbi_alias",
+        "hgnc_id",
+        "entrez_id",
+        "ensembl_id",
+        "band"
       ]
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.gene-match/1",
+  "$id": "biomcp.gene-match/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "A source-stated match, preserving the text that matched.",
   "properties": {
     "kind": {
-      "$ref": "#/$defs/MatchKind",
+      "$ref": "#/$defs/Reply_MatchKind",
       "description": "The match category."
     },
     "text": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "The source text that matched the input."
     }
   },

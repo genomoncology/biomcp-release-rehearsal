@@ -137,6 +137,10 @@ canonical_enum! {
         FdaPma => "fda-pma",
         /// FDA native 510(k) clearance records.
         Fda510k => "fda-510k",
+        /// openFDA medical device product recall records.
+        FdaDeviceRecall => "fda-device-recall",
+        /// FDA drug enforcement recall records.
+        FdaDrugRecall => "fda-drug-recall",
         /// Clinical Pharmacogenetics Implementation Consortium.
         Cpic => "cpic",
         /// ClinPGx pharmacogenomics annotations.
@@ -152,19 +156,19 @@ canonical_enum! {
     /// Why a source could not supply data.
     Reason, ReasonUnknown {
         /// The requested record was not found.
-        NotFound => "not_found",
+        NotFound => "not-found",
         /// The public bucket does not hold an open text record.
-        NotOpen => "not_open",
+        NotOpen => "not-open",
         /// Publisher response is not a PDF.
-        NotPdf => "not_pdf",
+        NotPdf => "not-pdf",
         /// The local reader does not support the file or container format.
         Unsupported => "unsupported",
         /// The response exceeds an explicit reader resource bound.
-        TooLarge => "too_large",
+        TooLarge => "too-large",
         /// The source limited the request rate.
-        RateLimited => "rate_limited",
+        RateLimited => "rate-limited",
         /// The local source quota refused admission without a network request.
-        LocalQuota => "local_quota",
+        LocalQuota => "local-quota",
         /// The source was unavailable.
         Unavailable => "unavailable",
         /// Platform or configured certificate verification failed.
@@ -174,21 +178,21 @@ canonical_enum! {
         /// The source rejected the request.
         Rejected => "rejected",
         /// The reply could not be used.
-        BadReply => "bad_reply",
+        BadReply => "bad-reply",
         /// The request exhausted its deadline.
-        DeadlineExceeded => "deadline_exceeded",
+        DeadlineExceeded => "deadline-exceeded",
         /// Network access was disabled.
         Offline => "offline",
         /// A required credential was absent.
-        NoKey => "no_key",
+        NoKey => "no-key",
         /// The source was disabled.
         Disabled => "disabled",
         /// No recording matched the request.
-        ReplayMiss => "replay_miss",
+        ReplayMiss => "replay-miss",
         /// The source data was being synchronized.
         Syncing => "syncing",
         /// Identity lacks the identifier required to join this source.
-        NoJoinId => "no_join_id",
+        NoJoinId => "no-join-id",
     }
 }
 
@@ -202,8 +206,10 @@ biodata::wire_enum! {
         Attribution => "attribution",
         /// Commercial use requires separate permission.
         Noncommercial => "noncommercial",
-        /// Source-specific or mixed rights require checking the publisher's terms.
-        Restricted => "restricted",
+        /// Separate publisher permission is required.
+        Licensed => "licensed",
+        /// Reuse rights are owned by each individual record.
+        PerRecord => "per-record",
     }
 }
 

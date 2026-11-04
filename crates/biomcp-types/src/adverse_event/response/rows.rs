@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 /// Lengths of present native harmonized lists; missing stays absent.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AdverseEventIdentityCounts {
     /// Actual native unii list length.
@@ -28,7 +27,6 @@ pub struct AdverseEventIdentityCounts {
 }
 /// One absolute native drug row without its unbounded identifier arrays.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AdverseEventDrug {
     /// Absolute native array index.
@@ -110,13 +108,13 @@ pub struct AdverseEventDrug {
 }
 /// Independent native reaction row without drug attribution.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AdverseEventReaction {
     /// Absolute native reaction index.
     pub index: u32,
     /// Source term label without invented CURIE.
-    pub term: biodata::Concept,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub term: Option<biodata::Concept>,
     /// Native vocabulary_version string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vocabulary_version: Option<Box<str>>,
@@ -126,7 +124,6 @@ pub struct AdverseEventReaction {
 }
 /// Native device fields; administrative addresses are excluded.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AdverseEventDevice {
     /// Absolute native device index.
@@ -206,7 +203,6 @@ pub struct AdverseEventDevice {
 }
 /// Whole unchanged narrative row; oversized rows require a too-large Problem.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AdverseEventNarrativeItem {
     /// Absolute native narrative index.

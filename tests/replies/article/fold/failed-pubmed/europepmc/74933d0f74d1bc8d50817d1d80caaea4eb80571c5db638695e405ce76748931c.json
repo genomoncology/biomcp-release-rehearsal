@@ -1,0 +1,28 @@
+{
+  "method": "GET",
+  "source": "europepmc",
+  "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=AKT1%20AND%20AUTH%3ACarpten&format=json&resultType=lite&pageSize=100",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "hitCount": 1,
+          "resultList": {
+            "result": [
+              {
+                "id": "PPR8888",
+                "source": "PPR",
+                "title": "Synthetic source-local citation"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

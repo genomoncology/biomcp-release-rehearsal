@@ -2,14 +2,17 @@ use super::{empty, next};
 use crate::{Ctx, Outcome, status};
 use biodata::DeviceSubmission;
 use biomcp_adapters::fda_pma;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
     DiagnosticCard, DiagnosticGet, DiagnosticPmaCard, DiagnosticRegulatory,
     DiagnosticRegulatoryField, DiagnosticRegulatoryFragment, DiagnosticSearch, DiagnosticSection,
-    DiagnosticSupplements, PageInfo, Problem, ProblemCode, QueryBody, Request, Source, Status,
-    StepKind,
+    DiagnosticSupplements, PageInfo, Problem, ProblemCode, Request, Source, Status, StepKind,
 };
 pub(super) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
-    let mut out = empty(QueryBody::DiagnosticCard(None));
+    if q.section() == Some(DiagnosticSection::Summary) {
+        return super::summary::get(cx, q);
+    }
+    let mut out = empty(biomcp_types::DiagnosticCard::into_reply(q.clone(), None));
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&fda_pma::SPEC, deadline).fresh(cx.fresh);
@@ -19,14 +22,14 @@ pub(super) fn get(cx: &Ctx<'_>, q: &DiagnosticGet) -> Outcome {
     out.sources
         .push(status::source(Source::FdaPma, leg.finish(), error));
     if error.is_some() {
-        out.status = Status::Failed;
-    } else if out.status == Status::Complete
+        crate::status::item(&mut out, false, true, false);
+    } else if out.status() == Status::Complete
         && out
             .sources
             .iter()
             .any(|source| source.state == biomcp_types::SourceState::Stale)
     {
-        out.status = Status::Partial;
+        crate::status::item(&mut out, true, false, true);
     }
     command.finish(deadline.remaining());
     out
@@ -37,11 +40,12 @@ fn selected(
     records: fda_pma::Records,
     fresh: bool,
 ) -> Result<(), biomcp_fetch::RequestError> {
+    out.problems.extend(records.problems);
     if let Some(field) = records.identity_conflict {
-        out.status = Status::Failed;
+        crate::status::item(out, false, true, false);
         out.problems.push(Problem {
             source: Source::FdaPma,
-            record: Some(q.id().clone()),
+            record: Some(q.record().clone()),
             field: field.into(),
             code: ProblemCode::IdentityConflict,
         });
@@ -49,15 +53,16 @@ fn selected(
             source: Source::FdaPma,
             reason: biomcp_types::Reason::BadReply,
             status: Some(200),
+            tls_cause: None,
             retry_after: None,
         }
         .into());
     }
     if records.incomplete {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
         out.problems.push(Problem {
             source: Source::FdaPma,
-            record: Some(q.id().clone()),
+            record: Some(q.record().clone()),
             field: "meta.results.total".into(),
             code: ProblemCode::CollectionIncomplete,
         });
@@ -68,50 +73,62 @@ fn selected(
             .as_ref()
             .is_some_and(|cell| cell.as_str() == q.supplement().map_or("", |s| s.as_str()))
     });
-    out.status = if selected.is_some() {
-        Status::Complete
-    } else {
-        Status::Absent
+    {
+        let found = selected.is_some();
+        crate::status::item(out, found, false, false);
     };
     let Some(row) = selected else {
         return Ok(());
     };
     match q.section() {
-        None => {
-            let sections: Box<[_]> = if q.supplement().is_some() {
-                vec![DiagnosticSection::Regulatory]
-            } else {
-                vec![
-                    DiagnosticSection::Regulatory,
-                    DiagnosticSection::Supplements,
-                ]
-            }
-            .into();
-            for section in &sections {
-                if let Ok(query) = q.with_section(*section) {
-                    next::push(out, StepKind::Section, Request::GetDiagnostic(query), fresh);
-                }
-            }
-            association(out, q, fresh);
-            out.body =
-                QueryBody::DiagnosticCard(Some(DiagnosticCard::PmaSubmission(DiagnosticPmaCard {
-                    header: fda_pma::header(row)?,
-                    sections,
-                })));
-        }
+        None => card(out, q, row, fresh)?,
         Some(DiagnosticSection::Supplements) => supplements(out, q, &records.rows, fresh)?,
         Some(DiagnosticSection::Regulatory) => regulatory(out, q, row, fresh)?,
         _ => {}
     }
     if !fresh {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            crate::Action::Run {
-                request: Request::GetDiagnostic(q.clone()),
-                fresh: true,
-            },
+            &[biomcp_types::Source::FdaPma],
+            Request::GetDiagnostic(q.clone()),
+            true,
         ));
     }
+    Ok(())
+}
+fn card(
+    out: &mut Outcome,
+    q: &DiagnosticGet,
+    row: &DeviceSubmission,
+    fresh: bool,
+) -> Result<(), biomcp_fetch::RequestError> {
+    let sections: Box<[_]> = if q.supplement().is_some() {
+        vec![DiagnosticSection::Regulatory]
+    } else {
+        q.source().sections().to_vec()
+    }
+    .into();
+    for section in &sections {
+        if let Some(query) = crate::next::checked(
+            q.with_section(*section),
+            biomcp_types::Source::FdaPma,
+            &mut out.problems,
+        ) {
+            next::push(
+                out,
+                StepKind::Section,
+                &[query.source().source()],
+                Request::GetDiagnostic(query),
+                fresh,
+            );
+        }
+    }
+    association(out, q, fresh);
+    out.body = (DiagnosticCard::PmaSubmission(DiagnosticPmaCard {
+        header: fda_pma::header(row)?,
+        sections,
+    }))
+    .with_query(q.clone());
     Ok(())
 }
 fn association(out: &mut Outcome, q: &DiagnosticGet, fresh: bool) {
@@ -120,12 +137,17 @@ fn association(out: &mut Outcome, q: &DiagnosticGet, fresh: bool) {
         q.id(),
         q.supplement().map_or(String::new(), |s| format!("/{s}"))
     );
-    if let Ok(search) = serde_json::from_value::<DiagnosticSearch>(
-        serde_json::json!({"source":"fda-cdx","device_id":id}),
+    if let Some(search) = crate::next::checked(
+        id.parse()
+            .map_err(|_| biomcp_types::QueryInvalid::new(&["device_id"]))
+            .and_then(DiagnosticSearch::companion),
+        biomcp_types::Source::FdaCdx,
+        &mut out.problems,
     ) {
         next::push(
             out,
             StepKind::Pivot,
+            &[search.source().source()],
             Request::SearchDiagnostic(search),
             fresh,
         );
@@ -143,6 +165,7 @@ fn page(out: &mut Outcome, q: &DiagnosticGet, returned: usize, total: usize, fre
         next::push(
             out,
             StepKind::Page,
+            &[q.source().source()],
             Request::GetDiagnostic(q.at_section_offset(q.section_offset() + returned as u32)),
             fresh,
         );
@@ -169,23 +192,32 @@ fn supplements(
         .map(|row| fda_pma::header(row))
         .collect::<Result<Vec<_>, _>>()?;
     for row in &items {
-        if let Ok(query) = serde_json::from_value::<DiagnosticGet>(
-            serde_json::json!({"id":q.id(),"source":"fda-pma","supplement":row.supplement_number}),
+        if let Some(query) = crate::next::checked(
+            row.supplement_number
+                .as_ref()
+                .map(|supplement| supplement.as_str().parse())
+                .transpose()
+                .map_err(|_| biomcp_types::QueryInvalid::new(&["supplement"]))
+                .and_then(|supplement| q.with_supplement(supplement)),
+            biomcp_types::Source::FdaPma,
+            &mut out.problems,
         ) {
             next::push(
                 out,
                 StepKind::Disambiguate,
+                &[query.source().source()],
                 Request::GetDiagnostic(query),
                 fresh,
             );
         }
     }
     page(out, q, items.len(), rows.len(), fresh);
-    out.body = QueryBody::DiagnosticSupplements(DiagnosticSupplements {
+    out.body = (DiagnosticSupplements {
         items: items.into(),
         count_unit: None,
         distinct_id_total: None,
-    });
+    })
+    .with_query(q.clone());
     Ok(())
 }
 fn regulatory(
@@ -219,10 +251,11 @@ fn regulatory(
         });
     }
     page(out, q, items.len(), total, fresh);
-    out.body = QueryBody::DiagnosticRegulatory(DiagnosticRegulatory {
+    out.body = (DiagnosticRegulatory {
         items: items.into(),
         count_unit: None,
         distinct_id_total: None,
-    });
+    })
+    .with_query(q.clone());
     Ok(())
 }

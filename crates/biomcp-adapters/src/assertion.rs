@@ -24,20 +24,40 @@ pub(crate) fn row(
     };
     if let Some(proposition) = proposition {
         let coding = acmg(&label, row.detail.as_ref());
-        let mut statement =
-            Statement::new(subject, proposition, Term { label, coding }, attribution);
-        statement.strength = review.map(|label| Term {
-            label,
-            coding: None,
+        let clinvar = attribution.source.as_str() == "clinvar";
+        let mut statement = Statement::new(
+            subject.into(),
+            proposition,
+            Term {
+                label,
+                codings: coding.into_iter().collect(),
+            },
+            attribution,
+        );
+        statement.strength = review.map(|label| {
+            let coding = clinvar
+                .then(|| biodata::ReviewStatus::from_source_label(label.as_str()))
+                .flatten()
+                .map(Coding::ClinvarReviewStatus);
+            Term {
+                label,
+                codings: coding.into_iter().collect(),
+            }
         });
         if let Some(detail) = &row.detail {
             if detail.conditions.len() == 1 {
                 statement.condition = detail.conditions.first().and_then(|c| c.concept());
             }
             if detail.origins.len() == 1 {
-                statement.allele_origin = detail.origins.first().cloned().map(|label| Term {
-                    label,
-                    coding: None,
+                statement.allele_origin = detail.origins.first().cloned().map(|label| {
+                    let coding = clinvar
+                        .then(|| biodata::AlleleOrigin::from_source_label(label.as_str()))
+                        .flatten()
+                        .map(Coding::ClinvarAlleleOrigin);
+                    Term {
+                        label,
+                        codings: coding.into_iter().collect(),
+                    }
                 });
             }
             statement.citations = detail.citations.clone();
@@ -45,7 +65,7 @@ pub(crate) fn row(
         row.statement = Some(statement);
     } else {
         row.unmapped = Some(UnmappedAssertion {
-            classification: label,
+            classification: Some(label),
             attribution,
             review_status: review,
             conditions: row
@@ -56,6 +76,27 @@ pub(crate) fn row(
         });
     }
     row
+}
+/// Retain native document provenance without fabricating a missing conclusion.
+pub(crate) fn missing(
+    kind: AssertionKind,
+    domain: AssertionDomain,
+    attribution: Attribution,
+    detail: AssertionDetail,
+) -> VariantAssertion {
+    VariantAssertion {
+        kind,
+        domain,
+        statement_unmapped: true,
+        statement: None,
+        unmapped: Some(UnmappedAssertion {
+            classification: None,
+            attribution,
+            review_status: None,
+            conditions: detail.conditions.clone(),
+        }),
+        detail: Some(detail),
+    }
 }
 // Native category mapping follows NCBI's germline vocabulary and ClinGen GKM G.01.
 // https://www.ncbi.nlm.nih.gov/clinvar/docs/clinsig/

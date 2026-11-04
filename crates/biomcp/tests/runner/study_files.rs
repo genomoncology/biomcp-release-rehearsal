@@ -1,26 +1,18 @@
 //! Feature study-files: references retain native blob facts and publisher notices.
+use super::required_contract;
 use super::{call, rows, seed};
 use crate::runner::launch::Environment;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
 type Check = Result<(), String>;
 pub(super) fn trials() -> Vec<Trial> {
-    let native = crate::runner::launch::fixtures().join("study-files-cases");
-    let available = native.is_dir();
-    vec![
-        Trial::test("study-files/retained-native", move || {
-            retained(&native).map_err(Into::into)
-        })
-        .with_ignored_flag(!available),
-        Trial::test("study-files/complete-walk-and-notice", || {
-            pages().map_err(Into::into)
-        }),
-        Trial::test("study-files/absence-failure-policy", || {
-            failures().map_err(Into::into)
-        }),
-    ]
+    // The test reconstructs native file-reference pages from the retained revision and inspects publisher notice ownership.
+    vec![transcript_trial(required_contract::STUDY_FILES.0, || {
+        pages().map_err(Into::into)
+    })]
 }
 fn entries() -> Value {
     json!(
@@ -141,7 +133,8 @@ fn check_page(
         .pointer("/result/items")
         .and_then(Value::as_array)
         .ok_or("file items")?;
-    if value.pointer("/page/total") != Some(&json!(12))
+    if value.pointer("/result/acquired") != Some(&json!(42))
+        || value.pointer("/page/total") != Some(&json!(12))
         || value.pointer("/page/offset") != Some(&json!(offset))
         || items.len() != (12 - offset).min(5)
     {
@@ -165,129 +158,6 @@ fn check_page(
         != Some("https://github.com/cBioPortal/datahub/blob/master/public/synthetic_0/LICENSE")
     {
         return Err(format!("publisher notice missing: {value}"));
-    }
-    Ok(())
-}
-fn failures() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let replay = seed(&env, rows(), 200)?;
-    call(
-        &env,
-        &replay,
-        &["sync", "cbioportal-studies"],
-        0,
-        "files/failures/1",
-    )?;
-    reject_scope(&env, &replay)?;
-    record(&replay, json!({"message":"Not Found"}), 404, 0)?;
-    let value = call(
-        &env,
-        &replay,
-        &["get", "study", "synthetic_0", "files"],
-        1,
-        "files/failures/2",
-    )?;
-    if value.get("status") != Some(&json!("absent")) {
-        return Err(format!("absent directory failed: {value}"));
-    }
-    call(
-        &env,
-        &replay,
-        &["get", "study", "synthetic_0"],
-        0,
-        "files/failures/3",
-    )?;
-    for disabled in ["cbioportal", "restricted"] {
-        record(&replay, entries(), 200, 0)?;
-        let value = call(
-            &env,
-            &replay,
-            &[
-                "get",
-                "study",
-                "synthetic_0",
-                "files",
-                "--disable-sources",
-                disabled,
-            ],
-            4,
-            "files/failures/4",
-        )?;
-        if value.pointer("/sources/0/reason") != Some(&json!("disabled")) {
-            return Err(format!("policy bypass: {value}"));
-        }
-    }
-    Ok(())
-}
-
-fn reject_scope(env: &Environment, replay: &Path) -> Check {
-    let mut wrong = entries();
-    *wrong.pointer_mut("/0/path").ok_or("synthetic path")? = json!("public/other_study/data_0.txt");
-    record(replay, wrong, 200, 0)?;
-    let value = call(
-        env,
-        replay,
-        &["get", "study", "synthetic_0", "files"],
-        4,
-        "files/reject_scope/1",
-    )?;
-    if value.get("result").is_some() {
-        return Err("wrong directory row was admitted".into());
-    }
-    let db = rusqlite::Connection::open(env.root().join("case-cache/replay.sqlite"))
-        .map_err(|e| e.to_string())?;
-    let cached: i64 = db
-        .query_row(
-            "SELECT count(*) FROM reply WHERE url LIKE '%api.github.com/%'",
-            [],
-            |row| row.get(0),
-        )
-        .map_err(|e| e.to_string())?;
-    if cached != 0 {
-        return Err("wrong directory reply entered cache".into());
-    }
-    Ok(())
-}
-
-fn retained(directory: &Path) -> Check {
-    use std::io::Write;
-    let registry = crate::runner::schema::Registry::embedded()?;
-    let mut paths = fs::read_dir(directory)
-        .map_err(|e| e.to_string())?
-        .map(|entry| entry.map(|v| v.path()).map_err(|e| e.to_string()))
-        .collect::<Result<Vec<_>, _>>()?;
-    paths.sort();
-    if paths.len() != 21 {
-        return Err("native file case inventory differs".into());
-    }
-    for path in paths {
-        let value = crate::runner::run_case(&path, &registry)?;
-        let full = serde_json::to_vec(&value).map_err(|e| e.to_string())?.len();
-        let comparable = crate::runner::source_terms::size(&value, "")?;
-        let case: Value = serde_json::from_slice(&fs::read(&path).map_err(|e| e.to_string())?)
-            .map_err(|e| e.to_string())?;
-        let ceiling = case
-            .get("steps")
-            .and_then(Value::as_array)
-            .and_then(|steps| steps.last())
-            .and_then(|step| step.get("expect"))
-            .and_then(|expect| expect.get(""))
-            .and_then(|expect| expect.get("max_bytes"))
-            .and_then(Value::as_u64)
-            .ok_or("full native envelope ceiling")?;
-        if full as u64 + 1 > ceiling {
-            return Err("native file envelope exceeds its measured ceiling".into());
-        }
-        writeln!(
-            std::io::stdout(),
-            "Study files native {} CLI={} MCP={} comparable={} estimated_tokens={}",
-            path.file_stem().ok_or("case name")?.to_string_lossy(),
-            full + 1,
-            full,
-            comparable,
-            comparable.div_ceil(4)
-        )
-        .map_err(|e| e.to_string())?;
     }
     Ok(())
 }

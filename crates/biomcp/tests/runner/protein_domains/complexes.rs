@@ -1,4 +1,4 @@
-use super::*;
+use super::{Environment, Stub, Value, call, json, setup};
 pub(super) fn run() -> Result<(), String> {
     let stub = Stub::for_source("www.ebi.ac.uk", "application/json", reply)?;
     let env = setup(&stub)?;
@@ -11,6 +11,28 @@ pub(super) fn run() -> Result<(), String> {
         return Err(format!(
             "description match admitted or predicted flag changed: {first}"
         ));
+    }
+    let pool = first
+        .pointer("/page/pool/id")
+        .and_then(Value::as_str)
+        .ok_or("complex pool")?;
+    let kept = call(
+        &env,
+        &[
+            "protein",
+            "complexes",
+            "P38398",
+            "--pool",
+            pool,
+            "--offset",
+            "0",
+        ],
+        0,
+    )?;
+    if kept.pointer("/result/items/0/predicted") != Some(&json!(true))
+        || kept.pointer("/page/total") != Some(&json!(2))
+    {
+        return Err("retained complex page changed its source rows".into());
     }
     let step = super::super::action(&first, "section")?;
     let words: Vec<_> = step.iter().map(String::as_str).collect();
@@ -114,7 +136,7 @@ fn rejected(env: &Environment) -> Result<(), String> {
         4,
     )?;
     super::super::protein_budgets::check(&mismatch, "synthetic-complex/wrong-complex", "cli")?;
-    if mismatch.pointer("/sources/0/reason") != Some(&json!("bad_reply")) {
+    if mismatch.pointer("/sources/0/reason") != Some(&json!("bad-reply")) {
         return Err("mismatched complex identity admitted".into());
     }
     call(

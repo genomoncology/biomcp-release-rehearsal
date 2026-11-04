@@ -1,24 +1,25 @@
 {
   "$defs": {
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.drug-disease-reference/1",
+  "$id": "biodata.drug-disease-reference/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "One native disease identifier and its own source label.",
   "properties": {
     "id": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Exact identifier spelling, without CURIE conversion."
     },
     "label": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -27,7 +28,7 @@
       "description": "Label attached to this identifier by the source."
     },
     "namespace": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Source namespace spelling, such as EFO or MeSH."
     }
   },
@@ -36,5 +37,6 @@
     "id"
   ],
   "title": "DrugDiseaseReference",
-  "type": "object"
+  "type": "object",
+  "x-identifier": true
 }

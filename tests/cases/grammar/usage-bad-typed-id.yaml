@@ -1,0 +1,29 @@
+{
+  "feature": "query-validation",
+  "live_check": "local-only validation; no source requests",
+  "story": "Missing options, unknown options, bad enum values and bad typed IDs each name one argument, its accepted form and command help.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "invalid"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "input",
+        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+        "/error/valid_values": [
+          "Canonical ClinicalTrials.gov identifier."
+        ],
+        "/next/0/args": [
+          "help",
+          "get",
+          "trial"
+        ]
+      }
+    }
+  ]
+}

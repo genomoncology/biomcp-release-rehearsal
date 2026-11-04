@@ -2,7 +2,8 @@
 use crate::{Ctx, status};
 use biodata::{Build, Chromosome};
 use biomcp_adapters::alphagenome;
-use biomcp_fetch::{Deadline, SecretName, grpc::alphagenome::ScoreRequest};
+use biomcp_adapters::alphagenome::ScoreRequest;
+use biomcp_fetch::{Deadline, SecretName};
 use biomcp_types::{
     Reason, Section, Source, SourceOutcome, SourceState, VariantAlphaGenome, VariantGet,
     VariantHeader,
@@ -41,28 +42,32 @@ pub(super) fn section(
         } else {
             Reason::NoJoinId
         };
-        let (section, mut sources, _, _) = refused(reason, SourceState::Failed);
+        let (section, mut sources, _, _, _) = refused(reason, SourceState::Failed);
         sources.extend(joined.sources);
-        return (section, sources, joined.problems, joined.local);
+        return (section, sources, joined.problems, joined.local, false);
     };
-    if request.bytes().len() > biomcp_fetch::grpc::alphagenome::SCORE_LIMITS.request_bytes {
-        let (section, mut sources, _, _) = refused(Reason::TooLarge, SourceState::Failed);
+    if request.bytes().len() > biomcp_adapters::alphagenome::SCORE_LIMITS.request_bytes {
+        let (section, mut sources, _, _, _) = refused(Reason::TooLarge, SourceState::Failed);
         sources.extend(joined.sources);
-        return (section, sources, joined.problems, joined.local);
+        return (section, sources, joined.problems, joined.local, false);
     }
     let leg = cx.fetch.leg(&alphagenome::SPEC, deadline).fresh(cx.fresh);
-    let reply = leg
-        .grpc_checked(&alphagenome::SCORE_VARIANT, request.bytes(), |limits| {
-            request.decoder(limits)
-        })
+    let reply = alphagenome::score(&leg, &request)
         .and_then(|reply| super::alphagenome_page::page(query, &request, reply));
     let error = reply.as_ref().err().copied();
+    let dropped = reply
+        .as_ref()
+        .is_ok_and(|mapped| mapped.refusals == biomcp_adapters::Refusal::Refused);
     let source = status::source(Source::AlphaGenome, leg.finish(), error);
+    let mut problems = joined.problems;
     let section = match reply {
-        Ok(data) => Section::Data {
-            source: Source::AlphaGenome,
-            data,
-        },
+        Ok(data) => {
+            problems.extend(data.problems);
+            Section::Data {
+                source: Source::AlphaGenome,
+                data: data.value,
+            }
+        }
         Err(error) => Section::unavailable(
             Source::AlphaGenome,
             status::reason(error).unwrap_or(Reason::Unavailable),
@@ -71,8 +76,9 @@ pub(super) fn section(
     (
         section,
         joined.sources.into_iter().chain([source]).collect(),
-        joined.problems,
+        problems,
         joined.local.or(error.and_then(status::local)),
+        dropped,
     )
 }
 
@@ -122,17 +128,19 @@ fn refused(reason: Reason, state: SourceState) -> super::sections::Result<Varian
         )],
         Vec::new(),
         None,
+        false,
     )
 }
 
-pub(super) fn next(sources: &[SourceOutcome]) -> Vec<(biomcp_types::StepKind, crate::Action)> {
+pub(super) fn next(sources: &[SourceOutcome]) -> Vec<crate::next::Step> {
     if sources
         .iter()
         .any(|source| source.source == Source::AlphaGenome && source.reason == Some(Reason::NoKey))
     {
-        vec![(
+        vec![crate::next::Step::new(
             biomcp_types::StepKind::Key,
-            crate::Action::KeyHelp(Source::AlphaGenome),
+            &[biomcp_types::Source::AlphaGenome],
+            crate::Action::KeyHelp(biomcp_fetch::SecretName::AlphaGenomeApiKey),
         )]
     } else {
         Vec::new()

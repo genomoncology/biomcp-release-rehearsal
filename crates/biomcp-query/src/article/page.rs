@@ -1,15 +1,16 @@
 use super::consume;
 use super::sources;
 use crate::{
-    Action, Ctx, Outcome, status,
+    Ctx, Outcome, status,
     store::{Pool, Store, StoredItem},
 };
 use biodata::Text;
 use biomcp_adapters::pubmed;
 use biomcp_fetch::RequestError;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    ArticleEdgePage, ArticleEdges, ArticlePage, ArticleSearch, ArticleSort, PageInfo, QueryBody,
-    Request, Source, Status, StepKind,
+    ArticleEdgePage, ArticleEdges, ArticlePage, ArticleSearch, ArticleSort, PageInfo, ReplyData,
+    Request, Source, StepKind,
 };
 #[derive(Clone, Copy)]
 pub(super) enum Cursor<'a> {
@@ -18,6 +19,14 @@ pub(super) enum Cursor<'a> {
     Edges(&'a ArticleEdges, bool),
 }
 impl Cursor<'_> {
+    fn sources(self) -> Vec<Source> {
+        match self {
+            Self::Search(query) => super::next::search_sources(query),
+            Self::Recommend(_) => vec![Source::SemanticScholar],
+            Self::Edges(query, _) => vec![super::next::edge_source(query)],
+        }
+    }
+
     fn offset(self) -> u32 {
         match self {
             Self::Search(q) => q.offset(),
@@ -41,12 +50,11 @@ impl Cursor<'_> {
         }
     }
     fn retry(self, pool: Option<Text>, out: &mut Outcome) {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: self.request(self.offset(), pool),
-                fresh: true,
-            },
+            &self.sources(),
+            self.request(self.offset(), pool),
+            true,
         ));
     }
 }
@@ -71,14 +79,15 @@ pub(super) fn read<'a>(
                     s.state = biomcp_types::SourceState::Skipped;
                     s.reason = Some(biomcp_types::Reason::Disabled);
                     s.count = None;
-                    s.fetched = None;
+                    s.retrieved_count = None;
                 }
                 s
             })
             .collect();
-        out.status = Status::Failed;
+        crate::status::item(out, false, true, false);
         return Ok(());
     }
+    out.dropped |= pool.dropped;
     status::append(&mut out.problems, pool.problems.clone());
     let id = pool.info.id.as_str();
     let mut rows = store.page(id, query.offset(), query.limit())?;
@@ -95,13 +104,21 @@ pub(super) fn read<'a>(
         store.set_deadline(consume(deadline, started, leg.remaining()));
         match result {
             Ok(mapped) => {
+                out.include_refusals(mapped.refusals);
                 let source = status::source(Source::PubMed, leg.finish(), None);
                 if let Some(current) = out.sources.iter_mut().find(|s| s.source == Source::PubMed) {
                     status::retain_source_state(current, &source);
                 } else {
                     out.sources.push(source.clone());
                 }
-                store.hydrate(id, &missing, &mapped.value, &mapped.problems, Some(&source))?;
+                store.hydrate(
+                    id,
+                    &missing,
+                    &mapped.value,
+                    &mapped.problems,
+                    Some(&source),
+                    out.dropped,
+                )?;
                 rows = store.page(id, query.offset(), query.limit())?;
             }
             Err(error) => {
@@ -109,14 +126,14 @@ pub(super) fn read<'a>(
                 if let Some(original) = pool.sources.iter().find(|s| s.source == Source::PubMed) {
                     source.term = original.term.clone();
                     source.count = original.count;
-                    source.fetched = original.fetched;
+                    source.retrieved_count = original.retrieved_count;
                     source.notices.extend(original.notices.clone());
                 }
                 out.sources.retain(|s| s.source != Source::PubMed);
                 out.sources.push(source);
                 if !matches!(error, RequestError::Source(e) if e.reason == biomcp_types::Reason::Disabled)
                 {
-                    out.status = Status::Failed;
+                    crate::status::item(out, false, true, false);
                     query.retry(Some(pool.info.id.clone()), out);
                     return Err(error);
                 }
@@ -139,18 +156,13 @@ fn finish(query: Cursor<'_>, pool: &Pool, rows: Vec<StoredItem>, out: &mut Outco
         .iter()
         .any(|s| s.state == biomcp_types::SourceState::Stale);
     let failed = sources::failed(&out.sources);
-    let partial = stale
-        || failed
-        || rows.iter().any(|r| {
-            r.item.header.is_none() || r.problems.iter().any(|p| p.source == Source::Icite)
-        });
+    let partial = stale || failed || rows.iter().any(|r| r.item.header.is_none());
     for row in &rows {
         status::append(&mut out.problems, row.problems.clone());
     }
-    out.status = if partial {
-        Status::Partial
-    } else {
-        Status::Complete
+    {
+        let unavailable = partial;
+        crate::status::item(out, true, false, unavailable);
     };
     let missing_external = rows
         .iter()
@@ -164,7 +176,7 @@ fn finish(query: Cursor<'_>, pool: &Pool, rows: Vec<StoredItem>, out: &mut Outco
         pool: Some(pool.info.clone()),
         truncated: Some(pool.sources.iter().any(|s| {
             s.count
-                .zip(s.fetched)
+                .zip(s.retrieved_count)
                 .is_some_and(|(count, fetched)| count > u64::from(fetched))
                 || s.notices
                     .iter()
@@ -173,14 +185,13 @@ fn finish(query: Cursor<'_>, pool: &Pool, rows: Vec<StoredItem>, out: &mut Outco
     });
     let items = rows.into_iter().map(|r| r.item).collect();
     out.body = match query {
-        Cursor::Search(_) => QueryBody::ArticlePage(ArticlePage {
+        Cursor::Search(q) => (ArticlePage {
             items,
             candidates: Vec::new(),
-        }),
-        Cursor::Edges(_, _) => QueryBody::ArticleEdges(ArticleEdgePage { items }),
-        Cursor::Recommend(_) => {
-            QueryBody::ArticleRecommendations(super::recommend::body(items, total == 0))
-        }
+        })
+        .with_query(q.clone()),
+        Cursor::Edges(q, _) => (ArticleEdgePage { items }).with_query(q.clone()),
+        Cursor::Recommend(q) => (super::recommend::body(items, total == 0)).with_query(q.clone()),
     };
     actions(query, pool, returned, total, out);
     if let Cursor::Search(search) = query {
@@ -199,12 +210,11 @@ fn finish(query: Cursor<'_>, pool: &Pool, rows: Vec<StoredItem>, out: &mut Outco
     if let Cursor::Search(search) = query
         && search.sort() != ArticleSort::Citations
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Sort,
-            Action::Run {
-                request: Request::SearchArticle(search.ordered(ArticleSort::Citations)),
-                fresh: false,
-            },
+            &super::next::search_sources(search),
+            Request::SearchArticle(search.ordered(ArticleSort::Citations)),
+            false,
         ));
     }
 }
@@ -215,17 +225,20 @@ fn actions(query: Cursor<'_>, pool: &Pool, returned: u32, total: u64, out: &mut 
         .checked_add(returned)
         .filter(|offset| u64::from(*offset) < total && returned > 0)
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: query.request(offset, Some(pool.info.id.clone())),
-                fresh: false,
-            },
+            &query.sources(),
+            query.request(offset, Some(pool.info.id.clone())),
+            false,
         ));
     }
     let items = match &out.body {
-        QueryBody::ArticlePage(page) => page.items.as_ref(),
-        QueryBody::ArticleEdges(page) => page.items.as_ref(),
+        ReplyData::ArticlePage {
+            body: Some(page), ..
+        } => page.items.as_ref(),
+        ReplyData::ArticleEdgePage {
+            body: Some(page), ..
+        } => page.items.as_ref(),
         _ => &[],
     };
     if let Cursor::Edges(parent, references) = query
@@ -251,29 +264,56 @@ fn actions(query: Cursor<'_>, pool: &Pool, returned: u32, total: u64, out: &mut 
             } else {
                 (input, parent.input().clone())
             };
-            out.next.push((
+            let evidence = biomcp_types::ArticleEvidence::new(citing, cited);
+            out.next.push(crate::next::Step::run(
                 StepKind::Disambiguate,
-                Action::Run {
-                    request: Request::ArticleEvidence(biomcp_types::ArticleEvidence::new(
-                        citing, cited,
-                    )),
-                    fresh: false,
-                },
+                &super::next::evidence_sources(&evidence),
+                Request::ArticleEvidence(evidence),
+                false,
             ));
         }
     }
     if let Some(first) = items.first()
         && let Some(id) = first.pmid
-        && let Ok(query) =
-            biomcp_types::ArticleGet::new(vec![biomcp_types::ArticleInput::Pmid(id)].into())
+        && let Some(query) = crate::next::checked(
+            biomcp_types::ArticleGet::new(vec![biomcp_types::ArticleInput::Pmid(id)].into()),
+            biomcp_types::Source::PubMed,
+            &mut out.problems,
+        )
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Disambiguate,
-            Action::Run {
-                request: Request::GetArticle(query),
-                fresh: false,
-            },
+            &super::next::get_sources(&query),
+            Request::GetArticle(query),
+            false,
         ));
     }
     super::next::authors(out);
+}
+
+/// Return the checked live window when no retained collection could be written.
+pub(super) fn fetched(query: Cursor<'_>, items: Vec<biomcp_types::ArticleItem>, out: &mut Outcome) {
+    let total = items.len() as u64;
+    let items: Box<[_]> = items
+        .into_iter()
+        .skip(query.offset() as usize)
+        .take(query.limit() as usize)
+        .collect();
+    out.page = Some(PageInfo {
+        offset: query.offset(),
+        returned: items.len() as u32,
+        total,
+        pool: None,
+        truncated: None,
+    });
+    out.body = match query {
+        Cursor::Search(q) => ArticlePage {
+            items,
+            candidates: Vec::new(),
+        }
+        .with_query(q.clone()),
+        Cursor::Edges(q, _) => ArticleEdgePage { items }.with_query(q.clone()),
+        Cursor::Recommend(q) => super::recommend::body(items, total == 0).with_query(q.clone()),
+    };
+    status::item(out, true, false, false);
 }

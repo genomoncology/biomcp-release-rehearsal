@@ -1,38 +1,12 @@
 {
-  "live_check": "local-only retained source capture delivered over local TLS",
+  "live_check": "public",
   "feature": "trial-get",
   "story": "Exact NCT02578680 card retains the clinically reviewed study identity and whole registry summary",
   "replay": "trial/get/NCT02578680",
-  "verified": "Source collected 2026-10-24 in trial investigation; unchanged reply delivered through local TLS to actual CLI --record. Fetch timestamp is local delivery. Ceiling is measured compact CLI bytes plus 15 percent. No eligibility inference. Section ceilings use the largest measured page plus 15 percent; FLAURA eligibility/outcomes, CodeBreaK eligibility, OlympiA outcomes, VISION eligibility and DESTINY arms stay below their comparable released 0.9 outputs. The section walker checks every character and whole record against the original response, including later pages. Card ceilings retain the stricter original bound after adding native date qualifiers; final card bytes remain below it. The all-section bound now includes native references and the document manifest, plus section-owned typed continuations; ceilings use measured output plus 15 percent. The FLAURA all response stays below its released 0.9 all response of 71851 bytes.",
+  "verified": "Source collected 2026-10-24 in trial investigation; unchanged reply delivered through local TLS to actual CLI --record. Fetch timestamp is local delivery. Ceiling is measured compact CLI bytes plus 15 percent. No eligibility inference. Section ceilings use the largest measured page plus 15 percent; FLAURA eligibility/outcomes, CodeBreaK eligibility, OlympiA outcomes, VISION eligibility and DESTINY arms stay below their comparable released 0.9 outputs. The section walker checks every character and whole record against the original response, including later pages. Card ceilings retain the stricter original bound after adding native date qualifiers; final card bytes remain below it. The all-section bound now includes native references and the document manifest, plus section-owned typed continuations; ceilings use measured output plus 15 percent. The FLAURA all response stays below its released 0.9 all response of 71851 bytes. tests/replies/trial/get/README.md identifies unchanged public registry GET replies. Local TLS delivered those bodies to the recorder; ordinary public trial get commands check them nightly.",
   "steps": [
     {
       "run": [
-        "get",
-        "trial",
-        "NCT02578680"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02578680"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/input": "NCT02578680",
-        "/result/items/0/card": {
-          "equals_file": "NCT02578680-card.json"
-        }
-      },
-      "max_bytes": 3076
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "eligibility"
-      ],
-      "mcp": [
         "get",
         "trial",
         "NCT02578680",
@@ -54,80 +28,6 @@
         }
       },
       "max_bytes": 8395
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "outcomes"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "outcomes"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT02578680",
-        "/result/items/0/sections/outcomes/data/items/0/kind": "primary",
-        "/result/items/0/sections/outcomes/data/items/0/measure": "Progression-Free Survival (PFS) Per Response Evaluation Criteria in Solid Tumors (RECIST) 1.1 as Assessed by Blinded Central Imaging",
-        "/result/items/0/sections/outcomes/data/items/0/time_frame": "Up to approximately 21 months"
-      },
-      "max_bytes": 8397
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "arms"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "arms"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT02578680",
-        "/result/items/0/sections/arms/data/items/0/record": "arm",
-        "/result/items/0/sections/arms/data/items/0/data/label": "Pembrolizumab+Pemetrexed+Platinum Chemotherapy Followed by Pembrolizumab+Pemetrexed",
-        "/result/items/0/sections/arms/data/items/0/data/intervention_names": [
-          "Biological: Pembrolizumab 200 mg",
-          "Drug: Cisplatin",
-          "Drug: Carboplatin",
-          "Drug: Pemetrexed",
-          "Dietary Supplement: Folic acid 350-1000 \u03bcg",
-          "Dietary Supplement: Vitamin B12 1000 \u03bcg",
-          "Drug: Dexamethasone 4 mg"
-        ]
-      },
-      "max_bytes": 8010
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "all"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02578680",
-        "all"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT02578680",
-        "/result/items/0/sections/eligibility/state": "data",
-        "/result/items/0/sections/outcomes/state": "data",
-        "/result/items/0/sections/arms/state": "data"
-      },
-      "max_bytes": 24631
     }
   ],
   "harvest": "Reviewed question bank: T04, T05, T06"

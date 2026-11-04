@@ -1,0 +1,68 @@
+{
+  "feature": "trial-search",
+  "live_check": "synthetic",
+  "story": "Repeated alternatives preserve the CLI and MCP argument mapping and full query echo. Native syntax has a separate command-boundary proof. The guide drugs-and-sponsor command checks only synthetic source-protocol mapping, not a native trial match.",
+  "replay": "trial/or-options",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma",
+        "--condition",
+        "lung cancer",
+        "--intervention",
+        "pembrolizumab",
+        "--intervention",
+        "nivolumab",
+        "--keyword",
+        "survival",
+        "--keyword",
+        "quality of life",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/condition": [
+          "melanoma",
+          "lung cancer"
+        ],
+        "/query/intervention": [
+          "pembrolizumab",
+          "nivolumab"
+        ],
+        "/query/keyword": [
+          "survival",
+          "quality of life"
+        ]
+      },
+      "max_bytes": 1600
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--intervention",
+        "pembrolizumab",
+        "--intervention",
+        "nivolumab",
+        "--sponsor",
+        "National Cancer Institute",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/intervention": [
+          "pembrolizumab",
+          "nivolumab"
+        ],
+        "/query/sponsor": "National Cancer Institute",
+        "/page/total": 1
+      },
+      "max_bytes": 2000
+    }
+  ]
+}

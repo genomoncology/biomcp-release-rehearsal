@@ -1,0 +1,55 @@
+{
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
+  "feature": "diagnostic-device-recall",
+  "story": "Native device recall records retain their own identifiers and optionally join exact enforcement classification, without projecting product-code metadata.",
+  "replay": "diagnostic/recall-synthetic",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-device-recall",
+        "--manufacturer",
+        "Synthetic maker"
+      ],
+      "expect": {
+        "/result/count_unit": "recall-records",
+        "/result/items/0/header/recall_number": "Z-0001-2024"
+      },
+      "max_bytes": 817,
+      "full_output_bytes": true
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-device-recall",
+        "--product-code",
+        "ABC"
+      ],
+      "expect": {
+        "/page/total": 1
+      },
+      "max_bytes": 803,
+      "full_output_bytes": true
+    },
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "Z-0001-2024",
+        "--source",
+        "fda-device-recall"
+      ],
+      "expect": {
+        "/result/classification": "Class II",
+        "/result/k_numbers/0": "K000001",
+        "/result/pma_numbers/0": "P000001"
+      },
+      "max_bytes": 1064,
+      "full_output_bytes": true
+    }
+  ]
+}

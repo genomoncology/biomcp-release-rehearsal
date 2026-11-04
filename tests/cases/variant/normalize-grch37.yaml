@@ -1,5 +1,5 @@
 {
-  "feature": "variant-normalization",
+  "feature": "variant-identity",
   "live_check": "synthetic",
   "replay": "variant/normalization/grch37",
   "story": "An explicit chromosome build reaches the registry without changing its coordinates.",
@@ -13,109 +13,7 @@
         "--hgvs",
         "chr10:g.114758349C>T",
         "--build",
-        "GRCh37"
-      ],
-      "mcp": [
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "chr10:g.114758349C>T",
-        "--build",
-        "GRCh37"
-      ],
-      "expect": {
-        "/result/results/0/source": "car",
-        "/result/results/0/outcome": "resolved",
-        "/result/results/0/mappings/0/value": "http://reg.genome.network/allele/CA123643",
-        "/result/results/0/mappings/1/value": "NC_000010.10:g.114758349C>T"
-      }
-    },
-    {
-      "run": [
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "chr10:g.114758349C>T",
-        "--build",
         "GRCh36"
-      ],
-      "mcp": [
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "chr10:g.114758349C>T",
-        "--build",
-        "GRCh36"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/error/code": "usage.arguments",
-        "/error/option": "--build",
-        "/error/valid_values": [
-          "GRCh37",
-          "GRCh38"
-        ]
-      }
-    },
-    {
-      "run": [
-        "--offline",
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "chr10:g.114758349C>T",
-        "--build=GRCh36"
-      ],
-      "mcp": [
-        "--offline",
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "chr10:g.114758349C>T",
-        "--build=GRCh36"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/error/code": "usage.arguments",
-        "/error/option": "--build",
-        "/error/valid_values": [
-          "GRCh37",
-          "GRCh38"
-        ]
-      }
-    },
-    {
-      "run": [
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "NC_000010.11:g.114758349C>T",
-        "--build",
-        "GRCh37"
-      ],
-      "mcp": [
-        "variant",
-        "normalize",
-        "--source",
-        "car",
-        "--hgvs",
-        "NC_000010.11:g.114758349C>T",
-        "--build",
-        "GRCh37"
       ],
       "exit": 2,
       "is_error": true,

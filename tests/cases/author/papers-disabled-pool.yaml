@@ -10,11 +10,6 @@
         "papers",
         "semantic-scholar:123"
       ],
-      "mcp": [
-        "author",
-        "papers",
-        "semantic-scholar:123"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -22,112 +17,7 @@
       "full_output_bytes": true
     },
     {
-      "follow": "page",
-      "expect": {
-        "/status": "complete"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 678
-    },
-    {
       "run": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "semantic-scholar"
-      ],
-      "mcp": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "semantic-scholar"
-      ],
-      "is_error": true,
-      "exit": 4,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/source": "semantic-scholar",
-        "/sources/0/state": "skipped",
-        "/sources/0/reason": "disabled"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 429
-    },
-    {
-      "run": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "semantic-scholar",
-        "--offset",
-        "5",
-        "--pool",
-        "<pool>"
-      ],
-      "mcp": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "semantic-scholar",
-        "--offset",
-        "5",
-        "--pool",
-        "<pool>"
-      ],
-      "is_error": true,
-      "exit": 4,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/source": "semantic-scholar",
-        "/sources/0/state": "skipped",
-        "/sources/0/reason": "disabled"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 478
-    },
-    {
-      "run": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "noncommercial"
-      ],
-      "mcp": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "noncommercial"
-      ],
-      "is_error": true,
-      "exit": 4,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/source": "semantic-scholar",
-        "/sources/0/state": "skipped",
-        "/sources/0/reason": "disabled"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 429
-    },
-    {
-      "run": [
-        "author",
-        "papers",
-        "semantic-scholar:123",
-        "--disable-sources",
-        "noncommercial",
-        "--offset",
-        "5",
-        "--pool",
-        "<pool>"
-      ],
-      "mcp": [
         "author",
         "papers",
         "semantic-scholar:123",

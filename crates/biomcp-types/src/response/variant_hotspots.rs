@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 /// Source residue recurrence counts without allele-frequency or clinical interpretation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantHotspots {
     /// Source rows remain candidates when no transcript/consequence join exists.
@@ -21,7 +20,6 @@ pub struct VariantHotspots {
 
 /// Counts for one source transcript and residue label.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HotspotRecord {
     /// Whether transcript and consequence were linked by the identity source.
@@ -34,7 +32,8 @@ pub struct HotspotRecord {
     /// Native residue label; no genomic allele is inferred.
     pub residue: Text,
     /// Tumors reported for this residue by the source.
-    pub tumor_count: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tumor_count: Option<u64>,
     /// Source alternate amino acids and their counts.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub alternates: Box<[HotspotAlternate]>,
@@ -42,13 +41,13 @@ pub struct HotspotRecord {
 
 /// One source amino-acid alternate count.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HotspotAlternate {
     /// Source alternate amino-acid spelling.
     pub amino_acid: Text,
     /// Source count, without deriving a frequency.
-    pub count: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub count: Option<u64>,
 }
 
 biodata::wire_enum! {

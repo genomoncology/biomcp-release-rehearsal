@@ -1,14 +1,42 @@
-use super::BUNDLE_HELP;
+use super::bundle_names;
 use clap::{Arg, ArgAction, Command};
 pub(super) fn serve_command() -> Command {
     Command::new("serve")
         .after_help("Example: biomcp serve\nExample: biomcp help serve")
+        .arg(
+            super::boolean_argument(Arg::new("hosted")
+                .long("hosted")
+                .help("Refuse host file saves, health details and store or key changes over MCP.")
+                ),
+        )
+        .arg(
+            Arg::new("rate-share")
+                .long("rate-share")
+                .help("Use this share of keyed source rates in hosted mode (greater than 0, at most 1).")
+                .value_parser(clap::value_parser!(biomcp_fetch::RateShare))
+                .default_value("1")
+                .requires("hosted"),
+        )
         .arg(
             Arg::new("http")
                 .long("http")
                 .help("Listen on an HTTP address; omit its value for the loopback default.")
                 .num_args(0..=1)
                 .default_missing_value("127.0.0.1:8080"),
+        )
+        .arg(
+            Arg::new("http_max_calls")
+                .long("http_max_calls")
+                .help("Limit tool calls in flight.")
+                .value_parser(clap::value_parser!(std::num::NonZeroUsize))
+                .requires("http"),
+        )
+        .arg(
+            Arg::new("http_max_connections")
+                .long("http_max_connections")
+                .help("Limit open HTTP connections; must cover http_max_calls.")
+                .value_parser(clap::value_parser!(std::num::NonZeroUsize))
+                .requires("http"),
         )
         .arg(
             Arg::new("allow-host")
@@ -23,24 +51,41 @@ pub(super) fn help_command(root: &Command) -> Command {
     let mut help = Command::new("help");
     for command in root.get_subcommands() {
         let mut child = help_tree(command);
+        if command.get_name() == "get" {
+            child = child.subcommand(Command::new("clingen"));
+        }
         if command.get_name() == "key" {
-            child = child.arg(Arg::new("source").value_parser(crate::keys::names()));
+            child = child.arg(
+                Arg::new("source")
+                    .help("Credential source to describe.")
+                    .value_parser(crate::keys::names()),
+            );
         }
         if command.get_name() == "sync" {
-            child = child.subcommands(BUNDLE_HELP.iter().map(|&name| Command::new(name)));
+            child = child.subcommands(bundle_names().into_iter().map(Command::new));
         }
         help = help.subcommand(child);
     }
-    help.subcommand(Command::new("help"))
-        .subcommand(
-            Command::new("network").arg(Arg::new("setting").value_parser(["ca_bundle", "proxy"])),
-        )
-        .subcommand(Command::new("sources"))
-        .subcommand(Command::new("config"))
-        .subcommand(Command::new("exit").about("Explain process exit and error codes."))
-        .subcommand(
-            Command::new("relations").about("Map entities through sections and search filters."),
-        )
+    help.subcommand(
+        Command::new("help").arg(
+            Arg::new("command")
+                .num_args(0..)
+                .help("Command help path to describe."),
+        ),
+    )
+    .subcommand(
+        Command::new("network").arg(
+            Arg::new("setting")
+                .help("Network setting to describe.")
+                .value_parser(["ca_bundle", "proxy"]),
+        ),
+    )
+    .subcommand(Command::new("sources"))
+    .subcommand(Command::new("config"))
+    .subcommand(Command::new("exit").about("Explain process exit and error codes."))
+    .subcommand(
+        Command::new("relations").about("Map entities through sections and search filters."),
+    )
 }
 
 fn help_tree(command: &Command) -> Command {
@@ -48,33 +93,32 @@ fn help_tree(command: &Command) -> Command {
         .subcommands(command.get_subcommands().map(help_tree))
 }
 
-pub(super) fn help_source(matches: &clap::ArgMatches) -> Result<biomcp_types::Source, ()> {
-    matches
+pub(super) fn help_source(
+    matches: &clap::ArgMatches,
+) -> Result<biomcp_fetch::SecretName, super::ParseInvalid> {
+    let word = matches
         .subcommand()
         .filter(|(name, _)| *name == "key")
-        .and_then(|(_, m)| m.get_one::<String>("source"))
-        .map_or(Ok(biomcp_types::Source::Oncokb), |s| {
-            if s == "ncbi" {
-                Ok(biomcp_types::Source::PubMed)
-            } else if s == "openfda" {
-                Ok(biomcp_types::Source::OpenfdaLabel)
-            } else {
-                s.parse()
-            }
-        })
-        .map_err(|_| ())
+        .and_then(|(_, matches)| matches.get_one::<String>("source"));
+    match word {
+        Some(word) => biomcp_query::sources::keys()
+            .into_iter()
+            .find(|&name| biomcp_query::sources::key_name(name) == word)
+            .ok_or_else(super::ParseInvalid::default),
+        None => Ok(biomcp_fetch::SecretName::OncokbApiKey),
+    }
 }
 
-pub(crate) fn housekeeping_commands() -> [Command; 3] {
+pub(super) fn housekeeping_commands() -> [Command; 3] {
     [
         crate::skill::grammar(),
         Command::new("version").after_help("Example: biomcp version")
             .about("Print version; --verbose adds build, schema and path provenance. No source requests or key reads.")
             .arg(
-                Arg::new("verbose")
+                super::boolean_argument(Arg::new("verbose")
                     .long("verbose")
                     .help("Include commit, target, schema versions, config and cache paths.")
-                    .action(ArgAction::SetTrue),
+                    ),
             ),
         Command::new("mcp-config").after_help("Example: biomcp mcp-config")
             .about(
@@ -88,12 +132,6 @@ pub(crate) fn housekeeping_commands() -> [Command; 3] {
                     .long("client")
                     .value_parser(clap::value_parser!(crate::housekeeping::Client))
                     .default_value("mcp-servers"),
-            )
-            .arg(
-                Arg::new("absolute-path")
-                    .help("Retained compatibility flag; executable paths are always absolute.")
-                    .long("absolute-path")
-                    .action(ArgAction::SetTrue),
             ),
     ]
 }
@@ -114,7 +152,18 @@ pub(super) fn housekeeping(
     }
 }
 
-pub(super) fn serve(matches: &clap::ArgMatches, globals: super::Globals) -> super::Parsed {
+pub(super) fn serve(matches: &clap::ArgMatches, mut globals: super::Globals) -> super::Parsed {
+    globals.hosted = matches.get_flag("hosted");
+    globals.http_max_calls = matches
+        .get_one::<std::num::NonZeroUsize>("http_max_calls")
+        .copied();
+    globals.http_max_connections = matches
+        .get_one::<std::num::NonZeroUsize>("http_max_connections")
+        .copied();
+    globals.rate_share = matches
+        .get_one::<biomcp_fetch::RateShare>("rate-share")
+        .copied()
+        .unwrap_or_default();
     super::Parsed {
         key: None,
         housekeeping: None,

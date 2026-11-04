@@ -1,47 +1,28 @@
 //! Feature adverse-event-get: synthetic exact identity and independent native sections.
 use super::{configuration::invoke, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 type Check = Result<(), String>;
+mod optional;
 pub(super) fn trials() -> Vec<Trial> {
-    let mut trials = vec![Trial::test(
-        "adverse-event-get/synthetic-sections-and-snapshot",
-        || sections().map_err(Into::into),
-    )];
-    trials.push(Trial::test(
-        "adverse-event-get/synthetic-complete-array-walks",
-        || walks().map_err(Into::into),
-    ));
-    trials.push(Trial::test(
-        "adverse-event-get/synthetic-identifier-kinds",
-        || identifier_kinds().map_err(Into::into),
-    ));
-    trials.push(Trial::test(
-        "adverse-event-get/synthetic-source-admission-before-retained-read",
-        || source_policy().map_err(Into::into),
-    ));
-    for mode in [
-        "wrong-id",
-        "two-versions",
-        "absent",
-        "bad-drug-index",
-        "missing-patient",
-        "missing-drugs",
-        "missing-reactions",
-        "empty-collections",
-    ] {
-        trials.push(Trial::test(
-            format!("adverse-event-get/synthetic-{mode}"),
-            move || identity(mode).map_err(Into::into),
-        ));
-    }
-    trials
+    // The test binds emitted snapshot IDs into later section requests and checks that those reads never reach the peer.
+    vec![
+        transcript_trial(crate::runner::required_contract::FAERS_SECTIONS.0, || {
+            sections().map_err(Into::into)
+        }),
+        transcript_trial(
+            crate::runner::required_contract::FAERS_IDENTIFIERS.0,
+            || identifier_kinds().map_err(Into::into),
+        ),
+    ]
 }
-fn native() -> Value {
+pub(super) fn native() -> Value {
     json!(
         {"meta":{"last_updated":"2024-09-01","results":{"skip":0,"limit":5,"total":1}},"results":[{"safetyreportid":"100",
         "safetyreportversion":"1","receivedate":"20240101","receiptdate":"20240202","serious":"1","seriousnessdeath":"1",
-        "seriousnesshospitalization":"1","primarysource":{"qualification":"1","reportercountry":"US"},"patient":{"patientonsetage":"",
+        "seriousnesshospitalization":"1","primarysource":{"qualification":"1","reportercountry":"US"},"patient":{"patientonsetage":"42.5",
+        "patientonsetageunit":"801",
         "patientsex":"2","drug":[{"medicinalproduct":"Synthetic A","drugcharacterization":"1","openfda":{"unii":["TESTA"],"rxcui":["1"],
         "product_ndc":["SYNTHETIC"],"spl_id":["SYNTHETIC-ID"],"spl_set_id":["SYNTHETIC-SET"],"application_number":["SYNTHETIC-APPLICATION"],
         "package_ndc":["A","B","C","D","E","F"]}},{"medicinalproduct":"Synthetic B","drugcharacterization":"2","openfda":{"unii":[]}},
@@ -51,25 +32,8 @@ fn native() -> Value {
 }
 fn setup(mode: &str) -> Result<(Environment, Stub), String> {
     let mut body = native();
-    if mode == "missing-patient" {
-        body.pointer_mut("/results/0")
-            .and_then(Value::as_object_mut)
-            .ok_or("report")?
-            .remove("patient");
-    }
-    for field in ["drug", "reaction"] {
-        if mode == format!("missing-{field}s") || mode == "empty-collections" {
-            let patient = body
-                .pointer_mut("/results/0/patient")
-                .and_then(Value::as_object_mut)
-                .ok_or("patient")?;
-            if mode == "empty-collections" {
-                patient.insert(field.into(), json!([]));
-            } else {
-                patient.remove(field);
-            }
-        }
-    }
+    age_input(&mut body, mode)?;
+    optional::input(&mut body, mode)?;
     if mode == "walks" {
         let drugs: Vec<_> = (0..19)
             .map(|n| json!({"medicinalproduct":format!("Synthetic drug {n}"), "drugcharacterization":if n%2==0 {"1"}else{"2"}}))
@@ -116,7 +80,7 @@ fn setup(mode: &str) -> Result<(Environment, Stub), String> {
     )?;
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     std::fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"ca_bundle":ca,"proxy":format!("http://{}",stub.address)}))
         .map_err(|e| e.to_string())?;
@@ -144,14 +108,7 @@ fn both(env: &Environment, args: Vec<String>, exit: i32) -> Result<Value, String
 fn sections() -> Check {
     let (env, stub) = setup("valid")?;
     let card = both(&env, args(None), 0)?;
-    if card.pointer("/result/drug_count") != Some(&json!(3))
-        || card.pointer("/result/reaction_count") != Some(&json!(1))
-        || card.pointer("/result/patient/age") != Some(&json!(""))
-        || card.pointer("/result/patient/weight").is_some()
-        || card.pointer("/result/latest_received") != Some(&json!("20240202"))
-    {
-        return Err(format!("card facts: {card}"));
-    }
+    card_facts(&card)?;
     let snapshot = card
         .pointer("/result/snapshot")
         .and_then(Value::as_str)
@@ -172,6 +129,10 @@ fn sections() -> Check {
     let mut ids = args(Some("package-ndc"));
     ids.extend([
         "--drug-index".into(),
+        "0".into(),
+        "--section-limit".into(),
+        "5".into(),
+        "--section-offset".into(),
         "0".into(),
         "--snapshot".into(),
         snapshot.into(),
@@ -220,100 +181,18 @@ fn sections() -> Check {
     }
     Ok(())
 }
-fn identity(mode: &str) -> Check {
-    let (env, stub) = setup(mode)?;
-    let mut words = args(None);
-    if mode == "bad-drug-index" {
-        words = args(Some("unii"));
-        words.extend(["--drug-index".into(), "99".into()]);
-    }
-    let exit = if mode == "empty-collections" {
-        0
-    } else if mode == "absent" {
-        1
-    } else if mode == "bad-drug-index" {
-        2
-    } else {
-        4
-    };
-    let value = both(&env, words, exit)?;
-    if mode == "empty-collections" {
-        if value.pointer("/result/drug_count") != Some(&json!(0))
-            || value.pointer("/result/reaction_count") != Some(&json!(0))
-        {
-            return Err(format!("explicit empty arrays lost: {value}"));
-        }
-    } else if mode == "absent" {
-        if value.get("status") != Some(&json!("absent")) {
-            return Err(format!("absence: {value}"));
-        }
-    } else if mode != "bad-drug-index"
-        && (value.get("result").is_some()
-            || value.pointer("/sources/0/reason") != Some(&json!("bad_reply")))
+fn card_facts(card: &Value) -> Check {
+    if card.pointer("/result/drug_count") != Some(&json!(3))
+        || card.pointer("/result/reaction_count") != Some(&json!(1))
+        || card.pointer("/result/patient/age") != Some(&json!({"value":42.5,"unit":"801"}))
+        || card.pointer("/result/patient/weight").is_some()
+        || card.pointer("/result/latest_received") != Some(&json!("20240202"))
     {
-        return Err(format!("identity admitted: {value}"));
-    }
-    if matches!(mode, "wrong-id" | "two-versions")
-        && value
-            .get("problems")
-            .and_then(Value::as_array)
-            .is_none_or(Vec::is_empty)
-    {
-        return Err("rejected identity lost its problem".into());
-    }
-    let expected = if matches!(mode, "bad-drug-index" | "empty-collections") {
-        1
-    } else {
-        2
-    };
-    if stub.finish()?.len() != expected {
-        return Err("invalid identity entered cache".into());
+        return Err(format!("card facts: {card}"));
     }
     Ok(())
 }
 
-fn walks() -> Check {
-    let (env, stub) = setup("walks")?;
-    let card = both(&env, args(None), 0)?;
-    let snapshot = card
-        .pointer("/result/snapshot")
-        .and_then(Value::as_str)
-        .ok_or("snapshot")?;
-    for (section, total) in [("drugs", 19), ("reactions", 22)] {
-        let mut words = args(Some(section));
-        words.extend(["--snapshot".into(), snapshot.into()]);
-        let mut seen = Vec::new();
-        loop {
-            let value = both(&env, words, 0)?;
-            let rows = value
-                .pointer(&format!("/result/{section}/records"))
-                .and_then(Value::as_array)
-                .ok_or("rows")?;
-            seen.extend(
-                rows.iter()
-                    .map(|r| r.get("index").cloned().unwrap_or(Value::Null)),
-            );
-            let next = value
-                .get("next")
-                .and_then(Value::as_array)
-                .and_then(|v| v.iter().find(|r| r.get("kind") == Some(&json!("page"))))
-                .and_then(|r| r.get("args"));
-            let Some(next) = next else { break };
-            words = serde_json::from_value(next.clone()).map_err(|e| e.to_string())?;
-            if seen.len() > total {
-                return Err("array walk repeated".into());
-            }
-        }
-        let expected: Vec<_> = (0..total).map(|n| json!(n)).collect();
-        if seen != expected {
-            return Err(format!("{section} native index gap or duplicate: {seen:?}"));
-        }
-    }
-    if stub.finish()?.len() != 1 {
-        return Err("array continuation reached HTTP".into());
-    }
-    Ok(())
-}
 fn identifier_kinds() -> Check {
     let (env, stub) = setup("valid")?;
     let card = both(&env, args(None), 0)?;
@@ -369,37 +248,6 @@ fn identifier_kinds() -> Check {
     Ok(())
 }
 
-fn source_policy() -> Check {
-    let (env, stub) = setup("valid")?;
-    let card = both(&env, args(None), 0)?;
-    let snapshot = card
-        .pointer("/result/snapshot")
-        .and_then(Value::as_str)
-        .ok_or("snapshot")?;
-    for section in [None, Some("drugs"), Some("reactions"), Some("unii")] {
-        let mut words = args(section);
-        words.extend([
-            "--snapshot".into(),
-            snapshot.into(),
-            "--disable-sources".into(),
-            "faers".into(),
-        ]);
-        if section == Some("unii") {
-            words.extend(["--drug-index".into(), "0".into()]);
-        }
-        let result = both(&env, words, 4)?;
-        if result.get("result").is_some()
-            || result.pointer("/sources/0/reason") != Some(&json!("disabled"))
-        {
-            return Err(format!("disabled source restored report: {result}"));
-        }
-    }
-    if stub.finish()?.len() != 1 {
-        return Err("disabled source reached HTTP".into());
-    }
-    Ok(())
-}
-
 fn budget(value: &Value, full: usize, comparable: usize) -> Check {
     let section = value
         .pointer("/query/section")
@@ -407,26 +255,27 @@ fn budget(value: &Value, full: usize, comparable: usize) -> Check {
         .unwrap_or("card");
     let status = value.get("status").and_then(Value::as_str).unwrap_or("");
     // j13008: compact CLI/MCP maxima; every ceiling is measured bytes plus15%.
-    let measured: (usize, usize) = match (section, status) {
-        (_, "usage") => (143, 143),
-        ("card", "complete") => (1215, 1100),
-        ("card", "absent") => (298, 183),
-        ("card", "failed") => (428, 313),
-        ("drugs", "failed") => (419, 304),
-        ("reactions", "failed") => (423, 308),
-        ("unii", "failed") => (433, 318),
-        ("unii", "absent") => (409, 294),
-        ("drugs", "complete") => (1453, 1338),
-        ("reactions", "complete") => (1403, 1288),
-        ("unii", "complete") => (693, 578),
-        ("rxcui", "complete") => (692, 577),
-        ("product-ndc", "complete") => (718, 603),
-        ("package-ndc", "complete") => (924, 809),
-        ("spl-id", "complete") => (706, 591),
-        ("spl-set-id", "complete") => (719, 604),
-        ("application-number", "complete") => (751, 636),
+    let names = match (section, status) {
+        (_, "usage") => ("faers-envelope-143", "faers-envelope-143"),
+        ("card", "complete") => ("faers-envelope-1215", "faers-envelope-1100"),
+        ("card", "absent") => ("faers-envelope-298", "faers-envelope-183"),
+        ("card", "failed") => ("faers-envelope-428", "faers-envelope-313"),
+        ("drugs", "failed") => ("faers-envelope-419", "faers-envelope-304"),
+        ("reactions", "failed") => ("faers-envelope-423", "faers-envelope-308"),
+        ("unii", "failed") => ("faers-envelope-433", "faers-envelope-318"),
+        ("unii", "absent") => ("faers-envelope-409", "faers-envelope-294"),
+        ("drugs", "complete") => ("faers-envelope-1453", "faers-envelope-1338"),
+        ("reactions", "complete") => ("faers-envelope-1403", "faers-envelope-1288"),
+        ("unii", "complete") => ("faers-envelope-693", "faers-envelope-578"),
+        ("rxcui", "complete") => ("faers-envelope-692", "faers-envelope-577"),
+        ("product-ndc", "complete") => ("faers-envelope-718", "faers-envelope-603"),
+        ("package-ndc", "complete") => ("faers-envelope-924", "faers-envelope-809"),
+        ("spl-id", "complete") => ("faers-envelope-706", "faers-envelope-591"),
+        ("spl-set-id", "complete") => ("faers-envelope-719", "faers-envelope-604"),
+        ("application-number", "complete") => ("faers-envelope-751", "faers-envelope-636"),
         _ => return Err(format!("unmeasured FAERS envelope: {section}/{status}")),
     };
+    let measured = (super::output_limit(names.0)?, super::output_limit(names.1)?);
     let caps = (
         (measured.0 * 115).div_ceil(100),
         (measured.1 * 115).div_ceil(100),
@@ -435,6 +284,26 @@ fn budget(value: &Value, full: usize, comparable: usize) -> Check {
         return Err(format!(
             "FAERS output exceeds measured +15% ceiling: {full}/{comparable} > {caps:?}"
         ));
+    }
+    Ok(())
+}
+
+fn age_input(body: &mut Value, mode: &str) -> Check {
+    if let Some(unit) = mode.strip_prefix("age-unit-") {
+        let patient = body
+            .pointer_mut("/results/0/patient")
+            .and_then(Value::as_object_mut)
+            .ok_or("patient")?;
+        if unit == "absent" {
+            patient.remove("patientonsetageunit");
+        } else {
+            patient.insert("patientonsetageunit".into(), json!(unit));
+        }
+    }
+    if mode == "age-invalid" {
+        *body
+            .pointer_mut("/results/0/patient/patientonsetage")
+            .ok_or("age")? = json!("NaN");
     }
     Ok(())
 }

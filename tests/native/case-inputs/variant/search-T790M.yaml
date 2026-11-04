@@ -1,0 +1,167 @@
+{
+  "feature": "variant-search",
+  "live_check": "synthetic",
+  "replay": "variant/search/T790M",
+  "story": "Explicit MyVariant T790M candidates retain the source identities and query",
+  "harvest": "sdlc/planning/slices/variant.md",
+  "verified": "2026-10-24; factual identity anchors from external0088-source-captures; synthetic response projection, not a fresh whole-source claim",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "EGFR",
+        "--protein",
+        "T790M",
+        "--build",
+        "GRCh37"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "EGFR",
+        "--protein",
+        "T790M",
+        "--build",
+        "GRCh37"
+      ],
+      "max_bytes": 1187,
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "partial",
+        "/query": {
+          "equals": {
+            "gene": "EGFR",
+            "protein": "T790M",
+            "limit": 10,
+            "offset": 0,
+            "build": "GRCh37"
+          }
+        },
+        "/result": {
+          "equals": {
+            "source_query": "dbnsfp.genename:EGFR AND dbnsfp.hgvsp:\"p.T790M\"",
+            "build": "GRCh37",
+            "items": [
+              {
+                "identity": {
+                  "ids": [
+                    "rs121434569",
+                    "clinvar:16613"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr7:g.55249071C>T"
+                      }
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr7:g.55249071C>T",
+                  "namespace": "unknown"
+                },
+                "component_terms": [
+                  {
+                    "component": "clinvar",
+                    "terms": {
+                      "usage": "restricted",
+                      "name": "NCBI policy; submission rights remain source-specific",
+                      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
+                    }
+                  }
+                ]
+              }
+            ],
+            "selector_terms": {
+              "usage": "noncommercial",
+              "name": "dbNSFP academic branch and individual component terms",
+              "url": "https://sites.google.com/site/jpopgen/dbNSFP"
+            }
+          }
+        },
+        "/page": {
+          "equals": {
+            "offset": 0,
+            "returned": 1,
+            "total": 1
+          }
+        },
+        "/sources/0/source": "myvariant"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "EGFR",
+        "--protein",
+        "T790M",
+        "--build",
+        "GRCh37"
+      ],
+      "offline": true,
+      "expect": {
+        "/result": {
+          "equals": {
+            "source_query": "dbnsfp.genename:EGFR AND dbnsfp.hgvsp:\"p.T790M\"",
+            "build": "GRCh37",
+            "items": [
+              {
+                "identity": {
+                  "ids": [
+                    "rs121434569",
+                    "clinvar:16613"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr7:g.55249071C>T"
+                      }
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr7:g.55249071C>T",
+                  "namespace": "unknown"
+                },
+                "component_terms": [
+                  {
+                    "component": "clinvar",
+                    "terms": {
+                      "usage": "restricted",
+                      "name": "NCBI policy; submission rights remain source-specific",
+                      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
+                    }
+                  }
+                ]
+              }
+            ],
+            "selector_terms": {
+              "usage": "noncommercial",
+              "name": "dbNSFP academic branch and individual component terms",
+              "url": "https://sites.google.com/site/jpopgen/dbNSFP"
+            }
+          }
+        },
+        "/page": {
+          "equals": {
+            "offset": 0,
+            "returned": 1,
+            "total": 1
+          }
+        },
+        "/status": "partial"
+      }
+    }
+  ]
+}

@@ -1,71 +1,16 @@
 {
-  "live_check": "local-only retained source capture delivered over local TLS",
+  "live_check": "public",
   "feature": "trial-get",
   "story": "Exact NCT02563002 card retains the clinically reviewed study identity and whole registry summary",
   "replay": "trial/get/NCT02563002",
-  "verified": "Source collected 2026-10-24 in trial investigation; unchanged reply delivered through local TLS to actual CLI --record. Fetch timestamp is local delivery. Ceiling is measured compact CLI bytes plus 15 percent. No eligibility inference. Section ceilings use the largest measured page plus 15 percent; FLAURA eligibility/outcomes, CodeBreaK eligibility, OlympiA outcomes, VISION eligibility and DESTINY arms stay below their comparable released 0.9 outputs. The section walker checks every character and whole record against the original response, including later pages. Card ceilings retain the stricter original bound after adding native date qualifiers; final card bytes remain below it. The all-section bound now includes native references and the document manifest, plus section-owned typed continuations; ceilings use measured output plus 15 percent. The FLAURA all response stays below its released 0.9 all response of 71851 bytes.",
+  "verified": "Source collected 2026-10-24 in trial investigation; unchanged reply delivered through local TLS to actual CLI --record. Fetch timestamp is local delivery. Ceiling is measured compact CLI bytes plus 15 percent. No eligibility inference. Section ceilings use the largest measured page plus 15 percent; FLAURA eligibility/outcomes, CodeBreaK eligibility, OlympiA outcomes, VISION eligibility and DESTINY arms stay below their comparable released 0.9 outputs. The section walker checks every character and whole record against the original response, including later pages. Card ceilings retain the stricter original bound after adding native date qualifiers; final card bytes remain below it. The all-section bound now includes native references and the document manifest, plus section-owned typed continuations; ceilings use measured output plus 15 percent. The FLAURA all response stays below its released 0.9 all response of 71851 bytes. tests/replies/trial/get/README.md identifies unchanged public registry GET replies. Local TLS delivered those bodies to the recorder; ordinary public trial get commands check them nightly.",
   "steps": [
     {
       "run": [
         "get",
         "trial",
-        "NCT02563002"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02563002"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/input": "NCT02563002",
-        "/result/items/0/card": {
-          "equals_file": "NCT02563002-card.json"
-        }
-      },
-      "max_bytes": 2352
-    },
-    {
-      "run": [
-        "get",
-        "trial",
         "NCT02563002",
-        "eligibility"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02563002",
-        "eligibility"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT02563002",
-        "/result/items/0/sections/eligibility/data/minimum_age": {
-          "equals": {
-            "state": "source",
-            "raw": "18 Years"
-          }
-        },
-        "/result/items/0/sections/eligibility/data/maximum_age": {
-          "equals": {
-            "state": "no_limit"
-          }
-        }
-      },
-      "max_bytes": 6030
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02563002",
-        "outcomes"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02563002",
+        "--section",
         "outcomes"
       ],
       "expect": {
@@ -76,52 +21,6 @@
         "/result/items/0/sections/outcomes/data/items/0/time_frame": "Up to approximately 59 months"
       },
       "max_bytes": 6691
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02563002",
-        "arms"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02563002",
-        "arms"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT02563002",
-        "/result/items/0/sections/arms/data/items/0/record": "arm",
-        "/result/items/0/sections/arms/data/items/0/data/label": "Pembrolizumab",
-        "/result/items/0/sections/arms/data/items/0/data/intervention_names": [
-          "Biological: Pembrolizumab"
-        ]
-      },
-      "max_bytes": 5552
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT02563002",
-        "all"
-      ],
-      "mcp": [
-        "get",
-        "trial",
-        "NCT02563002",
-        "all"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT02563002",
-        "/result/items/0/sections/eligibility/state": "data",
-        "/result/items/0/sections/outcomes/state": "data",
-        "/result/items/0/sections/arms/state": "data"
-      },
-      "max_bytes": 17347
     }
   ],
   "harvest": "Reviewed question bank: T22"

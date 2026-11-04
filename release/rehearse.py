@@ -31,6 +31,15 @@ def finish(rows, report):
     return int(any(row['exit'] for row in rows))
 
 
+def mutation(report, arguments):
+    """Run one mutation action in its native job and record its exit status."""
+    rows = []
+    arguments = arguments[1:] if arguments[:1] == ['--'] else arguments
+    run_stage(rows, 'mutation', [sys.executable,
+              str(Path(__file__).with_name('mutations.py')), *arguments])
+    return finish(rows, report)
+
+
 def inside(report):
     python = sys.executable
     revision = os.environ['BIOMCP_BUILD_REVISION']
@@ -96,11 +105,13 @@ def cold(report, container_args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['cold', 'inside', 'record', 'finish'])
+    parser.add_argument('command', choices=['cold', 'inside', 'record', 'finish', 'mutation'])
     parser.add_argument('--report', type=Path, required=True)
     parser.add_argument('arguments', nargs='*')
     args, extra = parser.parse_known_args()
     args.arguments.extend(extra)
+    if args.command == 'mutation':
+        return mutation(args.report, args.arguments)
     if args.command == 'inside':
         return inside(args.report)
     if args.command == 'cold':

@@ -17,18 +17,6 @@
         "--distance",
         "50mi"
       ],
-      "mcp": [
-        "search",
-        "trial",
-        "--condition",
-        "melanoma",
-        "--lat",
-        "42.3601",
-        "--lon",
-        "-71.0589",
-        "--distance",
-        "50mi"
-      ],
       "expect": {
         "/status": "complete",
         "/page/total": 424,
@@ -46,8 +34,8 @@
             "NCT04007588"
           ]
         },
-        "/result/source_updated/value": "2026-10-23T09:00:04",
-        "/result/source_updated/timezone": "source_gave_none"
+        "/result/source_updated/value": "2026-10-23T09:00:04Z",
+        "/result/source_updated/timezone": "in-value"
       },
       "max_bytes": 6167
     }

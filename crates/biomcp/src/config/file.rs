@@ -1,29 +1,57 @@
 //! Configuration decoding retains field names without retaining rejected values.
-use super::{SecretName, config_path};
+use super::config_path;
 use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::{Map, Value};
 use std::{collections::BTreeMap, fs, path::PathBuf};
 
+/// Keep both copies until the deployed clients have been checked for structured output.
+#[derive(Clone, Copy, Default, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub(crate) enum ReplyForm {
+    #[default]
+    Both,
+    StructuredOnly,
+    TextOnly,
+}
+
 #[derive(Clone, Debug)]
-pub(crate) struct ConfigError(pub(crate) String);
+pub(crate) struct ConfigError(pub(crate) String, ConfigScope);
+#[derive(Clone, Debug)]
+enum ConfigScope {
+    SourcePacing,
+    Other,
+}
 impl ConfigError {
+    pub(super) fn is_pacing(&self) -> bool {
+        matches!(self.1, ConfigScope::SourcePacing)
+    }
     pub(crate) fn field(name: &str) -> Self {
         // An unknown key is a name, but arbitrary JSON strings are not safe diagnostics.
         let safe = !name.is_empty()
             && name.len() <= 96
             && name
                 .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.');
-        Self(if safe {
-            name.into()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.' || b == b'-');
+        let scope = if name == "source_pacing" || name.starts_with("source_pacing.") {
+            ConfigScope::SourcePacing
         } else {
-            "config.json".into()
-        })
+            ConfigScope::Other
+        };
+        Self(
+            if safe {
+                name.into()
+            } else {
+                "config.json".into()
+            },
+            scope,
+        )
     }
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct ConfigFile {
+pub(crate) struct ConfigFile {
+    pub(super) hosted_max_use: Option<crate::command::DeclaredUse>,
+    pub(super) mcp_reply_form: Option<ReplyForm>,
     pub(super) format: Option<crate::grammar::Format>,
     pub(super) proxy: Option<String>,
     pub(super) http: Option<Http>,
@@ -32,6 +60,11 @@ pub(super) struct ConfigFile {
     pub(super) ncbi_email: Option<String>,
     pub(super) keys: Option<BTreeMap<String, String>>,
     pub(super) auto_sync_max_bytes: Option<u64>,
+    pub(super) command_timeout_seconds: Option<std::num::NonZeroU32>,
+    pub(super) drug_approvals_limit: Option<u32>,
+    pub(super) source_pacing: Option<BTreeMap<String, biomcp_fetch::PacingOverride>>,
+    pub(super) http_max_calls: Option<std::num::NonZeroUsize>,
+    pub(super) http_max_connections: Option<std::num::NonZeroUsize>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -77,9 +110,18 @@ fn decode(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
             })
         })
     })?;
+    if file
+        .drug_approvals_limit
+        .is_some_and(|n| !(1..=50).contains(&n))
+    {
+        return Err(ConfigError::field("drug_approvals_limit"));
+    }
     if let Some(keys) = &file.keys {
         for key in keys.keys() {
-            if !SecretName::ALL.iter().any(|name| name.config() == key) {
+            if !biomcp_query::sources::keys()
+                .iter()
+                .any(|name| name.config() == key)
+            {
                 return Err(ConfigError::field(&format!("keys.{key}")));
             }
         }
@@ -109,7 +151,10 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
             map.into_iter()
                 .map(|(key, value)| {
                     let field = format!("keys.{key}");
-                    if !SecretName::ALL.iter().any(|name| name.config() == key) {
+                    if !biomcp_query::sources::keys()
+                        .iter()
+                        .any(|name| name.config() == key)
+                    {
                         return Err(ConfigError::field(&field));
                     }
                     let value =
@@ -120,6 +165,8 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         })
         .transpose()?;
     let file = ConfigFile {
+        hosted_max_use: take(&mut map, "hosted_max_use")?,
+        mcp_reply_form: take(&mut map, "mcp_reply_form")?,
         format: take(&mut map, "format")?,
         proxy: take(&mut map, "proxy")?,
         http,
@@ -128,14 +175,23 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         ncbi_email: take(&mut map, "ncbi_email")?,
         keys,
         auto_sync_max_bytes: take(&mut map, "auto_sync_max_bytes")?,
+        command_timeout_seconds: take(&mut map, "command_timeout_seconds")?,
+        drug_approvals_limit: take(&mut map, "drug_approvals_limit")?,
+        source_pacing: map
+            .remove("source_pacing")
+            .filter(|v| !v.is_null())
+            .map(pacing)
+            .transpose()?,
+        http_max_calls: take(&mut map, "http_max_calls")?,
+        http_max_connections: take(&mut map, "http_max_connections")?,
     };
     unknown(&map, "")?;
     Ok(file)
 }
-pub(super) fn read_file(
+pub(crate) fn read_file(
     override_path: Option<&PathBuf>,
 ) -> Result<Option<ConfigFile>, ConfigError> {
-    config_path(override_path)
+    config_path(override_path)?
         .map(|path| match fs::read(path) {
             Ok(bytes) => decode(&bytes).map(Some),
             Err(error)
@@ -147,4 +203,19 @@ pub(super) fn read_file(
         })
         .transpose()
         .map(Option::flatten)
+}
+
+/// Decode one map entry at a time so errors name a source without exposing values.
+pub(super) fn pacing(
+    value: Value,
+) -> Result<BTreeMap<String, biomcp_fetch::PacingOverride>, ConfigError> {
+    object(value, "source_pacing")?
+        .into_iter()
+        .map(|(name, value)| {
+            let field = format!("source_pacing.{name}");
+            serde_json::from_value(value)
+                .map(|value| (name, value))
+                .map_err(|_| ConfigError::field(&field))
+        })
+        .collect()
 }

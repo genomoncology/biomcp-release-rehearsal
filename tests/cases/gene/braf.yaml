@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-commands",
+  "feature": "gene-identity",
   "story": "braf",
   "replay": "gene/main",
   "steps": [
@@ -36,8 +36,8 @@
         "/sources/0/source": "hgnc",
         "/sources/*/use": [
           "open",
-          "restricted",
-          "restricted"
+          "open",
+          "licensed"
         ],
         "/sources/*/terms": {
           "count": 3
@@ -50,88 +50,19 @@
           "equals": {
             "source": "oncokb",
             "state": "skipped",
-            "reason": "no_key",
-            "use": "restricted",
+            "reason": "no-key",
+            "use": "licensed",
             "terms": "OncoKB license",
             "terms_url": "https://faq.oncokb.org/licensing"
           }
         },
-        "/next/*/kind": ["key", "section"]
+        "/next/*/kind": [
+          "key",
+          "section"
+        ]
       },
       "max_bytes": 2800,
-      "max_tokens": 650,
-      "mcp": [
-        "get",
-        "gene",
-        "BRAF"
-      ]
-    },
-    {
-      "run": [
-        "get",
-        "gene",
-        "braf"
-      ],
-      "expect": {
-        "/result/items/0/answer/gene/hgnc_id": "HGNC:1097",
-        "/result/items/0/answer/match/text": "BRAF"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "gene",
-        "ENSG00000157764.12"
-      ],
-      "expect": {
-        "/result/items/0/answer/gene/hgnc_id": "HGNC:1097",
-        "/result/items/0/answer/match/text": "ENSG00000157764"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "gene",
-        "NOTAGENE",
-        "BRAF",
-        "MLL2",
-        "BRCA3"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/*/input": [
-          "NOTAGENE",
-          "BRAF",
-          "MLL2",
-          "BRCA3"
-        ],
-        "/result/items/*/status": [
-          "absent",
-          "complete",
-          "complete",
-          "complete"
-        ],
-        "/sources/*/source": {
-          "includes": "oncokb",
-          "excludes": "gnomad"
-        },
-        "/result/items/1/answer/gene/hgnc_id": "HGNC:1097",
-        "/sources/0/source": "hgnc",
-        "/sources/1/source": "mygene",
-        "/sources/2": {
-          "equals": {
-            "source": "oncokb",
-            "state": "skipped",
-            "reason": "no_key",
-            "use": "restricted",
-            "terms": "OncoKB license",
-            "terms_url": "https://faq.oncokb.org/licensing"
-          }
-        },
-        "/next/*/kind": {
-          "includes": "key"
-        }
-      }
+      "max_tokens": 650
     }
   ]
 }

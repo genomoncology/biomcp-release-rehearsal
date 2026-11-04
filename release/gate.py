@@ -11,10 +11,19 @@ import subprocess
 import tempfile
 import zipfile
 
-from artifacts import cargo, inspect
-from windows import check_runtime
-from smoke import environment, smoke
-from local_server import server, https_server
+if __package__:
+    from .artifacts import cargo, inspect
+    from .notices import NAMES as LEGAL_NAMES
+    from .windows import check_runtime
+    from .smoke import environment, smoke
+    from .local_server import https_server
+else:
+    from artifacts import cargo, inspect
+    from notices import NAMES as LEGAL_NAMES
+    from windows import check_runtime
+    from smoke import environment, smoke
+    from local_server import https_server
+
 
 
 def installer_environment(root, bash):
@@ -93,6 +102,17 @@ def cli_checks(binary, record):
         return rows
 
 
+def stage_fixtures(source, fixtures):
+    shutil.copytree(source / "tests", fixtures, dirs_exist_ok=True)
+    provenance = Path("sdlc/planning/slices/gene.md")
+    (fixtures / "support" / provenance).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source / provenance, fixtures / "support" / provenance)
+    helpers = fixtures / "support/scripts"
+    helpers.mkdir(parents=True, exist_ok=True)
+    for name in ("icite_discovery_proof.py", "nightly_live_check.py"):
+        shutil.copy2(source / "scripts" / name, helpers / name)
+
+
 def installed(args):
     output = args.artifacts.resolve()
     wheel = next(output.glob("*.whl"))
@@ -109,30 +129,31 @@ def installed(args):
     source = Path(__file__).resolve().parent.parent
     executable = root / ("case-runner.exe" if os.name == "nt" else "case-runner")
     if not args.prepared:
-        (fixtures / "cases").mkdir(parents=True, exist_ok=True)
-        shutil.copy(source / "tests/cases/gene/kras.yaml", fixtures / "cases/kras.yaml")
-        for name in ["gene/main", "article/search/synthetic-small"]:
-            shutil.copytree(source / "tests/replies" / name, fixtures / "replies" / name, dirs_exist_ok=True)
-        for path in fixtures.rglob("*"):
-            if path.is_file():
-                path.chmod(0o444)
+        stage_fixtures(source, fixtures)
         shutil.copy2(Path(cargo("release", tests=True)["executable"]), executable)
+        tool = executable.with_name("tool-runner" + executable.suffix)
+        shutil.copy2(Path(cargo("release", tests="tools")["executable"]), tool)
         shutil.copytree(source / "release", root / "tools/release", dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__"))
         shutil.copy2(source / "LICENSE", root / "tools/LICENSE")
     if args.prepare_only:
         return
     results = []
+    suite_timeout = None
     def check(kind, binary, server_args=("serve",), declared_tools=None):
+        nonlocal suite_timeout
         if hashlib.sha256(binary.read_bytes()).hexdigest() != record["binary_sha256"]:
             raise ValueError(kind + " installed bytes differ from the candidate")
         check_runtime(binary.read_bytes(), record["platform"])
         for row in cli_checks(binary, record):
             results.append({"artifact": kind, "platform": record["platform"], **row})
             print(json.dumps(results[-1]), flush=True)
-        completed = smoke(binary, executable, fixtures, record["version"], server_args)
+        completed = smoke(binary, executable, fixtures, record["version"], server_args, suite_timeout,
+                          python=args.python)
+        if suite_timeout is None:
+            suite_timeout = completed["timeout_seconds"]
         if declared_tools is not None and sorted(completed["tools"]) != sorted(declared_tools):
             raise ValueError("desktop manifest tools differ from installed server")
-        results.append({"artifact": kind, "platform": record["platform"], "result": "pass", "checks": ["candidate-bytes"] + (["windows-static-crt"] if record["platform"].startswith("win_") else []) + completed["checks"]})
+        results.append({"artifact": kind, "platform": record["platform"], "result": "pass", **{key: value for key, value in completed.items() if key not in ("tools", "checks")}, "checks": ["candidate-bytes"] + (["windows-static-crt"] if record["platform"].startswith("win_") else []) + completed["checks"]})
         print(json.dumps(results[-1]), flush=True)
     check("wheel", install_wheel(wheel, root / "venv", root, args.python))
     bundle = next(output.glob("*.mcpb"))
@@ -140,7 +161,7 @@ def installed(args):
     with zipfile.ZipFile(bundle) as package:
         manifest = json.loads(package.read("manifest.json"))
         entry = manifest["server"]["entry_point"]
-        if set(package.namelist()) != {"manifest.json", entry} or entry not in {"server/biomcp", "server/biomcp.exe"}:
+        if set(package.namelist()) != {"manifest.json", entry, *LEGAL_NAMES} or entry not in {"server/biomcp", "server/biomcp.exe"}:
             raise ValueError("unexpected desktop bundle members")
         extension.mkdir()
         binary = extension / entry
@@ -174,7 +195,16 @@ def installed(args):
         shutil.copy2(item, release / item.name)
     public_destination = root / "download-installer-bin"
     with https_server(downloads, shutil.which("openssl", path=installer_environment(root, bash)["PATH"]) or "openssl") as (base, ca):
-        download_env = {**installer_environment(root, bash), "BIOMCP_RELEASE_BASE_URL": base, "BIOMCP_INSTALL_DIR": public_destination.as_posix(), "CURL_CA_BUNDLE": str(ca)}
+        download_env = {**installer_environment(root, bash), "BIOMCP_RELEASE_BASE_URL": base, "BIOMCP_INSTALL_DIR": public_destination.as_posix(), "CURL_CA_BUNDLE": ca.as_posix()}
+        # Identify the actual downloader and CA readability in this shell's
+        # isolated context, without exposing parent configuration or credentials.
+        diagnostic = (
+            'if command -v curl >/dev/null 2>&1; then '
+            'printf "Installer downloader: %s\\n" "$(command -v curl)"; curl --version; fi; '
+            'test -r "$CURL_CA_BUNDLE"; '
+            'printf "Installer fixture CA readable: %s\\n" "$CURL_CA_BUNDLE"'
+        )
+        subprocess.run([bash, "-ec", diagnostic], env=download_env, check=True)
         subprocess.run([bash, (source / "release/install.sh").as_posix(), "--version", record["version"]], env=download_env, check=True)
     check("download-install-script", public_destination / ("biomcp" + suffix))
     if not homebrew(output, root, check):

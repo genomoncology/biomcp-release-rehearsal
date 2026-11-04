@@ -1,0 +1,210 @@
+{
+  "method": "GET",
+  "source": "ols",
+  "url": "https://www.ebi.ac.uk/ols4/api/search?q=breast%20cancer&rows=1&start=0&ontology=mondo&groupField=iri",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "response": {
+            "docs": [
+              {
+                "iri": "http://purl.obolibrary.org/obo/MONDO_0007254",
+                "ontology_name": "mondo",
+                "ontology_prefix": "MONDO",
+                "short_form": "MONDO_0007254",
+                "broad_synonyms": [
+                  "breast tumor",
+                  "mammary tumor",
+                  "breast tumour",
+                  "mammary tumour"
+                ],
+                "description": [
+                  "A primary or metastatic malignant neoplasm involving the breast. The vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast neoplasms occur more frequently in females than in males."
+                ],
+                "narrow_synonyms": [
+                  "primary breast cancer"
+                ],
+                "label": "breast cancer",
+                "obo_id": "MONDO:0007254",
+                "type": "class",
+                "exact_synonyms": [
+                  "breast cancer",
+                  "cancer of breast",
+                  "malignant breast neoplasm",
+                  "malignant breast tumor",
+                  "malignant breast tumour",
+                  "malignant neoplasm of breast",
+                  "malignant neoplasm of the breast",
+                  "malignant tumor of breast",
+                  "malignant tumor of the breast",
+                  "malignant tumour of breast",
+                  "malignant tumour of the breast"
+                ]
+              }
+            ],
+            "numFound": 76,
+            "start": 0
+          },
+          "responseHeader": {
+            "QTime": 0,
+            "status": 0
+          },
+          "facet_counts": {
+            "facet_fields": {
+              "ontologyPreferredPrefix": [
+                "MONDO",
+                "76"
+              ],
+              "isDefiningOntology": [
+                "true",
+                "76"
+              ],
+              "ontologyId": [
+                "ncit",
+                "1291",
+                "medgen",
+                "674",
+                "pr",
+                "470",
+                "coho",
+                "188",
+                "efo",
+                "115",
+                "mesh",
+                "102",
+                "clo",
+                "94",
+                "pride",
+                "77",
+                "mondo",
+                "76",
+                "ror",
+                "71",
+                "gexo",
+                "66",
+                "reto",
+                "66",
+                "rexo",
+                "66",
+                "cco",
+                "60",
+                "vo",
+                "50",
+                "chebi",
+                "48",
+                "slm",
+                "48",
+                "doid",
+                "47",
+                "hgnc",
+                "45",
+                "bto",
+                "39",
+                "enm",
+                "26",
+                "bao",
+                "21",
+                "cido",
+                "21",
+                "snomed",
+                "20",
+                "omit",
+                "20",
+                "wikipathways",
+                "17",
+                "dron",
+                "14",
+                "oba",
+                "14",
+                "oae",
+                "12",
+                "ordo",
+                "10",
+                "gsso",
+                "10",
+                "upheno",
+                "9",
+                "cpont",
+                "8",
+                "hp",
+                "8",
+                "ecto",
+                "8",
+                "hgnc.genegroup",
+                "8",
+                "cl",
+                "7",
+                "pw",
+                "7",
+                "txpo",
+                "5",
+                "go",
+                "5",
+                "pcl",
+                "5",
+                "maxo",
+                "5",
+                "xco",
+                "4",
+                "ontoneo",
+                "3",
+                "rbo",
+                "3",
+                "genepio",
+                "3",
+                "bmont",
+                "3",
+                "hcao",
+                "2",
+                "eupath",
+                "2",
+                "epio",
+                "2",
+                "hra",
+                "1",
+                "envo",
+                "1",
+                "ngbo",
+                "1",
+                "ohpi",
+                "1",
+                "cmo",
+                "1",
+                "micro",
+                "1",
+                "upa",
+                "1",
+                "opmi",
+                "1",
+                "addicto",
+                "1",
+                "chiro",
+                "1"
+              ],
+              "ontologyIri": [
+                "http://purl.obolibrary.org/obo/mondo/mondo-international.owl",
+                "76"
+              ],
+              "isObsolete": [
+                "false",
+                "76",
+                "true",
+                "13"
+              ],
+              "type": [
+                "class",
+                "76"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

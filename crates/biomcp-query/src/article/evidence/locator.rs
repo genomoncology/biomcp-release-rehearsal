@@ -32,6 +32,7 @@ pub(super) fn resolve<'a>(
             return Err(no_join());
         }
         let mapped = pubmed::summaries(&leg, &ids, cx.ncbi_email.as_ref())?;
+        out.include_refusals(mapped.refusals);
         status::append(&mut out.problems, mapped.problems);
         let mut exact = mapped.value.into_iter().filter(|header| {
             header.doi.as_ref() == Some(doi) && header.pmid.is_some_and(|id| ids.contains(&id))
@@ -54,6 +55,7 @@ fn no_join() -> RequestError {
         source: Source::PubMed,
         reason: Reason::NoJoinId,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

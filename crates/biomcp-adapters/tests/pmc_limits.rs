@@ -48,11 +48,10 @@ fn read(
         ..FetchConfig::default()
     })?;
     let leg = fetch.leg(&pmc_oa::SPEC, fetch.deadline(Duration::from_secs(20)));
-    Ok(pmc_oa::read(
-        &leg,
-        "PMC5606870".parse()?,
-        Some("28944238".parse()?),
-    ))
+    Ok(
+        pmc_oa::read(&leg, "PMC5606870".parse()?, Some("28944238".parse()?))
+            .map(|mapped| mapped.value),
+    )
 }
 fn article(front: &str, body: &str) -> String {
     format!(

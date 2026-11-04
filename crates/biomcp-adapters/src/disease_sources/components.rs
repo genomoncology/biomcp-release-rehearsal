@@ -2,17 +2,17 @@
 use crate::registry::Component;
 use biomcp_fetch::{Leg, RequestError, SourceError, Terms};
 use biomcp_types::{DiseaseOntology, Reason, Source, Use};
-const MONDO: Terms = Terms {
+pub(crate) const MONDO: Terms = Terms {
     name: "MONDO CC BY 4.0",
     url: "https://mondo.monarchinitiative.org/pages/download/",
     usage: Use::Attribution,
 };
-const DOID: Terms = Terms {
+pub(crate) const DOID: Terms = Terms {
     name: "Disease Ontology CC0 1.0",
     url: "https://www.disease-ontology.org/resources/do-resources/",
     usage: Use::Open,
 };
-const NCIT: Terms = Terms {
+pub(crate) const NCIT: Terms = Terms {
     name: "NCI Thesaurus CC BY 4.0",
     url: "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.pdf",
     usage: Use::Attribution,
@@ -22,17 +22,17 @@ pub(crate) const HPO: Terms = Terms {
     url: "https://human-phenotype-ontology.github.io/license.html",
     usage: Use::Attribution,
 };
-const ORPHANET: Terms = Terms {
+pub(crate) const ORPHANET: Terms = Terms {
     name: "Orphadata Science CC BY 4.0 and citation/version conditions",
     url: "https://sciences.orphadata.com/faq/",
     usage: Use::Attribution,
 };
-const OMIM: Terms = Terms {
+pub(crate) const OMIM: Terms = Terms {
     name: "OMIM Use Agreement; separately licensed payload only",
     url: "https://omim.org/help/agreement",
-    usage: Use::Restricted,
+    usage: Use::Licensed,
 };
-const fn component(
+pub(crate) const fn component(
     source: Source,
     native_source: Source,
     name: &'static str,
@@ -45,31 +45,16 @@ const fn component(
         terms,
     }
 }
-/// Each carried component shares its publisher declaration across services.
-/// OMIM applies only to a distinct licensed payload, never cited identifiers.
-pub const COMPONENTS: &[Component] = &[
-    component(Source::Ols, Source::Mondo, "mondo", MONDO),
-    component(Source::Ols, Source::Doid, "doid", DOID),
-    component(Source::Ols, Source::Ncit, "ncit", NCIT),
-    component(Source::MyDisease, Source::Mondo, "mondo", MONDO),
-    component(Source::MyDisease, Source::Doid, "doid", DOID),
-    component(Source::MyDisease, Source::Hpo, "hpo", HPO),
-    component(Source::MyDisease, Source::Orphanet, "orphanet", ORPHANET),
-    component(Source::MyDisease, Source::Omim, "omim", OMIM),
-    component(Source::Monarch, Source::Hpo, "hpo", HPO),
-    component(Source::Monarch, Source::Orphanet, "orphanet", ORPHANET),
-];
 /// Find the reviewed component declaration for this service.
 pub fn get(source: Source, name: &str) -> Option<&'static Component> {
-    COMPONENTS
-        .iter()
-        .find(|c| c.source == source && c.name == name)
+    all().find(|c| c.source == source && c.name == name)
 }
 fn disabled(source: Source) -> RequestError {
     SourceError {
         source,
         reason: Reason::Disabled,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()
@@ -120,4 +105,14 @@ pub fn monarch(leg: &Leg<'_>) -> Result<(), RequestError> {
     } else {
         Ok(())
     }
+}
+
+/// Enumerate independently labeled fields from their adapter declarations.
+pub fn all() -> impl Iterator<Item = &'static Component> {
+    crate::registry::components().filter(|component| {
+        matches!(
+            component.source,
+            Source::Ols | Source::MyDisease | Source::Monarch
+        )
+    })
 }

@@ -1,5 +1,6 @@
 //! Retained source bytes enter only this explicit external-evidence proof.
 use super::{args, markdown, record, replay, setup};
+use crate::runner::launch::native_budget as budget;
 use crate::runner::network_stub::Stub;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -90,7 +91,7 @@ fn prove_row(
         .len();
     let mut steps =
         vec![json!({"run":words,"mcp":words,"expect":expected,"max_bytes":page_cap(index)?})];
-    section_steps(row, &mut steps);
+    section_steps(row, &mut steps)?;
     replay(&directory, Value::Array(steps))?;
     markdown(env, &refs, &directory, &["## Result", "## Sources"])?;
     if row
@@ -116,12 +117,7 @@ fn prove_row(
 
 fn page_cap(index: usize) -> Result<usize, String> {
     // Ceil(j11984 comparable CLI bytes * 1.15), exact validated service terms excluded.
-    [
-        2211, 2275, 2315, 785, 2267, 2171, 2266, 2087, 1253, 1108, 811,
-    ]
-    .get(index)
-    .copied()
-    .ok_or("unknown native witness".into())
+    budget(&format!("ols/page/{index}"))
 }
 fn section_outputs(
     env: &super::Environment,
@@ -166,13 +162,13 @@ fn section_outputs(
         .map_err(|e| e.to_string())?;
         replay(
             directory,
-            json!([{"run":words,"mcp":words,"expect":{"/page/offset":0},"max_bytes":if section=="synonyms" {1000}else{1950}}]),
+            json!([{"run":words,"mcp":words,"expect":{"/page/offset":0},"max_bytes":budget(&format!("ols/section/{section}"))?}]),
         )?;
     }
     Ok(())
 }
 
-fn section_steps(row: &Value, steps: &mut Vec<Value>) {
+fn section_steps(row: &Value, steps: &mut Vec<Value>) -> Result<(), String> {
     if row
         .pointer("/url")
         .unwrap_or(&Value::Null)
@@ -196,12 +192,12 @@ fn section_steps(row: &Value, steps: &mut Vec<Value>) {
                     offset.to_string(),
                 ];
                 steps.push(json!(
-                    {"run":q,"mcp":q,"expect":{"/page/offset":offset},"max_bytes":match (section,offset) {("synonyms",0)=>1014,("synonyms",_)=>673,(_,
-                    0)=>1194,_=>1200}}
+                    {"run":q,"mcp":q,"expect":{"/page/offset":offset},"max_bytes":budget(&format!("ols/section-page/{section}/{offset}"))?}
                 ));
             }
         }
     }
+    Ok(())
 }
 
 fn expectations(body: &Value) -> Result<serde_json::Map<String, Value>, String> {
@@ -262,7 +258,7 @@ fn expectations(body: &Value) -> Result<serde_json::Map<String, Value>, String> 
             term.pointer("/is_obsolete").unwrap_or(&Value::Null).clone(),
         );
         if term.pointer("/is_obsolete").unwrap_or(&Value::Null) == true {
-            expected.insert("/result/replaced_by".into(), Value::Null);
+            expected.insert("/result".into(), json!({"omits":["replaced_by"]}));
             expected.insert(
                 "/result/consider".into(),
                 json!(["MONDO:0800444", "MONDO:0800445"]),

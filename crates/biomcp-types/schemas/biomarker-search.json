@@ -1,0 +1,63 @@
+{
+  "$defs": {
+    "BiomarkerSource": {
+      "description": "Biomarker concept publisher.",
+      "enum": [
+        "nci"
+      ],
+      "type": "string"
+    },
+    "Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    }
+  },
+  "$id": "biomcp.biomarker-search/2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Find NCI biomarker concepts by name or synonym. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. These concepts differ from diagnostic --biomarker filters and literal trial --variant text. Use search trial --source nci --biomarker-code CODE for trials that list an exact concept. Native criteria do not establish patient eligibility.",
+  "properties": {
+    "limit": {
+      "default": 5,
+      "description": "Maximum headers per local page.",
+      "format": "uint32",
+      "maximum": 50,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "name": {
+      "$ref": "#/$defs/Text",
+      "description": "Native partial name or synonym search."
+    },
+    "offset": {
+      "default": 0,
+      "description": "Offset within the complete retained observation.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pool": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Snapshot identity retained by continuation commands."
+    },
+    "source": {
+      "$ref": "#/$defs/BiomarkerSource",
+      "description": "Explicit keyed NCI source."
+    }
+  },
+  "required": [
+    "source"
+  ],
+  "title": "BiomarkerSearch",
+  "type": "object"
+}

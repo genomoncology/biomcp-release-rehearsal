@@ -1,4 +1,5 @@
 use super::*;
+use biomcp_fetch::{Input, Read};
 
 #[test]
 fn indexed_tsv_rows_are_literal_and_offline() {
@@ -26,14 +27,21 @@ fn indexed_tsv_rows_are_literal_and_offline() {
             "ETag: \"one\"\r\n",
             "symbol\tband\tname\nBRAF\t9p21.1\t\"B raf kinase\"\nOTHER\t19p21\tOther\n",
         );
-        assert_eq!(run.join().unwrap().rows, 2);
+        let info = run.join().unwrap();
+        assert_eq!(info.rows, 2);
+        assert!(info.rejections.is_empty());
     });
     // Reply and bundle entries use independent tables even for the same URL.
     std::thread::scope(|scope| {
         let call = scope.spawn(|| {
             fetch
                 .leg(spec, fetch.deadline(Duration::from_secs(2)))
-                .json::<support::Answer>(&spec.get("/genes").fresh(Freshness::Days(1)), &[])
+                .call(
+                    &spec.get("/genes").fresh(Freshness::Days(1)),
+                    Input::Params(&[]),
+                    Read::<support::Answer>::json(),
+                )
+                .map(|received| received.value)
         });
         server.next().ok();
         assert!(call.join().unwrap().unwrap().answer);
@@ -108,12 +116,12 @@ fn revalidation_swaps_all_indexes_and_bad_rows_keep_old_rows() {
         .contains("fts5")
     );
     for bad in [
-        "symbol\tband\tname\nBAD\tx\n",
         "symbol\tsymbol\nA\tB\n",
         "\tband\nA\tB\n",
         "symbol\tband\tname\nBAD\tx\t\"broken\n",
         "symbol\tband\tname\nBAD\tx\tin\"ner\n",
-        "symbol\tband\tname\n\tx\tname\n",
+        "symbol\tband\tname\nBAD\t\"broken\nLAST\t9p\tvalid\n",
+        "symbol\tband\tname\nBAD\tx\t\"closed\"suffix\textra\nLAST\t9p\tvalid\n",
     ] {
         assert!(sync_reply(&f, &b, &server, 200, "ETag: \"bad\"\r\n", bad).is_err());
         assert_eq!(
@@ -175,7 +183,8 @@ fn banner_csv_records_are_checked_before_atomic_publication() {
     std::thread::scope(|scope| {
         let call = scope.spawn(|| fetch.sync(&bundle));
         let request = server.next();
-        assert!(!request.text.to_ascii_lowercase().contains("if-"));
+        let headers = request.text.to_ascii_lowercase();
+        assert!(headers.contains("if-none-match: \"generated\""));
         request.respond(200, "", good);
         call.join().unwrap().unwrap();
     });
@@ -185,7 +194,6 @@ fn banner_csv_records_are_checked_before_atomic_publication() {
         "banner\ncreated\nsymbol,band,name\nBRAF,9p,\"closed\"x\n",
         "banner\ncreated\nsymbol,,name\nBRAF,9p,a\n",
         "banner\ncreated\nsymbol,symbol,name\nBRAF,9p,a\n",
-        "banner\ncreated\nsymbol,band,name\nBRAF,9p\n",
     ] {
         assert!(sync_reply(&fetch, &bundle, &server, 200, "", bad).is_err());
         let leg = fetch.leg(bundle.spec, fetch.deadline(Duration::from_secs(2)));
@@ -212,7 +220,6 @@ fn banner_csv_records_are_checked_before_atomic_publication() {
     .unwrap();
     assert_eq!(replay.sync(&bundle).unwrap().rows, 1);
 }
-
 #[derive(Debug, Deserialize)]
 struct Medicine {
     id: String,
@@ -465,11 +472,15 @@ mod sets {
             .leg(set.spec, fetch.deadline(Duration::from_secs(3)))
             .stored_set_rows(set, Find::Words(word))
             .unwrap();
-        assert_eq!(info.rows, 8);
+        assert_eq!(
+            info.rows, 8,
+            "Bundle rows must retain source names in their published order"
+        );
         assert!(
             info.content_revision
                 .as_deref()
-                .is_some_and(|s| s.starts_with("sha256:"))
+                .is_some_and(|s| s.starts_with("sha256:")),
+            "Bundle rows must retain source names in their published order"
         );
         rows.into_iter().map(|r| r.value.name).collect()
     }

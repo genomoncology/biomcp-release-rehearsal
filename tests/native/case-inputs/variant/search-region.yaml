@@ -1,0 +1,218 @@
+{
+  "feature": "variant-search",
+  "live_check": "synthetic",
+  "replay": "variant/search/region",
+  "story": "Explicit MyVariant region candidates retain the source identities and query",
+  "harvest": "sdlc/planning/slices/variant.md",
+  "verified": "2026-10-24; factual identity anchors from external0088-source-captures; synthetic response projection, not a fresh whole-source claim",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--region",
+        "chr7:55259515-55259515",
+        "--build",
+        "GRCh37",
+        "--limit",
+        "2"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--region",
+        "chr7:55259515-55259515",
+        "--build",
+        "GRCh37",
+        "--limit",
+        "2"
+      ],
+      "max_bytes": 1525,
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "partial",
+        "/query": {
+          "equals": {
+            "region": "chr7:55259515-55259515",
+            "build": "GRCh37",
+            "limit": 2,
+            "offset": 0
+          }
+        },
+        "/result": {
+          "equals": {
+            "source_query": "chr7:55259515-55259515",
+            "build": "GRCh37",
+            "items": [
+              {
+                "identity": {
+                  "ids": [
+                    "rs121434568"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr7:g.55259515T>A"
+                      }
+                    }
+                  ],
+                  "genes": [
+                    {
+                      "label": "EGFR"
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr7:g.55259515T>A",
+                  "namespace": "unknown"
+                }
+              },
+              {
+                "identity": {
+                  "ids": [
+                    "rs121434568",
+                    "clinvar:16609"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr7:g.55259515T>G"
+                      }
+                    }
+                  ],
+                  "genes": [
+                    {
+                      "label": "EGFR"
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr7:g.55259515T>G",
+                  "namespace": "unknown"
+                },
+                "component_terms": [
+                  {
+                    "component": "clinvar",
+                    "terms": {
+                      "usage": "restricted",
+                      "name": "NCBI policy; submission rights remain source-specific",
+                      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "/page": {
+          "equals": {
+            "offset": 0,
+            "returned": 2,
+            "total": 4
+          }
+        },
+        "/sources/0/source": "myvariant"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--region",
+        "chr7:55259515-55259515",
+        "--build",
+        "GRCh37",
+        "--limit",
+        "2"
+      ],
+      "offline": true,
+      "expect": {
+        "/result": {
+          "equals": {
+            "source_query": "chr7:55259515-55259515",
+            "build": "GRCh37",
+            "items": [
+              {
+                "identity": {
+                  "ids": [
+                    "rs121434568"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr7:g.55259515T>A"
+                      }
+                    }
+                  ],
+                  "genes": [
+                    {
+                      "label": "EGFR"
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr7:g.55259515T>A",
+                  "namespace": "unknown"
+                }
+              },
+              {
+                "identity": {
+                  "ids": [
+                    "rs121434568",
+                    "clinvar:16609"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr7:g.55259515T>G"
+                      }
+                    }
+                  ],
+                  "genes": [
+                    {
+                      "label": "EGFR"
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr7:g.55259515T>G",
+                  "namespace": "unknown"
+                },
+                "component_terms": [
+                  {
+                    "component": "clinvar",
+                    "terms": {
+                      "usage": "restricted",
+                      "name": "NCBI policy; submission rights remain source-specific",
+                      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "/page": {
+          "equals": {
+            "offset": 0,
+            "returned": 2,
+            "total": 4
+          }
+        },
+        "/status": "partial"
+      }
+    }
+  ]
+}

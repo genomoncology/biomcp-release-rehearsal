@@ -2,7 +2,6 @@ use crate::{Capped, CitationIntent, License, Section};
 use serde::{Deserialize, Serialize};
 /// One advancing piece of an original source citation context.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EvidenceContext {
     /// One-based original source context position.
@@ -15,7 +14,6 @@ pub struct EvidenceContext {
 }
 /// One source paragraph fragment with its own exact outline location.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EvidenceParagraph {
     /// One-based original body paragraph position.
@@ -32,16 +30,15 @@ biodata::wire_enum! {
     /// Explicit successful empty outcomes, never inferred from a source failure.
     EvidenceNotice {
         /// Terminal graph scan found no matching reference.
-        NotInReferences => "not_in_references",
+        NotInReferences => "not-in-references",
         /// The matching reference reports no contexts.
-        NoContexts => "no_contexts",
+        NoContexts => "no-contexts",
         /// The source reports no recommendations.
-        NoRecommendations => "no_recommendations",
+        NoRecommendations => "no-recommendations",
     }
 }
 /// Source edge metadata and a bounded advancing context page.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CitationContexts {
     /// Every context remains accessible through the advancing step.
@@ -63,7 +60,6 @@ pub struct CitationContexts {
 }
 /// Exact JATS reference paragraphs independent of the graph result.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CitationParagraphs {
     /// Original publisher license category.
@@ -73,7 +69,6 @@ pub struct CitationParagraphs {
 }
 /// Independent graph and optional open-text evidence parts.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleEvidenceResult {
     /// Source-reported citation contexts.
@@ -83,12 +78,11 @@ pub struct ArticleEvidenceResult {
     pub fulltext: Option<Section<CitationParagraphs>>,
 }
 impl super::super::ResponseBody for ArticleEvidenceResult {
-    const SCHEMA: &'static str = "biomcp.article-evidence/2";
+    const SCHEMA: &'static str = "biomcp.article-evidence/6";
     type Query = crate::ArticleEvidence;
 }
 /// Source-native recommendation page.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleRecommendations {
     /// Papers in provider order, without a local topic filter.
@@ -101,6 +95,6 @@ pub struct ArticleRecommendations {
     pub notice: Option<EvidenceNotice>,
 }
 impl super::super::ResponseBody for ArticleRecommendations {
-    const SCHEMA: &'static str = "biomcp.article-recommendations/4";
+    const SCHEMA: &'static str = "biomcp.article-recommendations/9";
     type Query = crate::ArticleRecommend;
 }

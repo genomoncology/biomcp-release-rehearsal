@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/variant/chr7%3Ag.140753336A%3ET?fields=_id%2Cdbnsfp.hgvsp%2Cdbnsfp.ensembl.transcriptid%2Cdbnsfp.gerp%2B%2B%2Cdbnsfp.phastcons%2Cdbnsfp.phylop%2Cdbnsfp.siphy_29way&assembly=hg38",
+  "exchanges": [
+    {
+      "fetched": 1792876427,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "_id": "chr7:g.140753336A>T"
+        }
+      }
+    }
+  ]
+}

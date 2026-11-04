@@ -1,14 +1,10 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "protein-docs-accounting",
   "story": "Every protein command exposes its source sections, selectors, scope and two parsed case examples.",
   "steps": [
     {
       "run": [
-        "help",
-        "search",
-        "protein"
-      ],
-      "mcp": [
         "help",
         "search",
         "protein"
@@ -20,7 +16,7 @@
           "protein"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -41,11 +37,6 @@
         "get",
         "protein"
       ],
-      "mcp": [
-        "help",
-        "get",
-        "protein"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -53,7 +44,7 @@
           "protein"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -76,15 +67,10 @@
         },
         "/result/commands/0/section_rule": "Select source sections or all bounded first pages; function keeps one whole text record."
       },
-      "max_bytes": 3208
+      "max_bytes": 3371
     },
     {
       "run": [
-        "help",
-        "protein",
-        "features"
-      ],
-      "mcp": [
         "help",
         "protein",
         "features"
@@ -96,7 +82,7 @@
           "features"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -117,11 +103,6 @@
         "protein",
         "domains"
       ],
-      "mcp": [
-        "help",
-        "protein",
-        "domains"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -129,7 +110,7 @@
           "domains"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -141,15 +122,10 @@
           ]
         }
       },
-      "max_bytes": 2248
+      "max_bytes": 2411
     },
     {
       "run": [
-        "help",
-        "protein",
-        "isoforms"
-      ],
-      "mcp": [
         "help",
         "protein",
         "isoforms"
@@ -161,7 +137,7 @@
           "isoforms"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -180,11 +156,6 @@
         "protein",
         "complexes"
       ],
-      "mcp": [
-        "help",
-        "protein",
-        "complexes"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -192,7 +163,7 @@
           "complexes"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -211,11 +182,6 @@
         "protein",
         "complex-members"
       ],
-      "mcp": [
-        "help",
-        "protein",
-        "complex-members"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -223,7 +189,7 @@
           "complex-members"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -243,11 +209,6 @@
         "protein",
         "structures"
       ],
-      "mcp": [
-        "help",
-        "protein",
-        "structures"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -255,7 +216,7 @@
           "structures"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -274,11 +235,6 @@
         "protein",
         "sequence"
       ],
-      "mcp": [
-        "help",
-        "protein",
-        "sequence"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -286,7 +242,7 @@
           "sequence"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -297,5 +253,5 @@
       "max_bytes": 1640
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. The source_pacing global argument adds 162 compact JSON bytes and one array separator. Each exhausted leaf budget adds exactly those 163 bytes, preserving the prior headroom; other budgets stay unchanged."
 }

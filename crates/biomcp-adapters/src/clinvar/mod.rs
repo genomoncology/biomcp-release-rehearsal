@@ -1,13 +1,19 @@
 //! ClinVar VCV XML by a checked Variation ID, without text-search identity.
+use biomcp_fetch::{Input, Read};
 mod detail;
 mod map;
 mod raw;
+mod reference;
+pub(crate) use reference::reference_agrees;
+mod search;
+mod subject;
 use crate::quotas;
 use biomcp_fetch::{
-    Arg, BadReply, Credential, Endpoint, Freshness, KeyPlace, KeyUse, Leg, RequestError,
-    SecretName, SourceSpec,
+    Arg, Credential, Endpoint, Freshness, KeyPlace, KeyUse, Leg, RequestError, SecretName,
+    SourceSpec,
 };
 use biomcp_types::{Source, VariantAssertion};
+pub use search::{SearchPage, search};
 use std::time::Duration;
 /// ClinVar shares the existing NCBI quota and optional user key.
 pub static SPEC: SourceSpec = SourceSpec {
@@ -16,11 +22,12 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCBI policy; submission rights remain source-specific",
         url: "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::ClinVar,
     base: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils",
     key: KeyUse::Optional(Credential {
+        tier: biomcp_types::KeyTier::Fallback,
         secret: SecretName::NcbiApiKey,
         place: KeyPlace::Query("api_key"),
     }),
@@ -32,9 +39,14 @@ const FETCH: Endpoint = SPEC.get("/efetch.fcgi").fresh(Freshness::Days(1));
 pub fn assertions(
     leg: &Leg<'_>,
     id: &str,
-    selection: Option<(&str, Option<&str>)>,
+    selection: Option<(&biomcp_types::AssertionId, Option<&str>)>,
 ) -> Result<crate::Mapped<Vec<VariantAssertion>>, RequestError> {
-    let vcv = selection.filter(|(id, _)| id.starts_with("VCV"));
+    let selected_vcv = selection
+        .filter(|(id, _)| matches!(id, biomcp_types::AssertionId::Vcv(_)))
+        .map(|(id, version)| (id.to_string(), version));
+    let vcv = selected_vcv
+        .as_ref()
+        .map(|(id, version)| (id.as_str(), *version));
     let selected = vcv.map(|(record, version)| {
         version.map_or_else(|| record.to_owned(), |v| format!("{record}.{v}"))
     });
@@ -47,21 +59,35 @@ pub fn assertions(
         params.push(("is_variationid", Arg::Text("true")));
     }
     params.extend([("retmode", Arg::Text("xml")), ("tool", Arg::Text("biomcp"))]);
-    let (reply, _) = leg.xml_received_checked::<raw::Records>(&FETCH, &params, |r| {
-        if r.id.as_deref().is_none_or(|v| v == id)
-            && vcv.is_none_or(|(record, version)| {
-                r.id.is_none()
-                    || r.accession.as_deref() == Some(record)
-                        && version.is_none_or(|v| r.version.as_deref() == Some(v))
-            })
+    let (mut reply, _) = leg
+        .call(
+            &FETCH,
+            Input::Params(&params),
+            Read::<raw::Records>::xml()
+                .cache_if(&|reply| reply.identity_problem(id, vcv).is_none()),
+        )
+        .map(|received| (received.value, received.meta))?;
+    if let Some(field) = reply.identity_problem(id, vcv) {
+        reply.refusals = crate::Refusal::Refused;
+        reply.rows.clear();
+        if !reply
+            .problems
+            .iter()
+            .any(|problem| problem.field.as_ref() == field)
         {
-            Ok(())
-        } else {
-            Err(BadReply)
+            reply.problems.push(crate::mapped::problem(
+                Source::ClinVar,
+                crate::mapped::record(id),
+                field,
+            ));
         }
-    })?;
+    }
     Ok(crate::Mapped {
+        refusals: reply.refusals,
         value: reply.rows,
         problems: reply.problems,
     })
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

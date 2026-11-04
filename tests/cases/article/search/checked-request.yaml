@@ -1,18 +1,26 @@
-live_check: public
-feature: article-search
-story: Article search accepts only checked selectors and offers a restart for an unknown pool.
-replay: article/search/live
-steps:
-  - run: [search, article]
-    exit: 2
-    expect:
-      /error/code: {equals: usage.arguments}
-  - run: [search, article, AKT1 E17K, --pool, unknown]
-    exit: 3
-    expect:
-      /error/code: {equals: pool.expired}
-      /next/0/kind: {equals: restart}
-  - follow: restart
-    expect:
-      /query/text: {equals: AKT1 E17K}
-      /status: {equals: complete}
+{
+  "live_check": "local-only unknown stored pool refusal before source access",
+  "feature": "article-search",
+  "story": "Article search accepts only checked selectors and offers a restart for an unknown pool.",
+  "replay": "article/search/live",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "AKT1 E17K",
+        "--pool",
+        "unknown"
+      ],
+      "exit": 3,
+      "expect": {
+        "/error/code": {
+          "equals": "pool.expired"
+        },
+        "/next/0/kind": {
+          "equals": "restart"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
+  "feature": "key-registration",
+  "story": "A caller lists whole-source use labels and registers, replaces and removes a synthetic credential without seeing its value.",
+  "steps": [
+    {
+      "run": [
+        "key",
+        "set",
+        "semantic-scholar"
+      ],
+      "stdin": "synthetic-registration-first\n",
+      "expect": {
+        "/result/entries/0/source": "semantic-scholar",
+        "/result/entries/0/state": "stored"
+      }
+    },
+    {
+      "run": [
+        "key",
+        "list"
+      ],
+      "expect": {
+        "/result/entries/1/state": "stored",
+        "/result/entries/0/source": "ncbi",
+        "/result/entries/0/usage": "open",
+        "/result/entries/1/source": "semantic-scholar",
+        "/result/entries/1/usage": "noncommercial",
+        "/result/entries/2/source": "orcid",
+        "/result/entries/2/usage": "noncommercial",
+        "/result/entries/3/source": "oncokb",
+        "/result/entries/3/usage": "licensed",
+        "/result/entries/4/source": "alphagenome",
+        "/result/entries/4/usage": "licensed",
+        "/result/entries/5/source": "nci",
+        "/result/entries/5/usage": "open",
+        "/result/entries/6/source": "openfda",
+        "/result/entries/6/usage": "open"
+      }
+    },
+    {
+      "run": [
+        "key",
+        "set",
+        "semantic-scholar",
+        "--replace"
+      ],
+      "stdin": "synthetic-registration-second\n",
+      "expect": {
+        "/result/entries/0/state": "stored"
+      }
+    },
+    {
+      "run": [
+        "key",
+        "remove",
+        "semantic-scholar"
+      ],
+      "expect": {
+        "/result/entries/0/state": "none"
+      }
+    }
+  ]
+}

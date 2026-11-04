@@ -1,0 +1,3 @@
+#AlleleID	Type	Name	GeneID	GeneSymbol	RS# (dbSNP)	RCVaccession	PhenotypeIDS	PhenotypeList	VariationID
+1	single nucleotide variant	NM_004333.6:c.1799T>A	673	BRAF	113488022	RCV000000001.1	MONDO:0004992	cancer	13961
+2	single nucleotide variant	NM_004333.6:c.	673	BRAF	-1	RCV000000002.1	MONDO:0004992	cancer	13962

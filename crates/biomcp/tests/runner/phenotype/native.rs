@@ -1,8 +1,9 @@
 //! Explicit proof reuses unchanged archived publisher bodies outside Git.
-use super::{Stub, raw_invoke, setup};
+tool_only! { use super::{Stub, raw_invoke, setup}; }
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
+tool_only! {
 pub(in crate::runner) fn run(root: &Path) -> Result<(), String> {
     let plan: Vec<Value> =
         serde_json::from_slice(&fs::read(root.join("plan.json")).map_err(|e| e.to_string())?)
@@ -13,6 +14,7 @@ pub(in crate::runner) fn run(root: &Path) -> Result<(), String> {
         prove(root, &output, index, row)?;
     }
     Ok(())
+}
 }
 fn text<'a>(row: &'a Value, key: &str) -> Result<&'a str, String> {
     row.get(key)
@@ -37,6 +39,7 @@ pub(super) fn archived_body(root: &Path, row: &Value) -> Result<(Value, String),
     Ok((native, body))
 }
 
+tool_only! {
 fn prove(root: &Path, output: &Path, index: usize, row: &Value) -> Result<(), String> {
     let (native, body) = archived_body(root, row)?;
     let target = text(row, "target")?.to_string();
@@ -111,6 +114,8 @@ fn prove(root: &Path, output: &Path, index: usize, row: &Value) -> Result<(), St
     }
     Ok(())
 }
+}
+tool_only! {
 fn verify(row: &Value, native: &Value, result: &Value) -> Result<(), String> {
     if row.get("status") == Some(&json!(404)) {
         if result.get("status") != Some(&json!("absent")) {
@@ -187,6 +192,8 @@ fn verify(row: &Value, native: &Value, result: &Value) -> Result<(), String> {
     }
     Ok(())
 }
+}
+tool_only! {
 fn counts(native: &Value, card: &Value) -> Result<(), String> {
     let Some(raw) = native
         .get("association_counts")
@@ -218,6 +225,7 @@ fn counts(native: &Value, card: &Value) -> Result<(), String> {
     }
     Ok(())
 }
+}
 pub(super) fn mcp(
     directory: &Path,
     words: &[&str],
@@ -237,7 +245,10 @@ pub(super) fn mcp(
         .map_err(|e| e.to_string())?,
     )
     .map_err(|e| e.to_string())?;
-    super::super::run_case(file.path(), &super::super::schema::Registry::embedded()?)?;
+    super::super::run_case(
+        file.path(),
+        super::super::schema::Registry::embedded()?.as_ref(),
+    )?;
     Ok(())
 }
 
@@ -272,6 +283,7 @@ pub(super) fn restore_date(directory: &Path, fetched: u64) -> Result<(), String>
     Ok(())
 }
 
+tool_only! {
 fn sections(native: &Value, result: &Value, hpo: bool) -> Result<(), String> {
     let present = |field: &str| native.get(field).is_some_and(|v| !v.is_null());
     let mut expected = Vec::new();
@@ -336,8 +348,10 @@ fn sections(native: &Value, result: &Value, hpo: bool) -> Result<(), String> {
     }
     Ok(())
 }
+}
 
 // Fixed j14607/j14614 comparable CLI/MCP measurements plus fifteen percent.
+tool_only! {
 fn native_ceiling(body: &str) -> Result<usize, String> {
     let card = match body {
         "00-hpo-term.raw" => Some(("HP_0001250", "hpo")),
@@ -351,28 +365,6 @@ fn native_ceiling(body: &str) -> Result<usize, String> {
     if let Some((id, source)) = card {
         return super::section_native::ceiling(&format!("card-{id}-{source}"));
     }
-    Ok(match body {
-        "02-P01-monarch-search.raw" => 1690,
-        "03-P02-monarch-search.raw" => 2286,
-        "04-P03-monarch-search.raw" => 1086,
-        "05-P04-monarch-search.raw" => 1077,
-        "06-P05-monarch-search.raw" => 2289,
-        "07-P06-monarch-search.raw" => 1686,
-        "08-P07-monarch-search.raw" => 2251,
-        "09-P08-monarch-search.raw" => 2383,
-        "10-P09-monarch-search.raw" => 742,
-        "11-P10-monarch-search.raw" => 2276,
-        "12-P11-monarch-search.raw" => 2368,
-        "13-P12-monarch-search.raw" => 1357,
-        "14-P13-monarch-search.raw" => 1073,
-        "15-P14-monarch-search.raw" => 2317,
-        "16-P15-monarch-search.raw" => 1386,
-        "17-P16-monarch-search.raw" => 2249,
-        "35-P24-monarch-empty.raw" => 732,
-        "36-P24-hpo-absent.raw" => 203,
-        "37-P02-middle.raw" => 2248,
-        "38-P16-middle.raw" => 2207,
-        "39-P02-terminal.raw" => 1040,
-        _ => return Err("unmeasured native phenotype case".into()),
-    })
+    crate::runner::launch::native_budget(&format!("phenotype/{body}"))
+}
 }

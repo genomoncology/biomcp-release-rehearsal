@@ -1,0 +1,41 @@
+{
+  "feature": "trial-nci",
+  "live_check": "missing nightly NCI user-owned API key; retained native public-tier replies use an isolated replay key",
+  "story": "Exact organization trial total equals the separately captured organization count, with a compact header from a trial with 1273 sites.",
+  "replay": "trial/nci/facility/native",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "verified": "2026-10-28 NCI public-tier capture; total3376 equals the0408 exact Dana-Farber Cancer Institute organization count. Native trial1273 sites retained in source order; site fields limited to the four displayed public fields. Native capture SHA-256 c3f45bbd4817e255b2fbd8761ccf599eaddbd8506b632754c87019e259a0035f. No enrollment inference.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "nci",
+        "--facility",
+        "Dana-Farber Cancer Institute",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 3376,
+        "/sources/0/count": 3376,
+        "/result/items/0/nct_id": "NCT05879926",
+        "/result/items/0/matching_sites": 1,
+        "/result/items/0/matched_site/org_name": "Dana-Farber Cancer Institute",
+        "/result/items/0/matched_site/org_city": "Boston",
+        "/result/items/0/matched_site/org_state_or_province": "MA",
+        "/result/items/0/matched_site/recruitment_status": "ACTIVE",
+        "/result/items/0": {
+          "max_bytes": 1800
+        }
+      },
+      "max_bytes": 3500
+    }
+  ]
+}

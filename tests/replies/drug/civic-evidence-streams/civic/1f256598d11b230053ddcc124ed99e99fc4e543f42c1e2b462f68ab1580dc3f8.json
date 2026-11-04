@@ -1,0 +1,79 @@
+{
+  "method": "POST",
+  "source": "civic",
+  "url": "https://civicdb.org/api/graphql",
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "d84ffed6128ca73c9debbeca8a8daeca3d6db20efea0f3089102c830bf2219d6"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "therapy": {
+              "id": 5,
+              "name": "Imatinib",
+              "link": "/therapies/5"
+            },
+            "evidenceItems": {
+              "totalCount": 2,
+              "nodes": [
+                {
+                  "id": 900005,
+                  "status": "ACCEPTED",
+                  "significance": "SENSITIVITYRESPONSE",
+                  "disease": {
+                    "name": "Acute Myeloid Leukemia",
+                    "doid": "9119"
+                  },
+                  "therapies": [
+                    {
+                      "id": 5,
+                      "name": "Imatinib"
+                    }
+                  ],
+                  "therapyInteractionType": null,
+                  "evidenceType": "PREDICTIVE",
+                  "evidenceLevel": "B",
+                  "evidenceDirection": "SUPPORTS",
+                  "source": {
+                    "citationId": "12476305",
+                    "sourceType": "PUBMED"
+                  },
+                  "molecularProfile": {
+                    "id": 1,
+                    "name": "BCR::ABL1 Fusion",
+                    "rawName": "#VID1",
+                    "link": "/molecular-profiles/1",
+                    "isComplex": false,
+                    "variants": [
+                      {
+                        "id": 1,
+                        "name": "Fusion",
+                        "link": "/variants/1",
+                        "feature": {
+                          "id": 61802,
+                          "name": "BCR::ABL1"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false,
+                "endCursor": null
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

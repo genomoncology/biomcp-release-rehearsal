@@ -1,17 +1,17 @@
 {
-  "$id": "biodata.problem-code/1",
+  "$id": "biomcp.problem-code/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "A stable code for a rejected field value.",
-  "enum": [
-    "value.unknown",
-    "collection.incomplete",
-    "identity.conflict"
-  ],
   "title": "ProblemCode",
   "type": "string",
   "x-enum-descriptions": [
     " The field value was not recognized.",
     " Native collection exceeds the admitted complete source page.",
     " A source repeats one exact identity with incompatible records."
+  ],
+  "x-extensible-enum": [
+    "value.unknown",
+    "collection.incomplete",
+    "identity.conflict"
   ]
 }

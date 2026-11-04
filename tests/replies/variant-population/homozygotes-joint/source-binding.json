@@ -1,0 +1,13 @@
+{
+  "request": {
+    "query": "query($id:String!){variant(variantId:$id,dataset:gnomad_r4){variant_id exome{ac an homozygote_count filters populations{id ac an}} genome{ac an homozygote_count filters populations{id ac an}} joint{ac an homozygote_count} va{exome{derivedFrom{version} focusAlleleCount locusAlleleCount cohort{id}} genome{derivedFrom{version} focusAlleleCount locusAlleleCount cohort{id}}}}}",
+    "variables": {
+      "id": "1-11796321-G-A"
+    }
+  },
+  "response_sha256": "eadb428dd554e5cb8a1aa94ef70395eb77ba0733a6caf097086d0f50ca452966",
+  "source": "https://gnomad.broadinstitute.org/api",
+  "release_binding": "Same response VA ALL rows match each native exome/genome AC and AN and both publish 4.1.0. Joint totals are copied from variant.joint; there is no independent VA joint release in the publisher schema.",
+  "schema": "https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/variant.graphql",
+  "va_schema": "https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/va.graphql"
+}

@@ -1,7 +1,9 @@
 //! Source-local therapy candidates; no chemical identity join is inferred.
-use super::{GENES, variant::failure, variant_raw::Connection};
+use super::{GENES, variant::failure, variant_map, variant_raw::Connection};
+use crate::{Mapped, mapped::Problems, native_text::NativeText, raw::Field};
 use biodata::{DrugIdentityLevel, Text};
 use biomcp_fetch::{BadReply, Leg, Reply, RequestError};
+use biomcp_fetch::{Input, Read};
 use biomcp_types::{DrugHeader, DrugPage, DrugSource, Reason};
 use serde::{Deserialize, Serialize};
 
@@ -17,38 +19,59 @@ struct SearchData {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Therapy {
-    pub id: u64,
-    pub name: Text,
-    pub link: Text,
+    pub id: Option<Field<u64>>,
+    pub name: Option<Field<NativeText>>,
+    pub link: Option<Field<Text>>,
+    pub therapy_aliases: Option<Field<Vec<Field<NativeText>>>>,
 }
 impl Therapy {
-    pub(super) fn check(&self) -> Result<(), BadReply> {
-        if self.id == 0
-            || self.id > i32::MAX as u64
-            || self.link.as_str() != format!("/therapies/{}", self.id)
-        {
-            return Err(BadReply);
-        }
-        Ok(())
+    fn search_header(self, cx: &mut Problems, text: &Text) -> Option<DrugHeader> {
+        let exact_alias = self
+            .therapy_aliases
+            .as_ref()
+            .and_then(Field::as_ref)
+            .is_some_and(|names| {
+                names.iter().filter_map(Field::as_ref).any(|name| {
+                    biomcp_types::DrugNameMatch::same_name(name.as_str(), text.as_str())
+                })
+            });
+        self.header(cx).map(|mut header| {
+            if exact_alias {
+                header.matched_name = Some(biomcp_types::DrugNameMatch::Generic);
+            }
+            header
+        })
     }
-    pub(super) fn header(self) -> Result<DrugHeader, RequestError> {
-        Ok(DrugHeader {
+    pub(super) fn header(self, cx: &mut Problems) -> Option<DrugHeader> {
+        let id = variant_map::identity(self.id, "id", cx)?;
+        cx.record = crate::mapped::record(id);
+        let name = cx.source_field("name", self.name);
+        let link = cx.field("link", self.link);
+        let record = variant_map::record(id, link.as_ref(), cx)?;
+        Some(DrugHeader {
+            name_resolution: None,
             matched_name: None,
-            id: self
-                .id
-                .to_string()
-                .parse()
-                .map_err(|_| failure(Reason::BadReply))?,
+            id: cx.optional("id", Some(id.to_string().parse()))?,
             source: DrugSource::Civic,
             version: None,
-            name: Some(self.name),
+            name,
             identity_level: DrugIdentityLevel::Unknown,
-            r#type: Some(Text::new("Therapy").map_err(|_| failure(Reason::BadReply))?),
-            url: Some(
-                Text::new(&format!("https://civicdb.org{}", self.link.as_str()))
-                    .map_err(|_| failure(Reason::BadReply))?,
-            ),
+            r#type: cx.optional("type", Some(Text::new("Therapy"))),
+            url: record.url,
         })
+    }
+}
+
+impl SearchReply {
+    fn cacheable(&self, count: u32, after: Option<&Text>) -> bool {
+        self.data.therapies.nodes.len() <= count as usize
+            && self.data.therapies.progresses(after)
+            && self.data.therapies.nodes.iter().all(|row| {
+                row.id
+                    .as_ref()
+                    .and_then(Field::as_ref)
+                    .is_some_and(|id| super::variant_raw::id(*id))
+            })
     }
 }
 impl Reply for SearchReply {
@@ -57,9 +80,6 @@ impl Reply for SearchReply {
             return Err(BadReply);
         }
         self.data.therapies.check()?;
-        for row in &self.data.therapies.nodes {
-            row.check()?;
-        }
         Ok(())
     }
 }
@@ -80,7 +100,7 @@ pub fn drug_search(
     text: &Text,
     limit: u32,
     offset: u32,
-) -> Result<DrugPage, RequestError> {
+) -> Result<Mapped<(DrugPage, u32)>, RequestError> {
     if !(1..=50).contains(&limit) {
         return Err(failure(Reason::BadReply));
     }
@@ -102,27 +122,53 @@ pub fn drug_search(
                 after: after.as_ref(),
             },
         };
-        let reply: SearchReply =
-            leg.post_json_checked_cache(&GENES, &body, |reply: &SearchReply| {
-                reply.data.therapies.nodes.len() <= count as usize
-                    && reply.data.therapies.progresses(after.as_ref())
-            })?;
+        let reply: SearchReply = leg
+            .call(
+                &GENES,
+                Input::json(&[], &body),
+                Read::json()
+                    .cache_if(&|reply: &SearchReply| reply.cacheable(count, after.as_ref())),
+            )?
+            .value;
         let rows = reply.data.therapies;
         if rows.nodes.len() > count as usize || !rows.progresses(after.as_ref()) {
             return Err(failure(Reason::BadReply));
         }
         if skipped >= offset || !rows.page_info.has_next_page {
+            let consumed = rows.nodes.len() as u32;
+            let mut cx = Problems {
+                source: biomcp_types::Source::Civic,
+                record: None,
+                list: Vec::new(),
+            };
+            let mut refusals = crate::Refusal::None;
             let items = if skipped < offset {
                 Vec::new()
             } else {
                 rows.nodes
                     .into_iter()
-                    .map(Therapy::header)
-                    .collect::<Result<Vec<_>, _>>()?
+                    .filter_map(|row| {
+                        cx.record = None;
+                        match row.search_header(&mut cx, text) {
+                            Some(row) => Some(row),
+                            None => {
+                                refusals = crate::Refusal::Refused;
+                                None
+                            }
+                        }
+                    })
+                    .collect::<Vec<_>>()
             };
-            return Ok(DrugPage {
-                items: items.into(),
-                total: Some(rows.total_count),
+            return Ok(Mapped {
+                refusals,
+                value: (
+                    DrugPage {
+                        items: items.into(),
+                        total: Some(rows.total_count),
+                    },
+                    consumed,
+                ),
+                problems: cx.list,
             });
         }
         skipped = skipped

@@ -1,15 +1,21 @@
 //! Explicit provider normalization with independent source outcomes.
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 
 use biomcp_adapters::{allele_registry, mutalyzer, variantvalidator};
 use biomcp_fetch::{Deadline, RequestError, SourceSpec};
 use biomcp_types::{
-    NormalizationResult, NormalizationSource, QueryBody, Request, SourceOutcome, SourceState,
-    Status, StepKind, VariantNormalization, VariantNormalize, VariantResolution,
+    NormalizationResult, NormalizationSource, Request, SourceOutcome, SourceState, StepKind,
+    VariantNormalization, VariantNormalize, VariantResolution,
 };
-type Row = (NormalizationResult, SourceOutcome, Option<RequestError>);
+type Row = (
+    biomcp_adapters::Mapped<NormalizationResult>,
+    SourceOutcome,
+    Option<RequestError>,
+);
 /// Call each explicitly selected service independently under the shared deadline.
-pub fn normalize(cx: &Ctx<'_>, query: &VariantNormalize) -> Outcome {
+pub(crate) fn normalize(cx: &Ctx<'_>, query: &VariantNormalize) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let jobs = selected(query.source())
@@ -23,15 +29,18 @@ pub fn normalize(cx: &Ctx<'_>, query: &VariantNormalize) -> Outcome {
     let mut local = None;
     let mut more = false;
     let mut states = Vec::new();
-    for (mut result, source, error) in crate::fan_out::run(jobs) {
+    let mut problems = Vec::new();
+    for (mapped, source, error) in crate::fan_out::run(jobs) {
+        problems.extend(mapped.problems);
+        let mut result = mapped.value;
         states.push(
             if matches!(
                 result.outcome,
                 VariantResolution::Rejected | VariantResolution::Unavailable
             ) {
-                Status::Failed
+                crate::status::item_status(false, true, false)
             } else {
-                Status::Complete
+                crate::status::item_status(true, false, false)
             },
         );
         result.total_messages = result.messages.len() as u32;
@@ -56,29 +65,35 @@ pub fn normalize(cx: &Ctx<'_>, query: &VariantNormalize) -> Outcome {
         local = local.or(error);
     }
     let next = if more {
-        vec![(
+        vec![crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::VariantNormalize(
-                    query.at_offset(query.offset().saturating_add(query.limit())),
-                ),
-                fresh: false,
-            },
+            &selected(query.source())
+                .iter()
+                .map(|spec| spec.source)
+                .collect::<Vec<_>>(),
+            Request::VariantNormalize(
+                query.at_offset(query.offset().saturating_add(query.limit())),
+            ),
+            false,
         )]
     } else {
         Vec::new()
     };
-    let outcome = Outcome {
-        status: status::status(states.into_iter()),
-        body: QueryBody::VariantNormalization(VariantNormalization {
-            results: results.into(),
-        }),
-        sources,
-        problems: Vec::new(),
-        next,
-        page: None,
-        local,
-    };
+    let outcome = crate::status::finish(
+        [status::status(states.into_iter())],
+        crate::status::Parts {
+            dropped: false,
+            body: (VariantNormalization {
+                results: results.into(),
+            })
+            .with_query(query.clone()),
+            sources,
+            problems,
+            next,
+            page: None,
+            local,
+        },
+    );
     command.finish(deadline.remaining());
     outcome
 }
@@ -113,6 +128,7 @@ fn service(
                     source: spec.source,
                     reason: biomcp_types::Reason::Rejected,
                     status: None,
+                    tls_cause: None,
                     retry_after: None,
                 }
                 .into(),
@@ -121,8 +137,12 @@ fn service(
     };
     let error = result.as_ref().err().copied();
     let mut source = status::source(spec.source, leg.finish(), error);
-    let result = result.unwrap_or_else(|_| NormalizationResult::unavailable(spec.source));
-    if result.outcome == VariantResolution::Rejected {
+    let result = result.unwrap_or_else(|_| biomcp_adapters::Mapped {
+        refusals: biomcp_adapters::Refusal::None,
+        value: NormalizationResult::unavailable(spec.source),
+        problems: Vec::new(),
+    });
+    if result.value.outcome == VariantResolution::Rejected {
         source.state = SourceState::Failed;
         source.reason = Some(biomcp_types::Reason::Rejected);
     }

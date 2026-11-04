@@ -57,7 +57,7 @@ pub(super) fn resolve(
     }
 }
 fn key(row: &PathwayMember) -> Option<(KeyKind, String)> {
-    let value = row.reference.value.as_str();
+    let value = row.reference.id.as_str();
     match row.reference.namespace.as_deref()? {
         "Entrez Gene" if value.parse::<biodata::NcbiGeneId>().is_ok() => {
             Some((KeyKind::Xref, format!("entrez:{value}")))
@@ -73,7 +73,7 @@ fn key(row: &PathwayMember) -> Option<(KeyKind, String)> {
     }
 }
 fn exact(row: &PathwayMember, gene: &Gene) -> bool {
-    let value = row.reference.value.as_str();
+    let value = row.reference.id.as_str();
     match row.reference.namespace.as_deref() {
         Some("Entrez Gene") => gene.entrez_id.is_some_and(|id| id.to_string() == value),
         Some("Ensembl") => gene

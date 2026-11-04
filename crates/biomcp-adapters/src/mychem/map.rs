@@ -1,4 +1,5 @@
 use super::links::{native_xrefs, strings};
+use super::names::name;
 use super::raw::{Component, Hit, Page};
 pub(super) use crate::mapped::text;
 use biodata::{DrugIdentityLevel, DrugIdentityRelation};
@@ -20,8 +21,7 @@ fn components(
         ("ndc", hit.ndc),
         ("openfda", hit.openfda),
     ] {
-        if crate::drug_sources::components::COMPONENTS
-            .iter()
+        if crate::drug_sources::components::all()
             .find(|c| c.name == name)
             .is_some_and(|c| !c.disabled_on_leg(leg))
             && let Some(value) = values.and_then(|value| problems.required(name, value.value()))
@@ -33,18 +33,12 @@ fn components(
             }
         }
     }
-    (hit.id, hit.version, rows)
+    (hit.id, problems.field("_version", hit.version), rows)
 }
-fn name(c: &Component) -> Option<&str> {
-    c.name
-        .as_deref()
-        .or(c.pref_name.as_deref())
-        .or(c.display_name.as_deref())
-        .or(c.proprietaryname.as_deref())
-        .or(c.nonproprietaryname.as_deref())
-}
+
 fn header(id: &str, rows: &[(&str, Component)]) -> Result<DrugHeader, BadReply> {
     Ok(DrugHeader {
+        name_resolution: None,
         matched_name: None,
         id: id.parse().map_err(|_| BadReply)?,
         source: DrugSource::Mychem,
@@ -52,7 +46,7 @@ fn header(id: &str, rows: &[(&str, Component)]) -> Result<DrugHeader, BadReply> 
         name: rows
             .iter()
             .find_map(|(_, c)| name(c))
-            .map(text)
+            .map(crate::mapped::source_text)
             .transpose()?,
         identity_level: DrugIdentityLevel::Unknown,
         r#type: rows
@@ -69,22 +63,36 @@ fn header(id: &str, rows: &[(&str, Component)]) -> Result<DrugHeader, BadReply> 
         url: Some(text(&format!("https://mychem.info/v1/chem/{id}"))?),
     })
 }
-pub(super) fn page(page: Page, leg: &Leg<'_>) -> Result<crate::Mapped<DrugPage>, BadReply> {
+pub(super) fn page(
+    page: Page,
+    leg: &Leg<'_>,
+    query: &str,
+) -> Result<crate::Mapped<DrugPage>, BadReply> {
     let mut problems = crate::mapped::Problems {
         source: biomcp_types::Source::Mychem,
         record: None,
         list: Vec::new(),
     };
-    let items = page
-        .hits
-        .into_iter()
-        .map(|hit| {
-            problems.record = crate::mapped::record(&hit.id);
-            let (id, _, rows) = components(hit, leg, &mut problems);
-            header(&id, &rows)
-        })
-        .collect::<Result<Vec<_>, _>>()?;
+    let mut items = Vec::new();
+    let mut refusals = crate::Refusal::None;
+    for hit in page.hits {
+        problems.record = None;
+        let Some(hit) = problems.field("_id", Some(hit)) else {
+            refusals = crate::Refusal::Refused;
+            continue;
+        };
+        problems.record = crate::mapped::record(&hit.id);
+        if problems.optional("_id", Some(hit.identity())).is_none() {
+            refusals = crate::Refusal::Refused;
+            continue;
+        }
+        let (id, _, rows) = components(hit, leg, &mut problems);
+        let mut item = header(&id, &rows)?;
+        item.matched_name = super::names::matching(&rows, query);
+        items.push(item);
+    }
     Ok(crate::Mapped {
+        refusals,
         value: DrugPage {
             items: items.into(),
             total: Some(page.total),
@@ -127,7 +135,7 @@ pub(super) fn card(
     }
     let mut names = Vec::new();
     for alias in aliases {
-        let alias = text(&alias)?;
+        let alias = crate::mapped::source_text(&alias)?;
         if !names.contains(&alias) {
             names.push(alias);
         }
@@ -143,6 +151,7 @@ pub(super) fn card(
         card.available_sections = vec![biomcp_types::DrugSection::Xrefs].into();
     }
     Ok(crate::Mapped {
+        refusals: crate::Refusal::None,
         value: super::DrugDocument {
             card,
             xrefs: distinct.into(),

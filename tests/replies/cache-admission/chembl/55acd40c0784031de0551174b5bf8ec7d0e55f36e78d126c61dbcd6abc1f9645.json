@@ -1,0 +1,33 @@
+{
+  "source": "chembl",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/cell_line.json?cellosaurus_id=CVCL_0004&limit=5&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "cell_lines": [
+            {
+              "cell_chembl_id": "invalid",
+              "cell_id": 1,
+              "cellosaurus_id": "CVCL_0004",
+              "cell_name": {}
+            }
+          ],
+          "page_meta": {
+            "offset": 0,
+            "limit": 5,
+            "total_count": 1,
+            "next": null,
+            "previous": null
+          }
+        }
+      }
+    }
+  ]
+}

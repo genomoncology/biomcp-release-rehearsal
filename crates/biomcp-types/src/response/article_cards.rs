@@ -2,7 +2,7 @@ use crate::{Article, ArticleGet, ArticleInput, ArticleMatchKind, Capped, ItemSta
 use serde::{Deserialize, Serialize};
 /// Result of resolving an article selector.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "resolution", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "resolution", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum ArticleResolution {
     /// A record whose own identity agrees with the input.
@@ -12,14 +12,14 @@ pub enum ArticleResolution {
         /// Identity evidence.
         r#match: ArticleMatch,
         /// Original fetch time in Unix seconds.
-        fetched: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        fetched: Option<u64>,
     },
     /// The source confirmed no matching record.
     NotFound,
 }
 /// Identity evidence for an article card.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleMatch {
     /// Namespace used to resolve the card.
@@ -27,7 +27,6 @@ pub struct ArticleMatch {
 }
 /// Answer to one input; shared DOIs may expand to several consecutive items.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleCardItem {
     /// Original selector.
@@ -46,7 +45,6 @@ pub struct ArticleCardItem {
 }
 /// Cards in caller order.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleCards {
     /// Per-input answers.
@@ -54,6 +52,6 @@ pub struct ArticleCards {
     pub items: Box<[ArticleCardItem]>,
 }
 impl super::ResponseBody for ArticleCards {
-    const SCHEMA: &'static str = "biomcp.article-cards/4";
+    const SCHEMA: &'static str = "biomcp.article-cards/9";
     type Query = ArticleGet;
 }

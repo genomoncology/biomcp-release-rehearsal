@@ -1,31 +1,39 @@
-use super::raw;
-use crate::mapped::push_problem;
-use crate::mapped::record as record_text;
-use crate::{Mapped, raw::Field};
+use super::{entry, raw};
+use crate::{
+    Mapped,
+    mapped::{Problems, push_problem, record},
+    raw::Field,
+};
 use biodata::{Text, UniProtAcc};
-
-use biomcp_types::{Problem, Protein, Source};
+use biomcp_types::{Protein, Source};
 pub(super) fn proteins(raw: raw::Proteins, ids: &[UniProtAcc]) -> Mapped<Vec<Protein>> {
     let mut problems = Vec::new();
     let mut values = Vec::new();
     let mut seen = Vec::new();
+    let mut refusals = crate::Refusal::None;
     for raw in raw.results {
         let Field::Value(raw) = raw else {
             push_problem(&mut problems, Source::UniProt, None, "protein");
+            refusals = crate::Refusal::Refused;
             continue;
         };
-        let Ok(id) = raw.primary_accession.parse::<UniProtAcc>() else {
-            push_problem(&mut problems, Source::UniProt, None, "primaryAccession");
-            continue;
+        let id = match raw.primary_accession.parse::<UniProtAcc>() {
+            Ok(id) => id,
+            Err(_) => {
+                push_problem(&mut problems, Source::UniProt, None, "primaryAccession");
+                refusals = crate::Refusal::Refused;
+                continue;
+            }
         };
         if !ids.contains(&id) || seen.contains(&id) {
             push_problem(
                 &mut problems,
                 Source::UniProt,
-                record_text(&id),
+                record(&id),
                 "primaryAccession",
             );
             values.retain(|value: &Protein| value.accession != id);
+            refusals = crate::Refusal::Refused;
             continue;
         }
         seen.push(id.clone());
@@ -33,106 +41,61 @@ pub(super) fn proteins(raw: raw::Proteins, ids: &[UniProtAcc]) -> Mapped<Vec<Pro
             push_problem(
                 &mut problems,
                 Source::UniProt,
-                record_text(&id),
+                record(&id),
                 "reviewed_human",
             );
+            refusals = crate::Refusal::Refused;
             continue;
         }
-        let Ok(name) = Text::new(&raw.protein_description.recommended_name.full_name.value) else {
-            push_problem(
-                &mut problems,
-                Source::UniProt,
-                record_text(&id),
-                "protein_name",
-            );
-            continue;
+        let mut p = Problems {
+            source: Source::UniProt,
+            record: record(&id),
+            list: Vec::new(),
         };
-        if raw.sequence.length == 0 {
-            push_problem(&mut problems, Source::UniProt, record_text(&id), "length");
-            continue;
-        }
-        let (function, subcellular_locations) = comments(raw.comments, &id, &mut problems);
+        let name = entry::map::description(raw.protein_description, &mut p);
+        let seq = p.field("sequence", raw.sequence);
+        let length = seq.as_ref().and_then(|seq| entry::map::length(seq, &mut p));
+        let (function, subcellular_locations) = comments(raw.comments, &mut p);
         values.push(Protein {
             accession: id,
             name,
-            length: raw.sequence.length,
+            length,
             function: function.into(),
             subcellular_locations: subcellular_locations.into(),
         });
+        problems.extend(p.list);
     }
     for id in ids {
         if !seen.contains(id) {
-            push_problem(&mut problems, Source::UniProt, record_text(id), "missing");
+            push_problem(&mut problems, Source::UniProt, record(id), "missing");
         }
     }
     Mapped {
+        refusals,
         value: values,
         problems,
     }
 }
 fn comments(
     raw: Option<Field<Vec<Field<raw::Comment>>>>,
-    id: &UniProtAcc,
-    problems: &mut Vec<Problem>,
+    p: &mut Problems,
 ) -> (Vec<Text>, Vec<Text>) {
     let mut function = Vec::new();
     let mut locations = Vec::new();
-    for comment in fields(raw, id, "comments", problems) {
+    for comment in p.fields("comments", raw) {
         match comment.comment_type.as_str() {
             "FUNCTION" => {
-                for value in fields(comment.texts, id, "function", problems) {
-                    function.extend(crate::mapped::field_text(
-                        problems,
-                        Source::UniProt,
-                        record_text(id),
-                        "function",
-                        Some(Field::Value(value.value)),
-                    ));
+                for value in p.fields("function", comment.texts) {
+                    function.extend(p.source_field("function", value.value));
                 }
             }
             "SUBCELLULAR LOCATION" => {
-                for value in fields(
-                    comment.subcellular_locations,
-                    id,
-                    "subcellular_locations",
-                    problems,
-                ) {
-                    locations.extend(crate::mapped::field_text(
-                        problems,
-                        Source::UniProt,
-                        record_text(id),
-                        "subcellular_locations",
-                        Some(Field::Value(value.location.value)),
-                    ));
+                for value in p.fields("subcellular_locations", comment.subcellular_locations) {
+                    locations.extend(p.source_field("subcellular_locations", value.location.value));
                 }
             }
             _ => {}
         }
     }
     (function, locations)
-}
-fn fields<T>(
-    raw: Option<Field<Vec<Field<T>>>>,
-    id: &UniProtAcc,
-    field: &str,
-    problems: &mut Vec<Problem>,
-) -> Vec<T> {
-    match raw {
-        None => Vec::new(),
-        Some(Field::Value(values)) => values
-            .into_iter()
-            .filter_map(|value| {
-                if let Field::Value(value) = value {
-                    Some(value)
-                } else {
-                    push_problem(problems, Source::UniProt, record_text(id), field);
-                    None
-                }
-            })
-            .collect(),
-        Some(_) => {
-            push_problem(problems, Source::UniProt, record_text(id), field);
-            Vec::new()
-        }
-    }
 }

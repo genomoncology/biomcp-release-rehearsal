@@ -1,6 +1,6 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 /// Requested help path, with the root represented by an empty object.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HelpQuery {
@@ -9,8 +9,7 @@ pub struct HelpQuery {
     pub command: Vec<String>,
 }
 /// Generated command reference from the shipped query schemas and cases.
-#[derive(Clone, Debug, Serialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Help {
     /// Commands available at this help path.
@@ -18,12 +17,11 @@ pub struct Help {
     pub commands: Vec<HelpCommand>,
 }
 impl super::ResponseBody for Help {
-    const SCHEMA: &'static str = "biomcp.help/3";
+    const SCHEMA: &'static str = "biomcp.help/6";
     type Query = HelpQuery;
 }
 /// One command and its generated arguments.
-#[derive(Clone, Debug, Serialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HelpCommand {
     /// Command words after the executable name.
@@ -49,8 +47,7 @@ pub struct HelpCommand {
     pub examples: Vec<Vec<String>>,
 }
 /// One schema argument, retaining its bounds and position.
-#[derive(Clone, Debug, Serialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HelpArgument {
     /// Positional name or long flag.
@@ -81,8 +78,7 @@ pub struct HelpArgument {
     pub choices: Vec<String>,
 }
 /// A documented closed vocabulary word.
-#[derive(Clone, Debug, Serialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HelpWord {
     /// Accepted spelling.

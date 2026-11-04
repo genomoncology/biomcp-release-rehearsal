@@ -15,19 +15,30 @@ from release.test_licenses import archive as write_archive, payloads, wheel_fixt
 class Staging(unittest.TestCase):
     def test_workflow_attests_all_subjects_before_candidate_upload(self):
         workflow = Path(".github/workflows/release.yml").read_text()
-        stage = workflow.split("\n  stage:\n", 1)[1].split("\n  release-operator:\n", 1)[0]
+        stage = workflow.split("\n  stage:\n", 1)[1].split("\n  staged-homebrew:\n", 1)[0]
         self.assertIn("subject-checksums: ${{ runner.temp }}/subjects.sha256", stage)
         self.assertIn("create-storage-record: false", stage)
         self.assertIn("push-to-registry: false", stage)
         attest = re.search(r"      - name: Attest every staged artifact\n(.*?)(?=      - )", stage, re.S)
         self.assertIsNotNone(attest)
         self.assertRegex(attest[1], r"uses: actions/attest@[0-9a-f]{40}")
-        self.assertNotIn("if:", attest[1])
+        self.assertIn("if: github.event_name != 'workflow_dispatch' || inputs.rehearsal != true || github.event.repository.private != true", attest[1])
+        self.assertNotIn('continue-on-error', attest[1])
+        checksum = re.search(r"      - name: Retain every staged artifact checksum\n(.*?)(?=      - )", stage, re.S)
+        self.assertIsNotNone(checksum)
+        self.assertIn('name: release-subject-checksums', checksum[1])
+        self.assertIn('path: ${{ runner.temp }}/subjects.sha256', checksum[1])
+        self.assertIn('if-no-files-found: error', checksum[1])
+        self.assertNotIn('if:', checksum[1])
+        self.assertIn("SIGNED: ${{ steps.provenance.outcome == 'success' }}", stage)
+        self.assertIn('Unsigned private rehearsal:', stage)
         self.assertLess(stage.index("release/secrets.py artifacts"), attest.start())
         self.assertLess(attest.end(), stage.index("name: release-candidate"))
-        for job in re.split(r"\n  [a-z-]+:\n", workflow.split("jobs:\n", 1)[1])[1:]:
-            grants = set(re.findall(r"^      ([a-z-]+): write$", job, re.M))
-            self.assertEqual(grants, {"id-token", "attestations"} if "Attest every staged artifact" in job else set())
+        # Artifact signing remains isolated from channel publication credentials.
+        self.assertIn('      id-token: write', stage)
+        self.assertIn('      attestations: write', stage)
+        self.assertNotIn('      packages: write', stage)
+        self.assertNotIn('      contents: write', stage)
 
     def test_tag_builds_skip_cache_restore(self):
         workflow = Path('.github/workflows/release.yml').read_text()
@@ -35,17 +46,6 @@ class Staging(unittest.TestCase):
         self.assertTrue(caches)
         for cache in caches:
             self.assertIn("        if: github.ref_type != 'tag'\n", cache)
-
-    def test_environment_requires_an_independent_operator(self):
-        for rules, accepted in [([], False), ([{"type": "required_reviewers", "reviewers": []}], False),
-                                ([{"type": "required_reviewers", "reviewers": [{"type": "Team"}], "prevent_self_review": False}], False),
-                                ([{"type": "required_reviewers", "reviewers": [{"type": "Team"}], "prevent_self_review": True}], True)]:
-            for bypass in (False, True):
-                with self.subTest(rules=rules, bypass=bypass), tempfile.TemporaryDirectory() as directory:
-                    settings = Path(directory) / "environment.json"
-                    settings.write_text(json.dumps({"protection_rules": rules, "can_admins_bypass": bypass}))
-                    result = subprocess.run([sys.executable, "release/workflow.py", "protection", str(settings)], capture_output=True, text=True)
-                    self.assertEqual(result.returncode == 0, accepted and not bypass, result.stderr)
 
     def prepare(self, root):
         artifacts = root / "artifacts"

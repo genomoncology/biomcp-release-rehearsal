@@ -1,17 +1,12 @@
 {
+  "live_check": "public",
   "feature": "article-evidence",
   "story": "Read source citation evidence without local ranking.",
-  "verified": "Reuse accepted actual CC BY graph/JATS and actual keyless PubMed locator captures from command j10188. Every request identity remains unchanged.",
+  "verified": "Reuse accepted actual CC BY graph/JATS and actual keyless PubMed locator captures from command j10188. Every request identity remains unchanged. The existing verification records actual CC BY graph/JATS and keyless PubMed locator captures; the nightly run executes article citation-evidence.",
   "replay": "article/evidence/source",
   "steps": [
     {
       "run": [
-        "article",
-        "citation-evidence",
-        "33123537",
-        "17611497"
-      ],
-      "mcp": [
         "article",
         "citation-evidence",
         "33123537",
@@ -35,19 +30,35 @@
         "17611497",
         "--fulltext"
       ],
-      "mcp": [
-        "article",
-        "citation-evidence",
-        "33123537",
-        "17611497",
-        "--fulltext"
-      ],
       "expect": {
         "/result/semantic_scholar/data/contexts/total": 6,
         "/result/fulltext/state": "data",
         "/result/fulltext/data/paragraphs/total": 7
       },
       "max_bytes": 16000
+    },
+    {
+      "run": [
+        "article",
+        "citation-evidence",
+        "33123537",
+        "17611497",
+        "--fulltext",
+        "--disable-sources",
+        "semantic-scholar"
+      ],
+      "exit": 0,
+      "max_bytes": 16000,
+      "expect": {
+        "/status": "complete",
+        "/result/semantic_scholar/state": "skipped",
+        "/result/semantic_scholar/reason": "disabled",
+        "/result/fulltext/state": "data",
+        "/result/fulltext/data/paragraphs/total": 7,
+        "/sources/2/source": "semantic-scholar",
+        "/sources/2/state": "skipped",
+        "/sources/2/reason": "disabled"
+      }
     }
   ]
 }

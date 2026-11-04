@@ -1,18 +1,16 @@
 //! Render documentation from the parser, schema help and harvested case steps.
-use biomcp_types::{Help, ResponseBody};
+
 use clap::Command;
 use std::{collections::BTreeSet, fmt::Write, fs, path::PathBuf};
 
 type Check = Result<(), Box<dyn std::error::Error>>;
 
 fn documents() -> Result<Vec<(&'static str, String)>, Box<dyn std::error::Error>> {
-    let mut parser = super::root().map_err(|()| "command grammar unavailable")?;
-    parser.build();
-    let help = crate::help::dispatch(&[])?;
+    let parser = super::root().map_err(|_| "command grammar unavailable")?;
+    let help = crate::help::reference(&parser)?;
     let mut reference = String::from(
         "# Command reference\n\nGenerated from the command grammar and schema help. \
-        Run `make docs-generate` to update.\n\n\
-        Options shown on the root command apply to its subcommands. \
+        Run `make docs-generate` to update.\n\nOptions shown on the root command apply to its subcommands. \
         Query sections and source rules follow each command.\n\n",
     );
     let mut printed = BTreeSet::new();
@@ -24,23 +22,17 @@ fn documents() -> Result<Vec<(&'static str, String)>, Box<dyn std::error::Error>
         }
     }
     let mut recipes = String::from(
-        "# Worked commands\n\nGenerated from harvested case run steps through the shipped help examples. \
-        The documentation check executes these commands against recordings through CLI and MCP. \
-        Live source replies can differ.\n\n\
-        Choose a command below, inspect its source outcomes and follow its returned next commands. \
-        Stored sources require the explicit synchronization shown by their command.\n\n",
+        "# Worked commands\n\nGenerated from recorded public cases. Run `make docs-generate` to update. \
+        The documentation check executes these cases through CLI and MCP. Live replies can differ.\n\n",
     );
-    for entry in help
-        .commands
-        .iter()
-        .filter(|entry| !entry.examples.is_empty())
-    {
-        let name = std::iter::once("biomcp")
-            .chain(entry.command.iter().map(String::as_str))
-            .collect::<Vec<_>>()
-            .join(" ");
-        writeln!(recipes, "## {name}\n\n```sh")?;
-        for args in &entry.examples {
+    for name in ["version", "gene", "article", "trial"] {
+        let case: serde_json::Value = serde_saphyr::from_str(&fs::read_to_string(
+            root().join(format!("tests/cases/readme/{name}.yaml")),
+        )?)?;
+        let question = case["story"].as_str().ok_or("recipe question missing")?;
+        writeln!(recipes, "## {question}\n\n```sh")?;
+        for step in case["steps"].as_array().ok_or("recipe steps missing")? {
+            let args: Vec<String> = serde_json::from_value(step["run"].clone())?;
             writeln!(
                 recipes,
                 "biomcp {}",
@@ -64,6 +56,7 @@ fn documents() -> Result<Vec<(&'static str, String)>, Box<dyn std::error::Error>
         ("skills/SKILL.md", skill),
         ("docs/reference/commands.md", reference),
         ("docs/recipes.md", recipes),
+        ("docs/reference/source-pacing.md", pacing_document()?),
     ])
 }
 
@@ -79,7 +72,13 @@ fn command(
     printed.insert(path.iter().skip(1).copied().collect::<Vec<_>>().join(" "));
     writeln!(output, "## {}\n\n```text", path.join(" "))?;
     let mut printable = parser.clone().bin_name(path.join(" "));
-    writeln!(output, "{}\n```\n", printable.render_long_help())?;
+    let rendered = printable.render_long_help().to_string();
+    let rendered = rendered
+        .lines()
+        .map(str::trim_end)
+        .collect::<Vec<_>>()
+        .join("\n");
+    writeln!(output, "{rendered}\n\n```\n")?;
     if let Some(entry) = help.commands.iter().find(|entry| {
         entry
             .command
@@ -127,113 +126,116 @@ fn reference_matches_grammar() -> Check {
 #[test]
 #[ignore = "explicit documentation generation"]
 fn write_reference() -> Check {
-    refresh_help_cases(&root().join("tests/cases"))?;
+    generate(&root())
+}
+
+fn generate(destination: &std::path::Path) -> Check {
     for (name, text) in documents()? {
-        let path = root().join(name);
+        let path = destination.join(name);
         fs::create_dir_all(path.parent().ok_or("documentation directory missing")?)?;
         fs::write(path, text)?;
     }
     Ok(())
 }
 
-// Regenerate descriptive help snapshots from their owner, preserving other case values.
-fn refresh_help_cases(directory: &std::path::Path) -> Check {
-    use std::io::Write as _;
-    for entry in fs::read_dir(directory)? {
-        let path = entry?.path();
-        if path.is_dir() {
-            refresh_help_cases(&path)?;
-            continue;
-        }
-        if path.extension().is_none_or(|v| v != "yaml") {
-            continue;
-        }
-        let text = fs::read_to_string(&path)?;
-        // JSON-shaped fixtures must retain JSON's numeric and string types.
-        let json_text = text
-            .lines()
-            .filter(|line| !line.trim_start().starts_with('#'))
-            .collect::<Vec<_>>()
-            .join("\n");
-        let mut case: serde_json::Value = if json_text.trim_start().starts_with('{') {
-            serde_json::from_str(&json_text)?
-        } else {
-            serde_saphyr::from_str(&text)?
-        };
-        let mut changed = false;
-        for (index, step) in case["steps"]
-            .as_array_mut()
-            .into_iter()
-            .flatten()
-            .enumerate()
-        {
-            let Some(args) = step["run"]
-                .as_array()
-                .filter(|args| args.first().and_then(serde_json::Value::as_str) == Some("help"))
-            else {
-                continue;
-            };
-            let args: Vec<std::ffi::OsString> = args
-                .iter()
-                .filter_map(serde_json::Value::as_str)
-                .map(Into::into)
-                .collect();
-            let reply = crate::command::dispatch(&args)?;
-            if reply.value["schema"] != Help::SCHEMA {
-                continue;
-            }
-            let bytes = reply.cli_bytes.len();
-            let markdown_bytes = crate::view::markdown(&reply.value)?.len();
-            writeln!(
-                std::io::stdout(),
-                "HELP_MARKDOWN {} step {index}: {markdown_bytes} bytes",
-                path.display()
-            )?;
-            writeln!(
-                std::io::stdout(),
-                "HELP_MEASURE {} step {index}: {bytes} bytes; max_bytes {} max_tokens {}",
-                path.display(),
-                step["max_bytes"],
-                step["max_tokens"]
-            )?;
-            changed |= refresh_expectations(step, &reply.value);
-        }
-        if changed {
-            fs::write(path, format!("{}\n", serde_json::to_string_pretty(&case)?))?;
-        }
-    }
+#[test]
+fn documentation_generation_preserves_case_bytes() -> Check {
+    let copy = tempfile::tempdir()?;
+    let cases = copy.path().join("tests/cases");
+    fs::create_dir_all(&cases)?;
+    let path = cases.join("help.yaml");
+    let mut case: serde_json::Value = serde_saphyr::from_str(&fs::read_to_string(
+        root().join("tests/cases/gene/help.yaml"),
+    )?)?;
+    case.pointer_mut("/steps/0/expect")
+        .and_then(serde_json::Value::as_object_mut)
+        .ok_or("missing help assertions")?
+        .insert(
+            "/result/commands/0/description".into(),
+            "Retained assertion".into(),
+        );
+    let original = serde_json::to_vec(&case)?;
+    fs::write(&path, &original)?;
+    generate(copy.path())?;
+    assert_eq!(fs::read(path)?, original, "docs generation changed a case");
     Ok(())
 }
 
-fn refresh_expectations(step: &mut serde_json::Value, reply: &serde_json::Value) -> bool {
-    let mut changed = false;
-    if let Some(expect) = step["expect"].as_object_mut() {
-        for (pointer, expected) in expect {
-            if pointer.ends_with("/arguments/*/name")
-                && expected.is_array()
-                && let Some(arguments) = pointer
-                    .strip_suffix("/*/name")
-                    .and_then(|path| reply.pointer(path))
-                    .and_then(serde_json::Value::as_array)
-            {
-                let actual: serde_json::Value = arguments
-                    .iter()
-                    .filter_map(|a| a.get("name").cloned())
-                    .collect();
-                if *expected != actual {
-                    *expected = actual;
-                    changed = true;
-                }
-            }
-            if pointer.ends_with("/description")
-                && expected.is_string()
-                && let Some(actual) = reply.pointer(pointer)
-                && actual != expected
-            {
-                *expected = actual.clone();
-                changed = true;
-            }
-        }
+#[test]
+fn unscoped_help_uses_parser_nodes_and_scoped_topics_remain_available() -> Check {
+    let parser = super::root().map_err(|_| "command grammar unavailable")?;
+    let help = crate::help::reference(&parser)?;
+    assert!(
+        help.commands
+            .iter()
+            .any(|entry| entry.command == ["help", "get", "trial"]),
+        "nested parser help command missing"
+    );
+    assert!(
+        !help
+            .commands
+            .iter()
+            .any(|entry| entry.command == ["sync", "hgnc"]),
+        "positional bundle became a command"
+    );
+    assert!(
+        !help
+            .commands
+            .iter()
+            .any(|entry| entry.command == ["help", "key", "ncbi"]),
+        "positional credential topic became a command"
+    );
+    let scoped = crate::help::dispatch(&parser, &["help".into(), "key".into(), "ncbi".into()])?;
+    assert!(
+        scoped
+            .commands
+            .iter()
+            .any(|entry| entry.command == ["help", "key", "ncbi"]),
+        "scoped credential topic missing"
+    );
+    let index = help
+        .commands
+        .iter()
+        .find(|entry| entry.command.is_empty())
+        .ok_or("root help missing")?;
+    assert!(
+        index
+            .arguments
+            .iter()
+            .any(|argument| argument.name == "--help" && argument.aliases == ["-h"]),
+        "grammar aliases missing"
+    );
+    Ok(())
+}
+
+fn pacing_document() -> Result<String, std::fmt::Error> {
+    let mut text = String::from(
+        "# Source pacing\n\nGenerated from the source quota registry. Run `make docs-generate` to update.\n\n\
+        Defaults equal ceilings. Where no authoritative numeric policy was found, the ceiling remains conservative. \
+        Unpublished concurrency keeps the existing local ceiling. All rates space requests evenly without bursts. \
+        Daily quotas and shared upstream pools remain separate provider constraints.\n\n\
+        | Source | Keyless default / ceiling | Keyed default / ceiling | In flight default / ceiling | Policy checked |\n\
+        | --- | --- | --- | --- | --- |\n",
+    );
+    let rate = |rate: biomcp_fetch::Rate| {
+        let (requests, seconds) = rate.ratio();
+        format!("{requests}/{seconds}s")
+    };
+    for policy in biomcp_query::sources::pacing_policies() {
+        let quota = policy.quota;
+        let keyed = quota
+            .keyed_rate()
+            .map(&rate)
+            .unwrap_or_else(|| "same as keyless".into());
+        writeln!(
+            text,
+            "| `{}` | {} | {} | {} | {} |",
+            quota.key().name(),
+            rate(quota.rate()),
+            keyed,
+            quota.in_flight(),
+            policy.citation
+        )?;
     }
-    changed
+    Ok(text)
 }

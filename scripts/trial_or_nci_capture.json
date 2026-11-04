@@ -1,0 +1,33 @@
+{
+  "deadline_seconds": 20,
+  "max_bytes": 262144,
+  "spacing_seconds": 60,
+  "requests": [
+    {
+      "id": "nci-second",
+      "source": "nci",
+      "response_format": "bytes",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&diseases.nci_thesaurus_concept_id=C3512&include=nci_id&include=nct_id&include=brief_title&include=diseases",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "x-api-key"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    },
+    {
+      "id": "nci-or",
+      "source": "nci",
+      "response_format": "bytes",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&diseases.nci_thesaurus_concept_id=C3224&diseases.nci_thesaurus_concept_id=C3512&include=nci_id&include=nct_id&include=brief_title&include=diseases",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "x-api-key"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    }
+  ]
+}

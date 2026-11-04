@@ -15,16 +15,6 @@
         "--build",
         "GRCh38"
       ],
-      "mcp": [
-        "variant",
-        "normalize",
-        "--source",
-        "variantvalidator",
-        "--hgvs",
-        "NM_004333.4:c.1799T>A",
-        "--build",
-        "GRCh38"
-      ],
       "expect": {
         "/result/results/0/source": "variantvalidator",
         "/result/results/0/outcome": "resolved",

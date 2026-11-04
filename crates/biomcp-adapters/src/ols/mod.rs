@@ -25,3 +25,6 @@ mod search;
 pub use get::{Record, get};
 pub use map::components;
 pub use search::{SearchPage, search};
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

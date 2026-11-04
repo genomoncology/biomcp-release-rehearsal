@@ -4,7 +4,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 /// One source-ordered page, with native record and classification boundaries intact.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantAssertions {
     /// Source assertion rows in native order.
@@ -17,19 +16,18 @@ pub struct VariantAssertions {
     pub next: Option<VariantAssertionsGet>,
 }
 impl super::ResponseBody for VariantAssertions {
-    const SCHEMA: &'static str = "biomcp.variant-assertions/3";
+    const SCHEMA: &'static str = "biomcp.variant-assertions/8";
     type Query = VariantAssertionsGet;
 }
 /// A native record/domain pair, never a vote or merged classification.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantAssertion {
     /// Aggregate/submission/document context.
     pub kind: AssertionKind,
     /// Source classification domain.
     pub domain: AssertionDomain,
-    /// Native category has no approved common-model proposition.
+    /// The native conclusion has no common-model statement.
     #[serde(default, skip_serializing_if = "is_false")]
     pub statement_unmapped: bool,
     /// Supported mapping into the common model.
@@ -51,13 +49,13 @@ impl VariantAssertion {
             .or_else(|| self.unmapped.as_ref().map(|s| &s.attribution))
     }
 }
-/// Source classification retained when its category has no approved shared proposition.
+/// Source conclusion and provenance retained without a shared statement.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct UnmappedAssertion {
-    /// Unchanged source label.
-    pub classification: Text,
+    /// Unchanged source label, when valid and supplied.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub classification: Option<Text>,
     /// Original record provenance.
     pub attribution: Attribution,
     /// Native review status.
@@ -69,7 +67,6 @@ pub struct UnmappedAssertion {
 }
 /// Source details that do not fit the compact shared statement.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AssertionDetail {
     /// Native somatic impact assertion type, without deriving a predicate.
@@ -105,6 +102,12 @@ pub struct AssertionDetail {
     /// Criteria explicitly marked unmet.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     pub unmet_criteria: Box<[Text]>,
+    /// Native met criteria retained when no common statement can carry them.
+    #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
+    pub met_criteria: Box<[Text]>,
+    /// Native gene context retained when the conclusion cannot map to a statement.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gene_context: Option<biodata::SourceGeneRef>,
     /// Source publication date; never an inferred evaluation date.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub published: Option<PartialDate>,
@@ -120,7 +123,6 @@ pub struct AssertionDetail {
 }
 /// A source trait relationship without assigning a clinical interpretation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AssertionConditionRelationship {
     /// Relationship type exactly supplied by the source.
@@ -135,7 +137,6 @@ pub struct AssertionConditionRelationship {
 }
 /// A native condition with independently optional identifier and label.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AssertionCondition {
     /// Native database name without inventing a CURIE prefix.
@@ -191,7 +192,6 @@ fn is_false(value: &bool) -> bool {
 
 /// Native SEPIO facts kept separate from common interpretation fields.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AssertionDocument {
     /// Source UUID checked against the selected summary link.
@@ -212,11 +212,11 @@ pub struct AssertionDocument {
 }
 /// Source assessment labels and identifiers remain independent.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AssertionAssessment {
     /// Native criterion code.
-    pub criterion: Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub criterion: Option<Text>,
     /// Native criterion identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub criterion_id: Option<Text>,
@@ -233,7 +233,8 @@ pub struct AssertionAssessment {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_strength_iri: Option<Text>,
     /// Source outcome label.
-    pub outcome: Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<Text>,
     /// The supplied outcome identifier contradicts its supplied Met/Not Met label.
     #[serde(default, skip_serializing_if = "is_false")]
     pub outcome_conflict: bool,

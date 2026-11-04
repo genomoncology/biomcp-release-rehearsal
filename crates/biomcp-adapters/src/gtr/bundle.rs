@@ -37,26 +37,34 @@ pub(super) fn read(
     leg.stored_set_rows(&SET, find)
 }
 /// Synchronize both native files atomically and count identities before any status filter.
-pub fn sync(fetch: &Fetch) -> Result<SyncResult, RequestError> {
+pub fn sync(fetch: &Fetch) -> Result<crate::Mapped<SyncResult>, RequestError> {
     let info = fetch.sync_set(&SET)?;
     let deadline = fetch.deadline(Duration::from_secs(120));
     let leg = fetch.leg(&SPEC, deadline);
     let (rows, snapshot) = read(&leg, Find::Exact(KeyKind::Band, "versions"))?;
     if info.content_revision != snapshot.content_revision {
-        return Err(super::bad());
+        return Err(biomcp_fetch::bad_reply(biomcp_types::Source::Gtr, None));
     }
     let mut counts = BTreeMap::new();
     for row in rows {
-        *counts.entry(row.value.id().to_string()).or_insert(0_u32) += 1;
+        if let Some(id) = row.value.id() {
+            *counts.entry(id.to_string()).or_insert(0_u32) += 1;
+        }
     }
-    Ok(SyncResult {
-        snapshot: None,
-        etag: None,
-        last_modified: None,
-        rows: info.rows,
-        bytes: info.bytes,
-        downloaded_bytes: info.downloaded_bytes,
-        duplicate_identities: Some(counts.values().filter(|&&n| n > 1).count() as u64),
+    let problems = crate::mapped::bundle_problems(biomcp_types::Source::Gtr, &info);
+    Ok(crate::Mapped {
+        refusals: crate::bundle_mapping::bundle_refusals(&info),
+        problems,
+        value: SyncResult {
+            native_rows: None,
+            snapshot: None,
+            etag: None,
+            last_modified: None,
+            rows: info.rows,
+            bytes: info.bytes,
+            downloaded_bytes: info.downloaded_bytes,
+            duplicate_identities: Some(counts.values().filter(|&&n| n > 1).count() as u64),
+        },
     })
 }
 

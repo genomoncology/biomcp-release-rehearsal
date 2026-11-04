@@ -13,14 +13,6 @@
         "--hgvs",
         "NM_004333.4:c.1799T>A"
       ],
-      "mcp": [
-        "variant",
-        "normalize",
-        "--source",
-        "mutalyzer",
-        "--hgvs",
-        "NM_004333.4:c.1799T>A"
-      ],
       "expect": {
         "/result/results/0/source": "mutalyzer",
         "/result/results/0/outcome": "resolved",

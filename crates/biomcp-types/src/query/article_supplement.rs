@@ -38,7 +38,16 @@ impl fmt::Display for SheetRows {
         write!(f, "{}-{}", self.0, self.1)
     }
 }
-text_value!(SheetRows, "SheetRows", r"^[1-9][0-9]*-[1-9][0-9]*$");
+text_value!(
+    SheetRows,
+    "SheetRows",
+    format!(
+        "^{}-{}$",
+        biodata::schema_pattern::decimal(u32::MAX.into()),
+        biodata::schema_pattern::decimal(u32::MAX.into())
+    ),
+    "Inclusive original one-based row range. The parser additionally requires the end to be at least the start and fewer than 200 rows after it."
+);
 /// Read a checked supplement file or page its original rows.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "Fields")]

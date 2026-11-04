@@ -2,9 +2,8 @@
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, io};
 
-pub(super) fn for_tool(name: &str) -> io::Result<Value> {
-    let mut ids = crate::help::dispatch(&[])?
-        .commands
+pub(super) fn for_tool(root: &crate::grammar::Root, name: &str) -> io::Result<Value> {
+    let mut ids = crate::help::commands(root)?
         .into_iter()
         .filter(|command| match name {
             "search" => command.command.first().is_some_and(|word| word == "search"),
@@ -25,7 +24,7 @@ pub(super) fn for_tool(name: &str) -> io::Result<Value> {
     properties.insert("schema".into(), json!({"type":"string","enum":ids}));
     properties.insert("query".into(), json!({"type":["object","array","null"]}));
     properties.insert("result".into(), json!({"type":"object"}));
-    let mut branches = vec![envelope, shape(&canonical("biomcp.error/1")?)?];
+    let mut branches = vec![envelope, shape(&canonical("biomcp.error/4")?)?];
     if name == "biomcp" {
         branches.push(json!({"properties":{
             "$id":{"type":"string","pattern":"^(biomcp|biodata)\\.[a-z0-9_-]+/[1-9][0-9]*$"},
@@ -39,9 +38,11 @@ pub(super) fn for_tool(name: &str) -> io::Result<Value> {
         };
         branches.push(shape(&canonical(id)?)?);
     }
-    Ok(
-        json!({"type":"object","description":"Compact reply shape. Use biomcp schema <id> for the complete contract.","anyOf":branches}),
-    )
+    Ok(json!({
+        "$schema": super::protocol::SCHEMA_DIALECT,
+        "type": "object",
+        "anyOf": branches
+    }))
 }
 fn canonical(id: &str) -> io::Result<Value> {
     serde_json::from_str(
@@ -67,7 +68,12 @@ fn shape(root: &Value) -> io::Result<Value> {
             let node =
                 resolve(node, root).ok_or_else(|| io::Error::other("unresolved reply property"))?;
             let value = if matches!(key.as_str(), "schema" | "status") {
-                node.clone()
+                let mut compact = node.clone();
+                if let Some(fields) = compact.as_object_mut() {
+                    fields.remove("description");
+                    fields.remove("title");
+                }
+                compact
             } else if let Some(kind) = node.get("type") {
                 json!({"type":kind})
             } else if let Some(choices) = node.get("anyOf").and_then(Value::as_array) {

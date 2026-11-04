@@ -1,0 +1,186 @@
+{
+  "feature": "drug-label",
+  "story": "Recorded labels support free-text discovery without harmonized names and exact application searches without product substitution",
+  "replay": "drug/label-discovery",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "CAVHANZA",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "/page/returned": 1,
+        "": {
+          "omits": [
+            "problems"
+          ]
+        },
+        "/result/items/0": {
+          "omits": [
+            "name",
+            "matched_name"
+          ]
+        },
+        "/sources/0/notices/0/message": "Exact and word name searches found no matching product; searched label free text.",
+        "/sources/0/term": "\"CAVHANZA\""
+      },
+      "max_bytes": 1600
+    },
+    {
+      "follow": "disambiguate",
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "/result/header": {
+          "omits": [
+            "name"
+          ]
+        },
+        "/result": {
+          "omits": [
+            "alternate_names"
+          ]
+        },
+        "": {
+          "omits": [
+            "problems"
+          ]
+        }
+      },
+      "max_bytes": 1500
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "NDA220089",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "121c1cb8-6f60-4644-a775-b81c6f21d812",
+        "/page/returned": 1,
+        "": {
+          "omits": [
+            "problems"
+          ]
+        },
+        "/result/items/0/name": "PYLARIFY TRUVU"
+      },
+      "max_bytes": 1600
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "BLA761445",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "07730e8c-1340-4d30-8d71-e20f850db8da",
+        "/page/returned": 1,
+        "": {
+          "omits": [
+            "problems"
+          ]
+        },
+        "/result/items/0/name": "Sarclisa Escena"
+      },
+      "max_bytes": 1600
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "CAVHANZA EXTRA",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/result": {
+          "omits": [
+            "items"
+          ]
+        },
+        "/sources/0/term": "\"CAVHANZA EXTRA\"",
+        "": {
+          "omits": [
+            "problems"
+          ]
+        }
+      },
+      "max_bytes": 1500
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "REFERENCE BRAND",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/result": {
+          "omits": [
+            "items"
+          ]
+        },
+        "/sources/0/term": "\"REFERENCE BRAND\"",
+        "": {
+          "omits": [
+            "problems"
+          ]
+        }
+      },
+      "max_bytes": 1500
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "NDA000001",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/result": {
+          "omits": [
+            "items"
+          ]
+        },
+        "": {
+          "omits": [
+            "problems"
+          ]
+        }
+      },
+      "max_bytes": 1000
+    }
+  ]
+}

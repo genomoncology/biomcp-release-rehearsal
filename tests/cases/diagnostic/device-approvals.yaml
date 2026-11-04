@@ -1,0 +1,112 @@
+{
+  "live_check": "FDA public native API replies captured 2026-11-04; original bytes retained in sidecars",
+  "feature": "device-approval-search",
+  "story": "Manufacturer, device name and decision dates filter native PMA and 510(k) records without retired errors or application deduplication.",
+  "replay": "diagnostic/device-approvals",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-pma",
+        "--manufacturer",
+        "Foundation Medicine"
+      ],
+      "expect": {
+        "/page/total": 100,
+        "/result/items": {
+          "count": 5
+        },
+        "/result/items/0/identity_status": "pma-submission",
+        "/next/0/kind": "disambiguate",
+        "/sources/0/source": "fda-pma"
+      },
+      "max_bytes": 16000
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-pma",
+        "--name",
+        "FoundationOne CDx"
+      ],
+      "expect": {
+        "/page/total": 59,
+        "/result/items": {
+          "count": 5
+        },
+        "/result/items/0/identity_status": "pma-submission",
+        "/next/0/kind": "disambiguate",
+        "/sources/0/source": "fda-pma"
+      },
+      "max_bytes": 16000
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-510k",
+        "--manufacturer",
+        "Abbott Diabetes"
+      ],
+      "expect": {
+        "/page/total": 40,
+        "/result/items": {
+          "count": 5
+        },
+        "/result/items/0/identity_status": "clearance",
+        "/next/0/kind": "disambiguate",
+        "/sources/0/source": "fda-510k"
+      },
+      "max_bytes": 16000
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-510k",
+        "--name",
+        "FreeStyle Libre 3"
+      ],
+      "expect": {
+        "/page/total": 6,
+        "/result/items": {
+          "count": 5
+        },
+        "/result/items/0/identity_status": "clearance",
+        "/next/0/kind": "disambiguate",
+        "/sources/0/source": "fda-510k"
+      },
+      "max_bytes": 16000
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-pma",
+        "--manufacturer",
+        "Foundation Medicine",
+        "--decision-from",
+        "2017-11-30",
+        "--decision-to",
+        "2017-11-30"
+      ],
+      "expect": {
+        "/page/total": 1,
+        "/result/items": {
+          "count": 1
+        },
+        "/result/items/0/identity_status": "pma-submission",
+        "/next/0/kind": "disambiguate",
+        "/sources/0/source": "fda-pma"
+      },
+      "max_bytes": 16000
+    }
+  ]
+}

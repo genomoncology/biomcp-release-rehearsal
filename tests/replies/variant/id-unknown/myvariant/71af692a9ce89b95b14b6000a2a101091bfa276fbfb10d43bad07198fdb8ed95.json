@@ -1,0 +1,31 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/query?q=clinvar.variant_id%3A13961&size=1000&from=0&fields=_id%2Cdbsnp.rsid%2Cdbsnp.gene.symbol%2Cclinvar.variant_id%2Csnpeff.ann%2Cchrom%2Chg19%2Chg38%2Cclingen.caid&assembly=hg19",
+  "exchanges": [
+    {
+      "fetched": 1792876427,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 1,
+          "hits": [
+            {
+              "_id": "chr7:g.140453136A>T",
+              "dbsnp": {
+                "rsid": "rs113488022"
+              },
+              "clinvar": {
+                "variant_id": 13961
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

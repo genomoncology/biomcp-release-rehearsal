@@ -1,0 +1,44 @@
+{
+  "method": "GET",
+  "source": "maude",
+  "url": "https://api.fda.gov/device/event.json?search=mdr_report_key%3A%22160%22&limit=1",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2024-09-01",
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "mdr_report_key": "160",
+              "event_type": 17,
+              "date_received": "20240202",
+              "device": [
+                {
+                  "manufacturer_d_name": "Synthetic maker",
+                  "device_report_product_code": "ABC"
+                }
+              ],
+              "product_problems": [
+                "Synthetic problem"
+              ],
+              "mdr_text": []
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

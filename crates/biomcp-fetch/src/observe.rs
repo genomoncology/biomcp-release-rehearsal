@@ -1,9 +1,9 @@
-//! Opt-in bounded wire summaries with credential-free request URLs.
-#![expect(
-    clippy::disallowed_types,
-    reason = "Serialize bounded summaries across source workers"
-)]
+//! Opt-in bounded wire and bundle-wait summaries with credential-free request URLs.
 use serde::{Deserialize, Serialize};
+#[expect(
+    clippy::disallowed_types,
+    reason = "Share bounded transport state across the request owners named by this module"
+)]
 use std::{collections::BTreeMap, fs::File, io::Write, path::Path, sync::Mutex};
 /// Maximum attempts retained per command.
 pub const MAX_OBSERVATIONS: usize = 1024;
@@ -16,8 +16,14 @@ pub struct Shape {
     pub fields: BTreeMap<String, bool>,
     /// Array or declared count is positive.
     pub positive: BTreeMap<String, bool>,
+    /// Structure exceeded a sampling bound or could not be inspected completely.
+    #[serde(default = "unknown_shape")]
+    pub incomplete: bool,
     /// Bounded tabular header row.
     pub header: Option<String>,
+}
+fn unknown_shape() -> bool {
+    true
 }
 impl Shape {
     /// Inspect structure without retaining text or scalar values.
@@ -26,10 +32,16 @@ impl Shape {
         if media.contains("json") {
             if let Ok(value) = serde_json::from_slice(body) {
                 shape.json(&value, "", 0);
+            } else {
+                shape.incomplete = true;
             }
         } else if media.contains("xml") {
             shape.xml(body);
         } else if media.contains("csv") || media.contains("tab-separated") {
+            shape.incomplete = body
+                .split(|b| *b == b'\n')
+                .next()
+                .is_some_and(|line| line.len() > 4096);
             shape.header = body
                 .split(|b| *b == b'\n')
                 .next()
@@ -52,6 +64,8 @@ impl Shape {
                         .then(|| name.clone());
                     if name.len() <= 128 {
                         self.fields.insert(name, true);
+                    } else {
+                        self.incomplete = true;
                     }
                 }
                 Ok(quick_xml::events::Event::Text(text)) => {
@@ -61,20 +75,27 @@ impl Shape {
                         self.positive.insert(name, value > 0);
                     }
                 }
-                Ok(quick_xml::events::Event::Eof) | Err(_) => break,
+                Ok(quick_xml::events::Event::Eof) => return,
+                Err(_) => {
+                    self.incomplete = true;
+                    return;
+                }
                 Ok(quick_xml::events::Event::End(_)) => count = None,
                 _ => {}
             }
         }
+        self.incomplete = true;
     }
     fn json(&mut self, value: &serde_json::Value, path: &str, depth: usize) {
         if depth >= 8 || path.len() > 256 || self.fields.len() >= FIELDS {
+            self.incomplete = true;
             return;
         }
         match value {
             serde_json::Value::Object(map) => {
                 for (key, value) in map {
                     if key.len() > 128 || self.fields.len() >= FIELDS {
+                        self.incomplete = true;
                         break;
                     }
                     let segment = if key
@@ -100,6 +121,7 @@ impl Shape {
                 }
             }
             serde_json::Value::Array(items) => {
+                self.incomplete |= items.len() > 3;
                 self.positive.insert(path.to_owned(), !items.is_empty());
                 for item in items.iter().take(3) {
                     self.json(item, &format!("{path}/*"), depth + 1);
@@ -117,7 +139,7 @@ pub struct Observation {
     /// Prepared URL, before any credential or contact insertion.
     #[serde(default)]
     pub url: String,
-    /// Checked reply type, identifying the endpoint role without request values.
+    /// Checked reply type or bundle-wait entry, without request values.
     #[serde(default)]
     pub role: String,
     /// Reused checked local data rather than a transport attempt.
@@ -127,6 +149,9 @@ pub struct Observation {
     pub source: biomcp_types::Source,
     /// HTTP status, absent on transport failure.
     pub status: Option<u16>,
+    /// Safe TLS failure cause; no certificate or library detail is retained.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tls_cause: Option<crate::TlsCause>,
     /// Retained decoded body bytes; transport/read failures retain no body.
     pub bytes: u64,
     /// Nominal keyless interval from the same shared quota declaration.
@@ -141,8 +166,16 @@ pub struct Observation {
 }
 /// Explicitly created command-owned sink.
 #[derive(Debug)]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Serialize bounded opt-in summaries across source workers"
+)]
 pub struct Observations(Mutex<(File, usize, usize)>);
 impl Observations {
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Serialize bounded opt-in summaries across source workers"
+    )]
     /// Create exclusively; never overwrite an earlier report.
     pub fn create(path: &Path) -> std::io::Result<Self> {
         Ok(Self(Mutex::new((
@@ -191,9 +224,36 @@ impl crate::Leg<'_> {
                 body.len() as u64,
                 Shape::inspect(body, media),
                 elapsed,
-                ("bundle", false, request.1, crate::Provenance::default()),
+                (
+                    "bundle",
+                    false,
+                    request.1,
+                    crate::Provenance::default(),
+                    None,
+                ),
             );
         }
+    }
+    pub(crate) fn observe_tls_failure(
+        &self,
+        request: (&[u8; 32], &str),
+        elapsed: std::time::Duration,
+        error: &ureq::Error,
+    ) {
+        self.observed(
+            request.0,
+            None,
+            0,
+            Shape::default(),
+            elapsed,
+            (
+                "bundle",
+                false,
+                request.1,
+                crate::Provenance::default(),
+                crate::tls::cause(error),
+            ),
+        );
     }
     pub(crate) fn observe_bundle(
         &self,
@@ -225,7 +285,13 @@ impl crate::Leg<'_> {
             body.len() as u64,
             Shape::inspect(header, media),
             elapsed,
-            ("bundle", false, request.1, crate::Provenance::default()),
+            (
+                "bundle",
+                false,
+                request.1,
+                crate::Provenance::default(),
+                None,
+            ),
         );
     }
     pub(crate) fn observed(
@@ -235,7 +301,7 @@ impl crate::Leg<'_> {
         bytes: u64,
         shape: Shape,
         elapsed: std::time::Duration,
-        context: (&str, bool, &str, crate::Provenance),
+        context: (&str, bool, &str, crate::Provenance, Option<crate::TlsCause>),
     ) {
         if let Some(sink) = &self.fetch.config.observations {
             sink.push(&Observation {
@@ -257,7 +323,29 @@ impl crate::Leg<'_> {
                 elapsed_ms: u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX),
                 shape,
                 provenance: context.3,
+                tls_cause: context.4,
             });
         }
     }
+}
+
+/// Record a SQLite error without changing its classification or the command result.
+#[track_caller]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The proof diagnostic boundary alone reads its opt-in destination"
+)]
+pub fn record_sqlite_error(component: &'static str, error: &rusqlite::Error) {
+    let Some(path) = std::env::var_os(crate::SQLITE_DIAGNOSTICS) else {
+        return;
+    };
+    let caller = std::panic::Location::caller();
+    // Only a compiled source basename is retained, never a runtime path or SQL.
+    let source = caller
+        .file()
+        .rsplit(['/', '\\'])
+        .next()
+        .unwrap_or("unknown");
+    let operation = format!("{component}::{source}:{}", caller.line());
+    crate::sqlite_diagnostic::append(Path::new(&path), &operation, error);
 }

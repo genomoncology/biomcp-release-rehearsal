@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "source": "seer",
+  "url": "https://seer.cancer.gov/statistics-network/explorer/source/content_writers/get_var_formats.php",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "VariableFormats": {},
+          "CancerSites": []
+        }
+      }
+    }
+  ]
+}

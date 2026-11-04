@@ -1,3 +1,4 @@
+# Shared settings come from clippy-base.toml; the ratchet refuses drift.
 too-many-lines-threshold = 80
 allow-unwrap-in-tests = true
 allow-expect-in-tests = true
@@ -5,24 +6,24 @@ allow-panic-in-tests = true
 allow-indexing-slicing-in-tests = true
 
 disallowed-types = [
-    { path = "std::cell::Cell", reason = "Keep values immutable and free of I/O" },
-    { path = "std::cell::RefCell", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::Mutex", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::RwLock", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::OnceLock", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::LazyLock", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicBool", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicI8", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicI16", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicI32", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicI64", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicIsize", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicU8", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicU16", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicU32", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicU64", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicUsize", reason = "Keep values immutable and free of I/O" },
-    { path = "std::sync::atomic::AtomicPtr", reason = "Keep values immutable and free of I/O" },
+    { path = "std::cell::Cell", reason = "Interior state needs an item-level reason" },
+    { path = "std::cell::RefCell", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::Mutex", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::RwLock", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::OnceLock", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::LazyLock", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicBool", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicI8", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicI16", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicI32", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicI64", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicIsize", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicU8", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicU16", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicU32", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicU64", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicUsize", reason = "Interior state needs an item-level reason" },
+    { path = "std::sync::atomic::AtomicPtr", reason = "Interior state needs an item-level reason" },
 ]
 
 disallowed-methods = [

@@ -1,35 +1,28 @@
 //! Explicit MAUDE native cards and whole device/narrative pages.
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
 use biodata::Text;
 use biomcp_adapters::maude;
-use biomcp_types::{
-    AdverseEventGet, AdverseEventSection, QueryBody, Request, Source, Status, StepKind,
-};
+use biomcp_types::ReplyBody;
+use biomcp_types::{AdverseEventGet, AdverseEventSection, ReplyData, Request, Source, StepKind};
 mod projection;
+mod record;
 mod rows;
-mod snapshot;
 /// Read exactly one numeric MAUDE key and project only its requested section.
-pub fn get(cx: &Ctx<'_>, query: &AdverseEventGet) -> Outcome {
+pub(crate) fn get(cx: &Ctx<'_>, query: &AdverseEventGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let mut out = Outcome {
-        status: Status::Failed,
-        body: empty(query),
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    };
-    match snapshot::load(cx, query, deadline, &mut out) {
-        Ok(Some((report, snapshot))) => {
-            let bound = query.with_snapshot(snapshot.clone());
-            match projection::project(&bound, report, snapshot) {
-                Ok((body, total, returned)) => {
+    let mut out = crate::status::empty(empty(query));
+    match record::load(cx, query, deadline, &mut out) {
+        Ok(Some((report, positions, snapshot))) => {
+            let bound = snapshot
+                .clone()
+                .map_or_else(|| query.clone(), |t| query.with_snapshot(t));
+            match projection::project(query, report, snapshot, positions) {
+                Ok((body, total, returned, offset)) => {
                     out.body = body;
-                    navigation(&bound, total, returned, &mut out);
+                    navigation(&bound, total, returned, offset, &mut out);
                 }
-                Err(()) => too_large(query, &mut out),
+                Err(_) => too_large(query, &mut out),
             }
         }
         Ok(None) => {}
@@ -38,16 +31,19 @@ pub fn get(cx: &Ctx<'_>, query: &AdverseEventGet) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-fn empty(query: &AdverseEventGet) -> QueryBody {
+fn empty(query: &AdverseEventGet) -> ReplyData {
     match query.section() {
-        Some(AdverseEventSection::Devices) => QueryBody::AdverseEventDevices(None),
-        Some(AdverseEventSection::Narrative) => QueryBody::AdverseEventNarrative(None),
-        _ => QueryBody::AdverseEventMaudeCard(None),
+        Some(AdverseEventSection::Devices) => {
+            biomcp_types::AdverseEventDevices::into_reply(query.clone(), None)
+        }
+        Some(AdverseEventSection::Narrative) => {
+            biomcp_types::AdverseEventNarrative::into_reply(query.clone(), None)
+        }
+        _ => biomcp_types::AdverseEventMaudeCard::into_reply(query.clone(), None),
     }
 }
-fn navigation(query: &AdverseEventGet, total: u64, returned: u32, out: &mut Outcome) {
+fn navigation(query: &AdverseEventGet, total: u64, returned: u32, offset: u32, out: &mut Outcome) {
     if query.section().is_some() {
-        let offset = query.section_offset().saturating_add(returned);
         out.page = Some(biomcp_types::PageInfo {
             offset: query.section_offset(),
             returned,
@@ -55,35 +51,37 @@ fn navigation(query: &AdverseEventGet, total: u64, returned: u32, out: &mut Outc
             pool: None,
             truncated: None,
         });
-        if returned > 0 && u64::from(offset) < total {
-            out.next.push((
+        if offset > query.section_offset() && u64::from(offset) < total {
+            out.next.push(crate::next::Step::run(
                 StepKind::Page,
-                Action::Run {
-                    request: Request::GetAdverseEvent(query.at_section_offset(offset)),
-                    fresh: false,
-                },
+                &[biomcp_types::Source::Maude],
+                Request::GetAdverseEvent(query.at_section_offset(offset)),
+                false,
             ));
         }
     } else {
         for section in [AdverseEventSection::Devices, AdverseEventSection::Narrative] {
-            if let Ok(next) = query.with_section(section, None) {
-                out.next.push((
+            if let Some(next) = crate::next::checked(
+                query.with_section(section, None),
+                biomcp_types::Source::Maude,
+                &mut out.problems,
+            ) {
+                out.next.push(crate::next::Step::run(
                     StepKind::Section,
-                    Action::Run {
-                        request: Request::GetAdverseEvent(next),
-                        fresh: false,
-                    },
+                    &[biomcp_types::Source::Maude],
+                    Request::GetAdverseEvent(next),
+                    false,
                 ));
             }
         }
     }
 }
-fn text(value: &str) -> Result<Text, ()> {
-    Text::new(value).map_err(|_| ())
+fn text(value: &str) -> Result<Text, biomcp_types::QueryInvalid> {
+    Text::new(value).map_err(|_| biomcp_types::QueryInvalid::default())
 }
 
 fn too_large(query: &AdverseEventGet, out: &mut Outcome) {
-    out.status = Status::Failed;
+    crate::status::item(out, false, true, false);
     out.sources = vec![biomcp_adapters::registry::outcome(
         Source::Maude,
         biomcp_types::SourceState::Failed,

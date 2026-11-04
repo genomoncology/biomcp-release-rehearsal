@@ -1,34 +1,27 @@
 //! Feature clinpgx-annotations: native tiers through actual CLI and MCP.
-mod failures;
+use super::required_contract;
+
 mod rows;
 use super::{configuration::invoke, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 type Check = Result<(), String>;
-const CLINICAL_PAGE_MAX_BYTES: usize = 5886;
 pub(super) fn trials() -> Vec<Trial> {
-    let mut trials = vec![];
-    for name in [
-        "clinical",
-        "default",
-        "wide",
-        "guideline",
-        "label",
-        "empty",
-        "annotation",
-    ] {
-        trials.push(Trial::test(
-            format!("clinpgx-annotations/{name}-network-cache-replay"),
-            move || scenario(name).map_err(Into::into),
-        ));
-    }
-    trials.extend(failures::trials());
-    trials
+    // Keep the real HTTP headers, cache request counts and response-bound pages.
+    [
+        (required_contract::CLINPGX_CLINICAL.0, "clinical"),
+        (required_contract::CLINPGX_KIND.0, "guideline"),
+        (required_contract::CLINPGX_ANNOTATION.0, "annotation"),
+    ]
+    .into_iter()
+    .map(|(name, mode)| transcript_trial(name, move || scenario(mode).map_err(Into::into)))
+    .collect()
 }
 fn environment(stub: &Stub) -> Result<Environment, String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     std::fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"ca_bundle":ca,"proxy":format!("http://{}",stub.address)}))
         .map_err(|e| e.to_string())?;
@@ -80,7 +73,8 @@ fn native(name: &str) -> Result<Value, String> {
         "clinical" => json!([rows::clinical(1, "DPYD"), rows::clinical(2, "DPYD")]),
         "wide" | "default" => Value::Array((1..=6).map(|id| rows::clinical(id, "DPYD")).collect()),
         "empty" => json!([]),
-        _ => rows::references(),
+        "label" => rows::references("LabelAnnotation"),
+        _ => rows::references("GuidelineAnnotation"),
     };
     Ok(json!({"data":data,"status":"success"}))
 }
@@ -184,11 +178,14 @@ fn verify(name: &str, v: &Value, native: &Value) -> Check {
     if name == "empty" {
         super::pgx_retirements::bounded("ClinPGx empty", v)?;
     }
-    if name == "default" && super::source_terms::size(v, "")? > CLINICAL_PAGE_MAX_BYTES {
+    if name == "default"
+        && super::source_terms::size(v, "")? > super::output_limit("clinpgx-clinical-page")?
+    {
         return Err("clinical default exceeds its reviewed output ceiling".into());
     }
     if name == "annotation" {
         let mut expected = native.get("data").cloned().ok_or("native data")?;
+        super::assertions::qualify_numeric_ids(&mut expected, "ClinPGx");
         super::assertions::omit_empty_lists(&mut expected);
         if v.pointer("/result/annotation") != Some(&expected) {
             return Err("base fields changed".into());
@@ -215,6 +212,7 @@ fn verify(name: &str, v: &Value, native: &Value) -> Check {
             .cloned()
             .collect::<Vec<_>>()
     );
+    super::assertions::qualify_numeric_ids(&mut expected_rows, "ClinPGx");
     super::assertions::omit_empty_lists(&mut expected_rows);
     if rows
         != expected_rows

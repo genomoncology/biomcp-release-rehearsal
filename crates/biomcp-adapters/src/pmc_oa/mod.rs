@@ -1,4 +1,5 @@
 //! PMC OA bucket listing, checked metadata and confined JATS reads.
+use biomcp_fetch::{Input, Read};
 mod location;
 mod raw;
 mod supplement;
@@ -6,10 +7,8 @@ use crate::{jats, quotas};
 use biodata::License;
 use biodata::{Pmcid, Pmid};
 
-use biomcp_fetch::{
-    Arg, BadReply, Endpoint, Freshness, KeyUse, Leg, RequestError, SourceError, SourceSpec,
-};
-use biomcp_types::{Reason, Source};
+use biomcp_fetch::{Arg, Endpoint, Freshness, KeyUse, Leg, RequestError, SourceSpec};
+use biomcp_types::Source;
 use std::time::Duration;
 pub use supplement::{Download, Supplement, download, download_bytes};
 /// Conservative application policy; no numeric provider limit is claimed.
@@ -19,7 +18,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "PMC copyright; article-specific licenses",
         url: "https://pmc.ncbi.nlm.nih.gov/about/copyright/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::PerRecord,
     },
     source: Source::PmcOa,
     base: "https://pmc-oa-opendata.s3.amazonaws.com",
@@ -44,81 +43,92 @@ pub struct Document {
     pub body: jats::Body,
     /// JATS supplements confirmed against the record media list.
     pub supplements: Vec<Supplement>,
+    /// Rejected metadata and JATS fields.
+    pub problems: Vec<biomcp_types::Problem>,
 }
-fn bad(_: impl std::fmt::Debug) -> RequestError {
-    SourceError {
-        source: Source::PmcOa,
-        reason: Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
-}
+
 /// Return no document only when the bucket has no matching processing record.
 pub fn read(
     leg: &Leg<'_>,
     id: Pmcid,
     pmid: Option<Pmid>,
-) -> Result<Option<Document>, RequestError> {
+) -> Result<crate::Mapped<Option<Document>>, RequestError> {
+    let invalid_reply = biomcp_fetch::bad_reply(Source::PmcOa, None);
     let prefix = format!("{id}.");
-    let listing = leg.xml::<raw::Listing>(
-        &LIST,
-        &[("list-type", Arg::Num(2)), ("prefix", Arg::Text(&prefix))],
-    )?;
+    let listing = leg
+        .call(
+            &LIST,
+            Input::Params(&[("list-type", Arg::Num(2)), ("prefix", Arg::Text(&prefix))]),
+            Read::<raw::Listing>::xml(),
+        )?
+        .value;
     let contents = listing.contents.as_deref().unwrap_or(&[]);
     if contents.iter().any(|e| !e.key.starts_with(&prefix)) {
-        return Err(bad(BadReply));
+        return Err(invalid_reply);
     }
     let Some(version) = contents
         .iter()
         .filter_map(|e| location::version(&e.key, id))
         .max()
     else {
-        return Ok(None);
+        return Ok(crate::Mapped {
+            refusals: crate::Refusal::None,
+            value: None,
+            problems: Vec::new(),
+        });
     };
     let directory = format!("{id}.{version}/");
     let path = format!("/{directory}{id}.{version}.json");
-    let record = leg.json::<raw::Record>(&FILE.clone().with_path(path).map_err(bad)?, &[])?;
+    let record = leg
+        .call(
+            &FILE.clone().with_path(path).map_err(|_| invalid_reply)?,
+            Input::Params(&[]),
+            Read::<raw::Record>::json(),
+        )?
+        .value;
     if record.pmcid != id || pmid.is_some_and(|expected| record.pmid != Some(expected.get())) {
-        return Err(bad(BadReply));
+        return Err(invalid_reply);
     }
-    let loc = location::Location::checked(&record.xml_url, &directory).map_err(bad)?;
+    let mut problems = crate::mapped::Problems {
+        source: Source::PmcOa,
+        record: crate::mapped::record(id),
+        list: Vec::new(),
+    };
+    let license_code = problems.required_field("license", record.license_code);
+    let Some(license_code) = license_code else {
+        return Ok(crate::Mapped {
+            refusals: crate::Refusal::Refused,
+            value: None,
+            problems: problems.list,
+        });
+    };
+    permitted(leg, Source::PmcOa, license(&license_code))?;
+    let loc =
+        location::Location::checked(&record.xml_url, &directory).map_err(|_| invalid_reply)?;
     if !loc.path.ends_with(".xml") {
-        return Err(bad(BadReply));
+        return Err(invalid_reply);
     }
-    let params: Vec<_> = loc
-        .md5
-        .as_ref()
-        .map(|v| ("md5", Arg::Text(v)))
-        .into_iter()
-        .collect();
-    let url = biodata::Text::new(&format!(
-        "{}{}{}",
-        SPEC.base,
-        loc.path,
-        loc.md5
-            .as_ref()
-            .map(|v| format!("?md5={v}"))
-            .unwrap_or_default()
-    ))
-    .map_err(bad)?;
-    let body = leg.xml::<jats::Body>(&FILE.clone().with_path(loc.path).map_err(bad)?, &params)?;
+    let (url, body) = body(leg, loc)?;
     if body.pmcid.is_some_and(|found| found != id) {
-        return Err(bad(BadReply));
+        return Err(invalid_reply);
     }
-    let supplements = supplement::select(
-        &body.supplements,
-        record.media_urls.as_deref().unwrap_or(&[]),
-        &directory,
-    )?;
-    Ok(Some(Document {
-        url,
-        supplements,
-        license: license(&record.license_code),
-        version: Some(version),
-        manuscript: Some(record.is_manuscript),
-        body,
-    }))
+    let urls = problems.fields("media_urls", record.media_urls);
+    let supplements = supplement::select(&body.supplements, &urls, &directory, &mut problems)?;
+    problems.list.extend(body.problems.clone());
+    let manuscript = problems.field("manuscript", record.is_manuscript);
+    Ok(crate::Mapped {
+        refusals: body.refusals,
+        value: Some(Document {
+            url,
+            supplements,
+            license: license(&license_code),
+            version: Some(version),
+            manuscript,
+            problems: problems.list.clone(),
+            body,
+        }),
+        problems: Vec::new(),
+    })
 }
 pub(crate) fn license(value: &str) -> License {
     match value.to_ascii_uppercase().replace('-', " ").as_str() {
@@ -134,3 +144,43 @@ pub(crate) fn license(value: &str) -> License {
         _ => License::Other,
     }
 }
+
+fn body(
+    leg: &Leg<'_>,
+    loc: location::Location,
+) -> Result<(biodata::Text, jats::Body), RequestError> {
+    let invalid_reply = biomcp_fetch::bad_reply(Source::PmcOa, None);
+    let params: Vec<_> = loc
+        .md5
+        .as_ref()
+        .map(|v| ("md5", Arg::Text(v)))
+        .into_iter()
+        .collect();
+    let url = biodata::Text::new(&format!(
+        "{}{}{}",
+        SPEC.base,
+        loc.path,
+        loc.md5
+            .as_ref()
+            .map(|v| format!("?md5={v}"))
+            .unwrap_or_default()
+    ))
+    .map_err(|_| invalid_reply)?;
+    let body = leg
+        .call(
+            &FILE
+                .clone()
+                .with_path(loc.path)
+                .map_err(|_| invalid_reply)?,
+            Input::Params(&params),
+            Read::<jats::Body>::xml(),
+        )?
+        .value;
+    Ok((url, body))
+}
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;
+
+mod rights;
+pub use rights::{commercial, permitted};

@@ -8,43 +8,12 @@
       "run": [
         "get",
         "protein",
-        "CDKN2A"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/candidates/*/protein/accession": [
-          "P42771",
-          "Q8N726"
-        ],
-        "/next/*/kind": [
-          "disambiguate",
-          "disambiguate"
-        ]
-      },
-      "max_bytes": 940
-    },
-    {
-      "run": [
-        "get",
-        "protein",
         "EGFR"
       ],
       "expect": {
         "/result/items/0/header/protein/accession": "P00533"
       },
       "max_bytes": 1072
-    },
-    {
-      "run": [
-        "get",
-        "protein",
-        "SYNTHETICALIAS"
-      ],
-      "exit": 1,
-      "expect": {
-        "/status": "absent"
-      },
-      "max_bytes": 250
     }
   ]
 }

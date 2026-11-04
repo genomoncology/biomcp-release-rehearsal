@@ -1,0 +1,55 @@
+{
+  "method": "GET",
+  "source": "cbioportal",
+  "url": "https://www.cbioportal.org/api/molecular-profiles/msk_impact_2017_mutations/mutations?sampleListId=msk_impact_2017_all&entrezGeneId=673&projection=SUMMARY&pageSize=3&pageNumber=0",
+  "exchanges": [
+    {
+      "fetched": 1792870639,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 157,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": [
+          {
+            "molecularProfileId": "msk_impact_2017_mutations",
+            "studyId": "msk_impact_2017",
+            "sampleId": "synthetic-sample-1",
+            "entrezGeneId": 673,
+            "chr": "7",
+            "startPosition": 140494253,
+            "endPosition": 140494253,
+            "referenceAllele": "G",
+            "variantAllele": "A",
+            "ncbiBuild": "GRCh37"
+          },
+          {
+            "molecularProfileId": "msk_impact_2017_mutations",
+            "studyId": "msk_impact_2017",
+            "sampleId": "synthetic-sample-1",
+            "entrezGeneId": 673,
+            "chr": "7",
+            "startPosition": 140494253,
+            "endPosition": 140494253,
+            "referenceAllele": "G",
+            "variantAllele": "A",
+            "ncbiBuild": "GRCh37"
+          },
+          {
+            "molecularProfileId": "msk_impact_2017_mutations",
+            "studyId": "msk_impact_2017",
+            "sampleId": "synthetic-other-allele",
+            "entrezGeneId": 673,
+            "chr": "7",
+            "startPosition": 140494253,
+            "endPosition": 140494253,
+            "referenceAllele": "G",
+            "variantAllele": "T",
+            "ncbiBuild": "GRCh37"
+          }
+        ]
+      }
+    }
+  ]
+}

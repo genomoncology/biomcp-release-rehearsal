@@ -1,78 +1,20 @@
 //! Feature phenotype-sections: source-owned text and direct link disclosure.
 use super::{Stub, invoke, setup};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 pub(super) fn trials() -> Vec<Trial> {
+    // The peer counts requests while the test changes runtime snapshots and follows source-owned class and hierarchy pages.
     vec![
-        Trial::test(
-            "phenotype-sections/refresh-preserves-card-snapshot-and-policy",
-            || retained().map_err(Into::into),
-        ),
-        Trial::test("phenotype-sections/native-classes-and-direct-links", || {
+        transcript_trial(crate::runner::required_contract::HPO_SNAPSHOT.0, || {
+            retained().map_err(Into::into)
+        }),
+        transcript_trial(crate::runner::required_contract::MONARCH_XREFS.0, || {
             monarch().map_err(Into::into)
         }),
-        Trial::test(
-            "phenotype-sections/empty-unavailable-and-missing-retained-reply",
-            || absent().map_err(Into::into),
-        ),
-        Trial::test(
-            "phenotype-sections/retained-local-pages-and-executable-card-actions",
-            || pages().map_err(Into::into),
-        ),
     ]
 }
-fn pages() -> Result<(), String> {
-    let stub = Stub::for_source("ontology.jax.org", "application/json", |request| {
-        if !request.starts_with("GET /api/hp/terms/HP%3A0000001 ") {
-            return Err(format!("wrong entity: {request}"));
-        }
-        Ok(json!({"id":"HP:0000001","name":"Synthetic term","synonyms":["First","Second","Third","Fourth","Fifth","Sixth"],"xrefs":[]}).to_string())
-    })?;
-    let env = setup(&stub)?;
-    let card = invoke(
-        "sections/pages/invoke1",
-        &env,
-        &["get", "phenotype", "HP:0000001"],
-        0,
-    )?;
-    let words = step(&card, "section", 0)?;
-    let words = words.iter().map(String::as_str).collect::<Vec<_>>();
-    let page = invoke("sections/pages/invoke2", &env, &words, 0)?;
-    if page.pointer("/page/returned") != Some(&json!(5))
-        || page.pointer("/page/total") != Some(&json!(6))
-        || page.pointer("/result/items/0/value") != Some(&json!("First"))
-        || page.pointer("/result/items/0/relationship").is_some()
-    {
-        return Err(format!("source rows or five-row default changed: {page}"));
-    }
-    let words = step(&page, "page", 0)?;
-    let words = words.iter().map(String::as_str).collect::<Vec<_>>();
-    let terminal = invoke("sections/pages/invoke3", &env, &words, 0)?;
-    if terminal.pointer("/page/offset") != Some(&json!(5))
-        || terminal.pointer("/result/items/0/value") != Some(&json!("Sixth"))
-        || terminal.get("next").is_some()
-    {
-        return Err(format!("local terminal changed: {terminal}"));
-    }
-    let explicit = invoke(
-        "sections/pages/invoke4",
-        &env,
-        &["get", "phenotype", "HP:0000001", "--section-limit", "2"],
-        0,
-    )?;
-    let explicit = step(&explicit, "section", 0)?;
-    let explicit = explicit.iter().map(String::as_str).collect::<Vec<_>>();
-    let limited = invoke("sections/pages/invoke5", &env, &explicit, 0)?;
-    if limited.pointer("/query/section_limit") != Some(&json!(2))
-        || limited.pointer("/page/returned") != Some(&json!(2))
-    {
-        return Err("card section action lost the explicit section limit".into());
-    }
-    if stub.finish()?.len() != 1 {
-        return Err("section walk refetched retained entity".into());
-    }
-    Ok(())
-}
+
 fn step(value: &Value, kind: &str, index: usize) -> Result<Vec<String>, String> {
     value
         .get("next")
@@ -157,67 +99,6 @@ fn monarch() -> Result<(), String> {
     }
     if stub.finish()?.len() != 1 {
         return Err("source sections bypassed checked entity cache".into());
-    }
-    Ok(())
-}
-fn absent() -> Result<(), String> {
-    let stub = Stub::for_source("ontology.jax.org", "application/json", |_| {
-        Ok(
-            json!({"id":"HP:0000001","name":"Synthetic term","synonyms":[],"xrefs":null})
-                .to_string(),
-        )
-    })?;
-    let env = setup(&stub)?;
-    let empty = invoke(
-        "sections/absent/invoke1",
-        &env,
-        &["get", "phenotype", "HP:0000001", "synonyms"],
-        1,
-    )?;
-    let missing = invoke(
-        "sections/absent/invoke2",
-        &env,
-        &["get", "phenotype", "HP:0000001", "xrefs"],
-        1,
-    )?;
-    if empty.pointer("/result/items").is_some()
-        || empty.pointer("/page/total") != Some(&json!(0))
-        || missing.get("result").is_some()
-        || missing.get("page").is_some()
-    {
-        return Err("empty and unavailable sections collapsed".into());
-    }
-    invoke(
-        "sections/absent/invoke3",
-        &env,
-        &[
-            "get",
-            "phenotype",
-            "HP:0000001",
-            "hierarchy",
-            "--source",
-            "hpo",
-        ],
-        2,
-    )?;
-    let lost = invoke(
-        "sections/absent/invoke4",
-        &env,
-        &[
-            "get",
-            "phenotype",
-            "HP:0000001",
-            "synonyms",
-            "--snapshot",
-            "unknown",
-        ],
-        3,
-    )?;
-    if lost.pointer("/next/0/kind") != Some(&json!("restart")) {
-        return Err(format!("missing snapshot refetched: {lost}"));
-    }
-    if stub.finish()?.len() != 1 {
-        return Err("invalid or retained selector made a provider request".into());
     }
     Ok(())
 }

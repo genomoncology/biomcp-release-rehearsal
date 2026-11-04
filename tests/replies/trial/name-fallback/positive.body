@@ -1,0 +1,3 @@
+{"totalCount":1,"studies":[
+{"protocolSection":{"identificationModule":{"nctId":"NCT05273554","briefTitle":"A Pilot Study to Assess Changes in Tumor Biology Following Second-line Treatment With Pembrolizumab Plus Lenvatinib in Patients With Advanced Pancreatic Ductal Adenocarcinoma"},"statusModule":{"overallStatus":"COMPLETED","lastUpdatePostDateStruct":{"date":"2026-09-29"}},"conditionsModule":{"conditions":["Tumor","Adenocarcinoma"]},"designModule":{"phases":["PHASE1"]},"armsInterventionsModule":{"interventions":[{"name":"Pembrolizumab"},{"name":"lenvatinib"}]},"contactsLocationsModule":{"locations":[{"country":"United States"}]}},"hasResults":false}
+]}

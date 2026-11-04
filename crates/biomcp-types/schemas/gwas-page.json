@@ -1,39 +1,43 @@
 {
   "$defs": {
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "FiniteNumber": {
+    "Reply_FiniteNumber": {
       "description": "A finite decimal that JSON can represent without losing its value to null.",
       "format": "double",
       "type": "number"
     },
-    "GeneSymbol": {
+    "Reply_GeneSymbol": {
       "description": "Source spelling of a gene symbol, with ASCII case-insensitive identity.",
       "pattern": "^[A-Za-z][A-Za-z0-9._/@-]{0,254}$",
       "type": "string"
     },
-    "GwasAssociation": {
-      "additionalProperties": false,
+    "Reply_GwasAssociation": {
       "description": "Source association with unchanged trait and effect labels.",
       "properties": {
         "alleles": {
           "description": "Every source effect allele paired with its rsID.",
           "items": {
-            "$ref": "#/$defs/GwasEffectAllele"
+            "$ref": "#/$defs/Reply_GwasEffectAllele"
           },
           "type": "array"
         },
         "author": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -44,7 +48,7 @@
         "beta": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +59,7 @@
         "ci_lower": {
           "anyOf": [
             {
-              "$ref": "#/$defs/FiniteNumber"
+              "$ref": "#/$defs/Reply_FiniteNumber"
             },
             {
               "type": "null"
@@ -66,7 +70,7 @@
         "ci_upper": {
           "anyOf": [
             {
-              "$ref": "#/$defs/FiniteNumber"
+              "$ref": "#/$defs/Reply_FiniteNumber"
             },
             {
               "type": "null"
@@ -77,7 +81,7 @@
         "exact_p_value": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ScientificPValue"
+              "$ref": "#/$defs/Reply_ScientificPValue"
             },
             {
               "type": "null"
@@ -86,15 +90,13 @@
           "description": "Authoritative exact source probability, including double underflow."
         },
         "id": {
-          "description": "Native association identity.",
-          "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/Reply_GwasAssociationId",
+          "description": "Native association identity."
         },
         "interval": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -105,21 +107,21 @@
         "locations": {
           "description": "Native mapping location strings; no assumed assembly or coordinate conversion.",
           "items": {
-            "$ref": "#/$defs/Text"
+            "$ref": "#/$defs/Reply_Text"
           },
           "type": "array"
         },
         "mapped_genes": {
           "description": "Original native mapped gene context; reported genes remain in loci.",
           "items": {
-            "$ref": "#/$defs/Text"
+            "$ref": "#/$defs/Reply_Text"
           },
           "type": "array"
         },
         "odds_ratio": {
           "anyOf": [
             {
-              "$ref": "#/$defs/FiniteNumber"
+              "$ref": "#/$defs/Reply_FiniteNumber"
             },
             {
               "type": "null"
@@ -130,18 +132,25 @@
         "ontology_traits": {
           "description": "Source mapped trait identifiers and whole labels, without clinical inference.",
           "items": {
-            "$ref": "#/$defs/GwasTrait"
+            "$ref": "#/$defs/Reply_GwasTrait"
           },
           "type": "array"
         },
         "p_value": {
-          "$ref": "#/$defs/FiniteNumber",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_FiniteNumber"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Reported p value."
         },
         "publication": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -152,7 +161,7 @@
         "risk_frequency": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -161,30 +170,35 @@
           "description": "Source allele frequency text, without interpreting NR."
         },
         "study": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Study accession."
         },
         "traits": {
           "description": "Source reported traits.",
           "items": {
-            "$ref": "#/$defs/Text"
+            "$ref": "#/$defs/Reply_Text"
           },
           "type": "array"
         }
       },
       "required": [
-        "id",
-        "study",
-        "p_value"
+        "id"
       ],
       "type": "object"
     },
-    "GwasAssociationId": {
+    "Reply_GwasAssociationId": {
       "description": "A positive Catalog association ID qualified by resource kind.",
-      "pattern": "^association:[1-9][0-9]*$",
+      "pattern": "^association:(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$",
       "type": "string"
     },
-    "GwasAssociationSection": {
+    "Reply_GwasAssociationSection": {
       "description": "Association-only section.",
       "enum": [
         "loci"
@@ -194,34 +208,38 @@
         "Native locus and reported gene context."
       ]
     },
-    "GwasEffectAllele": {
-      "additionalProperties": false,
+    "Reply_GwasEffectAllele": {
       "description": "Catalog effect allele paired with its exact rsID.",
       "properties": {
         "allele": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Source allele text."
         },
         "rs_id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source rsID."
         }
       },
       "required": [
-        "rs_id",
-        "allele"
+        "rs_id"
       ],
       "type": "object"
     },
-    "GwasGet": {
+    "Reply_GwasGet": {
       "description": "Explicit resource sum; impossible section and identity pairings fail during decoding.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Read an association.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/GwasAssociationId",
+              "$ref": "#/$defs/Reply_GwasAssociationId",
               "description": "Qualified positive association identity."
             },
             "kind": {
@@ -231,7 +249,7 @@
             "section": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/GwasAssociationSection"
+                  "$ref": "#/$defs/Reply_GwasAssociationSection"
                 },
                 {
                   "type": "null"
@@ -255,7 +273,7 @@
               "type": "integer"
             },
             "snapshot": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Retained ancestry reply for local pages without provider access."
             }
           },
@@ -266,11 +284,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Read a study.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/GwasStudyId",
+              "$ref": "#/$defs/Reply_GwasStudyId",
               "description": "Exact Catalog accession."
             },
             "kind": {
@@ -280,7 +297,7 @@
             "section": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/GwasStudySection"
+                  "$ref": "#/$defs/Reply_GwasStudySection"
                 },
                 {
                   "type": "null"
@@ -304,7 +321,7 @@
               "type": "integer"
             },
             "snapshot": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Retained ancestry reply for local pages without provider access."
             }
           },
@@ -316,7 +333,7 @@
         }
       ]
     },
-    "GwasOrder": {
+    "Reply_GwasOrder": {
       "description": "Native source order, echoed without a configurable sort command.",
       "enum": [
         "p_value,asc"
@@ -326,27 +343,25 @@
         "Ascending source p value."
       ]
     },
-    "GwasPage": {
-      "additionalProperties": false,
+    "Reply_GwasPage": {
       "description": "One native association page, also used for a study associations section.",
       "properties": {
         "continuation": {
-          "$ref": "#/$defs/GwasPageQuery",
+          "$ref": "#/$defs/Reply_GwasPageQuery",
           "description": "Same-selector search continuation."
         },
         "items": {
           "description": "Shared complete association records.",
           "items": {
-            "$ref": "#/$defs/GwasAssociation"
+            "$ref": "#/$defs/Reply_GwasAssociation"
           },
           "type": "array"
         },
         "page": {
-          "$ref": "#/$defs/PageInfo",
+          "$ref": "#/$defs/Reply_PageInfo",
           "description": "Native page scope and total."
         },
         "qualifying_total": {
-          "default": null,
           "description": "Complete qualifying count, unknown until the threshold walk reaches its end.",
           "format": "uint64",
           "minimum": 0,
@@ -361,7 +376,7 @@
       ],
       "type": "object"
     },
-    "GwasPageQuery": {
+    "Reply_GwasPageQuery": {
       "description": "Search and study-association pages echo their original checked request.",
       "oneOf": [
         {
@@ -372,7 +387,7 @@
               "type": "string"
             },
             "query": {
-              "$ref": "#/$defs/GwasSearch"
+              "$ref": "#/$defs/Reply_GwasSearch"
             }
           },
           "required": [
@@ -389,7 +404,7 @@
               "type": "string"
             },
             "query": {
-              "$ref": "#/$defs/GwasGet"
+              "$ref": "#/$defs/Reply_GwasGet"
             }
           },
           "required": [
@@ -400,8 +415,7 @@
         }
       ]
     },
-    "GwasSearch": {
-      "additionalProperties": false,
+    "Reply_GwasSearch": {
       "description": "Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic.",
       "properties": {
         "extended_geneset": {
@@ -410,7 +424,7 @@
           "type": "boolean"
         },
         "gene": {
-          "$ref": "#/$defs/GeneSymbol",
+          "$ref": "#/$defs/Reply_GeneSymbol",
           "description": "Exact native mapped gene; legacy positional query aliases this field."
         },
         "include_child_traits": {
@@ -434,7 +448,7 @@
           "type": "integer"
         },
         "order": {
-          "$ref": "#/$defs/GwasOrder",
+          "$ref": "#/$defs/Reply_GwasOrder",
           "default": "p_value,asc",
           "description": "Source order; threshold requests use this same native order."
         },
@@ -443,38 +457,42 @@
           "type": "string"
         },
         "pool": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Retained threshold walk identity; requires a threshold."
         },
         "pubmed": {
-          "$ref": "#/$defs/Pmid",
+          "$ref": "#/$defs/Reply_Pmid",
           "description": "Exact source publication identity."
         },
+        "studies": {
+          "description": "Return study records for the selected publication instead of associations.",
+          "type": "boolean"
+        },
         "study": {
-          "$ref": "#/$defs/GwasStudyId",
+          "$ref": "#/$defs/Reply_GwasStudyId",
           "description": "Exact source study accession."
         },
         "trait": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Literal native efo_trait label; never searches reported_trait prose."
         },
         "trait_id": {
-          "$ref": "#/$defs/GwasTraitId",
+          "$ref": "#/$defs/Reply_GwasTraitId",
           "description": "Exact native ontology identity."
         },
         "variant": {
-          "$ref": "#/$defs/RsId",
+          "$ref": "#/$defs/Reply_RsId",
           "description": "Exact source rsID."
         }
       },
       "type": "object"
     },
-    "GwasStudyId": {
+    "Reply_GwasStudyId": {
       "description": "Exact Catalog study accession; case and leading zeros survive.",
-      "pattern": "^GCST[0-9]{6,}$",
+      "pattern": "^GCST(?=[0-9]{6,}$)[0-9]*[1-9][0-9]*$",
       "type": "string"
     },
-    "GwasStudySection": {
+    "Reply_GwasStudySection": {
       "description": "Study-only sections.",
       "enum": [
         "associations",
@@ -486,32 +504,49 @@
         "Independent native ancestry rows."
       ]
     },
-    "GwasTrait": {
-      "additionalProperties": false,
+    "Reply_GwasTrait": {
       "description": "Source ontology mapping as supplied by GWAS Catalog.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact source ontology identifier spelling."
         },
         "label": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Whole source trait label."
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
+          "description": "Native authority; unknown means the source did not state one."
         }
       },
       "required": [
-        "id",
-        "label"
+        "namespace",
+        "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "GwasTraitId": {
+    "Reply_GwasTraitId": {
       "description": "Native ontology identifier; namespaces are preserved without an EFO restriction.",
       "pattern": "^[A-Za-z0-9]+[_:][A-Za-z0-9_-]+$",
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_IdentifierNamespace": {
+      "description": "A source-stated authority or an explicit unknown authority, represented by the string unknown.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -523,7 +558,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -558,13 +593,12 @@
       ],
       "type": "object"
     },
-    "Pmid": {
+    "Reply_Pmid": {
       "description": "Positive PubMed identifier.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -580,7 +614,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -598,12 +632,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -613,7 +646,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -622,7 +655,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -633,43 +666,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -691,15 +703,35 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "RsId": {
+    "Reply_RsId": {
       "description": " A dbSNP site identifier, never an allele join key.",
-      "pattern": "^rs[1-9][0-9]*$",
+      "pattern": "^rs(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$",
       "type": "string"
     },
-    "ScientificPValue": {
-      "additionalProperties": false,
+    "Reply_ScientificPValue": {
       "description": "Exact normalized scientific p value; no floating-point conversion is used.",
       "properties": {
         "exponent": {
@@ -720,81 +752,8 @@
       ],
       "type": "object"
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -864,21 +823,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -902,11 +937,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -921,15 +955,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -940,15 +973,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -959,11 +991,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -978,11 +1009,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -1004,17 +1034,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -1026,8 +1055,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -1039,26 +1067,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -1066,18 +1085,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1095,7 +1123,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -1108,7 +1136,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -1119,7 +1147,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -1129,8 +1157,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -1141,7 +1168,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -1150,7 +1177,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -1166,31 +1193,33 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.gwas-page/3",
+  "$id": "biomcp.gwas-page/8",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1201,14 +1230,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1219,18 +1248,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/GwasPageQuery",
+      "$ref": "#/$defs/Reply_GwasPageQuery",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/GwasPage"
+          "$ref": "#/$defs/Reply_GwasPage"
         },
         {
           "type": "null"
@@ -1239,18 +1268,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.gwas-page/3",
+      "const": "biomcp.gwas-page/8",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

@@ -1,0 +1,33 @@
+{
+  "live_check": "local-only migration guidance or disabled source behavior before provider access",
+  "feature": "adverse-event-retirements",
+  "story": "Each retired command returns fixed migration guidance before source access.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "MMR",
+        "--source",
+        "cvx"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "03",
+        "--source",
+        "cvx"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    }
+  ]
+}

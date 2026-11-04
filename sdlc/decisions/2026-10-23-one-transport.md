@@ -1,12 +1,11 @@
 # One transport
 
-Decided 2026-10-23 by Ian, as one of the ratchets enforced by lint. Details applied by the PM.
+Decided 2026-10-23 by Ian, as one of the ratchets enforced by lint. Details applied by the PM. Updated 2026-10-31 to describe the approved transport and streaming implementations.
 
-- `biomcp-fetch` is the only crate that sends a request. Only it depends on `reqwest`.
-- It owns the client, deadlines, rate limits, retry and `Retry-After`, body limits, the raw reply cache, record and replay, and the download of data bundles.
-- An adapter declares endpoints and maps replies. It never constructs a client, retries, sleeps, reads the environment or builds an error string.
-- Record mode writes each reply with its status, headers and delay. Replay mode serves only recordings and fails on a miss. Users gain a real offline mode, and no per-source base URL setting exists.
+`biomcp-fetch` owns network clients, deadlines, quotas, retry, body limits, checked reply caching, recording, replay and bundle transfer. Ordinary HTTP uses blocking `ureq` with rustls and platform trust. The bounded streaming RPC worker uses its async dependencies inside the same crate. Adapters own provider declarations and codecs. They construct no network clients and perform no sleeps or environment reads.
 
-Amended 2026-10-24 by the PM, approving the architecture design: `biomcp-fetch` uses blocking `ureq` on standard threads in place of `reqwest`, and only it depends on `ureq`. No crate depends on an async runtime. Timeouts bound DNS, connect, receive and body reads. TLS uses rustls with the ring provider and the platform's trust roots. A proxy comes only from the config file. Amended 2026-10-28: 0056 later added `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY`, which shipped behavior reads only when the config file sets no proxy. `Leg::batch` runs a source's batched calls on scoped threads under that source's quota.
+`Fetch::leg` binds declared source policy and a deadline. `Leg::call` accepts an endpoint, `Input` and `Read`, and returns `Received<T>` with checked data and reply metadata. Response readers carry request-bound checks and cache-admission policy. Probe, batch, bundle and streaming operations keep specialized entry points within the transport.
 
-Amended 2026-10-24 by Ian: rate limiters are keyed by a source key that each adapter declares from the provider's documented quota, never by URL, host or endpoint. A source that needs the user's own key is never called without it, as `2026-10-24-keyed-sources-run-only-with-the-user-s-key.md` says.
+Quota keys come from source declarations rather than URLs, hosts or endpoints. A required-key source sends no request without its credential. The binary configuration boundary supplies proxy settings and additive certificate roots; it reads supported proxy environment settings only when no explicit proxy is set. Replay serves recordings and reports a missing exchange. Offline mode performs no upstream request.
+
+`crates/biomcp/tests/ratchets/dependencies.rs` enforces client ownership. Per-crate Clippy rules enforce adapter I/O restrictions. `crates/biomcp-fetch/tests/transport.rs`, `post.rs`, `quotas.rs`, `offline.rs` and `record.rs` exercise ordinary transport behavior. `crates/biomcp/tests/runner/cache_admission.rs` checks request-bound reuse. `crates/biomcp-fetch/tests/grpc_worker/shutdown.rs` and `grpc_persistence.rs` check streaming ownership and persistence. The architecture names each implemented rule's checks.

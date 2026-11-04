@@ -28,7 +28,6 @@ pub(super) struct Hit {
     pub species: Vec<String>,
 }
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 pub(super) struct Empty {
     code: u16,
     reason: String,

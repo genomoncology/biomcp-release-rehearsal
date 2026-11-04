@@ -1,9 +1,15 @@
 {
   "$defs": {
-    "AdverseEventSearch": {
-      "additionalProperties": false,
-      "description": "Search five report headers by default. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.",
+    "Reply_AdverseEventSearch": {
+      "description": "Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.",
       "properties": {
+        "drug": {
+          "description": "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "type": "array"
+        },
         "limit": {
           "default": 5,
           "description": "Native report headers or VAERS rows per page; default five.",
@@ -12,6 +18,17 @@
           "minimum": 1,
           "type": "integer"
         },
+        "manufacturer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
+        },
         "offset": {
           "default": 0,
           "description": "Native row offset. VAERS continuation requires its retained snapshot.",
@@ -19,10 +36,28 @@
           "minimum": 0,
           "type": "integer"
         },
+        "problem": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "MAUDE phrase on native product_problems."
+        },
+        "product_code": {
+          "description": "MAUDE exact native device.device_report_product_code; repeated codes join with OR.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "type": "array"
+        },
         "reaction": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -33,31 +68,31 @@
         "received_from": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
             }
           ],
-          "description": "Inclusive first FDA receipt lower bound, YYYY-MM-DD.",
+          "description": "Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
           "format": "date"
         },
         "received_to": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
             }
           ],
-          "description": "Inclusive first FDA receipt upper bound, YYYY-MM-DD.",
+          "description": "Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
           "format": "date"
         },
         "section": {
           "anyOf": [
             {
-              "$ref": "#/$defs/VaersSection"
+              "$ref": "#/$defs/Reply_VaersSection"
             },
             {
               "type": "null"
@@ -69,18 +104,18 @@
         "serious": {
           "anyOf": [
             {
-              "$ref": "#/$defs/AdverseEventSerious"
+              "$ref": "#/$defs/Reply_AdverseEventSerious"
             },
             {
               "type": "null"
             }
           ],
-          "description": "FAERS report flag: death or hospitalization; never a reaction outcome."
+          "description": "FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
         },
         "snapshot": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -89,34 +124,41 @@
           "description": "Retained VAERS table for provider-free continuation."
         },
         "source": {
-          "$ref": "#/$defs/AdverseEventSource",
+          "$ref": "#/$defs/Reply_AdverseEventSource",
           "default": "faers",
           "description": "FAERS by default; VAERS accepts only exact supported vaccine names."
         },
         "text": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.",
           "x-positional": 0
         }
       },
-      "required": [
-        "text"
-      ],
       "type": "object"
     },
-    "AdverseEventSerious": {
+    "Reply_AdverseEventSerious": {
       "description": "Report-level seriousness filter, independent of reaction outcome.",
       "enum": [
+        "any",
         "death",
-        "hospitalization"
+        "hospitalization",
+        "lifethreatening",
+        "disabling",
+        "congenital-anomaly",
+        "other"
       ],
       "type": "string",
       "x-enum-descriptions": [
+        " Native report seriousness flag.",
         " Native report death flag.",
-        " Native report hospitalization flag."
+        " Native report hospitalization flag.",
+        " Native report life-threatening flag.",
+        " Native report disabling flag.",
+        " Native report congenital anomaly flag.",
+        " Native report other serious flag."
       ]
     },
-    "AdverseEventSource": {
+    "Reply_AdverseEventSource": {
       "description": "An explicit source; never probe the other family.",
       "enum": [
         "faers",
@@ -130,17 +172,21 @@
         " Explicit CDC WONDER vaccine aggregate tables."
       ]
     },
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -152,7 +198,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -187,13 +233,12 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -209,7 +254,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -227,12 +272,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -242,7 +286,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -251,7 +295,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -262,43 +306,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -320,83 +343,31 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -466,21 +437,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -504,11 +551,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -523,15 +569,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -542,15 +587,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -561,11 +605,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -580,11 +623,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -606,17 +648,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -628,8 +669,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -641,26 +681,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -668,18 +699,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -697,7 +737,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -710,7 +750,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -721,7 +761,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -731,8 +771,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -743,7 +782,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -752,7 +791,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -768,23 +807,25 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     },
-    "VaersNotice": {
-      "additionalProperties": false,
+    "Reply_VaersNotice": {
       "description": "Applied source text, retaining its original content and source role.",
       "properties": {
         "kind": {
@@ -802,8 +843,7 @@
       ],
       "type": "object"
     },
-    "VaersRow": {
-      "additionalProperties": false,
+    "Reply_VaersRow": {
       "description": "One whole native row, never reconstructed from another grouping.",
       "properties": {
         "label": {
@@ -835,8 +875,7 @@
       ],
       "type": "object"
     },
-    "VaersScope": {
-      "additionalProperties": false,
+    "Reply_VaersScope": {
       "description": "Fixed native geographic selection, without a caller-selectable geography filter.",
       "properties": {
         "value": {
@@ -860,7 +899,7 @@
       ],
       "type": "object"
     },
-    "VaersSection": {
+    "Reply_VaersSection": {
       "description": "One independent CDC WONDER grouping.",
       "enum": [
         "symptoms",
@@ -874,8 +913,7 @@
         " Native age groups."
       ]
     },
-    "VaersSummary": {
-      "additionalProperties": false,
+    "Reply_VaersSummary": {
       "description": "Bounded page of one independent native vaccine summary table.",
       "properties": {
         "dataset": {
@@ -886,7 +924,7 @@
           "type": "object"
         },
         "footer": {
-          "$ref": "#/$defs/VaersRow",
+          "$ref": "#/$defs/Reply_VaersRow",
           "description": "Whole native footer cells, never a sum calculated by this program."
         },
         "grouping": {
@@ -923,7 +961,7 @@
         "notices": {
           "description": "Applied native messages, evaluated caveats and footnotes.",
           "items": {
-            "$ref": "#/$defs/VaersNotice"
+            "$ref": "#/$defs/Reply_VaersNotice"
           },
           "type": "array"
         },
@@ -934,12 +972,12 @@
         "rows": {
           "description": "Native row order with local paging.",
           "items": {
-            "$ref": "#/$defs/VaersRow"
+            "$ref": "#/$defs/Reply_VaersRow"
           },
           "type": "array"
         },
         "scope": {
-          "$ref": "#/$defs/VaersScope",
+          "$ref": "#/$defs/Reply_VaersScope",
           "description": "Native fixed State / Territory selection."
         },
         "vaccine": {
@@ -962,15 +1000,14 @@
       "type": "object"
     }
   },
-  "$id": "biomcp.vaers-summary/1",
+  "$id": "biomcp.vaers-summary/5",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -981,14 +1018,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -999,18 +1036,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/AdverseEventSearch",
+      "$ref": "#/$defs/Reply_AdverseEventSearch",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/VaersSummary"
+          "$ref": "#/$defs/Reply_VaersSummary"
         },
         {
           "type": "null"
@@ -1019,18 +1056,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.vaers-summary/1",
+      "const": "biomcp.vaers-summary/5",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

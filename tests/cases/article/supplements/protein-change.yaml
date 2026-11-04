@@ -1,18 +1,12 @@
 {
+  "verified": "tests/replies/article/supplements/README.md identifies the actual CC BY supplement capture and unchanged source workbook; the nightly run executes the public supplement request.",
+  "live_check": "public",
   "feature": "article-supplements",
   "story": "protein-change",
   "replay": "article/supplements/live",
   "steps": [
     {
       "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--variant",
-        "P245S"
-      ],
-      "mcp": [
         "article",
         "supplement",
         "28944238",
@@ -39,46 +33,6 @@
         }
       },
       "max_bytes": 1798
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--find",
-        "p.Pro245Ser"
-      ],
-      "expect": {
-        "/result/content/data/rows/0/row": 85
-      }
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--find",
-        "P245S"
-      ],
-      "expect": {
-        "/page/total": 0
-      }
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--variant",
-        "P245"
-      ],
-      "exit": 2,
-      "expect": {
-        "/error/code": "usage.arguments"
-      }
     }
   ]
 }

@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/variant/chr7%3Ag.140753336A%3ET?fields=_id%2Ccadd.phred%2Ccadd.rawscore%2Ccadd.sift%2Cdbnsfp.hgvsp%2Cdbnsfp.ensembl.transcriptid%2Cdbnsfp.polyphen2%2Cdbnsfp.revel%2Cdbnsfp.mutationtaster&assembly=hg38",
+  "exchanges": [
+    {
+      "fetched": 1792876427,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "_id": "chr7:g.140753336A>T"
+        }
+      }
+    }
+  ]
+}

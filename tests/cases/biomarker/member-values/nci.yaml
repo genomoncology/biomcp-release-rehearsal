@@ -1,0 +1,37 @@
+{
+  "feature": "biomarker-nci",
+  "live_check": "synthetic",
+  "story": "One malformed member in each native biomarker list leaves the independent valid members intact.",
+  "replay": "biomarker/member-values/nci",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "biomarker",
+        "C96022"
+      ],
+      "expect": {
+        "/result/card/header/codes": [
+          "C96022"
+        ],
+        "/result/card/parent_ids": [
+          "C20103"
+        ],
+        "/result/card/ancestor_ids": [
+          "C20103"
+        ],
+        "/result/card/synonyms": [
+          "Synthetic retained synonym"
+        ],
+        "/result/card/eligibility_criterion": [
+          "Synthetic retained criterion"
+        ]
+      }
+    }
+  ],
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  }
+}

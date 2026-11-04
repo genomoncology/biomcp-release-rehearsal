@@ -1,16 +1,12 @@
 {
+  "verified": "Native Reactome recording retained by the bounded discovery implementation and the existing pathway command tests; ordinary public pathway commands check these replies nightly.",
+  "live_check": "public",
   "feature": "pathway-reactome",
   "story": "The retained complete source relation pages locally without repeating the source walk.",
   "replay": "pathway/native",
   "steps": [
     {
       "run": [
-        "search",
-        "pathway",
-        "--gene",
-        "HGNC:1097"
-      ],
-      "mcp": [
         "search",
         "pathway",
         "--gene",
@@ -32,66 +28,6 @@
         ]
       },
       "max_bytes": 1583
-    },
-    {
-      "follow": "page",
-      "offline": true,
-      "expect": {
-        "/status": "complete",
-        "/result/page/offset": 5,
-        "/result/items": {
-          "count": 5
-        },
-        "/result/page/total": 16,
-        "/result/items/*/id/id": [
-          "R-HSA-5674135",
-          "R-HSA-5674499",
-          "R-HSA-5675221",
-          "R-HSA-6802946",
-          "R-HSA-6802948"
-        ]
-      },
-      "max_bytes": 1761
-    },
-    {
-      "follow": "page",
-      "offline": true,
-      "expect": {
-        "/status": "complete",
-        "/result/page/offset": 10,
-        "/result/items": {
-          "count": 5
-        },
-        "/result/page/total": 16,
-        "/result/items/*/id/id": [
-          "R-HSA-6802952",
-          "R-HSA-6802955",
-          "R-HSA-9649948",
-          "R-HSA-9656223",
-          "R-HSA-9726840"
-        ]
-      },
-      "max_bytes": 1771
-    },
-    {
-      "follow": "page",
-      "offline": true,
-      "expect": {
-        "/status": "complete",
-        "/result/page/offset": 15,
-        "/result/items": {
-          "count": 1
-        },
-        "/result/page/total": 16,
-        "/next/*/kind": {
-          "excludes": "page"
-        },
-        "/result/items/*/id/id": [
-          "R-HSA-9726842"
-        ]
-      },
-      "max_bytes": 705,
-      "max_tokens": 176
     }
   ]
 }

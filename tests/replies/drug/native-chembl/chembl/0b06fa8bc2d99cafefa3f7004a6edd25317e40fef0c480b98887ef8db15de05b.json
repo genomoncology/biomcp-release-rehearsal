@@ -1,0 +1,462 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL1201585.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecule_chembl_id": "CHEMBL1201585",
+          "pref_name": "TRASTUZUMAB",
+          "molecule_type": "Antibody",
+          "molecule_synonyms": [
+            {
+              "molecule_synonym": "4D5V8",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "4D5V8"
+            },
+            {
+              "molecule_synonym": "ABP 980",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "ABP 980"
+            },
+            {
+              "molecule_synonym": "ABP-980",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "ABP-980"
+            },
+            {
+              "molecule_synonym": "ABP980",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "ABP980"
+            },
+            {
+              "molecule_synonym": "Abp-980 (trastuzumab biosimilar)",
+              "syn_type": "OTHER",
+              "synonyms": "ABP-980 (TRASTUZUMAB BIOSIMILAR)"
+            },
+            {
+              "molecule_synonym": "Bmab-200",
+              "syn_type": "OTHER",
+              "synonyms": "BMAB-200"
+            },
+            {
+              "molecule_synonym": "Canhera",
+              "syn_type": "OTHER",
+              "synonyms": "CANHERA"
+            },
+            {
+              "molecule_synonym": "Dmb-3111",
+              "syn_type": "OTHER",
+              "synonyms": "DMB-3111"
+            },
+            {
+              "molecule_synonym": "DMB-3111 (TRASTUZUMAB BIOSIMILAR)",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "DMB-3111 (TRASTUZUMAB BIOSIMILAR)"
+            },
+            {
+              "molecule_synonym": "EG-12014",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "EG-12014"
+            },
+            {
+              "molecule_synonym": "EG12014",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "EG12014"
+            },
+            {
+              "molecule_synonym": "Eg12014 trastuzumab biosimilar",
+              "syn_type": "OTHER",
+              "synonyms": "EG12014 TRASTUZUMAB BIOSIMILAR"
+            },
+            {
+              "molecule_synonym": "Eg-12014 (trastuzumab biosimilar)",
+              "syn_type": "OTHER",
+              "synonyms": "EG-12014 (TRASTUZUMAB BIOSIMILAR)"
+            },
+            {
+              "molecule_synonym": "Herceptin",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "HERCEPTIN"
+            },
+            {
+              "molecule_synonym": "Hercessi",
+              "syn_type": "OTHER",
+              "synonyms": "HERCESSI"
+            },
+            {
+              "molecule_synonym": "Herwenda",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "HERWENDA"
+            },
+            {
+              "molecule_synonym": "Herzuma",
+              "syn_type": "OTHER",
+              "synonyms": "HERZUMA"
+            },
+            {
+              "molecule_synonym": "Herzuma",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "HERZUMA"
+            },
+            {
+              "molecule_synonym": "Hlx 02",
+              "syn_type": "OTHER",
+              "synonyms": "HLX 02"
+            },
+            {
+              "molecule_synonym": "HLX-02",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "HLX-02"
+            },
+            {
+              "molecule_synonym": "Hlx02",
+              "syn_type": "OTHER",
+              "synonyms": "HLX02"
+            },
+            {
+              "molecule_synonym": "Hlx-02 trastuzumab biosimilar",
+              "syn_type": "OTHER",
+              "synonyms": "HLX-02 TRASTUZUMAB BIOSIMILAR"
+            },
+            {
+              "molecule_synonym": "Kadcyla",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "KADCYLA"
+            },
+            {
+              "molecule_synonym": "Kanjinti",
+              "syn_type": "OTHER",
+              "synonyms": "KANJINTI"
+            },
+            {
+              "molecule_synonym": "Kanjinti",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "KANJINTI"
+            },
+            {
+              "molecule_synonym": "Ogivri",
+              "syn_type": "OTHER",
+              "synonyms": "OGIVRI"
+            },
+            {
+              "molecule_synonym": "Ogivri",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "OGIVRI"
+            },
+            {
+              "molecule_synonym": "Ontruzant",
+              "syn_type": "OTHER",
+              "synonyms": "ONTRUZANT"
+            },
+            {
+              "molecule_synonym": "Ontruzant",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "ONTRUZANT"
+            },
+            {
+              "molecule_synonym": "Pf-05280014",
+              "syn_type": "OTHER",
+              "synonyms": "PF-05280014"
+            },
+            {
+              "molecule_synonym": "R-597",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "R-597"
+            },
+            {
+              "molecule_synonym": "Rhumab her2",
+              "syn_type": "OTHER",
+              "synonyms": "RHUMAB HER2"
+            },
+            {
+              "molecule_synonym": "RHUMABHER2",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "RHUMABHER2"
+            },
+            {
+              "molecule_synonym": "RO-0452317",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "RO-0452317"
+            },
+            {
+              "molecule_synonym": "RO0452317",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "RO0452317"
+            },
+            {
+              "molecule_synonym": "Sb-3 (trastuzumab biosimilar)",
+              "syn_type": "OTHER",
+              "synonyms": "SB-3 (TRASTUZUMAB BIOSIMILAR)"
+            },
+            {
+              "molecule_synonym": "SYD-977",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "SYD-977"
+            },
+            {
+              "molecule_synonym": "SYD977",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "SYD977"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "ATC",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "BAN",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "BNF",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "EMA",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "FDA",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "INN",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "MERCK_INDEX",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab",
+              "syn_type": "USAN",
+              "synonyms": "TRASTUZUMAB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab anns",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB ANNS"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-anns",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-ANNS"
+            },
+            {
+              "molecule_synonym": "Trastuzumab beta",
+              "syn_type": "INN",
+              "synonyms": "TRASTUZUMAB BETA"
+            },
+            {
+              "molecule_synonym": "Trastuzumab biosimilar (abp-980)",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB BIOSIMILAR (ABP-980)"
+            },
+            {
+              "molecule_synonym": "Trastuzumab biosimilar (amgen)",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB BIOSIMILAR (AMGEN)"
+            },
+            {
+              "molecule_synonym": "Trastuzumab biosimilar (ct-p6)",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB BIOSIMILAR (CT-P6)"
+            },
+            {
+              "molecule_synonym": "Trastuzumab biosimilar (pfizer)",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB BIOSIMILAR (PFIZER)"
+            },
+            {
+              "molecule_synonym": "Trastuzumab biosimilar (sb-3)",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB BIOSIMILAR (SB-3)"
+            },
+            {
+              "molecule_synonym": "Trastuzumab component of herceptin hylecta",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "TRASTUZUMAB COMPONENT OF HERCEPTIN HYLECTA"
+            },
+            {
+              "molecule_synonym": "Trastuzumab component of phesgo",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "TRASTUZUMAB COMPONENT OF PHESGO"
+            },
+            {
+              "molecule_synonym": "Trastuzumab dkst",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB DKST"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-dkst",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-DKST"
+            },
+            {
+              "molecule_synonym": "Trastuzumab dttb",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB DTTB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-dttb",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-DTTB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab (herceptin)",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB (HERCEPTIN)"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-oysk",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-OYSK"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-pfizer",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-PFIZER"
+            },
+            {
+              "molecule_synonym": "Trastuzumab pkrb",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB PKRB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-pkrb",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-PKRB"
+            },
+            {
+              "molecule_synonym": "Trastuzumab qyyp",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB QYYP"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-qyyp",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-QYYP"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-strf",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-STRF"
+            },
+            {
+              "molecule_synonym": "Trastuzumab-zzxf",
+              "syn_type": "OTHER",
+              "synonyms": "TRASTUZUMAB-ZZXF"
+            },
+            {
+              "molecule_synonym": "Trazimera",
+              "syn_type": "OTHER",
+              "synonyms": "TRAZIMERA"
+            },
+            {
+              "molecule_synonym": "Trazimera",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "TRAZIMERA"
+            },
+            {
+              "molecule_synonym": "Zercepac",
+              "syn_type": "OTHER",
+              "synonyms": "ZERCEPAC"
+            },
+            {
+              "molecule_synonym": "Zercepac",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "ZERCEPAC"
+            }
+          ],
+          "molecule_hierarchy": {
+            "active_chembl_id": "CHEMBL1201585",
+            "molecule_chembl_id": "CHEMBL1201585",
+            "parent_chembl_id": "CHEMBL1201585"
+          },
+          "cross_references": [
+            {
+              "xref_id": "trastuzumab-dkst",
+              "xref_name": "trastuzumab-dkst",
+              "xref_src": "DailyMed"
+            },
+            {
+              "xref_id": "human/EPAR/ogivri",
+              "xref_name": "ogivri",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/herwenda",
+              "xref_name": "herwenda",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/kanjinti",
+              "xref_name": "kanjinti",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/herceptin",
+              "xref_name": "herceptin",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/zercepac",
+              "xref_name": "zercepac",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/trazimera",
+              "xref_name": "trazimera",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/ontruzant",
+              "xref_name": "ontruzant",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "human/EPAR/herzuma",
+              "xref_name": "herzuma",
+              "xref_src": "EMA"
+            },
+            {
+              "xref_id": "trastuzumab-pkrb",
+              "xref_name": "trastuzumab-pkrb",
+              "xref_src": "DailyMed"
+            },
+            {
+              "xref_id": "trastuzumab-anns",
+              "xref_name": "trastuzumab-anns",
+              "xref_src": "DailyMed"
+            },
+            {
+              "xref_id": "trastuzumab",
+              "xref_name": "trastuzumab",
+              "xref_src": "DailyMed"
+            }
+          ],
+          "first_approval": 1998,
+          "max_phase": "4.0"
+        }
+      }
+    }
+  ]
+}

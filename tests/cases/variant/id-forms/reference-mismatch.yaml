@@ -1,0 +1,98 @@
+{
+  "feature": "variant-identity",
+  "replay": "variant/id-forms",
+  "live_check": "recorded",
+  "story": "The complete VCF reference, including the trimmed anchor, must match the selected source assembly before an answer.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "13-32315508-GT-G"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "rejected",
+        "/problems/*/field": {
+          "includes_all_of": [
+            "input: IncorrectReferenceAllele: expected reference AG"
+          ]
+        },
+        "": {
+          "omits": [
+            "result"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "7-117559590-GTCT-G"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "rejected",
+        "/problems/*/field": {
+          "includes_all_of": [
+            "input: IncorrectReferenceAllele: expected reference ATCT"
+          ]
+        },
+        "": {
+          "omits": [
+            "result"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "7-117559590-ATCT-A",
+        "--build",
+        "GRCh37"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "rejected",
+        "/problems/*/field": {
+          "includes_all_of": [
+            "input: IncorrectReferenceAllele: expected reference GGTG"
+          ]
+        },
+        "": {
+          "omits": [
+            "result"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "1-1-A-TA"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "rejected",
+        "/problems/*/field": {
+          "includes_all_of": [
+            "input: IncorrectReferenceAllele: expected reference N"
+          ]
+        },
+        "": {
+          "omits": [
+            "result"
+          ]
+        }
+      }
+    }
+  ]
+}

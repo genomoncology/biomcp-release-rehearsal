@@ -1,7 +1,5 @@
-//! Decode provider tensor payloads under explicit allocation limits without network access.
+//! Execute bounded streaming RPCs with checked admission and recording.
 pub(super) const FRAME_BYTES: usize = tonic::codec::HEADER_SIZE;
-/// Narrow AlphaGenome request encoding and complete-envelope validation.
-pub mod alphagenome;
 mod bounds;
 mod checked;
 mod persistence;
@@ -17,13 +15,10 @@ mod rpc_call;
 mod worker;
 pub use rpc::GrpcEndpoint;
 pub(crate) use worker::Worker;
-mod preflight;
-mod tensor;
+mod decompress;
+pub use decompress::decompress;
 
 pub use bounds::Limits;
-pub use tensor::{DataType, Tensor, TensorStream};
-
-mod proto;
 
 /// A codec failure never contains provider bytes or metadata.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -42,3 +37,7 @@ impl std::fmt::Display for CodecError {
     }
 }
 impl std::error::Error for CodecError {}
+
+#[cfg(test)]
+#[path = "../tests/grpc_worker/shutdown.rs"]
+mod shutdown_tests;

@@ -1,0 +1,63 @@
+{
+  "feature": "article-get",
+  "live_check": "retained native publisher bodies require an explicit external fixtures root",
+  "story": "Synthetic acceptance input: 67-year-old woman, never-smoker. cT4N2M1 NSCLC, EGFR L858R, TP53 co-mutation, L3 vertebral lesion. ECOG 1. What is the recommended management? The fixture retrieves reviewed public identities only. Prior therapy is unspecified; the primary record retains its untreated-population context. The fixture makes no management or eligibility decision.",
+  "replay": "user-query/article-synthetic-board",
+  "verified": "Native source requests were captured once; unchanged wire bodies were delivered locally to the real CLI recorder. Recording fetch times are local delivery times. Source counts and records describe their dated native captures. Native source facts and clinical record choices supply these expectations. The ordinary default suite does not execute this retained case. Raw archive 19f6440a545a40ede34d0eb9a2a924ee5f51589947cf804e5df22f15f2055675 contains the original captures; corrected CTGov receipts are retained separately. Complete native capture, two corrected requests, local recordings and external source text facts are retained in corrected-recordings-a2ca2bde0/capture.tar.gz SHA256 07a762087f1a823e5abf697737d84c85550b99b410456be4c628e6a58c6c943d. Native facts are retained beside each case; expected text files remain external with the case bundle.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "article",
+        "37937763"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/answer/card/pmid": "37937763",
+        "/result/items/0/answer/card/doi": "10.1056/NEJMoa2306434"
+      },
+      "mcp": [
+        "get",
+        "article",
+        "37937763"
+      ]
+    },
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT04035486"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/card/nct_id": "NCT04035486"
+      },
+      "mcp": [
+        "get",
+        "trial",
+        "NCT04035486"
+      ]
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA208065",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "NDA208065",
+        "/result/header/source": "drugsfda"
+      },
+      "mcp": [
+        "get",
+        "drug",
+        "NDA208065",
+        "--source",
+        "drugsfda"
+      ]
+    }
+  ]
+}

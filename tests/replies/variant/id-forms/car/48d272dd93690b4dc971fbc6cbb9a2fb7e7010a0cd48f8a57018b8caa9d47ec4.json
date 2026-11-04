@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele?hgvs=NC_000013.11%3Ag.32315508_32315509delGTinsG&fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793808996,
+      "status": 400,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "actualAllele": "AG",
+          "description": "Given allele from reference sequence is incorrect. It does not match actual sequence at given position.",
+          "errorType": "IncorrectReferenceAllele",
+          "givenAllele": "GT",
+          "message": "Reference allele does not match for NC_000013.11[32315507-0,32315509+0), given=GT, found=AG.",
+          "referenceSequence": "NC_000013.11",
+          "region": "[32315507-0,32315509+0)"
+        }
+      }
+    }
+  ]
+}

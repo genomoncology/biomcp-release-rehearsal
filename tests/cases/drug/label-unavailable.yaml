@@ -1,0 +1,26 @@
+{
+  "feature": "drug-failures",
+  "live_check": "synthetic response-only failure over an actual recorded request identity",
+  "story": "A failed label source remains distinct from a healthy source with no matching records.",
+  "replay": "drug/label-unavailable",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "CAVHANZA",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/source": "openfda-label",
+        "/sources/0/state": "failed",
+        "/sources/0/reason": "unavailable"
+      }
+    }
+  ]
+}

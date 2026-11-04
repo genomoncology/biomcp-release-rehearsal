@@ -1,4 +1,4 @@
-use biomcp_types::{ArticleGet, ArticleResolution, ArticleSectionWord, QueryBody, Section, Source};
+use biomcp_types::{ArticleGet, ArticleResolution, ArticleSectionWord, ReplyData, Section, Source};
 pub(in crate::article) fn join(
     query: &ArticleGet,
     records: &[super::super::get::Record],
@@ -7,7 +7,10 @@ pub(in crate::article) fn join(
     if !super::selected(query, ArticleSectionWord::Indexing) {
         return;
     }
-    let QueryBody::ArticleCards(cards) = &mut out.body else {
+    let ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    else {
         return;
     };
     for item in &mut cards.items {

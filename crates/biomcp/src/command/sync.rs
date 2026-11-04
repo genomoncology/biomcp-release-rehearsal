@@ -1,45 +1,76 @@
-use super::{Outcome, bundle_source, encode, steps};
+use super::{Encoding, Outcome, bundle_source};
 use biomcp_query::Bundle;
 use biomcp_types::{Envelope, Status};
 use std::io;
-pub(super) fn run(fetch: &biomcp_fetch::Fetch, bundle: Bundle) -> io::Result<Outcome> {
-    match acquire(fetch, bundle) {
-        Some(result) => finish(bundle, result),
-        None => finish(bundle, biomcp_adapters::wikipathways::sync(fetch)),
+pub(super) fn run(
+    fetch: &biomcp_fetch::Fetch,
+    bundle: Bundle,
+    encoding: Encoding,
+) -> io::Result<Outcome> {
+    match biomcp_query::sources::sync(fetch, bundle) {
+        biomcp_query::sources::BundleReply::Standard(result, stale) => {
+            finish(bundle, result, stale, encoding)
+        }
+        biomcp_query::sources::BundleReply::WikiPathways(result) => {
+            finish(bundle, result, false, encoding)
+        }
     }
 }
 fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
     bundle: Bundle,
-    result: Result<T, biomcp_fetch::RequestError>,
+    result: Result<biomcp_query::sources::Mapped<T>, biomcp_fetch::RequestError>,
+    stale: bool,
+    encoding: Encoding,
 ) -> io::Result<Outcome> {
     let source = bundle_source(bundle);
-    let status = if result.is_ok() {
-        Status::Complete
+    let source_state = if stale {
+        biomcp_types::SourceState::Stale
+    } else if result.is_ok() {
+        biomcp_types::SourceState::Ok
     } else {
-        Status::Failed
+        biomcp_types::SourceState::Failed
     };
+    let refusals = result
+        .as_ref()
+        .map_or(biomcp_query::sources::Refusal::None, |mapped| {
+            mapped.refusals
+        });
     let local = result
         .as_ref()
         .err()
         .is_some_and(|error| !matches!(error, biomcp_fetch::RequestError::Source(_)));
-    let reason = result.as_ref().err().and_then(|error| match error {
-        biomcp_fetch::RequestError::Source(error) => Some(error.reason),
+    let source_error = result.as_ref().err().and_then(|error| match error {
+        biomcp_fetch::RequestError::Source(error) => Some(*error),
         _ => None,
     });
+    let reason = source_error.map(|error| error.reason);
     let local_error = super::local::kind(result.as_ref().err().copied());
-    let mut envelope = Envelope::<T>::new(status, biomcp_types::SyncQuery { source }, result.ok());
+    let mut problems = Vec::new();
+    let value = result.ok().map(|mapped| {
+        problems = mapped.problems;
+        mapped.value
+    });
+    let mut envelope =
+        Envelope::<T>::new(Status::Failed, biomcp_types::SyncQuery { source }, value);
+    envelope.problems = problems;
     envelope.local_error = local_error;
-    envelope.sources.push(biomcp_adapters::registry::outcome(
+    let mut source_outcome = biomcp_query::sources::outcome(
         source,
         if reason == Some(biomcp_types::Reason::Disabled) {
             biomcp_types::SourceState::Skipped
-        } else if status == Status::Complete {
-            biomcp_types::SourceState::Ok
         } else {
-            biomcp_types::SourceState::Failed
+            source_state
         },
         reason,
-    ));
+    );
+    if let Some(error) = source_error {
+        source_outcome.notices = biomcp_query::sources::notices(source, reason, error.retry_after);
+        source_outcome.notices.extend(error.tls_notice());
+        rate_limit_stderr(error, encoding)?;
+    }
+    envelope.sources.push(source_outcome);
+    let status = biomcp_query::sync_status(&envelope.sources, refusals);
+    envelope.status = status;
     if matches!(
         source,
         biomcp_types::Source::Cbioportal | biomcp_types::Source::WikiPathways
@@ -52,8 +83,11 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
             code: biomcp_types::ProblemCode::CollectionIncomplete,
         });
     }
-    steps::network_steps(&mut envelope.next, &envelope.sources, None);
-    encode(
+    envelope.next = biomcp_query::sources::network(&envelope.sources)
+        .iter()
+        .map(|step| crate::spell::step(step.0, &step.1))
+        .collect::<Result<Vec<_>, _>>()?;
+    encoding.encode(
         envelope,
         if local {
             crate::exit::Status::Local
@@ -63,56 +97,15 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
     )
 }
 
-fn acquire(
-    fetch: &biomcp_fetch::Fetch,
-    bundle: Bundle,
-) -> Option<Result<biomcp_types::SyncResult, biomcp_fetch::RequestError>> {
-    Some(match bundle {
-        Bundle::WikiPathways => return None,
-        Bundle::CbioportalStudies => biomcp_adapters::cbioportal::sync_studies(fetch),
-        Bundle::FdaCdx => biomcp_adapters::fda_cdx::sync(fetch),
-        Bundle::Gtr => biomcp_adapters::gtr::sync(fetch),
-        Bundle::WhoIvd => biomcp_adapters::who_ivd::sync(fetch),
-        Bundle::WhoPq => biomcp_adapters::who_pq::sync(fetch),
-        Bundle::Ddinter => {
-            biomcp_adapters::ddinter::sync(fetch).map(|info| biomcp_types::SyncResult {
-                snapshot: None,
-                etag: None,
-                last_modified: None,
-                duplicate_identities: None,
-                rows: info.rows,
-                bytes: info.bytes,
-                downloaded_bytes: info.downloaded_bytes,
-            })
+fn rate_limit_stderr(error: biomcp_fetch::SourceError, encoding: Encoding) -> io::Result<()> {
+    if error.reason == biomcp_types::Reason::RateLimited && !matches!(encoding, Encoding::Mcp) {
+        use std::io::Write;
+        let mut stderr = io::stderr().lock();
+        write!(stderr, "{error}")?;
+        if let Some(delay) = error.retry_after {
+            write!(stderr, "; retry after {delay:?}")?;
         }
-        Bundle::Ema => biomcp_adapters::ema::sync(fetch).map(|info| biomcp_types::SyncResult {
-            snapshot: None,
-            etag: None,
-            last_modified: None,
-            duplicate_identities: None,
-            rows: info.rows,
-            bytes: info.bytes,
-            downloaded_bytes: info.downloaded_bytes,
-        }),
-        Bundle::ClinGen => biomcp_adapters::clingen::sync(fetch),
-        Bundle::Gencc => biomcp_adapters::gencc::sync(fetch),
-        Bundle::Hgnc => {
-            biomcp_adapters::hgnc::sync(fetch, biomcp_adapters::hgnc::HgncBundle::Complete)
-                .and_then(|complete| {
-                    let withdrawn = biomcp_adapters::hgnc::sync(
-                        fetch,
-                        biomcp_adapters::hgnc::HgncBundle::Withdrawn,
-                    )?;
-                    Ok(biomcp_types::SyncResult {
-                        snapshot: None,
-                        etag: None,
-                        last_modified: None,
-                        duplicate_identities: None,
-                        rows: complete.rows + withdrawn.rows,
-                        bytes: complete.bytes + withdrawn.bytes,
-                        downloaded_bytes: complete.downloaded_bytes + withdrawn.downloaded_bytes,
-                    })
-                })
-        }
-    })
+        writeln!(stderr)?;
+    }
+    Ok(())
 }

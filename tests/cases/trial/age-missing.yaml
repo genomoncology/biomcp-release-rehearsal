@@ -13,14 +13,6 @@
         "--age",
         "18"
       ],
-      "mcp": [
-        "search",
-        "trial",
-        "--condition",
-        "melanoma",
-        "--age",
-        "18"
-      ],
       "expect": {
         "/status": "complete",
         "/page/total": 3647,
@@ -38,8 +30,8 @@
             "NCT01874119"
           ]
         },
-        "/result/source_updated/value": "2026-10-23T09:00:04",
-        "/result/source_updated/timezone": "source_gave_none"
+        "/result/source_updated/value": "2026-10-23T09:00:04Z",
+        "/result/source_updated/timezone": "in-value"
       },
       "max_bytes": 5723
     }

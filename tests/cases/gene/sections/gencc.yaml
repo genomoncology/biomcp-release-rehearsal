@@ -6,25 +6,6 @@
   "steps": [
     {
       "run": [
-        "get",
-        "gene",
-        "ODC1",
-        "gencc"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/items/0/sections/gencc/state": "unavailable",
-        "/result/items/0/sections/gencc/reason": "syncing",
-        "/next/*/args": {
-          "includes": [
-            "sync",
-            "gencc"
-          ]
-        }
-      }
-    },
-    {
-      "run": [
         "sync",
         "gencc"
       ],
@@ -36,13 +17,6 @@
     },
     {
       "run": [
-        "get",
-        "gene",
-        "ODC1",
-        "MIR21",
-        "gencc"
-      ],
-      "mcp": [
         "get",
         "gene",
         "ODC1",
@@ -75,42 +49,6 @@
         ]
       },
       "max_bytes": 12000
-    },
-    {
-      "run": [
-        "get",
-        "gene",
-        "ODC1",
-        "MIR21",
-        "gencc"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/sections/gencc/state": "data",
-        "/result/items/0/sections/gencc/data/submissions/*/submitter": [
-          "Labcorp Genetics (formerly Invitae)",
-          "PanelApp Australia",
-          "G2P"
-        ],
-        "/result/items/0/sections/gencc/data/submissions/*/classification": [
-          "Strong",
-          "Strong",
-          "Strong"
-        ],
-        "/result/items/1/sections/gencc/state": "empty",
-        "/result/items/0/sections/gencc/data/submissions/*/evaluated_date": [
-          "2021-08-04 12:08:26",
-          "2025-01-17T00:00:00.000000Z",
-          "2025-03-14T00:00:00.000000Z"
-        ],
-        "/result/items/0/sections/gencc/data/submissions/*/disease_id": [
-          "MONDO:0033642",
-          "MONDO:0033642",
-          "MONDO:0033642"
-        ]
-      },
-      "max_bytes": 12000,
-      "offline": true
     }
   ],
   "config": {

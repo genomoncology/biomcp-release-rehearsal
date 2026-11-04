@@ -1,0 +1,22 @@
+{
+  "method": "GET",
+  "source": "complex-portal",
+  "url": "https://www.ebi.ac.uk/intact/complex-ws/search/P00533?number=25&filters=species_f%3A%28%22Homo%20sapiens%22%29",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "size": 0,
+          "totalNumberOfResults": 0,
+          "elements": [],
+          "facets": null
+        }
+      }
+    }
+  ]
+}

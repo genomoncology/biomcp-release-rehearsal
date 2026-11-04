@@ -1,0 +1,45 @@
+{
+  "source": "monarch",
+  "method": "GET",
+  "url": "https://api-v3.monarchinitiative.org/v3/api/association?object=HP%3A0001250&subject_category=biolink%3AGene&subject_taxon=NCBITaxon%3A9606&direct=true&limit=1&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "limit": 1,
+          "offset": 0,
+          "total": 3,
+          "items": [
+            {
+              "id": "synthetic-first",
+              "subject": "HGNC:9910",
+              "subject_label": "RBMX",
+              "subject_taxon": "NCBITaxon:9606",
+              "object": "HP:0001250",
+              "object_label": "Seizure",
+              "predicate": "biolink:has_phenotype",
+              "original_subject": "NCBIGene:27316",
+              "has_evidence": null,
+              "publications": [
+                "PMID:1"
+              ],
+              "negated": false,
+              "frequency_qualifier": "HP:0040282",
+              "subject_closure": [
+                "HGNC:9910"
+              ],
+              "object_closure": [
+                "HP:0001250"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

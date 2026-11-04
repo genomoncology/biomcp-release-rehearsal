@@ -1,5 +1,10 @@
 //! Checked native registry replies and their small discovery projection.
+use crate::{
+    mapped::{Mapped, Problems},
+    raw::Field,
+};
 use biodata::{NctId, PartialDate, Text, TrialPhase, TrialStatus};
+use biomcp_types::Source;
 
 use biomcp_fetch::{BadReply, Reply};
 use biomcp_types::TrialHeader;
@@ -19,7 +24,7 @@ impl Reply for FirstPage {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Version {
-    pub(super) data_timestamp: Text,
+    pub(super) data_timestamp: Option<Field<Box<str>>>,
 }
 impl Reply for Version {
     fn check(&self) -> Result<(), BadReply> {
@@ -30,7 +35,7 @@ impl Reply for Version {
 #[serde(rename_all = "camelCase")]
 pub(super) struct RawPage {
     pub(super) total_count: Option<u64>,
-    pub(super) studies: Option<Vec<Study>>,
+    pub(super) studies: Option<Vec<Field<Study>>>,
     pub(super) next_page_token: Option<Text>,
 }
 impl Reply for RawPage {
@@ -55,6 +60,7 @@ impl Reply for RawPage {
                 .is_some_and(|total| studies.len() as u64 > total)
             || studies
                 .iter()
+                .filter_map(Field::as_ref)
                 .any(|r| !ids.insert(r.protocol_section.identification_module.nct_id))
         {
             return Err(BadReply);
@@ -71,81 +77,150 @@ pub(super) struct Study {
 #[serde(rename_all = "camelCase")]
 pub(super) struct Protocol {
     identification_module: Identification,
-    status_module: Status,
-    design_module: Design,
-    conditions_module: Option<Conditions>,
-    arms_interventions_module: Option<Interventions>,
+    status_module: Option<Field<Status>>,
+    design_module: Option<Field<Design>>,
+    conditions_module: Option<Field<Conditions>>,
+    arms_interventions_module: Option<Field<Interventions>>,
+    contacts_locations_module: Option<Field<CountryLocations>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Identification {
     nct_id: NctId,
-    brief_title: Text,
+    brief_title: Option<Field<Text>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Status {
-    overall_status: TrialStatus,
-    last_update_post_date_struct: Updated,
+    overall_status: Option<Field<TrialStatus>>,
+    last_update_post_date_struct: Option<Field<Updated>>,
 }
 #[derive(Deserialize)]
 struct Updated {
-    date: PartialDate,
+    date: Option<Field<PartialDate>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Design {
-    phases: Option<Box<[TrialPhase]>>,
+    phases: Option<Field<Vec<Field<TrialPhase>>>>,
 }
 #[derive(Deserialize)]
 struct Conditions {
-    conditions: Option<Box<[Text]>>,
+    conditions: Option<Field<Vec<Field<Text>>>>,
 }
 #[derive(Deserialize)]
 struct Interventions {
-    interventions: Option<Vec<Intervention>>,
+    interventions: Option<Field<Vec<Field<Intervention>>>>,
 }
 #[derive(Deserialize)]
 struct Intervention {
-    name: Text,
+    name: Option<Field<Text>>,
+}
+#[derive(Deserialize)]
+struct CountryLocations {
+    locations: Option<Field<Vec<Field<CountryLocation>>>>,
+}
+#[derive(Deserialize)]
+struct CountryLocation {
+    country: Option<Field<Box<str>>>,
 }
 impl Protocol {
+    pub(super) fn has_country(&self, countries: &[Box<str>]) -> bool {
+        self.contacts_locations_module
+            .as_ref()
+            .and_then(Field::as_ref)
+            .and_then(|module| module.locations.as_ref())
+            .and_then(Field::as_ref)
+            .into_iter()
+            .flatten()
+            .filter_map(Field::as_ref)
+            .filter_map(|site| site.country.as_ref().and_then(Field::as_ref))
+            .any(|country| countries.contains(country))
+    }
+
     pub(super) fn contains_condition_words(&self, condition: &str) -> bool {
         let requested = words(condition);
         let present: Vec<String> = self
             .conditions_module
             .as_ref()
-            .and_then(|module| module.conditions.as_deref())
-            .unwrap_or_default()
-            .iter()
+            .and_then(Field::as_ref)
+            .and_then(|v| v.conditions.as_ref())
+            .and_then(Field::as_ref)
+            .into_iter()
+            .flatten()
+            .filter_map(Field::as_ref)
             .flat_map(|value| words(value.as_str()))
             .collect();
         requested.iter().all(|word| present.contains(word))
     }
 
-    pub(super) fn header(self) -> Result<TrialHeader, BadReply> {
-        Ok(TrialHeader {
+    pub(super) fn header(self) -> Result<Mapped<TrialHeader>, BadReply> {
+        let mut refusals = crate::Refusal::None;
+        let mut problems = Problems {
+            source: Source::ClinicalTrialsGov,
+            record: crate::mapped::record(self.identification_module.nct_id),
+            list: Vec::new(),
+        };
+        let status = problems.field("statusModule", self.status_module);
+        let (status, updated) = if let Some(status) = status {
+            let overall = problems.field("overallStatus", status.overall_status);
+            let overall = problems.required("overallStatus", overall);
+            let updated = problems
+                .field(
+                    "lastUpdatePostDateStruct",
+                    status.last_update_post_date_struct,
+                )
+                .and_then(|d| problems.field("lastUpdatePostDateStruct.date", d.date));
+            let updated = problems.required("lastUpdatePostDateStruct.date", updated);
+            (overall, updated)
+        } else {
+            (
+                problems.required("overallStatus", None),
+                problems.required("lastUpdatePostDateStruct.date", None),
+            )
+        };
+        let phases = problems
+            .field("designModule", self.design_module)
+            .map_or_else(Box::default, |d| problems.fields("phases", d.phases));
+        let value = TrialHeader {
             nct_id: self.identification_module.nct_id,
             url: Text::new(&format!(
                 "https://clinicaltrials.gov/study/{}",
                 self.identification_module.nct_id
             ))
             .map_err(|_| BadReply)?,
-            title: self.identification_module.brief_title,
-            status: self.status_module.overall_status,
-            phases: self.design_module.phases.unwrap_or_default(),
+            title: problems.required_field("briefTitle", self.identification_module.brief_title),
+            status,
+            phases,
             conditions: names(
-                self.conditions_module
-                    .map_or_else(Vec::new, |v| v.conditions.unwrap_or_default().into_vec()),
+                problems
+                    .field("conditionsModule", self.conditions_module)
+                    .map_or_else(Vec::new, |v| {
+                        problems.fields("conditions", v.conditions).into_vec()
+                    }),
             ),
-            interventions: names(self.arms_interventions_module.map_or_else(Vec::new, |v| {
-                v.interventions
-                    .unwrap_or_default()
+            interventions: names(
+                problems
+                    .field("armsInterventionsModule", self.arms_interventions_module)
+                    .map_or_else(Vec::new, |v| {
+                        super::refusals::records(
+                            &mut problems,
+                            &mut refusals,
+                            "interventions",
+                            v.interventions,
+                        )
+                        .into_vec()
+                    })
                     .into_iter()
-                    .map(|i| i.name)
-                    .collect()
-            })),
-            updated: self.status_module.last_update_post_date_struct.date,
+                    .filter_map(|v| problems.field("interventions.name", v.name))
+                    .collect(),
+            ),
+            updated,
+        };
+        Ok(Mapped {
+            refusals,
+            value,
+            problems: problems.list,
         })
     }
 }

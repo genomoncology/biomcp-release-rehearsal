@@ -1,0 +1,13 @@
+{
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
+  "feature": "housekeeping",
+  "story": "Which BioMCP version is installed?",
+  "steps": [
+    {
+      "run": [
+        "version"
+      ],
+      "stdout": "biomcp 1.0.0\n"
+    }
+  ]
+}

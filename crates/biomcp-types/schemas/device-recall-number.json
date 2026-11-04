@@ -1,0 +1,8 @@
+{
+  "$id": "biodata.device-recall-number/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Native FDA product recall number, independent of its event number.",
+  "pattern": "^Z-[0-9]{4}-[0-9]{4}$",
+  "title": "DeviceRecallNumber",
+  "type": "string"
+}

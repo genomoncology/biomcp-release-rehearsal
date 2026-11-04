@@ -1,0 +1,144 @@
+{
+  "method": "POST",
+  "source": "civic",
+  "url": "https://civicdb.org/api/graphql",
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "e45c5a249cda964a3614a55ae048c4fb571009a4a19f19056c86bf606421aa53"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "molecularProfiles": {
+              "totalCount": 40,
+              "pageInfo": {
+                "hasNextPage": true,
+                "endCursor": "MQ"
+              },
+              "nodes": [
+                {
+                  "id": 12,
+                  "name": "BRAF V600E",
+                  "rawName": "#VID12",
+                  "link": "/molecular-profiles/12",
+                  "isComplex": false,
+                  "variants": [
+                    {
+                      "id": 12,
+                      "name": "V600E",
+                      "link": "/variants/12",
+                      "feature": {
+                        "id": 5,
+                        "name": "BRAF"
+                      },
+                      "alleleRegistryId": "CA123643",
+                      "hgvsDescriptions": [
+                        "NM_004333.4:c.1799T>A",
+                        "NP_004324.2:p.Val600Glu",
+                        "NC_000007.13:g.140453136A>T",
+                        "ENST00000288602.6:c.1799T>A",
+                        "NC_000007.14:g.140753336A>T",
+                        "ENSP00000493543.1:p.Val600Glu",
+                        "ENSP00000496776.1:p.Val640Glu"
+                      ]
+                    }
+                  ],
+                  "evidenceItems": {
+                    "totalCount": 218,
+                    "pageInfo": {
+                      "hasNextPage": true,
+                      "endCursor": "Mg"
+                    },
+                    "nodes": [
+                      {
+                        "id": 79,
+                        "status": "ACCEPTED",
+                        "evidenceType": "DIAGNOSTIC",
+                        "evidenceLevel": "B",
+                        "evidenceDirection": "SUPPORTS",
+                        "significance": "POSITIVE",
+                        "disease": {
+                          "name": "Thyroid Cancer",
+                          "doid": "1781"
+                        },
+                        "therapies": [],
+                        "therapyInteractionType": null,
+                        "source": {
+                          "citationId": "21594703",
+                          "sourceType": "PUBMED"
+                        }
+                      },
+                      {
+                        "id": 95,
+                        "status": "ACCEPTED",
+                        "evidenceType": "PREDICTIVE",
+                        "evidenceLevel": "B",
+                        "evidenceDirection": "SUPPORTS",
+                        "significance": "SENSITIVITYRESPONSE",
+                        "disease": {
+                          "name": "Melanoma",
+                          "doid": "1909"
+                        },
+                        "therapies": [
+                          {
+                            "name": "Dabrafenib"
+                          },
+                          {
+                            "name": "Trametinib"
+                          }
+                        ],
+                        "therapyInteractionType": "COMBINATION",
+                        "source": {
+                          "citationId": "24583796",
+                          "sourceType": "PUBMED"
+                        }
+                      }
+                    ]
+                  },
+                  "assertions": {
+                    "totalCount": 11,
+                    "pageInfo": {
+                      "hasNextPage": true,
+                      "endCursor": "MQ"
+                    },
+                    "nodes": [
+                      {
+                        "id": 10,
+                        "status": "ACCEPTED",
+                        "assertionType": "PREDICTIVE",
+                        "assertionDirection": "SUPPORTS",
+                        "significance": "SENSITIVITYRESPONSE",
+                        "ampLevel": "TIER_I_LEVEL_A",
+                        "disease": {
+                          "name": "Melanoma",
+                          "doid": "1909"
+                        },
+                        "therapies": [
+                          {
+                            "name": "Vemurafenib"
+                          },
+                          {
+                            "name": "Cobimetinib"
+                          }
+                        ],
+                        "therapyInteractionType": "COMBINATION",
+                        "variantOrigin": "SOMATIC"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "deadline_seconds": 15,
+  "max_bytes": 3145728,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "mutalyzer-normalize",
+      "source": "mutalyzer",
+      "response_format": "json",
+      "url": "https://mutalyzer.nl/api/normalize/NM_004333.4%3Ac.1799T%3EA"
+    },
+    {
+      "id": "variantvalidator-normalize",
+      "source": "variantvalidator",
+      "response_format": "json",
+      "url": "https://rest.variantvalidator.org/VariantValidator/variantvalidator/GRCh38/NM_004333.4%3Ac.1799T%3EA/all?content-type=application%2Fjson"
+    }
+  ]
+}

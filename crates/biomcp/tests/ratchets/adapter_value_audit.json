@@ -1,157 +1,2774 @@
 {
   "sites": [
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: ) ? , } , c . reference . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: : : new ( c . start , c . end ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: allele . parse ( ) . ok ( ) ? , ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: as_str ( ) . parse : : < Build > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: given | { build . zip ( sequence . as_ref ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: ok ( ) ? , c . allele . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/map.rs","site":"genomic: | { Allele : : new ( SequenceLocation { sequence : sequence . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/allele_registry/raw.rs","site":"check: ) . is_ok_and ( | v | v . namespace ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/cbioportal/mod.rs","site":"cohort: . citation , } , selected_sample_count : count . as_ref ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/cbioportal/studies/mod.rs","site":"snapshot: and_then ( | v | u64 : : try_from ( v ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/cellosaurus/mod.rs","site":"search: as_str ( ) . parse : : < CellosaurusAccession > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/cellosaurus/sections.rs","site":"variation: : reference . accession . as_str ( ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/drug_get.rs","site":"matches: to_string ( ) . parse : : < u64 > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/drug_map.rs","site":"context: subject . clone ( ) ) . collect ( ) , ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/mod.rs","site":"map: : new ( & gene . id . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/mod.rs","site":"map: text ) ) = > Text : : new ( text ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/mod.rs","site":"mapped: Text : : new ( & id . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_claims.rs","site":"classification: { Text : : new ( label . as_str ( ) ) . ok ( )","maximum":1,"class":"migrated","owner":"0361","reason":"Native significance text remains in the typed source vocabulary; a failed normalized Text projection omits the statement and build reports statement as unmapped"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_claims.rs","site":"evidence: | id | id . as_str ( ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_claims.rs","site":"native_claim: | id | format ! ( \"DOID:{id}\" ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_map.rs","site":"map: subject . clone ( ) ) . collect ( ) , ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_map.rs","site":"member: as_str ( ) . parse : : < GeneSymbol > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_map.rs","site":"member: as_str ( ) . parse : : < HgvsText > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/civic/variant_map.rs","site":"member: symbol | biodata : : GeneRef : : try_from ( symbol ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/clinvar/raw.rs","site":"decode_xml: | crate : : mapped : : text ( & s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/complex_portal/map.rs","site":"members: \"participants.protein\" , UniProtIsoform : : new ( & r . identifier ) . ok ( )","maximum":1,"class":"migrated","owner":"0372","reason":"Protein projection and cross-reference parsing feed Problems::required with their participant field; invalid values are omitted with a problem"},
-    {"path":"crates/biomcp-adapters/src/complex_portal/map.rs","site":"members: x . database , x . identifier ) . parse ( ) . ok ( )","maximum":1,"class":"migrated","owner":"0372","reason":"Protein projection and cross-reference parsing feed Problems::required with their participant field; invalid values are omitted with a problem"},
-    {"path":"crates/biomcp-adapters/src/ddinter/bundle.rs","site":"card: and_then ( | v | Text : : new ( v ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/ddinter/bundle.rs","site":"interactions: and_then ( | v | Text : : new ( v ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/ddinter/bundle.rs","site":"selected: name ) | identity : : identity ( key , name ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/ema/map.rs","site":"event: ( AuthorizationDate { role : Text : : new ( key ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0374","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/ema/mod.rs","site":"fields: mapped : : text ( & id . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0374","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/europepmc/mod.rs","site":"item: . then ( | | self . id . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/europepmc/mod.rs","site":"item: | Text : : new ( s . trim ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/fda_cdx/identity.rs","site":"applications: v | v . parse : : < FdaDrugApplication > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/fda_cdx/identity.rs","site":"devices: ) . filter_map ( | v | v . parse ( ) . ok ( )","maximum":2,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/fda_cdx/identity.rs","site":"linked_device: ) ? ; format ! ( \"{base}/{sub}\" ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/fda_cdx/search.rs","site":"search: Text : : new ( & format ! ( \"{snapshot}:{table}:{index}\" ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gnomad/map.rs","site":"constraints: , transcript , version : Text : : new ( \"v4\" ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gnomad/raw.rs","site":"transcript: . ' ) . next ( ) ? . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gnomad/raw.rs","site":"transcript: . parse : : < biodata : : Accession > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gtr/map.rs","site":"optional: Option < Text > { Text : : new ( value ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gtr/map.rs","site":"relation: . parse : : < biodata : : NcbiGeneId > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gtr/mod.rs","site":"conflict: Text : : new ( & id . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gwas/get/study.rs","site":"card: to_string ( ) . parse : : < Pmid > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gwas/raw.rs","site":"exact_p_value: ( \"{mantissa}e{}\" , self . p_value_exponent ? ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/gwas/search/identity.rs","site":"decode: , } ) ; } String : : from_utf8 ( decoded ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/fields.rs","site":"mane: ) . ok ( ) ? , ensembl . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/fields.rs","site":"mane: : : ManeStatus : : Select , refseq . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/fields.rs","site":"mane: ensembl . parse ( ) . ok ( ) ? , ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/fields.rs","site":"optional: } self . required ( field , value . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/map.rs","site":"gene: ( raw : : cell ( & row . name ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/map.rs","site":"gene: ( raw : : cell ( & row . symbol ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/map.rs","site":"genes: : cell ( & row . hgnc_id ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/map.rs","site":"withdrawn: ( raw : : cell ( & row . symbol ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/map.rs","site":"withdrawn: : cell ( & row . hgnc_id ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/map.rs","site":"withdrawn: id | id . parse : : < HgncId > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/hgnc/mod.rs","site":"in_band: | Text : : new ( band . as_str ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/icite/mod.rs","site":"field: Text : : new ( & id . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/jats/references.rs","site":"rows: ) = > row . doi = value . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/jats/references.rs","site":"rows: ) = > row . pmid = value . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/litvar/mod.rs","site":"publications: filter_map ( | id | Pmid : : new ( id ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/mapped.rs","site":"field_text: ) . and_then ( | s | text ( & s ) . ok ( )","maximum":1,"class":"migrated","owner":"0360","reason":"Shared policy owner records rejected optional values; missing problem provenance stays absent"},
-    {"path":"crates/biomcp-adapters/src/mapped.rs","site":"optional: < T > { self . required ( field , value ? . ok ( )","maximum":1,"class":"migrated","owner":"0360","reason":"Shared policy owner records rejected optional values; missing problem provenance stays absent"},
-    {"path":"crates/biomcp-adapters/src/mapped.rs","site":"record: Text > { text ( & value . to_string ( ) ) . ok ( )","maximum":1,"class":"legitimate_absence","owner":"0360","reason":"Shared policy owner records rejected optional values; missing problem provenance stays absent"},
-    {"path":"crates/biomcp-adapters/src/mydisease/map.rs","site":"xref_id: eq_ignore_ascii_case ( & prefix ) ) { native . parse ( ) . ok ( )","maximum":1,"class":"migrated","owner":"0373","reason":"The xref_id caller reports each failed target parse with its component-qualified xref field before omitting that reference"},
-    {"path":"crates/biomcp-adapters/src/mydisease/map.rs","site":"xref_id: } else { format ! ( \"{prefix}:{native}\" ) . parse ( ) . ok ( )","maximum":1,"class":"migrated","owner":"0373","reason":"The xref_id caller reports each failed target parse with its component-qualified xref field before omitting that reference"},
-    {"path":"crates/biomcp-adapters/src/mydisease/raw.rs","site":"matches: as_str ( ) . parse : : < Curie > ( ) . ok ( )","maximum":2,"class":"identity_refusal","owner":"0373","reason":"Alias admission requires a source-provided cross-reference that parses and exactly matches the requested CURIE"},
-    {"path":"crates/biomcp-adapters/src/mygene/map.rs","site":"interval: : Span0 : : new ( start - 1 , end ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/mygene/map.rs","site":"map_hit: ( \"HGNC:{value}\" ) . parse : : < HgncId > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/mygene/map.rs","site":"map_hit: value | value . parse : : < NcbiGeneId > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/mygene/map.rs","site":"summary: ( Summary { text : Text : : new ( body ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/mygene/map.rs","site":"summary: date = PartialDate : : new ( year . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/mygene/map.rs","site":"summary: ok ( ) ? , Some ( month ) , None ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/map.rs","site":"component_terms: _ ) ) ) { Text : : new ( \"clinvar\" ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/map.rs","site":"component_terms: label ( super : : components : : CLINVAR . terms ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/measurements/map.rs","site":"project: . accession ( build ) ) ; qualified . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/measurements/map.rs","site":"project: . parse : : < biodata : : Chromosome > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/population.rs","site":"candidates: as_str ( ) . parse : : < VariantId > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/raw.rs","site":"check: ) . is_ok_and ( | i | i . namespace ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/search_build.rs","site":"literal_span: length ) ? . parse : : < u64 > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/transcripts.rs","site":"label: : SNPEFF ; Text : : new ( declaration . name ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/myvariant/transcripts.rs","site":"label: super : : components : : label ( declaration . terms ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/nci/mod.rs","site":"search: | | value . parse : : < usize > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/ols/map.rs","site":"iri_id: ) ? ; format ! ( \"{prefix}:{local}\" ) . parse ( ) . ok ( )","maximum":1,"class":"migrated","owner":"0373","reason":"Reference target conversions feed Problems::required for the received consider, replacement or xref field; invalid targets are omitted with a problem"},
-    {"path":"crates/biomcp-adapters/src/ols/map.rs","site":"iri_id: . ok ( ) } else { value . parse ( ) . ok ( )","maximum":1,"class":"migrated","owner":"0373","reason":"Reference target conversions feed Problems::required for the received consider, replacement or xref field; invalid targets are omitted with a problem"},
-    {"path":"crates/biomcp-adapters/src/ols/map.rs","site":"xrefs: = > { format ! ( \"{database}:{id}\" ) . parse ( ) . ok ( )","maximum":1,"class":"migrated","owner":"0373","reason":"Reference target conversions feed Problems::required for the received consider, replacement or xref field; invalid targets are omitted with a problem"},
-    {"path":"crates/biomcp-adapters/src/oncokb/raw.rs","site":"mapped: : new ( & self . entrez_gene_id . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"classification: ) . and_then ( | g | g . try_into ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"classification: and_then ( | s | Text : : new ( s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"concept: or ( row . code . as_deref ( ) ) ? ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"concept: | s | format ! ( \"ONCOTREE:{s}\" ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"implications: and_then ( | s | Text : : new ( s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"implications: | s | format ! ( \"NCIT:{s}\" ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"implications: | { Text : : new ( & d . drug_name ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"subject: query . hugo_symbol . clone ( ) ? . try_into ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/oncokb/variant_map.rs","site":"texts: filter_map ( | s | Text : : new ( s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/pmc_oa/location.rs","site":"version: ? ; let version : u32 = v . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/pubmed/map.rs","site":"header: ; if key . parse : : < Pmid > ( ) . ok ( )","maximum":1,"class":"identity_refusal","owner":"0371","reason":"Required summary PMID and matching key refuse the item"},
-    {"path":"crates/biomcp-adapters/src/pubmed/map.rs","site":"header: = u32 : : try_from ( authors . len ( ) ) . ok ( )","maximum":1,"class":"legitimate_absence","owner":"0371","reason":"Bounded collection length or month-table index conversion cannot reject optional provider text"},
-    {"path":"crates/biomcp-adapters/src/pubmed/map.rs","site":"month: | m | u8 : : try_from ( m + 1 ) . ok ( )","maximum":1,"class":"legitimate_absence","owner":"0371","reason":"Bounded collection length or month-table index conversion cannot reject optional provider text"},
-    {"path":"crates/biomcp-adapters/src/pubtator/map.rs","site":"entity: > biodata : : NcbiGeneId : : new ( * n ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/pubtator/map.rs","site":"entity: and_then ( | s | Text : : new ( s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/pubtator/map.rs","site":"entity: | s | s . as_str ( ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/raw.rs","site":"chromosome: ; match value { \"M\" = > \"MT\" . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/raw.rs","site":"chromosome: ok ( ) , \"23\" = > \"X\" . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/raw.rs","site":"chromosome: ok ( ) , \"24\" = > \"Y\" . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/raw.rs","site":"chromosome: ok ( ) , \"25\" = > \"MT\" . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/raw.rs","site":"chromosome: ok ( ) , _ = > value . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/reactome/discovery.rs","site":"card: : mapped : : text ( id . as_str ( ) ) . ok ( )","maximum":1,"class":"legitimate_absence","owner":"0375","reason":"Problem record text derives from an already validated ReactomeId; it does not discard received optional metadata"},
-    {"path":"crates/biomcp-adapters/src/reactome/map.rs","site":"header: v | crate : : mapped : : text ( v ) . ok ( )","maximum":1,"class":"migrated","owner":"0375","reason":"Header, name, version, metadata and literature parse results feed Problems::required or optional with the received field; valid sibling values remain"},
-    {"path":"crates/biomcp-adapters/src/reactome/map.rs","site":"hit: | crate : : mapped : : text ( & v ) . ok ( )","maximum":1,"class":"migrated","owner":"0375","reason":"Header, name, version, metadata and literature parse results feed Problems::required or optional with the received field; valid sibling values remain"},
-    {"path":"crates/biomcp-adapters/src/reactome/map.rs","site":"identity: . parse : : < biodata : : ReactomeId > ( ) . ok ( )","maximum":1,"class":"identity_refusal","owner":"0375","reason":"The typed pathway ID admits the native row identity; failure rejects the row and the caller preserves its identity problem"},
-    {"path":"crates/biomcp-adapters/src/reactome/map.rs","site":"literature: v | biodata : : Pmid : : new ( v ) . ok ( )","maximum":1,"class":"migrated","owner":"0375","reason":"Header, name, version, metadata and literature parse results feed Problems::required or optional with the received field; valid sibling values remain"},
-    {"path":"crates/biomcp-adapters/src/reactome/map.rs","site":"metadata: v | crate : : mapped : : text ( v ) . ok ( )","maximum":1,"class":"migrated","owner":"0375","reason":"Header, name, version, metadata and literature parse results feed Problems::required or optional with the received field; valid sibling values remain"},
-    {"path":"crates/biomcp-adapters/src/reactome/mod.rs","site":"pathways: 0 { let id = row . st_id . parse ( ) . ok ( )","maximum":1,"class":"identity_refusal","owner":"0375","reason":"The typed pathway ID admits the native row identity; failure rejects the row and the caller preserves its identity problem"},
-    {"path":"crates/biomcp-adapters/src/reactome/relations.rs","site":"fields: : mapped : : text ( id . as_str ( ) ) . ok ( )","maximum":1,"class":"legitimate_absence","owner":"0375","reason":"Problem record text derives from an already validated ReactomeId; it does not discard received optional metadata"},
-    {"path":"crates/biomcp-adapters/src/registry/records.rs","site":"record_url: : Write ; write ! ( & mut encoded , \"%{byte:02X}\" ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/seer/mod.rs","site":"catalog: = site . value . to_string ( ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/semantic_scholar/author/papers/row.rs","site":"checked: ( | s | Text : : new ( & s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/semantic_scholar/author/papers/row.rs","site":"detail: ( | v | Text : : new ( & v ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/semantic_scholar/search.rs","site":"item: ( | s | Text : : new ( & s ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/semantic_scholar/search.rs","site":"item: | v | v . to_string ( ) . parse ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/map.rs","site":"entry: : Text : : new ( id . as_str ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/map.rs","site":"header: Text : : new ( & format ! ( \"https://www.uniprot.org/uniprotkb/{accession}/entry\" ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"bound: Bound : : new ( None , Some ( n ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"bound: Bound : : new ( Some ( 1 ) , None ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"bound: Bound : : new ( Some ( n ) , None ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"bound: new ( Some ( n ) , Some ( n ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"evidence: ) ) ; } Text : : new ( & text ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"features: ( | v | Text : : new ( & v ) . ok ( )","maximum":2,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"features: : Attribution { source : Text : : new ( \"uniprot\" ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"features: : Text : : new ( id . as_str ( ) ) . ok ( )","maximum":2,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"features: Text : : new ( & format ! ( \"https://www.uniprot.org/uniprotkb/{id}/entry\" ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"features: Text : : new ( & v . to_string ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"features: end ) | UncertainSpan0 : : from_inclusive ( start , end ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/entry/sections_map.rs","site":"structures: ( & format ! ( \"https://www.rcsb.org/structure/{}\" , r . id ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/search.rs","site":"search: : Text : : new ( id . as_str ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/sequence.rs","site":"parse: ; let sequence = AminoAcids : : new ( & sequence ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/sequence.rs","site":"parse: text = std : : str : : from_utf8 ( bytes ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/uniprot/sequence.rs","site":"parse: try_from ( sequence . as_str ( ) . len ( ) ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/wikipathways/gpml.rs","site":"members: : WikiPathways , id . as_str ( ) . parse ( ) . ok ( )","maximum":2,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"},
-    {"path":"crates/biomcp-adapters/src/wikipathways/gpml_raw.rs","site":"matches: | | revision . parse : : < u64 > ( ) . ok ( )","maximum":1,"class":"pending_audit","owner":"0360-policy-baseline","reason":"Existing site outside the PubMed and ORCID audit; the owner must review its field semantics"}
+    {
+      "path": "crates/biomcp-adapters/src/allele_registry/map.rs",
+      "site": "genomic: ) ? , } , c . reference . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "allele_registry",
+      "reason": "The canonical allele projection is omitted with representations.allele when its checked sequence, span, reference or alternate identity cannot be constructed; the independent HGVS expression remains available"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/allele_registry/map.rs",
+      "site": "genomic: : : new ( c . start , c . end ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "allele_registry",
+      "reason": "The canonical allele projection is omitted with representations.allele when its checked sequence, span, reference or alternate identity cannot be constructed; the independent HGVS expression remains available"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/allele_registry/map.rs",
+      "site": "genomic: allele . parse ( ) . ok ( ) ? , ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "allele_registry",
+      "reason": "The canonical allele projection is omitted with representations.allele when its checked sequence, span, reference or alternate identity cannot be constructed; the independent HGVS expression remains available"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/allele_registry/map.rs",
+      "site": "genomic: given | { build . zip ( sequence . as_ref ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "allele_registry",
+      "reason": "A failed accession parse cannot establish chromosome agreement; canonical allele construction subsequently names representations.allele and omits that projection"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/allele_registry/map.rs",
+      "site": "genomic: ok ( ) ? , c . allele . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "allele_registry",
+      "reason": "The canonical allele projection is omitted with representations.allele when its checked sequence, span, reference or alternate identity cannot be constructed; the independent HGVS expression remains available"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/allele_registry/map.rs",
+      "site": "genomic: | { Allele : : new ( SequenceLocation { sequence : sequence . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "allele_registry",
+      "reason": "The canonical allele projection is omitted with representations.allele when its checked sequence, span, reference or alternate identity cannot be constructed; the independent HGVS expression remains available"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cbioportal/studies/mod.rs",
+      "site": "snapshot: and_then ( | v | u64 : : try_from ( v ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cbioportal",
+      "reason": "Bundle acquisition is internal transport provenance; nonnegative conversion cannot hide a provider field. Catalog metadata now maps through field problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/map.rs",
+      "site": "card: ) , 3 ) , diseases : capped ( row . disease_list . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cellosaurus",
+      "reason": "Absent optional native collections produce empty projections after present fields and members have been admitted with problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/map.rs",
+      "site": "card: : row . category , species : capped ( row . species_list . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cellosaurus",
+      "reason": "Absent optional native collections produce empty projections after present fields and members have been admitted with problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/map.rs",
+      "site": "card: let warnings = warnings ( row . comment_list . as_deref ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cellosaurus",
+      "reason": "Absent optional native collections produce empty projections after present fields and members have been admitted with problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/map.rs",
+      "site": "header: ) , 3 ) , diseases : capped ( row . disease_list . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cellosaurus",
+      "reason": "Absent optional native collections produce empty projections after present fields and members have been admitted with problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/map.rs",
+      "site": "header: : row . category , species : capped ( row . species_list . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cellosaurus",
+      "reason": "Absent optional native collections produce empty projections after present fields and members have been admitted with problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/mod.rs",
+      "site": "search: as_str ( ) . parse : : < CellosaurusAccession > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "cellosaurus",
+      "reason": "Parsing the caller query only chooses an exact-accession selector versus literal-name search; malformed source row identities are isolated with problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/sections.rs",
+      "site": "variation: : reference . accession . as_str ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "cellosaurus",
+      "reason": "A rejected optional HGNC interpretation now reports sequence-variation-list.xref-list.accession without losing the native cross-reference or variation."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/cellosaurus/sections.rs",
+      "site": "variation: : references . into ( ) , provenance : row . source_list . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "cellosaurus",
+      "reason": "A rejected optional HGNC interpretation now reports sequence-variation-list.xref-list.accession without losing the native cross-reference or variation."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/complex_portal/map.rs",
+      "site": "members: \"participants.protein\" , UniProtIsoform : : new ( & r . identifier ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "complex_portal",
+      "reason": "Protein projection and cross-reference parsing feed Problems::required with their participant field; invalid values are omitted with a problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/complex_portal/map.rs",
+      "site": "members: x . database , x . identifier ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "complex_portal",
+      "reason": "Protein projection and cross-reference parsing feed Problems::required with their participant field; invalid values are omitted with a problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ctgov/detail.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub struct Detail { pub problems : Vec < biomcp_types : :",
+      "maximum": 1,
+      "class": "pending_audit",
+      "owner": "ctgov",
+      "reason": "Existing adapter violation awaits its family audit"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ctgov/detail.rs",
+      "site": "file line limit",
+      "maximum": 394,
+      "class": "pending_audit",
+      "owner": "ctgov",
+      "reason": "Existing adapter violation awaits its family audit"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ctgov/raw.rs",
+      "site": "check: > { let studies = self . studies . as_deref ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "pending_audit",
+      "owner": "ctgov",
+      "reason": "Existing adapter violation awaits its family audit"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ddinter/bundle.rs",
+      "site": "card: and_then ( | v | Text : : new ( v ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "ddinter",
+      "reason": "The optional revision comes from internal bundle provenance; it is not an upstream row field."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ddinter/bundle.rs",
+      "site": "interactions: and_then ( | v | Text : : new ( v ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "ddinter",
+      "reason": "The optional revision comes from internal bundle provenance; it is not an upstream row field."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ddinter/bundle.rs",
+      "site": "selected: name ) | identity : : identity ( key , name ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "ddinter",
+      "reason": "Only checked native drug identities enter candidates and selected headers; names and interaction level now admit bad present metadata with precise native-field problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ddinter/identity.rs",
+      "site": "candidates: seen . insert ( id . to_owned ( ) ) & & let Ok ( identity ) = identity ( id , name ) { items . push",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "ddinter",
+      "reason": "Only checked native drug identities enter candidates and selected headers; names and interaction level now admit bad present metadata with precise native-field problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ddinter/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] struct Fields { # [ serde ( rename = \"DDInterID_A\" ) ]",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ddinter",
+      "reason": "Removed unknown-column refusal; pair IDs remain strict and bad names or level retain native interactions with field problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/drug_sources/date.rs",
+      "site": "received_date: = 12 { for day in 1 . . = 31 { if let Ok ( date ) = biodata : : PartialDate : : new ( year",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug_sources",
+      "reason": "Calendar enumeration skips impossible day/month combinations while converting an internal retrieval epoch; this is not a provider-field conversion."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/drugsfda/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "drugsfda",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ema/map.rs",
+      "site": "event: ( AuthorizationDate { role : Text : : new ( key ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ema",
+      "reason": "EMA metadata, date roles and release timestamps preserve the medicine and disclose one source-field problem; generated record identifiers are checked drug identities."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ema/mod.rs",
+      "site": "fields: mapped : : text ( & id . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ema",
+      "reason": "EMA metadata, date roles and release timestamps preserve the medicine and disclose one source-field problem; generated record identifiers are checked drug identities."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ema/raw.rs",
+      "site": "keys: name | vec ! [ name . into ( ) ] ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ema",
+      "reason": "EMA metadata, date roles and release timestamps preserve the medicine and disclose one source-field problem; generated record identifiers are checked drug identities."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/faers/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "faers",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_510k/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "fda_510k",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_cdx/identity.rs",
+      "site": "applications: v | v . parse : : < FdaDrugApplication > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "fda_cdx",
+      "reason": "Native cell wording is retained intact; scanning ordinary words for optional derived source identifiers admits only matching native authority spellings and does not drop any physical cell value"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_cdx/identity.rs",
+      "site": "devices: ) . filter_map ( | v | v . parse ( ) . ok ( )",
+      "maximum": 2,
+      "class": "legitimate_absence",
+      "owner": "fda_cdx",
+      "reason": "Native cell wording is retained intact; scanning ordinary words for optional derived source identifiers admits only matching native authority spellings and does not drop any physical cell value"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_cdx/identity.rs",
+      "site": "linked_device: ) ? ; format ! ( \"{base}/{sub}\" ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "fda_cdx",
+      "reason": "Native cell wording is retained intact; scanning ordinary words for optional derived source identifiers admits only matching native authority spellings and does not drop any physical cell value"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_cdx/identity.rs",
+      "site": "linked_device: DiagnosticDeviceId > { let value = value . to_ascii_uppercase ( ) ; if let Ok ( id ) = value . parse ( ) { return Some (",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "fda_cdx",
+      "reason": "Native cell wording is retained intact; scanning ordinary words for optional derived source identifiers admits only matching native authority spellings and does not drop any physical cell value"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_cdx/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Native { pub relation : CompanionDiagnosticRelation ,",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "fda_cdx",
+      "reason": "The stored physical row has a fixed internal shape"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_cdx/search.rs",
+      "site": "search: Text : : new ( & format ! ( \"{snapshot}:{table}:{index}\" ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "fda_cdx",
+      "reason": "Problem provenance is formed locally from the checked snapshot and physical table row position; this conversion never admits or drops a source cell value"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_device_recall/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "fda_device_recall",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_drug_recall/map.rs",
+      "site": "date: . get ( . . 4 ) ? . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "fda_drug_recall",
+      "reason": "Malformed optional recall date values emit a source problem for the exact recall and date field; the native-card-and-problem case checks omission and reporting"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_drug_recall/map.rs",
+      "site": "date: . get ( 6 . . ) ? . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "fda_drug_recall",
+      "reason": "Malformed optional recall date values emit a source problem for the exact recall and date field; the native-card-and-problem case checks omission and reporting"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_drug_recall/map.rs",
+      "site": "date: get ( 4 . . 6 ) ? . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "fda_drug_recall",
+      "reason": "Malformed optional recall date values emit a source problem for the exact recall and date field; the native-card-and-problem case checks omission and reporting"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_drug_recall/map.rs",
+      "site": "date: year , Some ( month ) , Some ( day ) ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "fda_drug_recall",
+      "reason": "Malformed optional recall date values emit a source problem for the exact recall and date field; the native-card-and-problem case checks omission and reporting"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_drug_recall/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "fda_drug_recall",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/fda_pma/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "fda_pma",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gnomad/raw.rs",
+      "site": "check: ) ; let errors = self . errors . as_deref ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gnomad",
+      "reason": "GraphQL successful responses may omit errors (https://spec.graphql.org/October2021/#sec-Errors); absent errors is empty only after alias count and exact missing-gene/error agreement checks"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gtr/get.rs",
+      "site": "get: ( | v | map : : methods ( v ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gtr",
+      "reason": "An absent selected version has no independent method lists; present version cells are split as native text and no parse result is defaulted."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gtr/map.rs",
+      "site": "relation: . parse : : < biodata : : NcbiGeneId > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gtr",
+      "reason": "The native gene-or-SNOMED cell is retained as native_gene_or_snomed_ct_id when it is not a GeneID; the independent checked gene label remains, and a row without either gene identity is refused with gene_symbol."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/get/study.rs",
+      "site": "card: to_string ( ) . parse : : < Pmid > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "gwas",
+      "reason": "Bad present association/study/context metadata is omitted with source-record field problems. Exact p-value admission excludes only unprovable threshold candidates and retains native received offsets."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/map.rs",
+      "site": "association: ( ) , locations : row . locations . clone ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/map.rs",
+      "site": "association: . get ( ) . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/map.rs",
+      "site": "association: problems ) , mapped_genes : row . mapped_gene . clone ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/raw.rs",
+      "site": "check: ( | e | e . associations . as_slice ( ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "An absent embedded association collection means an empty protocol page; strict counts, page number, size and self-link checks still validate that absence."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/raw.rs",
+      "site": "exact_p_value: ( \"{mantissa}e{}\" , self . p_value_exponent ? ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "gwas",
+      "reason": "Bad present association/study/context metadata is omitted with source-record field problems. Exact p-value admission excludes only unprovable threshold candidates and retains native received offsets."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gwas/search/identity.rs",
+      "site": "decode: , } ) ; } String : : from_utf8 ( decoded ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "gwas",
+      "reason": "UTF-8 decoding belongs to native request self-link identity; a malformed value fails cache admission rather than silently removing metadata."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/fields.rs",
+      "site": "mane: ) . ok ( ) ? , ensembl . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hgnc",
+      "reason": "The received metadata parse result feeds Fields::required or optional and reports its field without refusing the gene identity"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/fields.rs",
+      "site": "mane: : : ManeStatus : : Select , refseq . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hgnc",
+      "reason": "The received metadata parse result feeds Fields::required or optional and reports its field without refusing the gene identity"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/fields.rs",
+      "site": "mane: ensembl . parse ( ) . ok ( ) ? , ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hgnc",
+      "reason": "The received metadata parse result feeds Fields::required or optional and reports its field without refusing the gene identity"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/fields.rs",
+      "site": "optional: } self . required ( field , value . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hgnc",
+      "reason": "The received metadata parse result feeds Fields::required or optional and reports its field without refusing the gene identity"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/map.rs",
+      "site": "gene: : cell ( row . name . as_deref ( ) ) ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hgnc",
+      "reason": "The received metadata parse result feeds Fields::required or optional and reports its field without refusing the gene identity"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/map.rs",
+      "site": "gene: : cell ( row . symbol . as_deref ( ) ) ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/map.rs",
+      "site": "genes: row . hgnc_id . as_deref ( ) ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/map.rs",
+      "site": "withdrawn: : cell ( row . symbol . as_deref ( ) ) ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/map.rs",
+      "site": "withdrawn: id | id . parse : : < HgncId > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hgnc",
+      "reason": "The received metadata parse result feeds Fields::required or optional and reports its field without refusing the gene identity"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/map.rs",
+      "site": "withdrawn: row . hgnc_id . as_deref ( ) ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/mod.rs",
+      "site": "in_band: | Text : : new ( band . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "hgnc",
+      "reason": "The band match text derives from a location already admitted to the band index as a checked cytoband"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/raw.rs",
+      "site": "identity: { let mut exact = Vec : : new ( ) ; if let Ok ( id ) = id . parse : : < HgncId > (",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/raw.rs",
+      "site": "keys: ! ( \"entrez:{id}\" ) . into ( ) ) ) ; } if let Ok ( id ) = cell ( self . ensembl_gene_id . as_deref ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/raw.rs",
+      "site": "keys: ) . map ( Into : : into ) ) ; } if let Ok ( id ) = cell ( self . entrez_id . as_deref ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hgnc/raw.rs",
+      "site": "keys: cell ( self . uniprot_ids . as_deref ( ) ) ) { if let Ok ( id ) = UniProtAcc : : new ( value ) { keys",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "hgnc",
+      "reason": "Typed IDs, symbols and source indexing admit record or lookup identities; optional metadata is disclosed by the mapper"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hpa/map.rs",
+      "site": "numbers: ( ) & & number > = 0 . 0 & & let Ok ( number ) = RnaAbundance : : try_from ( number ) { return Some",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hpa",
+      "reason": "Every rejected abundance parse or range value reaches push_problem for its received field; valid sibling tissue values remain"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/hpa/map.rs",
+      "site": "numbers: let Field : : Value ( value ) = value & & let Ok ( number ) = value . parse : : < f64 > ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "hpa",
+      "reason": "Every rejected abundance parse or range value reaches push_problem for its received field; valid sibling tissue values remain"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/icite/mod.rs",
+      "site": "field: Text : : new ( & id . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "icite",
+      "reason": "The problem record is derived from an already checked nonzero PMID; converting its canonical spelling cannot reject provider metadata"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/interpro/map.rs",
+      "site": "locations: . required ( \"fragments\" , field . value ( ) ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "interpro",
+      "reason": "A malformed present fragment collection reaches Problems::required; an absent collection becomes empty while valid location identities remain"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mapped.rs",
+      "site": "optional: < T > { self . required ( field , value ? . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "mapped.rs",
+      "reason": "Shared policy owner records rejected optional values; missing problem provenance stays absent"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mapped.rs",
+      "site": "record: Text > { text ( & value . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "mapped.rs",
+      "reason": "Shared policy owner records rejected optional values; missing problem provenance stays absent"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/maude/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "maude",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/monarch/map.rs",
+      "site": "qualifiers: { let mut qualifiers = raw . qualifiers . take ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "monarch",
+      "reason": "Collection defaults represent absent optional metadata after wrapped fields and members have been mapped with precise problems; requested endpoint closure checks stay strict."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/monarch/map.rs",
+      "site": "references: = Vec : : new ( ) ; for id in ids . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "monarch",
+      "reason": "Collection defaults represent absent optional metadata after wrapped fields and members have been mapped with precise problems; requested endpoint closure checks stay strict."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/monarch/map.rs",
+      "site": "references: Box < [ DiseaseAssociationReference ] > { let mut links = links . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "monarch",
+      "reason": "Collection defaults represent absent optional metadata after wrapped fields and members have been mapped with precise problems; requested endpoint closure checks stay strict."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/monarch/map.rs",
+      "site": "row: , has_quotient : raw . has_quotient , subject_closure : raw . subject_closure . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "monarch",
+      "reason": "Collection defaults represent absent optional metadata after wrapped fields and members have been mapped with precise problems; requested endpoint closure checks stay strict."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/monarch/map.rs",
+      "site": "row: . subject_closure . unwrap_or_default ( ) , object_closure : raw . object_closure . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "monarch",
+      "reason": "Collection defaults represent absent optional metadata after wrapped fields and members have been mapped with precise problems; requested endpoint closure checks stay strict."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/monarch/mod.rs",
+      "site": "associations: ! = & id & & ! closure . as_deref ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "monarch",
+      "reason": "A native expansion must prove the requested endpoint through its closure before cache admission; missing proof is a request identity failure."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mychem/map.rs",
+      "site": "aliases_for: c . synonyms . as_ref ( ) . map ( strings ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "mychem",
+      "reason": "Optional alias and reference collections are absent only after component fields and members have been normalized with source-record problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mychem/map.rs",
+      "site": "aliases_for: extend ( values . as_ref ( ) . map ( strings ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "mychem",
+      "reason": "Optional alias and reference collections are absent only after component fields and members have been normalized with source-record problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mychem/map.rs",
+      "site": "references_for: target in values . as_ref ( ) . map ( strings ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "mychem",
+      "reason": "Optional alias and reference collections are absent only after component fields and members have been normalized with source-record problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mydisease/map.rs",
+      "site": "xref_id: eq_ignore_ascii_case ( & prefix ) ) { native . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "mydisease",
+      "reason": "The xref_id caller reports each failed target parse with its component-qualified xref field before omitting that reference"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mydisease/map.rs",
+      "site": "xref_id: } else { format ! ( \"{prefix}:{native}\" ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "mydisease",
+      "reason": "The xref_id caller reports each failed target parse with its component-qualified xref field before omitting that reference"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mydisease/raw.rs",
+      "site": "matches: as_str ( ) . parse : : < Curie > ( ) . ok ( )",
+      "maximum": 2,
+      "class": "identity_refusal",
+      "owner": "mydisease",
+      "reason": "Alias admission requires a source-provided cross-reference that parses and exactly matches the requested CURIE"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mygene/map.rs",
+      "site": "interval: : Span0 : : new ( start - 1 , end ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "mygene",
+      "reason": "A rejected HGNC value or interval member reaches its owning field problem; invalid optional strand is omitted independently of the accepted interval"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mygene/map.rs",
+      "site": "map_hit: ( \"HGNC:{value}\" ) . parse : : < HgncId > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "mygene",
+      "reason": "A rejected HGNC value or interval member reaches its owning field problem; invalid optional strand is omitted independently of the accepted interval"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mygene/map.rs",
+      "site": "map_hit: value | value . parse : : < NcbiGeneId > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "mygene",
+      "reason": "The returned NCBI Gene identity must match the submitted join key; failure refuses that source record with entrez_id disclosure"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mygene/map.rs",
+      "site": "summary: date = PartialDate : : new ( year . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "mygene",
+      "reason": "An unrecognized optional RefSeq attribution marker preserves the complete original summary text without inventing a date"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/mygene/map.rs",
+      "site": "summary: ok ( ) ? , Some ( month ) , None ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "mygene",
+      "reason": "An unrecognized optional RefSeq attribution marker preserves the complete original summary text without inventing a date"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/map.rs",
+      "site": "component_terms: _ ) ) ) { Text : : new ( \"clinvar\" ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "myvariant",
+      "reason": "This conversion uses checked static component declarations and fixed literal labels only, never provider values; the optional component label is absent when no matching component identity is present"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/map.rs",
+      "site": "component_terms: label ( super : : components : : CLINVAR . terms ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "myvariant",
+      "reason": "This conversion uses checked static component declarations and fixed literal labels only, never provider values; the optional component label is absent when no matching component identity is present"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/measurements/map.rs",
+      "site": "project: . accession ( build ) ) ; qualified . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "myvariant",
+      "reason": "A failed reference qualification refuses measurement rows and unqualified() emits subject_qualification; the source record is not represented with a guessed subject"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/measurements/map.rs",
+      "site": "project: . parse : : < biodata : : Chromosome > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "myvariant",
+      "reason": "A failed reference qualification refuses measurement rows and unqualified() emits subject_qualification; the source record is not represented with a guessed subject"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/population.rs",
+      "site": "candidates: as_str ( ) . parse : : < VariantId > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "myvariant",
+      "reason": "A malformed nested CA identity is omitted with the existing clingen.caid field problem; the checked MyVariant record and other identities remain available"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/raw.rs",
+      "site": "check: ) . is_ok_and ( | i | i . namespace ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "myvariant",
+      "reason": "The namespace conversion only validates native record identity; a failed conversion refuses this identity and cannot admit it as a record"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/search_build.rs",
+      "site": "literal_span: length ) ? . parse : : < u64 > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "myvariant",
+      "reason": "Only literal single-base substitutions qualify the source chromosome spelling under this repo rule; unsupported or overflowing positions retain unknown build and the caller emits representations.build"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/transcripts.rs",
+      "site": "label: : SNPEFF ; Text : : new ( declaration . name ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "myvariant",
+      "reason": "This conversion uses checked static component declarations and fixed literal labels only, never provider values; the optional component label is absent when no matching component identity is present"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/myvariant/transcripts.rs",
+      "site": "label: super : : components : : label ( declaration . terms ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "myvariant",
+      "reason": "This conversion uses checked static component declarations and fixed literal labels only, never provider values; the optional component label is absent when no matching component identity is present"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/nci/mod.rs",
+      "site": "adapter serde refusal: [ serde ( default ) ] # [ serde ( deserialize_with = \"crate::strict_input::deserialize\" ) ] diseases : Vec",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "nci",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/nci/mod.rs",
+      "site": "adapter serde refusal: [ serde ( default ) ] # [ serde ( deserialize_with = \"crate::strict_input::deserialize\" ) ] interventions : Vec",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "nci",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/nci/mod.rs",
+      "site": "adapter serde refusal: [ serde ( default ) ] # [ serde ( deserialize_with = \"crate::strict_input::deserialize\" ) ] outcome_measures : Vec",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "nci",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/nci/mod.rs",
+      "site": "adapter serde refusal: [ serde ( default ) ] arms : Vec < Arm > , # [ serde ( default",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "nci",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/nci/mod.rs",
+      "site": "adapter serde refusal: type : Option < Text > , # [ serde ( default ) ] # [ serde ( deserialize_with = \"crate::strict_input::deserialize\" ) ] interventions : Vec",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "nci",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/nci/mod.rs",
+      "site": "search: | | value . parse : : < usize > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "nci",
+      "reason": "This value is a locally constructed request page size, not an upstream record field; the explicit default bounds native page admission"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ols/map.rs",
+      "site": "iri_id: ) ? ; format ! ( \"{prefix}:{local}\" ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ols",
+      "reason": "Reference target conversions feed Problems::required for the received consider, replacement or xref field; invalid targets are omitted with a problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ols/map.rs",
+      "site": "iri_id: . ok ( ) } else { value . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ols",
+      "reason": "Reference target conversions feed Problems::required for the received consider, replacement or xref field; invalid targets are omitted with a problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ols/map.rs",
+      "site": "xrefs: = > { format ! ( \"{database}:{id}\" ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "ols",
+      "reason": "Reference target conversions feed Problems::required for the received consider, replacement or xref field; invalid targets are omitted with a problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/ols/map.rs",
+      "site": "xrefs: Some ( id ) = id else { continue ; } ; let Ok ( predicate ) = \"oboInOwl:hasDbXref\" . parse ( ) else { continue ; }",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "ols",
+      "reason": "The fixed oboInOwl:hasDbXref predicate is a valid constant; native xref fields already disclose rejected values."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/openfda_label/map.rs",
+      "site": "header: : Some ( self . openfda . brand_name . as_deref ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "openfda_label",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/openfda_label/map.rs",
+      "site": "header: | | { self . openfda . generic_name . as_deref ( ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "openfda_label",
+      "reason": "Native nonidentity fields now pass through Field and Problems before projection; malformed collections or members are omitted with a named field problem while record identity remains checked"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/openfda_label/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Absence { code : String , message",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "openfda_label",
+      "reason": "The exact native no-match error is a protocol envelope; an unsupported error shape cannot establish record absence"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pmc_oa/location.rs",
+      "site": "version: ? ; let version : u32 = v . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pmc_oa",
+      "reason": "Listing keys outside canonical positive processing-version metadata names are unselected objects; version selects the latest matching record"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "header: . required ( \"articleids\" , v . value ( ) ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pubmed",
+      "reason": "The shared problem context reports malformed collection shapes and members; month parsing returns a checked date error through that context"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "header: . required ( \"authors\" , v . value ( ) ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pubmed",
+      "reason": "The shared problem context reports malformed collection shapes and members; month parsing returns a checked date error through that context"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "header: ; if key . parse : : < Pmid > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "pubmed",
+      "reason": "Required summary PMID and matching key refuse the item"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "header: = u32 : : try_from ( authors . len ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pubmed",
+      "reason": "Bounded collection length or month-table index conversion cannot reject optional provider text"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "month: - > Result < u8 , biomcp_fetch : : BadReply > { if let Ok ( month ) = value . parse ( ) { return Ok (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pubmed",
+      "reason": "The shared problem context reports malformed collection shapes and members; month parsing returns a checked date error through that context"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "month: | m | u8 : : try_from ( m + 1 ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pubmed",
+      "reason": "Bounded collection length or month-table index conversion cannot reject optional provider text"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubmed/map.rs",
+      "site": "publication_types: . required ( \"types\" , v . value ( ) ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pubmed",
+      "reason": "The shared problem context reports malformed collection shapes and members; month parsing returns a checked date error through that context"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubtator/map.rs",
+      "site": "entity: > biodata : : NcbiGeneId : : new ( * n ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pubtator",
+      "reason": "The optional identifier conversion is followed by its explicit named problem when admission fails"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/pubtator/map.rs",
+      "site": "entity: | s | s . as_str ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pubtator",
+      "reason": "The optional identifier conversion is followed by its explicit named problem when admission fails"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/raw.rs",
+      "site": "chromosome: ; match value { \"M\" = > \"MT\" . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "raw.rs",
+      "reason": "This shared chromosome parser returns a checked optional identity to its owning callers. Fixed native aliases parse known canonical chromosomes; callers own rejected-field disclosure."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/raw.rs",
+      "site": "chromosome: ok ( ) , \"23\" = > \"X\" . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "raw.rs",
+      "reason": "This shared chromosome parser returns a checked optional identity to its owning callers. Fixed native aliases parse known canonical chromosomes; callers own rejected-field disclosure."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/raw.rs",
+      "site": "chromosome: ok ( ) , \"24\" = > \"Y\" . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "raw.rs",
+      "reason": "This shared chromosome parser returns a checked optional identity to its owning callers. Fixed native aliases parse known canonical chromosomes; callers own rejected-field disclosure."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/raw.rs",
+      "site": "chromosome: ok ( ) , \"25\" = > \"MT\" . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "raw.rs",
+      "reason": "This shared chromosome parser returns a checked optional identity to its owning callers. Fixed native aliases parse known canonical chromosomes; callers own rejected-field disclosure."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/raw.rs",
+      "site": "chromosome: ok ( ) , _ = > value . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "raw.rs",
+      "reason": "This shared chromosome parser returns a checked optional identity to its owning callers. Fixed native aliases parse known canonical chromosomes; callers own rejected-field disclosure."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/discovery.rs",
+      "site": "card: : mapped : : text ( id . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "reactome",
+      "reason": "Problem record text derives from an already validated ReactomeId; it does not discard received optional metadata"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/map.rs",
+      "site": "header: v | crate : : mapped : : text ( v ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "reactome",
+      "reason": "Header, name, version, metadata and literature parse results feed Problems::required or optional with the received field; valid sibling values remain"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/map.rs",
+      "site": "identity: . parse : : < biodata : : ReactomeId > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "reactome",
+      "reason": "The typed pathway ID admits the native row identity; failure rejects the row and the caller preserves its identity problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/map.rs",
+      "site": "literature: v | biodata : : Pmid : : new ( v ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "reactome",
+      "reason": "Header, name, version, metadata and literature parse results feed Problems::required or optional with the received field; valid sibling values remain"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/mod.rs",
+      "site": "pathways: 0 { let id = row . st_id . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "reactome",
+      "reason": "The typed pathway ID admits the native row identity; failure rejects the row and the caller preserves its identity problem"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/relations.rs",
+      "site": "events: map ( str : : parse ) . transpose ( ) ; let Ok ( native_id ) = native_id else { mapped . problems . push ( problem",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "reactome",
+      "reason": "A malformed native stable event identity refuses that event with events.id disclosure while sibling events remain"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/reactome/relations.rs",
+      "site": "fields: : mapped : : text ( id . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "reactome",
+      "reason": "Problem record text derives from an already validated ReactomeId; it does not discard received optional metadata"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/received.rs",
+      "site": "received_date: = 12 { for day in 1 . . = 31 { if let Ok ( date ) = biodata : : PartialDate : : new ( year",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "received.rs",
+      "reason": "Calendar enumeration skips impossible day/month combinations while converting internal transport provenance; no provider value is silently dropped."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/registry.rs",
+      "site": "file line limit",
+      "maximum": 454,
+      "class": "migrated",
+      "owner": "registry.rs",
+      "reason": "Split bounded probe declarations into registry/probe.rs while preserving the public registry API and its publisher policies."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/registry/records.rs",
+      "site": "record_url: : Write ; write ! ( & mut encoded , \"%{byte:02X}\" ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "registry",
+      "reason": "Percent encoding writes hexadecimal bytes to an owned String; its formatting write cannot fail and drops no provider field."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/seer/mod.rs",
+      "site": "catalog: = site . value . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "seer",
+      "reason": "Native catalog IDs and year row identities are isolated; bad labels, active flags and numeric estimates retain valid sibling rows with field problems."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/entry/sections_map.rs",
+      "site": "bound: Bound : : new ( None , Some ( n ) ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Invalid native feature boundaries reach features.location disclosure and refuse only that coordinate-bearing feature member"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/entry/sections_map.rs",
+      "site": "bound: Bound : : new ( Some ( 1 ) , None ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Invalid native feature boundaries reach features.location disclosure and refuse only that coordinate-bearing feature member"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/entry/sections_map.rs",
+      "site": "bound: Bound : : new ( Some ( n ) , None ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Invalid native feature boundaries reach features.location disclosure and refuse only that coordinate-bearing feature member"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/entry/sections_map.rs",
+      "site": "bound: new ( Some ( n ) , Some ( n ) ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Invalid native feature boundaries reach features.location disclosure and refuse only that coordinate-bearing feature member"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/sequence.rs",
+      "site": "parse: ; let sequence = AminoAcids : : new ( & sequence ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Direct FASTA admission checks the exact accession, human source header, UTF-8 residues and representable sequence length before returning the one sequence record"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/sequence.rs",
+      "site": "parse: text = std : : str : : from_utf8 ( bytes ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Direct FASTA admission checks the exact accession, human source header, UTF-8 residues and representable sequence length before returning the one sequence record"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/uniprot/sequence.rs",
+      "site": "parse: try_from ( sequence . as_str ( ) . len ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "uniprot",
+      "reason": "Direct FASTA admission checks the exact accession, human source header, UTF-8 residues and representable sequence length before returning the one sequence record"
+    },
+    {
+      "path": "crates/biomcp-adapters/src/who_ivd/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Native { # [ serde ( rename",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "who_ivd",
+      "reason": "Removed unknown-column refusal. NativeCsv delivers every valid cell as an exact String, including empty cells; UTF-8, header and row-width failures are wire protocol failures."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/who_pq/raw.rs",
+      "site": "adapter serde refusal: [ serde ( deny_unknown_fields ) ] pub ( super ) struct Native { # [ serde ( rename",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "who_pq",
+      "reason": "Removed unknown-column refusal. NativeCsv delivers every valid cell as an exact String, including empty cells; UTF-8, header and row-width failures are wire protocol failures."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/wikipathways/gpml_raw.rs",
+      "site": "matches: | | revision . parse : : < u64 > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "identity_refusal",
+      "owner": "wikipathways",
+      "reason": "The GPML revision must be a positive exact native revision matching the requested pathway before raw HTTP caching"
+    },
+    {
+      "path": "crates/biomcp-query/src/adverse_event.rs",
+      "site": "search: and_then ( status : : local ) , } , ) ; if let Ok ( page ) = reply { let returned = page . items .",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "adverse_event.rs",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/adverse_event.rs",
+      "site": "search: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "adverse_event.rs",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/adverse_event/get.rs",
+      "site": "read: new ( q . id ( ) . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "adverse_event",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/adverse_event_maude.rs",
+      "site": "too_large: new ( query . id ( ) . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "adverse_event_maude.rs",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/adverse_event_maude/record.rs",
+      "site": "load: new ( query . id ( ) . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "adverse_event_maude",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/evidence/graph.rs",
+      "site": "target: : None } ) } result = > result , } ; if let Ok ( target ) = & result { snapshot . target = Some (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "article",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/get.rs",
+      "site": "append: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/get.rs",
+      "site": "get: or ( status : : local ( e ) ) ; } if let Ok ( found ) = & result { for id in found { if",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "article",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/named.rs",
+      "site": "litsense: outcome . term = Text : : new ( & term ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/named.rs",
+      "site": "pubtator: ( ) . or_else ( | | result . as_ref ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/named.rs",
+      "site": "pubtator: outcome . term = Text : : new ( & term ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/preprint.rs",
+      "site": "cards: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/save.rs",
+      "site": "text: try_from ( doc . body . parts . len ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/sections/fulltext.rs",
+      "site": "run: , files ) | files . clone ( ) ) ) ; if let Ok ( Some ( ( _ , files ) ) ) = data {",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "article",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/sections/fulltext.rs",
+      "site": "run: or ( status : : local ( e ) ) ; } if let Ok ( Some ( doc ) ) = & result { out . dropped",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "article",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/semantic_edges.rs",
+      "site": "create: insert ( serde_json : : to_string ( & item . key ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/semantic_scholar.rs",
+      "site": "search: outcome . term = Text : : new ( & term ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/sources.rs",
+      "site": "europe_search: outcome . term = Text : : new ( & term ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/sources.rs",
+      "site": "litvar_search: remaining ( ) ; let term = selected . as_ref ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/sources.rs",
+      "site": "pubmed_search: outcome . term = Text : : new ( & term ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/supplement.rs",
+      "site": "download: . with_query ( query . clone ( ) ) , ) ; let Ok ( selection ) = super : : protein_change : : Selection : : new",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "article",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/supplement/page.rs",
+      "site": "overview: name : Text : : new ( & s . name ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "download: . with_query ( query . clone ( ) ) , ) ; let Ok ( selection ) = super : : protein_change : : Selection : : new",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "article",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "find: = u32 : : try_from ( page . len ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "find: = u64 : : try_from ( hits . len ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "find: = usize : : try_from ( query . offset ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "find: escaped_bytes ( row ) + serde_json : : to_vec ( path ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "find: markdown : biodata : : Markdown : : new ( row ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "select: ( _ ) ) { \"Europe PMC body sections and tables\" } else { \"PMC body sections and tables\" } ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/text.rs",
+      "site": "select: > ( ) . join ( part . separator ) , ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/author/get.rs",
+      "site": "get: sources . push ( outcome ) ; } let card = reply . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "author",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/biomarker/get.rs",
+      "site": "get: : SecretName : : NciApiKey ) , ) ) ; } } if let Ok ( reply ) = reply { out . include_refusals ( reply . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "biomarker",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/chembl.rs",
+      "site": "assay_count: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/chembl.rs",
+      "site": "assay_count: local = error . and_then ( status : : local ) ; if let Ok ( ( assay_count , metadata ) ) = reply { crate : :",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "cell_line",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/chembl.rs",
+      "site": "attach: ( problem ( \"release\" ) ) ; } let release = release . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/chembl.rs",
+      "site": "get_at: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/chembl.rs",
+      "site": "get_at: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . problems . extend ( page",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "cell_line",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/get.rs",
+      "site": "get: : : new ( h . accession . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/get.rs",
+      "site": "resolve: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 3,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/mod.rs",
+      "site": "search: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/mod.rs",
+      "site": "search: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "cell_line",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/cell_line/provenance.rs",
+      "site": "attach: : : ValueUnknown , } ) ; } let release = release . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "cell_line",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/companion.rs",
+      "site": "search: ) . and_then ( | v | v . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "diagnostic",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/companion.rs",
+      "site": "search: ) . copied ( ) ; let mut group_unsupported = false ; if let Ok ( page ) = result { let q = page . info .",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "diagnostic",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/get.rs",
+      "site": "get: ) . and_then ( | v | v . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "diagnostic",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/get.rs",
+      "site": "get: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( record ) = result { let query = record . info .",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "diagnostic",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/mod.rs",
+      "site": "search: ) . and_then ( | v | v . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "diagnostic",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/mod.rs",
+      "site": "search: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( ( items , total , info ) ) = result { crate",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "diagnostic",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/recall.rs",
+      "site": "search: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( page ) = result { let returned = page . items .",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "diagnostic",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/diagnostic/who.rs",
+      "site": "get: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( ( product , _info ) ) = result { { let found",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "diagnostic",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/monarch.rs",
+      "site": "get: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "disease",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/monarch.rs",
+      "site": "get: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "disease",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/mydisease.rs",
+      "site": "get: local = error . and_then ( status : : local ) ; if let Ok ( mapped ) = reply { out . include_refusals ( mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "disease",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/ols.rs",
+      "site": "search: and_then ( | v | ols : : components ( v ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "disease",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/ols.rs",
+      "site": "search: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . rows",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "disease",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/seer.rs",
+      "site": "fetched: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "disease",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/seer.rs",
+      "site": "get: ) } ; let mut out = empty ( body ) ; let Ok ( selection ) = seer : : selection ( query , id ) else",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "disease",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/seer.rs",
+      "site": "get: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . window",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "disease",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/disease/seer.rs",
+      "site": "search: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . window",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "disease",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug.rs",
+      "site": "search: Mychem , leg . finish ( ) , error ) ) ; if let Ok ( ( page , received ) ) = result { out . include_refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug.rs",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug.rs",
+      "site": "selected_get: Mychem , leg . finish ( ) , error ) ) ; if let Ok ( document ) = result { { let unavailable = out . sources",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug.rs",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/civic.rs",
+      "site": "get: Civic , leg . finish ( ) , error ) ) ; if let Ok ( mapped ) = result { out . include_refusals ( mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/civic.rs",
+      "site": "search: Civic , leg . finish ( ) , error ) ) ; if let Ok ( mapped ) = result { out . include_refusals ( mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/ddinter.rs",
+      "site": "get: Ddinter , leg . finish ( ) , error ) ) ; if let Ok ( found ) = result { status : : item ( & mut",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/ddinter.rs",
+      "site": "search: Ddinter , leg . finish ( ) , error ) ) ; if let Ok ( mapped ) = result { out . include_refusals ( mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/drugsfda.rs",
+      "site": "get: Drugsfda , leg . finish ( ) , error ) ) ; if let Ok ( page ) = result { if let Some ( source ) =",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/drugsfda.rs",
+      "site": "search: Drugsfda , leg . finish ( ) , error ) ) ; if let Ok ( page ) = result { out . include_refusals ( page . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/ema.rs",
+      "site": "get: Ema , leg . finish ( ) , error ) ) ; if let Ok ( found ) = result { { let ( found , identity_failed ,",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/ema.rs",
+      "site": "search: Ema , leg . finish ( ) , error ) ) ; if let Ok ( rows ) = result { out . include_refusals ( rows . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/native.rs",
+      "site": "search: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( window ) = result { out . include_refusals ( window . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/native/sections.rs",
+      "site": "page: . input ( ) . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/next.rs",
+      "site": "civic: as_str ( ) . parse : : < GeneSymbol > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/next.rs",
+      "site": "genomic: ) ? ; expression . as_str ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/next.rs",
+      "site": "genomic: . parse ( ) . ok ( ) ? , build ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/next.rs",
+      "site": "genomic: ; } Chromosome : : from_accession ( accession . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/openfda_label.rs",
+      "site": "get: SOURCE , leg . finish ( ) , error ) ) ; if let Ok ( page ) = result { out . problems . extend ( page",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/openfda_label.rs",
+      "site": "search: ; disclosure ( & mut out , discovery . free_text ) ; if let Ok ( window ) = result { let total = window . total (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/recall.rs",
+      "site": "get: . input ( ) . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "drug",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/recall.rs",
+      "site": "get: into_reply ( q . clone ( ) , None ) ) ; let Ok ( id ) = q . input ( ) . to_string ( ) .",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/recall.rs",
+      "site": "search: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( page ) = result { let returned = page . items .",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/who.rs",
+      "site": "get: WhoPq , leg . finish ( ) , error ) ) ; if let Ok ( ( card , _ ) ) = result { crate : :",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/drug/who.rs",
+      "site": "search: WhoPq , leg . finish ( ) , error ) ) ; if let Ok ( rows ) = result { let total = rows . len (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "drug",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/gene/get.rs",
+      "site": "join: Text : : new ( & id . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gene",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/gene/resolve.rs",
+      "site": "match_text: None , } ; Text : : new ( & value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gene",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/gene/search.rs",
+      "site": "header: kind , text : Text : : new ( & value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gene",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/gene/sections/civic.rs",
+      "site": "run: Text : : new ( & id . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gene",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/gene/sections/protein.rs",
+      "site": "run: ; let mut problems = Vec : : new ( ) ; if let Ok ( mapped ) = & result { dropped | = mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "gene",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/gwas/mod.rs",
+      "site": "search: copied ( ) ; let counts = result . as_ref ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/gwas/mod.rs",
+      "site": "search: len ( ) as u32 , page . total ) ) ; if let Ok ( page ) = result { out . include_refusals ( page . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "gwas",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/gwas/next.rs",
+      "site": "search: { let key = serde_json : : to_string ( & request ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/gwas/threshold.rs",
+      "site": "append: . get ( ) . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gwas",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/gwas/threshold.rs",
+      "site": "read: : Gwas , leg . finish ( ) , error ) ; if let Ok ( page ) = & result { incoming . retrieved_count = Some (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "gwas",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/gene.rs",
+      "site": "headers: , record : input . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/gpml_membership.rs",
+      "site": "hgnc_id: ; } biodata : : HgncId : : new ( number ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/gpml_membership.rs",
+      "site": "hgnc_id: number = value . parse : : < u32 > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/gpml_membership.rs",
+      "site": "hgnc_id: str ) - > Option < biodata : : HgncId > { if let Ok ( id ) = value . parse ( ) { return Some (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pathway",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/gpml_membership.rs",
+      "site": "resolve: ; } else { sources . push ( outcome ) ; } if let Ok ( mapped ) = mapped { candidates . extend ( mapped . value",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pathway",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/membership.rs",
+      "site": "accession: ) | base ) ; UniProtAcc : : new ( base ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/membership.rs",
+      "site": "accession: new ( row . reference . id . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/membership.rs",
+      "site": "resolve: ) , row . reference . id ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/membership.rs",
+      "site": "resolve: . err ( ) . copied ( ) , ) ) ; if let Ok ( mapped ) = mapped { genes = mapped . value ; problems",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pathway",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/relation.rs",
+      "site": "restart: limit ) . map ( Request : : PathwayEvents ) } ; if let Ok ( request ) = request { out . next . push ( crate",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pathway",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/union.rs",
+      "site": "initial: content_revision . and_then ( | s | s . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/wikipathways.rs",
+      "site": "get: WikiPathways , leg . finish ( ) , error ) ) ; if let Ok ( mapped ) = reply { out . include_refusals ( mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "pathway",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/wikipathways.rs",
+      "site": "headers: content_revision . and_then ( | s | s . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/associations.rs",
+      "site": "get: . id ( ) . as_str ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "phenotype",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/associations.rs",
+      "site": "get: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "phenotype",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/associations.rs",
+      "site": "get: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "phenotype",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/mod.rs",
+      "site": "search: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "phenotype",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/mod.rs",
+      "site": "search: local = error . and_then ( status : : local ) ; if let Ok ( page ) = reply { out . include_refusals ( page . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "phenotype",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/record.rs",
+      "site": "acquire: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "phenotype",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/phenotype/record.rs",
+      "site": "get: . id ( ) . as_str ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "phenotype",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/prepare.rs",
+      "site": "selector_error: biodata : : Text > , _ > > ( ) ; let Ok ( values ) = values else { return UsageError : : arguments ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "prepare.rs",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/get.rs",
+      "site": "get: mut item = empty_item ( input . clone ( ) ) ; if let Ok ( ids ) = result { asked | = ! ids . is_empty",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "protein",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/get.rs",
+      "site": "ids: as_str ( ) ) { for id in gene . uniprot { if let Ok ( id ) = UniProtIsoform : : new ( id . as_str (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "protein",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/mod.rs",
+      "site": "reply_problem: : Text : : new ( id . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "protein",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/relations.rs",
+      "site": "read: new ( q . accession ( ) . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "protein",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/sections.rs",
+      "site": "alternative_sequence: : Text : : new ( id . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "protein",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/sequence.rs",
+      "site": "problem: : Text : : new ( id . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "protein",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/sequence.rs",
+      "site": "run: as_ref ( ) . err ( ) . copied ( ) ; if let Ok ( mapped ) = result { out . include_refusals ( mapped . refusals",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "protein",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/source_relations.rs",
+      "site": "read: new ( query . complex ( ) . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "protein",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/source_sections.rs",
+      "site": "supplement: if wants ( q , ProteinSection : : Complexes ) & & let Ok ( query ) = ProteinRelationQuery : : new ( id , q . section_limit",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "protein",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/protein/source_sections.rs",
+      "site": "supplement: if wants ( q , ProteinSection : : Domains ) & & let Ok ( query ) = ProteinDomainsQuery : : new ( id . clone ( )",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "protein",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/study/get.rs",
+      "site": "sections: new ( q . id ( ) . as_str ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "study",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial.rs",
+      "site": "apply_page: value | biodata : : Text : : new ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial.rs",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial.rs",
+      "site": "search: ( ) . or_else ( | | result . as_ref ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial.rs",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial.rs",
+      "site": "search: as_deref ( ) , & mut outcome , page ) ; } if let Ok ( version ) = version { outcome . problems . extend ( version",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "trial.rs",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial.rs",
+      "site": "search: mut outcome , found , identity_failed , unavailable ) ; } ; if let Ok ( page ) = result { if page . condition_word_mismatch { condition :",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "trial.rs",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/condition.rs",
+      "site": "resolve: Text : : new ( & input . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/condition.rs",
+      "site": "resolve: { let value = Text : : new ( & code ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/condition.rs",
+      "site": "resolved: ; let value = Text : : new ( & code ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/condition.rs",
+      "site": "resolved: ? ; let unique : Curie = unique . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/document.rs",
+      "site": "download: finish ( remaining ) ; Download { out , file : result . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/get.rs",
+      "site": "fetch: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/get/page.rs",
+      "site": "record: Text : : new ( & id . to_string ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/nci.rs",
+      "site": "apply: : : < u32 > ( ) . ok ( ) ) . unwrap_or_default ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/nci.rs",
+      "site": "apply: as_str ( ) . parse : : < u32 > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/nci.rs",
+      "site": "search: : Nci , leg . finish ( ) , error ) ; if let Ok ( page ) = result { apply ( q , cx . fresh",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "trial",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/nci/get.rs",
+      "site": "fetch: and_then ( | value | u64 : : try_from ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "A local size, offset or signed transport timestamp converts to an optional bounded representation; the owning caller retains the existing absence or local failure path on overflow."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/alphagenome.rs",
+      "site": "request: & allele . alternate ( ) . to_string ( ) , ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/alphagenome.rs",
+      "site": "request: . location ( ) . sequence , Build : : GRCh38 ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/alphagenome_join.rs",
+      "site": "notation: = reference . strip_prefix ( \"chr\" ) ? . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/assertions.rs",
+      "site": "section: . assertion_limit ( source ) , query . section_offset ( ) ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/assertions.rs",
+      "site": "section: q ) = id . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/assertions.rs",
+      "site": "section: | input | VariantAssertionsGet : : new ( input , source ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/continuations.rs",
+      "site": "next: ) ; if query . input ( ) . namespace ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/direct.rs",
+      "site": "get: \"clinvar:\" ) . unwrap_or ( input ) ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/direct.rs",
+      "site": "get: . ok ( ) } else { input . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/direct.rs",
+      "site": "get: requested = if query . input ( ) . namespace ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/direct.rs",
+      "site": "source: } match ( query . input ( ) . namespace ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "continuation: ( ) . parse ( ) . ok ( ) ? ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "continuation: . for_candidate ( id . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "rs_id: & [ VariantHeader ] ) - > Option < VariantId > { if let Ok ( id @ VariantId : : Rs ( _ ) ) = query",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "variant",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "section: : Gwas , leg . finish ( ) , error ) ; if let Ok ( page ) = & result { source . retrieved_count = Some (",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "variant",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "source_record: SourceRecord > { id . to_string ( ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/hotspots.rs",
+      "site": "section: . parse : : < biodata : : GeneSymbol > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/mod.rs",
+      "site": "get: : Rejected ; rejection = Text : : new ( \"transcript_gene_mismatch\" ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/mod.rs",
+      "site": "join_id: ) . sequence , biodata : : Build : : GRCh37 ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/mod.rs",
+      "site": "myvariant_identity: term = if query . input ( ) . namespace ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/mod.rs",
+      "site": "resolve: if result . rejected { Text : : new ( \"validation_warning\" ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/oncokb.rs",
+      "site": "genomic: ( \"chr\" ) . unwrap_or ( reference ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/oncokb.rs",
+      "site": "genomic: from_accession ( allele . location ( ) . sequence , build ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/oncokb.rs",
+      "site": "input_genomic: ( \"chr\" ) . unwrap_or ( reference ) . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/oncokb.rs",
+      "site": "input_genomic: biodata : : Chromosome : : from_accession ( accession , build ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/oncokb.rs",
+      "site": "input_genomic: starts_with ( \"g.\" ) { return None ; } let chromosome = if let Ok ( accession ) = reference . parse : : < biodata : :",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "variant",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/population.rs",
+      "site": "join: . location ( ) . sequence , Build : : GRCh38 ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/population.rs",
+      "site": "section: Gnomad , record : Text : : new ( & id ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/population.rs",
+      "site": "stratum: & ancestry ) { ( Text : : new ( ancestry ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/population_detail.rs",
+      "site": "read: Gnomad , Reason : : Disabled ) ; return read ; } if let Ok ( identity ) = query . identity ( ) { let found =",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "variant",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/population_identity.rs",
+      "site": "read: reason = error . and_then ( status : : reason ) ; if let Ok ( ( rows , rejection ) ) = result { found . rows",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "variant",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/population_release.rs",
+      "site": "checked: and_then ( | version | Text : : new ( version ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/recurrence/matching.rs",
+      "site": "matches: . parse : : < biodata : : Sequence > ( ) . ok ( )",
+      "maximum": 2,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/recurrence/matching.rs",
+      "site": "matches: as_str ( ) . parse : : < Chromosome > ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/recurrence/matching.rs",
+      "site": "matches: from_accession ( allele . location ( ) . sequence , build ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An optional specialized lookup or exact-match projection rejects an unsupported checked input. The caller retains its existing unavailable or unmatched path rather than inventing a source value."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/recurrence/matching.rs",
+      "site": "problem: { source , record : Text : : new ( record ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/search.rs",
+      "site": "search: Err ( * error ) , } ; let terms = terms . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/search.rs",
+      "site": "search: and_then ( status : : local ) , } , ) ; if let Ok ( reply ) = reply { out . include_refusals ( reply . rows",
+      "maximum": 1,
+      "class": "migrated",
+      "owner": "variant",
+      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/search.rs",
+      "site": "search: ok ( ) . flatten ( ) ; let selector_terms = selector_terms . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    }
   ],
   "fields": [
-    {"path":"pubmed/map.rs","class":"migrated","fields":["title","journal","date","electronic_date","authors","first_author","types","articleids","doi","pmcid"],"reason":"Present invalid optional fields use the shared problem context; malformed members name their field"},
-    {"path":"pubmed/efetch.rs","class":"migrated","fields":["title","journal","doi","pmcid","date","electronic_date","authors","abstract_parts.label","abstract_parts.text","corrections.pmid"],"reason":"The citation and its PMID survive rejected optional XML text and IDs"},
-    {"path":"pubmed/indexing.rs","class":"migrated","fields":["mesh.descriptor","mesh.qualifiers.name","keywords","affiliations","orcids"],"reason":"Invalid optional text omits only its member; ORCID values retain native text without new identity heuristics"},
-    {"path":"pubmed/mod.rs","class":"migrated","fields":["notices.not_found_words","notices.pubmed_warnings","notices.pubmed_warning.phrases"],"reason":"Invalid optional notice text is omitted with a source problem"},
-    {"path":"orcid/raw.rs","class":"migrated","fields":["credit_name","given_names","family_name","name"],"reason":"Each optional name is decoded tolerantly and checked through the shared context; the existing source selection chooses the display name"},
-    {"path":"orcid/works.rs","class":"migrated","fields":["work_type","external_ids","external_ids.relationship","title","subtitle","translated_title","publication_date","journal_title","url","display_index","external_ids.url","source.source_orcid","source.source_client_id","source.source_name","source.assertion_origin_orcid","source.assertion_origin_client_id","source.assertion_origin_name"],"reason":"Tolerant optional raw fields report problems against the work path or whole-works path for group identifiers; stored pages retain the problems"},
-    {"path":"pubmed/raw.rs; pubmed/efetch.rs; orcid/raw.rs; orcid/works.rs","class":"identity_refusal","fields":["PubMed search idlist and count","PubMed summary uid and matching key","PubMed citation PMID","ORCID requested person/name/works/work paths","ORCID put_code","ORCID external ID kind and value (member only)"],"reason":"Required identities retain strict decoding at their own record or member boundary"},
-    {"path":"pubmed/map.rs; pubmed/efetch.rs; orcid/raw.rs; orcid/works.rs","class":"legitimate_absence","fields":["Missing or null optional fields","Unrecognized native publication-type projection","Duplicate electronic and print dates","Unselected ArticleId namespaces","Unknown correction relation or kind","Nonpublic person names and work assertions","Empty public assertion groups","Missing or nonpublic person name object","No unrequested author summary beyond first author"],"reason":"These branches represent missing, unselected or inaccessible source facts and never convert an invalid optional text value into silence"}
+    {
+      "path": "civic/variant_subject.rs",
+      "class": "legitimate_absence",
+      "fields": [
+        "Unsupported common gene or protein projection"
+      ],
+      "reason": "Native member IDs, feature identity and labels, and every original HGVS description remain available. Unsupported common forms do not create a protein interpretation or alter the exact native profile expression."
+    },
+    {
+      "path": "orcid/raw.rs",
+      "class": "migrated",
+      "fields": [
+        "credit_name",
+        "given_names",
+        "family_name",
+        "name"
+      ],
+      "reason": "Each optional name is decoded tolerantly and checked through the shared context; the existing source selection chooses the display name"
+    },
+    {
+      "path": "orcid/works.rs",
+      "class": "migrated",
+      "fields": [
+        "work_type",
+        "external_ids",
+        "external_ids.relationship",
+        "title",
+        "subtitle",
+        "translated_title",
+        "publication_date",
+        "journal_title",
+        "url",
+        "display_index",
+        "external_ids.url",
+        "source.source_orcid",
+        "source.source_client_id",
+        "source.source_name",
+        "source.assertion_origin_orcid",
+        "source.assertion_origin_client_id",
+        "source.assertion_origin_name"
+      ],
+      "reason": "Tolerant optional raw fields report problems against the work path or whole-works path for group identifiers; stored pages retain the problems"
+    },
+    {
+      "path": "pubmed/efetch.rs",
+      "class": "migrated",
+      "fields": [
+        "title",
+        "journal",
+        "doi",
+        "pmcid",
+        "date",
+        "electronic_date",
+        "authors",
+        "abstract_parts.label",
+        "abstract_parts.text",
+        "corrections.pmid"
+      ],
+      "reason": "The citation and its PMID survive rejected optional XML text and IDs"
+    },
+    {
+      "path": "pubmed/indexing.rs",
+      "class": "migrated",
+      "fields": [
+        "mesh.descriptor",
+        "mesh.qualifiers.name",
+        "keywords",
+        "affiliations",
+        "orcids"
+      ],
+      "reason": "Invalid optional text omits only its member; ORCID values retain native text without new identity heuristics"
+    },
+    {
+      "path": "pubmed/map.rs",
+      "class": "migrated",
+      "fields": [
+        "title",
+        "journal",
+        "date",
+        "electronic_date",
+        "authors",
+        "first_author",
+        "types",
+        "articleids",
+        "doi",
+        "pmcid"
+      ],
+      "reason": "Present invalid optional fields use the shared problem context; malformed members name their field"
+    },
+    {
+      "path": "pubmed/map.rs; pubmed/efetch.rs; orcid/raw.rs; orcid/works.rs",
+      "class": "legitimate_absence",
+      "fields": [
+        "Missing or null optional fields",
+        "Unrecognized native publication-type projection",
+        "Duplicate electronic and print dates",
+        "Unselected ArticleId namespaces",
+        "Unknown correction relation or kind",
+        "Nonpublic person names and work assertions",
+        "Empty public assertion groups",
+        "Missing or nonpublic person name object",
+        "No unrequested author summary beyond first author"
+      ],
+      "reason": "These branches represent missing, unselected or inaccessible source facts and never convert an invalid optional text value into silence"
+    },
+    {
+      "path": "pubmed/mod.rs",
+      "class": "migrated",
+      "fields": [
+        "notices.not_found_words",
+        "notices.pubmed_warnings",
+        "notices.pubmed_warning.phrases"
+      ],
+      "reason": "Invalid optional notice text is omitted with a source problem"
+    },
+    {
+      "path": "pubmed/raw.rs; pubmed/efetch.rs; orcid/raw.rs; orcid/works.rs",
+      "class": "identity_refusal",
+      "fields": [
+        "PubMed search idlist and count",
+        "PubMed summary uid and matching key",
+        "PubMed citation PMID",
+        "ORCID requested person/name/works/work paths",
+        "ORCID put_code",
+        "ORCID external ID kind and value (member only)"
+      ],
+      "reason": "Required identities retain strict decoding at their own record or member boundary"
+    }
   ]
 }

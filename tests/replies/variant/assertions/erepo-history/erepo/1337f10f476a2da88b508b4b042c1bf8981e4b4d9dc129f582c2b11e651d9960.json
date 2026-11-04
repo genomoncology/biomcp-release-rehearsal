@@ -1,0 +1,60 @@
+{
+  "method": "GET",
+  "source": "erepo",
+  "url": "https://erepo.clinicalgenome.org/evrepo/api/summary/classifications?columns=caId&values=CA000434&matchTypes=exact&pgSize=3&pg=1",
+  "exchanges": [
+    {
+      "fetched": 1792876427,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "status": {
+            "code": 200,
+            "name": "OK"
+          },
+          "data": [
+            {
+              "PCERDocID": "PCER000001171",
+              "approvedDate": "2024-08-05",
+              "caId": "CA000434",
+              "classification": "Pathogenic",
+              "condition": "Li-Fraumeni syndrome",
+              "docVersion": "1.1.0",
+              "ep": "TP53 VCEP",
+              "gene": "TP53",
+              "metCodes": [
+                "PP4_Moderate",
+                "PM2_Supporting",
+                "PS2",
+                "PS3",
+                "PS4",
+                "PM1",
+                "PP3"
+              ],
+              "mondoId": "MONDO:0018875",
+              "publishedDate": "2024-08-05",
+              "unMetCodes": [
+                "PS1",
+                "BS2",
+                "BS1",
+                "BS3",
+                "PM5",
+                "BP4",
+                "BA1"
+              ],
+              "uuid": "8d32df42-16ac-41f2-9bf1-e2b9ce206190",
+              "versionsList": [
+                "1.1.0",
+                "1.0.0"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

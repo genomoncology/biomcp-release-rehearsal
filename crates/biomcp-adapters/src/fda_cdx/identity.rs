@@ -1,6 +1,6 @@
 use biodata::{DiagnosticCell, DiagnosticDeviceId, DiagnosticDrugApplication, FdaDrugApplication};
 
-fn parameter<'a>(href: &'a str, keys: &[&str]) -> Result<Option<&'a str>, ()> {
+fn parameter<'a>(href: &'a str, keys: &[&str]) -> Result<Option<&'a str>, biomcp_fetch::BadReply> {
     if !href
         .strip_prefix("https://")
         .or_else(|| href.strip_prefix("http://"))
@@ -15,13 +15,13 @@ fn parameter<'a>(href: &'a str, keys: &[&str]) -> Result<Option<&'a str>, ()> {
     for pair in query.split('&') {
         let Some((key, value)) = pair.split_once('=') else {
             if keys.iter().any(|v| key_matches(v, pair)) {
-                return Err(());
+                return Err(biomcp_fetch::BadReply);
             }
             continue;
         };
         if keys.iter().any(|v| key_matches(v, key)) {
             if value.is_empty() || found.is_some_and(|previous| previous != value) {
-                return Err(());
+                return Err(biomcp_fetch::BadReply);
             }
             found = Some(value);
         }
@@ -60,7 +60,7 @@ pub(super) fn drugs(cell: &DiagnosticCell) -> (Box<[DiagnosticDrugApplication]>,
         let number = match parameter(&link.href, &["ApplNo", "varApplNo"]) {
             Ok(Some(value)) => value,
             Ok(None) => continue,
-            Err(()) => {
+            Err(biomcp_fetch::BadReply) => {
                 conflict = true;
                 continue;
             }
@@ -109,7 +109,7 @@ pub(super) fn devices(cell: &DiagnosticCell) -> (Box<[DiagnosticDeviceId]>, bool
         let value = match parameter(&link.href, &["ID"]) {
             Ok(Some(value)) => value,
             Ok(None) => continue,
-            Err(()) => {
+            Err(biomcp_fetch::BadReply) => {
                 conflict = true;
                 continue;
             }

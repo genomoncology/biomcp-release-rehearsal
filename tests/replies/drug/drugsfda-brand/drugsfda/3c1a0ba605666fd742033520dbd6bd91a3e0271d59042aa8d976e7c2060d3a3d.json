@@ -1,0 +1,139 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=products.brand_name.exact%3A%22SARCLISA%20ESCENA%22%20OR%20products.active_ingredients.name.exact%3A%22SARCLISA%20ESCENA%22&limit=1",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+            "terms": "https://open.fda.gov/terms/",
+            "license": "https://open.fda.gov/license/",
+            "last_updated": "2026-10-28",
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "submissions": [
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20260709",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "TYPE 3",
+                  "submission_class_code_description": "Type 3 - New Dosage Form",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "86540",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2026/761445Orig1s000Correctedltr.pdf",
+                      "date": "20260713",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "86552",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/761445Orig1s000lbl.pdf",
+                      "date": "20260715",
+                      "type": "Label"
+                    }
+                  ]
+                }
+              ],
+              "application_number": "BLA761445",
+              "sponsor_name": "SANOFI-AVENTIS U.S. LLC",
+              "openfda": {
+                "application_number": [
+                  "BLA761445"
+                ],
+                "brand_name": [
+                  "SARCLISA ESCENA"
+                ],
+                "generic_name": [
+                  "ISATUXIMAB-IRFC"
+                ],
+                "manufacturer_name": [
+                  "Sanofi-Aventis U.S. LLC"
+                ],
+                "product_ndc": [
+                  "0024-0674"
+                ],
+                "product_type": [
+                  "HUMAN PRESCRIPTION DRUG"
+                ],
+                "route": [
+                  "SUBCUTANEOUS"
+                ],
+                "substance_name": [
+                  "ISATUXIMAB"
+                ],
+                "rxcui": [
+                  "2747132",
+                  "2747135"
+                ],
+                "spl_id": [
+                  "564889eb-80a7-336a-e063-6294a90a30c8"
+                ],
+                "spl_set_id": [
+                  "07730e8c-1340-4d30-8d71-e20f850db8da"
+                ],
+                "package_ndc": [
+                  "0024-0674-01"
+                ],
+                "nui": [
+                  "N0000192336",
+                  "N0000192335",
+                  "M0001357"
+                ],
+                "pharm_class_epc": [
+                  "CD38-directed Cytolytic Antibody [EPC]"
+                ],
+                "pharm_class_moa": [
+                  "CD38-directed Antibody Interactions [MoA]"
+                ],
+                "pharm_class_cs": [
+                  "Antibodies, Monoclonal [CS]"
+                ],
+                "unii": [
+                  "R30772KCU0"
+                ]
+              },
+              "products": [
+                {
+                  "product_number": "001",
+                  "reference_drug": "No",
+                  "brand_name": "SARCLISA ESCENA",
+                  "active_ingredients": [
+                    {
+                      "name": "ISATUXIMAB-IRFC",
+                      "strength": "1400MG/10ML (140MG/ML)"
+                    }
+                  ],
+                  "reference_standard": "No",
+                  "dosage_form": "VIAL",
+                  "route": "SINGLE-DOSE",
+                  "marketing_status": "Prescription"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

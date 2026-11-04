@@ -1,0 +1,37 @@
+{
+  "feature": "trial-nci",
+  "live_check": "missing nightly NCI user-owned API key; retained native public-tier replies use an isolated replay key",
+  "story": "NCI exact biomarker code search preserves a positive native total and the matched entry criterion and inclusion indicator. Captured 2026-10-29; historical 0410 count326 belongs to its earlier snapshot. Current /biomarkers code C96022 criterion inclusion count318 equals the trial source total318.",
+  "replay": "trial/nci/biomarker/native",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "nci",
+        "--biomarker-code",
+        "C96022",
+        "--limit",
+        "2",
+        "--biomarker-use",
+        "inclusion"
+      ],
+      "expect": {
+        "/page/total": 318,
+        "/page/returned": 2,
+        "/result/items/0/nct_id": "NCT05677490",
+        "/result/items/0/matched_biomarkers/0/nci_thesaurus_concept_id": "C96022",
+        "/result/items/0/matched_biomarkers/0/eligibility_criterion": "inclusion",
+        "/result/items/0/matched_biomarkers/0/inclusion_indicator": "TREE",
+        "/result/items/1/nct_id": "NCT06203600"
+      },
+      "max_bytes": 6500
+    }
+  ]
+}

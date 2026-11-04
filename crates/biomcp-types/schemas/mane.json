@@ -1,21 +1,20 @@
 {
   "$defs": {
-    "ManeStatus": {
+    "Reply_ManeStatus": {
       "description": "The source-stated MANE transcript status.",
-      "enum": [
-        "select",
-        "plus_clinical"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " MANE Select transcript pair.",
         " MANE Plus Clinical transcript pair."
+      ],
+      "x-extensible-enum": [
+        "select",
+        "plus_clinical"
       ]
     }
   },
   "$id": "biodata.mane/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "A source-stated MANE pair with versioned sequence accessions.",
   "properties": {
     "ensembl": {
@@ -29,7 +28,7 @@
       "type": "string"
     },
     "status": {
-      "$ref": "#/$defs/ManeStatus",
+      "$ref": "#/$defs/Reply_ManeStatus",
       "description": "Source-stated transcript status."
     }
   },

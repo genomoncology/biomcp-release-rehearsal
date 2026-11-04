@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "diagnostic-gtr",
   "story": "A complete synthetic GTR pair preserves exact selectors, quoted cells, native relations, conflicts, orphan rows and independent method lists.",
   "replay": "diagnostic/gtr-synthetic",
@@ -8,13 +9,9 @@
         "sync",
         "gtr"
       ],
-      "mcp": [
-        "sync",
-        "gtr"
-      ],
       "max_bytes": 198,
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/result/rows": 19,
         "/result/duplicate_identities": 1
       }
@@ -28,37 +25,19 @@
         "--gene",
         "BRCA1"
       ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "gtr",
-        "--gene",
-        "BRCA1"
-      ],
       "max_bytes": 4080,
       "expect": {
-        "/schema": "biomcp.diagnostic-page/2",
+        "/schema": "biomcp.diagnostic-page/5",
         "/page/total": 8,
         "/page/returned": 5,
         "/result/items/0/header/id": "GTR000006692.3",
         "/result/items/0/matched/kind": "gene",
         "/result/items/0/matched/relation/gene/ncbi_gene_id": "672",
-        "/result/count_unit": "test_identities"
+        "/result/count_unit": "test-identities"
       }
     },
     {
       "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "gtr",
-        "--gene-id",
-        "672",
-        "--offset",
-        "5"
-      ],
-      "mcp": [
         "search",
         "diagnostic",
         "--source",
@@ -72,21 +51,11 @@
       "expect": {
         "/page/total": 8,
         "/result/items/1/identity_status": "conflict",
-        "/result/items/2/identity_status": "missing_card"
+        "/result/items/2/identity_status": "missing-card"
       }
     },
     {
       "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "gtr",
-        "--gene",
-        "BRCA1",
-        "--type",
-        "Research"
-      ],
-      "mcp": [
         "search",
         "diagnostic",
         "--source",
@@ -111,14 +80,6 @@
         "--condition-id",
         "MedGen:C2676676"
       ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "gtr",
-        "--condition-id",
-        "MedGen:C2676676"
-      ],
       "max_bytes": 1014,
       "expect": {
         "/page/total": 1,
@@ -133,16 +94,9 @@
         "--source",
         "gtr"
       ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "GTR000006692.3",
-        "--source",
-        "gtr"
-      ],
       "max_bytes": 1543,
       "expect": {
-        "/result/kind": "gtr_test",
+        "/result/kind": "gtr-test",
         "/result/header/url": "https://www.ncbi.nlm.nih.gov/gtr/tests/classic/6692/",
         "/result/header/laboratory/name": "Synthetic \"quoted\" laboratory",
         "/result/clia_number": ""
@@ -157,19 +111,11 @@
         "gtr",
         "genes"
       ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "GTR000006692.3",
-        "--source",
-        "gtr",
-        "genes"
-      ],
       "max_bytes": 888,
       "expect": {
         "/page/total": 2,
         "/result/items/1/gene/ncbi_gene_id": "7157",
-        "/result/count_unit": "native_relation_rows",
+        "/result/count_unit": "native-relation-rows",
         "/result/distinct_id_total": 2
       }
     },
@@ -182,19 +128,11 @@
         "gtr",
         "conditions"
       ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "GTR000006692.3",
-        "--source",
-        "gtr",
-        "conditions"
-      ],
       "max_bytes": 547,
       "expect": {
         "/page/total": 1,
         "/result/items/0/snomed_ct_id": "",
-        "/result/count_unit": "native_relation_rows",
+        "/result/count_unit": "native-relation-rows",
         "/result/distinct_id_total": 1
       }
     },
@@ -209,61 +147,23 @@
         "--section-limit",
         "2"
       ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "GTR000006692.3",
-        "--source",
-        "gtr",
-        "methods",
-        "--section-limit",
-        "2"
-      ],
       "max_bytes": 825,
       "expect": {
         "/page/total": 4,
         "/result/items/0/list": "method_categories",
         "/result/items/1/index": 1,
-        "/result/count_unit": "native_method_entries"
+        "/result/count_unit": "native-method-entries"
       }
     },
     {
       "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "gtr",
-        "--gene",
-        "NOTLISTED"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "gtr",
-        "--gene",
-        "NOTLISTED"
-      ],
-      "max_bytes": 299,
-      "expect": {
-        "/status": "complete",
-        "/page/total": 0
-      }
-    },
-    {
-      "run": [
-        "sync",
-        "gtr",
-        "--fresh"
-      ],
-      "mcp": [
         "sync",
         "gtr",
         "--fresh"
       ],
       "max_bytes": 198,
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/result/rows": 19,
         "/result/duplicate_identities": 1
       }

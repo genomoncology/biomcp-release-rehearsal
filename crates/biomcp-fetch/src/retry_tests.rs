@@ -28,6 +28,7 @@ fn only_connect_timeout_and_reset_are_retryable_transport_errors() {
 #[test]
 fn internal_identity_excludes_credential_query_and_preserves_request_values() {
     let credential = KeyUse::Optional(Credential {
+        tier: biomcp_types::KeyTier::Fallback,
         secret: SecretName::NcbiApiKey,
         place: KeyPlace::Query("api_key"),
     });

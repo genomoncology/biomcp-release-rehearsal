@@ -1,8 +1,10 @@
 {
   "$defs": {
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
     "UniProtIsoform": {
@@ -11,7 +13,7 @@
       "type": "string"
     }
   },
-  "$id": "biomcp.protein-features-query/1",
+  "$id": "biomcp.protein-features-query/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Page five native UniProt features by exact type and displayed residue. No variant effect or clinical meaning is inferred; no bioinformatics tool runs.",

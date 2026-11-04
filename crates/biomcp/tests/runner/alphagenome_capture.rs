@@ -1,5 +1,6 @@
 //! Feature variant-alphagenome: unchanged external scorer messages retain their native values.
 use super::{SECTION, environment, fixture, invoke, routed};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -9,8 +10,8 @@ pub(super) fn trials() -> Vec<Trial> {
     let Some(root) = std::env::var_os("BIOMCP_ALPHAGENOME_SCORE_CAPTURE") else {
         return Vec::new();
     };
-    vec![Trial::test(
-        "variant/alphagenome-original-score-capture",
+    vec![transcript_trial(
+        "variant-alphagenome/alphagenome-original-score-capture",
         move || captured(&PathBuf::from(&root)).map_err(Into::into),
     )]
 }

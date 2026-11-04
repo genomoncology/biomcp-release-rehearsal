@@ -1,16 +1,10 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "drug-mychem",
   "story": "A caller disables MyChem before any request, cache read, or replay and receives source policy without choosing an identity.",
   "steps": [
     {
       "run": [
-        "search",
-        "drug",
-        "imatinib",
-        "--disable-sources",
-        "mychem"
-      ],
-      "mcp": [
         "search",
         "drug",
         "imatinib",

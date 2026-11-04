@@ -126,12 +126,7 @@ pub(super) fn start(
 pub(super) fn check(http: bool, fallback: bool) -> Check {
     check_source(http, fallback, false)
 }
-pub(super) fn nci() -> Check {
-    for http in [false, true] {
-        check_source(http, true, true)?;
-    }
-    Ok(())
-}
+
 fn check_source(http: bool, fallback: bool, nci: bool) -> Check {
     let assets = Environment::new().map_err(|e| e.to_string())?;
     let source = if nci { "nci" } else { "semantic-scholar" };
@@ -146,7 +141,7 @@ fn check_source(http: bool, fallback: bool, nci: bool) -> Check {
         |_| Ok(r#"{"total":0,"data":[]}"#.into()),
     )?;
     let certificate = assets.root().join("ca.pem");
-    stub.retain(&assets);
+    stub.retain(assets.shared_root());
     std::fs::write(&certificate, &stub.certificate).map_err(|e| e.to_string())?;
     let mut client = start(
         http,
@@ -185,7 +180,7 @@ fn check_source(http: bool, fallback: bool, nci: bool) -> Check {
         let args = query(index, nci, source);
         let refs = args.iter().map(String::as_str).collect::<Vec<_>>();
         let result = client.call(index, &refs)?;
-        if result.pointer("/sources/0/reason") == Some(&json!("no_key")) {
+        if result.pointer("/sources/0/reason") == Some(&json!("no-key")) {
             if selected.is_some() {
                 return Err("server failed to reload key".into());
             }

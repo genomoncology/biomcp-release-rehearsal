@@ -1,5 +1,5 @@
 {
-  "feature": "variant-recurrence",
+  "feature": "variant-identity",
   "live_check": "synthetic",
   "replay": "variant/recurrence",
   "story": "A captured explicit cohort query reports only exact allele sample observations and preserves a literal source notice",
@@ -22,33 +22,16 @@
         "--limit",
         "3"
       ],
-      "mcp": [
-        "variant",
-        "recurrence",
-        "NC_000007.13:g.140494253G>A",
-        "--source",
-        "cbioportal",
-        "--gene",
-        "BRAF",
-        "--study",
-        "msk_impact_2017",
-        "--profile",
-        "msk_impact_2017_mutations",
-        "--sample-set",
-        "msk_impact_2017_all",
-        "--limit",
-        "3"
-      ],
       "max_bytes": 4788,
       "expect": {
-        "/schema": "biomcp.variant-recurrence/5",
+        "/schema": "biomcp.variant-recurrence/11",
         "/result/observed_sample_count": 1,
         "/result/examined_rows": 3,
         "/result/all_pages_read": false,
         "/result/more": true,
         "/result/terms/unverified": true,
         "/result/study/description": "Synthetic notice: commercial reuse requires separate permission",
-        "/result/matching_granularity": "exact_genomic_allele",
+        "/result/matching_granularity": "exact-genomic-allele",
         "/problems/0/field": "sample_set.selected_sample_count"
       }
     }

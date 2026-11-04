@@ -1,0 +1,32 @@
+{
+  "feature": "variant-population",
+  "replay": "variant-population/no-joint",
+  "live_check": "synthetic response-only control over recorded public source values",
+  "story": "A response-only null-joint control says no joint data without inventing zero totals.",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "population",
+        "1-11796321-G-A",
+        "--detail",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/dataset": "gnomad_r4",
+        "/result/population/data/exome/homozygote_count": 80805,
+        "/result/population/data/genome/homozygote_count": 6918,
+        "/page/total": 305,
+        "/result/population/data/dataset_version": "4.1.0",
+        "/result/population/data/joint/state": "empty",
+        "/result/population/data/joint": {
+          "omits": [
+            "data"
+          ]
+        }
+      }
+    }
+  ]
+}

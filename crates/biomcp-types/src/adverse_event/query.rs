@@ -8,10 +8,9 @@ fn default_source() -> AdverseEventSource {
 fn default_limit() -> u32 {
     5
 }
-fn full_day(date: Option<PartialDate>) -> bool {
-    date.is_none_or(|d| d.day().is_some())
-}
-#[doc = " Search five report headers by default. VAERS accepts MMR, COVID19, COVID-19 vaccine or \
+#[doc = " Search five report headers by default. MAUDE accepts device text or a manufacturer, \
+    product-code or problem filter. One report may list several devices; filters may match \
+    different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or \
     one exact qualified native influenza code, matched without case; use influenza to list \
     codes and labels. Tables remain separate and are never summed. One report may list \
     several vaccines. VAERS returns five reported symptom rows by default; seriousness and \
@@ -28,7 +27,27 @@ pub struct AdverseEventSearch(SearchFields);
 struct SearchFields {
     /// Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
-    text: Text,
+    #[serde(
+        default,
+        deserialize_with = "crate::query::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    #[cfg_attr(feature = "schema", schemars(with = "Text"))]
+    text: Option<Text>,
+    #[doc = "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. \
+        Other filters AND with the names. BioMCP caps the escaped native query, including filters, \
+        at FAERS_QUERY_MAX_BYTES (4096 bytes)."]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    drug: Vec<Text>,
+    /// MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    manufacturer: Option<Text>,
+    /// MAUDE exact native device.device_report_product_code; repeated codes join with OR.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    product_code: Vec<Text>,
+    /// MAUDE phrase on native product_problems.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    problem: Option<Text>,
     /// FAERS by default; VAERS accepts only exact supported vaccine names.
     #[serde(default = "default_source")]
     source: AdverseEventSource,
@@ -42,14 +61,14 @@ struct SearchFields {
     /// FAERS MedDRA term phrase match, not exact equality.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     reaction: Option<Text>,
-    /// FAERS report flag: death or hospitalization; never a reaction outcome.
+    /// FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     serious: Option<AdverseEventSerious>,
-    /// Inclusive first FDA receipt lower bound, YYYY-MM-DD.
+    /// Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("format" = "date")))]
     received_from: Option<PartialDate>,
-    /// Inclusive first FDA receipt upper bound, YYYY-MM-DD.
+    /// Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("format" = "date")))]
     received_to: Option<PartialDate>,
@@ -64,16 +83,36 @@ struct SearchFields {
 crate::query::validation::checked_query!(AdverseEventSearch, SearchFields);
 impl TryFrom<SearchFields> for AdverseEventSearch {
     type Error = QueryInvalid;
-    fn try_from(v: SearchFields) -> Result<Self, Self::Error> {
+    fn try_from(mut v: SearchFields) -> Result<Self, Self::Error> {
+        let maude_filter =
+            v.manufacturer.is_some() || !v.product_code.is_empty() || v.problem.is_some();
+        if v.source != AdverseEventSource::Maude && maude_filter {
+            return Err(QueryInvalid::new(&[
+                "source",
+                "manufacturer",
+                "product_code",
+                "problem",
+            ]));
+        }
+        if v.text.is_none()
+            && v.drug.is_empty()
+            && !(v.source == AdverseEventSource::Maude && maude_filter)
+        {
+            return Err(QueryInvalid::new(&[
+                "text",
+                "manufacturer",
+                "product_code",
+                "problem",
+            ]));
+        }
+        if v.source != AdverseEventSource::Faers && !v.drug.is_empty() {
+            return Err(QueryInvalid::new(&["source", "drug"]));
+        }
         if !(1..=50).contains(&v.limit) {
             return Err(QueryInvalid::new(&["limit"]));
         }
-        if !full_day(v.received_from) {
-            return Err(QueryInvalid::new(&["received_from"]));
-        }
-        if !full_day(v.received_to) {
-            return Err(QueryInvalid::new(&["received_to"]));
-        }
+        v.received_from = super::receipt::day(v.received_from, false, "received_from")?;
+        v.received_to = super::receipt::day(v.received_to, true, "received_to")?;
         if v.received_from
             .zip(v.received_to)
             .is_some_and(|(a, b)| a.to_string() > b.to_string())
@@ -84,16 +123,14 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
             return Err(QueryInvalid::new(&["source", "section", "snapshot"]));
         }
         if v.source == AdverseEventSource::Vaers
-            && super::vaers::vaers_vaccine_code(v.text.as_str()).is_none()
+            && v.text
+                .as_ref()
+                .and_then(|text| super::vaers::vaers_vaccine_code(text.as_str()))
+                .is_none()
         {
             return Err(QueryInvalid::new(&["source", "text"]));
         }
-        if v.source != AdverseEventSource::Faers
-            && (v.reaction.is_some()
-                || v.serious.is_some()
-                || v.received_from.is_some()
-                || v.received_to.is_some())
-        {
+        if v.source != AdverseEventSource::Faers && (v.reaction.is_some() || v.serious.is_some()) {
             return Err(QueryInvalid::new(&[
                 "source",
                 "reaction",
@@ -102,10 +139,52 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "received_to",
             ]));
         }
-        Ok(Self(v))
+        if v.source == AdverseEventSource::Vaers
+            && (v.received_from.is_some() || v.received_to.is_some())
+        {
+            return Err(QueryInvalid::new(&[
+                "source",
+                "received_from",
+                "received_to",
+            ]));
+        }
+        let query = Self(v);
+        if query.source() == AdverseEventSource::Faers
+            && query.faers_expression().len() > super::faers::FAERS_QUERY_MAX_BYTES
+        {
+            return Err(QueryInvalid::new(&[
+                "text",
+                "drug",
+                "reaction",
+                "received_from",
+                "received_to",
+            ])
+            .with_message(crate::ErrorMessage::FaersQueryLength));
+        }
+        Ok(query)
     }
 }
 impl AdverseEventSearch {
+    /// Discover MAUDE reports for one source-listed native product code.
+    pub fn maude_product(code: Text) -> Result<Self, QueryInvalid> {
+        Self::try_from(SearchFields {
+            text: None,
+            drug: Vec::new(),
+            manufacturer: None,
+            product_code: vec![code],
+            problem: None,
+            source: AdverseEventSource::Maude,
+            section: None,
+            snapshot: None,
+            reaction: None,
+            serious: None,
+            received_from: None,
+            received_to: None,
+            limit: default_limit(),
+            offset: 0,
+        })
+    }
+
     /// Selected VAERS grouping.
     pub fn vaers_section(&self) -> super::VaersSection {
         self.0.section.unwrap_or(super::VaersSection::Symptoms)
@@ -128,20 +207,33 @@ impl AdverseEventSearch {
         q.0.offset = 0;
         q
     }
-    /// Restart without an expired retained table.
-    pub fn restart(&self) -> Self {
-        let mut q = self.clone();
-        q.0.snapshot = None;
-        q.0.offset = 0;
-        q
-    }
+
     /// Exact supported vaccine code, never an inferred code bridge.
     pub fn vaccine(&self) -> Option<&'static str> {
-        super::vaers::vaers_vaccine_code(self.0.text.as_str())
+        self.0
+            .text
+            .as_ref()
+            .and_then(|text| super::vaers::vaers_vaccine_code(text.as_str()))
     }
     /// Literal source text.
-    pub fn text(&self) -> &Text {
-        &self.0.text
+    pub fn text(&self) -> Option<&Text> {
+        self.0.text.as_ref()
+    }
+    /// Explicit FAERS literal drug names, ORed with any positional text.
+    pub fn drug(&self) -> &[Text] {
+        &self.0.drug
+    }
+    /// Native MAUDE manufacturer phrase.
+    pub fn manufacturer(&self) -> Option<&Text> {
+        self.0.manufacturer.as_ref()
+    }
+    /// Exact native MAUDE product codes joined with OR.
+    pub fn product_code(&self) -> &[Text] {
+        &self.0.product_code
+    }
+    /// Native MAUDE product problem phrase.
+    pub fn problem(&self) -> Option<&Text> {
+        self.0.problem.as_ref()
     }
     /// Selected source.
     pub fn source(&self) -> AdverseEventSource {
@@ -171,13 +263,17 @@ impl AdverseEventSearch {
     pub fn offset(&self) -> u32 {
         self.0.offset
     }
-    /// Continue while preserving every filter.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
+}
+impl crate::Paged for AdverseEventSearch {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.snapshot = None;
     }
 }
+
 /// Exact native report identity and an optional independently paged section.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "GetFields")]
@@ -238,6 +334,19 @@ impl TryFrom<GetFields> for AdverseEventGet {
     }
 }
 impl AdverseEventGet {
+    /// Check a source-owned report identity with the default card bounds.
+    pub fn new(id: ReportId, source: AdverseEventSource) -> Result<Self, QueryInvalid> {
+        Self::try_from(GetFields {
+            id,
+            source,
+            section: None,
+            snapshot: None,
+            drug_index: None,
+            section_limit: default_limit(),
+            section_offset: 0,
+        })
+    }
+
     /// Exact published identity.
     pub fn id(&self) -> &ReportId {
         &self.0.id
@@ -260,13 +369,7 @@ impl AdverseEventGet {
         q.0.snapshot = Some(snapshot);
         q
     }
-    /// Restart the exact report without an expired snapshot.
-    pub fn restart(&self) -> Self {
-        let mut q = self.clone();
-        q.0.snapshot = None;
-        q.0.section_offset = 0;
-        q
-    }
+
     /// Absolute native drug index, only for identifier sections.
     pub fn drug_index(&self) -> Option<u32> {
         self.0.drug_index
@@ -296,5 +399,14 @@ impl AdverseEventGet {
         fields.drug_index = drug_index;
         fields.section_offset = 0;
         fields.try_into()
+    }
+}
+impl crate::Paged for AdverseEventGet {
+    type Offset = ();
+    fn set_page_offset(&mut self, _offset: Self::Offset) {
+        self.0.section_offset = 0;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.snapshot = None;
     }
 }

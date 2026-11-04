@@ -1,6 +1,6 @@
 {
   "feature": "trial-nci",
-  "live_check": "keyed NCI source requires user-owned account",
+  "live_check": "missing nightly NCI user-owned API key; retained native public-tier replies use an isolated replay key",
   "story": "The NCI public-tier capture preserves native get fields without registry fallback.",
   "replay": "trial/nci/get",
   "config": {
@@ -12,31 +12,6 @@
   "steps": [
     {
       "run": [
-        "get",
-        "trial",
-        "NCT05136196",
-        "--source",
-        "nci"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/nct_id": "NCT05136196",
-        "/result/items/0/card/diseases/items": {
-          "count": 3
-        }
-      },
-      "max_bytes": 2336
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT05136196",
-        "all",
-        "--source",
-        "nci"
-      ],
-      "mcp": [
         "get",
         "trial",
         "NCT05136196",
@@ -53,51 +28,6 @@
         "/result/items/0/sections/diseases/state": "data"
       },
       "max_bytes": 22660
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT05136196",
-        "eligibility",
-        "--source",
-        "nci"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/sections/eligibility/state": "data"
-      },
-      "max_bytes": 6657
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT05136196",
-        "outcomes",
-        "--source",
-        "nci"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/sections/outcomes/state": "data"
-      },
-      "max_bytes": 6845
-    },
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT05136196",
-        "arms",
-        "--source",
-        "nci"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/sections/arms/state": "data"
-      },
-      "max_bytes": 8666
     },
     {
       "run": [

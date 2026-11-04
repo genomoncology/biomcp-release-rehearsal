@@ -11,35 +11,20 @@
         "CA123643",
         "--detail"
       ],
-      "mcp": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail"
-      ],
       "exit": 4,
       "is_error": true,
       "expect": {
         "/status": "failed",
-        "/result/population/state": "unavailable",
-        "/result/population/reason": "bad_reply"
+        "": {
+          "omits": [
+            "result"
+          ]
+        },
+        "/sources/1/source": "gnomad",
+        "/sources/1/state": "failed",
+        "/sources/1/reason": "bad-reply"
       },
       "max_bytes": 427
-    },
-    {
-      "run": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail"
-      ],
-      "offline": true,
-      "exit": 4,
-      "expect": {
-        "/status": "failed",
-        "/result/population/reason": "offline"
-      },
-      "max_bytes": 423
     }
   ]
 }

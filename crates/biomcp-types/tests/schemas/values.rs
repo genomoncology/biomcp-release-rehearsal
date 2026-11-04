@@ -21,7 +21,10 @@ fn validator<T: JsonSchema>() -> jsonschema::Validator {
 fn enum_values<T: JsonSchema + Serialize + DeserializeOwned + std::fmt::Display>(values: &[T]) {
     let validator = validator::<T>();
     for value in values {
-        assert!(validator.is_valid(&serde_json::to_value(value).unwrap()));
+        assert!(
+            validator.is_valid(&serde_json::to_value(value).unwrap()),
+            "Schema literals must preserve the public enum wire contract"
+        );
     }
     for value in [
         json!("distinctive-unrecognized-value"),
@@ -30,7 +33,10 @@ fn enum_values<T: JsonSchema + Serialize + DeserializeOwned + std::fmt::Display>
         json!(123),
         Value::Null,
     ] {
-        assert!(!validator.is_valid(&value));
+        assert!(
+            !validator.is_valid(&value),
+            "Schema literals must preserve the public enum wire contract"
+        );
     }
     let schema = generate::<T>();
     for spelling in schema
@@ -39,8 +45,16 @@ fn enum_values<T: JsonSchema + Serialize + DeserializeOwned + std::fmt::Display>
         .expect("string enum")
     {
         let value: T = serde_json::from_value(spelling.clone()).expect("canonical spelling");
-        assert_eq!(value.to_string(), spelling.as_str().unwrap());
-        assert_eq!(&serde_json::to_value(value).unwrap(), spelling);
+        assert_eq!(
+            value.to_string(),
+            spelling.as_str().unwrap(),
+            "Schema literals must preserve the public enum wire contract"
+        );
+        assert_eq!(
+            &serde_json::to_value(value).unwrap(),
+            spelling,
+            "Schema literals must preserve the public enum wire contract"
+        );
     }
 }
 
@@ -84,7 +98,7 @@ fn enum_schemas_validate_canonical_public_values() {
 }
 
 #[test]
-fn record_schema_matches_serialization_and_rejects_unknown_fields() {
+fn record_schema_matches_serialization_and_ignores_unknown_fields() {
     let problem_validator = validator::<Problem>();
     for record in [None, Some(Text::new("record-123").unwrap())] {
         let problem = Problem {
@@ -97,7 +111,7 @@ fn record_schema_matches_serialization_and_rejects_unknown_fields() {
         assert!(problem_validator.is_valid(&value));
         let mut unknown = value.clone();
         unknown["unexpected"] = json!(true);
-        assert!(!problem_validator.is_valid(&unknown));
+        assert!(problem_validator.is_valid(&unknown));
         for field in ["source", "field", "code"] {
             let mut missing = value.clone();
             missing.as_object_mut().unwrap().remove(field);
@@ -159,15 +173,20 @@ fn value_schemas_describe_canonical_text_and_coordinate_bounds() {
     for value in [
         json!({"start":0}),
         json!({"end":1}),
-        json!({"start":0,"end":1,"extra":true}),
         json!({"start":-1,"end":1}),
         json!({"start":0,"end":4294967296_u64}),
     ] {
         assert!(!span.is_valid(&value));
     }
+    let extended = json!({"start":0,"end":1,"extra":true});
+    assert!(span.is_valid(&extended));
+    assert_eq!(
+        serde_json::from_value::<Span0>(extended).unwrap(),
+        Span0::new(0, 1).unwrap()
+    );
     // These constraints require runtime checks beyond JSON Schema's vocabulary.
     let overflow = json!("HGNC:4294967296");
-    assert!(id.is_valid(&overflow));
+    assert!(!id.is_valid(&overflow));
     assert!(serde_json::from_value::<HgncId>(overflow).is_err());
     assert!(date.is_valid(&json!("2023-02-29")));
     assert!(serde_json::from_value::<PartialDate>(json!("2023-02-29")).is_err());
@@ -177,12 +196,12 @@ fn value_schemas_describe_canonical_text_and_coordinate_bounds() {
 
 #[test]
 fn usage_error_round_trips_and_rejects_changed_contract_values() {
-    let envelope = ErrorEnvelope::schema_usage();
+    let envelope = ErrorEnvelope::from(UsageError::Schema);
     let value = serde_json::to_value(&envelope).unwrap();
     assert_eq!(
         value,
         json!({
-            "schema": "biomcp.error/1",
+            "schema": "biomcp.error/4",
             "status": "usage",
             "error": {
                 "code": "usage.schema",
@@ -220,8 +239,11 @@ fn usage_error_round_trips_and_rejects_changed_contract_values() {
             .as_object_mut()
             .unwrap()
             .insert("unexpected".into(), json!(true));
-        assert!(!schema.is_valid(&unknown));
-        assert!(serde_json::from_value::<ErrorEnvelope>(unknown).is_err());
+        assert!(schema.is_valid(&unknown));
+        assert_eq!(
+            serde_json::from_value::<ErrorEnvelope>(unknown).unwrap(),
+            envelope
+        );
         for field in fields {
             let mut missing = value.clone();
             missing
@@ -348,13 +370,17 @@ fn curie_runtime_and_published_schema_accept_the_same_checked_ids()
 -> Result<(), Box<dyn std::error::Error>> {
     let schema: Value = serde_json::from_str(include_str!("../../schemas/statement.json"))?;
     let curie = schema
-        .pointer("/$defs/Curie")
+        .pointer("/$defs/Reply_Curie")
         .ok_or("published Curie definition missing")?;
     let validator = jsonschema::draft202012::new(curie)?;
     for (value, accepted) in [
         ("DepMap:ACH-000362", true),
         ("HGNC:3765", true),
-        ("HGNC:HGNC:7132", true),
+        ("https://example.org/concept", false),
+        ("http://example.org/concept", false),
+        ("urn:oid:1.2.3", false),
+        ("prefix:/local", false),
+        ("HGNC:HGNC:7132", false),
         ("prefix_1.-:α/β", true),
         ("DepMap:ACH\u{007f}1", false),
         ("DepMap:ACH\u{0080}1", false),
@@ -400,11 +426,27 @@ fn every_generated_schema_describes_its_root() {
 #[test]
 fn generated_metadata_preserves_partial_dates_and_describes_error_codes() {
     let date = generate::<PartialDate>();
-    assert_eq!(date["pattern"], r"^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$");
+    assert_eq!(date["pattern"], PartialDate::pattern());
     assert!(date.get("format").is_none());
     let full_dates = generate::<biomcp_types::AdverseEventSearch>();
     for field in ["received_from", "received_to"] {
         assert_eq!(full_dates["properties"][field]["format"], "date");
+    }
+    let input = generate::<biomcp_types::AdverseEventSearchCommand>();
+    let input_validator = jsonschema::validator_for(&input).unwrap();
+    for source in ["faers", "maude"] {
+        for date in ["2024-02", "2024-02-29"] {
+            let value = serde_json::json!({"text":"x", "source":source,
+                "received_from":date, "received_to":date});
+            assert!(input_validator.is_valid(&value));
+            let query: biomcp_types::AdverseEventSearch = serde_json::from_value(value).unwrap();
+            // Month input becomes a full-day reply query accepted by the retained schema.
+            assert!(
+                jsonschema::validator_for(&full_dates)
+                    .unwrap()
+                    .is_valid(&serde_json::to_value(query).unwrap())
+            );
+        }
     }
     let timestamp = generate::<biodata::StudyImportTime>();
     assert!(
@@ -479,7 +521,7 @@ const LINKS: &[(&str, &[(&str, &str)])] = &[
     ("StudyCard", &[("source_url", "uri")]),
     ("SupplementContent", &[("url", "uri")]),
     ("TextContent", &[("url", "uri")]),
-    ("TrialCard", &[("url", "uri")]),
+    ("TrialPostedCard", &[("url", "uri")]),
     ("TrialDocument", &[("url", "uri")]),
     ("TrialHeader", &[("url", "uri")]),
     ("StudyFile", &[("htmlUrl", "uri"), ("downloadUrl", "uri")]),
@@ -501,9 +543,11 @@ fn generated_links_expose_uri_metadata() {
                 let node = if schema["title"] == *owner {
                     Some(schema)
                 } else {
-                    schema
-                        .get("$defs")
-                        .and_then(|definitions| definitions.get(*owner))
+                    schema.get("$defs").and_then(|definitions| {
+                        definitions
+                            .get(*owner)
+                            .or_else(|| definitions.get(format!("Reply_{owner}")))
+                    })
                 };
                 if let Some(node) = node {
                     for branch in std::iter::once(node).chain(
@@ -525,4 +569,20 @@ fn generated_links_expose_uri_metadata() {
             assert!(seen, "missing generated link {owner}.{field}");
         }
     }
+}
+
+#[path = "text_values.rs"]
+mod text_values;
+#[test]
+fn text_value_patterns_match_parser_admissions() {
+    text_values::text_value_patterns_match_parser_admissions();
+}
+#[test]
+fn text_value_schema_supersets_name_their_runtime_rules() {
+    text_values::text_value_schema_supersets_name_their_runtime_rules();
+}
+#[test]
+fn protein_query_schema_matches_public_search_admissions() -> Result<(), Box<dyn std::error::Error>>
+{
+    text_values::protein_query_schema_matches_public_search_admissions()
 }

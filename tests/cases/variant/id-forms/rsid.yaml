@@ -1,0 +1,186 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic response-only routing matrix over existing public IDs",
+  "replay": "variant/id-forms",
+  "story": "rsid input reaches each identity-taking variant command or names accepted forms and its converting command.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022"
+      ],
+      "expect": {
+        "/result/resolution": "resolved",
+        "/query/build": "GRCh38",
+        "/query/build_defaulted": true
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "rs113488022",
+        "--source",
+        "clinvar"
+      ],
+      "expect": {
+        "/result/assertions/0/domain": "germline"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "rs113488022"
+      ],
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/build": "GRCh38"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "recurrence",
+        "rs113488022",
+        "--source",
+        "cbioportal",
+        "--gene",
+        "BRAF",
+        "--study",
+        "msk_impact_2017",
+        "--profile",
+        "msk_impact_2017_mutations",
+        "--sample-set",
+        "msk_impact_2017_all",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/examined_rows": 3
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "normalize",
+        "--source",
+        "mutalyzer",
+        "--hgvs",
+        "rs113488022"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/message": "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "rs113488022",
+        "--source",
+        "erepo"
+      ],
+      "expect": {
+        "/status": "absent"
+      },
+      "exit": 1
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--query",
+        "rs113488022",
+        "--source",
+        "myvariant"
+      ],
+      "expect": {
+        "/result/source_query": "rs113488022",
+        "/page/total": 0
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "all"
+      ],
+      "expect": {
+        "/result/resolution": "resolved",
+        "/result/candidates/0/sections/clinvar/state": "data",
+        "/result/candidates/0/sections/erepo/state": "empty",
+        "/result/candidates/0/sections/population/state": "data",
+        "/result/candidates/0/sections/gwas/state": "empty",
+        "/result/candidates/0/sections/civic/state": "data",
+        "/result/candidates/0/sections/hotspots/reason": "no-join-id",
+        "/result/candidates/0/sections/oncokb/reason": "no-key",
+        "/result/candidates/0/sections/alphagenome/reason": "no-key",
+        "/result/candidates/0/sections/predict/state": "empty",
+        "/result/candidates/0/sections/conservation/state": "empty",
+        "/result/candidates/0/sections/cosmic/state": "empty"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "--build",
+        "GRCh37"
+      ],
+      "expect": {
+        "/query/build": "GRCh37",
+        "/query": {
+          "omits": [
+            "build_defaulted"
+          ]
+        },
+        "/result/candidates/0/identity/representations/0/build": "GRCh37"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "rs113488022",
+        "--source",
+        "clinvar",
+        "--build",
+        "GRCh37"
+      ],
+      "expect": {
+        "/query/build": "GRCh37",
+        "/result/assertions/0/domain": "germline"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "recurrence",
+        "rs113488022",
+        "--source",
+        "cbioportal",
+        "--gene",
+        "BRAF",
+        "--study",
+        "msk_impact_2017",
+        "--profile",
+        "msk_impact_2017_mutations",
+        "--sample-set",
+        "msk_impact_2017_all",
+        "--limit",
+        "3",
+        "--build",
+        "GRCh37"
+      ],
+      "expect": {
+        "/result/examined_rows": 3,
+        "/query/build": "GRCh37"
+      }
+    }
+  ]
+}

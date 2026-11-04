@@ -1,4 +1,5 @@
 //! MyGene.info annotations queried only by checked Entrez gene identifiers.
+use biomcp_fetch::{Input, Read};
 mod map;
 mod raw;
 use crate::{Mapped, quotas};
@@ -15,7 +16,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "MyGene.info Terms of Use; upstream data terms",
         url: "https://docs.mygene.info/en/latest/terms.html",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::MyGene,
     base: "https://mygene.info/v3",
@@ -54,6 +55,8 @@ pub struct GeneBatch {
     pub result: Result<Vec<Mapped<GeneExtras>>, RequestError>,
     /// Rejected hits that have no safe per-gene value to carry their problems.
     pub problems: Vec<Problem>,
+    /// Hits refused before an accepted per-gene annotation could be constructed.
+    pub refusals: crate::Refusal,
 }
 
 /// Fetch annotations in sorted distinct chunks, preserving each chunk's failures.
@@ -64,26 +67,33 @@ pub fn genes(leg: &Leg<'_>, ids: &[NcbiGeneId]) -> Vec<GeneBatch> {
     let chunks: Vec<_> = ids.chunks(BATCH).collect();
     let results = leg.batch(&chunks, |leg, chunk| {
         let ids: Vec<Box<str>> = chunk.iter().map(|id| id.to_string().into()).collect();
-        leg.json::<raw::Genes>(
+        leg.call(
             &GENES,
-            &[
+            Input::Params(&[
                 ("ids", Arg::Ids(&ids)),
                 ("fields", Arg::Text(FIELDS)),
                 ("species", Arg::Text("human")),
-            ],
+            ]),
+            Read::<raw::Genes>::json(),
         )
+        .map(|received| received.value)
     });
     chunks
         .into_iter()
         .zip(results)
         .map(|(ids, result)| {
             let mut problems = Vec::new();
-            let result = result.map(|reply| map::extras(reply, ids, &mut problems));
+            let mut refusals = crate::Refusal::None;
+            let result = result.map(|reply| map::extras(reply, ids, &mut problems, &mut refusals));
             GeneBatch {
                 ids: ids.into(),
                 result,
                 problems,
+                refusals,
             }
         })
         .collect()
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

@@ -1,0 +1,19 @@
+{
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
+  "feature": "biomarker-nci",
+  "story": "Biomarker get requires a typed NCIt identifier before any source request.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "biomarker",
+        "PD-L1"
+      ],
+      "expect": {
+        "/error/code": "usage.arguments"
+      },
+      "exit": 2,
+      "max_bytes": 2000
+    }
+  ]
+}

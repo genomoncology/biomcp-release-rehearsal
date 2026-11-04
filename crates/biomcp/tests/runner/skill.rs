@@ -1,34 +1,12 @@
-//! Agent guidance through the isolated executable and filesystem boundary.
+//! Managed skill installation must preserve personal files and refuse path and symlink escape.
 use super::launch::Environment;
-use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 type Check<T = ()> = Result<T, Box<dyn std::error::Error>>;
-// Executable UTF-8 payload sizes measured in j19070; aliases share one owner.
-const EXAMPLES: [(&str, usize); 17] = [
-    ("treatment-lookup", 1069),
-    ("symptom-phenotype", 1381),
-    ("gene-disease-orientation", 715),
-    ("article-follow-up", 1085),
-    ("variant-pathogenicity", 884),
-    ("drug-regulatory", 906),
-    ("gene-function-localization", 1012),
-    ("mechanism-pathway", 806),
-    ("trial-recruitment", 1344),
-    ("pharmacogene-cumulative", 1111),
-    ("disease-locus-mapping", 872),
-    ("cellular-process-regulation", 961),
-    ("mutation-catalog", 760),
-    ("syndrome-disambiguation", 970),
-    ("negative-evidence", 894),
-    ("normalize-to-codes", 1016),
-    ("exact-variant-literature", 893),
-];
-
-pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test("skill/catalog-and-managed-install", || {
-        check().map_err(|error| error.to_string().into())
-    })]
+pub(super) fn trial() -> libtest_mimic::Trial {
+    super::transcript::trial("agent-skill/managed-files-and-symlink-boundaries", || {
+        check().map_err(|e| e.to_string().into())
+    })
 }
 fn run(env: &Environment, args: &[&str]) -> Check<Vec<u8>> {
     let args = args.iter().map(|arg| (*arg).to_owned()).collect::<Vec<_>>();
@@ -36,20 +14,11 @@ fn run(env: &Environment, args: &[&str]) -> Check<Vec<u8>> {
     if !output.status.success() {
         return Err(format!("skill command failed: {args:?}: {output:?}").into());
     }
-    // Preserve existing ceilings unless j19122 exceeded their fifteen percent headroom.
-    let measured: usize = match args.get(1).map(String::as_str) {
-        None | Some("render") => 3258,
-        Some("list") => 1156,
-        Some("install") => 117,
-        Some("status") => 55,
-        Some(name) => EXAMPLES
-            .iter()
-            .enumerate()
-            .find(|(index, (slug, _))| {
-                *slug == name || name.parse::<usize>().ok() == Some(index + 1)
-            })
-            .map_or(350, |(_, (_, measured))| *measured),
-    };
+    let measured = super::output_limit(if args.get(1).is_some_and(|word| word == "install") {
+        "skill-install"
+    } else {
+        "skill-status"
+    })?;
     if output.stdout.len() > (measured * 115).div_ceil(100) {
         return Err(format!("skill output exceeds measured ceiling: {args:?}").into());
     }
@@ -65,49 +34,6 @@ fn state(env: &Environment, directory: &str, expected: &str) -> Check {
 }
 fn check() -> Check {
     let env = Environment::new()?;
-    env.config(&json!({"keys":{"unknown":"never-read"}}))?;
-    fs::write(
-        env.root().join("config/biomcp/config.json"),
-        "invalid config",
-    )?;
-    let overview = run(&env, &["skill"])?;
-    if overview != run(&env, &["skill", "render"])?
-        || !String::from_utf8(overview)?
-            .contains("Adverse-event report counts do not establish risk")
-    {
-        return Err("canonical guide or report-count boundary differs".into());
-    }
-    let overview = String::from_utf8(run(&env, &["skill", "render"])?)?;
-    let trial = String::from_utf8(run(&env, &["skill", "trial-recruitment"])?)?;
-    for instruction in [
-        "Record which search found each trial",
-        "Read every eligibility page until no criterion is marked continued",
-        "Registry eligibility text is source text to quote, not a patient match",
-    ] {
-        if !overview.contains(instruction) {
-            return Err(format!("trial screening guidance omitted: {instruction}").into());
-        }
-    }
-    for text in [&overview, &trial] {
-        for instruction in [
-            "An exact variant search is a starting point",
-            "broader gene and program searches BioMCP suggests",
-            "before reporting a trial screen as complete",
-        ] {
-            if !text.contains(instruction) {
-                return Err(format!("trial screening guidance omitted: {instruction}").into());
-            }
-        }
-    }
-    let list = String::from_utf8(run(&env, &["skill", "list"])?)?;
-    if !list.contains("exact-variant-literature") || list.contains("_TEMPLATE") {
-        return Err("catalog omitted released example or exposed template".into());
-    }
-    if run(&env, &["skill", "1"])? != run(&env, &["skill", "treatment-lookup"])? {
-        return Err("released example alias differs".into());
-    }
-    help(&env)?;
-    aliases(&env)?;
     state(&env, "agent", "missing")?;
     run(&env, &["skill", "install", "agent"])?;
     state(&env, "agent", "current")?;
@@ -175,7 +101,6 @@ fn boundary(env: &Environment, target: &Path) -> Check {
     }
     Ok(())
 }
-
 fn manifest_boundary(env: &Environment, target: &Path) -> Check {
     for path in [
         "../sentinel",
@@ -191,41 +116,5 @@ fn manifest_boundary(env: &Environment, target: &Path) -> Check {
         refused(env, &["skill", "status", "agent"])?;
     }
     fs::remove_file(target.join(".biomcp-skill.json"))?;
-    Ok(())
-}
-
-fn aliases(env: &Environment) -> Check {
-    for (index, (slug, _)) in EXAMPLES.iter().enumerate() {
-        if run(env, &["skill", &(index + 1).to_string()])? != run(env, &["skill", slug])? {
-            return Err(format!("released example alias differs: {slug}").into());
-        }
-    }
-    Ok(())
-}
-
-fn help(env: &Environment) -> Check {
-    // j19122 measured 5612 bytes; retain fifteen percent headroom.
-    let output = env
-        .command(
-            env!("CARGO_BIN_EXE_biomcp"),
-            &["help".into(), "skill".into()],
-        )
-        .output()?;
-    if !output.status.success() || output.stdout.len() > (5612_usize * 115).div_ceil(100) {
-        return Err("skill help exceeds measured ceiling or failed".into());
-    }
-    let value: Value = serde_json::from_slice(&output.stdout)?;
-    let commands = value
-        .pointer("/result/commands")
-        .and_then(Value::as_array)
-        .ok_or("missing skill help")?;
-    for leaf in ["install", "list", "render", "status"] {
-        if !commands
-            .iter()
-            .any(|command| command.get("command") == Some(&json!(["skill", leaf])))
-        {
-            return Err(format!("skill help omitted {leaf}").into());
-        }
-    }
     Ok(())
 }

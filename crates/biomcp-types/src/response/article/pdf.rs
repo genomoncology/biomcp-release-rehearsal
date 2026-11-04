@@ -17,7 +17,6 @@ biodata::canonical_enum! {
 }
 /// Source-reported PDF link. Reading this section never downloads the file.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PdfLink {
     /// Source publisher URL.
@@ -30,7 +29,6 @@ pub struct PdfLink {
 }
 /// Receipt for one file explicitly saved by the caller.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PdfSaved {
     /// Absolute destination path.
@@ -45,13 +43,12 @@ pub struct PdfSaved {
 }
 /// Result of an explicit publisher PDF download.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticlePdfResult {
     /// Saved receipt or the reason no file was saved.
     pub file: crate::Section<PdfSaved>,
 }
 impl super::super::ResponseBody for ArticlePdfResult {
-    const SCHEMA: &'static str = "biomcp.article-pdf/2";
+    const SCHEMA: &'static str = "biomcp.article-pdf/6";
     type Query = crate::ArticlePdf;
 }

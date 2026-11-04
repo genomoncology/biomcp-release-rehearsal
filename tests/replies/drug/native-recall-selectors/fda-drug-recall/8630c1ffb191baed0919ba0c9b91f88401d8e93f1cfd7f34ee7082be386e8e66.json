@@ -1,0 +1,34 @@
+{
+  "method": "GET",
+  "source": "fda-drug-recall",
+  "url": "https://api.fda.gov/drug/enforcement.json?search=recall_initiation_date%3A%5B20240101%20TO%2020241231%5D&limit=1&skip=0&sort=recall_initiation_date%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 557
+            }
+          },
+          "results": [
+            {
+              "status": "Ongoing",
+              "classification": "Class II",
+              "recall_number": "D-0188-2025",
+              "recall_initiation_date": "20241230",
+              "report_date": "20250115"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

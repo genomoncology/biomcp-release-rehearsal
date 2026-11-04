@@ -1,4 +1,5 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "gwas-search",
   "steps": [
     {
@@ -17,25 +18,21 @@
             "--p-value",
             "--limit",
             "--offset",
-            "--pool"
+            "--pool",
+            "--studies"
           ]
         },
         "/result/commands/0/command": [
           "search",
           "gwas"
         ],
-        "/result/commands/0/description": "Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic. BioMCP's local request deadline expired. GWAS Catalog response times can vary; retry later or use https://www.ebi.ac.uk/gwas/. Contact the GWAS Catalog helpdesk if this persists.",
+        "/result/commands/0/description": "Source associations in default p-value-ascending order. Sources: gwas.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
-      "max_bytes": 3775,
-      "mcp": [
-        "help",
-        "search",
-        "gwas"
-      ],
+      "max_bytes": 4500,
       "run": [
         "help",
         "search",
@@ -57,9 +54,9 @@
           "get",
           "gwas"
         ],
-        "/result/commands/0/description": "Source association or study and source context. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic. BioMCP's local request deadline expired. GWAS Catalog response times can vary; retry later or use https://www.ebi.ac.uk/gwas/. Contact the GWAS Catalog helpdesk if this persists.",
+        "/result/commands/0/description": "Source association or study and source context. Sources: gwas.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "loci",
@@ -70,11 +67,6 @@
       },
       "max_bytes": 2680,
       "max_tokens": 671,
-      "mcp": [
-        "help",
-        "get",
-        "gwas"
-      ],
       "run": [
         "help",
         "get",

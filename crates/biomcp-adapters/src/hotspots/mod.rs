@@ -1,5 +1,5 @@
 //! Native transcript/residue counts; public reachability grants no redistribution rights.
-use crate::{Mapped, quotas};
+use crate::{Mapped, mapped::Problems, quotas, raw::Field};
 use biodata::{GeneSymbol, Text};
 
 use biomcp_fetch::{
@@ -15,7 +15,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "Publisher-specific terms; data reuse unverified",
         url: "https://www.cancerhotspots.org/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::CancerHotspots,
     base: "https://www.cancerhotspots.org",
@@ -28,26 +28,20 @@ const GENE: Endpoint = SPEC
     .fresh(Freshness::Days(7));
 #[derive(Deserialize)]
 #[serde(transparent)]
-struct Rows(Vec<Row>);
+struct Rows(Vec<Field<Row>>);
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Row {
-    hugo_symbol: GeneSymbol,
-    transcript_id: Option<Text>,
-    residue: Text,
-    tumor_count: u64,
-    variant_amino_acid: std::collections::BTreeMap<String, u64>,
+    // The publisher identifies a candidate by gene and residue; transcript is optional.
+    // https://github.com/cBioPortal/cancerhotspots/blob/master/model/src/main/java/org/cmo/cancerhotspots/model/HotspotMutation.java
+    hugo_symbol: Option<Field<GeneSymbol>>,
+    transcript_id: Option<Field<Text>>,
+    residue: Option<Field<Text>>,
+    tumor_count: Option<Field<u64>>,
+    variant_amino_acid: Option<Field<std::collections::BTreeMap<String, Field<u64>>>>,
 }
 impl Reply for Rows {
     fn check(&self) -> Result<(), BadReply> {
-        if self.0.iter().any(|r| {
-            r.variant_amino_acid.is_empty()
-                || r.variant_amino_acid
-                    .keys()
-                    .any(|key| Text::new(key).is_err())
-        }) {
-            return Err(BadReply);
-        }
         Ok(())
     }
 }
@@ -55,49 +49,69 @@ impl Reply for Rows {
 pub fn gene(leg: &Leg<'_>, gene: &GeneSymbol) -> Result<Mapped<Vec<HotspotRecord>>, RequestError> {
     let segment = PathSegment::new(gene.as_str()).map_err(RequestError::Input)?;
     let endpoint = GENE.clone().with_segments(&[segment]);
-    let raw: Rows = leg.json_checked_cache(&endpoint, &[], |rows: &Rows| {
-        rows.0.iter().all(|r| &r.hugo_symbol == gene)
-    })?;
-    let mut problems = Vec::new();
-    let mut rows = Vec::new();
+    let raw: Rows = leg
+        .call(
+            &endpoint,
+            biomcp_fetch::Input::Params(&[]),
+            biomcp_fetch::Read::json(),
+        )?
+        .value;
+    let mut out = Mapped {
+        refusals: crate::Refusal::None,
+        value: Vec::new(),
+        problems: Vec::new(),
+    };
     for row in raw.0 {
-        if &row.hugo_symbol != gene {
-            problems.push(biomcp_types::Problem {
-                source: Source::CancerHotspots,
-                record: Some(row.residue),
-                field: "transcript_gene".into(),
-                code: biomcp_types::ProblemCode::ValueUnknown,
-            });
-            continue;
+        let mut cx = Problems {
+            source: Source::CancerHotspots,
+            record: None,
+            list: Vec::new(),
+        };
+        let mapped = cx
+            .field("record", Some(row))
+            .and_then(|row| row.map(gene, &mut cx));
+        match mapped {
+            Some(row) => out.value.push(row),
+            None => out.refusals = crate::Refusal::Refused,
         }
-        let transcript = row.transcript_id;
-        rows.push(HotspotRecord {
-            membership: HotspotMembership::Candidate,
-            gene: row.hugo_symbol,
-            transcript,
-            residue: row.residue,
-            tumor_count: row.tumor_count,
-            alternates: row
-                .variant_amino_acid
-                .into_iter()
-                .map(|(amino_acid, count)| {
-                    Text::new(&amino_acid)
-                        .map(|amino_acid| HotspotAlternate { amino_acid, count })
-                        .map_err(|_| {
-                            biomcp_fetch::SourceError {
-                                source: Source::CancerHotspots,
-                                reason: biomcp_types::Reason::BadReply,
-                                status: None,
-                                retry_after: None,
-                            }
-                            .into()
-                        })
-                })
-                .collect::<Result<Box<[_]>, RequestError>>()?,
-        });
+        out.problems.extend(cx.list);
     }
-    Ok(Mapped {
-        value: rows,
-        problems,
-    })
+    Ok(out)
 }
+impl Row {
+    fn map(self, gene: &GeneSymbol, cx: &mut Problems) -> Option<HotspotRecord> {
+        let residue = cx.required_field("residue", self.residue);
+        cx.record = residue.clone();
+        let symbol = cx.required_field("hugoSymbol", self.hugo_symbol);
+        let (Some(residue), Some(symbol)) = (residue, symbol) else {
+            return None;
+        };
+        if &symbol != gene {
+            cx.required::<()>("hugoSymbol", None);
+            return None;
+        }
+        let alternates = cx
+            .field("variantAminoAcid", self.variant_amino_acid)
+            .into_iter()
+            .flatten()
+            .filter_map(|(key, count)| {
+                let amino_acid = cx.text("variantAminoAcid.amino_acid", Some(&key))?;
+                Some(HotspotAlternate {
+                    amino_acid,
+                    count: cx.field("variantAminoAcid.count", Some(count)),
+                })
+            })
+            .collect();
+        Some(HotspotRecord {
+            membership: HotspotMembership::Candidate,
+            gene: symbol,
+            transcript: cx.field("transcriptId", self.transcript_id),
+            residue,
+            tumor_count: cx.field("tumorCount", self.tumor_count),
+            alternates,
+        })
+    }
+}
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

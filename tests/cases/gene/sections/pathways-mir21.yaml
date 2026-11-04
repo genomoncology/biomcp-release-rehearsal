@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-sections",
+  "feature": "gene-pathways",
   "story": "MIR21 has no UniProt accession and does not ask Reactome",
   "replay": "gene/pathways",
   "steps": [
@@ -14,19 +14,13 @@
       "expect": {
         "/status": "complete",
         "/result/items/0/answer/gene/locus_group": "non_coding_rna",
-        "/result/items/0/sections/pathways/state": "not_applicable",
+        "/result/items/0/sections/pathways/state": "not-applicable",
         "/sources/*/source": {
           "includes": "mygene",
           "excludes": "reactome"
         }
       },
-      "max_bytes": 3100,
-      "mcp": [
-        "get",
-        "gene",
-        "MIR21",
-        "pathways"
-      ]
+      "max_bytes": 3100
     }
   ]
 }

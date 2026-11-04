@@ -1,0 +1,23 @@
+{
+  "source": "cbioportal",
+  "method": "GET",
+  "url": "https://www.cbioportal.org/api/studies/synthetic_0/molecular-profiles?projection=DETAILED",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": [
+          {
+            "studyId": "synthetic_0",
+            "molecularProfileId": {},
+            "name": {}
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "Reply_DrugRecallNumber": {
+      "description": "Native FDA drug recall number, independent of its event number.",
+      "pattern": "^D-[0-9]{4}-[0-9]{4}$",
+      "type": "string"
+    },
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+      "type": "string"
+    },
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    }
+  },
+  "$id": "biomcp.drug-recall-header/2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "One native drug recall record, independent of its event.",
+  "properties": {
+    "classification": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Native FDA classification, without local interpretation."
+    },
+    "firm": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Published recalling firm."
+    },
+    "initiated": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_PartialDate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Native recall initiation day."
+    },
+    "product_description": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Published product wording; harmonized names never enter this field."
+    },
+    "recall_number": {
+      "$ref": "#/$defs/Reply_DrugRecallNumber",
+      "description": "Native recall number."
+    },
+    "reported": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_PartialDate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Native enforcement report day."
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Published recall status."
+    }
+  },
+  "required": [
+    "recall_number"
+  ],
+  "title": "DrugRecallHeader",
+  "type": "object"
+}

@@ -124,18 +124,15 @@ impl PathwaySearch {
         value.0.fresh = false;
         value
     }
-    /// Restart the same selectors without a retained snapshot.
-    pub fn restart(&self) -> Self {
-        let mut value = self.at_offset(0);
-        value.0.pool = None;
-        value.0.fresh = false;
-        value
+}
+impl crate::Paged for PathwaySearch {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
     }
-    /// Advance the native position without changing selectors.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut value = self.clone();
-        value.0.offset = offset;
-        value
+    fn clear_page_context(&mut self) {
+        self.0.pool = None;
+        self.0.fresh = false;
     }
 }
 

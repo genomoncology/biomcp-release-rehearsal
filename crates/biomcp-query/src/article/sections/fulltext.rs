@@ -1,11 +1,11 @@
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
 use biodata::Pmcid;
 use biomcp_adapters::pmc_oa;
 use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::ArticleInput;
 use biomcp_types::{
     ArticleResolution, ArticleSupplement, ArticleText, FullText, Reason, Request, Section, Source,
-    Status, StepKind, Supplements,
+    StepKind, Supplements,
 };
 type Identity = (Pmcid, Option<biodata::Pmid>);
 type Content = Result<Option<(FullText, Supplements)>, Reason>;
@@ -17,7 +17,10 @@ pub(super) fn run<'a>(
     fulltext: bool,
     supplements: bool,
 ) {
-    let biomcp_types::QueryBody::ArticleCards(cards) = &mut out.body else {
+    let biomcp_types::ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    else {
         return;
     };
     let leg = cx.fetch.leg(&pmc_oa::SPEC, *deadline).fresh(cx.fresh);
@@ -39,10 +42,18 @@ pub(super) fn run<'a>(
         };
         let identity = (id, card.pmid);
         if !loaded.iter().any(|(found, _)| *found == identity) {
-            let result = pmc_oa::read(&leg, id, card.pmid);
+            let result = pmc_oa::read(&leg, id, card.pmid).map(|mapped| {
+                out.dropped |= mapped.refusals == biomcp_adapters::Refusal::Refused;
+                out.problems.extend(mapped.problems);
+                mapped.value
+            });
             if let Err(e) = result {
                 error.get_or_insert(e);
                 out.local = out.local.or(status::local(e));
+            }
+            if let Ok(Some(doc)) = &result {
+                out.dropped |= doc.body.refusals == biomcp_adapters::Refusal::Refused;
+                out.problems.extend(doc.problems.clone());
             }
             loaded.push((identity, content(result)));
         }
@@ -50,18 +61,18 @@ pub(super) fn run<'a>(
             continue;
         };
         if data.is_err() || matches!(data, Ok(None)) {
-            item.status = Status::Partial;
+            item.status = crate::status::item_status(true, false, true);
         }
         if fulltext && sections.fulltext.is_none() {
             sections.fulltext = Some(section(data, |(text, _)| text.clone()));
             if matches!(data,Ok(Some((text,_))) if !text.parts.is_empty()) && out.next.len() < 5 {
-                next(id, 1, &mut out.next);
+                outline_next(ArticleInput::Pmcid(id), &mut out.next, &mut out.problems);
             }
         }
         if supplements && sections.supplements.is_none() {
             sections.supplements = Some(section(data, |(_, files)| files.clone()));
             if let Ok(Some((_, files))) = data {
-                supplement_next(id, files, &mut out.next);
+                supplement_next(id, files, &mut out.next, &mut out.problems);
             }
         }
     }
@@ -74,13 +85,14 @@ pub(super) fn run<'a>(
                     matches!(s.fulltext, Some(Section::Data { .. }))
                         || matches!(s.supplements, Some(Section::Data { .. }))
                 }) {
-                    item.status = Status::Partial;
+                    item.status = crate::status::item_status(true, false, true);
                 }
             }
         }
         out.sources.push(source);
     }
-    out.status = status::status(cards.items.iter().map(|i| i.status));
+    let state = status::status(cards.items.iter().map(|i| i.status));
+    status::get(out, [state].into_iter());
 }
 fn content(result: Result<Option<pmc_oa::Document>, RequestError>) -> Content {
     result
@@ -109,17 +121,25 @@ fn section<T>(content: &Content, map: impl FnOnce(&(FullText, Supplements)) -> T
         Err(reason) => Section::unavailable(Source::PmcOa, *reason),
     }
 }
-fn supplement_next(id: Pmcid, files: &Supplements, out: &mut Vec<(StepKind, Action)>) {
+fn supplement_next(
+    id: Pmcid,
+    files: &Supplements,
+    out: &mut Vec<crate::next::Step>,
+    problems: &mut Vec<biomcp_types::Problem>,
+) {
     if let Some(file) = files.files.iter().find(|v| v.kind.readable())
         && out.len() < 5
-        && let Ok(query) = ArticleSupplement::new(ArticleInput::Pmcid(id), file.name.clone())
+        && let Some(query) = crate::next::checked(
+            ArticleSupplement::new(ArticleInput::Pmcid(id), file.name.clone()),
+            biomcp_types::Source::PmcOa,
+            problems,
+        )
     {
-        out.push((
+        out.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::ArticleSupplement(query),
-                fresh: false,
-            },
+            &super::super::next::text_sources(query.input()),
+            Request::ArticleSupplement(query),
+            false,
         ));
     }
 }
@@ -132,17 +152,41 @@ pub(crate) fn outline(document: &pmc_oa::Document) -> FullText {
         figures: document.body.figures.clone().into(),
     }
 }
-pub(crate) fn next(id: Pmcid, part: u32, out: &mut Vec<(StepKind, Action)>) {
-    next_input(ArticleInput::Pmcid(id), part, out);
+pub(crate) fn outline_next(
+    input: ArticleInput,
+    out: &mut Vec<crate::next::Step>,
+    problems: &mut Vec<biomcp_types::Problem>,
+) {
+    // This fill-in term advertises literal finding without inventing a research question.
+    if let Some(query) = crate::next::checked(
+        ArticleText::finding(input, "<text>"),
+        Source::PmcOa,
+        problems,
+    ) {
+        out.push(crate::next::Step::run(
+            StepKind::Section,
+            &super::super::next::text_sources(query.input()),
+            Request::ArticleText(query),
+            false,
+        ));
+    }
 }
-pub(crate) fn next_input(input: ArticleInput, part: u32, out: &mut Vec<(StepKind, Action)>) {
-    if let Ok(query) = ArticleText::part(input, part) {
-        out.push((
+pub(crate) fn next_input(
+    input: ArticleInput,
+    part: u32,
+    out: &mut Vec<crate::next::Step>,
+    problems: &mut Vec<biomcp_types::Problem>,
+) {
+    if let Some(query) = crate::next::checked(
+        ArticleText::part(input, part),
+        biomcp_types::Source::PmcOa,
+        problems,
+    ) {
+        out.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::ArticleText(query),
-                fresh: false,
-            },
+            &super::super::next::text_sources(query.input()),
+            Request::ArticleText(query),
+            false,
         ));
     }
 }

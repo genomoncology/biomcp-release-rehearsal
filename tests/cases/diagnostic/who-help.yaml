@@ -1,14 +1,10 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "diagnostic-who",
   "story": "WHO help advertises explicit synchronization and a known-product card through executable synthetic examples.",
   "steps": [
     {
       "run": [
-        "help",
-        "sync",
-        "who-ivd"
-      ],
-      "mcp": [
         "help",
         "sync",
         "who-ivd"
@@ -23,37 +19,8 @@
           [
             "sync",
             "who-ivd"
-          ],
-          [
-            "sync",
-            "who-ivd",
-            "--fresh"
           ]
         ]
-      }
-    },
-    {
-      "run": [
-        "help",
-        "get",
-        "diagnostic"
-      ],
-      "mcp": [
-        "help",
-        "get",
-        "diagnostic"
-      ],
-      "max_bytes": 3799,
-      "expect": {
-        "/result/commands/0/examples": {
-          "includes": [
-            "get",
-            "diagnostic",
-            "0466-046-00",
-            "--source",
-            "who-ivd"
-          ]
-        }
       }
     }
   ],

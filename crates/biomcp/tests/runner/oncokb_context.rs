@@ -1,24 +1,22 @@
 //! Resolve keyed source selectors while keyless calls stop before identity I/O.
 use super::{launch::Environment, network_stub::Stub, oncokb};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
-use std::fs;
+use std::{fs, io::Write};
 const SECTION: &str = "/result/candidates/0/sections/oncokb";
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test(
-        "variant/oncokb-resolved-id-and-all-context",
+    // The peer binds request context and verifies that independent tool calls do not inherit earlier annotation context.
+    vec![transcript_trial(
+        crate::runner::required_contract::ONCOKB_ALL.0,
         || run().map_err(Into::into),
     )]
 }
 fn run() -> Result<(), String> {
-    let stub = Stub::for_sources(
-        &["myvariant.info", "www.oncokb.org", "reg.genome.network"],
-        |_| "application/json",
-        reply,
-    )?;
+    let (stub, observed) = peer()?;
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     let disabled = unrelated_sources();
     let config = json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca,"disable_sources":disabled});
@@ -26,7 +24,7 @@ fn run() -> Result<(), String> {
     for id in ["rs113488022", "CA123643"] {
         let args = args(id)?;
         let skipped = oncokb::invoke(&env, &args, 0)?;
-        if skipped.pointer(&format!("{SECTION}/reason")) != Some(&json!("no_key")) {
+        if skipped.pointer(&format!("{SECTION}/reason")) != Some(&json!("no-key")) {
             return Err("ID did not stop before resolution without a key".into());
         }
         let mcp = super::mcp::call_with_globals(&env, &args, false, &[])?;
@@ -61,24 +59,63 @@ fn run() -> Result<(), String> {
         ));
     }
     empty_components(&missing)?;
+    let cold: Vec<_> = observed.try_iter().collect();
     let mcp = super::mcp::call_with_globals(&env, &all, false, &[])?;
+    let warm: Vec<_> = observed.try_iter().collect();
     if missing.get("result") != mcp.get("result") || missing.get("next") != mcp.get("next") {
         return Err("all context CLI/MCP differs".into());
     }
     oncokb::invoke(&env, &["help", "get", "variant"].map(str::to_owned), 0)?;
     let requests = stub.finish()?;
+    retain_requests(&requests, cold, warm)?;
     let added = component_requests(&requests)?;
     if requests
         .iter()
         .filter(|(_, r)| r.starts_with("GET /api/v1/annotate/"))
         .count()
         != 1
-        || requests.len() - added != 4
+        // Shared identity projection reuses the rsID lookup for the later all request.
+        || requests.iter().filter(|(_, r)| r.starts_with("GET /v1/query?")).count() != 1
+        || requests.iter().filter(|(_, r)| r.starts_with("GET /allele/CA123643?")).count() != 1
+        || requests.len() - added != 3
     {
         return Err(format!(
             "keyless or contextless request escaped, or warm cache missed: {}",
             requests.len()
         ));
+    }
+    Ok(())
+}
+fn peer() -> Result<(Stub, std::sync::mpsc::Receiver<String>), String> {
+    let (observed, observation) = std::sync::mpsc::channel();
+    let stub = Stub::for_sources(
+        &["myvariant.info", "www.oncokb.org", "reg.genome.network"],
+        |_| "application/json",
+        move |request| {
+            observed
+                .send(request.to_owned())
+                .map_err(|e| e.to_string())?;
+            reply(request)
+        },
+    )?;
+    Ok((stub, observation))
+}
+fn retain_requests(
+    requests: &[(String, String)],
+    cold: Vec<String>,
+    warm: Vec<String>,
+) -> Result<(), String> {
+    writeln!(
+        std::io::stdout(),
+        "WARM_CACHE_REQUEST_PHASES {}",
+        json!({"cold_setup":cold,"warm":warm})
+    )
+    .map_err(|e| e.to_string())?;
+    if let Some(context) = super::transcript::current() {
+        context.record("cache/variant-oncokb/all/requests", json!(requests))?;
+    }
+    if !warm.is_empty() {
+        return Err(format!("warm call made {} extra live requests", warm.len()));
     }
     Ok(())
 }
@@ -110,7 +147,10 @@ fn reply(request: &str) -> Result<String, String> {
         .to_string());
     }
     if request.starts_with("GET /v1/query?") {
-        return Ok(json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}}}]}).to_string());
+        return Ok(json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T",
+        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+        "dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}}}]})
+        .to_string());
     }
     oncokb::reply(request)
 }
@@ -118,8 +158,7 @@ fn reply(request: &str) -> Result<String, String> {
 fn unrelated_sources() -> Vec<String> {
     use biomcp_types::Source;
     let allowed = [Source::MyVariant, Source::AlleleRegistry, Source::Oncokb];
-    biomcp_adapters::registry::SOURCES
-        .iter()
+    biomcp_query::sources::sources()
         .filter(|spec| !allowed.contains(&spec.source))
         .map(|spec| spec.source.to_string())
         .collect()
@@ -138,8 +177,8 @@ fn empty_components(value: &Value) -> Result<(), String> {
 }
 fn component_requests(requests: &[(String, String)]) -> Result<usize, String> {
     for fields in [
-        "fields=_id%2Ccadd.phred%2Ccadd.rawscore%2Ccadd.sift%2Cdbnsfp.hgvsp%2Cdbnsfp.ensembl.transcriptid%2Cd\
-            bnsfp.polyphen2%2Cdbnsfp.revel%2Cdbnsfp.mutationtaster",
+        "fields=_id%2Ccadd.phred%2Ccadd.rawscore%2Ccadd.sift%2Cdbnsfp.hgvsp%2Cdbnsfp.ensembl.transcriptid%2Cdbnsfp.polyphen2\
+                    %2Cdbnsfp.revel%2Cdbnsfp.mutationtaster",
         "fields=_id%2Cdbnsfp.hgvsp%2Cdbnsfp.ensembl.transcriptid%2Cdbnsfp.gerp%2B%2B%2Cdbnsfp.phastcons%2Cdbnsfp.phylop%2Cdbnsfp.siphy_29way",
         "fields=_id%2Ccosmic",
     ] {
@@ -147,7 +186,7 @@ fn component_requests(requests: &[(String, String)]) -> Result<usize, String> {
             .iter()
             .filter(|(_, request)| {
                 request.starts_with("GET /v1/variant/chr7%3Ag.140753336A%3ET?")
-                    && request.contains(&format!("?{fields}&assembly=hg19 "))
+                    && request.contains(&format!("?{fields}&assembly=hg38 "))
             })
             .count();
         if count != 1 {

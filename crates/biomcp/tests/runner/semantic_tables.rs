@@ -21,7 +21,7 @@ fn fields() -> Check {
         (
             None,
             None,
-            json!({"/result/items/0/key/namespace":"semantic_scholar"}),
+            json!({"/result/items/0/key/namespace":"semantic-scholar"}),
         ),
         (
             Some(json!([])),
@@ -72,15 +72,36 @@ fn fields() -> Check {
     Ok(())
 }
 fn failures() -> Check {
+    case(
+        CAPTURE,
+        ARGS,
+        |source, record| {
+            if source == "semantic-scholar" {
+                reply(
+                    record,
+                    json!({"data":[{"citedPaper":{"paperId":"bad","externalIds":{}}}]}),
+                );
+            }
+        },
+        json!({
+            "/status": "partial",
+            "/sources/0/state": "ok",
+            "/result": {"equals": {}},
+            "/page/returned": 0,
+            "/page/total": 0,
+            "/problems": [{
+                "source": "semantic-scholar",
+                "field": "paper_id",
+                "code": "value.unknown"
+            }]
+        }),
+        0,
+    )?;
     for (value, reason) in [
-        (json!({"data":[],"next":0}), "bad_reply"),
-        (
-            json!({"data":[{"citedPaper":{"paperId":"bad","externalIds":{}}}]}),
-            "bad_reply",
-        ),
+        (json!({"data":[],"next":0}), "bad-reply"),
         (
             json!({"data":[{"citingPaper":{"paperId":"0123456789abcdef0123456789abcdef01234567","externalIds":{}}}]}),
-            "bad_reply",
+            "bad-reply",
         ),
         (json!({"data":null}), "unavailable"),
     ] {

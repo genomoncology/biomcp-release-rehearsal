@@ -1,13 +1,23 @@
 {
   "$defs": {
-    "Attribution": {
-      "additionalProperties": false,
+    "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -15,10 +25,21 @@
           ],
           "description": "Source evaluation date."
         },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
+        },
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -29,7 +50,7 @@
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -38,13 +59,13 @@
           "description": "Dataset release."
         },
         "source": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the claim."
         },
         "submitter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +76,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -67,7 +88,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -81,16 +102,15 @@
       ],
       "type": "object"
     },
-    "AuthorizationDate": {
-      "additionalProperties": false,
+    "Reply_AuthorizationDate": {
       "description": "A native date kept with its original role.",
       "properties": {
         "date": {
-          "$ref": "#/$defs/PartialDate",
+          "$ref": "#/$defs/Reply_PartialDate",
           "description": "Source date at its stated precision."
         },
         "role": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native date role, without assigning approval meaning."
         }
       },
@@ -100,42 +120,43 @@
       ],
       "type": "object"
     },
-    "DrugId": {
+    "Reply_DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
       "type": "string"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.authorization-event/2",
+  "$id": "biodata.authorization-event/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "A source-scoped regulator event; never an identity-card field.",
   "properties": {
     "attribution": {
-      "$ref": "#/$defs/Attribution",
+      "$ref": "#/$defs/Reply_Attribution",
       "description": "One source record and its native provenance."
     },
     "dates": {
       "description": "All native dates with separate roles.",
       "items": {
-        "$ref": "#/$defs/AuthorizationDate"
+        "$ref": "#/$defs/Reply_AuthorizationDate"
       },
       "type": "array"
     },
     "indication": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -146,7 +167,7 @@
     "jurisdiction": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -157,7 +178,7 @@
     "kind": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -168,7 +189,7 @@
     "product_number": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -177,13 +198,13 @@
       "description": "Explicit native product number, never a synthesized first product."
     },
     "record": {
-      "$ref": "#/$defs/DrugId",
+      "$ref": "#/$defs/Reply_DrugId",
       "description": "Native regulator record identifier."
     },
     "status": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"

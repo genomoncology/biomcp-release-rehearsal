@@ -7,7 +7,6 @@ pub use query::{PhenotypeGet, PhenotypeSearch, PhenotypeSection, PhenotypeSource
 use serde::{Deserialize, Serialize};
 /// Independent source identity card and its available sections.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PhenotypeTermCard {
     /// Complete source-specific native card.
@@ -20,65 +19,46 @@ pub struct PhenotypeTermCard {
     pub components: Box<[ComponentLabel]>,
 }
 impl ResponseBody for PhenotypeTermCard {
-    const SCHEMA: &'static str = "biomcp.phenotype-card/1";
+    const SCHEMA: &'static str = "biomcp.phenotype-card/5";
     type Query = PhenotypeGet;
 }
-macro_rules! page {
-    ($name:ident, $row:ty, $query:ty, $schema:literal, $doc:literal) => {
-        #[doc = $doc]
-        #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
-        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        pub struct $name {
-            /// Native ordered rows; empty remains an empty collection.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub items: Box<[$row]>,
-            /// Applicable publisher component terms.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub components: Box<[ComponentLabel]>,
-            /// Original source retrieval seconds, distinct from ontology release.
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub fetched: Option<u64>,
-        }
-        impl ResponseBody for $name {
-            const SCHEMA: &'static str = $schema;
-            type Query = $query;
-        }
-    };
-}
+
 page!(
+    phenotype,
     PhenotypePage,
     PhenotypeHeader,
     PhenotypeSearch,
-    "biomcp.phenotype-search/1",
+    "biomcp.phenotype-search/5",
     "Native HP search header page, without local ranking."
 );
 page!(
+    phenotype,
     PhenotypeSynonyms,
     PhenotypeSynonym,
     PhenotypeGet,
-    "biomcp.phenotype-synonyms/1",
+    "biomcp.phenotype-synonyms/4",
     "Source synonym rows preserving publisher classes."
 );
 page!(
+    phenotype,
     PhenotypeXrefs,
     PhenotypeXref,
     PhenotypeGet,
-    "biomcp.phenotype-xrefs/1",
+    "biomcp.phenotype-xrefs/4",
     "Source reference rows without equivalence promotion."
 );
 page!(
+    phenotype,
     PhenotypeHierarchy,
     PhenotypeHierarchyLink,
     PhenotypeGet,
-    "biomcp.phenotype-hierarchy/1",
+    "biomcp.phenotype-hierarchy/5",
     "Direct source hierarchy links without graph traversal."
 );
 macro_rules! associations {
     ($name:ident, $schema:literal, $doc:literal) => {
         #[doc = $doc]
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
         #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
         pub struct $name {
             /// Native association rows in source order, without deduplication.
@@ -101,11 +81,11 @@ macro_rules! associations {
 }
 associations!(
     PhenotypeDiseases,
-    "biomcp.phenotype-diseases/3",
+    "biomcp.phenotype-diseases/7",
     "Direct source disease association rows without clinical inference."
 );
 associations!(
     PhenotypeGenes,
-    "biomcp.phenotype-genes/3",
+    "biomcp.phenotype-genes/7",
     "Direct source human gene association rows with native taxon."
 );

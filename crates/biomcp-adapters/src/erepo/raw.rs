@@ -1,13 +1,15 @@
+//! Native summary documents preserve independently valid source fields.
+use crate::native_text::NativeText;
+use crate::{mapped::Problems, raw::Field};
 use biodata::{Attribution, Text, VariantRef};
-
-use biomcp_fetch::{BadReply, Reply, RequestError};
+use biomcp_fetch::{BadReply, Reply};
 use biomcp_types::{
     AssertionCondition, AssertionDetail, AssertionDomain, AssertionKind, Source, VariantAssertion,
 };
 use serde::Deserialize;
 #[derive(Deserialize)]
 pub(super) struct ReplyBody {
-    pub data: Option<Vec<Record>>,
+    pub data: Option<Vec<Field<Record>>>,
     status: Status,
 }
 #[derive(Deserialize)]
@@ -19,19 +21,7 @@ struct Status {
 impl Reply for ReplyBody {
     fn check(&self) -> Result<(), BadReply> {
         match self.status.code {
-            200 if self.data.as_ref().is_some_and(|rows| {
-                rows.iter().all(|r| {
-                    r.ca_id.parse::<biodata::VariantId>().is_ok()
-                        && !r.id.is_empty()
-                        && !r.classification.is_empty()
-                        // Mapping validates every field that reaches the output.
-                        // Do this before cache admission, using the same rules.
-                        && r.clone().map().is_ok()
-                })
-            }) =>
-            {
-                Ok(())
-            }
+            200 if self.data.is_some() => Ok(()),
             404 if self.status.name == "Not Found"
                 && self.status.msg.as_deref() == Some("No records were found for given query")
                 && self.data.as_ref().is_none_or(Vec::is_empty) =>
@@ -49,7 +39,7 @@ impl Reply for ReplyBody {
         }
     }
 }
-#[derive(Clone, Deserialize)]
+#[derive(Deserialize)]
 pub(super) struct Record {
     #[serde(rename = "caId")]
     pub ca_id: String,
@@ -57,109 +47,123 @@ pub(super) struct Record {
     pub id: String,
     #[serde(rename = "docVersion")]
     pub version: String,
-    classification: String,
-    pub uuid: Option<String>,
-    condition: Option<String>,
+    classification: Option<Field<NativeText>>,
+    pub uuid: Option<Field<String>>,
+    condition: Option<Field<NativeText>>,
     #[serde(rename = "mondoId")]
-    mondo: Option<String>,
-    ep: Option<String>,
-    gene: Option<String>,
+    mondo: Option<Field<biodata::Curie>>,
+    ep: Option<Field<NativeText>>,
+    gene: Option<Field<Text>>,
     #[serde(rename = "metCodes")]
-    criteria: Option<Vec<String>>,
+    criteria: Option<Field<Vec<Field<Text>>>>,
     #[serde(rename = "unMetCodes")]
-    unmet: Option<Vec<String>>,
+    unmet: Option<Field<Vec<Field<NativeText>>>>,
     #[serde(rename = "summaryDesc")]
-    summary: Option<String>,
+    summary: Option<Field<NativeText>>,
     #[serde(rename = "approvedDate")]
-    approved: Option<String>,
+    approved: Option<Field<biodata::PartialDate>>,
     #[serde(rename = "publishedDate")]
-    published: Option<String>,
+    published: Option<Field<biodata::PartialDate>>,
     #[serde(rename = "versionsList")]
-    pub versions: Option<Vec<String>>,
+    pub versions: Option<Field<Vec<Field<Text>>>>,
 }
 impl Record {
-    pub(super) fn map(self) -> Result<VariantAssertion, RequestError> {
-        let subject = VariantRef::allele(self.ca_id.parse().map_err(|_| super::bad())?);
+    pub(super) fn matches(&self, caid: &str) -> bool {
+        self.ca_id == caid
+            && self.ca_id.parse::<biodata::VariantId>().is_ok()
+            && !self.id.trim().is_empty()
+            && !self.version.trim().is_empty()
+    }
+    pub(super) fn map(mut self, caid: &str, cx: &mut Problems) -> Option<VariantAssertion> {
+        cx.record = cx.text("PCERDocID", Some(&self.id));
+        let id = cx.required("PCERDocID", cx.record.clone())?;
+        let version = cx.text("docVersion", Some(&self.version))?;
+        let allele = cx.optional("caId", Some(self.ca_id.parse::<biodata::VariantId>()))?;
+        if self.ca_id != caid {
+            cx.required::<()>("caId", None);
+            return None;
+        }
+        let uuid = cx.field("uuid", self.uuid.take());
+        let url = uuid.as_deref().and_then(|uuid| {
+            cx.text(
+                "uuid",
+                Some(&format!(
+                    "https://erepo.clinicalgenome.org/evrepo/ui/classification/{uuid}?version={}",
+                    self.version
+                )),
+            )
+        });
         let attribution = Attribution {
+            approved: None,
+            published: None,
             source: Source::Erepo.text(),
-            record: Some(crate::mapped::text(&self.id).map_err(|_| super::bad())?),
-            version: Some(crate::mapped::text(&self.version).map_err(|_| super::bad())?),
+            record: Some(id),
+            version: Some(version),
             release: None,
-            submitter: self.ep.as_deref().map(|v| crate::mapped::text(v).map_err(|_| super::bad())).transpose()?,
+            submitter: cx.source_field("ep", self.ep.take()),
             evaluated: None,
-            url: self
-                .uuid
-                .as_ref()
-                .map(|uuid| {
-                    crate::mapped::text(&format!(
-                        "https://erepo.clinicalgenome.org/evrepo/ui/classification/{uuid}?version={}",
-                        self.version
-                    )).map_err(|_| super::bad())
-                })
-                .transpose()?,
+            url,
         };
-        let conditions = match self.condition {
-            Some(label) => vec![AssertionCondition {
-                database: None,
-                accession: None,
-                id: self
-                    .mondo
-                    .map(|v| v.parse().map_err(|_| super::bad()))
-                    .transpose()?,
-                label: Some(crate::mapped::text(&label).map_err(|_| super::bad())?),
-            }],
-            None => vec![],
-        };
+        let conditions = self.conditions(cx);
         let detail = AssertionDetail {
-            conditions: conditions.into(),
-            summary: self
-                .summary
-                .as_deref()
-                .map(|v| crate::mapped::text(v).map_err(|_| super::bad()))
-                .transpose()?,
-            unmet_criteria: strings(self.unmet.unwrap_or_default())?,
-            published: self
-                .published
-                .map(|s| s.parse().map_err(|_| super::bad()))
-                .transpose()?,
-            approved: self
-                .approved
-                .map(|s| s.parse().map_err(|_| super::bad()))
-                .transpose()?,
-            versions: strings(self.versions.unwrap_or_default())?,
+            conditions,
+            summary: cx.source_field("summaryDesc", self.summary),
+            unmet_criteria: cx
+                .fields("unMetCodes", self.unmet)
+                .into_vec()
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            published: cx.field("publishedDate", self.published),
+            approved: cx.field("approvedDate", self.approved),
+            versions: cx.fields("versionsList", self.versions),
             ..Default::default()
         };
-        let mut row = crate::assertion::row(
-            AssertionKind::Erepo,
-            AssertionDomain::Germline,
-            crate::mapped::text(&self.classification).map_err(|_| super::bad())?,
-            attribution,
-            subject,
-            detail,
-            None,
-        );
+        let classification = cx.source_field("classification", self.classification);
+        let mut row = match classification {
+            Some(label) => crate::assertion::row(
+                AssertionKind::Erepo,
+                AssertionDomain::Germline,
+                label,
+                attribution,
+                VariantRef::allele(allele),
+                detail,
+                None,
+            ),
+            None => crate::assertion::missing(
+                AssertionKind::Erepo,
+                AssertionDomain::Germline,
+                attribution,
+                detail,
+            ),
+        };
+        let criteria = cx.fields("metCodes", self.criteria);
+        let gene = cx.field("gene", self.gene).and_then(|label| {
+            cx.optional(
+                "gene",
+                Some(biodata::SourceGeneRef::new(label, None, None, None)),
+            )
+        });
         if let Some(statement) = &mut row.statement {
-            statement.criteria = strings(self.criteria.unwrap_or_default())?;
-            statement.gene_context = self
-                .gene
-                .map(|s| {
-                    biodata::GeneRef::new(
-                        crate::mapped::text(&s).map_err(|_| super::bad())?,
-                        None,
-                        None,
-                        None,
-                    )
-                    .map_err(|_| super::bad())
-                })
-                .transpose()?;
+            statement.criteria = criteria;
+            statement.gene_context = gene;
+        } else if let Some(detail) = &mut row.detail {
+            detail.met_criteria = criteria;
+            detail.gene_context = gene;
         }
-        Ok(row)
+        Some(row)
     }
-}
-
-fn strings(values: Vec<String>) -> Result<Box<[Text]>, RequestError> {
-    values
-        .iter()
-        .map(|s| crate::mapped::text(s).map_err(|_| super::bad()))
-        .collect()
+    fn conditions(&mut self, cx: &mut Problems) -> Box<[AssertionCondition]> {
+        let condition = AssertionCondition {
+            database: None,
+            accession: None,
+            id: cx.field("mondoId", self.mondo.take()),
+            label: cx.source_field("condition", self.condition.take()),
+        };
+        if condition.id.is_some() || condition.label.is_some() {
+            vec![condition].into()
+        } else {
+            Box::default()
+        }
+    }
 }

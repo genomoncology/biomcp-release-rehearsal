@@ -1,17 +1,28 @@
+use crate::raw::{Field, OneOrMany};
 use biomcp_fetch::{BadReply, Reply};
 use serde::Deserialize;
 #[derive(Deserialize)]
 pub(super) struct Page {
     pub total: u64,
-    pub hits: Vec<Hit>,
+    pub hits: Vec<Field<Hit>>,
+}
+#[derive(Deserialize)]
+pub(super) struct Annotation {
+    #[serde(flatten)]
+    pub hit: Field<Hit>,
+}
+impl Reply for Annotation {
+    fn check(&self) -> Result<(), BadReply> {
+        Ok(())
+    }
 }
 #[derive(Deserialize)]
 pub(super) struct Hit {
     #[serde(rename = "_id")]
     pub id: biodata::Text,
-    pub dbsnp: Option<Dbsnp>,
+    pub dbsnp: Option<Field<Dbsnp>>,
     pub snpeff: Option<crate::raw::Field<super::transcripts::Snpeff>>,
-    pub clinvar: Option<Clinvar>,
+    pub clinvar: Option<Field<Clinvar>>,
     pub clingen: Option<crate::raw::Field<Clingen>>,
     pub chrom: Option<SourceChromosome>,
     pub hg19: Option<SourceSpan>,
@@ -19,35 +30,20 @@ pub(super) struct Hit {
 }
 #[derive(Deserialize)]
 pub(super) struct Dbsnp {
-    pub rsid: Option<OneOrMany>,
-    pub gene: Option<Genes>,
-}
-#[derive(Deserialize)]
-#[serde(untagged)]
-pub(super) enum Genes {
-    One(Gene),
-    Many(Vec<Gene>),
+    pub rsid: Option<Field<OneOrMany<Field<biodata::Text>>>>,
+    pub gene: Option<Field<OneOrMany<Field<Gene>>>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Gene {
-    pub symbol: Option<biodata::Text>,
-}
-#[derive(Deserialize)]
-#[serde(untagged)]
-pub(super) enum OneOrMany {
-    One(biodata::Text),
-    Many(Vec<biodata::Text>),
+    pub symbol: Option<Field<biodata::Text>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Clinvar {
-    pub variant_id: u64,
+    pub variant_id: Field<u64>,
 }
 impl Reply for Page {
     fn check(&self) -> Result<(), BadReply> {
         if self.total > 10_000 || self.hits.len() > 1000 || self.hits.len() as u64 > self.total {
-            return Err(BadReply);
-        }
-        if self.hits.iter().any(|h| h.check().is_err()) {
             return Err(BadReply);
         }
         Ok(())
@@ -60,7 +56,7 @@ impl Reply for Hit {
             .id
             .as_str()
             .parse::<biomcp_types::VariantInput>()
-            .is_ok_and(|i| i.namespace().ok() == Some(biomcp_types::VariantNamespace::Chromosome))
+            .is_ok_and(|i| i.namespace() == biomcp_types::VariantNamespace::Chromosome)
         {
             Ok(())
         } else {
@@ -74,15 +70,22 @@ impl Hit {
         if query.starts_with("rs") {
             self.dbsnp
                 .as_ref()
+                .and_then(Field::as_ref)
                 .and_then(|d| d.rsid.as_ref())
+                .and_then(Field::as_ref)
                 .is_some_and(|ids| match ids {
-                    OneOrMany::One(id) => id.as_str() == query,
-                    OneOrMany::Many(ids) => ids.iter().any(|id| id.as_str() == query),
+                    OneOrMany::One(id) => id.as_ref().is_some_and(|id| id.as_str() == query),
+                    OneOrMany::Many(ids) => ids
+                        .iter()
+                        .filter_map(Field::as_ref)
+                        .any(|id| id.as_str() == query),
                 })
         } else if let Some(id) = query.strip_prefix("clinvar.variant_id:") {
             self.clinvar
                 .as_ref()
-                .is_some_and(|c| c.variant_id.to_string() == id)
+                .and_then(Field::as_ref)
+                .and_then(|c| c.variant_id.as_ref())
+                .is_some_and(|value| value.to_string() == id)
         } else {
             self.id.as_str() == query
         }

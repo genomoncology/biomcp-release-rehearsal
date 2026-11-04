@@ -1,0 +1,44 @@
+{
+  "method": "GET",
+  "source": "maude",
+  "url": "https://api.fda.gov/device/event.json?search=device.manufacturer_d_name%3A%22Synthetic%20maker%22%20AND%20%28device.device_report_product_code.exact%3A%22ABC%22%20OR%20device.device_report_product_code.exact%3A%22XYZ%22%29%20AND%20product_problems%3A%22Synthetic%20problem%22&limit=5&skip=0&sort=date_received%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2024-09-01",
+            "results": {
+              "skip": 0,
+              "limit": 5,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "mdr_report_key": "160",
+              "event_type": 17,
+              "date_received": "20240202",
+              "device": [
+                {
+                  "manufacturer_d_name": "Synthetic maker",
+                  "device_report_product_code": "ABC"
+                }
+              ],
+              "product_problems": [
+                "Synthetic problem"
+              ],
+              "mdr_text": []
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "article-semantic-sections",
   "story": "A source that still has another cursor after five calls returns its accessible window with a truncation notice and iCite command.",
   "verified": "Response-only synthetic copies of all five exact command requests captured2026-10-24; original source contexts remain external. Each source body is replaced, never a request identifier. No comparable0.9 source-edge command is recorded; ceiling follows actual replay plus15percent after measurement.",
@@ -12,19 +13,12 @@
         "--source",
         "semantic-scholar"
       ],
-      "mcp": [
-        "article",
-        "citations",
-        "23000897",
-        "--source",
-        "semantic-scholar"
-      ],
       "expect": {
         "/status": "complete",
         "/page/total": 5,
         "/page/truncated": true,
-        "/sources/0/fetched": 5,
-        "/sources/0/notices/0/kind": "graph_truncated",
+        "/sources/0/retrieved_count": 5,
+        "/sources/0/notices/0/kind": "graph-truncated",
         "/sources/0/notices/0/fallback": "article citations <PMID> --source icite",
         "/result/items/*/header/title": [
           "Synthetic source page1.",

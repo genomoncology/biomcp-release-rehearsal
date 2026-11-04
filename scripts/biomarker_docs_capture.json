@@ -1,0 +1,16 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "docs",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/docs",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    }
+  ]
+}

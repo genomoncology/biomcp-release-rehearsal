@@ -5,7 +5,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 4224
+          "max_bytes": 5491
         },
         "/result/commands": {
           "count": 1
@@ -19,31 +19,23 @@
             "--received-from",
             "--received-to",
             "--limit",
-            "--offset"
+            "--offset",
+            "--manufacturer",
+            "--product-code",
+            "--problem",
+            "--drug"
           ]
         },
-        "/result/commands/0/arguments/6/description": "FAERS report flag: death or hospitalization; never a reaction outcome.",
-        "/result/commands/0/arguments/8/choices": [
-          "faers",
-          "maude",
-          "vaers"
-        ],
-        "/result/commands/0/arguments/9/description": "Exact drug text, MAUDE device phrase or exact supported VAERS vaccine.",
         "/result/commands/0/command": [
           "search",
           "adverse-event"
         ],
-        "/result/commands/0/description": "Search five report headers by default. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified source influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety. CDC WONDER can take longer than BioMCP's local command deadline. Use the interactive form at https://wonder.cdc.gov/vaers.html for a longer query. See https://wonder.cdc.gov/wonder/help/faq.html. BioMCP's local quota refused this request before contacting CDC WONDER. Retry after the reported seconds left. Automated queries must follow the spacing at https://wonder.cdc.gov/wonder/help/wonder-api.html.",
+        "/result/commands/0/description": "Search five report headers by default. Sources: faers, maude, vaers.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
-      "max_bytes": 4226,
-      "mcp": [
-        "help",
-        "search",
-        "adverse-event"
-      ],
+      "max_bytes": 5492,
       "run": [
         "help",
         "search",
@@ -71,7 +63,7 @@
           "maude"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/section_rule": "FAERS owns drugs, reactions and identifiers; MAUDE owns devices and narrative. Omitted means card only.",
         "/result/commands/0/sections/*/word": [
@@ -89,11 +81,6 @@
         ]
       },
       "max_bytes": 4004,
-      "mcp": [
-        "help",
-        "get",
-        "adverse-event"
-      ],
       "run": [
         "help",
         "get",

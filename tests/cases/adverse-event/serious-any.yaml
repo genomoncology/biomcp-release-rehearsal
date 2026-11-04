@@ -1,0 +1,36 @@
+{
+  "verified": "The declared 2026-10-28 openFDA serious:1 capture supplies the native report flag; the nightly run executes that public drug/event request.",
+  "feature": "adverse-event-search",
+  "live_check": "public",
+  "story": "A caller selects reports with the native FAERS seriousness flag.",
+  "replay": "adverse-event/faers-serious-any",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "pembrolizumab",
+        "--source",
+        "faers",
+        "--serious",
+        "any",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/serious": "any",
+        "/result/source_query": "(patient.drug.openfda.generic_name:\"pembrolizumab\" OR patient.drug.openfda.brand_name:\"pembrolizumab\" OR patient.drug.medicinalproduct:\"pembrolizumab\") AND serious:1",
+        "/result/items/0/id": "26940567",
+        "/result/items/0/serious": "1",
+        "/result/items": {
+          "count": 1
+        },
+        "": {
+          "max_bytes": 1049
+        }
+      },
+      "max_bytes": 1050
+    }
+  ]
+}

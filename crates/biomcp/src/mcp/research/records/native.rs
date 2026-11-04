@@ -1,6 +1,6 @@
 //! Source-owned links and labels for native records.
 use super::{hit, next_args, paths, text};
-use biomcp_adapters::registry::records::{declaration, record_url};
+use biomcp_query::sources::{declaration, record_url};
 use biomcp_types::{ResearchHit, Source};
 use serde_json::Value;
 
@@ -9,8 +9,8 @@ fn source(row: &Value, envelope: &Value) -> Option<Source> {
         row,
         &[
             "/source",
-            "/id/source",
-            "/pathway/id/source",
+            "/id/namespace",
+            "/pathway/id/namespace",
             "/attribution/source",
             "/term/source",
         ],
@@ -64,7 +64,7 @@ pub(super) fn project(
     } else {
         let label = template
             .map(|record| record.display_name)
-            .or_else(|| source.map(biomcp_adapters::registry::display_name))?;
+            .or_else(|| source.map(biomcp_query::sources::display_name))?;
         fallback = format!("{label} {id}");
         &fallback
     };

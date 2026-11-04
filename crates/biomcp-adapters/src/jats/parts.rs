@@ -32,8 +32,9 @@ pub(super) fn append(
     out: &mut Vec<Part>,
     group: Group,
     originals: &mut Rows,
+    problems: &mut crate::mapped::Problems,
 ) -> Result<(), BadReply> {
-    let source = group;
+    let mut source = group;
     let incoming = source.rows.iter().try_fold(0usize, |n, r| {
         n.checked_add(r.markdown.len()).ok_or(BadReply)
     })?;
@@ -42,16 +43,30 @@ pub(super) fn append(
         .checked_add(incoming)
         .filter(|n| *n <= super::MAX_MARKDOWN_BYTES)
         .ok_or(BadReply)?;
-    let metadata = source
+    let path_bytes = source
         .path
         .iter()
         .map(|v| escaped_bytes(v.as_str()) + 3)
-        .sum::<usize>()
-        + source.context.as_ref().map_or(0, |v| escaped_bytes(v));
-    let budget = TEXT_BYTES
-        .checked_sub(metadata + 256)
-        .filter(|n| *n >= 256)
-        .ok_or(BadReply)?;
+        .sum::<usize>();
+    if path_bytes > TEXT_BYTES - 512 {
+        source.path.clear();
+        problems.required::<()>("heading_path", None);
+    }
+    let path_bytes = source
+        .path
+        .iter()
+        .map(|v| escaped_bytes(v.as_str()) + 3)
+        .sum::<usize>();
+    if source
+        .context
+        .as_ref()
+        .is_some_and(|v| escaped_bytes(v) > TEXT_BYTES - 512 - path_bytes)
+    {
+        source.context = None;
+        problems.required::<()>("context", None);
+    }
+    let metadata = path_bytes + source.context.as_ref().map_or(0, |v| escaped_bytes(v));
+    let budget = TEXT_BYTES - metadata - 256;
     let start = out.len();
     let mut group = Vec::new();
     let mut bytes = 0;
@@ -68,7 +83,7 @@ pub(super) fn append(
         for piece in pieces {
             let size = escaped_bytes(&piece);
             if !group.is_empty() && bytes + size + escaped_bytes(source.separator()) > budget {
-                push(out, &source, std::mem::take(&mut group), bytes)?;
+                push(out, &source, std::mem::take(&mut group), bytes, problems)?;
                 bytes = 0;
             }
             if !group.is_empty() {
@@ -82,7 +97,7 @@ pub(super) fn append(
         }
     }
     if !group.is_empty() {
-        push(out, &source, group, bytes)?;
+        push(out, &source, group, bytes, problems)?;
     }
     let end = out.len();
     for (i, part) in out.iter_mut().enumerate().skip(start) {
@@ -90,11 +105,20 @@ pub(super) fn append(
     }
     Ok(())
 }
-fn push(out: &mut Vec<Part>, source: &Group, rows: Vec<Row>, bytes: usize) -> Result<(), BadReply> {
+fn push(
+    out: &mut Vec<Part>,
+    source: &Group,
+    rows: Vec<Row>,
+    bytes: usize,
+    problems: &mut crate::mapped::Problems,
+) -> Result<(), BadReply> {
     out.push(Part {
         meta: TextPart {
             number: u32::try_from(out.len() + 1).map_err(|_| BadReply)?,
-            title: Text::new(&source.title).map_err(|_| BadReply)?,
+            title: source
+                .title
+                .as_ref()
+                .and_then(|v| problems.text("parts.title", Some(v))),
             kind: source.kind,
             tokens: u32::try_from((bytes + 2).div_ceil(4)).map_err(|_| BadReply)?,
         },

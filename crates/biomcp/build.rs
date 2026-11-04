@@ -5,6 +5,8 @@
 )]
 use std::{collections::BTreeMap, env, error::Error, fs, path::PathBuf};
 
+#[path = "build/front_map.rs"]
+mod front_map;
 #[path = "build/schema_metadata.rs"]
 mod schema_metadata;
 
@@ -37,14 +39,37 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<String>();
     let output = PathBuf::from(env::var("OUT_DIR")?).join("schemas.rs");
     fs::write(output, format!("&[\n{entries}]\n"))?;
-    embed_skills()?;
+    let map = front_map::generate(&schemas)?;
+    println!("cargo:rerun-if-env-changed=BIOMCP_FRONT_MAP_CHARACTER_LIMIT");
+    let character_limit = env::var("BIOMCP_FRONT_MAP_CHARACTER_LIMIT")
+        .ok()
+        .map(|value| value.parse::<usize>())
+        .transpose()?
+        .unwrap_or(front_map::DEFAULT_CHARACTER_LIMIT);
+    if map.chars().count() > character_limit {
+        return Err(format!(
+            "front map exceeds {} characters: {}",
+            character_limit,
+            map.chars().count()
+        )
+        .into());
+    }
+    fs::write(
+        PathBuf::from(env::var("OUT_DIR")?).join("front-map.txt"),
+        &map,
+    )?;
+    embed_skills(&map)?;
     embed_examples()
 }
 
 const EXAMPLE_CASES: &[(&str, usize)] = &[
+    ("biomarker/synonym.yaml", 0),
+    ("biomarker/code.yaml", 0),
+    ("organization/name.yaml", 0),
+    ("organization/city-state.yaml", 0),
     ("gene/hgnc-sync.yaml", 0),
     ("gene/sections/clingen-sync.yaml", 0),
-    ("gene/sections/gencc.yaml", 1),
+    ("gene/sections/gencc.yaml", 0),
     ("store/clean.yaml", 0),
     ("author/search.yaml", 0),
     ("author/source-alias.yaml", 0),
@@ -69,8 +94,8 @@ const EXAMPLE_CASES: &[(&str, usize)] = &[
     ("gwas/get-examples.yaml", 0),
     ("gwas/get-examples.yaml", 1),
     ("protein/cards.yaml", 0),
-    ("protein/gene-crossrefs.yaml", 1),
-    ("protein/cards.yaml", 2),
+    ("protein/gene-crossrefs.yaml", 0),
+    ("protein/cards.yaml", 1),
     ("protein/paging.yaml", 0),
     ("protein/examples.yaml", 0),
     ("protein/examples.yaml", 1),
@@ -104,46 +129,50 @@ const EXAMPLE_CASES: &[(&str, usize)] = &[
     ("pgx/examples.yaml", 1),
     ("pgx/examples.yaml", 2),
     ("pgx/examples.yaml", 3),
+    ("diagnostic/recall.yaml", 0),
+    ("diagnostic/recall.yaml", 1),
+    ("diagnostic/recall.yaml", 2),
     ("diagnostic/fda-cdx.yaml", 0),
-    ("diagnostic/fda-cdx.yaml", 11),
+    ("diagnostic/fda-cdx.yaml", 3),
     ("diagnostic/who.yaml", 0),
-    ("diagnostic/who.yaml", 4),
+    ("diagnostic/who.yaml", 2),
     ("diagnostic/who.yaml", 1),
     ("diagnostic/gtr.yaml", 0),
-    ("diagnostic/gtr.yaml", 10),
+    ("diagnostic/gtr.yaml", 9),
     ("diagnostic/gtr.yaml", 1),
     ("diagnostic/gtr.yaml", 4),
     ("diagnostic/gtr.yaml", 5),
     ("adverse-event/examples.yaml", 0),
     ("adverse-event/examples.yaml", 1),
+    ("adverse-event/maude-filters.yaml", 0),
     ("adverse-event/get-examples.yaml", 0),
     ("adverse-event/get-examples.yaml", 1),
+    ("article/pdf/synthetic.yaml", 0),
     ("article/pdf/synthetic.yaml", 1),
-    ("article/pdf/synthetic.yaml", 2),
     ("drug/ema.yaml", 1),
     ("drug/ema.yaml", 2),
     ("drug/ema.yaml", 3),
-    ("drug/ema.yaml", 7),
+    ("drug/ema.yaml", 4),
     ("drug/who-sync.yaml", 0),
     ("drug/who-sync.yaml", 1),
     ("drug/ema-sync.yaml", 0),
     ("drug/ema-sync.yaml", 1),
     ("drug/ddinter.yaml", 0),
-    ("drug/ddinter.yaml", 8),
+    ("drug/ddinter.yaml", 2),
     ("disease/examples.yaml", 0),
     ("disease/examples.yaml", 1),
     ("disease/examples.yaml", 2),
     ("disease/examples.yaml", 3),
-    ("gene/kras.yaml", 0),
+    ("readme/gene.yaml", 0),
     ("gene/braf.yaml", 0),
     ("gene/search.yaml", 0),
     ("gene/search.yaml", 1),
-    ("article/search/pubmed-floor.yaml", 0),
+    ("readme/article.yaml", 0),
     ("article/filters/since.yaml", 0),
     ("article/get/card.yaml", 0),
     ("article/preprint/reader.yaml", 0),
-    ("article/fulltext/outline.yaml", 2),
-    ("article/fulltext/outline.yaml", 3),
+    ("article/fulltext/outline.yaml", 0),
+    ("article/fulltext/outline.yaml", 1),
     ("article/supplements/workbook.yaml", 0),
     ("article/supplements/protein-change.yaml", 0),
     ("article/citations/citing.yaml", 0),
@@ -154,8 +183,10 @@ const EXAMPLE_CASES: &[(&str, usize)] = &[
     ("article/evidence/source.yaml", 1),
     ("article/recommendations/single.yaml", 0),
     ("article/recommendations/multi.yaml", 0),
-    ("trial/condition.yaml", 0),
+    ("readme/trial.yaml", 0),
+    ("trial/nci-facility-native.yaml", 0),
     ("trial/intervention.yaml", 0),
+    ("trial/or-options.yaml", 0),
     ("trial/get/NCT04303780.yaml", 0),
     ("trial/documents.yaml", 0),
     ("trial/document-examples.yaml", 0),
@@ -175,9 +206,13 @@ const EXAMPLE_CASES: &[(&str, usize)] = &[
 ];
 
 const GUIDE_CASES: &[(&str, usize)] = &[
+    ("variant/search-coding-flcn.yaml", 0),
+    ("drug/label-discovery.yaml", 0),
+    ("drug/label-controls.yaml", 1),
+    ("trial/or-options.yaml", 1),
     ("trial/wider-zero.yaml", 0),
     ("trial/wider-zero.yaml", 1),
-    ("article/filters/since.yaml", 2),
+    ("article/filters/since.yaml", 1),
     ("gene/sections/clingen-validity.yaml", 0),
     ("gene/band.yaml", 0),
     ("gene/band.yaml", 1),
@@ -269,11 +304,19 @@ fn git_revision() -> Result<String, Box<dyn Error>> {
     Ok(String::from_utf8(commit.stdout)?.trim().to_owned())
 }
 
-fn embed_skills() -> Result<(), Box<dyn Error>> {
+fn embed_skills(map: &str) -> Result<(), Box<dyn Error>> {
     let directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?).join("../../skills");
     println!("cargo:rerun-if-changed={}", directory.display());
     let mut assets = BTreeMap::new();
     skill_files(&directory, &directory, &mut assets)?;
+    let guide = assets.get_mut("SKILL.md").ok_or("missing skill guide")?;
+    if guide.matches("{{front-map}}").count() != 1 {
+        return Err("skill template requires exactly one front-map marker".into());
+    }
+    if guide.len() > 4096 {
+        return Err("agent skill template exceeds 4 KB".into());
+    }
+    *guide = guide.replace("{{front-map}}", map);
     let entries = assets
         .iter()
         .map(|(name, text)| format!("({name:?}, {text:?}),\n"))

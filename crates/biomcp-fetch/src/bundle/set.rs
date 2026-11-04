@@ -76,6 +76,7 @@ impl Fetch {
         leg.bundle_source(&bundle)?;
         let cache = leg.bundle_cache()?;
         let mut complete = Vec::new();
+        let mut rejections = Vec::new();
         let mut revision = Sha256::new();
         let mut bytes = 0_u64;
         for part in set.parts {
@@ -93,11 +94,15 @@ impl Fetch {
                 }
                 Ok(())
             };
-            let media = match format {
-                RowFormat::Document { media } => Some(media),
-                _ => None,
+            let read = crate::Read::bytes().validate_body(&check);
+            let read = match format {
+                RowFormat::Document { media } => read.document_media(media),
+                _ => read,
             };
-            let body = leg.bytes_checked_media(&endpoint, &[], media, check)?;
+            let body = leg
+                .call(&endpoint, crate::Input::Params(&[]), read)?
+                .value
+                .0;
             bytes = bytes.saturating_add(body.len() as u64);
             if bytes > super::MAX_BUNDLE_BYTES {
                 return Err(leg
@@ -110,7 +115,11 @@ impl Fetch {
             revision.update(&body);
             let rows = parse::part_rows::<R>(&body, format, part.name)
                 .map_err(|_| leg.failure(biomcp_types::Reason::BadReply, Some(200)))?;
-            append_part(&mut complete, part, rows)?;
+            rejections.extend(rows.rejections.into_iter().map(|mut rejection| {
+                rejection.reason = format!("{}: {}", part.name, rejection.reason);
+                rejection
+            }));
+            append_part(&mut complete, part, rows.rows)?;
         }
         if set.parts.is_empty() || leg.budget().expired() {
             return Err(leg.failure(biomcp_types::Reason::Syncing, None).into());
@@ -122,6 +131,7 @@ impl Fetch {
             .collect();
         let content_revision = format!("sha256:{hex}");
         let metadata = store::Meta {
+            rejections,
             bytes,
             rows: complete.len() as u64,
             fresh_until: crate::cache::now().saturating_add(
@@ -144,11 +154,12 @@ fn append_part(
     part: &BundlePart,
     rows: Vec<parse::Parsed>,
 ) -> Result<(), RequestError> {
-    for (index, row) in rows.into_iter().enumerate() {
+    for row in rows {
         let value: serde_json::Value =
-            serde_json::from_str(&row.row).map_err(|_| crate::CacheError::Database)?;
-        let document = serde_json::json!({"part":part.name,"row":index + 2,"value":value});
+            serde_json::from_str(&row.row).map_err(|_| crate::CacheError::Encoding)?;
+        let document = serde_json::json!({"part":part.name,"row":row.number,"value":value});
         complete.push(parse::Parsed {
+            number: row.number,
             row: document.to_string(),
             keys: row.keys,
         });

@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "hgnc",
+  "url": "https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt",
+  "exchanges": [
+    {
+      "fetched": 1792870635,
+      "status": 200,
+      "content_type": "text/tab-separated-values",
+      "delay_ms": 3562,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "hgnc_id\tsymbol\tname\tlocus_group\tlocus_type\tstatus\tentrez_id\nHGNC:1097\tBRAF\tSynthetic BRAF record\tprotein-coding gene\tgene with protein product\tApproved\t673\n"
+      }
+    }
+  ]
+}

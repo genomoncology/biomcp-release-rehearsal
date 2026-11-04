@@ -1,0 +1,21 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/query?q=7-140753336-A-T&size=10&from=0&fields=_id%2Cdbsnp.rsid%2Cdbsnp.gene.symbol%2Cclinvar.variant_id%2Cchrom%2Chg19%2Chg38%2Csnpeff.ann",
+  "exchanges": [
+    {
+      "fetched": 1792876427,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 0,
+          "hits": []
+        }
+      }
+    }
+  ]
+}

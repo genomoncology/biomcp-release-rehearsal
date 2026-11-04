@@ -1,20 +1,7 @@
 {
   "$defs": {
-    "ExpressionSyntax": {
+    "Reply_ExpressionSyntax": {
       "description": "Published syntax label for a source-preserved expression.",
-      "enum": [
-        "hgvs.g",
-        "hgvs.c",
-        "hgvs.n",
-        "hgvs.r",
-        "hgvs.p",
-        "hgvs.m",
-        "hgvs.o",
-        "spdi",
-        "gnomad",
-        "vcf",
-        "iscn"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGVS genomic description.",
@@ -28,26 +15,40 @@
         " gnomAD chromosome-position-reference-alternate identifier.",
         " Padded VCF chromosome-position-reference-alternate text.",
         " Source-preserved cytogenetic notation."
+      ],
+      "x-extensible-enum": [
+        "hgvs.g",
+        "hgvs.c",
+        "hgvs.n",
+        "hgvs.r",
+        "hgvs.p",
+        "hgvs.m",
+        "hgvs.o",
+        "spdi",
+        "gnomad",
+        "vcf",
+        "iscn"
       ]
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.expression/2",
+  "$id": "biodata.expression/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "Source expression checked for its declared published form, without normalization.",
+  "description": "Source expression checked for its reference and syntax only, without a full parser or normalization.",
   "properties": {
     "syntax": {
-      "$ref": "#/$defs/ExpressionSyntax"
+      "$ref": "#/$defs/Reply_ExpressionSyntax"
     },
     "syntax_version": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -55,7 +56,7 @@
       ]
     },
     "value": {
-      "$ref": "#/$defs/Text"
+      "$ref": "#/$defs/Reply_Text"
     }
   },
   "required": [

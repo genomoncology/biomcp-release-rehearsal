@@ -1,24 +1,23 @@
 {
   "$defs": {
-    "Build": {
+    "Reply_Build": {
       "description": "The assembly stated by the source; no default is inferred.",
-      "enum": [
-        "GRCh37",
-        "GRCh38"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Genome Reference Consortium human build 37.",
         " Genome Reference Consortium human build 38."
+      ],
+      "x-extensible-enum": [
+        "GRCh37",
+        "GRCh38"
       ]
     },
-    "Chromosome": {
+    "Reply_Chromosome": {
       "description": "A primary chromosome in the caller's reference build.",
       "pattern": "^([1-9]|1[0-9]|2[0-2]|X|Y|MT)$",
       "type": "string"
     },
-    "Span0": {
-      "additionalProperties": false,
+    "Reply_Span0": {
       "description": "A zero-based half-open span with ordered bounds; empty spans are valid.",
       "properties": {
         "end": {
@@ -40,28 +39,27 @@
       ],
       "type": "object"
     },
-    "Strand": {
+    "Reply_Strand": {
       "description": "Source-stated forward or reverse strand.",
-      "enum": [
-        "+",
-        "-"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Forward strand.",
         " Reverse strand."
+      ],
+      "x-extensible-enum": [
+        "+",
+        "-"
       ]
     }
   },
   "$id": "biodata.genomic-interval/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "An assembly-qualified zero-based half-open source interval.",
   "properties": {
     "build": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Build"
+          "$ref": "#/$defs/Reply_Build"
         },
         {
           "type": "null"
@@ -70,17 +68,17 @@
       "description": "Source-stated assembly, omitted when absent."
     },
     "chromosome": {
-      "$ref": "#/$defs/Chromosome",
+      "$ref": "#/$defs/Reply_Chromosome",
       "description": "Canonical primary chromosome."
     },
     "span": {
-      "$ref": "#/$defs/Span0",
+      "$ref": "#/$defs/Reply_Span0",
       "description": "Checked zero-based half-open bounds; an empty span remains valid."
     },
     "strand": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Strand"
+          "$ref": "#/$defs/Reply_Strand"
         },
         {
           "type": "null"

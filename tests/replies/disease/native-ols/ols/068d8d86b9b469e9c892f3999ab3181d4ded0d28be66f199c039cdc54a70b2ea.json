@@ -1,0 +1,389 @@
+{
+  "method": "GET",
+  "source": "ols",
+  "url": "https://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms?obo_id=MONDO%3A0007254",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "_embedded": {
+            "terms": [
+              {
+                "iri": "http://purl.obolibrary.org/obo/MONDO_0007254",
+                "lang": "en",
+                "description": [
+                  "A primary or metastatic malignant neoplasm involving the breast. The vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast neoplasms occur more frequently in females than in males."
+                ],
+                "synonyms": [
+                  "breast tumor",
+                  "mammary tumor",
+                  "primary breast cancer",
+                  "breast cancer",
+                  "breast tumour",
+                  "cancer of breast",
+                  "malignant breast neoplasm",
+                  "malignant breast tumor",
+                  "malignant breast tumour",
+                  "malignant neoplasm of breast",
+                  "malignant neoplasm of the breast",
+                  "malignant tumor of breast",
+                  "malignant tumor of the breast",
+                  "malignant tumour of breast",
+                  "malignant tumour of the breast",
+                  "mammary tumour"
+                ],
+                "annotation": {
+                  "Conforms To": [
+                    "http://purl.obolibrary.org/obo/mondo/patterns/cancer.yaml"
+                  ],
+                  "database_cross_reference": [
+                    "DOID:1612",
+                    "ICD10CM:C50",
+                    "ICD9:174.8",
+                    "MEDGEN:651",
+                    "NCIT:C9335",
+                    "SCTID:254837009",
+                    "UMLS:C0006142",
+                    "icd11.foundation:1047754165"
+                  ],
+                  "has exact match": [
+                    "http://id.who.int/icd/entity/1047754165",
+                    "http://identifiers.org/medgen/651",
+                    "http://identifiers.org/snomedct/254837009",
+                    "http://linkedlifedata.com/resource/umls/id/C0006142",
+                    "http://purl.bioontology.org/ontology/ICD10CM/C50",
+                    "http://purl.obolibrary.org/obo/DOID_1612",
+                    "http://purl.obolibrary.org/obo/NCIT_C9335"
+                  ],
+                  "id": [
+                    "MONDO:0007254"
+                  ]
+                },
+                "label": "breast cancer",
+                "ontology_name": "mondo",
+                "ontology_prefix": "MONDO",
+                "ontology_iri": "http://purl.obolibrary.org/obo/mondo/mondo-international.owl",
+                "is_obsolete": false,
+                "term_replaced_by": null,
+                "is_defining_ontology": true,
+                "has_children": true,
+                "is_root": false,
+                "short_form": "MONDO_0007254",
+                "obo_id": "MONDO:0007254",
+                "in_subset": [
+                  "otar"
+                ],
+                "obo_definition_citation": [
+                  {
+                    "definition": "A primary or metastatic malignant neoplasm involving the breast. The vast majority of cases are carcinomas arising from the breast parenchyma or the nipple. Malignant breast neoplasms occur more frequently in females than in males.",
+                    "oboXrefs": [
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  }
+                ],
+                "obo_xref": [
+                  {
+                    "database": "DOID",
+                    "id": "1612",
+                    "description": "MONDO:equivalentTo",
+                    "url": "http://purl.obolibrary.org/obo/DOID_1612"
+                  },
+                  {
+                    "database": "ICD10CM",
+                    "id": "C50",
+                    "description": "MONDO:equivalentTo",
+                    "url": "https://www.icd10data.com/search?s=C50"
+                  },
+                  {
+                    "database": "ICD9",
+                    "id": "174.8",
+                    "description": "DOID:1612",
+                    "url": null
+                  },
+                  {
+                    "database": "MEDGEN",
+                    "id": "651",
+                    "description": "MONDO:equivalentTo",
+                    "url": "https://www.ncbi.nlm.nih.gov/medgen/651"
+                  },
+                  {
+                    "database": "NCIT",
+                    "id": "C9335",
+                    "description": "MONDO:equivalentTo",
+                    "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                  },
+                  {
+                    "database": "SCTID",
+                    "id": "254837009",
+                    "description": "MONDO:equivalentTo",
+                    "url": "http://purl.bioontology.org/ontology/SNOMEDCT/254837009"
+                  },
+                  {
+                    "database": "UMLS",
+                    "id": "C0006142",
+                    "description": "MONDO:equivalentTo",
+                    "url": "https://uts.nlm.nih.gov/uts/umls/concept/C0006142"
+                  },
+                  {
+                    "database": "icd11.foundation",
+                    "id": "1047754165",
+                    "description": "https://orcid.org/0009-0001-6494-4831",
+                    "url": null
+                  }
+                ],
+                "obo_synonym": [
+                  {
+                    "name": "breast cancer",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "DOID",
+                        "id": "1612",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/DOID_1612"
+                      },
+                      {
+                        "database": "MONDO",
+                        "id": "patterns/location",
+                        "description": null,
+                        "url": null
+                      },
+                      {
+                        "database": "icd11.foundation",
+                        "id": "1047754165",
+                        "description": null,
+                        "url": null
+                      }
+                    ]
+                  },
+                  {
+                    "name": "cancer of breast",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "MONDO",
+                        "id": "patterns/cancer",
+                        "description": null,
+                        "url": null
+                      },
+                      {
+                        "database": "icd11.foundation",
+                        "id": "1047754165",
+                        "description": null,
+                        "url": null
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant breast neoplasm",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "MONDO",
+                        "id": "patterns/cancer",
+                        "description": null,
+                        "url": null
+                      },
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant breast tumor",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant breast tumour",
+                    "scope": "hasExactSynonym",
+                    "type": "UK spelling synonym",
+                    "xrefs": []
+                  },
+                  {
+                    "name": "malignant neoplasm of breast",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "DOID",
+                        "id": "1612",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/DOID_1612"
+                      },
+                      {
+                        "database": "ICD10CM",
+                        "id": "C50",
+                        "description": null,
+                        "url": "https://www.icd10data.com/search?s=C50"
+                      },
+                      {
+                        "database": "MONDO",
+                        "id": "patterns/cancer",
+                        "description": null,
+                        "url": null
+                      },
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant neoplasm of the breast",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant tumor of breast",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant tumor of the breast",
+                    "scope": "hasExactSynonym",
+                    "type": null,
+                    "xrefs": [
+                      {
+                        "database": "DOID",
+                        "id": "1612",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/DOID_1612"
+                      },
+                      {
+                        "database": "NCIT",
+                        "id": "C9335",
+                        "description": null,
+                        "url": "http://purl.obolibrary.org/obo/NCIT_C9335"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant tumour of breast",
+                    "scope": "hasExactSynonym",
+                    "type": "UK spelling synonym",
+                    "xrefs": [
+                      {
+                        "database": "icd11.foundation",
+                        "id": "1047754165",
+                        "description": null,
+                        "url": null
+                      }
+                    ]
+                  },
+                  {
+                    "name": "malignant tumour of the breast",
+                    "scope": "hasExactSynonym",
+                    "type": "UK spelling synonym",
+                    "xrefs": []
+                  },
+                  {
+                    "name": "breast tumour",
+                    "scope": "hasBroadSynonym",
+                    "type": "UK spelling synonym",
+                    "xrefs": []
+                  },
+                  {
+                    "name": "mammary tumour",
+                    "scope": "hasBroadSynonym",
+                    "type": "UK spelling synonym",
+                    "xrefs": []
+                  }
+                ],
+                "is_preferred_root": false,
+                "_links": {
+                  "self": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254?lang=en"
+                  },
+                  "parents": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/parents"
+                  },
+                  "ancestors": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/ancestors"
+                  },
+                  "hierarchicalParents": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/hierarchicalParents"
+                  },
+                  "hierarchicalAncestors": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/hierarchicalAncestors"
+                  },
+                  "jstree": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/jstree"
+                  },
+                  "children": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/children"
+                  },
+                  "descendants": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/descendants"
+                  },
+                  "hierarchicalChildren": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/hierarchicalChildren"
+                  },
+                  "hierarchicalDescendants": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/hierarchicalDescendants"
+                  },
+                  "graph": {
+                    "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FMONDO_0007254/graph"
+                  }
+                }
+              }
+            ]
+          },
+          "_links": {
+            "self": {
+              "href": "http://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms?obo_id=MONDO%3A0007254"
+            }
+          },
+          "page": {
+            "size": 1,
+            "totalElements": 1,
+            "totalPages": 1,
+            "number": 0
+          }
+        }
+      }
+    }
+  ]
+}

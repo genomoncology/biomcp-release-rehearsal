@@ -1,19 +1,12 @@
 {
   "feature": "article-named-search",
-  "live_check": "synthetic CC BY response subset",
+  "live_check": "License-filtered recorded sentence subset; live endpoint cannot enforce this subset without retrieving excluded sentences.",
   "story": "Sentence resemblance retains the first source sentence for each paper without local score sorting",
   "replay": "article/litsense/licensed-subset",
-  "verified": "Edited subset of the actual xqzvw zzyzxq kinase response from 2026-10-24. Only seven papers with CC BY in current PMC bucket metadata remain; NC variants are excluded. The complete 100-sentence, 73-paper response runs externally. PubMed summary request was captured by an actual search for these exact seven PMIDs. Canonical request identities were never reconstructed. No exact 0.9 named-source JSON comparison exists. Measured page: 4794 bytes; ceiling: 5514 bytes, exactly ceil(actual * 1.15). No matching 0.9 single-source JSON baseline exists.",
+  "verified": "Edited subset of the actual xqzvw zzyzxq kinase response from 2026-10-24. Only seven papers with CC BY in current PMC bucket metadata remain; NC variants are excluded. PubMed summary request was captured by an actual search for these exact seven PMIDs. Canonical request identities were never reconstructed. No exact 0.9 named-source JSON comparison exists. Measured page: 4794 bytes; ceiling: 5514 bytes, exactly ceil(actual * 1.15). No matching 0.9 single-source JSON baseline exists. tests/replies/article/litsense/README.md identifies unchanged captured source sentences in this license-filtered subset and the actual matching PubMed summary capture. This subset runs only against its licensed recordings; nightly selection does not request sentence content.",
   "steps": [
     {
       "run": [
-        "search",
-        "article",
-        "xqzvw zzyzxq kinase",
-        "--source",
-        "litsense"
-      ],
-      "mcp": [
         "search",
         "article",
         "xqzvw zzyzxq kinase",
@@ -25,7 +18,7 @@
         "/status": "complete",
         "/page/total": 7,
         "/page/truncated": false,
-        "/sources/0/fetched": 7,
+        "/sources/0/retrieved_count": 7,
         "/result/items/*/pmid": [
           "34718584",
           "30363995",
@@ -37,23 +30,6 @@
         ],
         "/result/items/0/sentence/section": "METHODS",
         "/result/items/0/sentence/text": "T4 Polynucleotide Kinase (NEB) 5' radiolabelled oligonucleotides were used for detection of mitochondrial transcripts (MT-ATP8/6 5'-TGGGTGATGAGGAATAGTGTAAGGAG; MT-CO3 5'-ATAGGCATGTGATTGGTGGGTCAT; MT-ATP6:MT-CO3 border 5'-ATTGGTGGGTCATTATGTGTTGTC)."
-      }
-    },
-    {
-      "run": [
-        "search",
-        "article",
-        "xqzvw zzyzxq kinase",
-        "--source",
-        "litsense"
-      ],
-      "offline": true,
-      "max_bytes": 5514,
-      "expect": {
-        "/status": "complete",
-        "/result/items": {
-          "count": 7
-        }
       }
     }
   ]

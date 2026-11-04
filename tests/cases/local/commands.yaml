@@ -1,0 +1,22 @@
+{
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
+  "feature": "housekeeping",
+  "story": "The version command and its global alias print the installed release identity exactly.",
+  "steps": [
+    {
+      "run": [
+        "--version"
+      ],
+      "stdout": "biomcp 1.0.0\n"
+    },
+    {
+      "run": [
+        "health",
+        "--offline"
+      ],
+      "expect": {
+        "/schema": "biomcp.health/6"
+      }
+    }
+  ]
+}

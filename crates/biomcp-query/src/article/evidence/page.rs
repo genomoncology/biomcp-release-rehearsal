@@ -1,10 +1,9 @@
 use super::Snapshot;
-use crate::{Action, Outcome};
+use crate::Outcome;
 use biodata::Text;
 use biomcp_fetch::RequestError;
-use biomcp_types::{
-    ArticleEvidence, ArticleEvidenceResult, QueryBody, Request, Section, Status, StepKind,
-};
+use biomcp_types::ReplyBody;
+use biomcp_types::{ArticleEvidence, ArticleEvidenceResult, ReplyData, Request, Section, StepKind};
 /// Exact Unicode fragments leave room for both independent evidence sections and envelope.
 pub(super) fn split(text: &str) -> Vec<(u32, String)> {
     let mut out = Vec::new();
@@ -30,9 +29,10 @@ pub(super) fn split(text: &str) -> Vec<(u32, String)> {
 pub(super) fn render(
     query: &ArticleEvidence,
     mut snapshot: Snapshot,
-    id: Text,
+    id: Option<Text>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
+    out.dropped |= snapshot.dropped;
     let mut context_end = query.offset();
     let mut paragraph_end = query.paragraph_offset();
     let mut more = false;
@@ -40,7 +40,7 @@ pub(super) fn render(
         let total = data.contexts.items.len();
         let start = query.offset() as usize;
         if start > total {
-            out.body = QueryBody::TextPositionError;
+            out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
             return Ok(());
         }
         let items = page(&data.contexts.items, start, 4500, |item| {
@@ -54,7 +54,7 @@ pub(super) fn render(
         let total = data.paragraphs.items.len();
         let start = query.paragraph_offset() as usize;
         if start > total {
-            out.body = QueryBody::TextPositionError;
+            out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
             return Ok(());
         }
         let items = page(&data.paragraphs.items, start, 8500, |item| {
@@ -64,53 +64,30 @@ pub(super) fn render(
         more |= (paragraph_end as usize) < total;
         data.paragraphs.items = items.into();
     }
-    let failed = |section: &Section<_>| {
-        matches!(
-            section,
-            Section::Unavailable { .. } | Section::Skipped { .. }
-        )
-    };
-    let graph_failed = failed(&snapshot.graph);
-    let text_failed = snapshot
-        .fulltext
-        .as_ref()
-        .is_some_and(|s| matches!(s, Section::Unavailable { .. } | Section::Skipped { .. }));
-    let graph_data = matches!(&snapshot.graph, Section::Data { .. });
-    let text_data = matches!(&snapshot.fulltext, Some(Section::Data { .. }));
-    out.status = if graph_failed || text_failed {
-        if graph_data || text_data {
-            Status::Partial
-        } else {
-            Status::Failed
-        }
-    } else if !snapshot.terminal
-        || snapshot.sources.iter().any(|s| {
-            matches!(
-                s.state,
-                biomcp_types::SourceState::Stale
-                    | biomcp_types::SourceState::Failed
-                    | biomcp_types::SourceState::Skipped
-            )
-        })
-    {
-        Status::Partial
-    } else {
-        Status::Complete
-    };
-    if more || !snapshot.terminal {
-        out.next.push((
+    let unavailable = matches!(&snapshot.graph, Section::Unavailable { .. })
+        || matches!(&snapshot.fulltext, Some(Section::Unavailable { .. }));
+    let answered = matches!(&snapshot.graph, Section::Data { .. })
+        || matches!(&snapshot.fulltext, Some(Section::Data { .. }));
+    sources(out, std::mem::take(&mut snapshot.sources));
+    crate::status::item(
+        out,
+        true,
+        unavailable && !answered,
+        unavailable || !snapshot.terminal,
+    );
+    if let Some(id) = id.filter(|_| more || !snapshot.terminal) {
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::ArticleEvidence(query.page(id, context_end, paragraph_end)),
-                fresh: false,
-            },
+            &super::super::next::evidence_sources(query),
+            Request::ArticleEvidence(query.page(id, context_end, paragraph_end)),
+            false,
         ));
     }
-    sources(out, snapshot.sources);
-    out.body = QueryBody::ArticleEvidence(ArticleEvidenceResult {
+    out.body = (ArticleEvidenceResult {
         semantic_scholar: snapshot.graph,
         fulltext: snapshot.fulltext,
-    });
+    })
+    .with_query(query.clone());
     Ok(())
 }
 fn page<T: Clone>(
@@ -122,7 +99,7 @@ fn page<T: Clone>(
     let mut out = Vec::new();
     let mut bytes = 0;
     for item in items.iter().skip(offset) {
-        let size = size(item).map_err(|_| biomcp_fetch::CacheError::Database)? + 1;
+        let size = size(item).map_err(|_| biomcp_fetch::CacheError::Encoding)? + 1;
         if !out.is_empty() && bytes + size > budget {
             break;
         }

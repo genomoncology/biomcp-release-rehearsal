@@ -2,9 +2,11 @@ use crate::{Reason, Source, Text};
 use serde::{Deserialize, Serialize};
 /// The source's own entry for an entity.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(extend("x-identifier" = true)))]
 pub struct SourceRecord {
+    /// Native authority; unknown means the source did not state one.
+    pub namespace: biodata::IdentifierNamespace,
     /// Native source identifier.
     pub id: Text,
     /// Link to that entry.
@@ -15,7 +17,8 @@ pub struct SourceRecord {
 /// A requested section has exactly one state.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "state", rename_all = "kebab-case")]
+#[cfg_attr(feature = "schema", schemars(rename = "Section_{T}"))]
 pub enum Section<T> {
     /// The source returned data.
     Data {

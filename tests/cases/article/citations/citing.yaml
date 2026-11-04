@@ -16,26 +16,6 @@
           "nonincreasing": true
         }
       },
-      "mcp": [
-        "article",
-        "citations",
-        "17611497"
-      ],
-      "max_bytes": 5378
-    },
-    {
-      "run": [
-        "article",
-        "citations",
-        "17611497"
-      ],
-      "expect": {
-        "/page/total": 1045,
-        "/result/items/*/cited_by": {
-          "nonincreasing": true
-        }
-      },
-      "offline": true,
       "max_bytes": 5378
     }
   ],

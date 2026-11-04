@@ -1,97 +1,135 @@
-use super::raw::{Genes, Hit, OneOrMany};
-use crate::Mapped;
-use crate::mapped::problem;
+//! Admit exact source records before mapping independently optional annotations.
+use super::raw::{Gene, Hit};
+use crate::{
+    Mapped,
+    mapped::Problems,
+    raw::{Field, OneOrMany},
+};
 use biodata::{Build, Expression, ExpressionSyntax, Representation, Text, Variant, VariantId};
-
-use biomcp_types::{Problem, Source, SourceRecord, VariantHeader};
+use biomcp_fetch::Reply;
+use biomcp_types::{Source, SourceRecord, VariantHeader};
 pub(super) fn candidates(
-    hits: Vec<Hit>,
+    hits: Vec<Field<Hit>>,
     query: &str,
     build: Option<Build>,
     allow_clinvar: bool,
     allow_snpeff: bool,
 ) -> Mapped<Vec<VariantHeader>> {
     let mut value = Vec::new();
-    let mut problems = Vec::new();
-    for hit in hits {
-        let aliases = hit
-            .dbsnp
-            .as_ref()
-            .and_then(|d| d.rsid.as_ref())
-            .map(|v| match v {
-                OneOrMany::One(v) => vec![v.clone()],
-                OneOrMany::Many(v) => v.clone(),
-            })
-            .unwrap_or_default();
-        if !hit.matches(query) || value.iter().any(|v: &VariantHeader| v.record.id == hit.id) {
-            problems.push(problem(Source::MyVariant, Some(hit.id), "identity"));
+    let mut refusals = crate::Refusal::None;
+    let mut problems = Problems {
+        source: Source::MyVariant,
+        record: None,
+        list: Vec::new(),
+    };
+    for raw in hits {
+        problems.record = None;
+        let Some(hit) = problems.field("identity", Some(raw)) else {
+            refusals = crate::Refusal::Refused;
+            continue;
+        };
+        problems.record = Some(hit.id.clone());
+        if hit.check().is_err()
+            || !hit.matches(query)
+            || value.iter().any(|v: &VariantHeader| v.record.id == hit.id)
+        {
+            problems.required::<()>("identity", None);
+            refusals = crate::Refusal::Refused;
             continue;
         }
-        let mut ids = Vec::new();
-        for alias in aliases {
-            match alias.as_str().parse::<VariantId>() {
-                Ok(id @ VariantId::Rs(_)) => ids.push(id),
-                _ => problems.push(problem(Source::MyVariant, Some(hit.id.clone()), "ids")),
-            }
+        if let Some(row) = candidate(hit, build, allow_clinvar, allow_snpeff, &mut problems) {
+            value.push(row);
+        } else {
+            refusals = crate::Refusal::Refused;
         }
-        if allow_clinvar
-            && let Some(cv) = hit.clinvar
-            && let Ok(id) = biodata::ClinVarVariationId::new(cv.variant_id)
+    }
+    Mapped {
+        refusals,
+        value,
+        problems: problems.list,
+    }
+}
+fn candidate(
+    mut hit: Hit,
+    build: Option<Build>,
+    allow_clinvar: bool,
+    allow_snpeff: bool,
+    problems: &mut Problems,
+) -> Option<VariantHeader> {
+    let mut dbsnp = problems.field("dbsnp", hit.dbsnp.take());
+    let aliases = problems.field("dbsnp.rsid", dbsnp.as_mut().and_then(|row| row.rsid.take()));
+    let mut ids = Vec::new();
+    for alias in aliases.into_iter().flat_map(OneOrMany::values) {
+        let Some(alias) = problems.field("dbsnp.rsid", Some(alias)) else {
+            continue;
+        };
+        let id = problems.optional("dbsnp.rsid", Some(alias.as_str().parse::<VariantId>()));
+        if let Some(id) =
+            problems.required("dbsnp.rsid", id.filter(|id| matches!(id, VariantId::Rs(_))))
         {
+            ids.push(id);
+        }
+    }
+    if allow_clinvar && let Some(cv) = problems.field("clinvar", hit.clinvar) {
+        let id = problems.field("clinvar.variant_id", Some(cv.variant_id));
+        if let Some(id) = problems.optional(
+            "clinvar.variant_id",
+            id.map(|id| {
+                u32::try_from(id)
+                    .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)
+                    .and_then(|id| {
+                        biodata::ClinVarVariationId::new(id)
+                            .map_err(|_| biodata::Error::ClinVarVariationIdInvalid)
+                    })
+            }),
+        ) {
             ids.push(VariantId::ClinVarVariation(id));
         }
-        let mut component_terms = component_terms(&ids).into_vec();
-        let transcripts =
-            super::transcripts::map(hit.snpeff.filter(|_| allow_snpeff), &hit.id, &mut problems);
-        if !transcripts.is_empty() {
-            component_terms.extend(super::transcripts::label());
-        }
-        let genes = genes(hit.dbsnp.and_then(|d| d.gene), &hit.id, &mut problems);
-        if build.is_none() {
-            problems.push(problem(
-                Source::MyVariant,
-                Some(hit.id.clone()),
-                "representations.build",
-            ));
-        }
-        let expression = Expression::new(ExpressionSyntax::HgvsG, hit.id.clone(), None);
-        let representations = match expression {
-            Ok(expression) => vec![Representation {
+    }
+    let mut component_terms = component_terms(&ids).into_vec();
+    let transcripts = super::transcripts::map(
+        hit.snpeff.filter(|_| allow_snpeff),
+        &hit.id,
+        &mut problems.list,
+    );
+    if !transcripts.is_empty() {
+        component_terms.extend(super::transcripts::label());
+    }
+    let genes = genes(dbsnp.and_then(|row| row.gene), problems);
+    let build = problems.required("representations.build", build);
+    let expression = problems.optional(
+        "identity",
+        Some(Expression::new(
+            ExpressionSyntax::HgvsG,
+            hit.id.clone(),
+            None,
+        )),
+    )?;
+    Some(VariantHeader {
+        identity: Variant {
+            ids: ids.into(),
+            representations: vec![Representation {
                 source: Source::MyVariant.text(),
                 expression,
                 build,
                 allele: None,
-            }],
-            Err(_) => {
-                problems.push(problem(
-                    Source::MyVariant,
-                    Some(hit.id.clone()),
-                    "representations",
-                ));
-                continue;
-            }
-        };
-        value.push(VariantHeader {
-            identity: Variant {
-                ids: ids.into(),
-                representations: representations.into(),
-                genes: genes.into(),
-            },
-            source: Source::MyVariant,
-            record: SourceRecord {
-                id: hit.id,
-                url: None,
-            },
-            transcripts,
-            myvariant: None,
-            requested: None,
-            sections: None,
-            component_terms: component_terms.into(),
-        });
-    }
-    Mapped { value, problems }
+            }]
+            .into(),
+            genes: genes.into(),
+        },
+        source: Source::MyVariant,
+        record: SourceRecord {
+            namespace: biodata::IdentifierNamespace::Unknown,
+            id: hit.id,
+            url: None,
+        },
+        transcripts,
+        myvariant: None,
+        requested: None,
+        sections: None,
+        component_terms: component_terms.into(),
+    })
 }
-
 fn component_terms(ids: &[VariantId]) -> Box<[biomcp_types::ComponentLabel]> {
     if ids
         .iter()
@@ -109,23 +147,20 @@ fn component_terms(ids: &[VariantId]) -> Box<[biomcp_types::ComponentLabel]> {
 }
 
 fn genes(
-    source: Option<Genes>,
-    record: &Text,
-    problems: &mut Vec<Problem>,
-) -> Vec<biodata::GeneRef> {
-    let mut genes = Vec::new();
-    let source_genes = match source {
-        Some(Genes::One(v)) => vec![v],
-        Some(Genes::Many(v)) => v,
-        None => return genes,
-    };
-    for gene in source_genes {
-        if let Some(symbol) = gene.symbol {
-            match biodata::GeneRef::new(symbol, None, None, None) {
-                Ok(g) => genes.push(g),
-                Err(_) => problems.push(problem(Source::MyVariant, Some(record.clone()), "genes")),
-            }
-        }
-    }
-    genes
+    raw: Option<Field<OneOrMany<Field<Gene>>>>,
+    problems: &mut Problems,
+) -> Vec<biodata::SourceGeneRef> {
+    let source = problems.field("dbsnp.gene", raw);
+    source
+        .into_iter()
+        .flat_map(OneOrMany::values)
+        .filter_map(|raw| {
+            let gene = problems.field("dbsnp.gene", Some(raw))?;
+            let symbol = problems.field("dbsnp.gene.symbol", gene.symbol)?;
+            problems.optional(
+                "dbsnp.gene.symbol",
+                Some(biodata::SourceGeneRef::new(symbol, None, None, None)),
+            )
+        })
+        .collect()
 }

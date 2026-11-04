@@ -3,8 +3,8 @@ use biodata::{Cytoband, EnsemblGeneId, GeneSymbol, HgncId, NcbiGeneId, UniProtAc
 use biomcp_fetch::{KeyKind, Keys, Row};
 use serde::Deserialize;
 
-pub(super) fn cell(value: &Option<String>) -> &str {
-    value.as_deref().unwrap_or("")
+pub(super) fn cell(value: Option<&str>) -> &str {
+    value.unwrap_or("")
 }
 
 #[derive(Debug, Deserialize)]
@@ -29,33 +29,33 @@ pub(super) fn parts(value: &str) -> impl Iterator<Item = &str> {
 }
 impl Row for Gene {
     fn keys(&self) -> Keys {
-        let mut keys = identity(cell(&self.hgnc_id), cell(&self.symbol));
+        let mut keys = identity(cell(self.hgnc_id.as_deref()), cell(self.symbol.as_deref()));
         for (kind, values) in [
-            (KeyKind::PreviousSymbol, cell(&self.prev_symbol)),
-            (KeyKind::Alias, cell(&self.alias_symbol)),
+            (KeyKind::PreviousSymbol, cell(self.prev_symbol.as_deref())),
+            (KeyKind::Alias, cell(self.alias_symbol.as_deref())),
         ] {
             keys.exact.extend(parts(values).map(|v| (kind, v.into())));
             keys.words.extend(parts(values).map(Into::into));
         }
-        if let Ok(id) = cell(&self.entrez_id).parse::<NcbiGeneId>() {
+        if let Ok(id) = cell(self.entrez_id.as_deref()).parse::<NcbiGeneId>() {
             keys.exact
                 .push((KeyKind::Xref, format!("entrez:{id}").into()));
         }
-        if let Ok(id) = cell(&self.ensembl_gene_id).parse::<EnsemblGeneId>() {
+        if let Ok(id) = cell(self.ensembl_gene_id.as_deref()).parse::<EnsemblGeneId>() {
             keys.exact
                 .push((KeyKind::Xref, format!("ensembl:{}", id.base()).into()));
         }
-        for value in parts(cell(&self.uniprot_ids)) {
+        for value in parts(cell(self.uniprot_ids.as_deref())) {
             if let Ok(id) = UniProtAcc::new(value) {
                 keys.exact
                     .push((KeyKind::Xref, format!("uniprot:{id}").into()));
             }
         }
-        if Cytoband::new(cell(&self.location)).is_ok() {
+        if Cytoband::new(cell(self.location.as_deref())).is_ok() {
             keys.exact
-                .push((KeyKind::Band, cell(&self.location).into()));
+                .push((KeyKind::Band, cell(self.location.as_deref()).into()));
         }
-        keys.words.push(cell(&self.name).into());
+        keys.words.push(cell(self.name.as_deref()).into());
         keys
     }
 }
@@ -85,6 +85,6 @@ pub(super) struct Withdrawn {
 }
 impl Row for Withdrawn {
     fn keys(&self) -> Keys {
-        identity(cell(&self.hgnc_id), cell(&self.symbol))
+        identity(cell(self.hgnc_id.as_deref()), cell(self.symbol.as_deref()))
     }
 }

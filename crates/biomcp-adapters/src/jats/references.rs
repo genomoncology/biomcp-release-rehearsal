@@ -13,22 +13,33 @@ pub struct Reference {
     /// Explicit DOI, when canonical.
     pub doi: Option<Doi>,
 }
-pub(super) fn rows(xml: &str) -> Result<Vec<Reference>, BadReply> {
+pub(super) fn rows(
+    xml: &str,
+    problems: &mut crate::mapped::Problems,
+    refusals: &mut crate::Refusal,
+) -> Result<Vec<Reference>, BadReply> {
     let mut out = Vec::new();
     for reference in blocks::descendants(xml, "ref")? {
         let Some(id) = reference.attr("id")? else {
+            *refusals = crate::Refusal::Refused;
+            continue;
+        };
+        let Some(id) = problems.optional("references.id", Some(Text::new(&id))) else {
+            *refusals = crate::Refusal::Refused;
             continue;
         };
         let mut row = Reference {
-            id: Text::new(&id).map_err(|_| BadReply)?,
+            id,
             pmid: None,
             doi: None,
         };
         for node in blocks::descendants(reference.0, "pub-id")? {
             let value = node.text()?;
             match node.attr("pub-id-type")?.as_deref() {
-                Some("pmid") => row.pmid = value.parse().ok(),
-                Some("doi") => row.doi = value.parse().ok(),
+                Some("pmid") => {
+                    row.pmid = problems.optional("references.pmid", Some(value.parse()))
+                }
+                Some("doi") => row.doi = problems.optional("references.doi", Some(value.parse())),
                 _ => {}
             }
         }

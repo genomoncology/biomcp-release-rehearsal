@@ -15,7 +15,7 @@ pub(crate) fn finish(result: io::Result<()>, status: Status) -> ExitCode {
         Ok(()) => ExitCode::from(status.code()),
         Err(_) => {
             crate::output::diagnostic(b"biomcp: output failed\n");
-            ExitCode::from(5)
+            ExitCode::from(Status::Local.code())
         }
     }
 }
@@ -36,7 +36,7 @@ impl From<biomcp_types::Status> for Status {
 }
 
 impl Status {
-    fn code(&self) -> u8 {
+    pub(crate) fn code(&self) -> u8 {
         match self {
             Self::Success => 0,
             Self::Absent => 1,
@@ -62,11 +62,11 @@ pub(crate) fn reference() -> String {
     ] {
         text.push_str(&format!("{}: {description}\n", status.code()));
     }
-    if let Some(schema) = crate::schema::find("biomcp.error/1")
+    if let Some(schema) = crate::schema::find("biomcp.error/4")
         .and_then(|s| serde_json::from_str::<serde_json::Value>(s).ok())
     {
         let codes = schema
-            .pointer("/$defs/ErrorCode/enum")
+            .pointer("/$defs/Reply_ErrorCode/enum")
             .and_then(serde_json::Value::as_array)
             .into_iter()
             .flatten()

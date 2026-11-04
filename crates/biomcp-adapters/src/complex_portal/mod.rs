@@ -1,4 +1,5 @@
 //! Exact native Complex Portal participants; no inferred membership.
+use biomcp_fetch::Input;
 use biomcp_fetch::{KeyUse, SourceSpec, Terms};
 use biomcp_types::{Source, Use};
 use std::time::Duration;
@@ -25,17 +26,31 @@ use serde::{Deserialize, Serialize};
 /// An admitted complex and its whole native participant list.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Complex {
+    /// Actual refused native records, independent of optional fields.
+    #[serde(
+        default = "crate::mapped::refusal_serde::none",
+        with = "crate::mapped::refusal_serde"
+    )]
+    pub refusals: crate::Refusal,
+
     /// Exact native header.
     pub header: ProteinComplexHeader,
     /// Source participants, including non-proteins.
     pub members: Vec<ProteinComplexMember>,
     /// Rejected optional source fields retained with the complex.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub problems: Vec<biomcp_types::Problem>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub problems: Option<Vec<biomcp_types::Problem>>,
 }
 /// A complete admitted collection with an independent source search count.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Collection {
+    /// Actual refused native records, independent of optional fields.
+    #[serde(
+        default = "crate::mapped::refusal_serde::none",
+        with = "crate::mapped::refusal_serde"
+    )]
+    pub refusals: crate::Refusal,
+
     /// Exact-participant admissions in native order.
     pub items: Vec<Complex>,
     /// Native text-search total, never an admitted membership count.
@@ -57,16 +72,22 @@ pub fn search(leg: &Leg<'_>, anchor: &UniProtIsoform) -> Result<Collection, Requ
         if offset > 0 {
             args.push(("first", Arg::Num(offset)));
         }
-        let page = leg.json::<raw::Search>(&endpoint, &args)?;
+        let page = leg
+            .call(
+                &endpoint,
+                Input::Params(&args),
+                biomcp_fetch::Read::<raw::Search>::json(),
+            )?
+            .value;
         if total.is_some_and(|n| n != page.total_number_of_results) {
-            return Err(bad());
+            return Err(biomcp_fetch::bad_reply(Source::ComplexPortal, Some(200)));
         }
         total = Some(page.total_number_of_results);
         let returned = page.elements.len() as u64;
         if offset + returned > page.total_number_of_results
             || returned == 0 && offset < page.total_number_of_results
         {
-            return Err(bad());
+            return Err(biomcp_fetch::bad_reply(Source::ComplexPortal, Some(200)));
         }
         for row in page.elements {
             if row.interactors.is_none() {
@@ -85,11 +106,17 @@ pub fn search(leg: &Leg<'_>, anchor: &UniProtIsoform) -> Result<Collection, Requ
     }
     let mut ids = std::collections::BTreeSet::new();
     if items.iter().any(|c| !ids.insert(c.header.id.to_string())) {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::ComplexPortal, Some(200)));
+    }
+    let mut refusals = crate::Refusal::None;
+    for complex in &items {
+        refusals.include(complex.refusals);
     }
     Ok(Collection {
+        refusals,
         items,
-        native_total: total.ok_or_else(bad)?,
+        native_total: total
+            .ok_or_else(|| biomcp_fetch::bad_reply(Source::ComplexPortal, Some(200)))?,
     })
 }
 fn detail(leg: &Leg<'_>, id: &ComplexPortalId) -> Result<raw::Complex, RequestError> {
@@ -98,9 +125,15 @@ fn detail(leg: &Leg<'_>, id: &ComplexPortalId) -> Result<raw::Complex, RequestEr
         .with_path(format!("/complex/{id}"))?
         .identity_encoding()
         .fresh(Freshness::Days(1));
-    let d = leg.json_checked_cache::<raw::Detail>(&endpoint, &[], |d| d.id == *id)?;
+    let d = leg
+        .call(
+            &endpoint,
+            Input::Params(&[]),
+            biomcp_fetch::Read::<raw::Detail>::json().cache_if(&|d| d.id == *id),
+        )?
+        .value;
     if d.id != *id {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::ComplexPortal, Some(200)));
     }
     Ok(raw::Complex {
         id: d.id,
@@ -118,12 +151,6 @@ pub fn members(
 ) -> Result<Option<Complex>, RequestError> {
     map::complex(detail(leg, id)?, anchor)
 }
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::ComplexPortal,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
-}
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

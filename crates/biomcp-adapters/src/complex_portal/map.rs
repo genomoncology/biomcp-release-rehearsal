@@ -1,17 +1,17 @@
-use super::{Complex, bad, raw};
+use super::{Complex, raw};
 use biodata::{ProteinComplexHeader, ProteinComplexMember, UniProtIsoform};
 use biomcp_fetch::RequestError;
 pub(super) fn members(
     rows: Vec<raw::Member>,
     problems: &mut crate::mapped::Problems,
+    refusals: &mut crate::Refusal,
 ) -> Result<Vec<ProteinComplexMember>, RequestError> {
     rows.into_iter()
         .map(|r| {
             let protein = if r.interactor_type == "protein" {
                 problems.required(
                     "participants.protein",
-                    UniProtIsoform::new(&r.identifier)
-                        .ok()
+                    UniProtIsoform::new(r.identifier.as_str())
                         .filter(|p| p.as_str() == r.identifier),
                 )
             } else {
@@ -32,6 +32,8 @@ pub(super) fn members(
                         .and_then(|x| format!("{}:{}", x.database, x.identifier).parse().ok());
                     if let Some(value) = problems.required(field_name, parsed) {
                         xrefs.push(value);
+                    } else {
+                        *refusals = crate::Refusal::Refused;
                     }
                 }
             }
@@ -43,8 +45,12 @@ pub(super) fn members(
                 r.organism_name,
             );
             Ok(ProteinComplexMember {
-                id: crate::mapped::text(&r.identifier).map_err(|_| bad())?,
-                participant_type: crate::mapped::text(&r.interactor_type).map_err(|_| bad())?,
+                id: crate::mapped::text(&r.identifier).map_err(|_| {
+                    biomcp_fetch::bad_reply(biomcp_types::Source::ComplexPortal, Some(200))
+                })?,
+                participant_type: crate::mapped::text(&r.interactor_type).map_err(|_| {
+                    biomcp_fetch::bad_reply(biomcp_types::Source::ComplexPortal, Some(200))
+                })?,
                 taxon: problems
                     .optional(
                         "participants.taxon",
@@ -59,7 +65,7 @@ pub(super) fn members(
                     "participants.name",
                     r.name,
                 ),
-                stoichiometry: crate::mapped::field_text(
+                stoichiometry: crate::mapped::field_code_text(
                     &mut problems.list,
                     problems.source,
                     problems.record.clone(),
@@ -85,7 +91,8 @@ pub(super) fn complex(
         record: crate::mapped::record(&raw.id),
         list: Vec::new(),
     };
-    let members = members(rows, &mut problems)?;
+    let mut refusals = crate::Refusal::None;
+    let members = members(rows, &mut problems, &mut refusals)?;
     if !members.iter().any(|m| m.protein.as_ref() == Some(anchor)) {
         return Ok(None);
     }
@@ -103,16 +110,18 @@ pub(super) fn complex(
             .predicted_complex
             .and_then(|v| problems.required("predictedComplex", v.value())),
         participant_total: members.len() as u64,
-        matched_participant: crate::mapped::text(anchor.as_str()).map_err(|_| bad())?,
+        matched_participant: crate::mapped::text(anchor.as_str())
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::ComplexPortal, Some(200)))?,
         url: crate::mapped::text(&format!(
             "https://www.ebi.ac.uk/complexportal/complex/{}",
             raw.id
         ))
-        .map_err(|_| bad())?,
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::ComplexPortal, Some(200)))?,
     };
     Ok(Some(Complex {
+        refusals,
         header,
         members,
-        problems: problems.list,
+        problems: Some(problems.list),
     }))
 }

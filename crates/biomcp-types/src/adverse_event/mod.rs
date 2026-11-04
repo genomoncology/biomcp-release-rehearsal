@@ -1,5 +1,7 @@
 //! Source-specific adverse event requests and bounded report responses.
+mod faers;
 mod query;
+mod receipt;
 mod response;
 mod selectors;
 pub use query::{AdverseEventGet, AdverseEventSearch};
@@ -20,3 +22,8 @@ pub use vaers::{
     VAERS_INFLUENZA, VaersCell, VaersNotice, VaersRow, VaersScope, VaersSection, VaersSummary,
     vaers_vaccine_code,
 };
+
+#[cfg(feature = "schema")]
+mod command;
+#[cfg(feature = "schema")]
+pub use command::AdverseEventSearchCommand;

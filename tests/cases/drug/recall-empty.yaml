@@ -1,0 +1,27 @@
+{
+  "feature": "drug-recall",
+  "live_check": "synthetic authored zero-record FDA recall page; exclude from live calls",
+  "story": "A successful empty recall page keeps zero native counts and a complete source answer.",
+  "replay": "drug/recall-empty",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "missing",
+        "--source",
+        "fda-drug-recall"
+      ],
+      "exit": 0,
+      "full_output_bytes": true,
+      "max_bytes": 459,
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/page/returned": 0,
+        "/sources/0/state": "ok"
+      }
+    }
+  ],
+  "verified": "The full CLI reply measures 399 bytes. The limit adds 15 percent."
+}

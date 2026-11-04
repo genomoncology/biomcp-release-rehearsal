@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.application_number%3A%22BLA761445%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"results\":{\"skip\":0,\"limit\":1,\"total\":1}},\"results\":[{\"id\":\"564889eb-80a7-336a-e063-6294a90a30c8\",\"set_id\":\"07730e8c-1340-4d30-8d71-e20f850db8da\",\"version\":\"3\",\"effective_time\":\"20260710\",\"openfda\":{\"application_number\":[\"BLA761445\"],\"brand_name\":[\"Sarclisa Escena\"],\"generic_name\":[\"ISATUXIMAB-IRFC\"],\"manufacturer_name\":[\"Sanofi-Aventis U.S. LLC\"],\"product_ndc\":[\"0024-0674\"],\"product_type\":[\"HUMAN PRESCRIPTION DRUG\"],\"route\":[\"SUBCUTANEOUS\"],\"substance_name\":[\"ISATUXIMAB\"],\"rxcui\":[\"2747132\",\"2747135\"],\"spl_id\":[\"564889eb-80a7-336a-e063-6294a90a30c8\"],\"spl_set_id\":[\"07730e8c-1340-4d30-8d71-e20f850db8da\"],\"package_ndc\":[\"0024-0674-01\"],\"is_original_packager\":[true],\"nui\":[\"N0000192336\",\"N0000192335\",\"M0001357\"],\"pharm_class_epc\":[\"CD38-directed Cytolytic Antibody [EPC]\"],\"pharm_class_moa\":[\"CD38-directed Antibody Interactions [MoA]\"],\"pharm_class_cs\":[\"Antibodies, Monoclonal [CS]\"],\"unii\":[\"R30772KCU0\"]},\"spl_product_data_elements\":[\"Sarclisa Escena isatuximab-irfc ARGININE HYDROCHLORIDE HISTIDINE HYDROCHLORIDE POLOXAMER 188 SUCROSE WATER HISTIDINE ISATUXIMAB ISATUXIMAB\"],\"package_label_principal_display_panel\":[\"PRINCIPAL DISPLAY PANEL - 140 mg/mL Vial Carton NDC 0024-0674-01 Rx only SARCLISA ESCENA\\u2122 (isatuximab-irfc) Injection 1,400 mg/10 mL (140 mg/mL) For subcutaneous use by healthcare providers only. Administer subcutaneously to the abdomen with CirCLIQ\\u2122 On-Body Injector OR syringe injection One single-dose vial Discard unused portion 962791 sanofi PRINCIPAL DISPLAY PANEL - 140 mg/mL Vial Carton\"]}]}"
+      }
+    }
+  ]
+}

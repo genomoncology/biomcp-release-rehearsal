@@ -1,11 +1,19 @@
 //! Wake cancellable stream work without detaching its network tasks.
 use crate::LocalDeadline;
+#[expect(
+    clippy::disallowed_types,
+    reason = "Share bounded transport state across the request owners named by this module"
+)]
 use std::sync::{
     Arc, OnceLock,
     atomic::{AtomicBool, AtomicU8, Ordering},
 };
 
 #[derive(Debug, Default)]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Acknowledge stream cancellation before releasing the worker permit"
+)]
 pub(super) struct Stop {
     flag: AtomicBool,
     wake: tokio::sync::Notify,
@@ -40,6 +48,10 @@ pub(super) async fn deadline(deadline: &LocalDeadline) {
     }
 }
 #[derive(Debug, Default)]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Acknowledge stream cancellation before releasing the worker permit"
+)]
 pub(super) struct CallState {
     phase: AtomicU8,
     outcome: OnceLock<Result<(), biomcp_types::Reason>>,

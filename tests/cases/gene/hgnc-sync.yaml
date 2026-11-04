@@ -1,18 +1,18 @@
-live_check: public
-feature: gene-commands
-story: HGNC synchronization imports approved and withdrawn identities for offline resolution
-replay: gene/main
-steps:
-  - run: [sync, hgnc]
-    expect:
-      /status: complete
-      /result/rows: 176
-  - run: [search, gene, BRAF]
-    offline: true
-    expect:
-      /result/items/0/hgnc_id: HGNC:1097
-  - run: [get, gene, A2MR]
-    offline: true
-    expect:
-      /result/items/0/answer/resolution: withdrawn
-      /result/items/0/answer/merged_into: ["HGNC:6692"]
+{
+  "live_check": "public",
+  "feature": "gene-bundle",
+  "story": "HGNC synchronization imports approved and withdrawn identities for offline resolution",
+  "replay": "gene/main",
+  "steps": [
+    {
+      "run": [
+        "sync",
+        "hgnc"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/rows": 176
+      }
+    }
+  ]
+}

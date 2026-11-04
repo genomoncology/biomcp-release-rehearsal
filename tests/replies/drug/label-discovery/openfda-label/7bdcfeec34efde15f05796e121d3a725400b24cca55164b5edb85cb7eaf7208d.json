@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22REFERENCE%20BRAND%22%20OR%20openfda.generic_name%3A%22REFERENCE%20BRAND%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 404,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"No matches found!\"}}"
+      }
+    }
+  ]
+}

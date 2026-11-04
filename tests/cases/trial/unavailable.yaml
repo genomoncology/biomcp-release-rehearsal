@@ -1,0 +1,20 @@
+{
+  "feature": "trial-get",
+  "live_check": "synthetic response-only failure over existing recorded request identities",
+  "story": "A source failure remains distinct from a valid returned identity and is never cached as a successful record.",
+  "replay": "trial/unavailable",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT02296125"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "unavailable"
+      }
+    }
+  ]
+}

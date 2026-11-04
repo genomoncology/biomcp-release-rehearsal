@@ -29,8 +29,8 @@ fn condition(
         },
     );
     Ok(AssertionCondition {
-        database: problems.text("conditions.database", db.as_deref()),
-        accession: problems.text("conditions.accession", id.as_deref()),
+        database: problems.checked_text("conditions.database", db.as_deref()),
+        accession: problems.checked_text("conditions.accession", id.as_deref()),
         id: qualified,
         label: problems.text("conditions.label", label.as_deref()),
     })

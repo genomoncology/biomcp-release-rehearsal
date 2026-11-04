@@ -12,16 +12,28 @@ pub(super) struct Registry {
 }
 
 impl Registry {
-    pub(super) fn embedded() -> Result<Self, String> {
-        let artifacts = ARTIFACTS
-            .iter()
-            .map(|(id, text)| {
-                serde_json::from_str(text)
-                    .map(|value| ((*id).to_owned(), value))
-                    .map_err(|_| format!("schema validation: invalid artifact {}", bounded(id)))
+    pub(super) fn embedded() -> Result<Arc<Self>, String> {
+        #[expect(
+            clippy::disallowed_types,
+            reason = "Compile the immutable embedded schemas once and share the same fallible result across trials"
+        )]
+        static EMBEDDED: std::sync::OnceLock<Result<Arc<Registry>, String>> =
+            std::sync::OnceLock::new();
+        EMBEDDED
+            .get_or_init(|| {
+                let artifacts = ARTIFACTS
+                    .iter()
+                    .map(|(id, text)| {
+                        serde_json::from_str(text)
+                            .map(|value| ((*id).to_owned(), value))
+                            .map_err(|_| {
+                                format!("schema validation: invalid artifact {}", bounded(id))
+                            })
+                    })
+                    .collect::<Result<_, _>>()?;
+                Self::new(artifacts).map(Arc::new)
             })
-            .collect::<Result<_, _>>()?;
-        Self::new(artifacts)
+            .clone()
     }
 
     pub(super) fn new(artifacts: BTreeMap<String, Value>) -> Result<Self, String> {
@@ -81,7 +93,8 @@ impl Registry {
             .get("schema")
             .and_then(Value::as_str)
             .ok_or("schema validation: result requires a string schema identity")?;
-        reject_empty_lists(value, "")?;
+        reject_empty_lists(value, "", id)?;
+        reject_nulls(value, "", id)?;
         let validator = self
             .validators
             .get(id)
@@ -99,19 +112,92 @@ impl Registry {
     }
 }
 
-fn reject_empty_lists(value: &Value, path: &str) -> Result<(), String> {
+fn reject_empty_lists(value: &Value, path: &str, schema: &str) -> Result<(), String> {
     match value {
         Value::Array(items) => {
-            if items.is_empty() {
+            if items.is_empty() && !gnomad_filters(path, schema) {
                 return Err(format!("product reply contains an empty list at {path}"));
             }
             for (index, item) in items.iter().enumerate() {
-                reject_empty_lists(item, &format!("{path}/{index}"))?;
+                reject_empty_lists(item, &format!("{path}/{index}"), schema)?;
             }
         }
         Value::Object(fields) => {
             for (name, item) in fields {
-                reject_empty_lists(item, &format!("{path}/{name}"))?;
+                let name = name.replace('~', "~0").replace('/', "~1");
+                reject_empty_lists(item, &format!("{path}/{name}"), schema)?;
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+// GnomadCounts.filters preserves supplied [] separately from an absent source field.
+// See gnomad/variant/raw.rs and response/variant_population.rs; other empty lists still fail.
+fn gnomad_filters(path: &str, schema: &str) -> bool {
+    use biomcp_types::{ResponseBody, VariantCard, VariantPage, VariantPopulationResult};
+    let population = if schema == VariantPopulationResult::SCHEMA {
+        if let Some(index) = path
+            .strip_prefix("/result/groups/")
+            .and_then(|p| p.strip_suffix("/filters"))
+        {
+            return index.parse::<usize>().is_ok();
+        }
+        path.strip_prefix("/result/population/data/")
+    } else {
+        let candidates = if schema == VariantCard::SCHEMA {
+            path.strip_prefix("/result/candidates/")
+        } else if schema == VariantPage::SCHEMA {
+            path.strip_prefix("/result/items/")
+        } else {
+            None
+        };
+        candidates
+            .and_then(|p| p.split_once('/'))
+            .filter(|(index, _)| index.parse::<usize>().is_ok())
+            .and_then(|(_, p)| p.strip_prefix("sections/population/data/"))
+    };
+    matches!(
+        population,
+        Some("exome/filters" | "genome/filters" | "joint/data/filters")
+    )
+}
+
+// DiseaseAssociation explicitly preserves a publisher null separately from a missing aggregator.
+// Only its association-row position in the four public response types admits that value.
+fn explicit_null(path: &str, schema: &str) -> bool {
+    use biomcp_types::{
+        DiseaseGenes, DiseasePhenotypes, PhenotypeDiseases, PhenotypeGenes, ResponseBody,
+    };
+    let association = [
+        DiseaseGenes::SCHEMA,
+        DiseasePhenotypes::SCHEMA,
+        PhenotypeDiseases::SCHEMA,
+        PhenotypeGenes::SCHEMA,
+    ]
+    .contains(&schema);
+    association
+        && path
+            .strip_prefix("/result/items/")
+            .and_then(|rest| rest.strip_suffix("/association/aggregator_knowledge_source"))
+            .is_some_and(|index| index.parse::<usize>().is_ok())
+}
+
+fn reject_nulls(value: &Value, path: &str, schema: &str) -> Result<(), String> {
+    match value {
+        Value::Null if !explicit_null(path, schema) => {
+            return Err(format!("product reply contains null at {path}"));
+        }
+        Value::Array(items) => {
+            for (index, item) in items.iter().enumerate() {
+                reject_nulls(item, &format!("{path}/{index}"), schema)?;
+            }
+        }
+        Value::Object(fields) => {
+            for (name, item) in fields {
+                let name = name.replace('~', "~0").replace('/', "~1");
+                reject_nulls(item, &format!("{path}/{name}"), schema)?;
             }
         }
         _ => {}

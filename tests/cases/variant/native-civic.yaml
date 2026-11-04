@@ -1,0 +1,26 @@
+{
+  "feature": "variant-civic",
+  "live_check": "public",
+  "story": "The existing exact source allele retains the first native CIViC profile and its source claim identities.",
+  "verified": "CIViC CC0 https://civicdb.org/releases/licensing. One public keyless POST2026-10-30 uses the current source query for existing CA123643. Original body SHA256 523d12a9c396bd059c6ee102c7fa330d15a0a2683b86e1e8d5dc4728a8b28b79; original request body SHA256 e45c5a249cda964a3614a55ae048c4fb571009a4a19f19056c86bf606421aa53. Raw request/headers/body retained outside Git in native-civic-ca123643 archive. No clinical meaning is inferred.",
+  "replay": "variant/native-civic",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "CA123643",
+        "civic",
+        "--disable-sources",
+        "myvariant"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/civic/data/profiles/0/membership": "exact",
+        "/result/candidates/0/sections/civic/data/profiles/0/record/id": "12",
+        "/result/candidates/0/sections/civic/data/profiles/0/statements/0/record/id": "EID79",
+        "/result/candidates/0/sections/civic/data/profiles/0/evidence_page/total": 218,
+        "/result/candidates/0/sections/civic/data/profiles/0/assertion_page/total": 11
+      }
+    }
+  ]
+}

@@ -1,10 +1,13 @@
 use super::{PgxAnnotationGet, PgxGet, PgxSearch, PgxSource, PgxTotalKind};
 use crate::ResponseBody;
-use biodata::*;
+use biodata::{
+    ClinPgxAccession, GeneSymbol, PgxAnnotationDetail, PgxAnnotationHeader, PgxAnnotationReference,
+    PgxDiplotypeResult, PgxDrugRecommendation, PgxGeneIdentity, PgxGuidelineReference, PgxPair,
+    PgxRecommendation,
+};
 use serde::{Deserialize, Serialize};
 /// Source and declared gene context; no chosen pair or patient result.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PgxHeader {
     /// Explicit source.
@@ -14,7 +17,6 @@ pub struct PgxHeader {
 }
 /// Independent collection scope; observed counts never imply native source totals.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PgxPageInfo {
     /// Offset in this collection.
@@ -30,7 +32,6 @@ macro_rules! collection {
     ($name:ident,$row:ty,$query:ty,$schema:literal) => {
         /// Independent source-ordered page of complete native records.
         #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
         #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
         pub struct $name {
             /// Source and selected gene.
@@ -47,16 +48,16 @@ macro_rules! collection {
         }
     };
 }
-collection!(PgxPage, PgxPair, PgxSearch, "biomcp.pgx-page/2");
+collection!(PgxPage, PgxPair, PgxSearch, "biomcp.pgx-page/6");
 collection!(
     PgxGuidelines,
     PgxGuidelineReference,
     PgxGet,
-    "biomcp.pgx-guidelines/1"
+    "biomcp.pgx-guidelines/4"
 );
 /// Independent recommendation contracts preserve native table and view shapes.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "representation", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "representation", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum PgxRecommendations {
     /// Gene-keyed recommendation_view with native names and no inferred drug ID.
@@ -81,12 +82,11 @@ pub enum PgxRecommendations {
     },
 }
 impl ResponseBody for PgxRecommendations {
-    const SCHEMA: &'static str = "biomcp.pgx-recommendations/1";
+    const SCHEMA: &'static str = "biomcp.pgx-recommendations/5";
     type Query = PgxGet;
 }
 /// Compact exact source gene identity, not a selected gene-drug pair.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PgxCard {
     /// Selected gene and source.
@@ -95,12 +95,11 @@ pub struct PgxCard {
     pub identity: PgxGeneIdentity,
 }
 impl ResponseBody for PgxCard {
-    const SCHEMA: &'static str = "biomcp.pgx-card/1";
+    const SCHEMA: &'static str = "biomcp.pgx-card/4";
     type Query = PgxGet;
 }
 /// Every source-returned mapping for the exact declared expression.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PgxDiplotype {
     /// Explicit gene and source.
@@ -110,12 +109,12 @@ pub struct PgxDiplotype {
     pub diplotypes: Box<[PgxDiplotypeResult]>,
 }
 impl ResponseBody for PgxDiplotype {
-    const SCHEMA: &'static str = "biomcp.pgx-diplotype/1";
+    const SCHEMA: &'static str = "biomcp.pgx-diplotype/4";
     type Query = PgxGet;
 }
 /// One independent ClinPGx collection, preserving its native min-tier shape.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "annotationkind", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "annotation_kind", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum PgxAnnotations {
     /// Complete clinical min rows including location and relationship arrays.
@@ -150,12 +149,11 @@ pub enum PgxAnnotations {
     },
 }
 impl ResponseBody for PgxAnnotations {
-    const SCHEMA: &'static str = "biomcp.pgx-annotations/1";
+    const SCHEMA: &'static str = "biomcp.pgx-annotations/5";
     type Query = PgxGet;
 }
 /// Exact clinical annotation identity, distinct from any genomic allele identity.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PgxAnnotationIdentity {
     /// Explicit ClinPGx source.
@@ -165,7 +163,6 @@ pub struct PgxAnnotationIdentity {
 }
 /// Complete proved base-tier annotation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PgxAnnotation {
     /// Exact selected source identity.
@@ -174,6 +171,6 @@ pub struct PgxAnnotation {
     pub annotation: PgxAnnotationDetail,
 }
 impl ResponseBody for PgxAnnotation {
-    const SCHEMA: &'static str = "biomcp.pgx-annotation/1";
+    const SCHEMA: &'static str = "biomcp.pgx-annotation/5";
     type Query = PgxAnnotationGet;
 }

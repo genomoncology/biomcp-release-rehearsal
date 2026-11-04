@@ -3,25 +3,28 @@ use biodata::{AuthorizationEvent, PartialDate, Text};
 use serde::{Deserialize, Serialize};
 /// One explicit native product within the selected FDA application.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaProduct {
     /// Exact source product number, scoped by the response application.
     pub product_number: Text,
     /// Source brand wording, without inferred ingredient equivalence.
-    pub brand_name: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brand_name: Option<Text>,
     /// Complete source-listed ingredient and strength pairs.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub active_ingredients: Box<[DrugFdaIngredient]>,
     /// Native dosage form.
-    pub dosage_form: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dosage_form: Option<Text>,
     /// Native route; absent and null remain unavailable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub route: Option<Text>,
     /// Product marketing status, independent of submission history.
-    pub marketing_status: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub marketing_status: Option<Text>,
     /// Original source reference-drug designation.
-    pub reference_drug: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_drug: Option<Text>,
     /// Original source reference-standard designation when supplied.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reference_standard: Option<Text>,
@@ -31,11 +34,11 @@ pub struct DrugFdaProduct {
 }
 /// An unchanged native ingredient and strength, without local normalization.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaIngredient {
     /// Native ingredient name.
-    pub name: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<Text>,
     /// Full source strength wording.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
@@ -43,7 +46,6 @@ pub struct DrugFdaIngredient {
 }
 /// One application-owned submission with common event facts and native FDA context.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaSubmission {
     /// Historical native status, type and status date; no product applicability is implied.
@@ -68,30 +70,34 @@ pub struct DrugFdaSubmission {
 }
 /// A source-stated submission property, without interpretation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaProperty {
     /// Original property code.
-    pub code: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<Text>,
 }
-/// A native application document link; the command does not download it.
+/// A native application document link, with embedded text only when its document ID is selected.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaDocument {
     /// Source document identifier.
     pub id: Text,
     /// Original source URL.
     #[cfg_attr(feature = "schema", schemars(extend("format" = "uri")))]
-    pub url: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<Text>,
     /// Native document date, independent of event dates.
-    pub date: PartialDate,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub date: Option<PartialDate>,
+    /// Bounded embedded letter text, present only when selected by document ID.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<crate::PdfText>,
     /// Original document type.
-    pub r#type: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<Text>,
 }
 /// One candidate application and its independent source-listed products.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaCandidate {
     /// Exact application identifier, shared with the retained application identity.
@@ -108,7 +114,6 @@ pub struct DrugFdaCandidate {
 }
 /// A source-owned application page preserving complete product context and source order.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugFdaPage {
     /// Native applications and products; a phrase match never establishes equivalence.
@@ -118,9 +123,9 @@ pub struct DrugFdaPage {
     pub total: u64,
     /// Native dataset last_updated date, independent of event dates and retrieval.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub source_updated: Option<PartialDate>,
+    pub source_updated: Option<crate::SourceUpdated>,
 }
 impl crate::ResponseBody for DrugFdaPage {
-    const SCHEMA: &'static str = "biomcp.drug-fda-page/2";
+    const SCHEMA: &'static str = "biomcp.drug-fda-page/7";
     type Query = super::DrugSearch;
 }

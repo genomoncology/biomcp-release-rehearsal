@@ -1,0 +1,54 @@
+{
+  "method": "GET",
+  "source": "fda-device-recall",
+  "url": "https://api.fda.gov/device/recall.json?search=recalling_firm%3A%22Synthetic%20maker%22&limit=5&skip=0&sort=event_date_initiated%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 5,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "product_res_number": "Z-0001-2024",
+              "res_event_number": "101",
+              "recalling_firm": "Synthetic maker",
+              "product_code": "ABC",
+              "recall_status": "Ongoing",
+              "event_date_initiated": "2024-01-02",
+              "reason_for_recall": "Synthetic reason",
+              "root_cause_description": "Synthetic cause",
+              "product_description": "Synthetic description",
+              "distribution_pattern": "Synthetic distribution",
+              "k_numbers": [
+                "K000001"
+              ],
+              "pma_numbers": [
+                "P000001"
+              ],
+              "openfda": {
+                "k_number": [
+                  "K999999"
+                ],
+                "pma_number": [
+                  "P999999"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

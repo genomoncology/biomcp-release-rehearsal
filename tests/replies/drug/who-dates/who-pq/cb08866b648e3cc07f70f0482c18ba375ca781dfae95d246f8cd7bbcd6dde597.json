@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "who-pq",
+  "url": "https://extranet.who.int/prequal/medicines/prequalified/finished-pharmaceutical-products/export?page&_format=csv",
+  "exchanges": [
+    {
+      "fetched": 1793816540,
+      "status": 200,
+      "content_type": "text/csv; charset=UTF-8",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "cb08866b648e3cc07f70f0482c18ba375ca781dfae95d246f8cd7bbcd6dde597-0.bin"
+      }
+    }
+  ]
+}

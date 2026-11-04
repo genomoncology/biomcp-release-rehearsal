@@ -1,7 +1,8 @@
 //! PubTator3 abstract annotation export, joined by each document's own PMID.
+use biomcp_fetch::{Input, Read};
 mod map;
 mod search;
-pub use search::{Search, search};
+pub use search::{Search, query_term, search};
 mod raw;
 use crate::{Mapped, quotas};
 use biodata::Pmid;
@@ -17,7 +18,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCBI policies; publisher rights in input text",
         url: "https://www.ncbi.nlm.nih.gov/home/about/policies/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::PubTator,
     base: "https://www.ncbi.nlm.nih.gov/research/pubtator3-api",
@@ -43,6 +44,7 @@ pub fn annotations(leg: &Leg<'_>, ids: &[Pmid]) -> Result<Vec<ArticleAnnotations
             source: Source::PubTator,
             reason: biomcp_types::Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into());
@@ -51,15 +53,39 @@ pub fn annotations(leg: &Leg<'_>, ids: &[Pmid]) -> Result<Vec<ArticleAnnotations
         .iter()
         .map(|id| id.to_string().into_boxed_str())
         .collect();
-    let reply = leg.json::<raw::Export>(&EXPORT, &[("pmids", Arg::Ids(&names))])?;
-    Ok(ids
+    let reply = leg
+        .call(
+            &EXPORT,
+            Input::Params(&[("pmids", Arg::Ids(&names))]),
+            Read::<raw::Export>::json(),
+        )?
+        .value;
+    let malformed_identity = reply.documents.iter().any(|v| v.as_ref().is_none());
+    let mut results: Vec<_> = ids
         .iter()
         .map(|id| {
-            let document = reply.documents.iter().find(|doc| doc.id == *id);
+            let document = reply
+                .documents
+                .iter()
+                .filter_map(crate::raw::Field::as_ref)
+                .find(|doc| doc.id == *id);
             ArticleAnnotations {
                 id: *id,
                 annotations: map::document(*id, document),
             }
         })
-        .collect())
+        .collect();
+    if malformed_identity && let Some(first) = results.first_mut() {
+        first.annotations.refusals = crate::Refusal::Refused;
+        crate::mapped::push_problem(
+            &mut first.annotations.problems,
+            Source::PubTator,
+            None,
+            "pmid",
+        );
+    }
+    Ok(results)
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

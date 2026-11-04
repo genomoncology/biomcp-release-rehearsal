@@ -10,11 +10,6 @@
         "adverse-event",
         "pembrolizumab"
       ],
-      "mcp": [
-        "search",
-        "adverse-event",
-        "pembrolizumab"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items/0/id": "100",
@@ -31,15 +26,6 @@
     },
     {
       "run": [
-        "search",
-        "adverse-event",
-        "pembrolizumab",
-        "--received-from",
-        "2024-01-01",
-        "--received-to",
-        "2024-12-31"
-      ],
-      "mcp": [
         "search",
         "adverse-event",
         "pembrolizumab",

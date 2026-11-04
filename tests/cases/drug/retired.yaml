@@ -1,0 +1,80 @@
+{
+  "live_check": "local-only migration guidance or disabled source behavior before provider access",
+  "feature": "drug-retirements",
+  "story": "Each retired command returns fixed migration guidance before source access.",
+  "steps": [
+    {
+      "run": [
+        "drug",
+        "cell-lines",
+        "imatinib"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "drug",
+        "interactions",
+        "imatinib"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "cvx",
+        "sync"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "ema",
+        "sync"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "ddinter",
+        "sync"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "who",
+        "sync"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "gene",
+        "drugs",
+        "BRAF"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    }
+  ]
+}

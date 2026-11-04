@@ -1,0 +1,40 @@
+{
+  "method": "GET",
+  "source": "faers",
+  "url": "https://api.fda.gov/drug/event.json?search=safetyreportid%3A%22100%22&limit=5&skip=0&sort=receivedate%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 4,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "synthetic report outage"
+      }
+    },
+    {
+      "fetched": 1792921798,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 4,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "synthetic report outage"
+      }
+    },
+    {
+      "fetched": 1792921798,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 4,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "synthetic report outage"
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "feature": "organization-nci",
+  "live_check": "synthetic",
+  "story": "Every documented filter keeps its exact native parameter and no size or offset reaches NCI.",
+  "replay": "organization/synthetic-filters",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "verified": "Synthetic field-name contract. The single row preserves the actual organization name and trial count from the bounded 2026-10-28 capture; total=1 is synthetic and does not claim this combined live query was made. Measured CLI output 1057 bytes; largest row 402 bytes. Ceilings add fifteen percent.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "organization",
+        "--source",
+        "nci",
+        "--name",
+        "Dana-Farber",
+        "--city",
+        "Boston",
+        "--state",
+        "MA",
+        "--country",
+        "United States",
+        "--postal-code",
+        "02215",
+        "--family",
+        "Dana-Farber/Harvard Cancer Center",
+        "--lat",
+        "42.3469",
+        "--lon",
+        "-71.1025",
+        "--distance",
+        "10mi"
+      ],
+      "expect": {
+        "/page/total": 1,
+        "/result/items/0/name": "Dana-Farber Cancer Institute",
+        "/result/items/0/count": 3376,
+        "/result/items/0": {
+          "max_bytes": 673
+        }
+      },
+      "max_bytes": 1426
+    }
+  ]
+}

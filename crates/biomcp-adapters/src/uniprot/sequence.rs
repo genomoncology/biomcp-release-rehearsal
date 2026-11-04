@@ -2,6 +2,7 @@
 use super::SPEC;
 use biodata::{AminoAcids, ProteinAudit, ProteinSequence, UniProtIsoform};
 use biomcp_fetch::{Freshness, Leg, RequestError};
+use biomcp_fetch::{Input, Read};
 use biomcp_types::Reason;
 /// Retrieve a direct alternative sequence; never construct it from displayed coordinates.
 pub fn sequence(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<ProteinSequence, RequestError> {
@@ -11,13 +12,19 @@ pub fn sequence(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<ProteinSequence, R
         .bytes(1024 * 1024)
         .identity_encoding()
         .fresh(Freshness::Days(7));
-    let bytes = leg.bytes_checked(&ep, &[], |bytes| {
-        parse(bytes, id).map(|_| ()).ok_or(Reason::BadReply)
-    })?;
+    let bytes = leg
+        .call(
+            &ep,
+            Input::Params(&[]),
+            Read::bytes()
+                .validate_body(&|bytes| parse(bytes, id).map(|_| ()).ok_or(Reason::BadReply)),
+        )
+        .map(|received| received.value.0)?;
     parse(&bytes, id).ok_or(RequestError::Source(biomcp_fetch::SourceError {
         source: biomcp_types::Source::UniProt,
         reason: Reason::BadReply,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }))
 }

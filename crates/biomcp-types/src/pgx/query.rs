@@ -83,13 +83,14 @@ impl PgxSearch {
     pub fn offset(&self) -> u32 {
         self.0.offset
     }
-    /// Continue without changing any other selector.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
+}
+impl crate::Paged for PgxSearch {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
     }
 }
+
 /// PGx card or section. No phenotype, phase or dose is calculated.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "GetFields")]
@@ -118,7 +119,11 @@ struct GetFields {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     kind: Option<PgxAnnotationKind>,
     /// Rows per page: three clinical, five elsewhere.
-    #[serde(default, deserialize_with = "explicit_section_limit")]
+    #[serde(
+        default,
+        deserialize_with = "explicit_section_limit",
+        skip_serializing_if = "Option::is_none"
+    )]
     #[cfg_attr(feature = "schema", schemars(with="u32",range(min = 1, max = 50),transform=conditional_limit))]
     section_limit: Option<u32>,
     /// Offset within the selected section.
@@ -136,7 +141,9 @@ impl TryFrom<GetFields> for PgxGet {
         let limit = v
             .section_limit
             .unwrap_or_else(|| section_default(v.source, v.kind));
-        if (v.source == PgxSource::Clinpgx) != annotations {
+        if v.section.map_or(v.source == PgxSource::Clinpgx, |section| {
+            section.source() != v.source.source()
+        }) {
             return Err(QueryInvalid::new(&["source", "section"]));
         }
         if !(1..=50).contains(&limit) {
@@ -165,6 +172,21 @@ impl TryFrom<GetFields> for PgxGet {
     }
 }
 impl PgxGet {
+    /// Construct a checked CPIC gene card with the standard section defaults.
+    pub fn new(gene: GeneSymbol) -> Result<Self, QueryInvalid> {
+        Self::try_from(GetFields {
+            gene,
+            source: PgxSource::Cpic,
+            section: None,
+            diplotype: None,
+            drug_id: None,
+            kind: None,
+            section_limit: None,
+            section_offset: 0,
+            snapshot: None,
+        })
+    }
+
     /// Checked gene selector.
     pub fn gene(&self) -> &GeneSymbol {
         &self.0.gene
@@ -213,13 +235,7 @@ impl PgxGet {
         q.snapshot = Some(snapshot);
         Self::try_from(q)
     }
-    /// Restart collection admission without a retained selector.
-    pub fn restart(&self) -> Self {
-        let mut q = self.clone();
-        q.0.snapshot = None;
-        q.0.section_offset = 0;
-        q
-    }
+
     /// Continue the same independent section.
     pub fn at_section_offset(&self, offset: u32) -> Result<Self, QueryInvalid> {
         let mut q = self.0.clone();
@@ -242,6 +258,16 @@ impl PgxGet {
         Self::try_from(q)
     }
 }
+impl crate::Paged for PgxGet {
+    type Offset = ();
+    fn set_page_offset(&mut self, _offset: Self::Offset) {
+        self.0.section_offset = 0;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.snapshot = None;
+    }
+}
+
 /// Exact single clinical annotation get, with no inferred source or annotation kind.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "AnnotationFields")]
@@ -268,6 +294,14 @@ impl TryFrom<AnnotationFields> for PgxAnnotationGet {
     }
 }
 impl PgxAnnotationGet {
+    /// Select a checked native ClinPGx accession.
+    pub fn new(id: ClinPgxAccession) -> Result<Self, QueryInvalid> {
+        Self::try_from(AnnotationFields {
+            id,
+            source: PgxSource::Clinpgx,
+        })
+    }
+
     /// Exact selected accession.
     pub fn id(&self) -> &ClinPgxAccession {
         &self.0.id

@@ -1,14 +1,20 @@
 use biodata::{FaersDrug, FaersReaction};
+use biomcp_adapters::NativePositions;
 use biomcp_types::{
     AdverseEventDrug, AdverseEventGet, AdverseEventIdentityCounts, AdverseEventReaction,
 };
-pub(super) fn drugs(q: &AdverseEventGet, rows: &[FaersDrug]) -> Box<[AdverseEventDrug]> {
-    rows.iter()
-        .enumerate()
-        .skip(q.section_offset() as usize)
-        .take(q.section_limit() as usize)
+pub(super) fn drugs(
+    q: &AdverseEventGet,
+    rows: &[FaersDrug],
+    positions: Option<&NativePositions>,
+) -> Box<[AdverseEventDrug]> {
+    NativePositions::enumerate(rows, positions)
+        .filter(|(index, _)| {
+            *index >= q.section_offset()
+                && *index < q.section_offset().saturating_add(q.section_limit())
+        })
         .map(|(index, r)| AdverseEventDrug {
-            index: index as u32,
+            index,
             medicinalproduct: r.medicinalproduct.clone(),
             role: r.drugcharacterization.clone(),
             indication: r.drugindication.clone(),
@@ -59,13 +65,15 @@ fn counts(r: Option<&biodata::FaersIdentifiers>) -> AdverseEventIdentityCounts {
 pub(super) fn reactions(
     q: &AdverseEventGet,
     rows: &[FaersReaction],
+    positions: Option<&NativePositions>,
 ) -> Box<[AdverseEventReaction]> {
-    rows.iter()
-        .enumerate()
-        .skip(q.section_offset() as usize)
-        .take(q.section_limit() as usize)
+    NativePositions::enumerate(rows, positions)
+        .filter(|(index, _)| {
+            *index >= q.section_offset()
+                && *index < q.section_offset().saturating_add(q.section_limit())
+        })
         .map(|(index, r)| AdverseEventReaction {
-            index: index as u32,
+            index,
             term: r.term.clone(),
             vocabulary_version: r.vocabulary_version.clone(),
             outcome: r.outcome.clone(),

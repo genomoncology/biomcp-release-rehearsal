@@ -1,5 +1,6 @@
 //! Public transport contract against isolated local servers.
 
+use biomcp_fetch::Input;
 use biomcp_fetch::{
     Arg, BadReply, Credential, Fetch, FetchConfig, KeyPlace, KeyUse, Reply, Secret, SecretName,
     SourceSpec,
@@ -144,6 +145,7 @@ fn fetch() -> Fetch {
 }
 fn credential(place: KeyPlace) -> Credential {
     Credential {
+        tier: biomcp_types::KeyTier::Fallback,
         secret: SecretName::NcbiApiKey,
         place,
     }
@@ -162,14 +164,16 @@ fn checked_json_encodes_parameters_and_sorts_identifier_sets() {
     let leg = fetch.leg(spec, fetch.deadline(Duration::from_secs(10)));
     let ids = ["b".into(), "a".into()];
     let reply: Answer = leg
-        .json(
+        .call(
             &spec.get("/answer"),
-            &[
+            Input::Params(&[
                 ("ids", Arg::Ids(&ids)),
                 ("text", Arg::Text("a b&c")),
                 ("n", Arg::Num(2)),
-            ],
+            ]),
+            biomcp_fetch::Read::json(),
         )
+        .map(|received| received.value)
         .unwrap();
     assert_eq!(reply.answer.as_deref(), Some("yes"));
     let requests = stub.finish();
@@ -196,16 +200,33 @@ fn http_failures_preserve_status_and_optional_404_is_absent() {
         let spec = stub.spec(KeyUse::None, Duration::from_secs(10));
         let fetch = fetch();
         let leg = fetch.leg(spec, fetch.deadline(Duration::from_secs(10)));
-        let error = leg.json::<Answer>(&spec.get("/answer"), &[]).unwrap_err();
+        let error = leg
+            .call(
+                &spec.get("/answer"),
+                Input::Params(&[]),
+                biomcp_fetch::Read::<Answer>::json(),
+            )
+            .unwrap_err();
         let biomcp_fetch::RequestError::Source(error) = error else {
             panic!("expected provider failure: {error}");
         };
         assert_eq!((error.reason, error.status), (reason, Some(status)));
         if status == 404 {
             assert!(
-                leg.json_opt::<Answer>(&spec.get("/answer"), &[])
-                    .unwrap()
-                    .is_none()
+                leg.call(
+                    &spec.get("/answer"),
+                    Input::Params(&[]),
+                    biomcp_fetch::Read::<Answer>::json()
+                )
+                .map(|received| Some(received.value))
+                .or_else(|error| match error {
+                    biomcp_fetch::RequestError::Source(source)
+                        if source.reason == biomcp_types::Reason::NotFound =>
+                        Ok(None),
+                    error => Err(error),
+                })
+                .unwrap()
+                .is_none()
             );
         }
     }
@@ -228,7 +249,11 @@ fn unusable_success_replies_are_bad_reply() {
         .unwrap();
         let error = fetch
             .leg(spec, fetch.deadline(Duration::from_secs(10)))
-            .json::<Answer>(&spec.get("/answer"), &[])
+            .call(
+                &spec.get("/answer"),
+                Input::Params(&[]),
+                biomcp_fetch::Read::<Answer>::json(),
+            )
             .unwrap_err();
         let biomcp_fetch::RequestError::Source(error) = error else {
             panic!("expected provider failure: {error}");
@@ -278,7 +303,12 @@ fn octet_stream_requires_endpoint_permission_and_keeps_decode_and_body_limits() 
         };
         let result = fetch
             .leg(spec, fetch.deadline(Duration::from_secs(10)))
-            .json::<Answer>(&endpoint, &[]);
+            .call(
+                &endpoint,
+                Input::Params(&[]),
+                biomcp_fetch::Read::<Answer>::json(),
+            )
+            .map(|received| received.value);
         assert_eq!(result.is_ok(), accepted);
         if let Err(biomcp_fetch::RequestError::Source(error)) = result {
             assert_eq!(error.reason, Reason::BadReply);
@@ -310,7 +340,11 @@ fn refusals_send_zero_requests() {
         };
         let error = fetch
             .leg(spec, deadline)
-            .json::<Answer>(&endpoint, &[])
+            .call(
+                &endpoint,
+                Input::Params(&[]),
+                biomcp_fetch::Read::<Answer>::json(),
+            )
             .unwrap_err();
         let biomcp_fetch::RequestError::Source(error) = error else {
             panic!("expected provider failure: {error}");
@@ -335,7 +369,11 @@ fn source_budget_caps_supplied_deadline_during_headers_and_body() {
         let fetch = fetch();
         let error = fetch
             .leg(spec, fetch.deadline(Duration::from_secs(30)))
-            .json::<Answer>(&spec.get("/answer"), &[])
+            .call(
+                &spec.get("/answer"),
+                Input::Params(&[]),
+                biomcp_fetch::Read::<Answer>::json(),
+            )
             .unwrap_err();
         let biomcp_fetch::RequestError::Source(error) = error else {
             panic!("expected provider failure: {error}");
@@ -384,7 +422,11 @@ fn deadline_exhausted_during_reply_check_returns_deadline_exceeded() {
     CHECK_DEADLINE.with(|timer| timer.set(Some(std::time::Instant::now() + deadline.remaining())));
     let error = fetch
         .leg(spec, deadline)
-        .json::<CheckedAnswer>(&spec.get("/answer"), &[])
+        .call(
+            &spec.get("/answer"),
+            Input::Params(&[]),
+            biomcp_fetch::Read::<CheckedAnswer>::json(),
+        )
         .unwrap_err();
     let biomcp_fetch::RequestError::Source(error) = error else {
         panic!("expected provider failure: {error}");
@@ -403,9 +445,20 @@ fn identity_encoding_is_explicit_and_does_not_change_default_requests() {
     let spec = stub.spec(KeyUse::None, Duration::from_secs(10));
     let fetch = fetch();
     let leg = fetch.leg(spec, fetch.deadline(Duration::from_secs(10)));
-    leg.json::<Answer>(&spec.get("/answer").identity_encoding(), &[])
-        .unwrap();
-    leg.json::<Answer>(&spec.get("/answer"), &[]).unwrap();
+    leg.call(
+        &spec.get("/answer").identity_encoding(),
+        Input::Params(&[]),
+        biomcp_fetch::Read::<Answer>::json(),
+    )
+    .map(|received| received.value)
+    .unwrap();
+    leg.call(
+        &spec.get("/answer"),
+        Input::Params(&[]),
+        biomcp_fetch::Read::<Answer>::json(),
+    )
+    .map(|received| received.value)
+    .unwrap();
     let requests = stub.finish();
     assert!(
         requests
@@ -450,13 +503,15 @@ fn outgoing_contact_and_optional_key_never_enter_persistent_identity() {
     for endpoint in [spec.get("/search"), spec.post_form("/summary").idempotent()] {
         let result = fetch
             .leg(spec, fetch.deadline(Duration::from_secs(10)))
-            .json::<Answer>(
+            .call(
                 &endpoint,
-                &[
+                Input::Params(&[
                     ("tool", Arg::Text("biomcp")),
                     ("email", Arg::Contact(&email)),
-                ],
+                ]),
+                biomcp_fetch::Read::<Answer>::json(),
             )
+            .map(|received| received.value)
             .unwrap();
         assert_eq!(result.answer.as_deref(), Some("checked"));
     }
@@ -488,10 +543,11 @@ fn bounded_reachability_probes_share_policy_and_never_cache_data() {
     let spec = stub.spec(KeyUse::None, Duration::from_secs(2));
     let fetch = fetch();
     let leg = fetch.leg(spec, fetch.deadline(Duration::from_secs(2)));
-    leg.probe(&spec.get("/probe"), &[]).unwrap();
-    leg.probe_json(
+    leg.probe(&spec.get("/probe"), biomcp_fetch::Input::Params(&[]))
+        .unwrap();
+    leg.probe(
         &spec.post_json("/probe").idempotent(),
-        &serde_json::json!({"query":"health"}),
+        biomcp_fetch::Input::json(&[], &serde_json::json!({"query":"health"})),
     )
     .unwrap();
     assert_eq!(stub.finish().len(), 2);
@@ -506,7 +562,9 @@ fn bounded_reachability_probes_share_policy_and_never_cache_data() {
     })
     .unwrap();
     let leg = fetch.leg(spec, fetch.deadline(Duration::from_secs(2)));
-    let error = leg.probe(&spec.get("/probe"), &[]).unwrap_err();
+    let error = leg
+        .probe(&spec.get("/probe"), biomcp_fetch::Input::Params(&[]))
+        .unwrap_err();
     assert!(matches!(error, biomcp_fetch::RequestError::Source(e) if e.reason == Reason::Disabled));
     assert!(stub.finish().is_empty());
 }
@@ -514,80 +572,11 @@ fn bounded_reachability_probes_share_policy_and_never_cache_data() {
 #[path = "transport/network.rs"]
 mod network;
 
-#[test]
-fn publisher_destinations_refuse_private_hosts_and_applicable_proxies_before_connecting() {
-    let stub = Stub::new(200, "application/pdf", "%PDF-owned", None);
-    let spec = Box::leak(Box::new(SourceSpec {
-        destinations: biomcp_fetch::Destinations::PublisherPdf,
-        ..*stub.spec(KeyUse::None, Duration::from_secs(5))
-    }));
-    for url in [
-        "http://127.0.0.1/file.pdf",
-        "http://127.1/file.pdf",
-        "http://2130706433/file.pdf",
-        "http://[::1]/file.pdf",
-        "https://user:secret@example.org/file.pdf",
-        "file:///etc/passwd",
-        "http://example.org/file.pdf#fragment",
-    ] {
-        assert!(spec.download(url).is_err(), "accepted {url}");
-    }
-    let url = stub.base.replace("127.0.0.1", "localhost");
-    for (proxy, bypass, expected) in [
-        (false, "", Reason::Rejected),
-        (true, "", Reason::Proxy),
-        (true, "localhost", Reason::Rejected),
-    ] {
-        let network = biomcp_fetch::Network::new(
-            proxy.then(|| Secret::new(stub.base)),
-            None,
-            bypass,
-            Default::default(),
-        )
-        .unwrap();
-        let fetch = Fetch::open(FetchConfig {
-            network,
-            ..Default::default()
-        })
-        .unwrap();
-        let deadline = fetch.deadline(Duration::from_secs(5));
-        let leg = fetch.leg(spec, deadline);
-        let endpoint = spec.download(&url).unwrap().bytes(1024);
-        let error = leg.bytes(&endpoint, &[]).unwrap_err();
-        assert!(
-            matches!(error, biomcp_fetch::RequestError::Source(e) if e.reason == expected),
-            "{error:?}"
-        );
-    }
-    let keyed = stub.spec(
-        KeyUse::Optional(Credential {
-            secret: SecretName::SemanticScholarApiKey,
-            place: KeyPlace::Header("x-api-key"),
-        }),
-        Duration::from_secs(5),
-    );
-    assert!(keyed.download("https://example.org/file.pdf").is_err());
-    assert!(
-        stub.finish().is_empty(),
-        "a refused publisher destination made a request"
-    );
-}
+#[path = "transport/publisher.rs"]
+mod publisher;
 
 #[path = "transport/credentials.rs"]
 mod credentials;
 
-#[test]
-fn cancellation_reaches_local_checkpoints_without_stopping_another_call() {
-    let shared = Fetch::open(FetchConfig::default()).unwrap();
-    let (call, cancellation) = shared.cancellable().unwrap();
-    let (other, _) = shared.cancellable().unwrap();
-    let deadline = call.deadline(Duration::from_secs(30));
-    let local = deadline.local();
-    let command = call.command_deadline(Duration::from_secs(30));
-    cancellation.cancel();
-    assert!(deadline.expired());
-    assert!(local.expired());
-    assert!(command.deadline().expired());
-    assert!(!other.deadline(Duration::from_secs(30)).expired());
-    assert!(!shared.deadline(Duration::from_secs(30)).expired());
-}
+#[path = "transport/cancellation.rs"]
+mod cancellation;

@@ -18,7 +18,7 @@
       ]
     }
   },
-  "$id": "biomcp.pgx-annotation-get/1",
+  "$id": "biomcp.pgx-annotation-get/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Exact single clinical annotation get, with no inferred source or annotation kind.",

@@ -1,0 +1,61 @@
+{
+  "deadline_seconds": 20,
+  "max_bytes": 262144,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "condition-first",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.cond=%28lung%20cancer%29"
+    },
+    {
+      "id": "condition-second",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.cond=%28melanoma%29"
+    },
+    {
+      "id": "condition-or",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.cond=%28lung%20cancer%29%20OR%20%28melanoma%29"
+    },
+    {
+      "id": "intervention-first",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.intr=%28radiation%20therapy%29"
+    },
+    {
+      "id": "intervention-second",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.intr=%28pembrolizumab%29"
+    },
+    {
+      "id": "intervention-or",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.intr=%28radiation%20therapy%29%20OR%20%28pembrolizumab%29"
+    },
+    {
+      "id": "keyword-first",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.term=%28quality%20of%20life%29"
+    },
+    {
+      "id": "keyword-second",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.term=%28survival%29"
+    },
+    {
+      "id": "keyword-or",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&pageSize=1&fields=NCTId%2CBriefTitle%2CCondition&query.term=%28quality%20of%20life%29%20OR%20%28survival%29"
+    }
+  ]
+}

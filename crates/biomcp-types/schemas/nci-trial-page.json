@@ -1,13 +1,23 @@
 {
   "$defs": {
-    "Attribution": {
-      "additionalProperties": false,
+    "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -15,10 +25,21 @@
           ],
           "description": "Source evaluation date."
         },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
+        },
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -29,7 +50,7 @@
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -38,13 +59,13 @@
           "description": "Dataset release."
         },
         "source": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the claim."
         },
         "submitter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +76,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -67,7 +88,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -81,25 +102,29 @@
       ],
       "type": "object"
     },
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "ComponentLabel": {
-      "additionalProperties": false,
+    "Reply_ComponentLabel": {
       "description": "Terms attached to a named carried component on a consumer response.",
       "properties": {
         "component": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native component name."
         },
         "terms": {
-          "$ref": "#/$defs/ComponentTerms",
+          "$ref": "#/$defs/Reply_ComponentTerms",
           "description": "Canonical publisher terms."
         }
       },
@@ -109,21 +134,20 @@
       ],
       "type": "object"
     },
-    "ComponentTerms": {
-      "additionalProperties": false,
+    "Reply_ComponentTerms": {
       "description": "Terms attached to one independently licensed source component.",
       "properties": {
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Publisher terms name."
         },
         "url": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Publisher terms page.",
           "format": "uri"
         },
         "usage": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Publisher use category."
         }
       },
@@ -134,19 +158,18 @@
       ],
       "type": "object"
     },
-    "Curie": {
+    "Reply_Curie": {
       "description": "Checked prefix:local ontology identifier.",
-      "pattern": "^[A-Za-z0-9_.-]+:[^\\s\\x00-\\x1f\\x7f-\\x9f]+$",
+      "pattern": "^[A-Za-z0-9_.-]+:[^:/\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f][^:\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]*$",
       "type": "string"
     },
-    "DiseaseConcept": {
-      "additionalProperties": false,
+    "Reply_DiseaseConcept": {
       "description": "A disease identity whose optional display label never determines record admission.",
       "properties": {
         "id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Curie"
+              "$ref": "#/$defs/Reply_Curie"
             },
             {
               "type": "null"
@@ -155,24 +178,23 @@
           "description": "Source-stated exact identifier."
         },
         "label": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native display label when supplied and valid."
         }
       },
       "type": "object"
     },
-    "DiseaseEndpoint": {
-      "additionalProperties": false,
-      "description": "One native endpoint with an identifier and an optional source label.",
+    "Reply_DiseaseEndpoint": {
+      "description": "One native endpoint with an identifier and an optional source label.\nNative associations use this reference because a source may omit a display label.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Exact source identifier."
         },
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -186,12 +208,11 @@
       ],
       "type": "object"
     },
-    "DiseaseRelation": {
-      "additionalProperties": false,
+    "Reply_DiseaseRelation": {
       "description": "A publisher relation with distinct endpoints and predicate.",
       "properties": {
         "attribution": {
-          "$ref": "#/$defs/Attribution",
+          "$ref": "#/$defs/Reply_Attribution",
           "description": "Publisher record and version."
         },
         "description": {
@@ -202,15 +223,15 @@
           ]
         },
         "object": {
-          "$ref": "#/$defs/DiseaseEndpoint",
+          "$ref": "#/$defs/Reply_DiseaseEndpoint",
           "description": "Native object."
         },
         "predicate": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Publisher predicate, without equivalence promotion."
         },
         "subject": {
-          "$ref": "#/$defs/DiseaseEndpoint",
+          "$ref": "#/$defs/Reply_DiseaseEndpoint",
           "description": "Native subject."
         }
       },
@@ -222,38 +243,96 @@
       ],
       "type": "object"
     },
-    "GeneInput": {
+    "Reply_GeneInput": {
       "description": "An input classified before source resolution; aliases remain free text.",
-      "pattern": "\\S",
+      "pattern": "^[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*(?:HGNC:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})|ENSG[0-9]{11}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})|(?!(?:[Hh][Gg][Nn][Cc]:|[Ee][Nn][Ss][Gg]))(?![0-9]+[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$)[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000](?:[\\s\\S]*[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000])?)[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$",
       "type": "string"
     },
-    "NciDiseaseRef": {
-      "additionalProperties": false,
+    "Reply_NciBiomarkerUse": {
+      "description": "NCI's native biomarker eligibility criterion, without clinical interpretation.",
+      "enum": [
+        "inclusion",
+        "exclusion"
+      ],
+      "type": "string"
+    },
+    "Reply_NciDiseaseRef": {
       "description": "Compact source disease reference; the diseases section retains every coding field.",
       "properties": {
         "name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native source name."
         },
         "nci_thesaurus_concept_id": {
-          "$ref": "#/$defs/NcitId",
+          "$ref": "#/$defs/Reply_NcitId",
           "description": "Source NCIt identity."
         }
       },
       "required": [
-        "name",
         "nci_thesaurus_concept_id"
       ],
       "type": "object"
     },
-    "NciTextPage": {
-      "additionalProperties": false,
+    "Reply_NciMatchedSite": {
+      "description": "Compact source site observation; its presence does not establish enrollment.",
+      "properties": {
+        "org_city": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native city, when provided."
+        },
+        "org_name": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Published organization name."
+        },
+        "org_state_or_province": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native state or province, when provided."
+        },
+        "recruitment_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native recruitment status, without translation or enrollment inference."
+        }
+      },
+      "required": [
+        "org_name"
+      ],
+      "type": "object"
+    },
+    "Reply_NciTextPage": {
       "description": "Exact source text fragment with an honest original character count.",
       "properties": {
         "continuation": {
           "anyOf": [
             {
-              "$ref": "#/$defs/TrialGet"
+              "$ref": "#/$defs/Reply_TrialGet"
             },
             {
               "type": "null"
@@ -285,14 +364,13 @@
       ],
       "type": "object"
     },
-    "NciTrial": {
-      "additionalProperties": false,
+    "Reply_NciTrial": {
       "description": "NCI trial card without registry status or phase coercion.",
       "properties": {
         "brief_summary": {
           "anyOf": [
             {
-              "$ref": "#/$defs/NciTextPage"
+              "$ref": "#/$defs/Reply_NciTextPage"
             },
             {
               "type": "null"
@@ -301,29 +379,70 @@
           "description": "Native short summary, only on exact retrieval."
         },
         "brief_title": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native title."
         },
         "current_trial_status": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native status, without a registry translation."
         },
         "diseases": {
-          "$ref": "#/$defs/TrialRecords",
+          "$ref": "#/$defs/Reply_TrialRecords_NciDiseaseRef",
           "description": "Publisher-provided disease concepts in source order."
         },
+        "matched_biomarkers": {
+          "description": "Entries with the exact searched biomarker code, preserving source order and native fields.",
+          "items": {
+            "$ref": "#/$defs/Reply_NciTrialBiomarker"
+          },
+          "type": "array"
+        },
+        "matched_site": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_NciMatchedSite"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "First site with an exact case-insensitive organization name, in source order."
+        },
+        "matching_sites": {
+          "description": "Number of sites with that name, without deduplication; present only for facility searches.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "nci_id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Publisher NCI identifier."
         },
         "nct_id": {
-          "$ref": "#/$defs/NctId",
+          "$ref": "#/$defs/Reply_NctId",
           "description": "Registry cross-reference supplied by NCI."
         },
         "phase": {
           "anyOf": [
             {
-              "$ref": "#/$defs/NciTrialPhase"
+              "$ref": "#/$defs/Reply_NciTrialPhase"
             },
             {
               "type": "null"
@@ -335,14 +454,38 @@
       "required": [
         "nci_id",
         "nct_id",
-        "brief_title",
-        "current_trial_status",
         "diseases"
       ],
       "type": "object"
     },
-    "NciTrialPage": {
-      "additionalProperties": false,
+    "Reply_NciTrialBiomarker": {
+      "description": "One listed NCI biomarker entry; native values do not establish patient eligibility.",
+      "properties": {
+        "eligibility_criterion": {
+          "description": "Native criterion, without rewriting or a positivity inference.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inclusion_indicator": {
+          "description": "Native inclusion indicator, without interpretation.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nci_thesaurus_concept_id": {
+          "$ref": "#/$defs/Reply_NcitId",
+          "description": "Exact source NCIt concept identity."
+        }
+      },
+      "required": [
+        "nci_thesaurus_concept_id"
+      ],
+      "type": "object"
+    },
+    "Reply_NciTrialPage": {
       "description": "NCI search page in native order with native count.",
       "properties": {
         "attribution": {
@@ -352,7 +495,7 @@
         "condition_resolution": {
           "anyOf": [
             {
-              "$ref": "#/$defs/TrialConditionResolution"
+              "$ref": "#/$defs/Reply_TrialConditionResolution"
             },
             {
               "type": "null"
@@ -363,14 +506,14 @@
         "items": {
           "description": "Source rows, never merged with another provider.",
           "items": {
-            "$ref": "#/$defs/NciTrial"
+            "$ref": "#/$defs/Reply_NciTrial"
           },
           "type": "array"
         },
         "request": {
           "description": "Exact source parameters, excluding credentials.",
           "items": {
-            "$ref": "#/$defs/TrialParameter"
+            "$ref": "#/$defs/Reply_TrialParameter"
           },
           "type": "array"
         }
@@ -380,22 +523,21 @@
       ],
       "type": "object"
     },
-    "NciTrialPhase": {
+    "Reply_NciTrialPhase": {
       "description": "Native publisher vocabulary; new values are retained unchanged. Known values: NA; 0; I; I_II; II; II_III; III; IV; ",
       "type": "string"
     },
-    "NcitId": {
+    "Reply_NcitId": {
       "description": "A native NCI Thesaurus concept code.",
       "pattern": "^C[0-9]+$",
       "type": "string"
     },
-    "NctId": {
+    "Reply_NctId": {
       "description": "Canonical ClinicalTrials.gov identifier.",
       "pattern": "^NCT(?!00000000)[0-9]{8}$",
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -407,7 +549,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -442,27 +584,12 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "PhaseFilter": {
-      "description": "Explicit source phase selection, including the registry's combined phases.",
-      "enum": [
-        "early-1",
-        "1",
-        "2",
-        "3",
-        "4",
-        "not-applicable",
-        "1/2",
-        "2/3"
-      ],
-      "type": "string"
-    },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -478,7 +605,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -496,12 +623,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -511,7 +637,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -520,7 +646,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -531,43 +657,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -589,83 +694,31 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -735,21 +788,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -773,11 +902,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -792,15 +920,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -811,15 +938,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -830,11 +956,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -849,11 +974,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -875,17 +999,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -897,8 +1020,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -910,26 +1032,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -937,18 +1050,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -966,7 +1088,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -979,7 +1101,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -990,7 +1112,7 @@
       ],
       "type": "string"
     },
-    "SponsorType": {
+    "Reply_SponsorType": {
       "description": "Registry funding category facet.",
       "enum": [
         "nih",
@@ -1000,7 +1122,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -1010,8 +1132,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -1022,7 +1143,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -1031,7 +1152,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -1047,7 +1168,7 @@
       ],
       "type": "string"
     },
-    "StudyType": {
+    "Reply_StudyType": {
       "description": "Source-native registry value.",
       "enum": [
         "INTERVENTIONAL",
@@ -1056,19 +1177,20 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "TrialConditionResolution": {
-      "additionalProperties": false,
+    "Reply_TrialConditionResolution": {
       "description": "Exact condition identity used for one trial request, without eligibility inference.",
       "properties": {
         "alias": {
           "anyOf": [
             {
-              "$ref": "#/$defs/DiseaseRelation"
+              "$ref": "#/$defs/Reply_DiseaseRelation"
             },
             {
               "type": "null"
@@ -1079,7 +1201,7 @@
         "attribution": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Attribution"
+              "$ref": "#/$defs/Reply_Attribution"
             },
             {
               "type": "null"
@@ -1090,14 +1212,14 @@
         "components": {
           "description": "Admitted resolver components and their own terms.",
           "items": {
-            "$ref": "#/$defs/ComponentLabel"
+            "$ref": "#/$defs/Reply_ComponentLabel"
           },
           "type": "array"
         },
         "concept": {
           "anyOf": [
             {
-              "$ref": "#/$defs/DiseaseConcept"
+              "$ref": "#/$defs/Reply_DiseaseConcept"
             },
             {
               "type": "null"
@@ -1106,20 +1228,20 @@
           "description": "Returned concept with its unchanged native primary label."
         },
         "input": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Caller-selected CURIE, never a source-name search."
         },
         "ncit_candidates": {
           "description": "Native NCIt mapping rows; duplicate targets keep their independent provenance.",
           "items": {
-            "$ref": "#/$defs/DiseaseRelation"
+            "$ref": "#/$defs/Reply_DiseaseRelation"
           },
           "type": "array"
         },
         "resolver": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Source"
+              "$ref": "#/$defs/Reply_Source"
             },
             {
               "type": "null"
@@ -1130,7 +1252,7 @@
         "selected_ncit": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Curie"
+              "$ref": "#/$defs/Reply_Curie"
             },
             {
               "type": "null"
@@ -1144,14 +1266,13 @@
       ],
       "type": "object"
     },
-    "TrialGet": {
-      "additionalProperties": false,
+    "Reply_TrialGet": {
       "description": "Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.",
       "properties": {
         "input": {
           "description": "One to twenty exact NCT identifiers, in caller order.",
           "items": {
-            "$ref": "#/$defs/NctId"
+            "$ref": "#/$defs/Reply_NctId"
           },
           "maxItems": 20,
           "minItems": 1,
@@ -1174,19 +1295,19 @@
           "type": "integer"
         },
         "pool": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Checked stored source record, supplied by a continuation."
         },
         "section": {
           "description": "Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.",
           "items": {
-            "$ref": "#/$defs/TrialSection"
+            "$ref": "#/$defs/Reply_TrialSection"
           },
           "type": "array",
           "x-trailing-section": true
         },
         "source": {
-          "$ref": "#/$defs/TrialSource",
+          "$ref": "#/$defs/Reply_TrialSource",
           "description": "Explicit provider; defaults to ClinicalTrials.gov and never falls back."
         }
       },
@@ -1195,8 +1316,7 @@
       ],
       "type": "object"
     },
-    "TrialParameter": {
-      "additionalProperties": false,
+    "Reply_TrialParameter": {
       "description": "One exact source request parameter, in canonical name order.",
       "properties": {
         "name": {
@@ -1214,14 +1334,34 @@
       ],
       "type": "object"
     },
-    "TrialRecords": {
-      "additionalProperties": false,
+    "Reply_TrialPhaseFilter": {
+      "enum": [
+        "early-1",
+        "1",
+        "2",
+        "3",
+        "4",
+        "not-applicable",
+        "1/2",
+        "2/3",
+        "NA",
+        "0",
+        "I",
+        "I_II",
+        "II",
+        "II_III",
+        "III",
+        "IV"
+      ],
+      "type": "string"
+    },
+    "Reply_TrialRecords_NciDiseaseRef": {
       "description": "Whole-record page retaining collection order.",
       "properties": {
         "continuation": {
           "anyOf": [
             {
-              "$ref": "#/$defs/TrialGet"
+              "$ref": "#/$defs/Reply_TrialGet"
             },
             {
               "type": "null"
@@ -1232,7 +1372,7 @@
         "items": {
           "description": "Complete records in source order.",
           "items": {
-            "$ref": "#/$defs/NciDiseaseRef"
+            "$ref": "#/$defs/Reply_NciDiseaseRef"
           },
           "type": "array"
         },
@@ -1255,9 +1395,8 @@
       ],
       "type": "object"
     },
-    "TrialSearch": {
-      "additionalProperties": false,
-      "description": "Search one provider with bounded pages and source-native counts; default ClinicalTrials.gov, explicit keyed NCI, never a fallback.",
+    "Reply_TrialSearch": {
+      "description": "Search ClinicalTrials.gov or keyed NCI with native counts. NCI --facility matches exact organization names; a listed site is not necessarily enrolling.",
       "properties": {
         "age": {
           "description": "Age in years; unstated source bounds count as no limit.",
@@ -1265,24 +1404,272 @@
           "minimum": 0,
           "type": "integer"
         },
+        "biomarker_code": {
+          "$ref": "#/$defs/Reply_NcitId",
+          "description": "Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
+        },
+        "biomarker_use": {
+          "$ref": "#/$defs/Reply_NciBiomarkerUse",
+          "description": "Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
+        },
         "condition": {
-          "$ref": "#/$defs/Text",
-          "description": "Registry condition text, or an NCIt code for NCI; use --keyword for NCI free text."
+          "description": "Condition alternatives joined with OR; NCI requires NCIt codes.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "condition_id": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."
         },
         "count_only": {
           "description": "Source total only; no returned study rows.",
           "type": "boolean"
         },
+        "country": {
+          "description": "Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+          "items": {
+            "enum": [
+              "Afghanistan",
+              "Aland Islands",
+              "Albania",
+              "Algeria",
+              "American Samoa",
+              "Andorra",
+              "Angola",
+              "Anguilla",
+              "Antarctica",
+              "Antigua and Barbuda",
+              "Argentina",
+              "Armenia",
+              "Aruba",
+              "Australia",
+              "Austria",
+              "Azerbaijan",
+              "Bahrain",
+              "Bangladesh",
+              "Barbados",
+              "Belarus",
+              "Belgium",
+              "Belize",
+              "Benin",
+              "Bermuda",
+              "Bhutan",
+              "Bolivia",
+              "Bonaire, Saint Eustatius and Saba ",
+              "Bosnia and Herzegovina",
+              "Botswana",
+              "Brazil",
+              "Brunei",
+              "Bulgaria",
+              "Burkina Faso",
+              "Burma",
+              "Burundi",
+              "Cabo Verde",
+              "Cambodia",
+              "Cameroon",
+              "Canada",
+              "Cayman Islands",
+              "Central African Republic",
+              "Chad",
+              "Chile",
+              "China",
+              "Christmas Island",
+              "Colombia",
+              "Comoros",
+              "Costa Rica",
+              "Croatia",
+              "Cuba",
+              "Curacao",
+              "Cyprus",
+              "Czechia",
+              "Côte d’Ivoire",
+              "Democratic Republic of the Congo",
+              "Denmark",
+              "Djibouti",
+              "Dominica",
+              "Dominican Republic",
+              "Ecuador",
+              "Egypt",
+              "El Salvador",
+              "Equatorial Guinea",
+              "Eritrea",
+              "Estonia",
+              "Eswatini",
+              "Ethiopia",
+              "Faroe Islands",
+              "Federal Republic of Yugoslavia",
+              "Fiji",
+              "Finland",
+              "France",
+              "French Guiana",
+              "French Polynesia",
+              "French Southern and Antarctic Lands",
+              "Gabon",
+              "Georgia",
+              "Germany",
+              "Ghana",
+              "Gibraltar",
+              "Greece",
+              "Greenland",
+              "Grenada",
+              "Guadeloupe",
+              "Guam",
+              "Guatemala",
+              "Guinea",
+              "Guinea-Bissau",
+              "Guyana",
+              "Haiti",
+              "Holy See",
+              "Honduras",
+              "Hong Kong",
+              "Hungary",
+              "Iceland",
+              "India",
+              "Indonesia",
+              "Iran",
+              "Iraq",
+              "Ireland",
+              "Israel",
+              "Italy",
+              "Jamaica",
+              "Japan",
+              "Jersey",
+              "Jordan",
+              "Kazakhstan",
+              "Kenya",
+              "Kiribati",
+              "Kosovo",
+              "Kuwait",
+              "Kyrgyzstan",
+              "Laos",
+              "Latvia",
+              "Lebanon",
+              "Lesotho",
+              "Liberia",
+              "Libya",
+              "Liechtenstein",
+              "Lithuania",
+              "Luxembourg",
+              "Macau",
+              "Madagascar",
+              "Malawi",
+              "Malaysia",
+              "Maldives",
+              "Mali",
+              "Malta",
+              "Martinique",
+              "Mauritania",
+              "Mauritius",
+              "Mayotte",
+              "Mexico",
+              "Micronesia",
+              "Moldova",
+              "Monaco",
+              "Mongolia",
+              "Montenegro",
+              "Montserrat",
+              "Morocco",
+              "Mozambique",
+              "Namibia",
+              "Nepal",
+              "Netherlands",
+              "Netherlands Antilles",
+              "New Caledonia",
+              "New Zealand",
+              "Nicaragua",
+              "Niger",
+              "Nigeria",
+              "Niue",
+              "North Korea",
+              "North Macedonia",
+              "Northern Mariana Islands",
+              "Norway",
+              "Oman",
+              "Pakistan",
+              "Palestinian Territories",
+              "Panama",
+              "Papua New Guinea",
+              "Paraguay",
+              "Peru",
+              "Philippines",
+              "Poland",
+              "Portugal",
+              "Puerto Rico",
+              "Qatar",
+              "Republic of the Congo",
+              "Reunion",
+              "Romania",
+              "Russia",
+              "Rwanda",
+              "Saint Kitts and Nevis",
+              "Saint Lucia",
+              "Saint Martin",
+              "Saint Vincent and the Grenadines",
+              "Samoa",
+              "San Marino",
+              "Saudi Arabia",
+              "Senegal",
+              "Serbia",
+              "Serbia and Montenegro",
+              "Seychelles",
+              "Sierra Leone",
+              "Singapore",
+              "Slovakia",
+              "Slovenia",
+              "Solomon Islands",
+              "Somalia",
+              "South Africa",
+              "South Korea",
+              "South Sudan",
+              "Spain",
+              "Sri Lanka",
+              "Sudan",
+              "Suriname",
+              "Sweden",
+              "Switzerland",
+              "Syria",
+              "Taiwan",
+              "Tajikistan",
+              "Tanzania",
+              "Thailand",
+              "The Bahamas",
+              "The Gambia",
+              "Timor-Leste",
+              "Togo",
+              "Trinidad and Tobago",
+              "Tunisia",
+              "Turkey (Türkiye)",
+              "Turkmenistan",
+              "Uganda",
+              "Ukraine",
+              "United Arab Emirates",
+              "United Kingdom",
+              "United States",
+              "United States Minor Outlying Islands",
+              "Uruguay",
+              "Uzbekistan",
+              "Vanuatu",
+              "Venezuela",
+              "Vietnam",
+              "Virgin Islands",
+              "Yemen",
+              "Zambia",
+              "Zimbabwe"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "type": "array"
+        },
         "criteria": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Search literal registry eligibility text for discovery only; no eligibility judgment."
         },
         "distance": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source distance with explicit mi or km units."
         },
         "exact_condition": {
@@ -1290,11 +1677,11 @@
           "type": "boolean"
         },
         "facility": {
-          "$ref": "#/$defs/Text",
-          "description": "Exact registry facility field; cannot combine with radius."
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
         },
         "gene": {
-          "$ref": "#/$defs/GeneInput",
+          "$ref": "#/$defs/Reply_GeneInput",
           "description": "Resolve one checked gene for registry text discovery only; no eligibility judgment."
         },
         "has_results": {
@@ -1302,19 +1689,27 @@
           "type": "boolean"
         },
         "id": {
-          "$ref": "#/$defs/NctId",
+          "$ref": "#/$defs/Reply_NctId",
           "description": "Exact NCT identity in a conjunction with other filters."
         },
         "intervention": {
-          "$ref": "#/$defs/Text",
-          "description": "Literal source intervention text."
+          "description": "Intervention alternatives joined with OR; supported by ClinicalTrials.gov.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "keyword": {
-          "$ref": "#/$defs/Text",
-          "description": "NCI free text; explicit keyword mode never substitutes for a disease identity."
+          "description": "Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "lat": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Radius center latitude in degrees."
         },
         "limit": {
@@ -1326,66 +1721,74 @@
           "type": "integer"
         },
         "lon": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Radius center longitude in degrees."
         },
         "next_page": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque registry continuation; keep filters unchanged."
         },
+        "offset": {
+          "default": 0,
+          "description": "Zero-based offset of the first row in this continuation page.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
         "phase": {
-          "$ref": "#/$defs/PhaseFilter",
-          "description": "Registry phase: 1, 2, 3, 4, early-1, not-applicable, 1/2 or 2/3."
+          "$ref": "#/$defs/Reply_TrialPhaseFilter",
+          "description": "Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
         },
         "query": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "General registry discovery text.",
           "x-positional": 0
         },
         "sex": {
-          "$ref": "#/$defs/TrialSex",
+          "$ref": "#/$defs/Reply_TrialSex",
           "description": "Registry sex facet."
         },
         "source": {
-          "$ref": "#/$defs/TrialSource",
+          "$ref": "#/$defs/Reply_TrialSource",
           "description": "Explicit provider; defaults to ClinicalTrials.gov and never falls back."
         },
         "sponsor": {
-          "$ref": "#/$defs/Text",
-          "description": "Exact lead sponsor field."
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
         },
         "sponsor_type": {
-          "$ref": "#/$defs/SponsorType",
-          "description": "Registry sponsor funding facet."
+          "$ref": "#/$defs/Reply_SponsorType",
+          "description": "Registry sponsor funding category; use --sponsor for a sponsor name."
         },
         "status": {
-          "$ref": "#/$defs/TrialStatus",
-          "description": "Exact registry overall status."
+          "$ref": "#/$defs/Reply_TrialStatusFilter",
+          "description": "Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
         },
         "study_type": {
-          "$ref": "#/$defs/StudyType",
+          "$ref": "#/$defs/Reply_StudyType",
           "description": "Exact registry study type."
         },
         "updated_since": {
-          "$ref": "#/$defs/PartialDate",
+          "$ref": "#/$defs/Reply_PartialDate",
           "description": "First included registry update date."
         },
         "updated_until": {
-          "$ref": "#/$defs/PartialDate",
+          "$ref": "#/$defs/Reply_PartialDate",
           "description": "Last included registry update date."
         },
         "variant": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Literal variant text for registry discovery only; no eligibility judgment."
         }
       },
       "type": "object"
     },
-    "TrialSection": {
+    "Reply_TrialSection": {
       "description": "Available source protocol sections.",
       "enum": [
         "eligibility",
         "outcomes",
+        "results",
         "arms",
         "locations",
         "contacts",
@@ -1399,6 +1802,7 @@
       "x-enum-descriptions": [
         " Intact criteria and structured age/sex fields.",
         " Primary, secondary and other outcome records.",
+        " Posted outcome values, analyses and adverse-event tables (ClinicalTrials.gov).",
         " Arms and interventions with original relationships.",
         " Whole source sites with their attached contacts.",
         " Central contacts and overall officials in their original roles.",
@@ -1409,7 +1813,7 @@
         " Complete NCI summary, paged by original character offsets."
       ]
     },
-    "TrialSex": {
+    "Reply_TrialSex": {
       "description": "Source-native registry value.",
       "enum": [
         "ALL",
@@ -1418,7 +1822,7 @@
       ],
       "type": "string"
     },
-    "TrialSource": {
+    "Reply_TrialSource": {
       "description": "Independent trial providers; results are never folded or used as fallbacks.",
       "enum": [
         "ctgov",
@@ -1426,8 +1830,7 @@
       ],
       "type": "string"
     },
-    "TrialStatus": {
-      "description": "Source-native registry value.",
+    "Reply_TrialStatusFilter": {
       "enum": [
         "ACTIVE_NOT_RECRUITING",
         "COMPLETED",
@@ -1439,32 +1842,44 @@
         "WITHDRAWN",
         "AVAILABLE",
         "NO_LONGER_AVAILABLE",
+        "TEMPORARILY_NOT_AVAILABLE",
         "APPROVED_FOR_MARKETING",
         "WITHHELD",
-        "UNKNOWN"
+        "UNKNOWN",
+        "Active",
+        "Administratively Complete",
+        "Approved",
+        "Closed to Accrual",
+        "Closed to Accrual and Intervention",
+        "Complete",
+        "INACTIVE",
+        "Enrolling by Invitation",
+        "Temporarily Closed to Accrual",
+        "Temporarily Closed to Accrual and Intervention",
+        "Withdrawn"
       ],
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.nci-trial-page/4",
+  "$id": "biomcp.nci-trial-page/10",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1475,14 +1890,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1493,18 +1908,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/TrialSearch",
+      "$ref": "#/$defs/Reply_TrialSearch",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/NciTrialPage"
+          "$ref": "#/$defs/Reply_NciTrialPage"
         },
         {
           "type": "null"
@@ -1513,18 +1928,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.nci-trial-page/4",
+      "const": "biomcp.nci-trial-page/10",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

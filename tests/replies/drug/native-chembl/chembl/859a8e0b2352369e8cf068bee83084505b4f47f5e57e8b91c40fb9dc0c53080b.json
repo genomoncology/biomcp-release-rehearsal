@@ -1,0 +1,151 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL941.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecule_chembl_id": "CHEMBL941",
+          "pref_name": "IMATINIB",
+          "molecule_type": "Small molecule",
+          "molecule_synonyms": [
+            {
+              "molecule_synonym": "CGP057148B",
+              "syn_type": "PND",
+              "synonyms": "CGP057148B"
+            },
+            {
+              "molecule_synonym": "CGP-57148B",
+              "syn_type": "PND",
+              "synonyms": "CGP-57148B"
+            },
+            {
+              "molecule_synonym": "Glamox",
+              "syn_type": "OTHER",
+              "synonyms": "GLAMOX"
+            },
+            {
+              "molecule_synonym": "GLAMOX",
+              "syn_type": "PND",
+              "synonyms": "GLAMOX"
+            },
+            {
+              "molecule_synonym": "GLEEVEC",
+              "syn_type": "PND",
+              "synonyms": "Gleevec"
+            },
+            {
+              "molecule_synonym": "GLEEVEC,STI-571",
+              "syn_type": "PND",
+              "synonyms": "Gleevec,STI-571"
+            },
+            {
+              "molecule_synonym": "GLIVEC",
+              "syn_type": "PND",
+              "synonyms": "Glivec"
+            },
+            {
+              "molecule_synonym": "Imatinib",
+              "syn_type": "ATC",
+              "synonyms": "IMATINIB"
+            },
+            {
+              "molecule_synonym": "Imatinib",
+              "syn_type": "BAN",
+              "synonyms": "IMATINIB"
+            },
+            {
+              "molecule_synonym": "Imatinib",
+              "syn_type": "INN",
+              "synonyms": "IMATINIB"
+            },
+            {
+              "molecule_synonym": "Imatinib",
+              "syn_type": "MERCK_INDEX",
+              "synonyms": "IMATINIB"
+            },
+            {
+              "molecule_synonym": "Imatinib",
+              "syn_type": "OTHER",
+              "synonyms": "IMATINIB"
+            },
+            {
+              "molecule_synonym": "IMATINIB",
+              "syn_type": "PND",
+              "synonyms": "IMATINIB"
+            },
+            {
+              "molecule_synonym": "IMATINIB MESYLATE",
+              "syn_type": "PND",
+              "synonyms": "Imatinib mesylate"
+            },
+            {
+              "molecule_synonym": "IMATINIB MESYLATEGLEEVECGLIVECIMATINIBSTI571CGP 571484-[(4-METHYL-1-PIPERAZINYL)METHYL]-N-[4-METHYL-3-[[4-(3-PYRIDINYL)-2-PYRIMIDINYL]AMINO]-PHENYL]BENZAMIDE",
+              "syn_type": "PND",
+              "synonyms": "Imatinib mesylateGleevecGlivecImatinibSTI571CGP 571484-[(4-Methyl-1-piperazinyl)methyl]-N-[4-methyl-3-[[4-(3-pyridinyl)-2-pyrimidinyl]amino]-phenyl]benzamide"
+            },
+            {
+              "molecule_synonym": "IMATINIB (STI571)",
+              "syn_type": "PND",
+              "synonyms": "Imatinib (STI571)"
+            },
+            {
+              "molecule_synonym": "NSC-743414",
+              "syn_type": "PND",
+              "synonyms": "NSC-743414"
+            },
+            {
+              "molecule_synonym": "NSC-743414",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "NSC-743414"
+            },
+            {
+              "molecule_synonym": "NSC-759854",
+              "syn_type": "PND",
+              "synonyms": "NSC-759854"
+            },
+            {
+              "molecule_synonym": "NSC-759854",
+              "syn_type": "RESEARCH_CODE",
+              "synonyms": "NSC-759854"
+            },
+            {
+              "molecule_synonym": "ST-1571",
+              "syn_type": "PND",
+              "synonyms": "ST-1571"
+            },
+            {
+              "molecule_synonym": "STI-571",
+              "syn_type": "PND",
+              "synonyms": "STI-571"
+            },
+            {
+              "molecule_synonym": "STI571",
+              "syn_type": "PND",
+              "synonyms": "STI571"
+            },
+            {
+              "molecule_synonym": "STI571,GLEEVEC",
+              "syn_type": "PND",
+              "synonyms": "STI571,Gleevec"
+            }
+          ],
+          "molecule_hierarchy": {
+            "active_chembl_id": "CHEMBL941",
+            "molecule_chembl_id": "CHEMBL941",
+            "parent_chembl_id": "CHEMBL941"
+          },
+          "cross_references": [],
+          "first_approval": 2001,
+          "max_phase": "4.0"
+        }
+      }
+    }
+  ]
+}

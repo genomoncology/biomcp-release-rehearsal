@@ -1,0 +1,46 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "name",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/organizations?name=Dana-Farber",
+      "response_format": "bytes",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    },
+    {
+      "id": "city-state",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/organizations?org_city=Boston&org_state_or_province=MA",
+      "response_format": "bytes",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    },
+    {
+      "id": "sites-public-tier",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?sites.org_name=Dana-Farber+Cancer+Institute&size=1&include=nci_id&include=nct_id&include=sites",
+      "response_format": "bytes",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "feature": "trial-search",
+  "live_check": "local-only configured request-mapping controls combine a retained registry body, synthetic country contradictions and an NCI replay key; tests/replies/trial/country/README.md records the native body",
+  "story": "Country filters reach the source and echo exact labels; one recorded US trial lists a US site. OR, NCI mapping and refusal boundaries share this case.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT03734029",
+        "locations",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/input": "NCT03734029",
+        "/result/items/0/sections/locations/data/items/0/country": "United States"
+      },
+      "max_bytes": 5000
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT03734029",
+        "--limit",
+        "1",
+        "--country",
+        "Afghanistan"
+      ],
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "bad-reply"
+      },
+      "exit": 4,
+      "max_bytes": 5000,
+      "is_error": true
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--country",
+        "Bonaire, Saint Eustatius and Saba "
+      ],
+      "offline": true,
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/query/country": [
+          "Bonaire, Saint Eustatius and Saba "
+        ],
+        "/sources/0/reason": "offline"
+      },
+      "max_bytes": 5000,
+      "is_error": true
+    }
+  ],
+  "replay": "trial/country",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  }
+}

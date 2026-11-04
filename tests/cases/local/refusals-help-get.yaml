@@ -1,0 +1,147 @@
+live_check: "local-only command help, validation or stored-state behavior; no recorded source replies"
+feature: query-validation
+story: Each public command refuses an unsupported argument before it reads a source.
+steps:
+- run:
+  - help
+  - get
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - adverse-event
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - article
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - author
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - biomarker
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - cell-line
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - diagnostic
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - disease
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - drug
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - gene
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - gwas
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - pathway
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - pgx
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - phenotype
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - protein
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - study
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - trial
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - get
+  - variant
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments

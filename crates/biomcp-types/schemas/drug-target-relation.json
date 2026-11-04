@@ -1,13 +1,23 @@
 {
   "$defs": {
-    "Attribution": {
-      "additionalProperties": false,
+    "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -15,10 +25,21 @@
           ],
           "description": "Source evaluation date."
         },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
+        },
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -29,7 +50,7 @@
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -38,13 +59,13 @@
           "description": "Dataset release."
         },
         "source": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the claim."
         },
         "submitter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +76,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -67,7 +88,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -81,35 +102,34 @@
       ],
       "type": "object"
     },
-    "DrugId": {
+    "Reply_DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
       "type": "string"
     },
-    "DrugIdentity": {
-      "additionalProperties": false,
+    "Reply_DrugIdentity": {
       "description": "One source record identity, without any equivalence or authorization claim.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/DrugId",
+          "$ref": "#/$defs/Reply_DrugId",
           "description": "Published native record identifier."
         },
         "identity_level": {
-          "$ref": "#/$defs/DrugIdentityLevel",
+          "$ref": "#/$defs/Reply_DrugIdentityLevel",
           "description": "Level established by the endpoint or record type; unknown stays unknown."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original source name."
         },
-        "source": {
-          "$ref": "#/$defs/Text",
+        "namespace": {
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for this identity."
         },
         "type": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -120,7 +140,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -132,28 +152,14 @@
       },
       "required": [
         "id",
-        "source",
+        "namespace",
         "identity_level"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "DrugIdentityLevel": {
+    "Reply_DrugIdentityLevel": {
       "description": "Identity level established by the source endpoint or record type, never inferred from ID shape.",
-      "enum": [
-        "ingredient",
-        "salt",
-        "clinical_formulation",
-        "branded_product",
-        "spl_set",
-        "spl_version",
-        "ndc_package",
-        "fda_application",
-        "fda_product",
-        "ema_authorization",
-        "ema_application",
-        "orphan_designation",
-        "unknown"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Source-stated ingredient identity.",
@@ -169,16 +175,30 @@
         " Source-stated ema application identity.",
         " Source-stated orphan designation identity.",
         " Source-stated unknown identity."
+      ],
+      "x-extensible-enum": [
+        "ingredient",
+        "salt",
+        "clinical_formulation",
+        "branded_product",
+        "spl_set",
+        "spl_version",
+        "ndc_package",
+        "fda_application",
+        "fda_product",
+        "ema_authorization",
+        "ema_application",
+        "orphan_designation",
+        "unknown"
       ]
     },
-    "DrugNativeReference": {
-      "additionalProperties": false,
+    "Reply_DrugNativeReference": {
       "description": "Typed source reference shared by mechanism and indication records.",
       "properties": {
         "ref_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -187,13 +207,13 @@
           "description": "Source reference identifier, when supplied."
         },
         "ref_type": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native reference type."
         },
         "ref_url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -208,18 +228,17 @@
       ],
       "type": "object"
     },
-    "DrugNativeTarget": {
-      "additionalProperties": false,
+    "Reply_DrugNativeTarget": {
       "description": "One source-native target identity, without inventing a gene label.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact published target identifier."
         },
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -227,14 +246,14 @@
           ],
           "description": "Native target label, only when supplied."
         },
-        "source": {
-          "$ref": "#/$defs/Text",
+        "namespace": {
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the native identifier."
         },
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -245,24 +264,24 @@
         }
       },
       "required": [
-        "source",
+        "namespace",
         "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "EnsemblGeneId": {
+    "Reply_EnsemblGeneId": {
       "description": " A human Ensembl gene stable identifier with a separately retained version.",
-      "pattern": "^ENSG[0-9]{11}(\\.[1-9][0-9]*)?$",
+      "pattern": "^ENSG[0-9]{11}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?$",
       "type": "string"
     },
-    "GeneRef": {
-      "additionalProperties": false,
+    "Reply_GeneRef": {
       "description": "A source-stated gene reference; its label never implies an identifier.",
       "properties": {
         "ensembl_gene_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/EnsemblGeneId"
+              "$ref": "#/$defs/Reply_EnsemblGeneId"
             },
             {
               "type": "null"
@@ -272,7 +291,7 @@
         "hgnc_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/HgncId"
+              "$ref": "#/$defs/Reply_HgncId"
             },
             {
               "type": "null"
@@ -280,12 +299,12 @@
           ]
         },
         "label": {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         "ncbi_gene_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/NcbiGeneId"
+              "$ref": "#/$defs/Reply_NcbiGeneId"
             },
             {
               "type": "null"
@@ -298,30 +317,31 @@
       ],
       "type": "object"
     },
-    "HgncId": {
+    "Reply_HgncId": {
       "description": "An HGNC identifier with canonical namespace and positive numeric value.",
-      "pattern": "^HGNC:[1-9][0-9]*$",
+      "pattern": "^HGNC:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "NcbiGeneId": {
+    "Reply_NcbiGeneId": {
       "description": "A positive NCBI Gene identifier in canonical decimal text.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.drug-target-relation/3",
+  "$id": "biodata.drug-target-relation/7",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "anyOf": [
     {
       "required": [
@@ -337,17 +357,17 @@
   "description": "A native target or mechanism relation, without an indication inference.",
   "properties": {
     "attribution": {
-      "$ref": "#/$defs/Attribution",
+      "$ref": "#/$defs/Reply_Attribution",
       "description": "Native relation provenance."
     },
     "drug": {
-      "$ref": "#/$defs/DrugIdentity",
+      "$ref": "#/$defs/Reply_DrugIdentity",
       "description": "Source drug identity."
     },
     "mechanism": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -356,28 +376,34 @@
       "description": "Native mechanism wording, only when supplied."
     },
     "native_target": {
-      "$ref": "#/$defs/DrugNativeTarget",
+      "$ref": "#/$defs/Reply_DrugNativeTarget",
       "description": "Native target identity independent of a gene reference."
     },
     "references": {
       "description": "Source-native supporting references.",
       "items": {
-        "$ref": "#/$defs/DrugNativeReference"
+        "$ref": "#/$defs/Reply_DrugNativeReference"
       },
       "type": "array"
     },
     "relation": {
-      "$ref": "#/$defs/Text",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "description": "Native relationship label."
     },
     "target": {
-      "$ref": "#/$defs/GeneRef",
+      "$ref": "#/$defs/Reply_GeneRef",
       "description": "Source-stated target gene, without using mechanism text as a gene label."
     }
   },
   "required": [
     "drug",
-    "relation",
     "attribution"
   ],
   "title": "DrugTargetRelation",

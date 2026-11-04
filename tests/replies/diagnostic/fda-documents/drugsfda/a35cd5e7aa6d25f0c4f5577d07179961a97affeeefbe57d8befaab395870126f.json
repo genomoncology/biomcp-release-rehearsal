@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=application_number%3A%22NDA021588%22&limit=1",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "a35cd5e7aa6d25f0c4f5577d07179961a97affeeefbe57d8befaab395870126f-0.bin"
+      }
+    }
+  ]
+}

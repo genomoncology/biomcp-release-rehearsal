@@ -1,21 +1,53 @@
 {
   "$defs": {
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "HgncId": {
+    "Reply_HgncId": {
       "description": "An HGNC identifier with canonical namespace and positive numeric value.",
-      "pattern": "^HGNC:[1-9][0-9]*$",
+      "pattern": "^HGNC:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_IdentifierNamespace": {
+      "description": "A source-stated authority or an explicit unknown authority, represented by the string unknown.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "Reply_Identifier_NonZeroU64": {
+      "description": "An authority and its unchanged native identifier; unknown means the authority was not stated.",
+      "properties": {
+        "id": {
+          "description": "Native identifier value, with its original scalar type and precision.",
+          "format": "uint64",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
+          "description": "Native authority spelling; the literal unknown carries an unstated authority."
+        }
+      },
+      "required": [
+        "namespace",
+        "id"
+      ],
+      "type": "object",
+      "x-identifier": true
+    },
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -27,7 +59,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -62,8 +94,7 @@
       ],
       "type": "object"
     },
-    "Pathway": {
-      "additionalProperties": false,
+    "Reply_Pathway": {
       "description": "Neutral pathway facts, without display sections or source calls.",
       "properties": {
         "cited_in": {
@@ -81,17 +112,24 @@
           ]
         },
         "id": {
-          "$ref": "#/$defs/PathwayId",
+          "$ref": "#/$defs/Reply_PathwayId",
           "description": "Checked source-owned identity."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Whole native pathway name."
         },
         "references": {
           "description": "Native pathway-level literature references, separate from each summation.",
           "items": {
-            "$ref": "#/$defs/PathwayLiteratureRef"
+            "$ref": "#/$defs/Reply_PathwayLiteratureRef"
           },
           "type": [
             "array",
@@ -101,7 +139,7 @@
         "revision": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -110,13 +148,13 @@
           "description": "WikiPathways native revision, separate from identity."
         },
         "species": {
-          "$ref": "#/$defs/PathwaySpecies",
+          "$ref": "#/$defs/Reply_PathwaySpecies",
           "description": "Explicit source-stated human species."
         },
         "summations": {
           "description": "Native Reactome summation objects in source order; not concatenated.",
           "items": {
-            "$ref": "#/$defs/PathwaySummation"
+            "$ref": "#/$defs/Reply_PathwaySummation"
           },
           "type": [
             "array",
@@ -126,7 +164,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -137,13 +175,11 @@
       },
       "required": [
         "id",
-        "name",
         "species"
       ],
       "type": "object"
     },
-    "PathwayCard": {
-      "additionalProperties": false,
+    "Reply_PathwayCard": {
       "description": "One checked source pathway with supported disclosures and whole native text.",
       "properties": {
         "description_truncated": {
@@ -156,7 +192,7 @@
         "events": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Section2"
+              "$ref": "#/$defs/Reply_Section_PathwayEvents"
             },
             {
               "type": "null"
@@ -167,7 +203,7 @@
         "genes": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Section"
+              "$ref": "#/$defs/Reply_Section_PathwayGenes"
             },
             {
               "type": "null"
@@ -176,13 +212,13 @@
           "description": "Requested bounded membership page, including its explicit source state."
         },
         "pathway": {
-          "$ref": "#/$defs/Pathway",
+          "$ref": "#/$defs/Reply_Pathway",
           "description": "Source-native identity, species, versions and requested description."
         },
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -193,7 +229,7 @@
         "sections": {
           "description": "Source-supported named sections; WikiPathways excludes events.",
           "items": {
-            "$ref": "#/$defs/PathwaySection"
+            "$ref": "#/$defs/Reply_PathwaySection"
           },
           "type": "array"
         }
@@ -203,18 +239,15 @@
       ],
       "type": "object"
     },
-    "PathwayEventRef": {
+    "Reply_PathwayEventRef": {
       "description": "An event object or unresolved integer reference; never the parent's inferred ID.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Native unresolved integer database reference.",
           "properties": {
             "db_id": {
-              "description": "Positive native database reference.",
-              "format": "uint64",
-              "minimum": 1,
-              "type": "integer"
+              "$ref": "#/$defs/Reply_Identifier_NonZeroU64",
+              "description": "Positive native database reference."
             },
             "kind": {
               "const": "database",
@@ -228,19 +261,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Native event object; fields are absent only when omitted by the source.",
           "properties": {
             "db_id": {
-              "description": "Native object database identity.",
-              "format": "uint64",
-              "minimum": 1,
-              "type": "integer"
+              "$ref": "#/$defs/Reply_Identifier_NonZeroU64",
+              "description": "Native object database identity."
             },
             "id": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/ReactomeId"
+                  "$ref": "#/$defs/Reply_ReactomeId"
                 },
                 {
                   "type": "null"
@@ -255,7 +285,7 @@
             "name": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Text"
+                  "$ref": "#/$defs/Reply_Text"
                 },
                 {
                   "type": "null"
@@ -266,7 +296,7 @@
             "schema_class": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Text"
+                  "$ref": "#/$defs/Reply_Text"
                 },
                 {
                   "type": "null"
@@ -277,7 +307,7 @@
             "source_url": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Text"
+                  "$ref": "#/$defs/Reply_Text"
                 },
                 {
                   "type": "null"
@@ -289,7 +319,7 @@
             "version": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Text"
+                  "$ref": "#/$defs/Reply_Text"
                 },
                 {
                   "type": "null"
@@ -306,23 +336,22 @@
         }
       ]
     },
-    "PathwayEvents": {
-      "additionalProperties": false,
+    "Reply_PathwayEvents": {
       "description": "Independent source-ordered page of whole native references.",
       "properties": {
         "header": {
-          "$ref": "#/$defs/PathwayHeader",
+          "$ref": "#/$defs/Reply_PathwayHeader",
           "description": "Exact source pathway owning this relation."
         },
         "items": {
           "description": "Whole native references; unresolved identities remain visible.",
           "items": {
-            "$ref": "#/$defs/PathwayEventRef"
+            "$ref": "#/$defs/Reply_PathwayEventRef"
           },
           "type": "array"
         },
         "page": {
-          "$ref": "#/$defs/PathwayPageInfo",
+          "$ref": "#/$defs/Reply_PathwayPageInfo",
           "description": "Relation-specific count provenance and continuation."
         }
       },
@@ -332,23 +361,22 @@
       ],
       "type": "object"
     },
-    "PathwayGenes": {
-      "additionalProperties": false,
+    "Reply_PathwayGenes": {
       "description": "Independent source-ordered distinct membership references and their observed counts.",
       "properties": {
         "header": {
-          "$ref": "#/$defs/PathwayHeader",
+          "$ref": "#/$defs/Reply_PathwayHeader",
           "description": "Exact source pathway owning this relation."
         },
         "items": {
           "description": "Distinct namespaced source references in first occurrence order.",
           "items": {
-            "$ref": "#/$defs/PathwayMember"
+            "$ref": "#/$defs/Reply_PathwayMember"
           },
           "type": "array"
         },
         "page": {
-          "$ref": "#/$defs/PathwayPageInfo",
+          "$ref": "#/$defs/Reply_PathwayPageInfo",
           "description": "Distinct-reference total and continuation."
         },
         "physical_entities": {
@@ -372,8 +400,7 @@
       ],
       "type": "object"
     },
-    "PathwayGet": {
-      "additionalProperties": false,
+    "Reply_PathwayGet": {
       "description": "Get an exact human Reactome R-HSA or WikiPathways WP card. Read whole summary, genes, Reactome events or bounded all sections. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.",
       "properties": {
         "fresh": {
@@ -387,11 +414,11 @@
           "x-positional": 0
         },
         "pool": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Retained snapshot, when continuing a source relation."
         },
         "section": {
-          "$ref": "#/$defs/PathwaySection",
+          "$ref": "#/$defs/Reply_PathwaySection",
           "description": "Omit for the card; WikiPathways has summary and genes sections.",
           "x-positional": 1
         },
@@ -416,22 +443,28 @@
       ],
       "type": "object"
     },
-    "PathwayHeader": {
-      "additionalProperties": false,
+    "Reply_PathwayHeader": {
       "description": "Small selectable native pathway identity, without its potentially long description.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/PathwayId",
+          "$ref": "#/$defs/Reply_PathwayId",
           "description": "Checked source-owned identity."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Whole native name."
         },
         "revision": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -440,13 +473,13 @@
           "description": "WikiPathways revision, separate from identity."
         },
         "species": {
-          "$ref": "#/$defs/PathwaySpecies",
+          "$ref": "#/$defs/Reply_PathwaySpecies",
           "description": "Explicit native human species."
         },
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -457,66 +490,61 @@
       },
       "required": [
         "id",
-        "name",
         "species"
       ],
       "type": "object"
     },
-    "PathwayId": {
+    "Reply_PathwayId": {
       "description": "Source-owned pathway identity; equal names never merge sources.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Human Reactome stable identity without a version suffix.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/ReactomeId"
+              "$ref": "#/$defs/Reply_ReactomeId"
             },
-            "source": {
+            "namespace": {
               "const": "reactome",
               "type": "string"
             }
           },
           "required": [
-            "source",
+            "namespace",
             "id"
           ],
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "WikiPathways identity without a revision suffix.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/WikiPathwaysId"
+              "$ref": "#/$defs/Reply_WikiPathwaysId"
             },
-            "source": {
+            "namespace": {
               "const": "wikipathways",
               "type": "string"
             }
           },
           "required": [
-            "source",
+            "namespace",
             "id"
           ],
           "type": "object"
         }
-      ]
+      ],
+      "x-identifier": true
     },
-    "PathwayLiteratureRef": {
-      "additionalProperties": false,
+    "Reply_PathwayLiteratureRef": {
       "description": "A native pathway-level literature reference; never inferred from prose.",
       "properties": {
         "db_id": {
-          "description": "Native literature database reference.",
-          "format": "uint64",
-          "minimum": 1,
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_NonZeroU64",
+          "description": "Native literature database reference."
         },
         "pubmed": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Pmid"
+              "$ref": "#/$defs/Reply_Pmid"
             },
             {
               "type": "null"
@@ -527,7 +555,7 @@
         "title": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -538,7 +566,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -553,14 +581,13 @@
       ],
       "type": "object"
     },
-    "PathwayMember": {
-      "additionalProperties": false,
+    "Reply_PathwayMember": {
       "description": "One source membership reference, without name-based gene inference.",
       "properties": {
         "gene": {
           "anyOf": [
             {
-              "$ref": "#/$defs/HgncId"
+              "$ref": "#/$defs/Reply_HgncId"
             },
             {
               "type": "null"
@@ -571,7 +598,7 @@
         "name": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -582,7 +609,7 @@
         "node_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -593,7 +620,7 @@
         "participants": {
           "description": "Complete physical contexts, disclosed only by the explicit details view.",
           "items": {
-            "$ref": "#/$defs/PathwayParticipant"
+            "$ref": "#/$defs/Reply_PathwayParticipant"
           },
           "type": [
             "array",
@@ -607,13 +634,13 @@
           "type": "integer"
         },
         "reference": {
-          "$ref": "#/$defs/PathwaySourceRef",
+          "$ref": "#/$defs/Reply_PathwaySourceRef",
           "description": "Namespaced native reference."
         },
         "schema_class": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -624,7 +651,7 @@
         "source_url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -640,8 +667,7 @@
       ],
       "type": "object"
     },
-    "PathwayPageInfo": {
-      "additionalProperties": false,
+    "Reply_PathwayPageInfo": {
       "description": "Native page position and explicit count provenance; a short admitted page can continue.",
       "properties": {
         "next_offset": {
@@ -662,7 +688,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -683,7 +709,7 @@
           "type": "integer"
         },
         "total_kind": {
-          "$ref": "#/$defs/PathwayTotalKind",
+          "$ref": "#/$defs/Reply_PathwayTotalKind",
           "description": "Whether the total comes from the source or this retained collection."
         }
       },
@@ -695,33 +721,42 @@
       ],
       "type": "object"
     },
-    "PathwayParticipant": {
-      "additionalProperties": false,
+    "Reply_PathwayParticipant": {
       "description": "One native physical entity carrying a membership reference.",
       "properties": {
         "db_id": {
-          "description": "Native physical entity database identity, distinct from reference identity.",
-          "format": "uint64",
-          "minimum": 1,
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_NonZeroU64",
+          "description": "Native physical entity database identity, distinct from reference identity."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Whole physical entity label, including source-stated modification context."
         },
         "schema_class": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native physical entity schema class, separate from reference schema class."
         }
       },
       "required": [
-        "db_id",
-        "name",
-        "schema_class"
+        "db_id"
       ],
       "type": "object"
     },
-    "PathwaySection": {
+    "Reply_PathwaySection": {
       "description": "Supported source-owned pathway disclosures.",
       "enum": [
         "summary",
@@ -737,72 +772,68 @@
         "Each source-supported section's bounded first page."
       ]
     },
-    "PathwaySourceRef": {
-      "additionalProperties": false,
+    "Reply_PathwaySourceRef": {
       "description": "An open source namespace paired with its complete native identifier.",
       "properties": {
-        "namespace": {
-          "description": "Native namespace; never discarded during a gene join.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "value": {
-          "$ref": "#/$defs/Text",
+        "id": {
+          "$ref": "#/$defs/Reply_Text",
           "description": "Complete namespace-local identifier, including native isoform suffixes."
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
+          "description": "Native namespace; never discarded during a gene join."
         }
       },
       "required": [
-        "value"
+        "namespace",
+        "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "PathwaySpecies": {
+    "Reply_PathwaySpecies": {
       "description": "Source-stated human species; no species inference from a title.",
       "enum": [
         "Homo sapiens"
       ],
       "type": "string"
     },
-    "PathwaySummation": {
-      "additionalProperties": false,
+    "Reply_PathwaySummation": {
       "description": "One native summation, with its own database identity and whole text.",
       "properties": {
         "db_id": {
-          "description": "Native summation database identity, not the pathway identity.",
-          "format": "uint64",
-          "minimum": 1,
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_NonZeroU64",
+          "description": "Native summation database identity, not the pathway identity."
         },
         "text": {
           "description": "Complete native text; no sentence clipping or reference reassignment.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
-        "db_id",
-        "text"
+        "db_id"
       ],
       "type": "object"
     },
-    "PathwayTotalKind": {
+    "Reply_PathwayTotalKind": {
       "description": "Meaning of the collection total, independent of admitted rows on a page.",
       "enum": [
         "source",
         "observed",
-        "distinct_references",
-        "data_nodes"
+        "distinct-references",
+        "data-nodes"
       ],
       "type": "string"
     },
-    "Pmid": {
+    "Reply_Pmid": {
       "description": "Positive PubMed identifier.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -818,7 +849,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -836,12 +867,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -851,7 +881,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -860,7 +890,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -871,48 +901,27 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "ReactomeId": {
+    "Reply_ReactomeId": {
       "description": "A checked human Reactome stable pathway identifier.",
       "pattern": "^R-HSA-[1-9][0-9]*$",
       "type": "string"
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -934,325 +943,263 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
-      ]
-    },
-    "Section": {
-      "description": "A requested section has exactly one state.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "description": "The source returned data.",
-          "properties": {
-            "data": {
-              "$ref": "#/$defs/PathwayGenes",
-              "description": "Whole section data."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "data",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "data"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "The source answered with no data.",
-          "properties": {
-            "record": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/SourceRecord"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Native entry, if any."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "empty",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "A requested source failed.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "unavailable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "User settings prevented the source request.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "skipped",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "Entity facts rule this section out.",
-          "properties": {
-            "state": {
-              "const": "not_applicable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "Section2": {
-      "description": "A requested section has exactly one state.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "description": "The source returned data.",
-          "properties": {
-            "data": {
-              "$ref": "#/$defs/PathwayEvents",
-              "description": "Whole section data."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "data",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "data"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "The source answered with no data.",
-          "properties": {
-            "record": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/SourceRecord"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Native entry, if any."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "empty",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "A requested source failed.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "unavailable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "User settings prevented the source request.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "skipped",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "Entity facts rule this section out.",
-          "properties": {
-            "state": {
-              "const": "not_applicable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "Source": {
-      "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
       ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
+      ]
+    },
+    "Reply_Section_PathwayEvents": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_PathwayEvents",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Section_PathwayGenes": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_PathwayGenes",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Source": {
+      "description": "A source of BioMCP data, identified by its canonical short name.",
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -1322,21 +1269,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -1360,11 +1383,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -1379,15 +1401,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -1398,15 +1419,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -1417,11 +1437,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -1436,11 +1455,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -1462,17 +1480,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -1484,8 +1501,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -1497,26 +1513,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -1524,18 +1531,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1553,7 +1569,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -1566,18 +1582,21 @@
       ],
       "type": "object"
     },
-    "SourceRecord": {
-      "additionalProperties": false,
+    "Reply_SourceRecord": {
       "description": "The source's own entry for an entity.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native source identifier."
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
+          "description": "Native authority; unknown means the source did not state one."
         },
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1588,11 +1607,13 @@
         }
       },
       "required": [
+        "namespace",
         "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -1603,7 +1624,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -1613,8 +1634,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -1625,7 +1645,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -1634,7 +1654,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -1650,36 +1670,38 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     },
-    "WikiPathwaysId": {
+    "Reply_WikiPathwaysId": {
       "description": "A checked WikiPathways identity without its revision.",
       "pattern": "^WP[1-9][0-9]*$",
       "type": "string"
     }
   },
-  "$id": "biomcp.pathway-card/5",
+  "$id": "biomcp.pathway-card/10",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1690,14 +1712,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1708,18 +1730,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/PathwayGet",
+      "$ref": "#/$defs/Reply_PathwayGet",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PathwayCard"
+          "$ref": "#/$defs/Reply_PathwayCard"
         },
         {
           "type": "null"
@@ -1728,18 +1750,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.pathway-card/5",
+      "const": "biomcp.pathway-card/10",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

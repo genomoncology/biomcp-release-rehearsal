@@ -21,7 +21,7 @@ pub(super) fn detail(id: u64) -> Result<Value, String> {
             "history",
             json!([{"id":1,"date":"2020-01-01","type":"Synthetic","version":1}]),
         ),
-        ("objCls", json!("ClinicalAnnotation")),
+        ("objCls", json!("SummaryAnnotation")),
         ("overrideLevel", json!(false)),
         ("pediatric", json!(false)),
         ("relatedAlleles", json!([])),
@@ -33,9 +33,9 @@ pub(super) fn detail(id: u64) -> Result<Value, String> {
     }
     Ok(row)
 }
-pub(super) fn references() -> Value {
+pub(super) fn references(class: &str) -> Value {
     json!([
-        {"objCls":"GuidelineAnnotation","id":"PA100001","name":"Synthetic reference one","crossReferences":[]},
-        {"objCls":"GuidelineAnnotation","id":"PA100002","name":"Synthetic reference two","crossReferences":[]}
+        {"objCls":class,"id":"PA100001","name":"Synthetic reference one","crossReferences":[]},
+        {"objCls":class,"id":"PA100002","name":"Synthetic reference two","crossReferences":[]}
     ])
 }

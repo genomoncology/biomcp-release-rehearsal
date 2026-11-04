@@ -1,17 +1,24 @@
 //! Checked cache reuse around the single live request path.
-use crate::xml::Decoder;
+use crate::read::Read;
 use crate::{
     Endpoint, Leg, Mode, Reply, RequestError,
     cache::{Cache, Entry, now},
 };
 use biomcp_types::Reason;
 
+type CachedReply<T> = (
+    T,
+    Option<i64>,
+    Option<crate::ContentRange>,
+    Option<crate::Pagination>,
+);
+
 const NEGATIVE_SECONDS: u64 = 600;
 enum Checked<T> {
     Positive(
         T,
         bool,
-        i64,
+        Option<i64>,
         Option<crate::ContentRange>,
         Option<crate::Pagination>,
     ),
@@ -31,60 +38,13 @@ impl Leg<'_> {
         }
     }
 
-    /// Apply request-bound checks on every read and admit only cacheable decoded replies.
-    /// A valid provider rejection can return to the caller without entering the cache.
-    pub fn json_checked_admission<T: Reply>(
-        &self,
-        endpoint: &Endpoint,
-        params: &[(&str, crate::Arg<'_>)],
-        check: impl Fn(&T) -> Result<(), crate::BadReply>,
-        cache_if: impl Fn(&T) -> bool,
-    ) -> Result<T, RequestError> {
-        self.parameters(
-            endpoint,
-            params,
-            Decoder::checked_json(&check).cache_if(&cache_if),
-        )
-        .map(|(reply, _)| reply)
-    }
-
-    /// Return checked JSON while withholding a response from cache when request identity differs.
-    /// The same predicate rejects pre-existing entries before either fresh or stale reuse.
-    pub fn json_checked_cache<T: Reply>(
-        &self,
-        endpoint: &Endpoint,
-        params: &[(&str, crate::Arg<'_>)],
-        cache_if: impl Fn(&T) -> bool,
-    ) -> Result<T, RequestError> {
-        self.parameters(endpoint, params, Decoder::json().cache_if(&cache_if))
-            .map(|(reply, _)| reply)
-    }
-
-    /// Preserve per-reply metadata while withholding request-mismatched rows from cache.
-    pub fn json_received_checked_cache<T: Reply>(
-        &self,
-        endpoint: &Endpoint,
-        params: &[(&str, crate::Arg<'_>)],
-        cache_if: impl Fn(&T) -> bool,
-    ) -> Result<(T, crate::ReplyMetadata), RequestError> {
-        self.parameters(endpoint, params, Decoder::json().cache_if(&cache_if))
-    }
-
     pub(crate) fn cached<T: Reply>(
         &self,
         endpoint: &Endpoint,
         prepared: &crate::prepared::Prepared,
-        codec: &Decoder<T>,
+        codec: &Read<T>,
         live: impl FnOnce() -> Result<crate::request::Decoded<T>, RequestError>,
-    ) -> Result<
-        (
-            T,
-            i64,
-            Option<crate::ContentRange>,
-            Option<crate::Pagination>,
-        ),
-        RequestError,
-    > {
+    ) -> Result<CachedReply<T>, RequestError> {
         let (url, key) = (prepared.url.as_str(), &prepared.identity);
         if self.budget().expired() {
             return Err(self.failure(Reason::DeadlineExceeded, None).into());
@@ -93,7 +53,14 @@ impl Leg<'_> {
             return self.offline(endpoint, prepared, codec);
         }
         let Some((cache, seconds)) = self.fetch.cache.as_ref().zip(endpoint.fresh.seconds()) else {
-            return live().map(|(reply, _, _, fetched, range, pagination)| {
+            return live().map(|decoded| {
+                let crate::request::Decoded {
+                    reply,
+                    fetched,
+                    content_range: range,
+                    pagination,
+                    ..
+                } = decoded;
                 (
                     reply,
                     fetched,
@@ -118,13 +85,7 @@ impl Leg<'_> {
             }
         }
         match live() {
-            Ok((reply, status, body, fetched, range, pagination)) => self.admit_live(
-                cache,
-                prepared,
-                codec,
-                seconds,
-                (reply, status, body, fetched, range, pagination),
-            ),
+            Ok(decoded) => self.admit_live(cache, prepared, codec, seconds, decoded),
             Err(RequestError::Source(error)) if error.reason == Reason::NotFound => {
                 // A current absence replaces a formerly positive entry; no stale
                 // result can override it and the provider body is never stored.
@@ -161,21 +122,32 @@ impl Leg<'_> {
         &self,
         cache: &Cache,
         prepared: &crate::prepared::Prepared,
-        codec: &Decoder<T>,
+        codec: &Read<T>,
         seconds: u64,
         decoded: crate::request::Decoded<T>,
-    ) -> Result<
-        (
-            T,
-            i64,
-            Option<crate::ContentRange>,
-            Option<crate::Pagination>,
-        ),
-        RequestError,
-    > {
-        let (reply, status, body, fetched, range, pagination) = decoded;
+    ) -> Result<CachedReply<T>, RequestError> {
+        let crate::request::Decoded {
+            reply,
+            status,
+            body,
+            fetched,
+            content_range: range,
+            pagination,
+        } = decoded;
         let mut entry = Entry::new(status, body, seconds, codec.name());
-        entry.fetched_at = fetched;
+        if codec.json_absence && status == 404 {
+            self.cache_result(cache.remove(&prepared.identity, self.budget()));
+        }
+        // A recording without acquisition time cannot establish cache freshness.
+        let Some(acquired) = fetched else {
+            return Ok((
+                reply,
+                None,
+                range.as_deref().and_then(crate::ContentRange::parse),
+                pagination,
+            ));
+        };
+        entry.fetched_at = acquired;
         entry.content_range = range;
         entry.pagination = pagination;
         if (200..300).contains(&status) && codec.cacheable(&reply) {
@@ -186,8 +158,6 @@ impl Leg<'_> {
                 &entry,
                 self.budget(),
             ));
-        } else if codec.json_absence && status == 404 {
-            self.cache_result(cache.remove(&prepared.identity, self.budget()));
         }
         Ok((
             reply,
@@ -204,16 +174,8 @@ impl Leg<'_> {
         &self,
         endpoint: &Endpoint,
         prepared: &crate::prepared::Prepared,
-        codec: &Decoder<T>,
-    ) -> Result<
-        (
-            T,
-            i64,
-            Option<crate::ContentRange>,
-            Option<crate::Pagination>,
-        ),
-        RequestError,
-    > {
+        codec: &Read<T>,
+    ) -> Result<CachedReply<T>, RequestError> {
         if let Some(cache) = self
             .fetch
             .cache
@@ -243,7 +205,7 @@ impl Leg<'_> {
         &self,
         cache: &Cache,
         prepared: &crate::prepared::Prepared,
-        codec: &Decoder<T>,
+        codec: &Read<T>,
     ) -> Result<Option<Checked<T>>, RequestError> {
         let key = &prepared.identity;
         let entry = match cache.read(
@@ -276,7 +238,8 @@ impl Leg<'_> {
                         std::any::type_name::<T>(),
                         true,
                         &prepared.url,
-                        crate::Provenance::received::<T>(prepared, &entry.body, Some(entry.status)),
+                        codec.provenance(prepared, &entry.body, Some(entry.status)),
+                        None,
                     ),
                 );
             }
@@ -309,14 +272,15 @@ impl Leg<'_> {
                     std::any::type_name::<T>(),
                     true,
                     &prepared.url,
-                    crate::Provenance::received::<T>(prepared, &entry.body, Some(entry.status)),
+                    codec.provenance(prepared, &entry.body, Some(entry.status)),
+                    None,
                 ),
             );
         }
         Ok(Some(Checked::Positive(
             reply,
             fresh,
-            entry.fetched_at,
+            Some(entry.fetched_at),
             entry
                 .content_range
                 .as_deref()

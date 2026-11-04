@@ -12,7 +12,9 @@ fn bounded_parts_preserve_original_unicode_rows_and_escapes()
         ..FetchConfig::default()
     })?;
     let leg = fetch.leg(&pmc_oa::SPEC, fetch.deadline(Duration::from_secs(20)));
-    let document = pmc_oa::read(&leg, "PMC5606870".parse()?, None)?.ok_or("missing body")?;
+    let document = pmc_oa::read(&leg, "PMC5606870".parse()?, None)?
+        .value
+        .ok_or("missing body")?;
     let mut reconstructed = vec![String::new(); document.body.rows.len()];
     for part in &document.body.parts {
         assert!(part.meta.tokens <= 4000);

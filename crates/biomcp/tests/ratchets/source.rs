@@ -1,13 +1,47 @@
 #[path = "adapter_values.rs"]
 pub(super) mod adapter_values;
-use super::{Check, dependencies, rust_files};
-use std::{collections::BTreeSet, fs, path::Path};
+#[path = "mapped_refusals.rs"]
+mod mapped_refusals;
+use super::Check;
+use std::{collections::BTreeSet, path::Path};
 
 // The sole dead-code exception contains only the private generated closure include.
-const GENERATED_PROTO: &str = "crates/biomcp-fetch/src/grpc/proto.rs";
+const GENERATED_PROTO: &str = "crates/biomcp-adapters/src/alphagenome/proto.rs";
 
 // New exceptions require a reviewed path and reason here.
 const EXCEPTIONS: &[(&str, &str)] = &[
+    (
+        "crates/biomcp-fetch/tests/transport/tls_builds.rs",
+        "Count TLS configuration builds on one isolated test thread",
+    ),
+    (
+        "crates/biomcp/src/mcp/http/admission.rs",
+        "Bound HTTP framing readers separately from active requests with owned atomic permits",
+    ),
+    (
+        "crates/biomcp-fetch/src/cache/admission.rs",
+        "Bind the explicit admission latch to its acquired connection while optional readers probe ownership",
+    ),
+    (
+        "crates/biomcp-fetch/src/grpc/dns_tests.rs",
+        "Observe completion of the joined test resolver without shared state outside its fixture",
+    ),
+    (
+        "crates/biomcp-types/src/gwas/search.rs",
+        "Serde serialize_with passes a reference to the entire optional field",
+    ),
+    (
+        "crates/biomcp-fetch/src/secret.rs",
+        "Resolve one deferred credential once per configured secret",
+    ),
+    (
+        "crates/biomcp-fetch/src/cancellation.rs",
+        "Cancel all request workers through one command-owned atomic flag",
+    ),
+    (
+        "crates/biomcp-fetch/src/grpc/control.rs",
+        "Acknowledge stream cancellation before releasing the worker permit",
+    ),
     (
         "crates/biomcp-fetch/src/grpc/worker.rs",
         "Serialize lazy runtime initialization and join its sole worker thread",
@@ -31,6 +65,10 @@ const EXCEPTIONS: &[(&str, &str)] = &[
     (
         "crates/biomcp/src/mcp/http.rs",
         "Own bounded HTTP connection workers and join completed handles",
+    ),
+    (
+        "crates/biomcp/src/mcp/http/call.rs",
+        "Own and join bounded hosted HTTP tool workers through timeout and shutdown",
     ),
     (
         "crates/biomcp-adapters/src/pmc_oa/supplement.rs",
@@ -77,7 +115,7 @@ const EXCEPTIONS: &[(&str, &str)] = &[
         "Read process arguments at the command boundary",
     ),
     (
-        "crates/biomcp-fetch/src/quota.rs",
+        "crates/biomcp-fetch/src/quota/limiter.rs",
         "Shared transport quota state and FIFO waits",
     ),
 ];
@@ -85,62 +123,17 @@ const FILE_LIMIT: usize = 600;
 const LINE_WIDTH: usize = 160;
 const ADAPTER_LIMIT: usize = 300;
 
+#[path = "source_files.rs"]
+mod files;
+
 pub(super) fn check(root: &Path) -> Check {
-    super::placement::check(root)?;
-    adapter_values::check(root)?;
-    let sqlite = dependencies::sqlite_aliases(root)?;
-    let mut keys = BTreeSet::new();
-    let crates = root.join("crates");
-    if !crates.exists() {
-        return Ok(());
-    }
-    for entry in fs::read_dir(crates)? {
-        let crate_root = entry?.path();
-        for path in rust_files(&crate_root.join("tests"))? {
-            let text = fs::read_to_string(&path)?;
-            width(&path.strip_prefix(root)?.to_string_lossy(), &text)?;
-            if text.lines().count() > FILE_LIMIT {
-                return fail(
-                    &path.strip_prefix(root)?.to_string_lossy(),
-                    "file line limit exceeded",
-                );
-            }
-        }
-        for path in rust_files(&crate_root.join("src"))? {
-            let relative = path
-                .strip_prefix(root)?
-                .to_string_lossy()
-                .replace('\\', "/");
-            let text = fs::read_to_string(&path)?;
-            width(&relative, &text)?;
-            let limit = if relative.starts_with("crates/biomcp-adapters/src/")
-                && matches!(
-                    path.file_name().and_then(|v| v.to_str()),
-                    Some("mod.rs" | "raw.rs" | "map.rs")
-                ) {
-                ADAPTER_LIMIT
-            } else {
-                FILE_LIMIT
-            };
-            if text.lines().count() > limit {
-                return fail(&relative, "file line limit exceeded");
-            }
-            let tokens = tokens(&text);
-            adapter_helpers(&relative, &tokens)?;
-            source_terms(root, &relative, &tokens)?;
-            if relative != "crates/biomcp-types/src/response/source.rs"
-                && relative != "crates/biomcp-adapters/src/registry.rs"
-                && tokens
-                    .windows(3)
-                    .any(|part| matches!(part, [before, name, open] if before != ">" && name == "SourceOutcome" && open == "{"))
-            {
-                return fail(&relative, "source outcomes require registry terms");
-            }
-            attributes(&relative, &tokens)?;
-            references(root, &relative, &text, &tokens, &sqlite, &mut keys)?;
-        }
-    }
-    Ok(())
+    super::diagnostics(vec![
+        super::placement::check(root),
+        adapter_values::check(root),
+        mapped_refusals::check(root),
+        super::transport_sources::check(root),
+        files::check(root),
+    ])
 }
 
 fn width(path: &str, text: &str) -> Check {
@@ -159,7 +152,7 @@ fn fail(path: &str, rule: &str) -> Check {
     Err(format!("{path}: {rule}").into())
 }
 
-fn attributes(path: &str, tokens: &[String]) -> Check {
+fn attributes(root: &Path, path: &str, tokens: &[String]) -> Check {
     for (i, token) in tokens.iter().enumerate() {
         if token != "#" {
             continue;
@@ -175,6 +168,18 @@ fn attributes(path: &str, tokens: &[String]) -> Check {
             .map(String::as_str)
             .collect();
         let suppression = attribute.iter().any(|v| matches!(*v, "allow" | "expect"));
+        if attribute.contains(&"allow") {
+            return fail(
+                path,
+                "allow attributes forbidden; use a reasoned expectation",
+            );
+        }
+        if tokens.get(i + 1).is_some_and(|v| v == "!") && attribute.contains(&"disallowed_types") {
+            return fail(
+                path,
+                "interior state expectations belong on the owning item",
+            );
+        }
         if suppression
             && (attribute.contains(&"unused_imports")
                 || attribute.contains(&"dead_code") && path != GENERATED_PROTO)
@@ -194,10 +199,10 @@ fn attributes(path: &str, tokens: &[String]) -> Check {
             let only_include = ["include", "!", "(", "\"generated/mod.rs\"", ")", ";"];
             let only_dead_code = matches!(
                 attribute.as_slice(),
-                ["[", "allow", "(", "dead_code", ",", "reason", "=", _, ")"]
+                ["[", "expect", "(", "dead_code", ",", "reason", "=", _, ")"]
                     | [
                         "[",
-                        "allow",
+                        "expect",
                         "(",
                         "dead_code",
                         ",",
@@ -219,12 +224,12 @@ fn attributes(path: &str, tokens: &[String]) -> Check {
                 );
             }
         }
-        if path.starts_with("crates/biomcp-adapters/")
-            && path.ends_with("/raw.rs")
-            && attribute.contains(&"serde")
-            && attribute.contains(&"default")
+        if path.starts_with("crates/biomcp-adapters/src/")
+            && let Some(site) = adapter_values::attribute_site(tokens, i)
+            && !adapter_values::private_refusal::allowed(root, path, tokens, i)
+            && !adapter_values::pending(path, &site, 1)?
         {
-            return fail(path, "raw serde default forbidden");
+            return fail(path, "raw serde default or deny_unknown_fields forbidden");
         }
     }
     Ok(())
@@ -328,6 +333,13 @@ pub(super) fn tokens(text: &str) -> Vec<String> {
                     }
                 }
             }
+        } else if ch == '\''
+            && let Some(length) = character_end(input.clone())
+        {
+            let value: String = std::iter::once(ch)
+                .chain(input.by_ref().take(length))
+                .collect();
+            result.push(value);
         } else if ch == '"' {
             let mut value = String::from(ch);
             while let Some(ch) = input.next() {
@@ -351,6 +363,21 @@ pub(super) fn tokens(text: &str) -> Vec<String> {
                     value.push(ch);
                 }
             }
+            // Raw strings may contain quotes, comments and item delimiters.
+            if matches!(value.as_str(), "r" | "br" | "cr") {
+                let hashes = input.clone().take_while(|ch| *ch == '#').count();
+                if input.clone().nth(hashes) == Some('"') {
+                    input.by_ref().take(hashes + 1).for_each(drop);
+                    value = String::from("\"");
+                    while let Some(ch) = input.next() {
+                        value.push(ch);
+                        if ch == '"' && input.clone().take(hashes).all(|ch| ch == '#') {
+                            input.by_ref().take(hashes).for_each(drop);
+                            break;
+                        }
+                    }
+                }
+            }
             result.push(value);
         } else {
             result.push(ch.to_string());
@@ -359,79 +386,58 @@ pub(super) fn tokens(text: &str) -> Vec<String> {
     result
 }
 
-fn source_terms(root: &Path, path: &str, tokens: &[String]) -> Check {
-    if !path.starts_with("crates/biomcp-adapters/src/") {
-        return Ok(());
-    }
-    for (i, word) in tokens.iter().enumerate() {
-        if word != "SourceSpec" || tokens.get(i + 1).is_none_or(|s| s != "{") {
-            continue;
-        }
-        let rest = tokens.get(i + 2..).unwrap_or_default();
-        let mut depth = 1;
-        let end = rest
-            .iter()
-            .position(|s| {
-                if s == "{" {
-                    depth += 1;
-                } else if s == "}" {
-                    depth -= 1;
+// A lifetime has no closing quote after one character or escape.
+fn character_end(mut input: std::iter::Peekable<std::str::Chars<'_>>) -> Option<usize> {
+    let mut length = 1;
+    if input.next()? == '\\' {
+        length += 1;
+        match input.next()? {
+            'u' if input.next()? == '{' => {
+                length += 1;
+                loop {
+                    length += 1;
+                    if input.next()? == '}' {
+                        break;
+                    }
                 }
-                depth == 0
-            })
-            .unwrap_or(rest.len());
-        let declaration = rest.get(..end).unwrap_or_default();
-        let Some(pos) = declaration.iter().position(|s| s == "terms") else {
-            return fail(path, "source declaration requires publisher terms");
-        };
-        let terms = declaration.get(pos + 1..).unwrap_or_default();
-        let terms: Vec<_> = terms.iter().take_while(|s| s.as_str() != "}").collect();
-        for name in ["name", "url", "usage"] {
-            let Some(pos) = terms.iter().position(|s| s.as_str() == name) else {
-                return fail(path, "source declaration requires publisher terms");
-            };
-            if name != "usage" && terms.get(pos + 2).is_none_or(|s| s.as_str() == "\"\"") {
-                return fail(path, "source declaration requires publisher terms");
             }
-        }
-        let relative = path
-            .strip_prefix("crates/biomcp-adapters/src/")
-            .unwrap_or("");
-        let module = relative.strip_suffix(".rs").unwrap_or(relative);
-        let module = module
-            .strip_suffix("/mod")
-            .unwrap_or(module)
-            .replace('/', "::");
-        let prefix = tokens
-            .get(..i)
-            .ok_or("source declaration offset is invalid")?;
-        let Some(position) = prefix.iter().rposition(|token| token == "static") else {
-            return fail(path, "source declarations require named statics");
-        };
-        if prefix
-            .get(position..)
-            .ok_or("source static offset is invalid")?
-            .iter()
-            .any(|token| matches!(token.as_str(), ";" | "{" | "}"))
-        {
-            return fail(path, "source declarations require named statics");
-        }
-        let name = tokens
-            .get(position + 1)
-            .ok_or("source static lacks a name")?;
-        let expected = format!("&crate::{module}::{name}");
-        let registry = fs::read_to_string(root.join("crates/biomcp-adapters/src/registry.rs"))?;
-        if !registry.contains(&expected) {
-            return fail(
-                path,
-                &format!("implemented source must appear in source registry: expected {expected}"),
-            );
+            'x' => {
+                input.next()?;
+                input.next()?;
+                length += 2;
+            }
+            _ => {}
         }
     }
-    Ok(())
+    (input.next()? == '\'').then_some(length + 1)
 }
 
 fn adapter_helpers(path: &str, tokens: &[String]) -> Check {
+    if !path.starts_with("crates/biomcp-adapters/src/")
+        && !path.starts_with("crates/biomcp-fetch/src/")
+        && !path.starts_with("crates/biomcp-query/src/")
+    {
+        return Ok(());
+    }
+    for pair in tokens.windows(2) {
+        let [word, name] = pair else {
+            continue;
+        };
+        if word != "fn" {
+            continue;
+        }
+        let home = match name.as_str() {
+            "bad" => Some(""),
+            "bad_reply" => Some("crates/biomcp-fetch/src/error.rs"),
+            "received_date" => Some("crates/biomcp-adapters/src/received.rs"),
+            "root" => Some("crates/biomcp-adapters/src/xml_element.rs"),
+            _ => None,
+        };
+        if home.is_some_and(|home| path != home) {
+            return fail(path, "copied helper must use its shared home");
+        }
+    }
+
     if !path.starts_with("crates/biomcp-adapters/src/")
         || path == "crates/biomcp-adapters/src/mapped.rs"
     {
@@ -449,6 +455,21 @@ fn adapter_helpers(path: &str, tokens: &[String]) -> Check {
         .any(|pair| matches!(pair, [word, name] if word == "fn" && (name == "problem" || name == "text" && !format_text)))
     {
         return fail(path, "adapter mapping helpers belong in mapped.rs");
+    }
+    Ok(())
+}
+
+fn tool_modes(relative: &str, text: &str) -> Check {
+    if matches!(
+        relative,
+        "crates/biomcp/tests/cases.rs" | "crates/biomcp/tests/runner/case_main.rs"
+    ) && tokens(text)
+        .iter()
+        .filter_map(|v| v.strip_prefix("\"--"))
+        .filter_map(|v| v.strip_suffix('"'))
+        .any(|flag| flag != "cases" && !flag.contains(char::is_whitespace))
+    {
+        return fail(relative, "tool modes belong in tools.rs");
     }
     Ok(())
 }

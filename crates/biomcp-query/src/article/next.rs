@@ -1,46 +1,27 @@
 use crate::{Action, Outcome};
 
-use biomcp_types::ArticleInput;
-use biomcp_types::{ArticleGet, ArticleResolution, QueryBody, Request, Status, StepKind};
+use biomcp_types::{ArticleGet, ArticleResolution, ReplyData, Request, Status, StepKind};
+use biomcp_types::{ArticleInput, Source};
 pub(super) fn get(query: &ArticleGet, out: &mut Outcome) {
-    if matches!(out.status, Status::Failed | Status::Partial) {
-        out.next.push((
+    if matches!(out.status(), Status::Failed | Status::Partial) {
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: Request::GetArticle(query.clone()),
-                fresh: true,
-            },
+            &get_sources(query),
+            Request::GetArticle(query.clone()),
+            true,
         ));
     }
-    let QueryBody::ArticleCards(cards) = &out.body else {
+    let ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &out.body
+    else {
         return;
     };
     for item in &cards.items {
         let Some(ArticleResolution::Resolved { card, .. }) = &item.answer else {
             continue;
         };
-        if item.sections.as_ref().is_some_and(|s| {
-            matches!(
-                s.fulltext,
-                Some(
-                    biomcp_types::Section::NotApplicable
-                        | biomcp_types::Section::Unavailable {
-                            reason: biomcp_types::Reason::NotOpen,
-                            ..
-                        }
-                )
-            )
-        }) && let Some(input) = card
-            .pmid
-            .map(ArticleInput::Pmid)
-            .or_else(|| card.doi.clone().map(ArticleInput::Doi))
-            && let Ok(query) = ArticleGet::with_sections(
-                vec![input].into(),
-                vec![biomcp_types::ArticleSectionWord::Pdf].into(),
-            )
-        {
-            push(&mut out.next, StepKind::Section, Request::GetArticle(query));
-        }
+        pdf(item, &mut out.next, &mut out.problems);
         let input = card
             .pmid
             .map(ArticleInput::Pmid)
@@ -52,10 +33,21 @@ pub(super) fn get(query: &ArticleGet, out: &mut Outcome) {
             let words = item
                 .more
                 .iter()
-                .filter_map(|s| s.to_string().parse().ok())
+                .filter_map(|s| {
+                    crate::next::checked(s.to_string().parse(), Source::PubMed, &mut out.problems)
+                })
                 .collect();
-            if let Ok(query) = ArticleGet::with_sections(vec![input].into(), words) {
-                push(&mut out.next, StepKind::Section, Request::GetArticle(query));
+            if let Some(query) = crate::next::checked(
+                ArticleGet::with_sections(vec![input].into(), words),
+                biomcp_types::Source::PubMed,
+                &mut out.problems,
+            ) {
+                push(
+                    &mut out.next,
+                    StepKind::Section,
+                    &get_sources(&query),
+                    Request::GetArticle(query),
+                );
             }
         }
         let Some(id) = card.pmid else {
@@ -64,12 +56,14 @@ pub(super) fn get(query: &ArticleGet, out: &mut Outcome) {
         push(
             &mut out.next,
             StepKind::Disambiguate,
+            &[Source::Icite],
             Request::ArticleCitations(biomcp_types::ArticleEdges::new(id)),
         );
 
         push(
             &mut out.next,
             StepKind::Disambiguate,
+            &[Source::SemanticScholar],
             Request::ArticleCitations(
                 biomcp_types::ArticleEdges::new(id)
                     .sourced(biomcp_types::EdgeSource::SemanticScholar),
@@ -78,18 +72,54 @@ pub(super) fn get(query: &ArticleGet, out: &mut Outcome) {
         push(
             &mut out.next,
             StepKind::Disambiguate,
+            &[Source::SemanticScholar],
             Request::ArticleRecommend(biomcp_types::ArticleRecommend::new(ArticleInput::Pmid(id))),
         );
     }
 }
-fn push(next: &mut Vec<(StepKind, Action)>, kind: StepKind, request: Request) {
-    let step = (
-        kind,
-        Action::Run {
-            request,
-            fresh: false,
-        },
-    );
+fn pdf(
+    item: &biomcp_types::ArticleCardItem,
+    next: &mut Vec<crate::next::Step>,
+    problems: &mut Vec<biomcp_types::Problem>,
+) {
+    let Some(ArticleResolution::Resolved { card, .. }) = &item.answer else {
+        return;
+    };
+    if item.sections.as_ref().is_some_and(|s| {
+        matches!(
+            s.fulltext,
+            Some(
+                biomcp_types::Section::NotApplicable
+                    | biomcp_types::Section::Unavailable {
+                        reason: biomcp_types::Reason::NotOpen,
+                        ..
+                    }
+            )
+        )
+    }) && let Some(input) = card
+        .pmid
+        .map(ArticleInput::Pmid)
+        .or_else(|| card.doi.clone().map(ArticleInput::Doi))
+        && let Some(query) = crate::next::checked(
+            ArticleGet::with_sections(
+                vec![input].into(),
+                vec![biomcp_types::ArticleSectionWord::Pdf].into(),
+            ),
+            biomcp_types::Source::PubMed,
+            problems,
+        )
+    {
+        push(
+            next,
+            StepKind::Section,
+            &get_sources(&query),
+            Request::GetArticle(query),
+        );
+    }
+}
+
+fn push(next: &mut Vec<crate::next::Step>, kind: StepKind, sources: &[Source], request: Request) {
+    let step = crate::next::Step::run(kind, sources, request, false);
     if next.len() < 5 && !next.contains(&step) {
         next.push(step);
     }
@@ -113,23 +143,29 @@ pub(super) fn search(
         })
     }) && let Some(strict) = query.strict_pubmed()
     {
-        out.next
-            .insert(0, (StepKind::Disambiguate, Action::PubmedSearch(strict)));
+        out.next.insert(
+            0,
+            crate::next::Step::new(
+                StepKind::Disambiguate,
+                &[Source::PubMed],
+                Action::PubmedSearch(strict),
+            ),
+        );
     }
     if !partial && total < u64::from(query.limit()) {
         out.next.extend(query.term_drops().into_iter().map(|query| {
-            (
+            crate::next::Step::run(
                 StepKind::Disambiguate,
-                Action::Run {
-                    request: Request::SearchArticle(query),
-                    fresh: false,
-                },
+                &search_sources(&query),
+                Request::SearchArticle(query),
+                false,
             )
         }));
         if let Some(broader) = query.without_variant() {
             push(
                 &mut out.next,
                 StepKind::Disambiguate,
+                &search_sources(&broader),
                 Request::SearchArticle(broader),
             );
         }
@@ -142,12 +178,11 @@ fn variant_step(search: &biomcp_types::ArticleSearch, out: &mut Outcome) {
         && search.gene().is_some()
         && search.variant().is_some()
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Disambiguate,
-            crate::Action::Run {
-                request: Request::SearchArticle(search.with_litvar()),
-                fresh: false,
-            },
+            &[Source::PubMed, Source::LitVar],
+            Request::SearchArticle(search.with_litvar()),
+            false,
         ));
     }
 }
@@ -155,9 +190,15 @@ fn variant_step(search: &biomcp_types::ArticleSearch, out: &mut Outcome) {
 /// Existing source-given author identities survive ordinary pool paging.
 pub(super) fn authors(out: &mut Outcome) {
     let items = match &out.body {
-        QueryBody::ArticlePage(page) => page.items.as_ref(),
-        QueryBody::ArticleEdges(page) => page.items.as_ref(),
-        QueryBody::ArticleRecommendations(page) => page.items.as_ref(),
+        ReplyData::ArticlePage {
+            body: Some(page), ..
+        } => page.items.as_ref(),
+        ReplyData::ArticleEdgePage {
+            body: Some(page), ..
+        } => page.items.as_ref(),
+        ReplyData::ArticleRecommendations {
+            body: Some(page), ..
+        } => page.items.as_ref(),
         _ => return,
     };
     for id in items
@@ -165,14 +206,13 @@ pub(super) fn authors(out: &mut Outcome) {
         .filter_map(|row| row.header.as_ref())
         .filter_map(|header| header.first_author_id.as_ref())
     {
-        let step = (
+        let step = crate::next::Step::run(
             StepKind::Pivot,
-            Action::Run {
-                request: Request::GetAuthor(biomcp_types::AuthorGet::one(
-                    biodata::AuthorId::SemanticScholar(id.clone()),
-                )),
-                fresh: false,
-            },
+            &[Source::SemanticScholar],
+            Request::GetAuthor(biomcp_types::AuthorGet::one(
+                biodata::AuthorId::SemanticScholar(id.clone()),
+            )),
+            false,
         );
         if !out.next.contains(&step) {
             out.next.push(step);
@@ -182,16 +222,101 @@ pub(super) fn authors(out: &mut Outcome) {
 
 /// Unsearchable bodies still permit an explicit abstract read.
 pub(super) fn text(query: &biomcp_types::ArticleText, out: &mut Outcome) {
-    if matches!(&out.body, QueryBody::ArticleText(body)
+    if matches!(&out.body, ReplyData::ArticleTextResult { body: Some(body), .. }
         if !matches!(body.content, biomcp_types::Section::Data { .. }))
-        && let Ok(get) = ArticleGet::new(vec![query.input().clone()].into())
+        && let Some(get) = crate::next::checked(
+            ArticleGet::new(vec![query.input().clone()].into()),
+            biomcp_types::Source::PubMed,
+            &mut out.problems,
+        )
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Disambiguate,
-            Action::Run {
-                request: Request::GetArticle(get),
-                fresh: false,
-            },
+            &get_sources(&get),
+            Request::GetArticle(get),
+            false,
         ));
     }
+}
+
+/// Native abstract provider plus explicitly requested section providers.
+pub(crate) fn get_sources(query: &ArticleGet) -> Vec<Source> {
+    use biomcp_types::ArticleSectionWord as Section;
+    let mut sources = query
+        .input()
+        .iter()
+        .map(|input| match input {
+            ArticleInput::EuropePmc(_) => Source::EuropePmc,
+            _ => Source::PubMed,
+        })
+        .collect::<Vec<_>>();
+    for section in query.sections() {
+        match section {
+            Section::Annotations => {
+                sources.extend(biomcp_types::ArticleSection::Annotations.sources())
+            }
+            Section::Citations => sources.extend(biomcp_types::ArticleSection::Citations.sources()),
+            Section::Tldr | Section::Pdf => {
+                sources.extend(biomcp_types::ArticleSection::Tldr.sources())
+            }
+            Section::Supplements => {
+                sources.extend(biomcp_types::ArticleSection::Supplements.sources())
+            }
+            Section::Fulltext => sources.extend(query.input().iter().map(|input| match input {
+                ArticleInput::EuropePmc(_) => Source::EuropePmc,
+                _ => Source::PmcOa,
+            })),
+            Section::All => sources.extend(
+                [
+                    biomcp_types::ArticleSection::Annotations,
+                    biomcp_types::ArticleSection::Citations,
+                    biomcp_types::ArticleSection::Tldr,
+                    biomcp_types::ArticleSection::Supplements,
+                ]
+                .into_iter()
+                .flat_map(biomcp_types::ArticleSection::sources),
+            ),
+            _ => {}
+        }
+    }
+    sources
+}
+pub(crate) fn text_sources(input: &ArticleInput) -> Vec<Source> {
+    match input {
+        ArticleInput::EuropePmc(_) => vec![Source::EuropePmc],
+        ArticleInput::Pmid(_) => vec![Source::PubMed, Source::PmcOa],
+        _ => vec![Source::PmcOa],
+    }
+}
+pub(crate) fn evidence_sources(query: &biomcp_types::ArticleEvidence) -> Vec<Source> {
+    let mut sources = vec![Source::SemanticScholar];
+    if !matches!(query.cited(), ArticleInput::Doi(_))
+        || query.fulltext() && !matches!(query.citing(), ArticleInput::Pmcid(_))
+    {
+        sources.push(Source::PubMed);
+    }
+    if query.fulltext() {
+        sources.push(Source::PmcOa);
+    }
+    sources
+}
+pub(crate) fn edge_source(query: &biomcp_types::ArticleEdges) -> Source {
+    match query.source() {
+        biomcp_types::EdgeSource::Icite => Source::Icite,
+        biomcp_types::EdgeSource::SemanticScholar => Source::SemanticScholar,
+    }
+}
+pub(crate) fn search_sources(query: &biomcp_types::ArticleSearch) -> Vec<Source> {
+    query
+        .sources()
+        .iter()
+        .map(|source| match source {
+            biomcp_types::ArticleSource::Pubmed => Source::PubMed,
+            biomcp_types::ArticleSource::Europepmc => Source::EuropePmc,
+            biomcp_types::ArticleSource::Litvar => Source::LitVar,
+            biomcp_types::ArticleSource::SemanticScholar => Source::SemanticScholar,
+            biomcp_types::ArticleSource::Litsense => Source::LitSense,
+            biomcp_types::ArticleSource::Pubtator => Source::PubTator,
+        })
+        .collect()
 }

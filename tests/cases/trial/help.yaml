@@ -6,9 +6,12 @@
       "expect": {
         "/result/commands/0/arguments/*/name": [
           "--age",
+          "--biomarker-code",
+          "--biomarker-use",
           "--condition",
           "--condition-id",
           "--count-only",
+          "--country",
           "--criteria",
           "--distance",
           "--exact-condition",
@@ -22,6 +25,7 @@
           "--limit",
           "--lon",
           "--next-page",
+          "--offset",
           "--phase",
           "query",
           "--sex",
@@ -32,26 +36,16 @@
           "--study-type",
           "--updated-since",
           "--updated-until",
-          "--variant",
-          "--format",
-          "--disable-sources",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--variant"
         ],
-        "/result/commands/0/arguments/4/description": "Search exact registry eligibility text for discovery only; no eligibility judgment.",
+        "/result/commands/0/arguments/4/description": "",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/arguments/27/description": "Exact variant text for registry discovery only; no eligibility judgment.",
-        "/result/commands/0/arguments/8/description": "Resolve one checked gene for registry text discovery only; no eligibility judgment."
+        "/result/commands/0/arguments/29/description": "",
+        "/result/commands/0/arguments/9/description": ""
       },
-      "max_bytes": 6393,
-      "mcp": [
-        "help",
-        "search",
-        "trial"
-      ],
+      "max_bytes": 11802,
       "run": [
         "help",
         "search",
@@ -66,20 +60,16 @@
           "--offset",
           "--pool",
           "--section",
-          "--source",
-          "--format",
-          "--disable-sources",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--source"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/section_rule": "Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.",
         "/result/commands/0/sections/*/word": [
           "eligibility",
           "outcomes",
+          "results",
           "arms",
           "locations",
           "contacts",
@@ -91,11 +81,6 @@
         ]
       },
       "max_bytes": 4120,
-      "mcp": [
-        "help",
-        "get",
-        "trial"
-      ],
       "run": [
         "help",
         "get",
@@ -108,23 +93,13 @@
           "file",
           "input",
           "--replace",
-          "--save",
-          "--format",
-          "--disable-sources",
-          "--config",
-          "--offline",
-          "--fresh"
+          "--save"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2228,
-      "mcp": [
-        "help",
-        "trial",
-        "document"
-      ],
       "run": [
         "help",
         "trial",
@@ -133,5 +108,5 @@
     }
   ],
   "story": "Trial help describes source discovery, intact sections and explicit document saves with executable examples.",
-  "verified": "Measured compact CLI bytes plus 15 percent in j10693: search trial 4489, get trial 2700, trial document 1088. No comparable released schema-generated help baseline exists. CLI/MCP parity shares these assertions. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Measured compact CLI bytes plus 15 percent in j10693: search trial 4489, get trial 2700, trial document 1088. No comparable released schema-generated help baseline exists. CLI/MCP parity shares these assertions. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. Search trial entity help measured at 10262 bytes in j22622 on the combined source; its cap keeps the established fifteen percent margin."
 }

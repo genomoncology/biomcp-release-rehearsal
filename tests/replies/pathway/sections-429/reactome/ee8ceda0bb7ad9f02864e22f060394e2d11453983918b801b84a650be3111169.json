@@ -1,1 +1,0 @@
-{"method":"GET","source":"reactome","url":"https://reactome.org/ContentService/data/pathway/R-HSA-5673001/containedEvents","exchanges":[{"status":429,"content_type":"application/json","delay_ms":287,"retry_after_ms":60000,"body":{"kind":"json","value":{"synthetic":"source failure"}}}]}

@@ -3,37 +3,39 @@ use crate::{Action, Ctx, Outcome, status, store::Store};
 use biodata::Text;
 use biomcp_adapters::semantic_scholar;
 use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    ArticleRecommend, ArticleRecommendations, EvidenceNotice, QueryBody, Request, Source, Status,
+    ArticleRecommend, ArticleRecommendations, EvidenceNotice, ReplyData, Request, Source, Status,
     StepKind,
 };
 use sha2::{Digest, Sha256};
 /// Read one recommendation window without local topic filtering or ranking.
-pub fn run(cx: &Ctx<'_>, query: &ArticleRecommend) -> Outcome {
-    let mut out = super::empty();
-    out.body = QueryBody::ArticleRecommendations(body(Box::default(), false));
+pub(crate) fn run(cx: &Ctx<'_>, query: &ArticleRecommend) -> Outcome {
+    let mut out = super::empty((body(Box::default(), false)).with_query(query.clone()));
     let command = cx.fetch.command_deadline(cx.budget);
     let mut deadline = command.deadline();
     if let Err(error) = execute(cx, query, &mut deadline, &mut out) {
         out.local = status::local(error);
-        out.status = Status::Failed;
+        crate::status::item(&mut out, false, true, false);
     }
     command.finish(deadline.remaining());
-    if out.status == Status::Failed {
+    if out.status() == Status::Failed {
         if out
             .sources
             .iter()
             .any(|s| s.reason == Some(biomcp_types::Reason::RateLimited))
         {
-            out.next
-                .push((StepKind::Key, Action::KeyHelp(Source::SemanticScholar)));
+            out.next.push(crate::next::Step::new(
+                StepKind::Key,
+                &[biomcp_types::Source::SemanticScholar],
+                Action::KeyHelp(biomcp_fetch::SecretName::SemanticScholarApiKey),
+            ));
         }
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: Request::ArticleRecommend(query.page(0, None)),
-                fresh: true,
-            },
+            &[biomcp_types::Source::SemanticScholar],
+            Request::ArticleRecommend(query.page(0, None)),
+            true,
         ));
     }
     out
@@ -52,7 +54,7 @@ fn execute<'a>(
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
     let mut store = Store::open(cx.fetch.cache_access()?, *deadline)?;
-    let identity = serde_json::to_vec(&query.identity()).map_err(|_| CacheError::Database)?;
+    let identity = serde_json::to_vec(&query.identity()).map_err(|_| CacheError::Encoding)?;
     let key = Sha256::digest([b"biomcp.article_recommend/1\0".as_slice(), &identity].concat());
     let explicit = query.pool().map(Text::as_str);
     let old = if cx.fresh && explicit.is_none() {
@@ -62,20 +64,31 @@ fn execute<'a>(
     };
     let pool = match old {
         Some(pool) if pool.key != key.as_slice() => {
-            out.body = QueryBody::PoolError { mismatch: true };
+            out.body = ReplyData::PoolError { mismatch: true };
             restart(query, out);
             return Ok(());
         }
         Some(pool) => pool,
         None if explicit.is_some() => {
-            out.body = QueryBody::PoolError { mismatch: false };
+            out.body = ReplyData::PoolError { mismatch: false };
             restart(query, out);
             return Ok(());
         }
         None => {
             let items = create(cx, query, deadline, out)?;
             store.set_deadline(*deadline);
-            store.publish(&key, &items, &out.sources, &out.problems)?
+            match crate::publish::keep(
+                store
+                    .publish(&key, &items, &out.sources, &out.problems, out.dropped)
+                    .map_err(Into::into),
+                out,
+            )? {
+                Some(pool) => pool,
+                None => {
+                    super::page::fetched(super::page::Cursor::Recommend(query), items, out);
+                    return Ok(());
+                }
+            }
         }
     };
     out.sources = pool.sources.clone();
@@ -110,6 +123,8 @@ fn create<'a>(
         reply.as_ref().err().copied(),
     ));
     let reply = reply?;
+    out.include_refusals(reply.refusals);
+    out.problems.extend(reply.problems);
     let dois: Vec<_> = reply
         .recommended_papers
         .iter()
@@ -118,13 +133,14 @@ fn create<'a>(
     let mut items: Vec<_> = reply
         .recommended_papers
         .into_iter()
-        .map(semantic_scholar::Paper::item)
+        .map(|paper| paper.item(&mut out.problems))
         .collect();
     if items.len() > query.limit() as usize {
         return Err(biomcp_fetch::SourceError {
             source: Source::SemanticScholar,
             reason: biomcp_types::Reason::BadReply,
             status: Some(200),
+            tls_cause: None,
             retry_after: None,
         }
         .into());
@@ -150,11 +166,10 @@ fn create<'a>(
 }
 
 fn restart(query: &ArticleRecommend, out: &mut Outcome) {
-    out.next.push((
+    out.next.push(crate::next::Step::run(
         StepKind::Restart,
-        Action::Run {
-            request: Request::ArticleRecommend(query.page(0, None)),
-            fresh: false,
-        },
+        &[biomcp_types::Source::SemanticScholar],
+        Request::ArticleRecommend(query.page(0, None)),
+        false,
     ));
 }

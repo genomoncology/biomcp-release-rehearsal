@@ -1,0 +1,26 @@
+{
+  "feature": "trial-get",
+  "story": "A batch preserves independent complete, absent and failed input states.",
+  "live_check": "synthetic sibling outage combined with public native trial captures",
+  "replay": "trial/get/NCT02296125",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT02296125",
+        "NCT01811710",
+        "NCT02578680"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/result/items": {
+          "count": 3
+        },
+        "/result/items/0/status": "complete",
+        "/result/items/1/status": "absent",
+        "/result/items/2/status": "failed"
+      }
+    }
+  ]
+}

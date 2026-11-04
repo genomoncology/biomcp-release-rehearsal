@@ -4,9 +4,10 @@ use biomcp_adapters::pubtator;
 use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::{
     Annotations, ArticleCardItem, ArticleResolution, Problem, Section, Source, SourceOutcome,
-    SourceState, Status,
+    SourceState,
 };
 pub(super) struct Result {
+    pub refused: Vec<Pmid>,
     pub values: Vec<(Pmid, Section<Annotations>)>,
     pub source: SourceOutcome,
     pub problems: Vec<Problem>,
@@ -40,12 +41,16 @@ pub(super) fn run<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, ids: &[Pmid]) -
     let local = replies
         .iter()
         .find_map(|r| r.as_ref().err().copied().and_then(status::local));
+    let mut refused = Vec::new();
     let mut values = Vec::new();
     let mut problems = Vec::new();
     for (chunk, reply) in chunks.iter().zip(replies) {
         match reply {
             Ok(rows) => {
                 for row in rows {
+                    if row.annotations.refusals == biomcp_adapters::Refusal::Refused {
+                        refused.push(row.id);
+                    }
                     values.push((row.id, row.annotations.value));
                     status::append(&mut problems, row.annotations.problems);
                 }
@@ -63,6 +68,7 @@ pub(super) fn run<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, ids: &[Pmid]) -
     }
     *deadline = deadline.after_stage(started.saturating_sub(leg.remaining()));
     Result {
+        refused,
         values,
         source: status::source(Source::PubTator, leg.finish(), error),
         problems,
@@ -80,13 +86,9 @@ pub(super) fn join(items: &mut [ArticleCardItem], result: &Result) {
         };
         if matches!(section, Section::Unavailable { .. })
             || result.source.state == SourceState::Stale
-            || result.problems.iter().any(|p| {
-                p.record
-                    .as_ref()
-                    .is_some_and(|r| r.as_str() == id.to_string())
-            })
+            || result.refused.contains(id)
         {
-            item.status = Status::Partial;
+            item.status = crate::status::item_status(true, false, true);
         }
         if let Some(sections) = &mut item.sections {
             sections.annotations = Some(section.clone());

@@ -12,7 +12,7 @@ import sys
 import tarfile
 import tempfile
 
-COMMAND = ['cargo', 'test', '--locked', '-p', 'biomcp', '--test', 'cases',
+COMMAND = ['cargo', 'test', '--locked', '-p', 'biomcp', '--test', 'tools',
            '--', '--live-check', '--details']
 FILES = ('report.json', 'build.log', 'exit-status', 'run.json')
 
@@ -85,26 +85,85 @@ def cut(value):
     return isinstance(value, list) and any(cut(item) for item in value)
 
 
+def discovery_sequences(request):
+    provenance = request.get('provenance') or {}
+    sequences = provenance.get('discoveries')
+    if sequences is None:
+        sequence = provenance.get('discovery')
+        sequences = [sequence] if sequence else []
+    if not isinstance(sequences, list):
+        return {}
+    result, total = {}, 0
+    for sequence in sequences:
+        if not isinstance(sequence, dict):
+            return {}
+        namespace, ids = sequence.get('namespace'), sequence.get('ids')
+        if (not isinstance(namespace, str) or not namespace or len(namespace) > 128
+                or namespace in result or not valid_ids(ids)):
+            return {}
+        total += len(ids)
+        if total > 10_000:
+            return {}
+        result[namespace] = ids
+    return result
+
+
+def valid_ids(ids):
+    return (isinstance(ids, list) and len(ids) <= 10_000
+            and all(isinstance(value, str) and 0 < len(value) <= 256
+                    and not any(ord(char) < 32 or ord(char) == 127 for char in value)
+                    for value in ids) and len(ids) == len(set(ids)))
+
+
 def discovery_changes(before, after):
     changes = {}
     for key in before.keys() & after.keys():
         old, new = before[key], after[key]
-        left = old.get('provenance', {}).get('discovery')
-        right = new.get('provenance', {}).get('discovery')
-        if (left and right and left['namespace'] == right['namespace']
-                and old.get('status') == new.get('status') == 200
-                and left['ids'] != right['ids']):
-            changes.setdefault(left['namespace'], []).append((left['ids'], right['ids']))
+        left, right = discovery_sequences(old), discovery_sequences(new)
+        same = (old.get('source') == new.get('source')
+                and old.get('role') == new.get('role') and old.get('url') == new.get('url')
+                and old.get('status') == new.get('status') == 200)
+        for namespace in left.keys() | right.keys():
+            changes.setdefault(namespace, []).append({
+                'request': key, 'left': left.get(namespace), 'right': right.get(namespace),
+                'valid': same and namespace in left and namespace in right})
     return changes
 
 
-def dependent_change(removed, added, discoveries, before, after):
+def consumed_selection(group, before, after, left, right, complete=False):
+    selections, batch_sizes = [], []
+    for requests in (before, after):
+        rows = []
+        sizes = []
+        for request in requests.values():
+            provenance = request.get('provenance') or {}
+            inputs = provenance.get('inputs') or {}
+            key = (request['source'], request['role'], inputs.get('namespace'),
+                   provenance.get('input_context'))
+            if key == group:
+                ids = inputs.get('ids')
+                if request.get('status') != 200 or not valid_ids(ids):
+                    return False
+                rows.extend(ids)
+                sizes.append(len(ids))
+        if not valid_ids(rows) or (not sizes and not complete):
+            return False
+        selections.append(set(rows))
+        batch_sizes.append(max(sizes, default=0))
+    return (selections == [set(left), set(right)]
+            and (complete or (batch_sizes[0] == batch_sizes[1]
+                 and (set(left) < set(right) or set(right) < set(left)))))
+
+
+def dependent_change(removed, added, discoveries, before, after, peers, complete=False):
     groups = {}
     for side, requests in enumerate((removed, added)):
         for request in requests:
             inputs = request.get('provenance', {}).get('inputs')
             if not inputs:
                 return 'uncertain'
+            if not valid_ids(inputs.get('ids')):
+                return 'failure'
             context = request.get('provenance', {}).get('input_context')
             if not context:
                 return 'uncertain'
@@ -125,17 +184,31 @@ def dependent_change(removed, added, discoveries, before, after):
                        provenance.get('input_context'))
                 if key == group:
                     rows[side].append(inputs['ids'])
-    for (_, _, namespace, _), (old_rows, new_rows) in groups.items():
+    for group, (old_rows, new_rows) in groups.items():
+        namespace = group[2]
         old = {value for row in old_rows for value in row}
         new = {value for row in new_rows for value in row}
-        if old == new or not old_rows or not new_rows:
-            return 'failure'
         candidates = discoveries.get(namespace, [])
+        # A complete command may consume a wholly replaced discovery selection,
+        # including no IDs. Require every input in both directions, with the same
+        # context, rather than accepting arbitrary subsets or a failed provider.
+        if complete and old != new and any(candidate['valid']
+                and consumed_selection(group, *peers, candidate['left'], candidate['right'],
+                                       complete=True) for candidate in candidates):
+            continue
+        if (old == new or not old_rows or not new_rows
+                or sum(map(len, old_rows)) != len(old)
+                or sum(map(len, new_rows)) != len(new)):
+            return 'failure'
         if not candidates:
             return 'failure'
         # Transport sorts ID parameters. Require the same contiguous discovery
         # window, not merely arbitrary subsets of two changed reply bodies.
-        if not any(same_window(old, new, left, right) for left, right in candidates):
+        if not any(candidate['valid']
+                   and candidate['left'] != candidate['right']
+                   and (same_window(old, new, candidate['left'], candidate['right'])
+                        or consumed_selection(group, *peers, candidate['left'], candidate['right']))
+                   for candidate in candidates):
             return 'failure'
     return 'churn'
 
@@ -151,7 +224,7 @@ def same_window(old, new, left, right):
             return False
         start = len(left) - len(old)
         return (start >= 0 and len(right) - len(new) == start
-                and left[:start] == right[:start]
+                and set(left[:start]) == set(right[:start])
                 and set(left[start:]) == old and set(right[start:]) == new)
     for start in range(len(left) - len(old) + 1):
         stop = start + len(old)
@@ -160,34 +233,127 @@ def same_window(old, new, left, right):
     return False
 
 
-def command_classification(capture, discoveries):
+def command_causes(command):
+    if not isinstance(command, dict) or not all(
+            isinstance(command.get(side), dict) and isinstance(command[side].get('requests'), list)
+            for side in ('baseline', 'live')):
+        return {cause: set() for cause in ('throttled', 'outage', 'recovered')}
+    before = terminal(command['baseline']['requests'])
+    after = terminal(command['live']['requests'])
+    throttled = {item['source'] for item in after.values() if item.get('status') == 429}
+    outage = {item['source'] for key, item in after.items()
+              if key in before and before[key].get('status') == 200
+              and (item.get('status') is None or
+                   type(item.get('status')) is int and 500 <= item['status'] < 600)}
+    recovered = {item['source'] for key, item in after.items()
+                 if key in before and before[key].get('status') != 200
+                 and item.get('status') == 200}
+    recovered.update(source['source']
+                     for source in command['baseline'].get('output', {}).get('sources', [])
+                     if source.get('state') in ('failed', 'stale')
+                     and command['live'].get('output', {}).get('status') == 'complete')
+    return {'throttled': throttled, 'outage': outage, 'recovered': recovered}
+
+
+def cache_order_throttle(command, earlier_throttled):
+    if command['baseline']['requests']:
+        return False
+    added = list(terminal(command['live']['requests']).values())
+    if not added or any(request.get('status') != 200 for request in added):
+        return False
+    roots = [request for request in added
+             if not (request.get('provenance') or {}).get('inputs')]
+    if len(roots) != 1 or roots[0]['source'] not in earlier_throttled:
+        return False
+    discoveries = discovery_sequences(roots[0])
+    for request in added:
+        if request is roots[0]:
+            continue
+        provenance = request.get('provenance') or {}
+        inputs = provenance.get('inputs')
+        if (not isinstance(inputs, dict) or not provenance.get('input_context')
+                or not valid_ids(inputs.get('ids')) or not inputs['ids']
+                or not set(inputs['ids']) <= set(discoveries.get(inputs.get('namespace'), []))):
+            return False
+    return True
+
+
+def command_classification(capture, discoveries, peers, complete=False, comparison=None):
     before = terminal(capture['baseline']['requests'])
     after = terminal(capture['live']['requests'])
-    statuses = [item.get('status') for item in after.values()]
-    if any(type(status) is not int or not (200 <= status < 300 or status == 429)
-           for status in statuses):
-        return 'failure'
+    causes = command_causes(capture)
+    for item in after.values():
+        status = item.get('status')
+        if not (type(status) is int and (200 <= status < 300 or status == 429)):
+            if not (item['identity'] in before and before[item['identity']].get('status') == 200
+                    and (status is None or type(status) is int and 500 <= status < 600)):
+                return 'failure'
+    # A provider failure ends discovery and its downstream work in this command.
+    # Other commands still have to explain their own request plans.
+    for cause in ('outage', 'throttled'):
+        if causes[cause]:
+            return cause if explained_source_failures(capture) else 'failure'
+    comparison = comparison or {}
     removed = [before[key] for key in before.keys() - after.keys()]
     added = [after[key] for key in after.keys() - before.keys()]
-    # Proven 429-only outcomes are nonfatal; unrelated plan changes still need proof.
-    plan = dependent_change(removed, added, discoveries, before, after) if removed or added else 'healthy'
-    if plan in ('failure', 'uncertain'):
-        return plan
-    return 'throttled' if 429 in statuses else plan
+    plan = (dependent_change(removed, added, discoveries, before, after, peers, complete)
+            if removed or added else 'healthy')
+    if (plan in ('healthy', 'churn')
+            and comparison.get('before_status') in ('partial', 'failed')
+            and comparison.get('after_status') == 'complete'):
+        return 'recovered'
+    return plan
 
 
-def throttled_output(command):
-    """A status transition needs the checked product's source failure reason too."""
+def explained_source_failures(command):
+    causes = command_causes(command)
+    affected = causes['throttled'] | causes['outage']
+    failed = [source for source in command['live'].get('output', {}).get('sources', [])
+              if source.get('state') in ('failed', 'stale')]
+    return all(source.get('source') in affected
+               and source.get('reason') in ('rate-limited', 'unavailable', 'deadline-exceeded')
+               for source in failed)
+
+
+def explained_output(command, comparison, outcome):
     before = command['baseline'].get('output', {})
     after = command['live'].get('output', {})
-    sources = after.get('sources', [])
-    failed = [source for source in sources if source.get('state') in ('failed', 'stale')]
-    throttled = {request['source'] for request in terminal(command['live']['requests']).values()
-                 if request.get('status') == 429}
-    return (before.get('status') in ('complete', 'partial')
-            and after.get('status') in ('partial', 'failed') and bool(failed)
-            and all(source.get('reason') == 'rate_limited'
-                    and source.get('source') in throttled for source in failed))
+    old = comparison.get('before_status', before.get('status'))
+    new = comparison.get('after_status', after.get('status'))
+    if outcome == 'recovered':
+        return old in ('partial', 'failed') and new == 'complete'
+    if outcome not in ('throttled', 'outage'):
+        return False
+    return (old in ('complete', 'partial', 'failed') and new in ('partial', 'failed')
+            and explained_source_failures(command))
+
+
+def omitted_diagnostics(value):
+    if isinstance(value, dict):
+        return any((key in ('omitted', 'drift_omitted')
+                    and (type(item) is not int or item != 0))
+                   or omitted_diagnostics(item) for key, item in value.items())
+    return isinstance(value, list) and any(omitted_diagnostics(item) for item in value)
+
+
+def complete_diagnostics(result, witness, changed):
+    commands = result.get('commands', [])
+    if not isinstance(commands, list) or omitted_diagnostics(commands):
+        return False
+    if not changed:
+        return True
+    if not commands or not isinstance(witness, list):
+        return False
+    expected = [command.get('ordinal') if isinstance(command, dict) else None
+                for command in commands]
+    actual = [command.get('ordinal') if isinstance(command, dict) else None
+              for command in witness]
+    if (any(type(ordinal) is not int for ordinal in expected + actual)
+            or expected != list(range(1, len(commands) + 1)) or actual != expected):
+        return False
+    return all(isinstance(command.get(side), dict)
+               and isinstance(command[side].get('requests'), list)
+               for command in witness for side in ('baseline', 'live'))
 
 
 def classify_case(row):
@@ -201,48 +367,66 @@ def classify_case(row):
         raise ValueError('invalid case drift')
     if row.get('error') is not None:
         return 'failure'
+    witness = row.get('witness')
+    if cut(witness) or not complete_diagnostics(result, witness, bool(drift)):
+        return 'failure'
     if not drift:
-        return 'uncertain' if cut(row.get('witness')) else 'healthy'
+        return 'healthy'
     # Omitted diagnostics may hide an invariant or schema failure.
-    if (any(item.startswith('more drift details omitted;') for item in drift)
-            or any(command.get('exchanges', {}).get('drift_omitted', 0)
-                   for command in result.get('commands', []))):
-        return 'uncertain'
+    if any(item.startswith('more drift details omitted;') for item in drift):
+        return 'failure'
     # Schema and equivalent-request invariants always retain their failure status.
     invariant = any(not (': request-plan-' in item or ': HTTP status ' in item
-                         or ': output status changed:' in item) for item in drift)
+                         or ': output status changed:' in item or item == 'page continuation changed') for item in drift)
     if invariant:
         return 'failure'
-    witness = row.get('witness')
-    if not witness or cut(witness):
-        return 'uncertain'
-    if not isinstance(witness, list):
-        return 'uncertain'
     discoveries = {}
+    peers = tuple(terminal([request for command in witness
+                            for request in command[side]['requests']])
+                  for side in ('baseline', 'live'))
     outcomes = []
+    earlier_throttled = set()
     output_changes = {item for item in drift if ': output status changed:' in item}
-    for command in witness:
+    for command, comparison in zip(witness, result['commands']):
         before = terminal(command['baseline']['requests'])
         after = terminal(command['live']['requests'])
+        seen = before.keys() & after.keys()
+        for current in discoveries.values():
+            current[:] = [change for change in current if change['request'] not in seen]
         for namespace, changes in discovery_changes(before, after).items():
-            discoveries.setdefault(namespace, []).extend(changes)
-        outcomes.append(command_classification(command, discoveries))
+            current = discoveries.setdefault(namespace, [])
+            replaced = {change['request'] for change in changes}
+            current[:] = [change for change in current if change['request'] not in replaced]
+            current.extend(changes)
+        complete = comparison.get('before_status') == comparison.get('after_status') == 'complete'
+        outcome = command_classification(command, discoveries, peers, complete, comparison)
+        if outcome == 'uncertain' and cache_order_throttle(command, earlier_throttled):
+            outcome = 'throttled'
+        outcomes.append(outcome)
+        earlier_throttled.update(command_causes(command)['throttled'])
         matched = {item for item in output_changes
                    if item.startswith('command ' + str(command['ordinal'])
                                       + ': output status changed:')}
         if matched:
-            if outcomes[-1] != 'throttled' or not throttled_output(command):
+            if not explained_output(command, comparison, outcomes[-1]):
                 return 'failure'
             output_changes -= matched
+    if 'page continuation changed' in drift and not any(
+            outcome in ('throttled', 'outage', 'recovered', 'churn') for outcome in outcomes):
+        return 'failure'
     if output_changes:
-        return 'uncertain'
-    for outcome in ('failure', 'uncertain', 'throttled', 'churn'):
+        return 'failure'
+    for outcome in ('failure', 'uncertain', 'outage', 'throttled', 'recovered', 'churn'):
         if outcome in outcomes:
             return outcome
     return 'healthy'
 
 
-def classify_report(report):
+def classify_report(report, previous=(), night=None):
+    eligible, checked = report.get('eligible'), report.get('checked')
+    if (type(eligible) is not int or type(checked) is not int
+            or eligible < 0 or checked != eligible):
+        raise ValueError('checked count does not match eligible cases')
     counts = [report['drift_cases'], report['error_cases']]
     if any(type(count) is not int or count < 0 for count in counts):
         raise ValueError('invalid drift/error counts')
@@ -250,22 +434,40 @@ def classify_report(report):
     if not isinstance(rows, list):
         raise ValueError('invalid case sample')
     totals = {name + '_cases': 0 for name in
-              ('healthy', 'churn', 'throttled', 'uncertain', 'failure')}
+              ('healthy', 'churn', 'throttled', 'outage', 'recovered', 'uncertain', 'failure')}
+    classes = {name: {'cases': [], 'sources': []} for name in
+               ('throttled', 'outage', 'recovered')}
     for row in rows:
         outcome = classify_case(row)
         row['classification'] = outcome
         totals[outcome + '_cases'] += 1
+        if outcome == 'recovered':
+            classes['recovered']['cases'].append(row['case'])
+        # Keep all observed causes even when another command makes the case fail.
+        for command in row.get('witness', []) if isinstance(row.get('witness'), list) else []:
+            for cause, sources in command_causes(command).items():
+                if sources and (cause != 'recovered' or outcome == 'recovered'):
+                    classes[cause]['cases'].append(row['case'])
+                    classes[cause]['sources'].extend(sources)
     # A partial report cannot clear diagnostics hidden outside its sample.
     drift_rows = sum(bool(row.get('result', {}).get('drift')) for row in rows)
     error_rows = sum(row.get('error') is not None for row in rows)
     if drift_rows != counts[0] or error_rows != counts[1]:
         raise ValueError('diagnostic counts do not match retained cases')
     report.update(totals)
-    report['classification_version'] = 1
-    return bool(totals['failure_cases'] or totals['uncertain_cases'])
+    report['classification_version'] = 2
+    report['cause_classes'] = {cause: {key: sorted(set(values)) for key, values in data.items()}
+                              for cause, data in classes.items()}
+    persistent = set(classes['outage']['sources'])
+    for offset in (1, 2):
+        date = (night - datetime.timedelta(days=offset)).isoformat() if night else None
+        prior = next((item for day, item in previous if day == date), None)
+        persistent &= set(prior.get('cause_classes', {}).get('outage', {}).get('sources', [])) if prior else set()
+    report['persistent_outage_sources'] = sorted(persistent)
+    return bool(totals['failure_cases'] or totals['uncertain_cases'] or persistent)
 
 
-def run_check(scratch):
+def run_check(scratch, previous=()):
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
     (scratch / 'run.json').write_text(json.dumps({
         'revision': revision, 'command': COMMAND,
@@ -279,7 +481,7 @@ def run_check(scratch):
     (scratch / 'exit-status').write_text(str(result) + '\n')
     try:
         report = json.loads((scratch / 'report.json').read_text())
-        failed = classify_report(report)
+        failed = classify_report(report, previous, datetime.datetime.now(datetime.timezone.utc).date())
         (scratch / 'report.json').write_text(json.dumps(report) + '\n')
         return result != 0 or failed
     except (ValueError, KeyError, TypeError, AttributeError) as error:
@@ -301,6 +503,31 @@ def deliver(scratch, host, evidence_dir):
         subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=30',
                         host, command], stdin=source, check=True)
     print('Verified evidence: ' + host + ':' + str(destination))
+
+
+def read_previous(host, evidence_dir, night):
+    """Read only the preceding two calendar nights; never rewrite raw evidence."""
+    dates = [(night - datetime.timedelta(days=offset)).strftime('%Y%m%d') for offset in (2, 1)]
+    reader = """# nightly-history
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+rows = []
+for date in sys.argv[2:]:
+    paths = sorted(root.glob(date + '*/report.json'))
+    if paths:
+        rows.append([date, paths[-1].read_text()])
+print(json.dumps(rows))
+"""
+    command = shlex.join(['python3', '-c', reader, str(evidence_dir), *dates])
+    output = subprocess.check_output(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=30',
+                                      host, command], text=True)
+    previous = []
+    for date, raw in json.loads(output):
+        report = json.loads(raw)
+        day = datetime.datetime.strptime(date, '%Y%m%d').date()
+        classify_report(report)
+        previous.append((day.isoformat(), report))
+    return previous
 
 
 def main():
@@ -329,7 +556,9 @@ def main():
         datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ-'), dir=scratch_root))
     print('Owned scratch: ' + str(scratch), flush=True)
     try:
-        failed = run_check(scratch)
+        previous = read_previous(args.host, args.evidence_dir,
+                                 datetime.datetime.now(datetime.timezone.utc).date())
+        failed = run_check(scratch, previous)
         deliver(scratch, args.host, Path(args.evidence_dir))
     except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
         print('Nightly check failed; retained scratch: ' + str(scratch) + ': ' + str(error),

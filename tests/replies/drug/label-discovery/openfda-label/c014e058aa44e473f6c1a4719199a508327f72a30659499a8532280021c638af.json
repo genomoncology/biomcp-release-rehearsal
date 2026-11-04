@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=%22CAVHANZA%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"results\":{\"skip\":0,\"limit\":1,\"total\":1}},\"results\":[{\"id\":\"8991c94b-a4c1-46f8-aafe-a106aba4f8cf\",\"set_id\":\"98b197ea-bca4-427e-8737-97f70a3262bc\",\"version\":\"4\",\"effective_time\":\"20260807\",\"openfda\":{},\"spl_product_data_elements\":[\"CAVHANZA Nilotinib NILOTINIB NILOTINIB HYPROMELLOSE ACETATE SUCCINATE, UNSPECIFIED BUTYLATED HYDROXYTOLUENE Microcrystalline Cellulose MANNITOL 1-ACETATE CROSPOVIDONE Magnesium Stearate SILICON DIOXIDE STARCH, CORN 15;5 CAVHANZA Nilotinib NILOTINIB NILOTINIB HYPROMELLOSE ACETATE SUCCINATE, UNSPECIFIED BUTYLATED HYDROXYTOLUENE Microcrystalline Cellulose MANNITOL 1-ACETATE CROSPOVIDONE Magnesium Stearate SILICON DIOXIDE STARCH, CORN 15;7\"],\"package_label_principal_display_panel\":[\"PRINCIPAL DISPLAY PANEL - 60 mg 112 Tablets NDC: 70709- 191 -12 CAVHANZA\\u2122 (nilotinib) orally disintegrating tablets 60 mg Rx only WARNING: Nilotinib orally disintegrating tablets and other nilotinib products are NOT substitutable on a mg-to-mg basis Dispense with enclosed Medication Guide 60 mg label\",\"PRINCIPAL DISPLAY PANEL - 80 mg 112 Tablets NDC: 70709- 192 -12 CAVHANZA\\u2122 (nilotinib) orally disintegrating tablets 80 mg Rx only WARNING: Nilotinib orally disintegrating tablets and other nilotinib products are NOT substitutable on a mg-to-mg basis Dispense with enclosed Medication Guide 80 mg label\"]}]}"
+      }
+    }
+  ]
+}

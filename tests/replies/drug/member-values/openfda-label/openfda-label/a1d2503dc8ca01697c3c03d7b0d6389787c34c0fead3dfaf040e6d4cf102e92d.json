@@ -1,0 +1,79 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.spl_set_id%3A%2200000000-0000-4000-8000-000000000001%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "id": "8991c94b-a4c1-46f8-aafe-a106aba4f8cf",
+              "set_id": "00000000-0000-4000-8000-000000000001",
+              "version": "4",
+              "effective_time": "20260807",
+              "openfda": {
+                "brand_name": [
+                  false,
+                  "Synthetic retained brand"
+                ],
+                "generic_name": [
+                  false,
+                  "Synthetic retained generic"
+                ],
+                "spl_set_id": [
+                  false,
+                  "98b197ea-bca4-427e-8737-97f70a3262bc"
+                ],
+                "application_number": [
+                  false,
+                  "NDA999999"
+                ]
+              },
+              "spl_product_data_elements": [
+                false,
+                "Synthetic Primary native wording"
+              ],
+              "package_label_principal_display_panel": [
+                false,
+                "Synthetic Primary\u2122 native panel"
+              ],
+              "boxed_warning": [
+                false,
+                "Synthetic retained boxed_warning\n"
+              ],
+              "dosage_and_administration": [
+                false,
+                "Synthetic retained dosage_and_administration\n"
+              ],
+              "drug_interactions": [
+                false,
+                "Synthetic retained drug_interactions\n"
+              ],
+              "indications_and_usage": [
+                false,
+                "Synthetic retained indications_and_usage\n"
+              ],
+              "warnings_and_cautions": [
+                false,
+                "Synthetic retained warnings_and_cautions\n"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

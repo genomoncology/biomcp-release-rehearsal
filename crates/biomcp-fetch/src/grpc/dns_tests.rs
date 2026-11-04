@@ -1,5 +1,9 @@
 //! Exercise the real cancellation supervisor against a started, deliberately stalled resolver.
 use super::{Stop, bounded};
+#[expect(
+    clippy::disallowed_types,
+    reason = "Import only the counter or cell owned by this test fixture"
+)]
 use std::{
     sync::{
         Arc,
@@ -10,6 +14,10 @@ use std::{
 };
 
 #[test]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Observe owned test workers without leaking shared state across cases"
+)]
 fn stalled_dns_returns_at_deadline_without_starting_a_stream() {
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()

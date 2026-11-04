@@ -1,0 +1,29 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic response-only mutation of retained native GET",
+  "story": "An invalid annotation gene label keeps its source transcript and notation.",
+  "replay": "variant/adapter-values/myvariant",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "chr5:g.118860951A>G",
+        "--build",
+        "GRCh37"
+      ],
+      "expect": {
+        "/result/candidates/0/record/id": "chr5:g.118860951A>G",
+        "/result/candidates/0/transcripts/0/transcript": "NM_001199291.2",
+        "/result/candidates/0/transcripts/0": {
+          "omits": [
+            "gene"
+          ]
+        },
+        "/problems/*/field": [
+          "snpeff.ann.genename"
+        ]
+      }
+    }
+  ]
+}

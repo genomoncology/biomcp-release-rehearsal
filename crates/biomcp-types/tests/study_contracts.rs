@@ -1,5 +1,6 @@
 //! study-types: public no-I/O contracts from retained cBioPortal metadata shapes.
 use biodata::{Study, StudyId, StudySampleList};
+use biomcp_types::Paged;
 use biomcp_types::{StudyGet, StudySearch};
 use serde_json::{Value, json};
 
@@ -58,9 +59,9 @@ fn native_counts_and_publication_multiplicity_survive_without_member_ids()
         .ok_or("object")?
         .remove("sampleCount");
     assert_eq!(roundtrip::<StudySampleList>(absent.clone())?, absent);
-    let mut forbidden = list;
+    let mut forbidden = list.clone();
     forbidden["sampleIds"] = json!(["synthetic-member"]);
-    assert!(serde_json::from_value::<StudySampleList>(forbidden).is_err());
+    assert_eq!(roundtrip::<StudySampleList>(forbidden)?, list);
     Ok(())
 }
 #[test]
@@ -175,8 +176,15 @@ where
     let schema = schemars::generate::SchemaSettings::draft2020_12()
         .into_generator()
         .into_root_schema_for::<biomcp_types::Envelope<T>>();
-    assert!(jsonschema::draft202012::new(&serde_json::to_value(schema)?)?.is_valid(&v));
-    assert_eq!(v.get("schema").and_then(Value::as_str), Some(T::SCHEMA));
+    assert!(
+        jsonschema::draft202012::new(&serde_json::to_value(schema)?)?.is_valid(&v),
+        "Study replies must retain their versioned envelope contract"
+    );
+    assert_eq!(
+        v.get("schema").and_then(Value::as_str),
+        Some(T::SCHEMA),
+        "Study replies must retain their versioned envelope contract"
+    );
     Ok(v)
 }
 #[cfg(feature = "schema")]

@@ -1,0 +1,36 @@
+{
+  "feature": "article-search",
+  "story": "Retired article text option spellings run the same checked search.",
+  "live_check": "Synthetic or recorded local regression; no live calls",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "-q",
+        "AKT1 E17K",
+        "--pool",
+        "unknown"
+      ],
+      "exit": 3,
+      "expect": {
+        "/error/code": "pool.expired"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "--query",
+        "AKT1 E17K",
+        "--pool",
+        "unknown"
+      ],
+      "exit": 3,
+      "expect": {
+        "/error/code": "pool.expired"
+      }
+    }
+  ],
+  "replay": "article/search/live"
+}

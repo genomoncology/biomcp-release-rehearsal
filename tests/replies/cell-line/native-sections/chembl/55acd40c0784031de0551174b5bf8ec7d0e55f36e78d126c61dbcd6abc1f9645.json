@@ -1,0 +1,39 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/cell_line.json?cellosaurus_id=CVCL_0004&limit=5&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "cell_lines": [
+            {
+              "cell_chembl_id": "CHEMBL3308378",
+              "cell_description": "K562 (Erythroleukemia cells)",
+              "cell_id": 655,
+              "cell_name": "K562",
+              "cell_source_organism": "Homo sapiens",
+              "cell_source_tax_id": 9606,
+              "cell_source_tissue": "Erythroleukemia cells",
+              "cellosaurus_id": "CVCL_0004",
+              "clo_id": "CLO_0007059",
+              "efo_id": "EFO_0002067"
+            }
+          ],
+          "page_meta": {
+            "limit": 5,
+            "next": null,
+            "offset": 0,
+            "previous": null,
+            "total_count": 1
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,24 +1,25 @@
 //! Source-local native drug requests; selected identities never fan out.
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 mod identity;
 mod sections;
-use crate::{Action, Ctx, Outcome, status};
-use biomcp_adapters::{chembl, opentargets};
+use crate::{Ctx, Outcome, status};
+use biomcp_adapters::{NativeWindow, chembl, opentargets};
 use biomcp_fetch::{Leg, RequestError, SourceError};
 use biomcp_types::{
-    DrugGet, DrugPage, DrugSearch, DrugSection, DrugSource, PageInfo, QueryBody, Reason, Request,
-    Source, Status, StepKind,
+    DrugGet, DrugPage, DrugSearch, DrugSection, DrugSource, PageInfo, Reason, Request, Source,
+    Status, StepKind,
 };
 fn failure(source: Source) -> RequestError {
     RequestError::Source(SourceError {
         source,
         reason: Reason::BadReply,
         status: None,
+        tls_cause: None,
         retry_after: None,
     })
 }
-fn empty(body: QueryBody) -> Outcome {
-    super::empty(body)
-}
+pub(super) use crate::status::empty;
 fn spec(source: DrugSource) -> &'static biomcp_fetch::SourceSpec {
     if source == DrugSource::Chembl {
         &chembl::SPEC
@@ -27,22 +28,26 @@ fn spec(source: DrugSource) -> &'static biomcp_fetch::SourceSpec {
     }
 }
 pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
-    let mut out = empty(QueryBody::DrugPage(DrugPage {
-        items: Box::default(),
-        total: None,
-    }));
+    let mut out = empty(
+        (DrugPage {
+            items: Box::default(),
+            total: None,
+        })
+        .with_query(query.clone()),
+    );
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(spec(query.source()), deadline).fresh(cx.fresh);
-    let result = search_page(&leg, query);
+    let result = search_page(&leg, query, &mut out.problems);
     let error = result.as_ref().err().copied();
-    if let Ok(page) = result {
-        let returned = page.items.len() as u32;
-        out.status = if returned == 0 {
-            Status::Absent
-        } else {
-            Status::Complete
+    if let Ok(window) = result {
+        out.include_refusals(window.refusals());
+        let next_offset = window.next_offset().filter(|_| window.total().is_some());
+        let page = DrugPage {
+            total: window.total(),
+            items: window.rows.into(),
         };
+        let returned = page.items.len() as u32;
         out.page = page.total.map(|total| PageInfo {
             offset: query.offset(),
             returned,
@@ -51,85 +56,95 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
             truncated: None,
         });
         for item in &page.items {
-            if let Ok(get) = DrugGet::new(item.id.clone(), query.source()) {
-                out.next.push((
+            if let Some(get) = crate::next::checked(
+                DrugGet::new(item.id.clone(), query.source()),
+                query.source().source(),
+                &mut out.problems,
+            ) {
+                out.next.push(crate::next::Step::run(
                     StepKind::Disambiguate,
-                    Action::Run {
-                        request: Request::GetDrug(get),
-                        fresh: cx.fresh,
-                    },
+                    &[get.source().source()],
+                    Request::GetDrug(get),
+                    cx.fresh,
                 ));
             }
         }
-        if let Some(offset) = query
-            .offset()
-            .checked_add(returned)
-            .filter(|n| returned > 0 && page.total.is_some_and(|t| u64::from(*n) < t))
-        {
-            out.next.push((
+        if let Some(offset) = next_offset {
+            out.next.push(crate::next::Step::run(
                 StepKind::Page,
-                Action::Run {
-                    request: Request::SearchDrug(query.at_offset(offset)),
-                    fresh: cx.fresh,
-                },
+                &[query.source().source()],
+                Request::SearchDrug(query.at_offset(offset)),
+                cx.fresh,
             ));
         }
-        out.body = QueryBody::DrugPage(page);
+        out.body = page.with_query(query.clone());
     }
     finish(&mut out, leg, query.source().source(), error);
+    status::search(&mut out);
     command.finish(deadline.remaining());
     out
 }
-fn search_page(leg: &Leg<'_>, query: &DrugSearch) -> Result<DrugPage, RequestError> {
+fn search_page(
+    leg: &Leg<'_>,
+    query: &DrugSearch,
+    problems: &mut Vec<biomcp_types::Problem>,
+) -> Result<NativeWindow<biomcp_types::DrugHeader>, RequestError> {
+    let name = query
+        .query()
+        .ok_or(biomcp_fetch::InputError::Serialization)?;
     let source = query.source().source();
-    let (items, total) = if query.source() == DrugSource::Chembl {
+    if query.source() == DrugSource::Chembl {
         let (page, _) = chembl::search(
             leg,
-            query.query().as_str(),
+            name.as_str(),
             query.name_selector(),
             query.limit(),
             query.offset(),
         )?;
-        (
-            page.molecules
-                .iter()
-                .map(identity::chembl_header)
-                .collect::<Result<Vec<_>, _>>(),
-            page.page_meta.total_count,
-        )
+        problems.extend(page.problems);
+        let items = page
+            .window
+            .rows
+            .iter()
+            .map(|row| {
+                let mut header = identity::chembl_header(row, problems)?;
+                header.matched_name = row.name_match(name.as_str());
+                Ok::<_, biodata::Error>(header)
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| failure(source))?;
+        Ok(page.window.with_rows(items))
     } else {
         let (page, _) = opentargets::search(
             leg,
-            query.query().as_str(),
+            name.as_str(),
             query.offset() / query.limit(),
             query.limit(),
         )?;
-        (
-            page.hits
-                .into_iter()
-                .skip((query.offset() % query.limit()) as usize)
-                .map(identity::ot_header)
-                .collect::<Result<Vec<_>, _>>(),
-            page.total,
-        )
-    };
-    Ok(DrugPage {
-        items: items.map_err(|_| failure(source))?.into(),
-        total: Some(total),
-    })
+        let mapped = opentargets::search_headers(page, (query.offset() % query.limit()) as usize);
+        problems.extend(mapped.problems);
+        let received = mapped.value.items.len() as u32;
+        Ok(NativeWindow::new(
+            mapped.value.items.into_vec(),
+            query.offset(),
+            query.limit(),
+            mapped.value.total,
+            received,
+            mapped.refusals,
+        ))
+    }
 }
+
 pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     let mut out = empty(match query.sections() {
-        [DrugSection::Targets] => QueryBody::DrugTargets(None),
-        [DrugSection::Indications] => QueryBody::DrugIndications(None),
-        [DrugSection::Xrefs] => QueryBody::DrugXrefs(None),
-        _ => QueryBody::DrugCard(None),
+        [DrugSection::Targets] => biomcp_types::DrugTargets::into_reply(query.clone(), None),
+        [DrugSection::Indications] => {
+            biomcp_types::DrugIndications::into_reply(query.clone(), None)
+        }
+        [DrugSection::Xrefs] => biomcp_types::DrugXrefs::into_reply(query.clone(), None),
+        _ => biomcp_types::DrugCard::into_reply(query.clone(), None),
     });
-    if !matches!(
-        query.sections(),
-        [] | [DrugSection::Targets] | [DrugSection::Indications] | [DrugSection::Xrefs]
-    ) || query.source() == DrugSource::Opentargets && query.sections() == [DrugSection::Xrefs]
-    {
+    if !query.supports_sections() {
         return super::unsupported(query.source(), out);
     }
     let command = cx.fetch.command_deadline(cx.budget);
@@ -142,7 +157,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     };
     let error = result.err();
     if error.is_some() {
-        out.status = Status::Failed;
+        crate::status::item(&mut out, false, true, false);
     }
     finish(&mut out, leg, query.source().source(), error);
     command.finish(deadline.remaining());
@@ -153,10 +168,10 @@ fn finish(out: &mut Outcome, leg: Leg<'_>, source: Source, error: Option<Request
     let mut outcome = status::source(source, leg.finish(), error);
     if let Some(page) = &out.page {
         outcome.count = Some(page.total);
-        outcome.fetched = Some(page.returned);
-    }
-    if outcome.state == biomcp_types::SourceState::Stale && out.status == Status::Complete {
-        out.status = Status::Partial;
+        outcome.retrieved_count = Some(page.returned);
     }
     out.sources.push(outcome);
+    if out.status() == Status::Complete {
+        status::item(out, true, false, false);
+    }
 }

@@ -1,14 +1,10 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "cpic-pgx",
   "story": "PGx help lists source-scoped selectors, sections and two parsed executable examples without calculating phenotype, phase or dose.",
   "steps": [
     {
       "run": [
-        "help",
-        "search",
-        "pgx"
-      ],
-      "mcp": [
         "help",
         "search",
         "pgx"
@@ -20,9 +16,9 @@
           "pgx"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/description": "Checked gene-keyed CPIC pair search. No phenotype, phase or dose is calculated.",
+        "/result/commands/0/description": "Checked gene-keyed CPIC pair search. Sources: cpic.",
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--gene",
@@ -46,11 +42,6 @@
         "get",
         "pgx"
       ],
-      "mcp": [
-        "help",
-        "get",
-        "pgx"
-      ],
       "expect": {
         "/status": "complete",
         "/result/commands/0/command": [
@@ -58,9 +49,9 @@
           "pgx"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/description": "PGx card or section. No phenotype, phase or dose is calculated.",
+        "/result/commands/0/description": "PGx card or section. Sources: clinpgx, cpic.",
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--gene",

@@ -1,6 +1,8 @@
 //! Keyed source requests bind every accepted response to its complete explicit context.
 use super::SPEC;
+use crate::raw::Field;
 use biodata::Build;
+use biomcp_fetch::Input;
 use biomcp_fetch::{Arg, BadReply, Endpoint, Freshness, Leg, Reply, RequestError};
 use serde::Deserialize;
 
@@ -13,137 +15,137 @@ const ANNOTATION: Endpoint = SPEC
 #[serde(rename_all = "camelCase")]
 pub struct Annotation {
     /// Source echo, required before admission to the shared reply cache.
-    pub query: Query,
+    pub(super) query: Query,
     /// Provider exact variant curation flag.
-    pub variant_exist: bool,
+    pub(super) variant_exist: Option<Field<bool>>,
     /// Native gene curation flag.
-    pub gene_exist: Option<bool>,
+    pub(super) gene_exist: Option<Field<bool>>,
     /// Native investigated-but-unknown flag, without deriving a classification.
     #[serde(rename = "vus", alias = "VUS")]
-    pub vus: Option<bool>,
+    pub(super) vus: Option<Field<bool>>,
     /// Native statistical hotspot flag.
-    pub hotspot: Option<bool>,
+    pub(super) hotspot: Option<Field<bool>>,
     /// Provider reports invalid inputs as a 200 with validation errors.
-    pub errors: Option<Vec<ValidationError>>,
+    pub(super) errors: Option<Vec<ValidationError>>,
     /// Provider alternate allele curation flag.
-    pub allele_exist: Option<bool>,
+    pub(super) allele_exist: Option<Field<bool>>,
     /// Native oncogenicity label.
-    pub oncogenic: Option<String>,
+    pub(super) oncogenic: Option<Field<String>>,
     /// Native mutation effect.
-    pub mutation_effect: Option<MutationEffect>,
+    pub(super) mutation_effect: Option<Field<MutationEffect>>,
     /// Native source text.
-    pub gene_summary: Option<String>,
+    pub(super) gene_summary: Option<Field<String>>,
     /// Native source text.
-    pub variant_summary: Option<String>,
+    pub(super) variant_summary: Option<Field<String>>,
     /// Native source text.
-    pub tumor_type_summary: Option<String>,
+    pub(super) tumor_type_summary: Option<Field<String>>,
     /// Native source text.
-    pub diagnostic_summary: Option<String>,
+    pub(super) diagnostic_summary: Option<Field<String>>,
     /// Native source text.
-    pub prognostic_summary: Option<String>,
+    pub(super) prognostic_summary: Option<Field<String>>,
     /// Native source implications in source order.
-    pub treatments: Option<Vec<Treatment>>,
+    pub(super) treatments: Option<Field<Vec<Field<Treatment>>>>,
     /// Native diagnostic implications in source order.
-    pub diagnostic_implications: Option<Vec<Implication>>,
+    pub(super) diagnostic_implications: Option<Field<Vec<Field<Implication>>>>,
     /// Native prognostic implications in source order.
-    pub prognostic_implications: Option<Vec<Implication>>,
+    pub(super) prognostic_implications: Option<Field<Vec<Field<Implication>>>>,
     /// Source release.
-    pub data_version: Option<String>,
+    pub(super) data_version: Option<Field<String>>,
     /// Source release date, without an invented conversion.
-    pub last_update: Option<String>,
+    pub(super) last_update: Option<Field<String>>,
 }
 /// Complete source-echoed request identity.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Query {
     /// Source genomic query.
-    pub hgvs: biodata::Text,
+    pub(super) hgvs: biodata::Text,
     /// Source assembly.
-    pub reference_genome: Build,
+    pub(super) reference_genome: Build,
     /// Source tumor context.
-    pub tumor_type: String,
+    pub(super) tumor_type: String,
     /// Source-supplied gene context, never inferred locally.
-    pub hugo_symbol: Option<biodata::GeneSymbol>,
+    pub(super) hugo_symbol: Option<Field<biodata::GeneSymbol>>,
     /// Source-supplied protein alteration, never converted to a genomic allele.
-    pub alteration: Option<biodata::Text>,
+    pub(super) alteration: Option<Field<biodata::Text>>,
 }
 /// Native mutation effect and text, without local interpretation.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MutationEffect {
     /// Native label.
-    pub known_effect: Option<String>,
+    pub(super) known_effect: Option<Field<String>>,
     /// Native text.
-    pub description: Option<String>,
+    pub(super) description: Option<Field<String>>,
     /// Native effect citations.
-    pub citations: Option<Citations>,
+    pub(super) citations: Option<Field<Citations>>,
 }
 /// Native publication citations.
 #[derive(Debug, Deserialize)]
 pub struct Citations {
     /// Source PMID identities.
-    pub pmids: Option<Vec<String>>,
+    pub(super) pmids: Option<Field<Vec<Field<String>>>>,
     /// Native non-PubMed citations.
-    pub abstracts: Option<Vec<Abstract>>,
+    pub(super) abstracts: Option<Field<Vec<Field<Abstract>>>>,
 }
 /// Native drug identity.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Drug {
     /// Source label.
-    pub drug_name: String,
+    pub(super) drug_name: Option<Field<String>>,
     /// Native NCIt code, when supplied.
-    pub ncit_code: Option<String>,
+    pub(super) ncit_code: Option<Field<String>>,
 }
 /// Native tumor concept.
 #[derive(Debug, Deserialize)]
 pub struct TumorType {
     /// OncoTree code.
-    pub code: Option<String>,
+    pub(super) code: Option<Field<String>>,
     /// Native display label.
-    pub name: Option<String>,
+    pub(super) name: Option<Field<String>>,
 }
 /// Native treatment row, including the provider's alteration grouping.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Treatment {
     /// Native source level.
-    pub level: biodata::Text,
+    pub(super) level: Option<Field<biodata::Text>>,
     /// Source tumor context.
-    pub level_associated_cancer_type: Option<TumorType>,
+    pub(super) level_associated_cancer_type: Option<Field<TumorType>>,
     /// Source drugs in native order.
-    pub drugs: Option<Vec<Drug>>,
+    pub(super) drugs: Option<Field<Vec<Field<Drug>>>>,
     /// Source alteration group, never replaced with a genomic subject.
-    pub alterations: Option<Vec<String>>,
+    pub(super) alterations: Option<Field<Vec<Field<String>>>>,
     /// Native citations.
-    pub pmids: Option<Vec<String>>,
+    pub(super) pmids: Option<Field<Vec<Field<String>>>>,
     /// Native source description.
-    pub description: Option<String>,
+    pub(super) description: Option<Field<String>>,
     /// Native excluded tumor contexts.
-    pub level_excluded_cancer_types: Option<Vec<TumorType>>,
+    pub(super) level_excluded_cancer_types: Option<Field<Vec<Field<TumorType>>>>,
     /// Native approved indication labels.
-    pub approved_indications: Option<Vec<String>>,
+    pub(super) approved_indications: Option<Field<Vec<Field<String>>>>,
     /// Native FDA level label.
-    pub fda_level: Option<String>,
+    pub(super) fda_level: Option<Field<String>>,
     /// Native non-PubMed citations.
-    pub abstracts: Option<Vec<Abstract>>,
+    pub(super) abstracts: Option<Field<Vec<Field<Abstract>>>>,
 }
 /// Native diagnostic or prognostic implication.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Implication {
     /// Native source level.
-    pub level_of_evidence: biodata::Text,
+    pub(super) level_of_evidence: Option<Field<biodata::Text>>,
     /// Native source tumor concept.
-    pub tumor_type: Option<TumorType>,
+    pub(super) tumor_type: Option<Field<TumorType>>,
     /// Source alteration group.
-    pub alterations: Option<Vec<String>>,
+    pub(super) alterations: Option<Field<Vec<Field<String>>>>,
     /// Native citations.
-    pub pmids: Option<Vec<String>>,
+    pub(super) pmids: Option<Field<Vec<Field<String>>>>,
     /// Native source description.
-    pub description: Option<String>,
+    pub(super) description: Option<Field<String>>,
     /// Native non-PubMed citations.
-    pub abstracts: Option<Vec<Abstract>>,
+    pub(super) abstracts: Option<Field<Vec<Field<Abstract>>>>,
 }
 impl Reply for Annotation {
     fn check(&self) -> Result<(), BadReply> {
@@ -163,14 +165,14 @@ pub fn annotation(
     tumor_type: &str,
 ) -> Result<Annotation, RequestError> {
     let assembly = build.to_string();
-    leg.json_received_checked(
+    leg.call(
         &ANNOTATION,
-        &[
+        Input::Params(&[
             ("hgvsg", Arg::Text(hgvsg)),
             ("referenceGenome", Arg::Text(&assembly)),
             ("tumorType", Arg::Text(tumor_type)),
-        ],
-        |row: &Annotation| {
+        ]),
+        biomcp_fetch::Read::json().check(&|row: &Annotation| {
             if row.query.hgvs.as_str() == hgvsg
                 && row.query.reference_genome == build
                 && row.query.tumor_type == tumor_type
@@ -179,8 +181,9 @@ pub fn annotation(
             } else {
                 Err(BadReply)
             }
-        },
+        }),
     )
+    .map(|received| (received.value, received.meta))
     .map(|(row, _)| row)
 }
 
@@ -189,9 +192,9 @@ pub fn annotation(
 #[serde(rename_all = "camelCase")]
 pub struct Abstract {
     /// Native citation content.
-    pub abstract_content: Option<String>,
+    pub(super) abstract_content: Option<Field<String>>,
     /// Source citation link.
-    pub link: Option<biodata::Text>,
+    pub(super) link: Option<Field<biodata::Text>>,
 }
 /// Provider validation failures must not enter the annotation cache.
 #[derive(Debug, Deserialize)]

@@ -1,0 +1,31 @@
+{
+  "source": "monarch",
+  "method": "GET",
+  "url": "https://api-v3.monarchinitiative.org/v3/api/association?object=HP%3A0001250&subject_category=biolink%3AGene&subject_taxon=NCBITaxon%3A9606&direct=true&limit=1&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "limit": 1,
+          "offset": 0,
+          "total": 1,
+          "items": [
+            {
+              "subject": "HGNC:1",
+              "object": "HP:0001250",
+              "subject_taxon": "NCBITaxon:9606",
+              "id": {},
+              "predicate": "biolink:has_phenotype",
+              "subject_label": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

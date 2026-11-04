@@ -49,5 +49,18 @@ pub(crate) const DDINTER_TERMS: Terms = Terms {
     usage: Use::Noncommercial,
 };
 
-mod date;
-pub use date::received_date;
+pub use crate::received_date;
+
+/// Preserve an adapter header as a neutral source-qualified identity.
+pub fn identity(
+    header: &biomcp_types::DrugHeader,
+) -> Result<biodata::DrugIdentity, biodata::Error> {
+    Ok(biodata::DrugIdentity {
+        id: header.id.clone(),
+        namespace: header.source.to_string().parse()?,
+        name: header.name.clone(),
+        identity_level: header.identity_level,
+        r#type: header.r#type.clone(),
+        url: header.url.clone(),
+    })
+}

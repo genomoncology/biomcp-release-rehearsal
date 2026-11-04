@@ -93,16 +93,15 @@ impl TryFrom<Fields> for ArticleText {
 impl ArticleText {
     /// Build a part selector used in source continuation actions.
     pub fn part(input: ArticleInput, part: u32) -> Result<Self, QueryInvalid> {
-        Fields {
-            input,
-            part: Some(part),
-            find: None,
-            variant: None,
-            offset: 0,
-            save: None,
-            replace: false,
-        }
-        .try_into()
+        let mut fields = Fields::new(input);
+        fields.part = Some(part);
+        fields.try_into()
+    }
+    /// Build a checked literal selector used in source follow-up actions.
+    pub fn finding(input: ArticleInput, find: &str) -> Result<Self, QueryInvalid> {
+        let mut fields = Fields::new(input);
+        fields.find = Some(Text::new(find).map_err(|_| QueryInvalid::new(&["find"]))?);
+        fields.try_into()
     }
     /// Explicit save destination, absent for ordinary reader views.
     pub fn save(&self) -> Option<&Text> {
@@ -137,5 +136,18 @@ impl ArticleText {
         let mut v = self.clone();
         v.0.offset = offset;
         v
+    }
+}
+impl Fields {
+    fn new(input: ArticleInput) -> Self {
+        Self {
+            input,
+            part: None,
+            find: None,
+            variant: None,
+            offset: 0,
+            save: None,
+            replace: false,
+        }
     }
 }

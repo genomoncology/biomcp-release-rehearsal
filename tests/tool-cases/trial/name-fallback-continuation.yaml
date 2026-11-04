@@ -1,0 +1,98 @@
+{
+  "feature": "trial-search",
+  "story": "An explicit request-mapping stub reuses a native NCT05273554 row to check combined sponsor/facility broadening, strict filter retention, unchanged source counts and a native continuation token. Total and token alone are synthetic pagination controls.",
+  "replay": "trial/name-fallback",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "preserve query",
+        "--id",
+        "NCT05273554",
+        "--sponsor",
+        "MD Anderson",
+        "--facility",
+        "MD Anderson",
+        "--country",
+        "United States",
+        "--phase",
+        "1",
+        "--criteria",
+        "literal criteria",
+        "--status",
+        "COMPLETED",
+        "--sex",
+        "ALL",
+        "--sponsor-type",
+        "other",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 2,
+        "/page/returned": 1,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT05273554"
+          ]
+        },
+        "/sources/0/count": 2,
+        "/query/country": [
+          "United States"
+        ],
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/sources/0/retrieved_count": 1
+      },
+      "max_bytes": 7000
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "preserve query",
+        "--id",
+        "NCT05273554",
+        "--sponsor",
+        "MD Anderson",
+        "--facility",
+        "MD Anderson",
+        "--country",
+        "United States",
+        "--phase",
+        "1",
+        "--criteria",
+        "literal criteria",
+        "--status",
+        "COMPLETED",
+        "--sex",
+        "ALL",
+        "--sponsor-type",
+        "other",
+        "--limit",
+        "1",
+        "--next-page",
+        "biomcp:ctgov-names:v1:synthetic-next"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 2,
+        "/page/returned": 1,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT05273554"
+          ]
+        },
+        "/sources/0/count": 2,
+        "/query/country": [
+          "United States"
+        ],
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/query/next_page": "biomcp:ctgov-names:v1:synthetic-next",
+        "/sources/0/retrieved_count": 1
+      },
+      "max_bytes": 5500
+    }
+  ]
+}

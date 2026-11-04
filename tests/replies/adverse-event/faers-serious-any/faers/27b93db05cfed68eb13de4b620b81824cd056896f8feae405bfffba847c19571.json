@@ -1,0 +1,232 @@
+{
+  "method": "GET",
+  "source": "faers",
+  "url": "https://api.fda.gov/drug/event.json?search=%28patient.drug.openfda.generic_name%3A%22pembrolizumab%22%20OR%20patient.drug.openfda.brand_name%3A%22pembrolizumab%22%20OR%20patient.drug.medicinalproduct%3A%22pembrolizumab%22%29%20AND%20serious%3A1&limit=1&skip=0&sort=receivedate%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1793209489,
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "delay_ms": 500,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+  "meta": {
+    "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+    "terms": "https://open.fda.gov/terms/",
+    "license": "https://open.fda.gov/license/",
+    "last_updated": "2026-07-30",
+    "results": {
+      "skip": 0,
+      "limit": 1,
+      "total": 91906
+    }
+  },
+  "results": [
+    {
+      "safetyreportversion": "1",
+      "safetyreportid": "26940567",
+      "primarysourcecountry": "EU",
+      "occurcountry": "EU",
+      "transmissiondateformat": "102",
+      "transmissiondate": "20260709",
+      "reporttype": "1",
+      "serious": "1",
+      "seriousnessdeath": "2",
+      "seriousnesslifethreatening": "2",
+      "seriousnesshospitalization": "2",
+      "seriousnessdisabling": "2",
+      "seriousnesscongenitalanomali": "2",
+      "seriousnessother": "1",
+      "receivedateformat": "102",
+      "receivedate": "20260630",
+      "receiptdateformat": "102",
+      "receiptdate": "20260630",
+      "fulfillexpeditecriteria": "1",
+      "authoritynumb": "EU-MINISAL02-1103167",
+      "primarysource": {
+        "reportercountry": "EU",
+        "qualification": "1"
+      },
+      "sender": {
+        "sendertype": "6",
+        "senderorganization": "ASTELLAS"
+      },
+      "receiver": {
+        "receivertype": "6",
+        "receiverorganization": "FDA"
+      },
+      "patient": {
+        "patientonsetage": "75",
+        "patientonsetageunit": "801",
+        "patientagegroup": "6",
+        "patientweight": "80",
+        "patientsex": "1",
+        "reaction": [
+          {
+            "reactionmeddraversionpt": "29.0",
+            "reactionmeddrapt": "Thrombocytopenia",
+            "reactionoutcome": "3"
+          }
+        ],
+        "drug": [
+          {
+            "drugcharacterization": "1",
+            "medicinalproduct": "PADCEV",
+            "drugauthorizationnumb": "761137",
+            "drugstructuredosagenumb": "70",
+            "drugstructuredosageunit": "003",
+            "drugseparatedosagenumb": "1",
+            "drugdosagetext": "MAY 5 G1C3, MAY 14 G8C3, MAY 28 G1C4",
+            "drugindication": "Transitional cell carcinoma",
+            "drugstartdateformat": "102",
+            "drugstartdate": "20260505",
+            "drugenddateformat": "102",
+            "drugenddate": "20260528",
+            "drugtreatmentduration": "24",
+            "drugtreatmentdurationunit": "804",
+            "actiondrug": "6",
+            "drugrecurreadministration": "3",
+            "drugadditional": "4",
+            "activesubstance": {
+              "activesubstancename": "ENFORTUMAB VEDOTIN-EJFV"
+            },
+            "openfda": {
+              "application_number": [
+                "BLA761137"
+              ],
+              "brand_name": [
+                "PADCEV EJFV"
+              ],
+              "generic_name": [
+                "ENFORTUMAB VEDOTIN"
+              ],
+              "manufacturer_name": [
+                "SEAGEN INC."
+              ],
+              "product_ndc": [
+                "51144-020",
+                "51144-030"
+              ],
+              "product_type": [
+                "HUMAN PRESCRIPTION DRUG"
+              ],
+              "route": [
+                "INTRAVENOUS"
+              ],
+              "substance_name": [
+                "ENFORTUMAB VEDOTIN"
+              ],
+              "rxcui": [
+                "2268311",
+                "2268315",
+                "2268317",
+                "2268319"
+              ],
+              "spl_id": [
+                "e8e304ca-8a56-4869-96e2-427ee4a1fe3c"
+              ],
+              "spl_set_id": [
+                "b5631d3e-4604-4363-8f20-11dfc5a4a8ed"
+              ],
+              "package_ndc": [
+                "51144-020-01",
+                "51144-030-01"
+              ],
+              "unii": [
+                "DLE8519RWM"
+              ]
+            }
+          },
+          {
+            "drugcharacterization": "1",
+            "medicinalproduct": "KEYTRUDA",
+            "drugstructuredosagenumb": "200",
+            "drugstructuredosageunit": "003",
+            "drugseparatedosagenumb": "1",
+            "drugdosagetext": "MAY 5 G1C3, MAY 14 G8C3, MAY 28 G1C4",
+            "drugindication": "Transitional cell carcinoma",
+            "drugstartdateformat": "102",
+            "drugstartdate": "20260505",
+            "drugenddateformat": "102",
+            "drugenddate": "20260528",
+            "drugtreatmentduration": "24",
+            "drugtreatmentdurationunit": "804",
+            "actiondrug": "6",
+            "drugadditional": "4",
+            "activesubstance": {
+              "activesubstancename": "PEMBROLIZUMAB"
+            },
+            "openfda": {
+              "application_number": [
+                "BLA125514"
+              ],
+              "brand_name": [
+                "KEYTRUDA"
+              ],
+              "generic_name": [
+                "PEMBROLIZUMAB"
+              ],
+              "manufacturer_name": [
+                "Merck Sharp & Dohme LLC"
+              ],
+              "product_ndc": [
+                "0006-3026",
+                "0006-3029"
+              ],
+              "product_type": [
+                "HUMAN PRESCRIPTION DRUG"
+              ],
+              "route": [
+                "INTRAVENOUS"
+              ],
+              "substance_name": [
+                "PEMBROLIZUMAB"
+              ],
+              "rxcui": [
+                "1657746",
+                "1657749",
+                "1657750",
+                "1657751"
+              ],
+              "spl_id": [
+                "228e1e3f-d207-481f-8e14-9fdcbd0470e9"
+              ],
+              "spl_set_id": [
+                "9333c79b-d487-4538-a9f0-71b91a02b287"
+              ],
+              "package_ndc": [
+                "0006-3029-01",
+                "0006-3029-02",
+                "0006-3026-01",
+                "0006-3026-02",
+                "0006-3026-04"
+              ],
+              "nui": [
+                "N0000191260",
+                "N0000191259"
+              ],
+              "pharm_class_epc": [
+                "Programmed Death Receptor-1 Blocking Antibody [EPC]"
+              ],
+              "pharm_class_moa": [
+                "Programmed Death Receptor-1-directed Antibody Interactions [MoA]"
+              ],
+              "unii": [
+                "DPT0O3T46P"
+              ]
+            }
+          }
+        ],
+        "summary": {
+          "narrativeincludeclinical": "CASE EVENT DATE: 20260604"
+        }
+      }
+    }
+  ]
+}
+      }
+    }
+  ]
+}

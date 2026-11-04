@@ -1,3 +1,4 @@
+use crate::native_text::NativeText;
 use crate::raw::Field;
 use biodata::{Curie, Text};
 use biomcp_fetch::{BadReply, Reply};
@@ -15,11 +16,11 @@ pub(super) struct SearchResponse {
 }
 #[derive(Deserialize)]
 pub(super) struct Hit {
-    pub obo_id: Curie,
-    pub label: Option<Field<Text>>,
+    pub obo_id: Option<Field<Curie>>,
+    pub label: Option<Field<NativeText>>,
     pub ontology_name: String,
     pub iri: Option<Field<Text>>,
-    pub is_obsolete: Option<bool>,
+    pub is_obsolete: Option<crate::raw::Field<bool>>,
 }
 impl Reply for Search {
     fn check(&self) -> Result<(), BadReply> {
@@ -41,14 +42,14 @@ pub(super) struct Embedded {
 #[derive(Deserialize)]
 pub(super) struct Term {
     pub obo_id: Curie,
-    pub label: Option<Field<Text>>,
+    pub label: Option<Field<NativeText>>,
     pub ontology_name: String,
     pub iri: Option<Field<Text>>,
-    pub description: Option<Field<Vec<Field<Text>>>>,
-    pub is_obsolete: Option<bool>,
+    pub description: Option<Field<Vec<Field<NativeText>>>>,
+    pub is_obsolete: Option<crate::raw::Field<bool>>,
     pub term_replaced_by: Option<Field<Vec<Field<String>>>>,
     pub annotation: Option<Field<Annotation>>,
-    pub synonyms: Option<Field<Vec<Field<Text>>>>,
+    pub synonyms: Option<Field<Vec<Field<NativeText>>>>,
     pub obo_synonym: Option<Field<Vec<Field<Synonym>>>>,
     pub obo_xref: Option<Field<Vec<Field<Xref>>>>,
 }
@@ -58,14 +59,14 @@ pub(super) struct Annotation {
 }
 #[derive(Deserialize)]
 pub(super) struct Synonym {
-    pub name: Field<Text>,
+    pub name: Field<NativeText>,
     pub scope: Option<Field<String>>,
 }
 #[derive(Deserialize)]
 pub(super) struct Xref {
     pub database: Field<String>,
     pub id: Field<String>,
-    pub description: Option<Field<Text>>,
+    pub description: Option<Field<NativeText>>,
 }
 impl Reply for Exact {
     fn check(&self) -> Result<(), BadReply> {

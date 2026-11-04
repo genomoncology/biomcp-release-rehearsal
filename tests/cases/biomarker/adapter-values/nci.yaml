@@ -1,0 +1,33 @@
+{
+  "feature": "biomarker-nci",
+  "live_check": "synthetic",
+  "story": "One synthetic invalid trial count keeps its native row and names the omitted field.",
+  "replay": "biomarker/adapter-values/nci",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "steps": [
+    {
+      "run": [
+        "get",
+        "biomarker",
+        "C96022"
+      ],
+      "expect": {
+        "/result/card/header": {
+          "omits": [
+            "count"
+          ]
+        },
+        "/result/card/header/codes": [
+          "C96022"
+        ],
+        "/problems/*/field": [
+          "count"
+        ]
+      }
+    }
+  ]
+}

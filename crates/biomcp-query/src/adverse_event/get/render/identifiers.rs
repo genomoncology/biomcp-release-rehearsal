@@ -1,7 +1,9 @@
-use super::{QueryBody, S, page};
+use super::{S, page};
 use crate::Outcome;
-use biodata::{FaersIdentifiers, FaersReport, Text};
+use biodata::{FaersDrug, FaersIdentifiers, Text};
 use biomcp_fetch::RequestError;
+use biomcp_types::ReplyBody;
+use biomcp_types::ReplyData;
 use biomcp_types::{
     AdverseEventGet, AdverseEventHeader, AdverseEventIdentifierRecords,
     AdverseEventIdentifiers as I, ComponentLabel,
@@ -33,24 +35,24 @@ pub(super) fn available(ids: &FaersIdentifiers) -> impl Iterator<Item = S> + '_ 
 }
 pub(super) fn render(
     q: &AdverseEventGet,
-    r: &FaersReport,
+    drug: Option<&FaersDrug>,
     section: S,
     header: AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
     components: Box<[ComponentLabel]>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
     let index = q
         .drug_index()
         .ok_or(biomcp_fetch::InputError::Serialization)?;
-    let Some(drug) = r.drugs.get(index as usize) else {
-        out.body = QueryBody::TextPositionError;
+    let Some(drug) = drug else {
+        out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
         return Ok(());
     };
     let array = drug.openfda.as_ref().and_then(|v| values(v, section));
     let Some(array) = array else {
-        out.status = biomcp_types::Status::Absent;
-        out.body = QueryBody::AdverseEventIdentifiers(None);
+        crate::status::item(out, false, false, false);
+        out.body = biomcp_types::AdverseEventIdentifiers::into_reply(q.clone(), None);
         return Ok(());
     };
     let total = array.len() as u64;
@@ -60,14 +62,34 @@ pub(super) fn render(
         .take(q.section_limit() as usize)
         .cloned()
         .collect();
-    page(q, records.len(), total, out);
+    let navigation = snapshot
+        .clone()
+        .map_or_else(|| q.clone(), |t| q.with_snapshot(t));
+    page(
+        &navigation,
+        q.section_offset().saturating_add(records.len() as u32),
+        total,
+        out,
+    );
     let records = AdverseEventIdentifierRecords {
         drug_index: index,
         records,
         offset: q.section_offset(),
         total,
     };
-    let result = match section {
+    let result = body(section, header, snapshot, records, components)?;
+    out.body = result.with_query(q.clone());
+    Ok(())
+}
+
+fn body(
+    section: S,
+    header: AdverseEventHeader,
+    snapshot: Option<Text>,
+    records: AdverseEventIdentifierRecords,
+    components: Box<[ComponentLabel]>,
+) -> Result<I, RequestError> {
+    Ok(match section {
         S::Unii => I::Unii {
             header,
             snapshot,
@@ -111,7 +133,5 @@ pub(super) fn render(
             components,
         },
         _ => return Err(biomcp_fetch::InputError::Serialization.into()),
-    };
-    out.body = QueryBody::AdverseEventIdentifiers(Some(result));
-    Ok(())
+    })
 }

@@ -16,7 +16,7 @@ pub fn header(row: &DeviceSubmission) -> Result<DiagnosticPmaHeader, biomcp_fetc
         decision_code: row.decision_code.clone(),
         url: format!("https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfPMA/pma.cfm?ID={id}")
             .parse()
-            .map_err(|_| super::bad())?,
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::FdaPma, Some(200)))?,
     })
 }
 /// Native selected-row dates, committee, product and supplement metadata.

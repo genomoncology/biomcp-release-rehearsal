@@ -7,9 +7,11 @@ use biodata::{
 use serde::{Deserialize, Serialize};
 /// One source candidate, without authorization, targets, label text or interactions.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugHeader {
+    /// Exact name choice, ranking rule and bounded alternative commands; omitted for native ID calls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_resolution: Option<DrugNameResolution>,
     /// Published native identifier.
     pub id: DrugId,
     /// The single source responsible for this header.
@@ -36,7 +38,6 @@ pub struct DrugHeader {
 }
 /// Exact source identity and explicit native links; deeper facts require named sections.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCard {
     /// Selected source-native identity.
@@ -74,7 +75,6 @@ pub struct DrugCard {
 }
 /// A single source candidate page in native order, without selecting the first hit.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugPage {
     /// Native candidates, preserving their separate identity levels.
@@ -86,9 +86,9 @@ pub struct DrugPage {
 }
 /// One bounded native row page, without fabricating an unknown total.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(bound(deserialize = "T: Deserialize<'de>"))]
+#[cfg_attr(feature = "schema", schemars(rename = "DrugRecords_{T}"))]
 pub struct DrugRecords<T> {
     /// Native source rows in order.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
@@ -110,7 +110,6 @@ pub struct DrugRecords<T> {
 }
 /// One slice of a native label array element, partitioning the page's unchanged text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugLabelFragment {
     /// Zero-based native array element; empty elements have a zero-character fragment.
@@ -122,7 +121,6 @@ pub struct DrugLabelFragment {
 }
 /// A mechanical continuation of one native label heading.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugLabelText {
     /// Exact source label set and revision.
@@ -145,7 +143,6 @@ pub struct DrugLabelText {
 }
 /// One explicit native label heading and text continuation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugLabel {
     /// Selected native identity, checked independently of section facts.
@@ -155,7 +152,6 @@ pub struct DrugLabel {
 }
 /// Native target and mechanism relations, without a clinical indication inference.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugTargets {
     /// Selected native identity, checked independently of section facts.
@@ -165,7 +161,6 @@ pub struct DrugTargets {
 }
 /// Source-native indication wording, populations and combinations.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugIndications {
     /// Selected native identity, checked independently of section facts.
@@ -175,7 +170,6 @@ pub struct DrugIndications {
 }
 /// Complete CIViC therapy/profile context with independent native claim continuations.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivic {
     /// Selected native identity, checked independently of section facts.
@@ -185,7 +179,6 @@ pub struct DrugCivic {
 }
 /// Explicit native application/product history without a global approval flag.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugApprovals {
     /// Selected native identity, checked independently of section facts.
@@ -195,13 +188,19 @@ pub struct DrugApprovals {
     pub products: Box<[super::DrugFdaProduct]>,
     /// Native FDA dataset last_updated date, independent of submission dates and retrieval.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub source_updated: Option<PartialDate>,
+    pub source_updated: Option<crate::SourceUpdated>,
     /// Existing typed section state, preserving empty, unavailable and skipped outcomes.
     pub approvals: Section<DrugRecords<super::DrugFdaSubmission>>,
+    /// Presentation order of application submissions, without interpreting their statuses.
+    pub order: Box<str>,
+}
+impl DrugApprovals {
+    /// Shared order descriptor for every approvals page.
+    pub const ORDER: &'static str =
+        "submission status date descending, then submission number descending; missing dates last";
 }
 /// Source-scoped regulator events preserving date roles and original status.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugRegulatory {
     /// Selected native identity, checked independently of section facts.
@@ -211,7 +210,6 @@ pub struct DrugRegulatory {
 }
 /// Native DDInter partner rows and levels without invented management text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugInteractions {
     /// Selected native identity, checked independently of section facts.
@@ -220,45 +218,44 @@ pub struct DrugInteractions {
     pub interactions: Section<DrugRecords<DrugInteractionClaim>>,
 }
 impl ResponseBody for DrugPage {
-    const SCHEMA: &'static str = "biomcp.drug-page/3";
+    const SCHEMA: &'static str = "biomcp.drug-page/7";
     type Query = DrugSearch;
 }
 impl ResponseBody for DrugCard {
-    const SCHEMA: &'static str = "biomcp.drug-card/2";
+    const SCHEMA: &'static str = "biomcp.drug-card/6";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugLabel {
-    const SCHEMA: &'static str = "biomcp.drug-label/3";
+    const SCHEMA: &'static str = "biomcp.drug-label/7";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugTargets {
-    const SCHEMA: &'static str = "biomcp.drug-targets/3";
+    const SCHEMA: &'static str = "biomcp.drug-targets/8";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugIndications {
-    const SCHEMA: &'static str = "biomcp.drug-indications/3";
+    const SCHEMA: &'static str = "biomcp.drug-indications/8";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugCivic {
-    const SCHEMA: &'static str = "biomcp.drug-civic/5";
+    const SCHEMA: &'static str = "biomcp.drug-civic/11";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugApprovals {
-    const SCHEMA: &'static str = "biomcp.drug-approvals/3";
+    const SCHEMA: &'static str = "biomcp.drug-approvals/8";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugRegulatory {
-    const SCHEMA: &'static str = "biomcp.drug-regulatory/2";
+    const SCHEMA: &'static str = "biomcp.drug-regulatory/6";
     type Query = DrugGet;
 }
 impl ResponseBody for DrugInteractions {
-    const SCHEMA: &'static str = "biomcp.drug-interactions/3";
+    const SCHEMA: &'static str = "biomcp.drug-interactions/8";
     type Query = DrugGet;
 }
 
 /// A mechanical page of the selected document's complete checked native links.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugXrefs {
     /// Exact source-selected identity, without choosing any linked product.
@@ -267,6 +264,24 @@ pub struct DrugXrefs {
     pub xrefs: Section<DrugRecords<DrugIdentityRelation>>,
 }
 impl ResponseBody for DrugXrefs {
-    const SCHEMA: &'static str = "biomcp.drug-xrefs/1";
+    const SCHEMA: &'static str = "biomcp.drug-xrefs/5";
     type Query = DrugGet;
+}
+
+/// Exact source name choice; brand before generic, original FDA application then earliest approval, otherwise source order.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct DrugNameResolution {
+    /// Original complete name matched case-insensitively.
+    pub input: Text,
+    /// Name basis selected after demoting a brand identical to its own ingredient.
+    pub basis: super::DrugNameMatch,
+    /// Applied ambiguity ordering, emitted only from fixed nonempty rule text.
+    #[cfg_attr(feature = "schema", schemars(with = "Text"))]
+    pub ranking: Box<str>,
+    /// Total exact source records, including the selected record.
+    pub total: u64,
+    /// Up to five other exact records as ready get commands.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub alternatives: Box<[Step]>,
 }

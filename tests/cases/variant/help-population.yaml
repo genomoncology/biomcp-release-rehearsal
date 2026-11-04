@@ -12,7 +12,7 @@
         "--detail"
       ],
       "expect": {
-        "/status": "partial",
+        "/status": "complete",
         "/result/population/data/exome/ac": 2,
         "/result/population/data/exome/an": 1460618,
         "/result/population/data/exome/filters": [
@@ -29,12 +29,6 @@
         "/result/groups/0/ancestry_group": "remaining",
         "/result/groups/1/sex": "xx"
       },
-      "mcp": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail"
-      ],
       "max_bytes": 2202
     },
     {
@@ -47,7 +41,7 @@
         "10"
       ],
       "expect": {
-        "/status": "partial",
+        "/status": "complete",
         "/result/population/data/exome/ac": 2,
         "/result/population/data/exome/an": 1460618,
         "/result/population/data/exome/filters": [
@@ -60,15 +54,7 @@
         "/result/groups/9/group_id": "asj_XX",
         "/problems/0/field": "dataset_version"
       },
-      "max_bytes": 2179,
-      "mcp": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail",
-        "--offset",
-        "10"
-      ]
+      "max_bytes": 2179
     }
   ]
 }

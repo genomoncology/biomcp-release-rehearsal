@@ -1,4 +1,5 @@
 //! Integrated InterPro entries only; member-database material retains upstream rights.
+use biomcp_fetch::{Input, Read};
 use biomcp_fetch::{KeyUse, SourceSpec, Terms};
 use biomcp_types::{Source, Use};
 use std::time::Duration;
@@ -24,7 +25,12 @@ use biomcp_fetch::{Arg, Freshness, Leg, RequestError};
 use serde::{Deserialize, Serialize};
 /// One checked native page with its complete native count and opaque continuation.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(from = "StoredPage")]
 pub struct Page {
+    /// Actual refused native records, independent of optional fields.
+    #[serde(with = "crate::mapped::refusal_serde")]
+    pub refusals: crate::Refusal,
+
     /// Whole native match rows.
     pub items: Vec<ProteinDomainMatch>,
     /// Source count before local type selection.
@@ -32,8 +38,31 @@ pub struct Page {
     /// Source cursor, checked against the accession and request selectors.
     pub cursor: Option<Text>,
     /// Rejected optional fields for retained rows.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub problems: Vec<biomcp_types::Problem>,
+}
+// Older serialized adapter pages omit the private refusal bit.
+#[derive(Deserialize)]
+struct StoredPage {
+    refusals: Option<bool>,
+    items: Vec<ProteinDomainMatch>,
+    total: u64,
+    cursor: Option<Text>,
+    problems: Vec<biomcp_types::Problem>,
+}
+impl From<StoredPage> for Page {
+    fn from(page: StoredPage) -> Self {
+        Self {
+            refusals: if page.refusals == Some(true) {
+                crate::Refusal::Refused
+            } else {
+                crate::Refusal::None
+            },
+            items: page.items,
+            total: page.total,
+            cursor: page.cursor,
+            problems: page.problems,
+        }
+    }
 }
 /// Fetch a native accession page; type selection remains over the retained complete collection.
 pub fn page(
@@ -43,7 +72,7 @@ pub fn page(
     size: u32,
 ) -> Result<Page, RequestError> {
     if ![5, 25].contains(&size) {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::InterPro, Some(200)));
     }
     let path = format!("/entry/interpro/protein/uniprot/{id}/");
     let endpoint = SPEC
@@ -56,9 +85,15 @@ pub fn page(
         args.push(("cursor", Arg::Text(cursor.as_str())));
         args.push(("page", Arg::Num(1)));
     }
-    let raw = leg.json_checked_cache::<raw::Page>(&endpoint, &args, |p| p.admitted(id))?;
+    let raw = leg
+        .call(
+            &endpoint,
+            Input::Params(&args),
+            Read::<raw::Page>::json().cache_if(&|p| p.admitted(id)),
+        )?
+        .value;
     if !raw.admitted(id) {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::InterPro, Some(200)));
     }
     let expected = [("page", Arg::Num(1)), ("page_size", Arg::Num(size.into()))];
     let cursor = raw
@@ -66,27 +101,24 @@ pub fn page(
         .as_deref()
         .map(|next| {
             SPEC.next_cursor(next, &path, &expected, "cursor")
-                .map_err(|_| bad())
-                .and_then(|s| Text::new(&s).map_err(|_| bad()))
+                .map_err(|_| biomcp_fetch::bad_reply(Source::InterPro, Some(200)))
+                .and_then(|s| {
+                    Text::new(&s).map_err(|_| biomcp_fetch::bad_reply(Source::InterPro, Some(200)))
+                })
         })
         .transpose()?;
     if raw.results.is_empty() && cursor.is_some() {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::InterPro, Some(200)));
     }
     let mapped = map::rows(raw.results, id)?;
     Ok(Page {
+        refusals: mapped.refusals,
         items: mapped.value,
         problems: mapped.problems,
         total: raw.count,
         cursor,
     })
 }
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::InterPro,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
-}
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

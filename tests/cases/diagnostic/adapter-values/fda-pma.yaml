@@ -1,0 +1,30 @@
+{
+  "feature": "diagnostic-pma",
+  "live_check": "synthetic",
+  "story": "One synthetic wrong-shaped nonidentity value retains the native record and names the omitted field.",
+  "replay": "diagnostic/adapter-values/fda-pma",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "P150013",
+        "--source",
+        "fda-pma",
+        "--supplement",
+        "S020"
+      ],
+      "expect": {
+        "/result/header": {
+          "omits": [
+            "trade_name"
+          ]
+        },
+        "/problems/*/field": [
+          "trade_name"
+        ],
+        "/result/header/pma_number": "P150013"
+      }
+    }
+  ]
+}

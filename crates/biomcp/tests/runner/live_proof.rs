@@ -1,4 +1,5 @@
 use super::{launch::Environment, live, response_cases};
+use crate::runner::transcript::trial as transcript_trial;
 use biomcp_fetch::Observation;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
@@ -9,28 +10,87 @@ mod witness_proof;
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
-        Trial::test("live-source-checks/cache-retries-and-request-plans", || {
+        #[cfg(unix)]
+        transcript_trial("live-source-checks/report-is-one-json-value", || {
+            stdout_report().map_err(|e| e.to_string().into())
+        }),
+        transcript_trial("live-source-checks/cache-retries-and-request-plans", || {
             comparison().map_err(|e| e.to_string().into())
         }),
-        Trial::test("live-source-checks/summary-retains-late-drift", || {
+        transcript_trial("live-source-checks/summary-retains-late-drift", || {
             summary().map_err(|e| e.to_string().into())
         }),
-        Trial::test("live-source-checks/retained-drift-witnesses", || {
+        transcript_trial("live-source-checks/retained-drift-witnesses", || {
             witness_proof::retained().map_err(Into::into)
-        }),
-        Trial::test("live-source-checks/credential-free-witness-urls", || {
+        })
+        .with_kind(super::proof_requirements::REPOSITORY_PYTHON),
+        transcript_trial("live-source-checks/credential-free-witness-urls", || {
             witness_proof::credentials().map_err(Into::into)
         }),
-        Trial::test("live-check/offline-planted-drift", || {
+        transcript_trial("live-source-checks/offline-planted-drift", || {
             check().map_err(|e| e.to_string().into())
         }),
-        Trial::test("live-source-checks/offline-eligibility", || {
+        transcript_trial("live-source-checks/offline-eligibility", || {
             plan().map_err(|e| e.to_string().into())
         }),
-        Trial::test("live-source-checks/raw-wire-formats-and-retries", || {
+        transcript_trial("live-source-checks/raw-wire-formats-and-retries", || {
             formats().map_err(|e| e.to_string().into())
         }),
     ]
+}
+
+#[cfg(unix)]
+fn stdout_report() -> Result<(), Box<dyn std::error::Error>> {
+    use std::os::unix::fs::PermissionsExt;
+    let environment = Environment::new()?;
+    let root = environment.root().canonicalize()?;
+    let fixtures = root.join("fixtures");
+    fs::create_dir_all(fixtures.join("cases"))?;
+    fs::copy(
+        super::launch::fixtures().join("cases/mcp/research-search.yaml"),
+        fixtures.join("cases/research-search.yaml"),
+    )?;
+    let replay = fixtures.join("replies/trial/condition");
+    response_cases::copy_capture("trial/condition", &replay, |_, _| {})?;
+    let quote = |path: &Path| format!("'{}'", path.display().to_string().replace('\'', "'\\''"));
+    let binary = quote(
+        &super::launch::executable(Path::new(env!("CARGO_BIN_EXE_biomcp"))).canonicalize()?,
+    );
+    let wrapper = root.join("recorded-biomcp");
+    // Both sides use recorded provider replies. The existing installed-binary
+    // boundary lets this exercise the real live-check entry point offline.
+    fs::write(
+        &wrapper,
+        format!(
+            "#!/bin/sh\nfor arg do\n  if [ \"$arg\" = --replay ]; then\n    exec {binary} \"$@\"\n  fi\ndone\nexec {binary} \"$@\" --replay {}\n",
+            quote(&replay)
+        ),
+    )?;
+    fs::set_permissions(&wrapper, fs::Permissions::from_mode(0o700))?;
+    let output = environment
+        .command(
+            std::env::current_exe()?,
+            &["--live-check".into(), "--details".into()],
+        )
+        .env("TMPDIR", &root)
+        .env("BIOMCP_TEST_EXECUTABLE", &wrapper)
+        .env("BIOMCP_TEST_FIXTURES", &fixtures)
+        .output()?;
+    let report: Value = serde_json::from_slice(&output.stdout).map_err(|error| {
+        format!(
+            "live-check stdout is not one JSON report: {error}; stdout={}",
+            String::from_utf8_lossy(&output.stdout)
+        )
+    })?;
+    if !output.status.success()
+        || report.get("checked") != Some(&json!(1))
+        || report.get("error_cases") != Some(&json!(0))
+        || report.get("drift_cases") != Some(&json!(0))
+        || !String::from_utf8_lossy(&output.stderr).contains("research search compact_bytes=")
+    {
+        return Err(format!("recorded live-check failed: {output:?}").into());
+    }
+    Ok(())
 }
 fn check() -> Result<(), Box<dyn std::error::Error>> {
     let env = Environment::new()?;
@@ -130,12 +190,36 @@ fn plan() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(Value::as_array)
         .ok_or("case list missing")?;
     if !cases.iter().any(|c| {
-        c.get("case") == Some(&json!("article/get/live-capture.yaml"))
+        c.get("case") == Some(&json!("article/sections/grammar.yaml"))
             && c.get("eligible") == Some(&json!(true))
     }) || !cases.iter().any(|c| {
-        c.get("case") == Some(&json!("gene/failure-429.yaml")) && c.get("skipped").is_some()
+        c.get("case") == Some(&json!("article/sections/failure-500.yaml"))
+            && c.get("skipped").is_some()
     }) {
         return Err("eligibility list omitted public capture or failure skip".into());
+    }
+    for name in [
+        "gene/retired.yaml",
+        "drug/label-controls.yaml",
+        "article/litsense/licensed-subset.yaml",
+    ] {
+        if !cases.iter().any(|case| {
+            case.get("case") == Some(&json!(name)) && case.get("skipped").is_some()
+        }) {
+            return Err(format!("recorded-only control entered live checks: {name}").into());
+        }
+    }
+    for name in [
+        "mcp/research-search.yaml",
+        "mcp/research-fetch.yaml",
+        "pathway-sections/examples.yaml",
+        "cell-line/assay-examples.yaml",
+    ] {
+        if !cases.iter().any(|case| {
+            case.get("case") == Some(&json!(name)) && case.get("eligible") == Some(&json!(true))
+        }) {
+            return Err(format!("eligible source operation omitted: {name}").into());
+        }
     }
     Ok(())
 }
@@ -144,7 +228,7 @@ fn formats() -> Result<(), Box<dyn std::error::Error>> {
     let environment = Environment::new()?;
     let root = super::launch::fixtures().join("replies");
     let case: super::Case = serde_saphyr::from_str(&fs::read_to_string(
-        super::launch::fixtures().join("cases/article/get/live-capture.yaml"),
+        super::launch::fixtures().join("cases/article/sections/grammar.yaml"),
     )?)?;
     let args = case
         .steps
@@ -152,7 +236,8 @@ fn formats() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(|step| step.run.as_ref())
         .ok_or("native XML command absent")?;
     let args: Vec<_> = args.iter().map(String::as_str).collect();
-    let xml = observe(&environment, &root.join("article/get/live"), "xml", &args)?;
+    let replay = case.replay.as_deref().ok_or("native XML replay absent")?;
+    let xml = observe(&environment, &root.join(replay), "xml", &args)?;
     if !xml
         .iter()
         .any(|o| o.shape.fields.contains_key("PubmedArticleSet"))
@@ -233,6 +318,7 @@ fn summary() -> Result<(), Box<dyn std::error::Error>> {
     if report.get("drift_cases") != Some(&json!(1))
         || report.get("error_cases") != Some(&json!(1))
         || report.get("checked") != Some(&json!(27))
+        || report.get("eligible") != Some(&json!(27))
         || report.get("omitted") != Some(&json!(7))
         || sample.len() != 20
         || report.pointer("/case_sample/0/case") != Some(&json!("late-drift"))
@@ -299,6 +385,7 @@ fn comparison() -> Result<(), Box<dyn std::error::Error>> {
     {
         return Err("real HTTP status drift hidden".into());
     }
+    witness_proof::sampling(&after)?;
     cache_after_transport(&after)?;
     bounded_command_drift(&after)?;
     report_context(&after)?;
@@ -307,15 +394,17 @@ fn comparison() -> Result<(), Box<dyn std::error::Error>> {
 }
 fn cache_reuse(
     env: &Environment,
-    original: &Path,
+    _original: &Path,
     after: &[Observation],
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Reuse the actual warmed checked cache with networking refused.
+    let records = env.root().join("known-recordings");
+    response_cases::cache_capture("gene/main", &records, response_cases::CACHE_ACQUIRED)?;
     let cache = env.root().join("explicit-cache");
     let cache_arg = cache.to_str().ok_or("cache path")?;
     observe(
         env,
-        original,
+        &records,
         "warm",
         &["get", "gene", "KRAS", "--case-cache", cache_arg],
     )?;
@@ -359,7 +448,7 @@ fn report_context(observed: &[Observation]) -> Result<(), Box<dyn std::error::Er
     let evidence = live::command_report(
         3,
         &json!({"status": "found"}),
-        &json!({"status": "not_found"}),
+        &json!({"status": "not-found"}),
         observed,
         observed,
         &mut changes,
@@ -367,7 +456,7 @@ fn report_context(observed: &[Observation]) -> Result<(), Box<dyn std::error::Er
     );
     if evidence.get("ordinal") != Some(&json!(3))
         || evidence.get("before_status") != Some(&json!("found"))
-        || evidence.get("after_status") != Some(&json!("not_found"))
+        || evidence.get("after_status") != Some(&json!("not-found"))
         || evidence
             .pointer("/exchanges/items/0/role")
             .and_then(Value::as_str)
@@ -397,10 +486,16 @@ fn report_context(observed: &[Observation]) -> Result<(), Box<dyn std::error::Er
         .collect();
     changes = Vec::new();
     let evidence = live::compare(&many, &[], &mut changes, &mut BTreeMap::new());
-    if evidence.get("omitted") != Some(&json!(8))
-        || !changes.last().is_some_and(|item| item.contains("omitted"))
+    if evidence.get("omitted") != Some(&json!(0))
+        || evidence
+            .get("items")
+            .and_then(Value::as_array)
+            .map(Vec::len)
+            != Some(40)
+        || changes.len() != 40
+        || changes.iter().any(|item| item.contains("omitted"))
     {
-        return Err("truncation is hidden".into());
+        return Err("complete exchange or drift details were discarded".into());
     }
     // Stable identities retain their exact match when an earlier result disappears.
     changes.clear();
@@ -458,14 +553,14 @@ fn bounded_command_drift(observed: &[Observation]) -> Result<(), Box<dyn std::er
     let mut changes = Vec::new();
     for _ in 0..2 {
         let evidence = live::compare(&before, &[], &mut changes, &mut BTreeMap::new());
-        if evidence.get("drift_omitted") != Some(&json!(24))
+        if evidence.get("drift_omitted") != Some(&json!(0))
             || evidence
                 .get("drift")
                 .and_then(Value::as_array)
                 .map(Vec::len)
-                != Some(16)
+                != Some(40)
         {
-            return Err("per-command drift evidence or exact omission count missing".into());
+            return Err("complete per-command drift evidence missing".into());
         }
     }
     Ok(())

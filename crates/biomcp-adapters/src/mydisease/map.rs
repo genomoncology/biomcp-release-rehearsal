@@ -12,6 +12,8 @@ fn attribution(
     version: Option<u64>,
 ) -> Result<Attribution, RequestError> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: crate::mapped::text(source)
             .map_err(|_| RequestError::Input(InputError::Serialization))?,
         record: Some(
@@ -53,7 +55,7 @@ fn terms(components: &[native::Component]) -> Result<Box<[ComponentLabel]>, Requ
         })
         .collect()
 }
-fn root(component: &native::Component) -> &str {
+fn component_id(component: &native::Component) -> &str {
     if component.name == "doid" {
         "disease_ontology"
     } else {
@@ -61,7 +63,7 @@ fn root(component: &native::Component) -> &str {
     }
 }
 fn predicate(component: &native::Component, field: &str) -> Result<Curie, RequestError> {
-    format!("mydisease:{}.{field}", root(component))
+    format!("mydisease:{}.{field}", component_id(component))
         .parse()
         .map_err(|_| InputError::Serialization.into())
 }
@@ -90,6 +92,7 @@ pub(super) fn annotation(record: native::Record) -> Result<Mapped<Annotation>, R
         .find(|c| c.id == record.returned_id)
         .ok_or(InputError::Serialization)?;
     let mut mapped = Mapped {
+        refusals: crate::Refusal::None,
         value: Annotation {
             card: DiseaseCard {
                 requested_id: record.requested_id.clone(),
@@ -111,7 +114,7 @@ pub(super) fn annotation(record: native::Record) -> Result<Mapped<Annotation>, R
             xrefs: Vec::new(),
             parents: Vec::new(),
         },
-        problems: Vec::new(),
+        problems: record.problems,
     };
     for component in &record.components {
         mapped.problems.extend(component.problems.iter().cloned());
@@ -160,7 +163,7 @@ fn rows(
     for value in &component.synonyms {
         let field = format!("{synonym_field}.{}", value.field);
         let scope = problems.optional(
-            &format!("{}.{}", root(component), field),
+            &format!("{}.{}", component_id(component), field),
             Some(predicate(component, &field)),
         );
         mapped.value.synonyms.push(DiseaseSynonym {
@@ -177,7 +180,7 @@ fn rows(
                 &mut mapped.problems,
                 Source::MyDisease,
                 crate::mapped::record(&component.id),
-                &format!("{}.xrefs.{}", root(component), value.field),
+                &format!("{}.xrefs.{}", component_id(component), value.field),
             );
             continue;
         };

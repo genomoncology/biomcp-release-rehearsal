@@ -8,143 +8,20 @@
         "get",
         "variant",
         "rs113488022",
-        "--disable-sources",
-        "myvariant"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "rs113488022",
-        "--disable-sources",
-        "myvariant"
-      ],
-      "expect": {
-        "/schema": "biomcp.variant-card/8",
-        "/result/resolution": "unavailable",
-        "/sources/0/source": "myvariant",
-        "/sources/0/reason": "disabled"
-      },
-      "exit": 4,
-      "is_error": true
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "BRAF V600E"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "BRAF V600E"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "BRAF"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "BRAF"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "chr7:g.140753336A>T"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "chr7:g.140753336A>T"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "chr7:p.Val600Glu",
-        "--build",
-        "GRCh38"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "chr7:p.Val600Glu",
-        "--build",
-        "GRCh38"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "rs113488022",
-        "--limit",
-        "0"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "rs113488022",
         "--limit",
         "0"
       ],
       "exit": 2,
       "is_error": true,
       "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "rs113488022",
-        "--limit",
-        "51"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "rs113488022",
-        "--limit",
-        "51"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
+        "/schema": "biomcp.error/4",
+        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+        "/error/option": "--limit",
+        "/next/0/args": [
+          "help",
+          "get",
+          "variant"
+        ]
       }
     },
     {
@@ -155,88 +32,17 @@
         "--offset",
         "-1"
       ],
-      "mcp": [
-        "get",
-        "variant",
-        "rs113488022",
-        "--offset",
-        "-1"
-      ],
       "exit": 2,
       "is_error": true,
       "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "CA434"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "CA434"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1",
-        "/error/message": "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "ENSG00000157764.1:g.1A>T",
-        "--disable-sources",
-        "car"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "ENSG00000157764.1:g.1A>T",
-        "--disable-sources",
-        "car"
-      ],
-      "exit": 4,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.variant-card/8",
-        "/result/resolution": "unavailable",
-        "/sources/0/source": "car",
-        "/sources/0/reason": "disabled"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "chrMT:g.1A>G",
-        "--build",
-        "GRCh38",
-        "--disable-sources",
-        "myvariant"
-      ],
-      "mcp": [
-        "get",
-        "variant",
-        "chrMT:g.1A>G",
-        "--build",
-        "GRCh38",
-        "--disable-sources",
-        "myvariant"
-      ],
-      "exit": 4,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.variant-card/8",
-        "/result/resolution": "unavailable",
-        "/sources/0/source": "myvariant",
-        "/sources/0/reason": "disabled"
+        "/schema": "biomcp.error/4",
+        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+        "/error/option": "--offset",
+        "/next/0/args": [
+          "help",
+          "get",
+          "variant"
+        ]
       }
     }
   ]

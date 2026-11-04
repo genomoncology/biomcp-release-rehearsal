@@ -23,7 +23,8 @@ pub(super) struct Name {
 }
 #[derive(Deserialize)]
 pub(super) struct Wrapped {
-    pub value: Text,
+    #[serde(deserialize_with = "crate::native_text::deserialize")]
+    pub value: biodata::Text,
 }
 impl Person {
     pub(super) fn card(self, id: &OrcidId) -> Result<Mapped<Option<AuthorCard>>, BadReply> {
@@ -32,6 +33,7 @@ impl Person {
             .filter(|n| n.visibility.as_deref() == Some("public"))
         else {
             return Ok(Mapped {
+                refusals: crate::Refusal::None,
                 value: None,
                 problems: Vec::new(),
             });
@@ -61,6 +63,7 @@ impl Person {
             }
         };
         Ok(Mapped {
+            refusals: crate::Refusal::None,
             value: Some(AuthorCard {
                 header: AuthorHeader {
                     id: AuthorId::Orcid(id.clone()),

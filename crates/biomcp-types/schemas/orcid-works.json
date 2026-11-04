@@ -1,11 +1,11 @@
 {
   "$defs": {
-    "AuthorId": {
-      "description": "One provider record; this enum establishes no relationship between its variants.",
-      "pattern": "^((semantic-scholar|semanticscholar):[1-9][0-9]*|orcid:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
+    "Reply_AuthorId": {
+      "description": "One provider record. Semantic Scholar emits semantic-scholar:ID. ORCID checksums are checked. Variants imply no relationship.",
+      "pattern": "^(semantic-scholar:[1-9][0-9]*|orcid:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
       "type": "string"
     },
-    "AuthorPaperSection": {
+    "Reply_AuthorPaperSection": {
       "description": "Indexed-paper disclosure level.",
       "enum": [
         "details"
@@ -15,8 +15,7 @@
         " Native detailed metadata for the same paper window."
       ]
     },
-    "AuthorPapersQuery": {
-      "additionalProperties": false,
+    "Reply_AuthorPapersQuery": {
       "description": "One exact provider record's publication window. ORCID sends its whole public works list in one reply and pages groups locally.",
       "properties": {
         "full": {
@@ -24,7 +23,7 @@
           "type": "boolean"
         },
         "id": {
-          "$ref": "#/$defs/AuthorId",
+          "$ref": "#/$defs/Reply_AuthorId",
           "description": "Exact qualified provider record.",
           "x-positional": 0
         },
@@ -44,11 +43,11 @@
           "type": "integer"
         },
         "pool": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Retained collection identity."
         },
         "section": {
-          "$ref": "#/$defs/AuthorPaperSection",
+          "$ref": "#/$defs/Reply_AuthorPaperSection",
           "description": "Detailed disclosure when requested.",
           "x-positional": 1
         }
@@ -58,23 +57,34 @@
       ],
       "type": "object"
     },
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "OrcidAssertionSource": {
-      "additionalProperties": false,
+    "Reply_IdentifierNamespace": {
+      "description": "A source-stated authority or an explicit unknown authority, represented by the string unknown.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "Reply_OrcidAssertionSource": {
       "description": "Source and assertion origin remain distinct provider claims.",
       "properties": {
         "assertion_origin_client_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/OrcidClientId"
+              "$ref": "#/$defs/Reply_OrcidClientId"
             },
             {
               "type": "null"
@@ -85,7 +95,7 @@
         "assertion_origin_name": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -96,7 +106,7 @@
         "assertion_origin_orcid": {
           "anyOf": [
             {
-              "$ref": "#/$defs/OrcidId"
+              "$ref": "#/$defs/Reply_OrcidId"
             },
             {
               "type": "null"
@@ -107,7 +117,7 @@
         "source_client_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/OrcidClientId"
+              "$ref": "#/$defs/Reply_OrcidClientId"
             },
             {
               "type": "null"
@@ -118,7 +128,7 @@
         "source_name": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -129,7 +139,7 @@
         "source_orcid": {
           "anyOf": [
             {
-              "$ref": "#/$defs/OrcidId"
+              "$ref": "#/$defs/Reply_OrcidId"
             },
             {
               "type": "null"
@@ -140,27 +150,30 @@
       },
       "type": "object"
     },
-    "OrcidClientId": {
-      "description": "A checked native ORCID client application identifier.",
+    "Reply_OrcidClientId": {
+      "description": "A checked native ORCID client application identifier. The parser additionally validates ORCID checksums for legacy numeric identifiers.",
       "pattern": "^(APP-[A-Z0-9]{16}|[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
       "type": "string"
     },
-    "OrcidExternalId": {
-      "additionalProperties": false,
+    "Reply_OrcidExternalId": {
       "description": "Native ORCID external identifier before any article pivot.",
       "properties": {
-        "kind": {
-          "$ref": "#/$defs/Text",
+        "id": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Unchanged native identifier value."
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
           "description": "Open native external-id-type."
         },
         "relationship": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Open native relationship, including self and part-of."
         },
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -168,24 +181,21 @@
           ],
           "description": "Native identifier URL.",
           "format": "uri"
-        },
-        "value": {
-          "$ref": "#/$defs/Text",
-          "description": "Unchanged native identifier value."
         }
       },
       "required": [
-        "kind",
-        "value"
+        "namespace",
+        "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "OrcidId": {
-      "description": "A checksummed ORCID iD, identifying only the requested ORCID record.",
+    "Reply_OrcidId": {
+      "description": "A checksummed ORCID iD, identifying only the requested ORCID record. The parser additionally validates the ISO 7064 checksum.",
       "pattern": "^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$",
       "type": "string"
     },
-    "OrcidPublicVisibility": {
+    "Reply_OrcidPublicVisibility": {
       "description": "Only public source visibility is admitted; legacy uppercase is an alias.",
       "enum": [
         "public",
@@ -193,14 +203,13 @@
       ],
       "type": "string"
     },
-    "OrcidWorkAssertion": {
-      "additionalProperties": false,
+    "Reply_OrcidWorkAssertion": {
       "description": "One public summary, retained in native group order without representative selection.",
       "properties": {
         "display_index": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -211,14 +220,14 @@
         "external_ids": {
           "description": "Every native assertion identifier in order.",
           "items": {
-            "$ref": "#/$defs/OrcidExternalId"
+            "$ref": "#/$defs/Reply_OrcidExternalId"
           },
           "type": "array"
         },
         "journal_title": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -229,7 +238,7 @@
         "publication_date": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -244,13 +253,20 @@
           "type": "integer"
         },
         "source": {
-          "$ref": "#/$defs/OrcidAssertionSource",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_OrcidAssertionSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native source and origin provenance."
         },
         "subtitle": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -261,7 +277,7 @@
         "title": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -272,7 +288,7 @@
         "translated_title": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -283,7 +299,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -293,58 +309,55 @@
           "format": "uri"
         },
         "visibility": {
-          "$ref": "#/$defs/OrcidPublicVisibility",
+          "$ref": "#/$defs/Reply_OrcidPublicVisibility",
           "description": "Only public assertions belong to this product."
         },
         "work_type": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Open native work type."
         }
       },
       "required": [
         "put_code",
-        "source",
         "visibility"
       ],
       "type": "object"
     },
-    "OrcidWorkGroup": {
-      "additionalProperties": false,
+    "Reply_OrcidWorkGroup": {
       "description": "One native work group is one group, regardless of assertion multiplicity.",
       "properties": {
         "assertions": {
           "description": "Every public summary in native source order.",
           "items": {
-            "$ref": "#/$defs/OrcidWorkAssertion"
+            "$ref": "#/$defs/Reply_OrcidWorkAssertion"
           },
           "type": "array"
         },
         "external_ids": {
           "description": "Native group identifiers in source order.",
           "items": {
-            "$ref": "#/$defs/OrcidExternalId"
+            "$ref": "#/$defs/Reply_OrcidExternalId"
           },
           "type": "array"
         }
       },
       "type": "object"
     },
-    "OrcidWorks": {
-      "additionalProperties": false,
+    "Reply_OrcidWorks": {
       "description": "Locally paged groups from one complete public ORCID works reply.",
       "properties": {
         "author": {
-          "$ref": "#/$defs/OrcidId",
+          "$ref": "#/$defs/Reply_OrcidId",
           "description": "Requested exact ORCID record."
         },
         "collection_scope": {
-          "$ref": "#/$defs/OrcidWorksScope",
+          "$ref": "#/$defs/Reply_OrcidWorksScope",
           "description": "The whole source reply supplies every local page."
         },
         "groups": {
           "description": "Whole groups in native order, with every public assertion.",
           "items": {
-            "$ref": "#/$defs/OrcidWorkGroup"
+            "$ref": "#/$defs/Reply_OrcidWorkGroup"
           },
           "type": "array"
         },
@@ -362,15 +375,14 @@
       ],
       "type": "object"
     },
-    "OrcidWorksScope": {
+    "Reply_OrcidWorksScope": {
       "description": "Scope of one received ORCID collection.",
       "enum": [
-        "whole_public_works_reply"
+        "whole-public-works-reply"
       ],
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -382,7 +394,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -417,13 +429,12 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -439,7 +450,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -457,12 +468,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -472,7 +482,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -481,7 +491,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -492,43 +502,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -550,83 +539,31 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -696,21 +633,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -734,11 +747,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -753,15 +765,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -772,15 +783,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -791,11 +801,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -810,11 +819,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -836,17 +844,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -858,8 +865,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -871,26 +877,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -898,18 +895,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -927,7 +933,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -940,7 +946,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -951,7 +957,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -961,8 +967,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -973,7 +978,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -982,7 +987,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -998,31 +1003,33 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.orcid-works/3",
+  "$id": "biomcp.orcid-works/8",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1033,14 +1040,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1051,18 +1058,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/AuthorPapersQuery",
+      "$ref": "#/$defs/Reply_AuthorPapersQuery",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/OrcidWorks"
+          "$ref": "#/$defs/Reply_OrcidWorks"
         },
         {
           "type": "null"
@@ -1071,18 +1078,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.orcid-works/3",
+      "const": "biomcp.orcid-works/8",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

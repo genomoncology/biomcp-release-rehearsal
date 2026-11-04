@@ -1,13 +1,14 @@
 //! Complete entry-backed pages bind the section and every selector to one snapshot.
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{Text, UniProtIsoform};
 use biomcp_adapters::uniprot;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
     PageInfo, ProteinFeatures, ProteinFeaturesQuery, ProteinIsoforms, ProteinRelationQuery,
-    ProteinStructures, QueryBody, Request, Source, Status, StepKind,
+    ProteinStructures, ReplyData, Request, Source, StepKind,
 };
-use sha2::{Digest, Sha256};
 mod retained;
 #[derive(Clone)]
 pub(super) enum Selection {
@@ -41,13 +42,10 @@ impl Selection {
             ),
         }
     }
-    fn key(&self) -> Result<Vec<u8>, CacheError> {
-        let request = serde_json::to_vec(&self.request(None)).map_err(|_| CacheError::Database)?;
-        let mut hash = Sha256::new();
-        hash.update(b"biomcp.protein_sections/1\0");
-        hash.update(request);
-        Ok(hash.finalize().to_vec())
+    fn key(&self) -> Result<Vec<u8>, RequestError> {
+        source_snapshot::key("protein-sections", &self.request(None))
     }
+
     fn total(&self, entry: &uniprot::Entry) -> usize {
         match self {
             Self::Features(q) => entry.features.iter().filter(|r| accepts(q, r)).count(),
@@ -65,37 +63,40 @@ impl Selection {
                     .filter(|r| accepts(q, r))
                     .collect();
                 let total = rows.len();
-                out.body = QueryBody::ProteinFeatures(Some(ProteinFeatures {
+                out.body = (ProteinFeatures {
                     items: rows
                         .into_iter()
                         .skip(offset as usize)
                         .take(limit as usize)
                         .collect(),
-                }));
+                })
+                .with_query(q.clone());
                 total
             }
-            Self::Isoforms(_) => {
+            Self::Isoforms(q) => {
                 let total = entry.isoforms.len();
-                out.body = QueryBody::ProteinIsoforms(Some(ProteinIsoforms {
+                out.body = (ProteinIsoforms {
                     items: entry
                         .isoforms
                         .into_iter()
                         .skip(offset as usize)
                         .take(limit as usize)
                         .collect(),
-                }));
+                })
+                .with_query(q.clone());
                 total
             }
-            Self::Structures(_) => {
+            Self::Structures(q) => {
                 let total = entry.structures.len();
-                out.body = QueryBody::ProteinStructures(Some(ProteinStructures {
+                out.body = (ProteinStructures {
                     items: entry
                         .structures
                         .into_iter()
                         .skip(offset as usize)
                         .take(limit as usize)
                         .collect(),
-                }));
+                })
+                .with_query(q.clone());
                 total
             }
         }
@@ -112,32 +113,36 @@ fn accepts(q: &ProteinFeaturesQuery, row: &biodata::ProteinFeature) -> bool {
         })
 }
 fn restart(q: &Selection, out: &mut Outcome, mismatch: bool) {
-    out.body = QueryBody::PoolError { mismatch };
-    out.next.push((
+    out.body = ReplyData::PoolError { mismatch };
+    out.next.push(crate::next::Step::run(
         StepKind::Restart,
-        Action::Run {
-            request: q.request(None),
-            fresh: false,
-        },
+        &[biomcp_types::Source::UniProt],
+        q.request(None),
+        false,
     ));
 }
 pub(super) fn run(cx: &Ctx<'_>, q: Selection) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let body = match q {
-        Selection::Features(_) => QueryBody::ProteinFeatures(None),
-        Selection::Isoforms(_) => QueryBody::ProteinIsoforms(None),
-        Selection::Structures(_) => QueryBody::ProteinStructures(None),
+    let body = match &q {
+        Selection::Features(query) => {
+            biomcp_types::ProteinFeatures::into_reply(query.clone(), None)
+        }
+        Selection::Isoforms(query) => {
+            biomcp_types::ProteinIsoforms::into_reply(query.clone(), None)
+        }
+        Selection::Structures(query) => {
+            biomcp_types::ProteinStructures::into_reply(query.clone(), None)
+        }
     };
     let mut out = super::empty(body);
     if let Err(e) = read(cx, &q, deadline, &mut out) {
         out.local = status::local(e);
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: q.request(None),
-                fresh: true,
-            },
+            &[biomcp_types::Source::UniProt],
+            q.request(None),
+            true,
         ));
     }
     command.finish(deadline.remaining());
@@ -153,9 +158,13 @@ fn read(
         return Ok(());
     };
     if let Selection::Features(query) = q
-        && query
-            .position()
-            .is_some_and(|p| p.get() > entry.header.protein.length)
+        && query.position().is_some_and(|p| {
+            entry
+                .header
+                .protein
+                .length
+                .is_some_and(|length| p.get() > length)
+        })
     {
         out.problems.push(biomcp_types::Problem {
             source: Source::UniProt,
@@ -176,28 +185,26 @@ fn read(
         offset,
         returned,
         total: total as u64,
-        pool: Some(pool.clone()),
+        pool: pool.clone(),
         truncated: None,
     });
-    out.status = if out.problems.is_empty() {
-        Status::Complete
-    } else {
-        Status::Partial
+    {
+        let unavailable = false;
+        crate::status::item(out, true, false, unavailable);
     };
     if out
         .sources
         .iter()
         .any(|s| s.state == biomcp_types::SourceState::Stale)
     {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
     }
-    if (offset + returned) < total as u32 {
-        out.next.push((
+    if let Some(pool) = pool.filter(|_| (offset + returned) < total as u32) {
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: q.request(Some((pool.id, offset + returned))),
-                fresh: false,
-            },
+            &[biomcp_types::Source::UniProt],
+            q.request(Some((pool.id, offset + returned))),
+            false,
         ));
     }
     Ok(())

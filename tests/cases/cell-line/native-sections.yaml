@@ -1,0 +1,53 @@
+{
+  "feature": "cell-line-sections",
+  "live_check": "public",
+  "story": "A caller reads the retained Cellosaurus identity and pages its names without changing source order.",
+  "verified": "Cellosaurus CC BY 4.0, cite Bairoch (2018), https://www.cellosaurus.org/description.html. Original body SHA256 4ac92c4eacf46d97573f45775fc404368a053397d01db935db7d90e1b9a74ee9. Captured 2026-10-30 with no key. Independent native release reply reused unchanged from cell-line/k562-xrefs. ChEMBL CC BY-SA 3.0 cell metadata and release replies reused unchanged from tests/fixtures/cell-line/chembl; these are retained fixtures, not new provider captures.",
+  "replay": "cell-line/native-sections",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "cell-line",
+        "CVCL_0004",
+        "identity",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/accession": "CVCL_0004",
+        "/result/species/items/0/id": "9606"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "cell-line",
+        "CVCL_0004",
+        "names",
+        "--section-limit",
+        "2",
+        "--section-offset",
+        "1"
+      ],
+      "expect": {
+        "/result/accession": "CVCL_0004",
+        "/result/items/items/0/value": "K.562",
+        "/result/offset": 1
+      }
+    },
+    {
+      "run": [
+        "get",
+        "cell-line",
+        "CVCL_0004",
+        "variants",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/accession": "CVCL_0004"
+      }
+    }
+  ]
+}

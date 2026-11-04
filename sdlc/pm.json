@@ -1,11 +1,12 @@
 {
-  "ticketsGate": "make landing-gate",
+  "ticketsGate": "gate_python_bin=$(python3.13 -c 'from pathlib import Path; import sys; print(Path(sys.executable).resolve().parent)') && PATH=\"$gate_python_bin:$PATH\" RUSTUP_TOOLCHAIN=1.95.0 make landing-gate",
   "inertPaths": [
     "sdlc/plan.md",
     "sdlc/planning/*.md",
     "sdlc/tickets/*.md",
     "sdlc/decisions/*.md",
     "sdlc/records/*.md",
+    "sdlc/data/*.md",
     "ROADMAP.md"
   ],
   "mailroom": {

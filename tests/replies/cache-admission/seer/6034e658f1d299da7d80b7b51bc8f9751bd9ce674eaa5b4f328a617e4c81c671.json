@@ -1,0 +1,17 @@
+{
+  "source": "seer",
+  "method": "GET",
+  "url": "https://seer.cancer.gov/statistics-network/explorer/source/content_writers/render_region_5.php?site=55&data_type=4&graph_type=1&compareBy=sex&sex=3&race=1&age_range=1&relative_survival_interval=5&year_range=31&data_model=4",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": "{\"info\":{\"y-axis\":\"rel_rate\",\"secondary_series\":\"modeled_rel_rate\",\"x-axis\":\"year\",\"key-order\":[\"relative_survival_interval\",\"sex\",\"race\",\"age_range\",\"site\"],\"data-fields\":[\"year\",\"rel_rate\",\"rel_rate_se\",\"rel_rate_lower_ci\",\"rel_rate_upper_ci\",\"modeled_rel_rate\",\"count\"]},\"data\":{\"5_3_1_1_55\":{\"data_series\":[[{},{},\"0.2\",\"89.0\",\"91.0\",\"90.5\",100]],\"year_range\":31}}}"
+      }
+    }
+  ]
+}

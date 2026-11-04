@@ -1,25 +1,16 @@
 //! Page-local exact sample observations with explicit cohort and source provenance.
+use biomcp_types::ReplyBody;
 mod matching;
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
 
 use biomcp_adapters::{cbioportal, hgnc};
 use biomcp_fetch::{Deadline, Find, KeyKind, RequestError};
-use biomcp_types::{
-    QueryBody, Reason, Request, Source, Status, StepKind, VariantRecurrence, VariantRecurrenceQuery,
-};
+use biomcp_types::{Reason, Request, Source, StepKind, VariantRecurrence, VariantRecurrenceQuery};
 /// Read one native page without inventing an assayed denominator or selecting an ambiguous allele.
-pub fn run(cx: &Ctx<'_>, query: &VariantRecurrenceQuery) -> Outcome {
+pub(crate) fn run(cx: &Ctx<'_>, query: &VariantRecurrenceQuery) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let mut out = Outcome {
-        status: Status::Failed,
-        body: QueryBody::VariantRecurrence(empty()),
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    };
+    let mut out = crate::status::empty((empty()).with_query(query.clone()));
     if let Err(error) = execute(cx, query, deadline, &mut out) {
         out.local = status::local(error);
     }
@@ -71,42 +62,42 @@ fn execute(
         result.as_ref().err().copied(),
     ));
     let (cohort, rows) = result?;
+    out.problems.extend(rows.problems);
+    let window = rows.window;
+    out.include_refusals(window.refusals());
     metadata(query, &cohort, out);
-    let (count, problems) = matching::count(&identity, &rows, query.study());
+    let (count, problems) = matching::count(&identity, &window.rows, query.study());
     out.problems.extend(problems);
-    let more = rows.len() == query.limit() as usize;
+    let more = window.has_more();
     let mut body = empty();
     body.identity = Some(identity);
     body.entrez_gene_id = Some(gene);
     body.study = Some(cohort.study);
     body.selected_sample_count = cohort.selected_sample_count;
     body.observed_sample_count = Some(count);
-    body.examined_rows = rows.len() as u32;
+    body.examined_rows = window.received();
     body.all_pages_read = query.page() == 0 && !more;
     body.more = more;
-    out.body = QueryBody::VariantRecurrence(body);
-    out.status = if out.problems.is_empty()
-        && out
+    out.body = body.with_query(query.clone());
+    {
+        let unavailable = !(out
             .sources
             .iter()
-            .all(|s| s.state == biomcp_types::SourceState::Ok)
-    {
-        Status::Complete
-    } else {
-        Status::Partial
+            .all(|s| s.state == biomcp_types::SourceState::Ok));
+        crate::status::item(out, true, false, unavailable);
     };
     if more && let Some(next) = query.next_page() {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::VariantRecurrence(next),
-                fresh: false,
-            },
+            &[biomcp_types::Source::CancerHotspots],
+            Request::VariantRecurrence(next),
+            false,
         ));
     }
     Ok(())
 }
 fn metadata(query: &VariantRecurrenceQuery, cohort: &cbioportal::Cohort, out: &mut Outcome) {
+    out.problems.extend(cohort.problems.iter().cloned());
     if let Some(error) = cohort.count_error {
         if let Some(source) = out.sources.last_mut() {
             source.state = biomcp_types::SourceState::Failed;
@@ -139,24 +130,28 @@ fn identity(
     let q = biomcp_types::VariantGet::new(
         query.input().clone(),
         biomcp_types::VariantResolver::Car,
-        None,
+        query.build(),
     )
     .map_err(|_| rejected(Source::AlleleRegistry, Reason::Rejected))?;
     let spec = super::source(&q);
-    let leg = cx.fetch.leg(spec, deadline).fresh(cx.fresh);
-    let result = super::resolve(&q, &leg, &mut out.problems);
-    out.sources.push(status::source(
-        spec.source,
-        leg.finish(),
-        result.as_ref().err().copied(),
-    ));
-    let (mut candidates, rejection) = result?;
+    let found = super::identity::read(cx, &q, deadline);
+    out.sources.extend(found.sources);
+    out.problems.extend(found.problems);
+    out.dropped |= found.dropped;
+    out.local = out.local.or(found.local);
+    if let Some(error) = found.error {
+        return Err(error);
+    }
+    let mut candidates = found.rows;
+    let rejection = found.rejection;
     if candidates.len() != 1
         || rejection.is_some()
         || !candidates
             .first()
             .is_some_and(|c| c.identity.representations.iter().any(matching::supported))
     {
+        out.problems
+            .push(super::identity::missing(Source::Cbioportal));
         out.problems.push(matching::problem(
             spec.source,
             query.input().as_str(),
@@ -184,6 +179,8 @@ fn gene(
         result.as_ref().err().copied(),
     ));
     let mapped = result?;
+    out.include_refusals(mapped.refusals);
+    out.include_refusals(mapped.refusals);
     out.problems.extend(mapped.problems);
     if mapped.value.len() == 1
         && let Some(id) = mapped.value.first().and_then(|v| v.entrez_id)
@@ -202,6 +199,7 @@ fn rejected(source: Source, reason: Reason) -> RequestError {
         source,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

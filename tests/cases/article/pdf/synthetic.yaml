@@ -6,29 +6,6 @@
   "steps": [
     {
       "run": [
-        "get",
-        "article",
-        "41351423",
-        "pdf"
-      ],
-      "mcp": [
-        "get",
-        "article",
-        "41351423",
-        "pdf"
-      ],
-      "max_bytes": 3500,
-      "expect": {
-        "/result/items/0/sections/pdf/state": "data",
-        "/result/items/0/sections/pdf/data/license": "cc_by",
-        "/result/items/0/sections/pdf/data/status": "gold",
-        "/result/items/0/sections/pdf": {
-          "max_tokens": 120
-        }
-      }
-    },
-    {
-      "run": [
         "article",
         "pdf",
         "41351423",
@@ -69,36 +46,6 @@
       "expect": {
         "/error/code": "usage.arguments"
       }
-    },
-    {
-      "run": [
-        "article",
-        "text",
-        "41351423",
-        "--pdf",
-        "--part",
-        "1"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/error/code": "usage.arguments"
-      }
-    },
-    {
-      "mcp": [
-        "article",
-        "pdf",
-        "41351423",
-        "--save",
-        "stdio-owned.pdf"
-      ],
-      "max_bytes": 3000,
-      "expect": {
-        "/result/file/state": "data",
-        "/result/file/data/license": "cc_by"
-      },
-      "max_tokens": 200
     }
   ],
   "verified": "Synthetic original text proves PDF metadata and explicit-save behavior, not a real-paper content budget. Offline measurement at ecef1096239f8aeee8fcc6cbefc5720e89506035: metadata envelope 1628 compact bytes / 407 estimated tokens; PDF section 186 bytes / 47 tokens. Save receipt 663 compact bytes / 166 tokens for one isolated temporary path; absolute path length varies. Required terms account for 264 and 126 bytes respectively. The unchanged section and save token targets now have explicit case ceilings."

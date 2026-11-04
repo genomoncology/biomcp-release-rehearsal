@@ -37,7 +37,7 @@ fn reactome(id: &PathwayId) -> bool {
 }
 // CLI requests carry one checked native spelling; neutral records remain source-tagged.
 mod native_id {
-    use super::*;
+    use super::{Deserialize, PathwayId, Text};
     pub(super) fn serialize<S: serde::Serializer>(
         id: &PathwayId,
         serializer: S,
@@ -49,5 +49,26 @@ mod native_id {
     ) -> Result<PathwayId, D::Error> {
         let v = Text::deserialize(d)?;
         v.as_str().parse().map_err(serde::de::Error::custom)
+    }
+}
+
+impl PathwaySource {
+    /// Native source identity for the selected provider.
+    pub const fn source(self) -> crate::Source {
+        match self {
+            Self::Reactome => crate::Source::Reactome,
+            Self::Wikipathways => crate::Source::WikiPathways,
+        }
+    }
+}
+
+impl PathwaySection {
+    /// Publishers implementing this disclosure.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        use crate::Source;
+        match self {
+            Self::Events => &[Source::Reactome],
+            Self::Summary | Self::Genes | Self::All => &[Source::Reactome, Source::WikiPathways],
+        }
     }
 }

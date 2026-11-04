@@ -143,9 +143,7 @@ impl Leg<'_> {
         decoder: &mut D,
     ) -> Result<(), RequestError> {
         let _permit = self
-            .fetch
-            .limiters
-            .acquire(self.spec.quota, self.keyed(), self.budget())
+            .acquire_quota()
             .map_err(|delay| self.quota_failure(delay))?
             .ok_or_else(|| self.failure(Reason::DeadlineExceeded, None))?;
         let exchange = self

@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "clinvar",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=PTEN%5BGENE%5D%20AND%20%22c.333G%3ET%22%5BVRNM%5D&retmode=json&retmax=50&tool=biomcp",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "esearchresult": {
+            "count": "2",
+            "retstart": "0",
+            "idlist": [
+              "3669092",
+              "1760704"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

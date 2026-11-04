@@ -13,9 +13,10 @@ use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::GeneResolution;
 use biomcp_types::{
     GeneGet, GeneItem, GeneSection, GeneSectionWord, GeneSections, Problem, Section, SourceOutcome,
-    SourceState, Status,
+    SourceState,
 };
 pub(super) struct SectionResult {
+    pub dropped: bool,
     pub values: Vec<(HgncId, SectionValue)>,
     pub source: SourceOutcome,
     pub problems: Vec<Problem>,
@@ -59,7 +60,6 @@ pub(super) fn requested(query: &GeneGet) -> Vec<GeneSection> {
                 GeneSectionWord::Expression => *section == GeneSection::Expression,
                 GeneSectionWord::Pathways => *section == GeneSection::Pathways,
                 GeneSectionWord::Oncokb => *section == GeneSection::Oncokb,
-                _ => false,
             })
         })
         .collect()
@@ -74,7 +74,6 @@ fn applicable(section: GeneSection, gene: &Gene) -> bool {
         GeneSection::Expression => expression::applicable(gene),
         GeneSection::Pathways => pathways::applicable(gene),
         GeneSection::Oncokb => gene.entrez_id.is_some(),
-        _ => false,
     }
 }
 pub(super) fn prepare(query: &GeneGet, items: &mut [GeneItem]) -> Vec<(HgncId, Gene)> {
@@ -100,7 +99,7 @@ pub(super) fn prepare(query: &GeneGet, items: &mut [GeneItem]) -> Vec<(HgncId, G
                 civic: requested
                     .contains(&GeneSection::Civic)
                     .then_some(Section::Empty {
-                        source: biomcp_types::Source::Civic,
+                        source: GeneSection::Civic.source(),
                         record: None,
                     }),
                 gencc: requested
@@ -254,32 +253,11 @@ impl SectionValue {
             Self::Oncokb(value, _, _) => matches!(value, Section::Unavailable { .. }),
         }
     }
-    fn problem_matches(&self, gene: &Gene, problem: &Problem) -> bool {
-        let Some(record) = &problem.record else {
-            return false;
-        };
-        match self {
-            Self::Civic(Section::Data { data, .. }) => record.as_str() == data.id.to_string(),
-            Self::Civic(Section::Empty {
-                record: Some(entry),
-                ..
-            }) => record == &entry.id,
-            Self::Civic(_) | Self::Oncokb(..) => false,
-            Self::Gencc(_) => record.as_str() == gene.hgnc_id.to_string(),
-            Self::Protein(_) | Self::Pathways(_) => {
-                gene.uniprot.iter().any(|id| record.as_str() == id.as_str())
-            }
-            Self::Constraint(_) | Self::Expression(_) | Self::ClinGen(_) => gene
-                .ensembl_id
-                .as_ref()
-                .is_some_and(|id| record.as_str() == id.base()),
-        }
-    }
     fn apply(&self, item: &mut GeneItem) {
         if let Self::Oncokb(_, card, partial) = self {
             item.oncokb = card.clone();
             if *partial {
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
             }
         }
         if let Some(sections) = &mut item.sections {
@@ -311,12 +289,9 @@ pub(super) fn join(items: &mut [GeneItem], result: &SectionResult) {
             && (value.unavailable()
                 || (result.source.state == SourceState::Stale
                     && !matches!(value, SectionValue::ClinGen(_)))
-                || result
-                    .problems
-                    .iter()
-                    .any(|problem| value.problem_matches(gene, problem)))
+                || result.dropped)
         {
-            item.status = Status::Partial;
+            item.status = crate::status::item_status(true, false, true);
         }
         value.apply(item);
     }

@@ -1,16 +1,12 @@
 {
+  "verified": "tests/replies/article/supplements/README.md identifies the actual CC BY supplement capture and unchanged source workbook; the nightly run executes the public workbook and row requests.",
+  "live_check": "public",
   "feature": "article-supplements",
   "story": "workbook",
   "replay": "article/supplements/live",
   "steps": [
     {
       "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx"
-      ],
-      "mcp": [
         "article",
         "supplement",
         "28944238",
@@ -59,20 +55,6 @@
         "/result/content/data/rows/1/cells": {
           "includes": "AXIN2"
         }
-      }
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--rows",
-        "84-86"
-      ],
-      "exit": 2,
-      "expect": {
-        "/error/code": "usage.arguments"
       }
     }
   ]

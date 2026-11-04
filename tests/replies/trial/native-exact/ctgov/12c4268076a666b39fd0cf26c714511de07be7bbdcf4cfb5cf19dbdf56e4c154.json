@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&filter.advanced=%28%28AREA%5BCondition%5DEXPANSION%5BNone%5D%22Snyder-Robinson%20syndrome%22%29%29&pageSize=1&query.cond=%28Snyder-Robinson%20syndrome%29",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 0,
+          "studies": []
+        }
+      }
+    }
+  ]
+}

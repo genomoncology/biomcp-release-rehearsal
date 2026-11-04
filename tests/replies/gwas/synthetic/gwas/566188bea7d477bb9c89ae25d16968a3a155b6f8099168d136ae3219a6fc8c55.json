@@ -1,0 +1,17 @@
+{
+  "source": "gwas",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/associations?accession_id=GCST000035&direction=asc&page=0&size=3&sort=p_value",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"_embedded\": {\"associations\": [{\"association_id\": 6110, \"accession_id\": \"GCST000035\", \"reported_trait\": [\"Synthetic association\"], \"efo_traits\": [{\"efo_id\": \"MONDO_0004989\", \"efo_trait\": \"Synthetic mapped trait\"}], \"snp_allele\": [{\"rs_id\": \"rs2981582\", \"effect_allele\": \"A\"}], \"p_value\": 4e-254, \"pvalue_mantissa\": 4, \"pvalue_exponent\": -254, \"pubmed_id\": \"17529967\"}, {\"association_id\": 6111, \"accession_id\": \"GCST000035\", \"reported_trait\": [\"Synthetic association\"], \"efo_traits\": [{\"efo_id\": \"MONDO_0004989\", \"efo_trait\": \"Synthetic mapped trait\"}], \"snp_allele\": [{\"rs_id\": \"rs2981582\", \"effect_allele\": \"A\"}], \"p_value\": 4e-254, \"pvalue_mantissa\": 4, \"pvalue_exponent\": -254, \"pubmed_id\": \"17529967\"}, {\"association_id\": 6112, \"accession_id\": \"GCST000035\", \"reported_trait\": [\"Synthetic association\"], \"efo_traits\": [{\"efo_id\": \"MONDO_0004989\", \"efo_trait\": \"Synthetic mapped trait\"}], \"snp_allele\": [{\"rs_id\": \"rs2981582\", \"effect_allele\": \"A\"}], \"p_value\": 4e-254, \"pvalue_mantissa\": 4, \"pvalue_exponent\": -254, \"pubmed_id\": \"17529967\"}]}, \"_links\": {\"self\": {\"href\": \"https://www.ebi.ac.uk/gwas/rest/api/v2/associations?accession_id=GCST000035&direction=asc&page=0&size=3&sort=p_value\"}}, \"page\": {\"size\": 3, \"number\": 0, \"totalElements\": 6, \"totalPages\": 2}}"
+      }
+    }
+  ]
+}

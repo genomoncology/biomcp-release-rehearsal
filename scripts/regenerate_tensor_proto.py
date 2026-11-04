@@ -34,9 +34,9 @@ def split_generated(text):
         raise ValueError("unrecognized generated Rust tail")
     parts, group = [], ""
     for item in items:
-        if len(item.splitlines()) > 500:
+        if len(item.splitlines()) > 298:
             raise ValueError("generated item exceeds file ceiling")
-        if len((group + item).splitlines()) > 500:
+        if len((group + item).splitlines()) > 298:
             parts.append(group)
             group = ""
         group += item
@@ -56,7 +56,7 @@ def main():
     for path, digest in INPUTS.items():
         if hashlib.sha256((proto / path).read_bytes()).hexdigest() != digest:
             raise ValueError(f"pinned proto mismatch: {PIN}/{path}")
-    target = root / "crates/biomcp-fetch/src/grpc/generated"
+    target = root / "crates/biomcp-adapters/src/alphagenome/generated"
     with tempfile.TemporaryDirectory(prefix="tensor-proto-") as temporary:
         subprocess.run([
             "cargo", "run", "--locked", "--manifest-path",

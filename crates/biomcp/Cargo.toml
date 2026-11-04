@@ -14,27 +14,24 @@ tempfile.workspace = true
 base64.workspace = true
 httparse.workspace = true
 ctrlc.workspace = true
-clap = { workspace = true, features = ["error-context"] }
+clap = { workspace = true, features = ["error-context", "usage"] }
 serde.workspace = true
 biomcp-fetch = { workspace = true }
-biomcp-adapters = { workspace = true }
 biomcp-query = { workspace = true }
 serde_json.workspace = true
 biodata = { workspace = true, features = ["schema"] }
 
 [build-dependencies]
+biomcp-types = { workspace = true }
 serde-saphyr.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
-h2 = { version = "0.4", default-features = false }
-tokio = { version = "1", default-features = false, features = ["rt", "net", "time", "sync", "io-util", "macros"] }
-tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
-tonic = { version = "=0.14.7", default-features = false, features = ["codegen"] }
-prost = { version = "=0.14.3", default-features = false, features = ["std"] }
+same-file = "=1.0.6"
+biomcp-test-support.workspace = true
+biomcp-adapters.workspace = true
+url.workspace = true
 rusqlite.workspace = true
-rcgen = { version = "=0.13.2", default-features = false, features = ["pem", "ring"] }
-time = { version = "0.3.55", default-features = false, features = ["std"] }
 rustls.workspace = true
 jsonschema.workspace = true
 libtest-mimic.workspace = true
@@ -48,5 +45,10 @@ workspace = true
 name = "cases"
 harness = false
 
+[[test]]
+name = "tools"
+test = false
+harness = false
+
 [target.'cfg(unix)'.dev-dependencies]
-nix = { version = "=0.31.3", default-features = false, features = ["signal", "process"] }
+nix = { version = "=0.31.3", default-features = false, features = ["signal", "process", "fs", "poll"] }

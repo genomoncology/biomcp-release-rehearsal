@@ -1,11 +1,13 @@
 //! Native residue counts remain candidates when transcript equivalence is not established.
 use super::{launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test(
-        "variant/hotspots-retains-native-transcript-and-counts",
+    // The peer checks the exact bounded gene endpoint and that cached or disabled reads send no extra request.
+    vec![transcript_trial(
+        crate::runner::required_contract::HOTSPOTS.0,
         || candidate().map_err(Into::into),
     )]
 }
@@ -17,7 +19,7 @@ fn candidate() -> Result<(), String> {
     )?;
     let environment = Environment::new().map_err(|e| e.to_string())?;
     let ca = environment.root().join("synthetic-ca.pem");
-    stub.retain(&environment);
+    stub.retain(environment.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     environment
         .config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
@@ -39,7 +41,7 @@ fn candidate() -> Result<(), String> {
     envelope(&value)?;
     let base = "/result/candidates/0/sections/hotspots/data";
     for (path, expected) in [
-        ("/reason", json!("no_join_id")),
+        ("/reason", json!("no-join-id")),
         ("/records/0/membership", json!("candidate")),
         ("/records/0/transcript", json!("ENST00000288602")),
         ("/records/0/residue", json!("V600")),
@@ -86,7 +88,10 @@ fn candidate() -> Result<(), String> {
 }
 pub(super) fn body(request: &str) -> Result<String, String> {
     if request.starts_with("GET /v1/variant/") {
-        Ok(json!({"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}}).to_string())
+        Ok(json!({"_id":"chr7:g.140753336A>T",
+        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+        "dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}})
+        .to_string())
     } else {
         // Counts are deliberately synthetic; provider data rights remain unverified.
         Ok(json!(
@@ -112,17 +117,26 @@ fn envelope(value: &Value) -> Result<(), String> {
     let terms = header
         .remove("component_terms")
         .ok_or("missing component terms")?;
-    let expected = biomcp_adapters::myvariant::components::label(
-        biomcp_adapters::myvariant::components::CLINVAR.terms,
+    let expected = biomcp_query::sources::component_label(
+        biomcp_query::sources::components()
+            .find(|component| {
+                component.source == biomcp_types::Source::MyVariant && component.name == "clinvar"
+            })
+            .ok_or("missing component declaration")?
+            .terms,
     )
     .map_err(|e| e.to_string())?;
+    let component_bytes = serde_json::to_vec(&json!({"component_terms": &terms}))
+        .map_err(|e| e.to_string())?
+        .len()
+        - 1;
     let payload = serde_json::to_vec(&comparable)
         .map_err(|e| e.to_string())?
         .len();
     if terms != json!([{"component":"clinvar","terms":expected}])
-        || full - payload != 205 + source_terms
-        || payload > 1536
-        || full - source_terms > 1771
+        || full - payload != component_bytes + source_terms
+        || payload > crate::runner::output_limit("hotspots-payload")?
+        || full - source_terms > crate::runner::output_limit("hotspots-envelope")?
     {
         return Err(format!(
             "hotspots full={full}, comparable={payload}; caps=1771/1536"

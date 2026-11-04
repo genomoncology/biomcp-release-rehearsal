@@ -12,10 +12,20 @@ biodata::wire_enum! { described
 biodata::wire_enum! { described
     /// Report-level seriousness filter, independent of reaction outcome.
     AdverseEventSerious {
+        /// Native report seriousness flag.
+        Any => "any",
         /// Native report death flag.
         Death => "death",
         /// Native report hospitalization flag.
         Hospitalization => "hospitalization",
+        /// Native report life-threatening flag.
+        Lifethreatening => "lifethreatening",
+        /// Native report disabling flag.
+        Disabling => "disabling",
+        /// Native report congenital anomaly flag.
+        CongenitalAnomaly => "congenital-anomaly",
+        /// Native report other serious flag.
+        Other => "other",
     }
 }
 biodata::wire_enum! { described
@@ -86,5 +96,16 @@ biodata::wire_enum! { described
     ReportUnit {
         /// Native report count without a population denominator.
         Reports => "reports",
+    }
+}
+
+impl AdverseEventSource {
+    /// Source identity for this explicit native selector.
+    pub const fn source(self) -> crate::Source {
+        match self {
+            Self::Faers => crate::Source::Faers,
+            Self::Maude => crate::Source::Maude,
+            Self::Vaers => crate::Source::Vaers,
+        }
     }
 }

@@ -41,12 +41,44 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Rare disease rerun (experiment 499): variant transcripts and HGVS (0378), separate ClinGen statuses (0379), gnomAD from rsID or HGVS (0380), LitVar and variant article recall (0381), trial condition expansion (0382), GenCC section (0383).
 - Order: schema-changing tickets (0341, then 0358, 0359, 0361, 0362) early, because each regenerates the baseline.
 
+- Close the public benchmark gaps Ian added on 2026-10-28, corrected by an adversarial design review: build 0414, then 0409, 0411 and 0415 on the trial filters; 0408, then 0410 for the two NCI entities; 0413, then 0412 and 0416 for MAUDE filters and FDA device and drug recalls.
+
+- Close the code quality review's findings (`records/2026-10-28-code-quality-review.md`) by the reviewed design in `planning/restructure.md`. Order: the trial status fix 0417, the reply diff 0454 that proves each structure ticket changes nothing it does not name, pure dead code 0425, the installed-binary suite 0429, then 0423, 0434, 0430, 0431, 0456, the bad-value rule (0467, then the families 0468 to 0472, closed by 0418), 0426, 0457, the native window owner 0494, refusal facts 0495, cache admission 0496, status rules 0419 and typed next steps 0458, the layer move 0420, the command table 0421, 0427, the source declaration 0422, 0455, 0424, 0428 and finally the architecture rewrite 0432. Each ticket's Depends line holds the exact order.
+
+- Rebuild the test suite as one small outside-in suite (`decisions/2026-10-29-one-small-outside-in-suite.md`): the required-coverage check 0483 after 0431, then the case cut 0456, then the runner trial cut 0484 and the nightly selection 0485. Mutation testing 0457 runs on the cut suite.
+
+- Make 1.0 ready to run as a shared hosted MCP server, live before 2026-11-30 (m16469): hosted mode 0502, then per-request keys 0503, then licensed replies kept per caller 0504 and per-key pacing 0505, and remote tool fit 0506 in parallel. These run alongside the restructure, because they touch the MCP edge and the fetch layer and serve the deadline.
+
+- Fix the BioData review's data model findings before the tag, because they correct public values: 0435 to 0453, with 0436 and 0437 first, and 0444 before 0421.
+
 ### 6. Rehearse and release
 
+- Test against public data before the cut: parse every CIViC and ClinVar record into 1.0 values (0460) and turn real user queries into cases (0461).
+- Close the release review of 2026-10-31 (weighed 2026-11-01) and the code review tickets before the cut: bundle resume 0528, store failures 0529, the hosted HTTP edge 0530, compatibility options and small CLI fixes 0531, dependency trims and the unused-dependency check 0532, gated publication 0533, release notes and public docs 0534, and 0521 to 0526. They touch nothing in `crates/biodata`, so they run while the BioData switch waits. Job failures and gate time (0535) run alongside and gate nothing.
+- Lift the hosted capacity limits the hosted team asked for on 2026-11-01: call and connection caps as settings (0548), keyed-only rate share (0549), shared TLS settings (0550), then published source pacing with config overrides (0551), and per-request declared use (0553).
+- 0459 lists the code tickets that must land before the BioData switch, and 0336 lists those that must land before the cut. A new must-ship ticket goes on 0336's Depends line, or on 0459's when the switch needs it.
+- Switch to the extracted BioData 1.0 crate once every code ticket lands, with an empty reply diff and an unchanged schema comparison (0459).
+- Fix the agent benchmark's general causes and bugs before the cut (Ian, 2026-11-03): the generated front-door map 0586, MCP replies sent once 0587, every variant ID form 0588, bugs and errors 0589, lean default replies 0590. Experiment 513's ranked list may add more. Hosting's launch needs come first.
+- Build the evals recommendations of 2026-11-04 (`planning/eval-recommendations-2026-11-04.md`) before the cut: drug names in `get drug` 0599, indel coordinates 0600, approvals newest first 0601, a map that pairs sections with sources 0602, and an empty-result note 0603. Main already uses one CLI-argument MCP tool and gives up on a cold download within the command budget. The Gaps list waits for evals to recheck it on main.
+- Build the defects and cheapest high-value gaps from the evals gap recheck (`planning/eval-gap-recheck-2026-11-04.md`) before the cut: errors that name the filter and boolean values 0604, the openFDA label search page 0605, MAUDE received dates 0606, posted trial results 0607, and every openFDA label section 0608. Ian put the rest in 1.0 too (2026-11-04, m24381): FAERS several names 0609, gnomAD homozygotes and joint totals 0610, device approval search and documents 0611, cBioPortal rows 0613, GWAS studies by PMID 0614, CIViC level filters 0615, WHO PQ dates 0616, cell-line filters 0617.
 - Cut the release candidate from main once every ticket above lands (0336).
 
 - Rehearse the final candidate on every platform (0293).
-- A fresh agent compares the 0.9.3 and 1.0 CLIs blind on about 20 tasks, and every 1.0 regression is fixed or explained (0402).
+- Comparisons with 0.9.3 and agent benchmarks belong to the evals team (experiment 513), not BioMCP; 0402, 0405, 0462 and 0490 were handed over (Ian, 2026-11-03, m23337 and m23350). BioMCP tickets the changes evals marks as sure wins.
+- Ian approves BioData's public repository and its v1.0.0 tag, which 0459 pins (asked through Jarvis on 2026-11-01).
+- Ian approves the publication credentials and settings 0533 lists. The release workflow has no manual approval pause (0554).
 - Ian approves the public append, the 1.0 tag and publication.
 - Append this repository's history to the public repository with one merge commit, keeping old tags and releases (0294).
 - Tag v1.0.0 on that public merge commit, let the release workflow qualify the tag, and have the release operators publish from that run (0294). The installer and Homebrew download from the public repository's release, so the append and tag come before publication.
+
+## After 1.0
+
+Ian's direction of 2026-10-29 (relayed in m14819): BioMCP becomes the data and control plane for precision-medicine context for agents. It reaches FHIR servers and OMOP databases through adapters that turn their replies into BioData values, with no ORM and no hand-written API client. FHIR search and FHIRPath become BioMCP getters, and OHDSI's queries become BioMCP commands. None of this changes 1.0.
+
+- BioData types only the small values: time with precision, decimal, unit, quantity, coded value, identifier, record key, source and loss (BioData's ruling of 2026-10-30, m15631). Record shapes, FHIR and OMOP adapters, SQL on FHIR views and query logic live in BioMCP, because FHIR R4 to R6 and OMOP 5.3 to 5.4 all stay live.
+- FHIR commands: search and get patient with sections, search observation, condition, medication and encounter, get report, each planned from the server's capability statement with fixed fallbacks and echoed requests, and a sync command that fills an offline store through bulk export.
+- OMOP commands: concept search and hierarchy, concept set resolution, person search and profile, Phenotype Library cohorts, counts and attrition, characteristics, incidence, and database summary and quality, running OHDSI's declarative artifacts (Circe, SqlRender, QueryLibrary, Achilles, DataQualityDashboard) natively in Rust, with OHDSI tools only as reference answers in tests.
+- Open questions for planning: cohort counts break get study's promise to calculate no frequencies; real databases need a minimum cell count (OHDSI's default is 5); and whether linking a FHIR library counts as running another tool.
+- BioData's experiments 507 and 508 tested shared clinical records and found that they failed across backends; planning starts from 508's record findings (encounter kind, observation stay, microbiology shape, medication kind).
+- Licensed data stays private: GENIE, UMLS, TCGA, JAX-CKB and all other licensed material live only in private repositories, private experiments or our machines, and public ISCN tests share nothing with the ISCN book's examples.
+

@@ -1,0 +1,63 @@
+{
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
+  "feature": "agent-skill",
+  "story": "Local guidance renders its released text and reports each explicit installation state.",
+  "steps": [
+    {
+      "run": [
+        "skill",
+        "list"
+      ],
+      "stdout": "# BioMCP Worked Examples\n\n01-treatment-lookup: Find published evidence for a treatment question\n02-symptom-phenotype: Look up a stated symptom term\n03-gene-disease-orientation: Read gene\u2013disease source assessments\n04-article-follow-up: Follow an article through its sources\n05-variant-pathogenicity: Inspect native variant assertions\n06-drug-regulatory: Read an exact regulatory medicine record\n07-gene-function-localization: Inspect protein features after gene resolution\n08-mechanism-pathway: Read an identified pathway record\n09-trial-recruitment: Screen registry records in explicit stages\n10-pharmacogene-cumulative: Read separate pharmacogenomics tables\n11-disease-locus-mapping: Find genes in a stated cytoband\n12-cellular-process-regulation: Inspect pathway membership and events\n13-mutation-catalog: Inspect candidates at an explicit genomic position\n14-syndrome-disambiguation: Resolve an ambiguous gene name before disease review\n15-negative-evidence: Distinguish empty from unavailable source sections\n16-normalize-to-codes: Keep normalization services independent\n17-exact-variant-literature: Search literature with an explicit variant term\n"
+    },
+    {
+      "run": [
+        "--format",
+        "md",
+        "skill",
+        "render"
+      ],
+      "expect": {
+        "": {
+          "includes_all_of": [
+            "Use `biomcp help COMMAND ENTITY`",
+            "Process exit codes:"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "skill",
+        "status",
+        "agent"
+      ],
+      "expect": {
+        "/state": "missing"
+      }
+    },
+    {
+      "run": [
+        "skill",
+        "install",
+        "agent",
+        "--force"
+      ],
+      "expect": {
+        "/status": "installed",
+        "/changed": true,
+        "/skill_status/state": "current"
+      }
+    },
+    {
+      "run": [
+        "skill",
+        "status",
+        "agent"
+      ],
+      "expect": {
+        "/state": "current"
+      }
+    }
+  ]
+}

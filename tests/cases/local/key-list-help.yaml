@@ -1,0 +1,17 @@
+{
+  "live_check": "local-only command help",
+  "feature": "key-registration",
+  "story": "Key list help describes credential origins without values.",
+  "steps": [
+    {
+      "run": [
+        "help",
+        "key",
+        "list"
+      ],
+      "expect": {
+        "/result/commands/0/description": "List source credentials and their origins without showing values."
+      }
+    }
+  ]
+}

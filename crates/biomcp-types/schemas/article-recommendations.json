@@ -1,7 +1,6 @@
 {
   "$defs": {
-    "ArticleHeader": {
-      "additionalProperties": false,
+    "Reply_ArticleHeader": {
       "description": "Citation metadata from PubMed or Europe PMC.",
       "properties": {
         "author_count": {
@@ -13,7 +12,7 @@
         "date": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -24,7 +23,7 @@
         "doi": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Doi"
+              "$ref": "#/$defs/Reply_Doi"
             },
             {
               "type": "null"
@@ -35,7 +34,7 @@
         "electronic_date": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -46,7 +45,7 @@
         "europepmc_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/EuropePmcId"
+              "$ref": "#/$defs/Reply_EuropePmcId"
             },
             {
               "type": "null"
@@ -57,7 +56,7 @@
         "first_author": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -68,7 +67,7 @@
         "first_author_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/SemanticScholarAuthorId"
+              "$ref": "#/$defs/Reply_SemanticScholarAuthorId"
             },
             {
               "type": "null"
@@ -79,7 +78,7 @@
         "journal": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -90,7 +89,7 @@
         "pmcid": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Pmcid"
+              "$ref": "#/$defs/Reply_Pmcid"
             },
             {
               "type": "null"
@@ -99,17 +98,17 @@
           "description": "Checked PMC identity, when supplied."
         },
         "pmid": {
-          "$ref": "#/$defs/Pmid",
+          "$ref": "#/$defs/Reply_Pmid",
           "description": "Checked PubMed identity."
         },
         "title": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Whole source title."
         },
         "types": {
           "description": "Clinical publication types.",
           "items": {
-            "$ref": "#/$defs/PublicationType"
+            "$ref": "#/$defs/Reply_PublicationType"
           },
           "type": "array"
         },
@@ -123,13 +122,12 @@
       ],
       "type": "object"
     },
-    "ArticleInput": {
+    "Reply_ArticleInput": {
       "description": "A validated canonical ArticleInput string.",
-      "pattern": "^(?:[1-9][0-9]*|PMC[1-9][0-9]*|PPR[0-9]*[1-9][0-9]*|(?:https?://doi\\.org/)?10\\.[0-9]+/[^\\s\\x00-\\x1f\\x7f]+)$",
+      "pattern": "(^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|^PMC(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|(?=PPR)^(?=.{1,64}$)[A-Z]{1,8}[0-9]*[1-9][0-9]*$|^(?:https?://doi\\.org/)?10\\.[0-9]+/[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]+$)",
       "type": "string"
     },
-    "ArticleItem": {
-      "additionalProperties": false,
+    "Reply_ArticleItem": {
       "description": "One original pool position, including a summary hole.",
       "properties": {
         "cited_by": {
@@ -144,7 +142,7 @@
         "contexts": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Capped"
+              "$ref": "#/$defs/Reply_Capped_Text"
             },
             {
               "type": "null"
@@ -153,7 +151,6 @@
           "description": "First citation context and the source's complete context count."
         },
         "found_by": {
-          "additionalProperties": false,
           "description": "Native one-based source positions, disclosed only for multiple sources.",
           "properties": {
             "europepmc": {
@@ -192,7 +189,7 @@
         "header": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ArticleHeader"
+              "$ref": "#/$defs/Reply_ArticleHeader"
             },
             {
               "type": "null"
@@ -210,7 +207,7 @@
         "intents": {
           "description": "Citation intents in provider order; absent means not reported.",
           "items": {
-            "$ref": "#/$defs/CitationIntent"
+            "$ref": "#/$defs/Reply_CitationIntent"
           },
           "type": [
             "array",
@@ -218,17 +215,17 @@
           ]
         },
         "key": {
-          "$ref": "#/$defs/ArticleKey",
+          "$ref": "#/$defs/Reply_ArticleKey",
           "description": "Stable checked paper identity when the provider supplies one."
         },
         "pmid": {
-          "$ref": "#/$defs/Pmid",
+          "$ref": "#/$defs/Reply_Pmid",
           "description": "The selected PMID, retained when summary mapping fails."
         },
         "sentence": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ArticleSentence"
+              "$ref": "#/$defs/Reply_ArticleSentence"
             },
             {
               "type": "null"
@@ -239,14 +236,14 @@
       },
       "type": "object"
     },
-    "ArticleKey": {
+    "Reply_ArticleKey": {
       "description": "Stable identity independent of whether citation metadata was accepted.",
       "oneOf": [
         {
           "description": "PubMed identity.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/Pmid"
+              "$ref": "#/$defs/Reply_Pmid"
             },
             "namespace": {
               "const": "pubmed",
@@ -263,7 +260,7 @@
           "description": "PMC identity when PubMed is absent.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/Pmcid"
+              "$ref": "#/$defs/Reply_Pmcid"
             },
             "namespace": {
               "const": "pmc",
@@ -280,7 +277,7 @@
           "description": "DOI when both indexed numeric identities are absent.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/Doi"
+              "$ref": "#/$defs/Reply_Doi"
             },
             "namespace": {
               "const": "doi",
@@ -297,7 +294,7 @@
           "description": "Europe PMC local source identity.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/EuropePmcId"
+              "$ref": "#/$defs/Reply_EuropePmcId"
             },
             "namespace": {
               "const": "europepmc",
@@ -314,10 +311,10 @@
           "description": "Semantic Scholar local identity when no indexed identifier exists.",
           "properties": {
             "id": {
-              "$ref": "#/$defs/SemanticScholarId"
+              "$ref": "#/$defs/Reply_SemanticScholarId"
             },
             "namespace": {
-              "const": "semantic_scholar",
+              "const": "semantic-scholar",
               "type": "string"
             }
           },
@@ -327,10 +324,10 @@
           ],
           "type": "object"
         }
-      ]
+      ],
+      "x-identifier": true
     },
-    "ArticleRecommend": {
-      "additionalProperties": false,
+    "Reply_ArticleRecommend": {
       "description": "Recommendations in the provider's recent-paper pool order.",
       "properties": {
         "limit": {
@@ -344,7 +341,7 @@
         "negative": {
           "description": "Up to ten negative paper identities.",
           "items": {
-            "$ref": "#/$defs/ArticleInput"
+            "$ref": "#/$defs/Reply_ArticleInput"
           },
           "maxItems": 10,
           "type": "array"
@@ -357,13 +354,13 @@
           "type": "integer"
         },
         "pool": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Fixed recommendation pool."
         },
         "seeds": {
           "description": "One to ten positive paper identities.",
           "items": {
-            "$ref": "#/$defs/ArticleInput"
+            "$ref": "#/$defs/Reply_ArticleInput"
           },
           "maxItems": 10,
           "minItems": 1,
@@ -376,21 +373,20 @@
       ],
       "type": "object"
     },
-    "ArticleRecommendations": {
-      "additionalProperties": false,
+    "Reply_ArticleRecommendations": {
       "description": "Source-native recommendation page.",
       "properties": {
         "items": {
           "description": "Papers in provider order, without a local topic filter.",
           "items": {
-            "$ref": "#/$defs/ArticleItem"
+            "$ref": "#/$defs/Reply_ArticleItem"
           },
           "type": "array"
         },
         "notice": {
           "anyOf": [
             {
-              "$ref": "#/$defs/EvidenceNotice"
+              "$ref": "#/$defs/Reply_EvidenceNotice"
             },
             {
               "type": "null"
@@ -408,14 +404,13 @@
       ],
       "type": "object"
     },
-    "ArticleSentence": {
-      "additionalProperties": false,
+    "Reply_ArticleSentence": {
       "description": "Source-provided sentence resemblance, without a claim of clinical relevance.",
       "properties": {
         "section": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -424,32 +419,40 @@
           "description": "Source section, when present."
         },
         "text": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Source sentence text."
         }
       },
-      "required": [
-        "text"
-      ],
       "type": "object"
     },
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "Capped": {
-      "additionalProperties": false,
+    "Reply_Capped_Text": {
       "description": "A bounded list with the total before its cap was applied.",
       "properties": {
         "items": {
           "description": "References in stable source order.",
           "items": {
-            "$ref": "#/$defs/Text"
+            "$ref": "#/$defs/Reply_Text"
           },
           "type": "array"
         },
@@ -465,41 +468,40 @@
       ],
       "type": "object"
     },
-    "CitationIntent": {
+    "Reply_CitationIntent": {
       "description": "Source-reported reason for citing a paper.",
-      "enum": [
-        "background",
-        "result",
-        "methodology"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The source cites background information.",
         " The source cites a reported result.",
         " The source cites a method."
+      ],
+      "x-extensible-enum": [
+        "background",
+        "result",
+        "methodology"
       ]
     },
-    "Doi": {
+    "Reply_Doi": {
       "description": "DOI preserving source spelling with ASCII-insensitive equality.",
-      "pattern": "^10\\.[0-9]+/[^\\s\\x00-\\x1f\\x7f]+$",
+      "pattern": "^10\\.[0-9]+/[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]+$",
       "type": "string"
     },
-    "EuropePmcId": {
+    "Reply_EuropePmcId": {
       "description": "Europe PMC source prefix followed by its positive numeric local identifier.",
-      "pattern": "^[A-Z]{1,8}[0-9]*[1-9][0-9]*$",
+      "pattern": "^(?=.{1,64}$)[A-Z]{1,8}[0-9]*[1-9][0-9]*$",
       "type": "string"
     },
-    "EvidenceNotice": {
+    "Reply_EvidenceNotice": {
       "description": "Explicit successful empty outcomes, never inferred from a source failure.",
       "enum": [
-        "not_in_references",
-        "no_contexts",
-        "no_recommendations"
+        "not-in-references",
+        "no-contexts",
+        "no-recommendations"
       ],
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -511,7 +513,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -546,23 +548,22 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Pmcid": {
+    "Reply_Pmcid": {
       "description": "Canonical PMC identifier, with an explicit namespace.",
-      "pattern": "^PMC[1-9][0-9]*$",
+      "pattern": "^PMC(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "Pmid": {
+    "Reply_Pmid": {
       "description": "Positive PubMed identifier.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -578,7 +579,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -596,12 +597,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -611,7 +611,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -620,7 +620,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -631,45 +631,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "PublicationType": {
+    "Reply_PublicationType": {
       "description": "Clinically meaningful PubMed publication types.",
-      "enum": [
-        "randomized_controlled_trial",
-        "clinical_trial",
-        "clinical_trial_phase_1",
-        "clinical_trial_phase_2",
-        "clinical_trial_phase_3",
-        "clinical_trial_phase_4",
-        "meta_analysis",
-        "systematic_review",
-        "review",
-        "practice_guideline",
-        "guideline",
-        "case_report",
-        "observational_study",
-        "multicenter_study",
-        "letter",
-        "comment",
-        "editorial",
-        "preprint",
-        "retracted_publication",
-        "retraction_notice",
-        "erratum"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Randomized controlled trial.",
@@ -693,31 +670,33 @@
         " Retracted publication.",
         " Retraction notice.",
         " Erratum."
+      ],
+      "x-extensible-enum": [
+        "randomized-controlled-trial",
+        "clinical-trial",
+        "clinical-trial-phase-1",
+        "clinical-trial-phase-2",
+        "clinical-trial-phase-3",
+        "clinical-trial-phase-4",
+        "meta-analysis",
+        "systematic-review",
+        "review",
+        "practice-guideline",
+        "guideline",
+        "case-report",
+        "observational-study",
+        "multicenter-study",
+        "letter",
+        "comment",
+        "editorial",
+        "preprint",
+        "retracted-publication",
+        "retraction-notice",
+        "erratum"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -739,93 +718,41 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "SemanticScholarAuthorId": {
+    "Reply_SemanticScholarAuthorId": {
       "description": "A checked source-local Semantic Scholar author identifier, never a person identity.",
       "pattern": "^[1-9][0-9]*$",
       "type": "string"
     },
-    "SemanticScholarId": {
+    "Reply_SemanticScholarId": {
       "description": "Semantic Scholar's stable 40-character hexadecimal paper identifier.",
-      "pattern": "^[a-f0-9]{40}$",
+      "pattern": "^[A-Fa-f0-9]{40}$",
       "type": "string"
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -895,21 +822,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -933,11 +936,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -952,15 +954,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -971,15 +972,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -990,11 +990,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -1009,11 +1008,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -1035,17 +1033,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -1057,8 +1054,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -1070,26 +1066,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -1097,18 +1084,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1126,7 +1122,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -1139,7 +1135,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -1150,7 +1146,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -1160,8 +1156,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -1172,7 +1167,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -1181,7 +1176,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -1197,31 +1192,33 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.article-recommendations/4",
+  "$id": "biomcp.article-recommendations/9",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1232,14 +1229,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1250,18 +1247,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/ArticleRecommend",
+      "$ref": "#/$defs/Reply_ArticleRecommend",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/ArticleRecommendations"
+          "$ref": "#/$defs/Reply_ArticleRecommendations"
         },
         {
           "type": "null"
@@ -1270,18 +1267,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.article-recommendations/4",
+      "const": "biomcp.article-recommendations/9",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

@@ -1,0 +1,17 @@
+{
+  "source": "gwas",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/studies?page=0&pubmed_id=17554300&size=50",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"_embedded\": {\"studies\": [{\"accession_id\": \"GCST000040\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 0\", \"initial_sample_size\": \"Synthetic discovery sample 0\", \"replication_sample_size\": \"Synthetic replication sample 0\", \"efo_traits\": []}, {\"accession_id\": \"GCST000041\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 1\", \"initial_sample_size\": \"Synthetic discovery sample 1\", \"replication_sample_size\": \"Synthetic replication sample 1\", \"efo_traits\": []}, {\"accession_id\": \"GCST000042\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 2\", \"initial_sample_size\": \"Synthetic discovery sample 2\", \"replication_sample_size\": \"Synthetic replication sample 2\", \"efo_traits\": []}, {\"accession_id\": \"GCST000043\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 3\", \"initial_sample_size\": \"Synthetic discovery sample 3\", \"replication_sample_size\": \"Synthetic replication sample 3\", \"efo_traits\": []}, {\"accession_id\": \"GCST000044\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 4\", \"initial_sample_size\": \"Synthetic discovery sample 4\", \"replication_sample_size\": \"Synthetic replication sample 4\", \"efo_traits\": []}, {\"accession_id\": \"GCST000046\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 5\", \"initial_sample_size\": \"Synthetic discovery sample 5\", \"replication_sample_size\": \"Synthetic replication sample 5\", \"efo_traits\": []}, {\"accession_id\": \"GCST000047\", \"pubmed_id\": 17554300, \"disease_trait\": \"Synthetic trait 6\", \"initial_sample_size\": \"Synthetic discovery sample 6\", \"replication_sample_size\": \"Synthetic replication sample 6\", \"efo_traits\": []}]}, \"page\": {\"size\": 50, \"totalElements\": 7, \"totalPages\": 1, \"number\": 0}, \"_links\": {\"self\": {\"href\": \"https://www.ebi.ac.uk/gwas/rest/api/v2/studies?page=0&pubmed_id=17554300&size=50\"}}}"
+      }
+    }
+  ]
+}

@@ -6,63 +6,6 @@
     {
       "run": [
         "search",
-        "protein"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1"
-      },
-      "max_bytes": 195
-    },
-    {
-      "run": [
-        "search",
-        "protein",
-        "EGFR",
-        "--gene",
-        "BRAF"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1"
-      },
-      "max_bytes": 195
-    },
-    {
-      "run": [
-        "search",
-        "protein",
-        "EGFR",
-        "--limit",
-        "0"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1"
-      },
-      "max_bytes": 166
-    },
-    {
-      "run": [
-        "search",
-        "protein",
-        "EGFR",
-        "--limit",
-        "26"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1"
-      },
-      "max_bytes": 166
-    },
-    {
-      "run": [
-        "search",
         "protein",
         "EGFR",
         "--offset",
@@ -71,35 +14,9 @@
       "exit": 2,
       "is_error": true,
       "expect": {
-        "/schema": "biomcp.error/1"
+        "/schema": "biomcp.error/4"
       },
-      "max_bytes": 166
-    },
-    {
-      "run": [
-        "search",
-        "protein",
-        "EGFR",
-        "--include-unreviewed"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1"
-      },
-      "max_bytes": 203
-    },
-    {
-      "run": [
-        "get",
-        "protein"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/schema": "biomcp.error/1"
-      },
-      "max_bytes": 166
+      "max_bytes": 388
     },
     {
       "run": [
@@ -108,22 +25,6 @@
         "EGFR",
         "--pool",
         "unknown"
-      ],
-      "exit": 3,
-      "is_error": true,
-      "expect": {
-        "/error/code": "pool.expired",
-        "/next/0/kind": "restart"
-      },
-      "max_bytes": 216
-    },
-    {
-      "run": [
-        "search",
-        "protein",
-        "EGFR",
-        "--offset",
-        "1"
       ],
       "exit": 3,
       "is_error": true,

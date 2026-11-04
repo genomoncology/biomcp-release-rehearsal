@@ -15,6 +15,9 @@ struct Fields {
     input: VariantInput,
     /// Explicit cohort source.
     source: RecurrenceSource,
+    /// Identity lookup assembly; omitted uses the shared GRCh38 default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    build: Option<crate::Build>,
     /// HGNC symbol resolved to the source's Entrez gene identifier.
     gene: GeneSymbol,
     /// Explicit study; there is no default cohort.
@@ -38,6 +41,7 @@ crate::query::validation::checked_query!(VariantRecurrenceQuery, Fields);
 impl TryFrom<Fields> for VariantRecurrenceQuery {
     type Error = super::gene::QueryInvalid;
     fn try_from(v: Fields) -> Result<Self, Self::Error> {
+        crate::VariantGet::new(v.input.clone(), crate::VariantResolver::Car, v.build)?;
         if !(1..=100).contains(&v.limit) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
         }
@@ -62,6 +66,10 @@ impl VariantRecurrenceQuery {
     /// Unchanged variant identifier.
     pub fn input(&self) -> &VariantInput {
         &self.0.input
+    }
+    /// Caller assembly for identity resolution.
+    pub fn build(&self) -> Option<crate::Build> {
+        self.0.build
     }
     /// Caller-selected gene symbol.
     pub fn gene(&self) -> &GeneSymbol {

@@ -1,1 +1,0 @@
-The request identities and PubMed responses were recorded by the CLI in the public proof. HGNC is an explicitly synthetic bulk response limited to the exact public NF2 row. The complete captures and outputs live in the evidence store under ticket 0102. No abstracts or full text were requested. Each invocation used a new empty recording directory.

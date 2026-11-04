@@ -11,7 +11,13 @@ def revision(explicit=None):
     if not selected:
         dirty = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=normal'], text=True)
         if dirty:
-            raise ValueError('dirty source tree: provide an explicit revision for a local rehearsal')
+            lines = dirty.splitlines()
+            preview = '\n'.join(lines[:20])
+            truncated = len(lines) > 20 or len(preview) > 4096
+            preview = preview[:4096]
+            suffix = '\n(status truncated)' if truncated else ''
+            raise ValueError('dirty source tree: provide an explicit revision for a local rehearsal\n'
+                             + preview + suffix)
         selected = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
     if not re.fullmatch(r'[0-9a-f]{40}', selected):
         raise ValueError('source revision must be a full Git commit')

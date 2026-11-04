@@ -1,5 +1,5 @@
 //! Produce executable examples from the same unchanged native bodies as identity cases.
-use super::*;
+use super::{Value, Write, fixture, fs, invoke, json, path, recorded_stub, setup};
 use std::path::Path;
 pub(in crate::runner) fn generate(directory: &Path) -> Result<(), String> {
     if directory.exists() {

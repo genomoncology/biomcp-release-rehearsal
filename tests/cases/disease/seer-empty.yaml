@@ -1,0 +1,26 @@
+{
+  "feature": "disease-seer",
+  "live_check": "synthetic authored empty SEER catalog; exclude from live calls",
+  "story": "A successful empty native catalog is a complete search answer.",
+  "replay": "disease/seer-empty",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "disease",
+        "--source",
+        "seer"
+      ],
+      "exit": 0,
+      "full_output_bytes": true,
+      "max_bytes": 574,
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/page/returned": 0,
+        "/sources/0/state": "ok"
+      }
+    }
+  ],
+  "verified": "The full CLI reply measures 499 bytes. The limit adds 15 percent."
+}

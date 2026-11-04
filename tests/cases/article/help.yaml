@@ -9,18 +9,13 @@
         "get",
         "article"
       ],
-      "mcp": [
-        "help",
-        "get",
-        "article"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "get",
           "article"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": {
           "includes_all_of": [
@@ -42,18 +37,13 @@
         "search",
         "article"
       ],
-      "mcp": [
-        "help",
-        "search",
-        "article"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "search",
           "article"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -89,29 +79,19 @@
         "article",
         "text"
       ],
-      "mcp": [
-        "help",
-        "article",
-        "text"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "article",
           "text"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 14000
     },
     {
       "run": [
-        "help",
-        "article",
-        "supplement"
-      ],
-      "mcp": [
         "help",
         "article",
         "supplement"
@@ -122,18 +102,13 @@
           "supplement"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 14000
     },
     {
       "run": [
-        "help",
-        "article",
-        "citations"
-      ],
-      "mcp": [
         "help",
         "article",
         "citations"
@@ -144,7 +119,7 @@
           "citations"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/4/choices": [
           "icite",
@@ -155,11 +130,6 @@
     },
     {
       "run": [
-        "help",
-        "article",
-        "references"
-      ],
-      "mcp": [
         "help",
         "article",
         "references"
@@ -170,7 +140,7 @@
           "references"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/4/choices": [
           "icite",
@@ -185,18 +155,13 @@
         "article",
         "citation-evidence"
       ],
-      "mcp": [
-        "help",
-        "article",
-        "citation-evidence"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "article",
           "citation-evidence"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 5000
@@ -207,18 +172,13 @@
         "article",
         "recommendations"
       ],
-      "mcp": [
-        "help",
-        "article",
-        "recommendations"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "article",
           "recommendations"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 5000

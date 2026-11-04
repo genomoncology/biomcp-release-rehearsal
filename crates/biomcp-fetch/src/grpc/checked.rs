@@ -43,7 +43,8 @@ impl Leg<'_> {
             .check_request(request)
             .map_err(|_| crate::InputError::BodyLimit)?;
         self.rpc_contain(request)?;
-        let identity = Identity::new(endpoint, request, limits)?;
+        let mut identity = Identity::new(endpoint, request, limits)?;
+        identity.key = self.licensed_identity(identity.key);
         if self.budget().expired() {
             return Err(self.failure(Reason::DeadlineExceeded, None).into());
         }

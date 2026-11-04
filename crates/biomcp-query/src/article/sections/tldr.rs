@@ -4,9 +4,12 @@ use crate::{Action, Ctx, Outcome, status};
 use biomcp_adapters::semantic_scholar;
 use biomcp_fetch::Deadline;
 use biomcp_types::ArticleInput;
-use biomcp_types::{ArticleResolution, QueryBody, Reason, Section, Source, Status, StepKind};
+use biomcp_types::{ArticleResolution, Reason, ReplyData, Section, Source, StepKind};
 pub(super) fn run<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Outcome) {
-    let QueryBody::ArticleCards(cards) = &mut out.body else {
+    let ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    else {
         return;
     };
     let leg = cx
@@ -27,11 +30,11 @@ pub(super) fn run<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Outco
             continue;
         };
         let section = match semantic_scholar::summary(&leg, &input) {
-            Ok(reply) => reply.section(),
+            Ok(reply) => reply.section(&mut out.problems),
             Err(e) => {
                 error.get_or_insert(e);
                 out.local = out.local.or(status::local(e));
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
                 let reason = crate::status::reason(e).unwrap_or(biomcp_types::Reason::Unavailable);
                 Section::unavailable(Source::SemanticScholar, reason)
             }
@@ -43,16 +46,20 @@ pub(super) fn run<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Outco
     *deadline = super::super::consume(*deadline, started, leg.remaining());
     let source = status::source(Source::SemanticScholar, leg.finish(), error);
     if source.reason == Some(Reason::RateLimited) {
-        out.next
-            .push((StepKind::Key, Action::KeyHelp(Source::SemanticScholar)));
+        out.next.push(crate::next::Step::new(
+            StepKind::Key,
+            &[biomcp_types::Source::SemanticScholar],
+            Action::KeyHelp(biomcp_fetch::SecretName::SemanticScholarApiKey),
+        ));
     }
     if source.state == biomcp_types::SourceState::Stale {
         for item in &mut cards.items {
             if item.sections.as_ref().is_some_and(|s| s.tldr.is_some()) {
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
             }
         }
     }
     out.sources.push(source);
-    out.status = status::status(cards.items.iter().map(|i| i.status));
+    let state = status::status(cards.items.iter().map(|i| i.status));
+    status::get(out, [state].into_iter());
 }

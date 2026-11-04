@@ -6,16 +6,16 @@ Agents write this code. The compiler, clippy and the ratchet check enforce what 
 
 - One Cargo workspace with resolver 3 and edition 2024. `rust-toolchain.toml` pins one exact release with `clippy` and `rustfmt`. `rustfmt.toml` holds `style_edition = "2024"`.
 - Crate boundaries follow the dependency direction in `architecture.md`. `biodata` depends on nothing that does I/O, and its `clippy.toml` disallows file, environment, network, process and clock paths one by one.
-- Tests run the feature set that ships. A new feature flag needs a ticket that names who builds without it.
+- Tests run the feature set that ships. The lint gate also checks `biodata` and `biomcp-types` without default features, so their `schema` feature remains optional.
 
 ## Lint table
 
 One lint table sits in the workspace `Cargo.toml`, and every crate inherits it.
 
 - Rust: `unsafe_code`, `unreachable_pub`, `missing_debug_implementations` and `missing_docs` are denied. Lints are `deny`, never `forbid`, so a rare exception can carry `#[expect(lint, reason = "...")]`. The ratchet check lists the files allowed to hold one.
-- Clippy: `unwrap_used`, `expect_used`, `panic`, `indexing_slicing`, `todo`, `unimplemented`, `dbg_macro`, `print_stdout`, `print_stderr` and `allow_attributes_without_reason` are denied. `too_many_lines` is denied at 80 lines. Tests may unwrap, expect, panic and index through `clippy.toml`.
-- No `dead_code` or `unused_imports` allow, with or without a reason.
-- `disallowed_types` denies `Cell`, `RefCell`, `Mutex`, `RwLock`, `OnceLock`, `LazyLock` and the atomics outside `biomcp-fetch`. With `unsafe_code` denied, no global mutable state can exist elsewhere. Each such item in `biomcp-fetch` carries a written reason. The store needs none, because each call opens its own connection.
+- Clippy: `allow_attributes`, `wildcard_imports`, `missing_assert_message`, `fn_params_excessive_bools`, `ref_option`, `unwrap_used`, `expect_used`, `panic`, `indexing_slicing`, `todo`, `unimplemented`, `dbg_macro`, `print_stdout`, `print_stderr` and `allow_attributes_without_reason` are denied. `too_many_lines` is denied at 80 lines. Tests may unwrap, expect, panic and index through the shared `clippy-base.toml`. Clippy excludes test functions from assertion-message checks and test imports from wildcard checks. The ratchet compares every crate config with the shared base.
+- No `allow` attribute. No `dead_code` or `unused_imports` expectation, except the private pinned generated message closure, whose single expectation names its reason.
+- `disallowed_types` denies `Cell`, `RefCell`, `Mutex`, `RwLock`, `OnceLock`, `LazyLock` and the atomics in every crate. Every necessary state owner has an item-level expectation with its concurrency or ownership reason. Whole-module state expectations fail the ratchet. The store needs none, because each call opens its own connection.
 - `disallowed_methods` denies environment reads outside the binary's config module, and thread spawns outside the fan-out, the transport and the MCP server.
 - Warnings fail the gate.
 
@@ -29,7 +29,7 @@ One lint table sits in the workspace `Cargo.toml`, and every crate inherits it.
 
 - Parse at the edge. Untrusted input becomes a typed value once, and the inside never checks it again.
 - A validated value gets its own type with a fallible constructor: `Pmid`, `NctId`, `HgncId`, `GeneSymbol`, `Position1`.
-- A fixed set of choices is an enum. No `bool` parameter selects behavior.
+- A fixed set of choices is an enum. `fn_params_excessive_bools` refuses boolean-heavy signatures. A single boolean flag remains valid.
 - A field that must be present is not an `Option`.
 - No `String` field holds an identifier, closed set, date or coordinate. The schema shows each field's type, and the reviewer checks it.
 

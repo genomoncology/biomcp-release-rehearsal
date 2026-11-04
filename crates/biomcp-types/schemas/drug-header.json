@@ -1,27 +1,12 @@
 {
   "$defs": {
-    "DrugId": {
+    "Reply_DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
       "type": "string"
     },
-    "DrugIdentityLevel": {
+    "Reply_DrugIdentityLevel": {
       "description": "Identity level established by the source endpoint or record type, never inferred from ID shape.",
-      "enum": [
-        "ingredient",
-        "salt",
-        "clinical_formulation",
-        "branded_product",
-        "spl_set",
-        "spl_version",
-        "ndc_package",
-        "fda_application",
-        "fda_product",
-        "ema_authorization",
-        "ema_application",
-        "orphan_designation",
-        "unknown"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Source-stated ingredient identity.",
@@ -37,26 +22,80 @@
         " Source-stated ema application identity.",
         " Source-stated orphan designation identity.",
         " Source-stated unknown identity."
+      ],
+      "x-extensible-enum": [
+        "ingredient",
+        "salt",
+        "clinical_formulation",
+        "branded_product",
+        "spl_set",
+        "spl_version",
+        "ndc_package",
+        "fda_application",
+        "fda_product",
+        "ema_authorization",
+        "ema_application",
+        "orphan_designation",
+        "unknown"
       ]
     },
-    "DrugNameMatch": {
+    "Reply_DrugNameMatch": {
       "description": "Complete native name fields matching the requested label name.",
-      "enum": [
-        "brand",
-        "generic",
-        "both"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The complete brand name matches.",
         " The complete generic name matches.",
         " Both complete name fields match."
+      ],
+      "x-extensible-enum": [
+        "brand",
+        "generic",
+        "both"
       ]
     },
-    "DrugSource": {
+    "Reply_DrugNameResolution": {
+      "description": "Exact source name choice; brand before generic, original FDA application then earliest approval, otherwise source order.",
+      "properties": {
+        "alternatives": {
+          "description": "Up to five other exact records as ready get commands.",
+          "items": {
+            "$ref": "#/$defs/Reply_Step"
+          },
+          "type": "array"
+        },
+        "basis": {
+          "$ref": "#/$defs/Reply_DrugNameMatch",
+          "description": "Name basis selected after demoting a brand identical to its own ingredient."
+        },
+        "input": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Original complete name matched case-insensitively."
+        },
+        "ranking": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Applied ambiguity ordering, emitted only from fixed nonempty rule text."
+        },
+        "total": {
+          "description": "Total exact source records, including the selected record.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input",
+        "basis",
+        "ranking",
+        "total"
+      ],
+      "type": "object"
+    },
+    "Reply_DrugSource": {
       "description": "A supported drug data source.",
-      "enum": [
+      "type": "string",
+      "x-extensible-enum": [
         "who-pq",
+        "fda-drug-recall",
         "mychem",
         "chembl",
         "opentargets",
@@ -65,32 +104,68 @@
         "drugsfda",
         "ema",
         "ddinter"
+      ]
+    },
+    "Reply_Step": {
+      "description": "A command argument list spelled from a typed action.",
+      "properties": {
+        "args": {
+          "description": "CLI and MCP arguments.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/Reply_StepKind",
+          "description": "Purpose of the action."
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    },
+    "Reply_StepKind": {
+      "description": "Purpose of an available next command.",
+      "enum": [
+        "restart",
+        "section",
+        "sort",
+        "page",
+        "fresh",
+        "disambiguate",
+        "pivot",
+        "sync",
+        "key",
+        "configure"
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.drug-header/2",
+  "$id": "biomcp.drug-header/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "One source candidate, without authorization, targets, label text or interactions.",
   "properties": {
     "id": {
-      "$ref": "#/$defs/DrugId",
+      "$ref": "#/$defs/Reply_DrugId",
       "description": "Published native identifier."
     },
     "identity_level": {
-      "$ref": "#/$defs/DrugIdentityLevel",
+      "$ref": "#/$defs/Reply_DrugIdentityLevel",
       "description": "Level established only by the endpoint or record type."
     },
     "matched_name": {
       "anyOf": [
         {
-          "$ref": "#/$defs/DrugNameMatch"
+          "$ref": "#/$defs/Reply_DrugNameMatch"
         },
         {
           "type": "null"
@@ -99,17 +174,28 @@
       "description": "Complete native name fields matching the search input; omitted outside label searches."
     },
     "name": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Original source display name."
     },
+    "name_resolution": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_DrugNameResolution"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact name choice, ranking rule and bounded alternative commands; omitted for native ID calls."
+    },
     "source": {
-      "$ref": "#/$defs/DrugSource",
+      "$ref": "#/$defs/Reply_DrugSource",
       "description": "The single source responsible for this header."
     },
     "type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -120,7 +206,7 @@
     "url": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -132,7 +218,7 @@
     "version": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"

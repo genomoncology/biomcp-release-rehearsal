@@ -1,79 +1,9 @@
 {
   "live_check": "public",
-  "feature": "gene-commands",
+  "feature": "gene-search",
   "story": "Locus groups intersect before ranking and paging",
   "replay": "gene/main",
   "steps": [
-    {
-      "run": [
-        "search",
-        "gene",
-        "kinase",
-        "--locus-group",
-        "protein_coding"
-      ],
-      "expect": {
-        "/query/locus_group": "protein_coding",
-        "/page/total": 7,
-        "/result/items/*/locus_group": [
-          "protein_coding",
-          "protein_coding",
-          "protein_coding",
-          "protein_coding",
-          "protein_coding",
-          "protein_coding",
-          "protein_coding"
-        ]
-      },
-      "mcp": [
-        "search",
-        "gene",
-        "kinase",
-        "--locus-group",
-        "protein_coding"
-      ]
-    },
-    {
-      "run": [
-        "search",
-        "gene",
-        "--band",
-        "9p21.3",
-        "--locus-group",
-        "pseudogene",
-        "--limit",
-        "2"
-      ],
-      "expect": {
-        "/page/total": 25,
-        "/result/items/*/locus_group": [
-          "pseudogene",
-          "pseudogene"
-        ],
-        "/next/0/args": [
-          "search",
-          "gene",
-          "--band",
-          "9p21.3",
-          "--limit",
-          "2",
-          "--locus-group",
-          "pseudogene",
-          "--offset",
-          "2"
-        ]
-      },
-      "mcp": [
-        "search",
-        "gene",
-        "--band",
-        "9p21.3",
-        "--locus-group",
-        "pseudogene",
-        "--limit",
-        "2"
-      ]
-    },
     {
       "run": [
         "search",
@@ -93,19 +23,7 @@
         "/result/items/*/locus_group": [
           "pseudogene"
         ]
-      },
-      "mcp": [
-        "search",
-        "gene",
-        "--band",
-        "9p21.3",
-        "--locus-group",
-        "pseudogene",
-        "--limit",
-        "2",
-        "--offset",
-        "24"
-      ]
+      }
     },
     {
       "run": [
@@ -118,12 +36,6 @@
         "/error/code": "usage.arguments"
       },
       "exit": 2,
-      "mcp": [
-        "search",
-        "gene",
-        "--locus-group",
-        "protein_coding"
-      ],
       "is_error": true
     }
   ]

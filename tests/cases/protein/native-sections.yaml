@@ -1,0 +1,117 @@
+{
+  "feature": "protein-sections",
+  "live_check": "public",
+  "story": "A caller reads the exact retained UniProt entry and its source-stated sequence, isoform and structure identities.",
+  "verified": "UniProt CC BY 4.0, https://www.uniprot.org/help/license. Original body SHA256 90c459656751eac791efc2f369f49145d38cc949f5b41bf628180ac0a6874b02. Captured 2026-10-30 with no key. Complex Portal CC0 native search body SHA256 4ec43eabf808af512e0fbb67b17b269d14771c24e5700f390ee2f561682639f0 proves an empty exact-accession collection; no membership is inferred.",
+  "replay": "protein/native-sections",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "--section",
+        "function",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/function/data/items/0/text": "Receptor tyrosine kinase binding ligands of the EGF family and activating several signaling cascades to convert extracellular cues into appropriate cellular responses (PubMed:10805725, PubMed:12297050, PubMed:12620237, PubMed:12873986, PubMed:15374980, PubMed:15590694, PubMed:17115032, PubMed:19560417, PubMed:21258366, PubMed:27153536, PubMed:2790960, PubMed:35538033, PubMed:9488479). Known ligands include EGF, TGFA/TGF-alpha, AREG, epigen/EPGN, BTC/betacellulin, epiregulin/EREG and HBEGF/heparin-binding EGF (PubMed:12297049, PubMed:15611079, PubMed:17909029, PubMed:20837704, PubMed:27153536, PubMed:2790960, PubMed:7679104, PubMed:8144591, PubMed:9419975). Ligand binding triggers receptor homo- and/or heterodimerization and autophosphorylation on key cytoplasmic residues (PubMed:10026169, PubMed:17349580, PubMed:18046415, PubMed:19560417, PubMed:19836242). The phosphorylated receptor recruits adapter proteins like GRB2 which in turn activates complex downstream signaling cascades (PubMed:10026169, PubMed:17349580, PubMed:18046415, PubMed:19560417, PubMed:19836242). Activates at least 4 major downstream signaling cascades including the RAS-RAF-MEK-ERK, PI3 kinase-AKT, PLCgamma-PKC and STATs modules (PubMed:27153536). May also activate the NF-kappa-B signaling cascade (PubMed:11116146). Also directly phosphorylates other proteins like RGS16, activating its GTPase activity and probably coupling the EGF receptor signaling to the G protein-coupled receptor signaling (PubMed:11602604). Also phosphorylates MUC1 and increases its interaction with SRC and CTNNB1/beta-catenin (PubMed:11483589). Positively regulates cell migration via interaction with CCDC88A/GIV which retains EGFR at the cell membrane following ligand stimulation, promoting EGFR signaling which triggers cell migration (PubMed:20462955). Acts as a positive regulator of cGAS-STING signaling by mediating tyrosine phosphorylation of STING1, promoting production of type I interferon (IFN-alpha and IFN-beta), while inhibiting STING1 ability to regulate autophagy (PubMed:32926474). Plays a role in enhancing learning and memory performance (By similarity). Plays a role in mammalian pain signaling (long-lasting hypersensitivity) (By similarity)"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "sequence",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/sequence/data/sequence/length": 1210
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "isoforms",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/isoforms/data/items/0/ids/0": "P00533-1"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "structures",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/structures/data/items/0/id": "1IVO"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "all",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/function/data/items/0/text": "Receptor tyrosine kinase binding ligands of the EGF family and activating several signaling cascades to convert extracellular cues into appropriate cellular responses (PubMed:10805725, PubMed:12297050, PubMed:12620237, PubMed:12873986, PubMed:15374980, PubMed:15590694, PubMed:17115032, PubMed:19560417, PubMed:21258366, PubMed:27153536, PubMed:2790960, PubMed:35538033, PubMed:9488479). Known ligands include EGF, TGFA/TGF-alpha, AREG, epigen/EPGN, BTC/betacellulin, epiregulin/EREG and HBEGF/heparin-binding EGF (PubMed:12297049, PubMed:15611079, PubMed:17909029, PubMed:20837704, PubMed:27153536, PubMed:2790960, PubMed:7679104, PubMed:8144591, PubMed:9419975). Ligand binding triggers receptor homo- and/or heterodimerization and autophosphorylation on key cytoplasmic residues (PubMed:10026169, PubMed:17349580, PubMed:18046415, PubMed:19560417, PubMed:19836242). The phosphorylated receptor recruits adapter proteins like GRB2 which in turn activates complex downstream signaling cascades (PubMed:10026169, PubMed:17349580, PubMed:18046415, PubMed:19560417, PubMed:19836242). Activates at least 4 major downstream signaling cascades including the RAS-RAF-MEK-ERK, PI3 kinase-AKT, PLCgamma-PKC and STATs modules (PubMed:27153536). May also activate the NF-kappa-B signaling cascade (PubMed:11116146). Also directly phosphorylates other proteins like RGS16, activating its GTPase activity and probably coupling the EGF receptor signaling to the G protein-coupled receptor signaling (PubMed:11602604). Also phosphorylates MUC1 and increases its interaction with SRC and CTNNB1/beta-catenin (PubMed:11483589). Positively regulates cell migration via interaction with CCDC88A/GIV which retains EGFR at the cell membrane following ligand stimulation, promoting EGFR signaling which triggers cell migration (PubMed:20462955). Acts as a positive regulator of cGAS-STING signaling by mediating tyrosine phosphorylation of STING1, promoting production of type I interferon (IFN-alpha and IFN-beta), while inhibiting STING1 ability to regulate autophagy (PubMed:32926474). Plays a role in enhancing learning and memory performance (By similarity). Plays a role in mammalian pain signaling (long-lasting hypersensitivity) (By similarity)",
+        "/result/items/0/sections/sequence/data/sequence/length": 1210,
+        "/result/items/0/sections/isoforms/data/items/0/ids/0": "P00533-1",
+        "/result/items/0/sections/structures/data/items/0/id": "1IVO"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "complexes",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/complexes/state": "empty",
+        "/result/items/0/sections/complexes/source": "complex-portal"
+      }
+    },
+    {
+      "run": [
+        "protein",
+        "features",
+        "P00533",
+        "--type",
+        "Chain",
+        "--position",
+        "25",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/items/0/feature/protein": "P00533",
+        "/result/items/0/feature/id": "PRO_0000016665",
+        "/result/items/0/feature/kind/label": "Chain",
+        "/page/total": 1
+      }
+    }
+  ]
+}

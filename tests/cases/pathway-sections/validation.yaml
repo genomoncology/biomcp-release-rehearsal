@@ -1,4 +1,5 @@
 {
+  "live_check": "local-only unsupported WikiPathways events refusals; every step exits before source access",
   "feature": "pathway-reactome",
   "story": "validation",
   "replay": "pathway/sections",
@@ -9,17 +10,12 @@
         "events",
         "WP382"
       ],
-      "mcp": [
-        "pathway",
-        "events",
-        "WP382"
-      ],
       "exit": 2,
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments"
       },
-      "max_bytes": 166
+      "max_bytes": 417
     },
     {
       "run": [
@@ -28,18 +24,12 @@
         "WP382",
         "events"
       ],
-      "mcp": [
-        "get",
-        "pathway",
-        "WP382",
-        "events"
-      ],
       "exit": 2,
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments"
       },
-      "max_bytes": 193
+      "max_bytes": 370
     }
   ]
 }

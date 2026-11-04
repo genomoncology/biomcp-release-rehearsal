@@ -1,0 +1,37 @@
+{
+  "source": "reactome",
+  "method": "GET",
+  "url": "https://reactome.org/ContentService/data/query/R-HSA-6802952",
+  "exchanges": [
+    {
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "synthetic pathway outage"
+      }
+    },
+    {
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "synthetic pathway outage"
+      }
+    },
+    {
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "synthetic pathway outage"
+      }
+    }
+  ]
+}

@@ -9,16 +9,20 @@ pub static SPEC: SourceSpec = SourceSpec {
     source: Source::Cpic,
     base: "https://api.cpicpgx.org/v1",
     terms: Terms {
-        name: crate::pgx_sources::TERMS.name,
-        url: crate::pgx_sources::TERMS.url,
-        usage: crate::pgx_sources::TERMS.usage,
+        name: "CPIC data use policy",
+        url: "https://cpicpgx.org/about/terms-of-use/",
+        usage: biomcp_types::Use::Open,
     },
     quota: &crate::quotas::CPIC,
     key: KeyUse::None,
     deadline: Duration::from_secs(15),
 };
+mod raw;
 mod read;
 pub use read::{Page, card, diplotype, drug_recommendations, guidelines, recommendations, search};
 
 /// Native gene collection shared by record reads and the bounded health probe.
 pub(crate) const GENE_PATH: &str = "/gene";
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

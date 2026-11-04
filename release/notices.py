@@ -5,6 +5,11 @@ from pathlib import Path
 import subprocess
 import tempfile
 
+if __package__:
+    from .vendor import environment as vendor_environment
+else:
+    from vendor import environment as vendor_environment
+
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = ('LICENSE', 'THIRD-PARTY-NOTICES.txt')
 MARKER = 'mcp-name: io.github.genomoncology/biomcp'
@@ -33,8 +38,21 @@ def metadata(value):
         raise ValueError('wheel description requires ' + MARKER)
 
 
-def generate(output):
+def configuration():
     import tomllib
+    policy = tomllib.loads((ROOT / 'deny.toml').read_text())['licenses']
+    config = {'accepted': policy['allow']}
+    for entry in policy.get('exceptions', []):
+        config.setdefault(entry['name'], {'accepted': []})['accepted'] += entry['allow']
+    # Derive the tool's policy from the existing reviewed dependency policy.
+    lines = ['accepted = ' + json.dumps(config.pop('accepted')), 'workarounds = ["ring"]',
+             'ignore-dev-dependencies = true', 'ignore-build-dependencies = true']
+    for name, entry in sorted(config.items()):
+        lines += ['[' + name + ']', 'accepted = ' + json.dumps(sorted(set(entry['accepted'])))]
+    return '\n'.join(lines) + '\n'
+
+
+def generate(output):
     version = json.loads((ROOT / 'release/toolchain.json').read_text())['cargo-about']
     try:
         installed = subprocess.check_output(['cargo', 'about', '--version'], text=True).strip()
@@ -42,20 +60,12 @@ def generate(output):
         installed = ''
     if installed != 'cargo-about ' + version:
         subprocess.run(['cargo', 'install', 'cargo-about', '--locked', '--version', version, '--features', 'cli'], check=True)
-    policy = tomllib.loads((ROOT / 'deny.toml').read_text())['licenses']
-    config = {'accepted': policy['allow']}
-    for entry in policy.get('exceptions', []):
-        config.setdefault(entry['name'], {'accepted': []})['accepted'] += entry['allow']
-    # Derive the tool's policy from the existing reviewed dependency policy.
-    lines = ['accepted = ' + json.dumps(config.pop('accepted')), 'workarounds = ["ring"]']
-    for name, entry in sorted(config.items()):
-        lines += ['[' + name + ']', 'accepted = ' + json.dumps(sorted(set(entry['accepted'])))]
     with tempfile.TemporaryDirectory(prefix='biomcp-notices-') as temp:
         settings = Path(temp) / 'about.toml'
-        settings.write_text('\n'.join(lines) + '\n')
+        settings.write_text(configuration())
         command = ['cargo', 'about', 'generate', '--locked', '--workspace', '--fail',
                    '--config', str(settings), '--format', 'json', '--output-file', str(Path(temp) / 'licenses.json')]
-        subprocess.run(command, cwd=ROOT, check=True)
+        subprocess.run(command, cwd=ROOT, check=True, env=vendor_environment())
         data = json.loads((Path(temp) / 'licenses.json').read_text())
     if not data.get('licenses') or not data.get('crates'):
         raise ValueError('dependency notices must not be empty')
@@ -65,5 +75,5 @@ def generate(output):
         users = sorted(item['crate']['name'] + ' ' + item['crate']['version'] for item in license['used_by'])
         lines += [license['name'] + ' (' + license['id'] + ')', ', '.join(users), license['text'], '']
     (output / 'LICENSE').write_bytes((ROOT / 'LICENSE').read_bytes())
-    (output / NAMES[1]).write_text('\n'.join(lines), encoding='utf-8')
+    (output / NAMES[1]).write_bytes('\n'.join(lines).encode('utf-8'))
     return payloads(output)

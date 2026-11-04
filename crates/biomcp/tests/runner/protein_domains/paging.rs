@@ -1,4 +1,4 @@
-use super::*;
+use super::{Stub, Value, call, json, setup};
 pub(super) fn run() -> Result<(), String> {
     let stub = Stub::for_source("www.ebi.ac.uk", "application/json", reply)?;
     let env = setup(&stub)?;
@@ -60,6 +60,9 @@ pub(super) fn run() -> Result<(), String> {
         if value.pointer("/page/pool") != Some(&pool) {
             return Err("domain continuation renewed source snapshot".into());
         }
+    }
+    if ids.first() != Some(&json!("IPR000001")) || ids.last() != Some(&json!("IPR000026")) {
+        return Err("retained domain order changed".into());
     }
     if ids
         .iter()

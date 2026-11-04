@@ -106,7 +106,7 @@ fn requests_reject_bad_bounds_and_identities_before_io() {
 // Synthetic contract rows preserve only the multiplicity and absence observed in the
 // retained capture archives. They are not native replies or curation answers.
 fn xref(database: &str, accession: &str) -> Value {
-    json!({"database":database,"accession":accession})
+    json!({"namespace":database,"id":accession})
 }
 #[test]
 fn whole_variations_keep_fusion_members_and_non_pubmed_provenance() {
@@ -155,8 +155,7 @@ fn collections_keep_independent_totals_and_complete_qualified_text() {
 }
 #[test]
 fn chembl_absence_and_synthetic_zero_remain_source_local() {
-    let record =
-        json!({"id":"CHEMBL3706573","cell_id":5547,"cellosaurus_id":"CVCL_2119","name":"MOLM-13"});
+    let record = json!({"id":"CHEMBL3706573","cell_id":{"namespace":"ChEMBL","id":5547},"cellosaurus_id":"CVCL_2119","name":"MOLM-13"});
     let got = roundtrip::<CellLineChemblRecord>(record.clone()).unwrap();
     assert_eq!(got, record);
     assert!(got.get("clo").is_none());
@@ -218,8 +217,15 @@ where
     let value = serde_json::to_value(envelope)?;
     let schema = serde_json::to_value(schemars::schema_for!(Envelope<T>))?;
     let validator = jsonschema::validator_for(&schema).map_err(|error| error.to_string())?;
-    assert!(validator.is_valid(&value));
-    assert_eq!(value.get("schema"), Some(&json!(T::SCHEMA)));
+    assert!(
+        validator.is_valid(&value),
+        "Cell line replies must preserve their versioned envelope"
+    );
+    assert_eq!(
+        value.get("schema"),
+        Some(&json!(T::SCHEMA)),
+        "Cell line replies must preserve their versioned envelope"
+    );
     Ok(())
 }
 #[cfg(feature = "schema")]

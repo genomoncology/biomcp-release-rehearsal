@@ -11,13 +11,13 @@ biodata::canonical_enum! {
 }
 /// One independently readable bounded part.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TextPart {
     /// One-based reader selector.
     pub number: u32,
     /// Source section title or table label.
-    pub title: Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<Text>,
     /// Source structure kind.
     pub kind: TextPartKind,
     /// Compact serialized text bytes divided by four, rounded up.
@@ -25,17 +25,16 @@ pub struct TextPart {
 }
 /// Figure text in document order.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct FigureCaption {
     /// Source label.
-    pub label: Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub label: Option<Text>,
     /// Source caption.
     pub caption: crate::Markdown,
 }
 /// Bucket license and body outline; processing version is not publication chronology.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct FullText {
     /// Selected bucket license.
@@ -57,7 +56,6 @@ pub struct FullText {
 }
 /// One matching paragraph or table row, split when necessary to fit the text budget.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TextHit {
     /// Outline part containing this text.
@@ -70,7 +68,6 @@ pub struct TextHit {
 }
 /// Body text response; the envelope supplies advancing reader steps.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleTextResult {
     /// Requested PMC record when known.
@@ -81,7 +78,6 @@ pub struct ArticleTextResult {
 }
 /// One bounded part or matching rows with the bucket license.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TextContent {
     /// Source URL for an explicit save, including refused destinations.
@@ -120,13 +116,12 @@ pub struct TextContent {
     pub hits: Option<Box<[TextHit]>>,
 }
 impl super::ResponseBody for ArticleTextResult {
-    const SCHEMA: &'static str = "biomcp.article-text/3";
+    const SCHEMA: &'static str = "biomcp.article-text/7";
     type Query = ArticleText;
 }
 
 /// Explicit saved article file, owned by the caller.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleSaved {
     /// Absolute caller destination.

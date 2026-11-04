@@ -1,5 +1,6 @@
 //! Explicit source command proof reads unchanged retained bodies outside Git.
 use super::{Stub, invoke, measure, record, replay, setup};
+use crate::runner::launch::native_budget as budget;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, fs, path::Path};
@@ -306,38 +307,12 @@ fn context(raw: &Value, association: &Value) -> Result<(), String> {
     Ok(())
 }
 
-fn ceiling(id: &str, section: &str, offset: &str) -> Result<u64, String> {
+fn ceiling(id: &str, section: &str, offset: &str) -> Result<usize, String> {
     // Ceil(j12282 native comparable bytes * 1.15); all original terms remain emitted.
-    Ok(match (id, section, offset) {
-        ("MONDO:0018875", "genes", "0") => 9478,
-        ("MONDO:0018875", "phenotypes", "0") => 15921,
-        ("MONDO:0008667", "genes", "0") => 8578,
-        ("MONDO:0008667", "phenotypes", "0") => 16632,
-        ("MONDO:0019003", "genes", "0") => 10957,
-        ("MONDO:0019003", "phenotypes", "0") => 18331,
-        ("MONDO:0018875", "genes", "5") => 2438,
-        ("MONDO:0018875", "phenotypes", "5") => 17267,
-        ("MONDO:0008667", "genes", "5") => 765,
-        ("MONDO:0008667", "phenotypes", "5") => 18556,
-        ("MONDO:0019003", "genes", "5") => 7260,
-        ("MONDO:0019003", "phenotypes", "5") => 18710,
-        ("MONDO:0005835", "genes", "0") => 10569,
-        ("MONDO:0800444", "phenotypes", "0") => 15093,
-        _ => return Err("unmeasured native page".into()),
-    })
+    budget(&format!("monarch/{id}/{section}/{offset}"))
 }
 
-fn default_ceiling(id: &str, section: &str) -> Result<u64, String> {
+fn default_ceiling(id: &str, section: &str) -> Result<usize, String> {
     // Derived-prefix local deliveries in j12430; measured comparable bytes + 15%.
-    Ok(match (id, section) {
-        ("MONDO:0018875", "genes") => 4403,
-        ("MONDO:0008667", "genes") => 4089,
-        ("MONDO:0019003", "genes") => 5020,
-        ("MONDO:0005835", "genes") => 4790,
-        ("MONDO:0018875", "phenotypes") => 3659,
-        ("MONDO:0008667", "phenotypes") => 4468,
-        ("MONDO:0019003", "phenotypes") => 3687,
-        ("MONDO:0800444", "phenotypes") => 4177,
-        _ => return Err("unmeasured default page".into()),
-    })
+    budget(&format!("monarch-default/{id}/{section}"))
 }

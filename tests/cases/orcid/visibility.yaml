@@ -6,31 +6,6 @@
   "steps": [
     {
       "run": [
-        "get",
-        "author",
-        "orcid:0000-0002-4299-3018"
-      ],
-      "mcp": [
-        "get",
-        "author",
-        "orcid:0000-0002-4299-3018"
-      ],
-      "exit": 0,
-      "is_error": false,
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/card/header/name": "Synthetic Author"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 649
-    },
-    {
-      "run": [
-        "author",
-        "papers",
-        "orcid:0000-0002-4299-3018"
-      ],
-      "mcp": [
         "author",
         "papers",
         "orcid:0000-0002-4299-3018"
@@ -39,7 +14,7 @@
       "is_error": false,
       "expect": {
         "/status": "complete",
-        "/result/collection_scope": "whole_public_works_reply",
+        "/result/collection_scope": "whole-public-works-reply",
         "/result/observed_groups": 1,
         "/result/groups/0/assertions/1/put_code": 2,
         "/result/groups/0/assertions/0/external_ids/1/relationship": "part-of",

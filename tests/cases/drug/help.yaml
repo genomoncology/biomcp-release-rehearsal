@@ -1,5 +1,6 @@
 {
-  "feature": "generated-help",
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
+  "feature": "drug-help",
   "story": "Drug help exposes source-scoped sections and options with two executable examples per command and bundle sync.",
   "steps": [
     {
@@ -8,14 +9,9 @@
         "search",
         "drug"
       ],
-      "mcp": [
-        "help",
-        "search",
-        "drug"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -27,7 +23,7 @@
           ]
         }
       },
-      "max_bytes": 2490
+      "max_bytes": 4700
     },
     {
       "run": [
@@ -35,14 +31,9 @@
         "get",
         "drug"
       ],
-      "mcp": [
-        "help",
-        "get",
-        "drug"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/sections/*/word": [
           "xrefs",
@@ -77,18 +68,13 @@
         "sync",
         "ema"
       ],
-      "mcp": [
-        "help",
-        "sync",
-        "ema"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "sync",
           "ema"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1372
@@ -99,18 +85,13 @@
         "sync",
         "ddinter"
       ],
-      "mcp": [
-        "help",
-        "sync",
-        "ddinter"
-      ],
       "expect": {
         "/result/commands/0/command": [
           "sync",
           "ddinter"
         ],
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1391

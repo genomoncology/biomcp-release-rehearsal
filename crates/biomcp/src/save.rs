@@ -1,5 +1,6 @@
 //! Atomic explicit file saves shared by download commands. No saved-file registry exists.
 pub(crate) mod article;
+mod reply;
 pub(crate) mod trial;
 use sha2::{Digest, Sha256};
 use std::{
@@ -110,29 +111,10 @@ pub(crate) fn run(
         .and_then(Result::ok);
     let download = biomcp_query::article::pdf::download(cx, query, target.is_some());
     let mut out = download.out;
-    if let Some((link, bytes)) = download.file {
-        out.body = match target.and_then(|target| target.write(&bytes).ok()) {
-            Some(saved) => match (
-                biodata::Text::new(&saved.path.to_string_lossy()),
-                biodata::Text::new(&saved.sha256),
-            ) {
-                (Ok(path), Ok(sha256)) => {
-                    biomcp_types::QueryBody::ArticlePdf(biomcp_types::ArticlePdfResult {
-                        file: biomcp_types::Section::Data {
-                            source: biomcp_types::Source::SemanticScholar,
-                            data: biomcp_types::PdfSaved {
-                                path,
-                                bytes: saved.bytes,
-                                sha256,
-                                pdf: link,
-                            },
-                        },
-                    })
-                }
-                _ => biomcp_types::QueryBody::PdfSaveRefused(link),
-            },
-            None => biomcp_types::QueryBody::PdfSaveRefused(link),
-        };
-    }
+    out.body = out.body.visit(reply::SaveReply {
+        target,
+        pdf: download.file,
+        ..Default::default()
+    });
     out
 }

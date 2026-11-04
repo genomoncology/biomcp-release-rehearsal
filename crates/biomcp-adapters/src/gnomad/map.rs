@@ -1,80 +1,82 @@
+//! Map independent constraint metrics for each checked source gene and transcript.
 use super::{GeneConstraint, raw};
-use crate::Mapped;
-use crate::mapped::push_problem;
-use crate::mapped::record as record_text;
-use biodata::{EnsemblGeneId, Text};
-
+use crate::{
+    Mapped,
+    mapped::{Problems, record as record_text},
+};
+use biodata::EnsemblGeneId;
+use biomcp_fetch::BadReply;
 use biomcp_types::{Constraint, Source};
 
-pub(super) fn constraints(raw: raw::Aliases, ids: &[EnsemblGeneId]) -> Vec<GeneConstraint> {
+pub(super) fn constraints(
+    mut raw: raw::Aliases,
+    ids: &[EnsemblGeneId],
+) -> Result<Vec<GeneConstraint>, BadReply> {
     ids.iter()
         .enumerate()
         .map(|(index, id)| {
             let gene = raw
                 .0
-                .iter()
+                .iter_mut()
                 .find(|(name, _)| *name == format!("g{index}"))
-                .and_then(|(_, gene)| gene.as_ref());
-            let mut problems = Vec::new();
-            let constraint = gene.and_then(|gene| {
-                if gene.gene_id != id.base() {
-                    push_problem(
-                        &mut problems,
-                        Source::Gnomad,
-                        record_text(id.base()),
-                        "gene_id",
-                    );
-                    return None;
-                }
-                let raw = gene.gnomad_constraint.as_ref()?;
-                let transcript = gene.transcript()?;
-                let flags = match &raw.flags {
-                    None => Vec::new(),
-                    Some(crate::raw::Field::Value(flags)) => flags
-                        .iter()
-                        .filter_map(|flag| {
-                            if let crate::raw::Field::Value(text) = flag
-                                && let Ok(text) = Text::new(text)
-                            {
-                                return Some(text);
-                            }
-                            push_problem(
-                                &mut problems,
-                                Source::Gnomad,
-                                record_text(id.base()),
-                                "flags",
-                            );
-                            None
-                        })
-                        .collect(),
-                    Some(_) => {
-                        push_problem(
-                            &mut problems,
-                            Source::Gnomad,
-                            record_text(id.base()),
-                            "flags",
-                        );
-                        Vec::new()
-                    }
-                };
-                Some(Constraint {
-                    pli: raw.pli,
-                    loeuf: raw.oe_lof_upper,
-                    oe_lof: raw.oe_lof,
-                    mis_z: raw.mis_z,
-                    syn_z: raw.syn_z,
-                    flags: flags.into(),
-                    transcript,
-                    version: Text::new("v4").ok()?,
-                })
-            });
-            GeneConstraint {
+                .and_then(|(_, gene)| gene.take());
+            Ok(GeneConstraint {
                 id: id.clone(),
-                constraint: Mapped {
-                    value: constraint,
-                    problems,
-                },
-            }
+                constraint: constraint(gene, id)?,
+            })
         })
         .collect()
+}
+fn constraint(
+    gene: Option<crate::raw::Field<raw::Gene>>,
+    id: &EnsemblGeneId,
+) -> Result<Mapped<Option<Constraint>>, BadReply> {
+    let mut problems = Problems {
+        source: Source::Gnomad,
+        record: record_text(id.base()),
+        list: Vec::new(),
+    };
+    let version = crate::mapped::text("v4")?;
+    let mut refusals = crate::Refusal::None;
+    let value = gene.and_then(|gene| {
+        let Some(gene) = problems.required_field("gene_id", Some(gene)) else {
+            refusals = crate::Refusal::Refused;
+            return None;
+        };
+        if gene.gene_id != id.base() {
+            refusals = crate::Refusal::Refused;
+            problems.required::<()>("gene_id", None);
+            return None;
+        }
+        let transcript = match gene.transcript() {
+            Ok(value) => value,
+            Err(field) if gene.gnomad_constraint.is_some() => {
+                refusals = crate::Refusal::Refused;
+                problems.required::<()>(field, None);
+                return None;
+            }
+            Err(_) => return None,
+        };
+        let raw = problems.field("gnomad_constraint", gene.gnomad_constraint)?;
+        let flags = problems
+            .fields("flags", raw.flags)
+            .iter()
+            .filter_map(|value| problems.text("flags", Some(value)))
+            .collect();
+        Some(Constraint {
+            pli: problems.field("pli", raw.pli),
+            loeuf: problems.field("oe_lof_upper", raw.oe_lof_upper),
+            oe_lof: problems.field("oe_lof", raw.oe_lof),
+            mis_z: problems.field("mis_z", raw.mis_z),
+            syn_z: problems.field("syn_z", raw.syn_z),
+            flags,
+            transcript,
+            version,
+        })
+    });
+    Ok(Mapped {
+        refusals,
+        value,
+        problems: problems.list,
+    })
 }

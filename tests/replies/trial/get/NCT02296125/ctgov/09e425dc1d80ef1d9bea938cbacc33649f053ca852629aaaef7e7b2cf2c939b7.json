@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies/NCT01811710",
+  "exchanges": [
+    {
+      "fetched": 1792864156,
+      "status": 404,
+      "content_type": "application/json",
+      "delay_ms": 6,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "NCT number NCT01811710 not found"
+      }
+    }
+  ]
+}

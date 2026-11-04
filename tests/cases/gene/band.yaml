@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-commands",
+  "feature": "gene-search",
   "story": "band",
   "replay": "gene/main",
   "steps": [
@@ -27,13 +27,7 @@
           "10"
         ]
       },
-      "max_bytes": 2800,
-      "mcp": [
-        "search",
-        "gene",
-        "--band",
-        "9p21.3"
-      ]
+      "max_bytes": 2800
     },
     {
       "run": [

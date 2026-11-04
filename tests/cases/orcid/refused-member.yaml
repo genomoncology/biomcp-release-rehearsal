@@ -1,0 +1,40 @@
+{
+  "feature": "author-orcid",
+  "live_check": "synthetic authored malformed ORCID work member and offline warm read; exclude from live calls",
+  "story": "A refused public work member keeps its valid group and partial fact on a warm offline read.",
+  "replay": "orcid/refused-member",
+  "steps": [
+    {
+      "run": [
+        "author",
+        "papers",
+        "orcid:0000-0002-4299-3018"
+      ],
+      "exit": 0,
+      "full_output_bytes": true,
+      "max_bytes": 1689,
+      "expect": {
+        "/status": "partial",
+        "/problems/0/field": "work_summary",
+        "/result/groups/0/assertions/0/put_code": 1
+      }
+    },
+    {
+      "run": [
+        "author",
+        "papers",
+        "orcid:0000-0002-4299-3018"
+      ],
+      "exit": 0,
+      "full_output_bytes": true,
+      "max_bytes": 1689,
+      "expect": {
+        "/status": "partial",
+        "/problems/0/field": "work_summary",
+        "/result/groups/0/assertions/0/put_code": 1
+      },
+      "offline": true
+    }
+  ],
+  "verified": "Each full CLI reply measures 1468 bytes. The limit adds 15 percent. The second step reads the actual stored page offline."
+}

@@ -13,19 +13,14 @@
             "--pool"
           ]
         },
-        "/result/commands/0/description": "Exact author name query and source window; positional text maps to query. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l",
+        "/result/commands/0/description": "Exact author name query and source window; positional text maps to query. Sources: semantic-scholar.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
       "full_output_bytes": true,
       "max_bytes": 3026,
-      "mcp": [
-        "help",
-        "search",
-        "author"
-      ],
       "run": [
         "help",
         "search",
@@ -39,56 +34,17 @@
             "ids"
           ]
         },
-        "/result/commands/0/description": "Exact qualified records in caller order, with no name reconciliation. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.",
+        "/result/commands/0/description": "Exact qualified records in caller order, with no name reconciliation. Sources: orcid, semantic-scholar.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/status": "complete"
       },
       "full_output_bytes": true,
       "max_bytes": 2350,
-      "mcp": [
-        "help",
-        "get",
-        "author"
-      ],
       "run": [
         "help",
         "get",
-        "author"
-      ]
-    },
-    {
-      "expect": {
-        "/result/commands/*/command": {
-          "includes": [
-            "author",
-            "papers"
-          ]
-        },
-        "/status": "complete"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 9758,
-      "run": [
-        "help",
-        "author"
-      ]
-    },
-    {
-      "expect": {
-        "/result/commands/*/command": {
-          "includes": [
-            "author",
-            "papers"
-          ]
-        },
-        "/status": "complete"
-      },
-      "full_output_bytes": true,
-      "max_bytes": 9817,
-      "mcp": [
-        "help",
         "author"
       ]
     }

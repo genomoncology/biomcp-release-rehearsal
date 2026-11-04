@@ -6,49 +6,38 @@ mod search;
 mod sections;
 mod sequence;
 use crate::Outcome;
-use biomcp_types::{QueryBody, Status};
-pub use get::get;
-pub use search::search;
-fn empty(body: QueryBody) -> Outcome {
-    Outcome {
-        status: Status::Failed,
-        body,
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    }
-}
+pub(super) use crate::status::empty;
+pub(crate) use get::get;
+pub(crate) use search::search;
 
 /// Page checked native feature rows on their own sequence identity.
-pub fn features(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinFeaturesQuery) -> Outcome {
+pub(crate) fn features(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinFeaturesQuery) -> Outcome {
     relations::run(cx, relations::Selection::Features(q.clone()))
 }
 /// Page native alternative products without constructing their sequences.
-pub fn isoforms(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinRelationQuery) -> Outcome {
+pub(crate) fn isoforms(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinRelationQuery) -> Outcome {
     relations::run(cx, relations::Selection::Isoforms(q.clone()))
 }
 /// Page native structure references and source properties.
-pub fn structures(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinRelationQuery) -> Outcome {
+pub(crate) fn structures(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinRelationQuery) -> Outcome {
     relations::run(cx, relations::Selection::Structures(q.clone()))
 }
 /// Read a whole direct sequence under its exact source identity.
-pub fn sequence(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinSequenceQuery) -> Outcome {
+pub(crate) fn sequence(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinSequenceQuery) -> Outcome {
     sequence::run(cx, q)
 }
 mod source_relations;
 mod source_sections;
 /// Read complete native InterPro match rows without changing their entry types.
-pub fn domains(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinDomainsQuery) -> Outcome {
+pub(crate) fn domains(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinDomainsQuery) -> Outcome {
     source_relations::run(cx, source_relations::Selection::Domains(q.clone()))
 }
 /// Read exact participant-admitted Complex Portal headers.
-pub fn complexes(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinRelationQuery) -> Outcome {
+pub(crate) fn complexes(cx: &crate::Ctx<'_>, q: &biomcp_types::ProteinRelationQuery) -> Outcome {
     source_relations::run(cx, source_relations::Selection::Complexes(q.clone()))
 }
 /// Page original participants of one exact containing complex.
-pub fn complex_members(
+pub(crate) fn complex_members(
     cx: &crate::Ctx<'_>,
     q: &biomcp_types::ProteinComplexMembersQuery,
 ) -> Outcome {

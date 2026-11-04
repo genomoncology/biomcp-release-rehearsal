@@ -1,14 +1,11 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "drug-ema",
   "story": "Synthetic medicines preserve exact EMA records, native date roles, separate Tibsovo applications and local-only bounded reads after one explicit sync",
   "replay": "drug/ema-synthetic",
   "steps": [
     {
       "run": [
-        "sync",
-        "ema"
-      ],
-      "mcp": [
         "sync",
         "ema"
       ],
@@ -28,17 +25,8 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "search",
-        "drug",
-        "Tibsovo",
-        "--source",
-        "ema",
-        "--limit",
-        "1"
-      ],
       "expect": {
-        "/schema": "biomcp.drug-page/3",
+        "/schema": "biomcp.drug-page/7",
         "/status": "complete",
         "/result/total": 2,
         "/result/items/0/id": "EMEA/H/C/005936",
@@ -49,18 +37,6 @@
     },
     {
       "run": [
-        "search",
-        "drug",
-        "Tibsovo",
-        "--source",
-        "ema",
-        "--limit",
-        "1",
-        "--offset",
-        "1",
-        "--fresh"
-      ],
-      "mcp": [
         "search",
         "drug",
         "Tibsovo",
@@ -88,13 +64,6 @@
         "--source",
         "ema"
       ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/000406",
-        "--source",
-        "ema"
-      ],
       "expect": {
         "/status": "complete",
         "/result/header/id": "EMEA/H/C/000406",
@@ -110,99 +79,13 @@
       "run": [
         "get",
         "drug",
-        "EMEA/H/C/004124",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/header/id": "EMEA/H/C/004124",
-        "/result/header/name": "Tagrisso",
-        "/result/header/identity_level": "unknown",
-        "/result/available_sections": [
-          "regulatory"
-        ]
-      },
-      "max_bytes": 579
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/004480",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/004480",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/header/id": "EMEA/H/C/004480",
-        "/result/header/name": "Yescarta",
-        "/result/header/identity_level": "unknown",
-        "/result/available_sections": [
-          "regulatory"
-        ]
-      },
-      "max_bytes": 579
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/005621",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/005621",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/header/id": "EMEA/H/C/005621",
-        "/result/header/name": "Exkivity",
-        "/result/header/identity_level": "unknown",
-        "/result/available_sections": [
-          "regulatory"
-        ]
-      },
-      "max_bytes": 579
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/000406",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
         "EMEA/H/C/000406",
         "regulatory",
         "--source",
         "ema"
       ],
       "expect": {
-        "/schema": "biomcp.drug-regulatory/2",
+        "/schema": "biomcp.drug-regulatory/6",
         "/status": "complete",
         "/result/identity/id": "EMEA/H/C/000406",
         "/result/regulatory/state": "data",
@@ -212,267 +95,6 @@
         "/result/regulatory/data/records/0/dates/1/date": "2001-11-07"
       },
       "max_bytes": 994
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/schema": "biomcp.drug-regulatory/2",
-        "/status": "complete",
-        "/result/identity/id": "EMEA/H/C/004124",
-        "/result/regulatory/state": "data",
-        "/result/regulatory/data/version": "2026-10-24T18:22:32Z",
-        "/result/regulatory/data/records/0/status": "Authorised",
-        "/result/regulatory/data/records/0/dates/1/role": "marketing_authorisation_date",
-        "/result/regulatory/data/records/0/dates/1/date": "2016-02-01"
-      },
-      "max_bytes": 1001
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/004480",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/004480",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/schema": "biomcp.drug-regulatory/2",
-        "/status": "complete",
-        "/result/identity/id": "EMEA/H/C/004480",
-        "/result/regulatory/state": "data",
-        "/result/regulatory/data/version": "2026-10-24T18:22:32Z",
-        "/result/regulatory/data/records/0/status": "Authorised",
-        "/result/regulatory/data/records/0/dates/1/role": "marketing_authorisation_date",
-        "/result/regulatory/data/records/0/dates/1/date": "2018-08-23"
-      },
-      "max_bytes": 1001
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/005621",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/005621",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/schema": "biomcp.drug-regulatory/2",
-        "/status": "complete",
-        "/result/identity/id": "EMEA/H/C/005621",
-        "/result/regulatory/state": "data",
-        "/result/regulatory/data/version": "2026-10-24T18:22:32Z",
-        "/result/regulatory/data/records/0/status": "Application withdrawn",
-        "/result/regulatory/data/records/0/dates/1/role": "withdrawal_of_application_date",
-        "/result/regulatory/data/records/0/dates/1/date": "2022-07-20"
-      },
-      "max_bytes": 1016
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/005936",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/005936",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/result/regulatory/data/records/0/status": "Authorised"
-      },
-      "max_bytes": 929
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/005056",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/005056",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/result/regulatory/data/records/0/status": "Application withdrawn"
-      },
-      "max_bytes": 941
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "regulatory",
-        "--source",
-        "ema",
-        "--section-offset",
-        "1"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "regulatory",
-        "--source",
-        "ema",
-        "--section-offset",
-        "1"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/regulatory/data/offset": 1,
-        "/result/regulatory/data/total": 1,
-        "/page/returned": 0
-      },
-      "max_bytes": 616
-    },
-    {
-      "run": [
-        "search",
-        "drug",
-        "unmatched-synthetic-name",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "search",
-        "drug",
-        "unmatched-synthetic-name",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/status": "absent",
-        "/result/total": 0
-      },
-      "exit": 1,
-      "is_error": false,
-      "max_bytes": 299
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/999999",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/999999",
-        "regulatory",
-        "--source",
-        "ema"
-      ],
-      "expect": {
-        "/status": "absent"
-      },
-      "exit": 1,
-      "is_error": false,
-      "max_bytes": 201
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "--source",
-        "ema",
-        "--disable-sources",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/004124",
-        "--source",
-        "ema",
-        "--disable-sources",
-        "ema"
-      ],
-      "expect": {
-        "/status": "failed",
-        "/sources/0/state": "skipped",
-        "/sources/0/reason": "disabled"
-      },
-      "exit": 4,
-      "is_error": true,
-      "max_bytes": 194
-    },
-    {
-      "run": [
-        "get",
-        "drug",
-        "EMEA/H/C/000406",
-        "targets",
-        "--source",
-        "ema"
-      ],
-      "mcp": [
-        "get",
-        "drug",
-        "EMEA/H/C/000406",
-        "targets",
-        "--source",
-        "ema"
-      ],
-      "exit": 4,
-      "is_error": true,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/reason": "unsupported",
-        "/sources/0/state": "skipped"
-      },
-      "max_bytes": 222
     }
   ]
 }

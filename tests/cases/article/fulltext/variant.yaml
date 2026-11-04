@@ -1,1 +1,21 @@
-{"feature":"article-fulltext","story":"explicit-protein-change","replay":"article/fulltext/synthetic","steps":[{"run":["article","text","PMC5606870","--variant","Pro245Ser"],"expect":{"/status":"complete","/result/content/data/forms":["P245S","Pro245Ser","p.P245S","p.Pro245Ser"]}},{"run":["article","text","PMC5606870","--variant","P245"],"exit":2,"expect":{"/error/code":"usage.arguments"}}]}
+{
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
+  "feature": "article-fulltext",
+  "story": "explicit-protein-change",
+  "replay": "article/fulltext/synthetic",
+  "steps": [
+    {
+      "run": [
+        "article",
+        "text",
+        "PMC5606870",
+        "--variant",
+        "P245"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

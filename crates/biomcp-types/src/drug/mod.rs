@@ -1,4 +1,8 @@
 //! Source-selected drug contracts; adapters and command dispatch live elsewhere.
+mod recall;
+pub use recall::{
+    DrugRecallCard, DrugRecallClassification, DrugRecallCountUnit, DrugRecallHeader, DrugRecallPage,
+};
 mod civic;
 mod fda;
 pub use civic::{
@@ -11,13 +15,15 @@ pub use fda::{
 };
 mod query;
 mod response;
+mod search;
 mod source;
-pub use query::{DrugGet, DrugSearch, DrugSection};
+pub use query::{DrugGet, DrugSection};
 pub use response::{
     DrugApprovals, DrugCard, DrugCivic, DrugHeader, DrugIndications, DrugInteractions, DrugLabel,
-    DrugLabelFragment, DrugLabelText, DrugPage, DrugRecords, DrugRegulatory, DrugTargets,
-    DrugXrefs,
+    DrugLabelFragment, DrugLabelText, DrugNameResolution, DrugPage, DrugRecords, DrugRegulatory,
+    DrugTargets, DrugXrefs,
 };
+pub use search::DrugSearch;
 
 pub use source::DrugSource;
 
@@ -33,3 +39,9 @@ pub use command::DrugGetCommand;
 
 mod name_match;
 pub use name_match::DrugNameMatch;
+
+mod label_headings;
+pub use label_headings::OPENFDA_LABEL_HEADINGS;
+
+/// Default submission page size for a native Drugs@FDA application.
+pub const DEFAULT_DRUG_APPROVALS_LIMIT: u32 = 10;

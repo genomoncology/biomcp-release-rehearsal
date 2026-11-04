@@ -1,0 +1,31 @@
+{
+  "feature": "phenotype-associations",
+  "story": "A direct human gene association preserves the source row and exact identity pivot.",
+  "live_check": "existing authored synthetic association row",
+  "replay": "phenotype/direct-associations",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "phenotype",
+        "HP:0001250",
+        "genes",
+        "--source",
+        "monarch"
+      ],
+      "expect": {
+        "/page/total": 3,
+        "/page/returned": 1,
+        "/result/direct": true,
+        "/result/items/0/association/requested_id": "HP:0001250",
+        "/result/items/0/association/original_subject": "NCBIGene:27316",
+        "/result/items/0/association/negated": false,
+        "/next/0/args": [
+          "get",
+          "gene",
+          "HGNC:9910"
+        ]
+      }
+    }
+  ]
+}

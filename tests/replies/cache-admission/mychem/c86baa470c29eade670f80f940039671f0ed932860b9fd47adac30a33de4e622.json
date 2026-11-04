@@ -1,0 +1,25 @@
+{
+  "source": "mychem",
+  "method": "GET",
+  "url": "https://mychem.info/v1/query?q=imatinib&size=10&from=0&fields=drugbank.id%2Cdrugbank.name%2Cchembl.molecule_chembl_id%2Cchembl.pref_name%2Cchembl.molecule_type%2Cgtopdb.ligand_id%2Cgtopdb.name%2Cgtopdb.type%2Cunii.unii%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.product_id%2Cndc.productndc%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 1,
+          "hits": [
+            {
+              "_id": "invalid identity",
+              "_version": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

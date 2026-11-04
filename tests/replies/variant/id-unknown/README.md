@@ -1,0 +1,1 @@
+Synthetic response-only variant of id-forms: the GRCh37-index reply lacks source chromosome, coordinate and CA metadata. No assembly or exact allele may be inferred from the selected index. Existing public ClinVar ID13961 is unchanged. No live calls.

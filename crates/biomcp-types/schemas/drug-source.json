@@ -2,8 +2,11 @@
   "$id": "biomcp.drug-source/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "A supported drug data source.",
-  "enum": [
+  "title": "DrugSource",
+  "type": "string",
+  "x-extensible-enum": [
     "who-pq",
+    "fda-drug-recall",
     "mychem",
     "chembl",
     "opentargets",
@@ -12,7 +15,5 @@
     "drugsfda",
     "ema",
     "ddinter"
-  ],
-  "title": "DrugSource",
-  "type": "string"
+  ]
 }

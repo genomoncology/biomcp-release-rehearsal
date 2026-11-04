@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name%3A%22imatinib%22%20OR%20openfda.generic_name%3A%22imatinib%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"disclaimer\":\"Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.\",\"terms\":\"https://open.fda.gov/terms/\",\"license\":\"https://open.fda.gov/license/\",\"last_updated\":\"2026-11-04\",\"results\":{\"skip\":0,\"limit\":1,\"total\":18}},\"results\":[{\"spl_product_data_elements\":[\"Imatinib Mesylate Imatinib Mesylate IMATINIB MESYLATE Imatinib SILICON DIOXIDE CROSPOVIDONE (120 .MU.M) MAGNESIUM STEARATE HYPROMELLOSE 2910 (5 MPA.S) HYDROXYPROPYL CELLULOSE (90000 WAMW) FERRIC OXIDE RED FERRIC OXIDE YELLOW POLYETHYLENE GLYCOL 8000 Brownish Orange IMA;100;APO Imatinib Mesylate Imatinib Mesylate IMATINIB MESYLATE Imatinib SILICON DIOXIDE CROSPOVIDONE (120 .MU.M) MAGNESIUM STEARATE HYPROMELLOSE 2910 (5 MPA.S) HYDROXYPROPYL CELLULOSE (90000 WAMW) FERRIC OXIDE RED FERRIC OXIDE YELLOW POLYETHYLENE GLYCOL 8000 Brownish Orange IMA;400;APO Imatinib-Molecule figure-1 figure-2 Imatinib100mg90s.jpg Imatinib400mg30s.jpg Fig 3.jpg Fig 4.jpg Fig 5.jpg\"],\"set_id\":\"0291eca5-7a1d-4a79-30be-252224d96509\",\"id\":\"7560461e-a5f5-b4c8-c4c6-3145a0e98fda\",\"effective_time\":\"20260908\",\"version\":\"21\",\"openfda\":{\"application_number\":[\"ANDA079179\"],\"brand_name\":[\"Imatinib Mesylate\"],\"generic_name\":[\"IMATINIB MESYLATE\"],\"manufacturer_name\":[\"Apotex Corp\"],\"product_ndc\":[\"60505-2900\",\"60505-2901\"],\"product_type\":[\"HUMAN PRESCRIPTION DRUG\"],\"route\":[\"ORAL\"],\"substance_name\":[\"IMATINIB MESYLATE\"],\"rxcui\":[\"403878\",\"403879\"],\"spl_id\":[\"7560461e-a5f5-b4c8-c4c6-3145a0e98fda\"],\"spl_set_id\":[\"0291eca5-7a1d-4a79-30be-252224d96509\"],\"package_ndc\":[\"60505-2900-3\",\"60505-2900-9\",\"60505-2900-1\",\"60505-2900-8\",\"60505-2900-0\",\"60505-2901-3\",\"60505-2901-9\",\"60505-2901-1\",\"60505-2901-5\",\"60505-2901-0\"],\"is_original_packager\":[true],\"unii\":[\"8A1O1M485B\"]}}]}"
+      }
+    }
+  ]
+}

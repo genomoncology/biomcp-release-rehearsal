@@ -1,0 +1,26 @@
+{
+  "feature": "adverse-event-get",
+  "live_check": "synthetic",
+  "story": "A synthetic wrong-shaped nonidentity value retains its report and names the omitted field.",
+  "replay": "adverse-event/adapter-values/faers",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100"
+      ],
+      "expect": {
+        "/result/header": {
+          "omits": [
+            "serious"
+          ]
+        },
+        "/problems/*/field": [
+          "serious"
+        ],
+        "/result/header/id": "100"
+      }
+    }
+  ]
+}

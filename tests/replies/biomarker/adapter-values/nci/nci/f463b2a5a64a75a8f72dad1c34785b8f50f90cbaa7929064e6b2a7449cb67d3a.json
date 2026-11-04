@@ -1,0 +1,50 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/biomarkers?codes=C96022",
+  "exchanges": [
+    {
+      "fetched": 1793223567,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": [
+            {
+              "name": "CD274 Gene",
+              "codes": [
+                "C96022"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C20103",
+                "C21295"
+              ],
+              "type": [
+                "reference_gene"
+              ],
+              "parent_ids": [
+                "C20103"
+              ],
+              "synonyms": [
+                "CD274",
+                "CD274 Molecule Gene",
+                "PD-L1",
+                "PDL1"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": "synthetic-invalid-count"
+            }
+          ],
+          "total": 1
+        }
+      }
+    }
+  ]
+}

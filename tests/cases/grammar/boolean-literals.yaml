@@ -1,0 +1,109 @@
+{
+  "feature": "query-validation",
+  "live_check": "synthetic",
+  "story": "Boolean flags consume only explicit true or false and preserve other positional text.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--has-results",
+        "true"
+      ],
+      "expect": {
+        "/query/has_results": true,
+        "/query": {
+          "omits": [
+            "query"
+          ]
+        },
+        "/sources/0/state": "ok",
+        "/page/total": 0
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--has-results",
+        "false"
+      ],
+      "expect": {
+        "/query": {
+          "omits": [
+            "has_results",
+            "query"
+          ]
+        },
+        "/sources/0/state": "ok",
+        "/page/total": 0
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--has-results"
+      ],
+      "expect": {
+        "/query/has_results": true,
+        "/query": {
+          "omits": [
+            "query"
+          ]
+        },
+        "/sources/0/state": "ok",
+        "/page/total": 0
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--has-results",
+        "melanoma"
+      ],
+      "expect": {
+        "/query/has_results": true,
+        "/query/query": "melanoma",
+        "/sources/0/state": "ok",
+        "/page/total": 0
+      }
+    },
+    {
+      "run": [
+        "search",
+        "protein",
+        "--gene",
+        "BRAF",
+        "--reviewed",
+        "false"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--reviewed"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--offline",
+        "false"
+      ],
+      "expect": {
+        "/query": {
+          "omits": [
+            "query",
+            "has_results"
+          ]
+        },
+        "/sources/0/state": "ok",
+        "/page/total": 0
+      }
+    }
+  ],
+  "replay": "grammar/boolean-literals"
+}

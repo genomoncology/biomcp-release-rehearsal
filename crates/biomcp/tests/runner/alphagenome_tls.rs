@@ -1,39 +1,29 @@
 //! Feature variant-alphagenome: the CLI preserves native groups through a local TLS gRPC peer.
 use super::{alphagenome::invoke, launch::Environment};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 #[path = "alphagenome_capture.rs"]
 mod capture;
-#[path = "../../../biomcp-fetch/tests/grpc_worker/support.rs"]
-#[expect(
-    clippy::disallowed_types,
-    reason = "The shared local TLS test fixture counts accepted sockets across its worker thread"
-)]
-#[allow(
-    dead_code,
-    reason = "One shared TLS fixture serves transport and CLI contracts"
-)]
-mod support;
-static QUOTA: biomcp_fetch::Quota = biomcp_fetch::Quota::new(
-    biomcp_fetch::SourceKey::declare("alphagenome-cli-synthetic"),
-    biomcp_fetch::Rate::per_second(1000),
-    None,
-    1,
-);
+use biomcp_test_support::grpc as support;
 const SECTION: &str = "/result/candidates/0/sections/alphagenome";
 const KEY: &str = "synthetic-alphagenome-cli-placeholder";
 pub(super) fn trials() -> Vec<Trial> {
     let mut trials = installed_trials();
-    trials.push(Trial::test(
-        "variant/alphagenome-source-identity-refusals",
+    trials.push(transcript_trial(
+        "variant-alphagenome/alphagenome-source-identity-refusals",
         || refusals().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "variant-alphagenome/alphagenome-field-admission-local-tls",
+        || field_admission().map_err(Into::into),
     ));
     trials.extend(capture::trials());
     trials
 }
 pub(super) fn installed_trials() -> Vec<Trial> {
-    vec![Trial::test(
-        "variant/alphagenome-native-groups-local-tls",
+    vec![transcript_trial(
+        crate::runner::required_contract::ALPHAGENOME.0,
         || run().map_err(Into::into),
     )]
 }
@@ -60,9 +50,9 @@ fn run() -> Result<(), String> {
         } else {
             let reason = match status {
                 401 => "rejected",
-                429 => "rate_limited",
+                429 => "rate-limited",
                 500 => "unavailable",
-                _ => "bad_reply",
+                _ => "bad-reply",
             };
             if reply.pointer(&format!("{SECTION}/state")) != Some(&json!("unavailable"))
                 || reply.pointer(&format!("{SECTION}/reason")) != Some(&json!(reason))
@@ -86,6 +76,19 @@ fn successful(
 ) -> Result<(), String> {
     groups(reply)?;
     let mcp = super::mcp::call_with_globals(env, command, false, &[])?;
+    for response in [reply, &mcp] {
+        if id.starts_with("rs") {
+            if response.pointer("/query/build") != Some(&json!("GRCh38"))
+                || response.pointer("/query/build_defaulted") != Some(&json!(true))
+            {
+                return Err("AlphaGenome identity lookup lost its chosen assembly default".into());
+            }
+        } else if response.pointer("/query/build").is_some()
+            || response.pointer("/query/build_defaulted").is_some()
+        {
+            return Err("CA identity lookup gained an unused assembly default".into());
+        }
+    }
     if mcp.get("result") != reply.get("result") || mcp.get("next") != reply.get("next") {
         return Err("native CLI and MCP groups or continuations differ".into());
     }
@@ -96,7 +99,7 @@ fn successful(
         return Err("native continuation differs through MCP".into());
     }
     if later.pointer(&format!("{SECTION}/data/scorers/0/rows/0/value"))
-        != Some(&json!({"kind":"negative_infinity"}))
+        != Some(&json!({"kind":"negative-infinity"}))
     {
         return Err("native negative infinity was dropped or converted".into());
     }
@@ -198,7 +201,7 @@ fn routed(fixture: &support::Fixture, expected: usize) -> Result<(), String> {
 fn refusals() -> Result<(), String> {
     for (build, coordinates, mitochondrial, reason) in [
         ("GRCh37", true, false, "unsupported"),
-        ("GRCh38", false, false, "no_join_id"),
+        ("GRCh38", false, false, "no-join-id"),
         ("GRCh38", true, true, "unsupported"),
     ] {
         let expression = if mitochondrial {
@@ -277,7 +280,7 @@ fn groups(reply: &Value) -> Result<(), String> {
     if rows.first().and_then(|g| g.pointer("/rows/0/value")) != Some(&json!(0.25))
         || rows.first().and_then(|g| g.pointer("/rows/1/value")) != Some(&json!({"kind":"nan"}))
         || rows.first().and_then(|g| g.pointer("/rows/2/value"))
-            != Some(&json!({"kind":"positive_infinity"}))
+            != Some(&json!({"kind":"positive-infinity"}))
         || rows.first().and_then(|g| g.pointer("/rows/2/tensor_index")) != Some(&json!([0, 1, 0]))
         || rows
             .get(2)
@@ -297,19 +300,90 @@ fn groups(reply: &Value) -> Result<(), String> {
     if native.get("track")
         != Some(&json!({
             "name":"synthetic track 0","strand":"STRAND_UNSTRANDED",
-            "ontology_term":{"ontology_type":"ONTOLOGY_TYPE_UBERON","id":2048},
+            "ontology_term":{"namespace":"ONTOLOGY_TYPE_UBERON","id":2048},
             "biosample":{"type":"BIOSAMPLE_TYPE_TISSUE","name":"synthetic tissue","stage":"synthetic stage"},
             "assay":"synthetic assay","gtex_tissue":"synthetic GTEx tissue","histone_mark_code":"synthetic histone",
             "transcription_factor_code":"synthetic transcription factor","data_source":"synthetic data source",
             "endedness":"ENDEDNESS_PAIRED","genetically_modified":true,"nonzero_mean":1.25
         }))
         || native.get("gene")
-            != Some(
-                &json!({"gene_id":"synthetic-gene-0","name":"synthetic gene",
-        "strand":"STRAND_POSITIVE","type":"synthetic gene type","junction_start":10,"junction_end":20}),
-            )
+            != Some(&json!({"gene_id":"ENSG00000100000","name":"synthetic gene",
+        "strand":"STRAND_POSITIVE","type":"synthetic gene type","junction_start":10,"junction_end":20}))
     {
         return Err("native track or gene metadata fields changed".into());
+    }
+    Ok(())
+}
+fn field_admission() -> Result<(), String> {
+    for (mode, field, omitted) in [
+        ("variant", "variant", ""),
+        ("track", "tracks.0.name", ""),
+        ("gene", "genes.0.gene_id", ""),
+        ("endedness", "tracks.0.endedness", "track/endedness"),
+        (
+            "ontology",
+            "tracks.0.ontology_term.ontology_type",
+            "track/ontology_term",
+        ),
+        (
+            "biosample",
+            "tracks.0.biosample.type",
+            "track/biosample/type",
+        ),
+        ("gene-strand", "genes.0.strand", "gene/strand"),
+    ] {
+        let fixture = fixture(changed_messages(mode), 200)?;
+        let env = environment(&fixture)?;
+        let args = [
+            "get",
+            "variant",
+            "CA123643",
+            "alphagenome",
+            "--section-limit",
+            "1",
+        ]
+        .map(str::to_owned);
+        let reply = invoke(&env, &args, 0)?;
+        let scorer = format!("{SECTION}/data/scorers/0");
+        let expected = format!("scorers.0.{field}");
+        let problems = reply
+            .get("problems")
+            .and_then(Value::as_array)
+            .ok_or("missing field problem")?;
+        if problems.len() != 1
+            || problems.first().and_then(|problem| problem.get("field")) != Some(&json!(expected))
+        {
+            return Err(format!(
+                "{mode} lost its single scoped field problem: {problems:?}"
+            ));
+        }
+        if omitted.is_empty() {
+            if reply.pointer(&format!("{scorer}/page/returned")) != Some(&json!(0))
+                || reply.pointer(&format!("{scorer}/rows")).is_some()
+            {
+                return Err(format!("{mode} admitted a scalar with invalid identity"));
+            }
+        } else if reply.pointer(&format!("{scorer}/rows/0/tensor_index")) != Some(&json!([0, 0, 0]))
+            || reply
+                .pointer(&format!("{scorer}/rows/0/{omitted}"))
+                .is_some()
+        {
+            return Err(format!(
+                "{mode} lost its scalar or retained the invalid field"
+            ));
+        }
+        let next = invoke(&env, &page_args(&reply)?, 0)?;
+        let expected_returned = usize::from(!matches!(mode, "gene" | "variant"));
+        if next.pointer(&format!("{scorer}/page/offset")) != Some(&json!(1))
+            || next.pointer(&format!("{scorer}/page/returned")) != Some(&json!(expected_returned))
+            || next.pointer(&format!("{SECTION}/data/scorers/1/rows/0/gene/gene_id"))
+                != Some(&json!("ENSG00000100000"))
+        {
+            return Err(format!(
+                "{mode} shifted native positions or refused a valid sibling"
+            ));
+        }
+        fixture.finish().map_err(|e| e.to_string())?;
     }
     Ok(())
 }
@@ -331,9 +405,22 @@ fn source_fixture(
         false,
         messages,
         Some(support::HttpReply {
-            hosts: vec!["gdmscience.googleapis.com".into(), "reg.genome.network".into(), "myvariant.info".into()],
-            replies: vec![("GET /allele".into(), allele.to_string().into_bytes()),
-                ("GET /v1/query?".into(), json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T","dbsnp":{"rsid":"rs113488022"}}]}).to_string().into_bytes())],
+            hosts: vec![
+                "gdmscience.googleapis.com".into(),
+                "reg.genome.network".into(),
+                "myvariant.info".into(),
+            ],
+            replies: vec![
+                ("GET /allele".into(), allele.to_string().into_bytes()),
+                (
+                    "GET /v1/query?".into(),
+                    json!({"total":1,"hits":[{"_id":"chr7:g.140753336A>T",
+                        "chrom":"7","hg38":{"start":140753336,"end":140753336},
+                        "clingen":{"caid":"CA123643"},"dbsnp":{"rsid":"rs113488022"}}]})
+                    .to_string()
+                    .into_bytes(),
+                ),
+            ],
         }),
         status,
     )
@@ -351,18 +438,34 @@ fn environment(fixture: &support::Fixture) -> Result<Environment, String> {
     Ok(env)
 }
 fn messages() -> Vec<Vec<u8>> {
+    changed_messages("")
+}
+fn changed_messages(mode: &str) -> Vec<Vec<u8>> {
     [[2, 2, 2], [2, 1, 1], [1, 1, 2]]
         .into_iter()
         .enumerate()
         .flat_map(|(ordinal, shape)| {
             let tensor = [field(1, &shape), number(2, 2), number(4, 1)].concat();
-            let mut metadata = field(1, &variant());
+            let mut metadata = field(
+                1,
+                &variant(if mode == "variant" && ordinal == 0 {
+                    140753337
+                } else {
+                    140753336
+                }),
+            );
             for track in 0..shape[2] {
-                metadata.extend(field(2, &track_metadata(track)));
+                metadata.extend(field(
+                    2,
+                    &track_metadata(track, if ordinal == 0 && track == 0 { mode } else { "" }),
+                ));
             }
             if ordinal < 2 {
                 for row in 0..shape[1] {
-                    metadata.extend(field(3, &gene_metadata(row)));
+                    metadata.extend(field(
+                        3,
+                        &gene_metadata(row, if ordinal == 0 && row == 0 { mode } else { "" }),
+                    ));
                 }
             }
             let descriptor = field(
@@ -384,17 +487,32 @@ fn messages() -> Vec<Vec<u8>> {
         })
         .collect()
 }
-fn track_metadata(track: u8) -> Vec<u8> {
+fn track_metadata(track: u8, mode: &str) -> Vec<u8> {
     let mut mean = vec![(14 << 3) | 5];
     mean.extend(1.25f32.to_le_bytes());
     [
-        field(1, format!("synthetic track {track}").as_bytes()),
+        field(
+            1,
+            if mode == "track" {
+                String::new()
+            } else {
+                format!("synthetic track {track}")
+            }
+            .as_bytes(),
+        ),
         number(2, 3),
-        field(3, &[number(1, 2), number(2, 2048)].concat()),
+        field(
+            3,
+            &[
+                number(1, if mode == "ontology" { 999 } else { 2 }),
+                number(2, 2048),
+            ]
+            .concat(),
+        ),
         field(
             4,
             &[
-                number(1, 4),
+                number(1, if mode == "biosample" { 999 } else { 4 }),
                 field(2, b"synthetic tissue"),
                 field(3, b"synthetic stage"),
             ]
@@ -405,16 +523,24 @@ fn track_metadata(track: u8) -> Vec<u8> {
         field(9, b"synthetic histone"),
         field(10, b"synthetic transcription factor"),
         field(11, b"synthetic data source"),
-        number(12, 2),
+        number(12, if mode == "endedness" { 999 } else { 2 }),
         number(13, 1),
         mean,
     ]
     .concat()
 }
-fn gene_metadata(row: u8) -> Vec<u8> {
+fn gene_metadata(row: u8, mode: &str) -> Vec<u8> {
     [
-        field(1, format!("synthetic-gene-{row}").as_bytes()),
-        number(2, 1),
+        field(
+            1,
+            if mode == "gene" {
+                "invalid-gene".to_owned()
+            } else {
+                format!("ENSG{:011}", 100_000 + u64::from(row))
+            }
+            .as_bytes(),
+        ),
+        number(2, if mode == "gene-strand" { 999 } else { 1 }),
         field(3, b"synthetic gene"),
         field(4, b"synthetic gene type"),
         number(5, 10),
@@ -434,7 +560,7 @@ fn expected_request() -> Vec<u8> {
             ]
             .concat(),
         ),
-        field(2, &variant()),
+        field(2, &variant(140753336)),
         number(3, 9606),
         field(4, &field(2, &number(1, 4))),
         field(4, &field(3, &number(2, 7))),
@@ -445,10 +571,10 @@ fn expected_request() -> Vec<u8> {
     ]
     .concat()
 }
-fn variant() -> Vec<u8> {
+fn variant(position: u64) -> Vec<u8> {
     [
         field(1, b"chr7"),
-        number(2, 140753336),
+        number(2, position),
         field(3, b"A"),
         field(4, b"T"),
     ]

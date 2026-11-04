@@ -9,7 +9,7 @@ impl TrialSearch {
     /// Offer an explicit source-field restriction with all other filters retained.
     pub fn exact_condition_search(&self) -> Option<Self> {
         if self.source() != TrialSource::Ctgov
-            || self.condition().is_none()
+            || self.condition().is_empty()
             || self.exact_condition()
         {
             return None;

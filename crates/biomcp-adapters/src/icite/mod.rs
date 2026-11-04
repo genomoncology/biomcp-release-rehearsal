@@ -1,6 +1,7 @@
 //! Public iCite metadata; no abstracts or provider-specific scoring blend.
 use crate::{quotas, raw::Field};
 use biodata::{FiniteNumber, Pmid, Text};
+use biomcp_fetch::{Input, Read};
 
 use biomcp_fetch::{
     Arg, BadReply, Endpoint, Freshness, KeyUse, Leg, Reply, RequestError, SourceSpec,
@@ -42,56 +43,149 @@ pub struct Publication {
     pub references: Option<Vec<Pmid>>,
 }
 /// Request one documented metadata batch, joining only requested identities.
-pub fn publications(leg: &Leg<'_>, ids: &[Pmid]) -> Result<Vec<Publication>, RequestError> {
+pub fn publications(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+) -> Result<crate::Mapped<Vec<Publication>>, RequestError> {
+    request::<Raw>(leg, ids)
+}
+/// Request metadata while observing the native reference selection.
+pub fn references(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+) -> Result<crate::Mapped<Vec<Publication>>, RequestError> {
+    request::<References>(leg, ids)
+}
+fn request<T: Reply + Into<Raw> + serde::de::DeserializeOwned>(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+) -> Result<crate::Mapped<Vec<Publication>>, RequestError> {
     if ids.is_empty() || ids.len() > BATCH_LIMIT {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::Icite, Some(200)));
     }
     let names: Vec<_> = ids
         .iter()
         .map(|id| id.to_string().into_boxed_str())
         .collect();
-    let raw = leg.json::<Raw>(
-        &PUBS,
-        &[
-            ("pmids", Arg::Ids(&names)),
-            ("legacy", Arg::Text("false")),
-            ("fl", Arg::Text(FIELDS)),
-        ],
-    )?;
-    if raw.data.iter().any(|r| !ids.contains(&r.pmid.0)) {
-        return Err(bad());
+    let raw: Raw = leg
+        .call(
+            &PUBS,
+            Input::Params(&[
+                ("pmids", Arg::Ids(&names)),
+                ("legacy", Arg::Text("false")),
+                ("fl", Arg::Text(FIELDS)),
+            ]),
+            Read::<T>::json(),
+        )?
+        .value
+        .into();
+    if raw
+        .data
+        .iter()
+        .filter_map(Field::as_ref)
+        .any(|r| !ids.contains(&r.pmid.0))
+    {
+        return Err(biomcp_fetch::bad_reply(Source::Icite, Some(200)));
     }
-    Ok(raw.data.into_iter().map(Row::map).collect())
-}
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
+    let mut p = crate::mapped::Problems {
         source: Source::Icite,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
+        record: None,
+        list: Vec::new(),
+    };
+    let mut refusals = crate::Refusal::None;
+    let value = raw
+        .data
+        .into_iter()
+        .filter_map(|r| match p.required("pmid", r.value()) {
+            Some(row) => Some(row),
+            None => {
+                refusals = crate::Refusal::Refused;
+                None
+            }
+        })
+        .map(Row::map)
+        .collect();
+    Ok(crate::Mapped {
+        refusals,
+        value,
+        problems: p.list,
+    })
 }
+
 #[derive(Deserialize)]
 #[serde(try_from = "u32")]
 struct Id(Pmid);
 impl TryFrom<u32> for Id {
     type Error = biodata::Error;
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Pmid::new(value).map(Self)
+        Pmid::new(value)
+            .map(Self)
+            .map_err(|_| biodata::Error::ArticleIdInvalid)
     }
 }
 #[derive(Deserialize)]
 struct Raw {
-    data: Vec<Row>,
+    data: Vec<Field<Row>>,
+}
+impl Raw {
+    fn selection(&self, references: bool) -> Option<biomcp_fetch::Identities> {
+        let [row] = self.data.as_slice() else {
+            return None;
+        };
+        let row = row.as_ref()?;
+        let ids = if references {
+            &row.cited_pmids
+        } else {
+            &row.cited_by_pmids
+        };
+        let ids = ids.as_ref()?.as_ref()?;
+        let mut seen = BTreeSet::new();
+        biomcp_fetch::Identities::bounded(
+            "pmid",
+            ids.iter()
+                .map(|id| id.0)
+                .filter(|id| seen.insert(*id))
+                .map(|id| id.to_string())
+                .collect(),
+        )
+    }
+}
+#[derive(Deserialize)]
+#[serde(transparent)]
+struct References(Raw);
+impl From<References> for Raw {
+    fn from(value: References) -> Self {
+        value.0
+    }
+}
+impl Reply for References {
+    fn discovery(&self) -> Option<biomcp_fetch::Identities> {
+        self.0.selection(true)
+    }
+    fn input_parameter() -> Option<(&'static str, &'static str)> {
+        Raw::input_parameter()
+    }
+    fn check(&self) -> Result<(), BadReply> {
+        self.0.check()
+    }
 }
 impl Reply for Raw {
+    fn discovery(&self) -> Option<biomcp_fetch::Identities> {
+        self.selection(false)
+    }
     fn input_parameter() -> Option<(&'static str, &'static str)> {
         Some(("pmid", "pmids"))
     }
     fn check(&self) -> Result<(), BadReply> {
-        let ids: BTreeSet<_> = self.data.iter().map(|r| r.pmid.0).collect();
-        if self.data.len() > BATCH_LIMIT || ids.len() != self.data.len() {
+        let ids: BTreeSet<_> = self
+            .data
+            .iter()
+            .filter_map(Field::as_ref)
+            .map(|r| r.pmid.0)
+            .collect();
+        if self.data.len() > BATCH_LIMIT
+            || ids.len() != self.data.iter().filter_map(Field::as_ref).count()
+        {
             return Err(BadReply);
         }
         Ok(())
@@ -169,3 +263,6 @@ fn field<T>(
         None => None,
     }
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

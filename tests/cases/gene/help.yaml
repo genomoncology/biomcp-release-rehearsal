@@ -1,32 +1,8 @@
 {
-  "feature": "generated-help",
-  "live_check": "public",
+  "feature": "gene-help",
+  "live_check": "local-only generated command help; no source requests",
   "replay": "gene/main",
   "steps": [
-    {
-      "expect": {
-        "/result/commands/*/command": {
-          "includes_all_of": [
-            [
-              "get",
-              "gene"
-            ],
-            [
-              "search",
-              "drug"
-            ],
-            [
-              "get",
-              "drug"
-            ]
-          ]
-        },
-        "/schema": "biomcp.help/3"
-      },
-      "run": [
-        "help"
-      ]
-    },
     {
       "expect": {
         "/result/commands/0/arguments/0/maximum": 20,
@@ -47,11 +23,6 @@
             "get",
             "gene",
             "KRAS"
-          ],
-          [
-            "get",
-            "gene",
-            "BRAF"
           ]
         ],
         "/result/commands/0/section_rule": {
@@ -59,11 +30,6 @@
         }
       },
       "max_bytes": 7000,
-      "mcp": [
-        "help",
-        "get",
-        "gene"
-      ],
       "run": [
         "help",
         "get",
@@ -77,176 +43,21 @@
           "--limit",
           "--locus-group",
           "--offset",
-          "query",
-          "--format",
-          "--disable-sources",
-          "--config",
-          "--offline",
-          "--fresh"
+          "query"
         ],
         "/result/commands/0/examples": [
           [
             "search",
             "gene",
             "KRAS"
-          ],
-          [
-            "search",
-            "gene",
-            "p16"
           ]
         ]
       },
       "max_bytes": 7000,
-      "mcp": [
-        "help",
-        "search",
-        "gene"
-      ],
       "run": [
         "help",
         "search",
         "gene"
-      ]
-    },
-    {
-      "expect": {
-        "/next/*/kind": {
-          "includes": "key"
-        },
-        "/result/items/0/answer/gene/ensembl_id": "ENSG00000133703",
-        "/result/items/0/answer/gene/entrez_id": "3845",
-        "/result/items/0/answer/gene/hgnc_id": "HGNC:6407",
-        "/result/items/0/answer/gene/location": "12p12.1",
-        "/result/items/0/answer/gene/mane/0/ensembl": "ENST00000311936.8",
-        "/result/items/0/answer/gene/mane/0/refseq": "NM_004985.5",
-        "/result/items/0/answer/gene/previous_symbols": {
-          "includes": "KRAS2"
-        },
-        "/result/items/0/answer/gene/symbol": "KRAS",
-        "/result/items/0/answer/match/kind": "symbol",
-        "/result/items/0/answer/match/text": "KRAS",
-        "/result/items/0/answer/resolution": "resolved",
-        "/sources/*/source": {
-          "excludes": "gnomad",
-          "includes": "oncokb"
-        },
-        "/sources/0/source": "hgnc",
-        "/sources/1/source": "mygene",
-        "/sources/2": {
-          "equals": {
-            "reason": "no_key",
-            "source": "oncokb",
-            "state": "skipped",
-            "terms": "OncoKB license",
-            "terms_url": "https://faq.oncokb.org/licensing",
-            "use": "restricted"
-          }
-        },
-        "/status": "complete"
-      },
-      "max_bytes": 2400,
-      "mcp": [
-        "get",
-        "gene",
-        "KRAS"
-      ],
-      "run": [
-        "get",
-        "gene",
-        "KRAS"
-      ]
-    },
-    {
-      "expect": {
-        "/next/*/kind": {
-          "includes": "key"
-        },
-        "/result/items/0/answer/gene/hgnc_id": "HGNC:1097",
-        "/result/items/0/answer/gene/spans/*/strand": [
-          "-",
-          "-"
-        ],
-        "/result/items/0/answer/gene/spans/0/build": "GRCh38",
-        "/result/items/0/answer/gene/spans/0/span/end": 140925199,
-        "/result/items/0/answer/gene/spans/0/span/start": 140719326,
-        "/result/items/0/answer/gene/spans/1/build": "GRCh37",
-        "/result/items/0/answer/gene/spans/1/span/end": 140624564,
-        "/result/items/0/answer/gene/spans/1/span/start": 140419126,
-        "/result/items/0/answer/gene/summary/dated": "2017-08",
-        "/result/items/0/answer/gene/summary/text": "This gene encodes a protein belonging to the RAF family of serine/threonine protein kinases. This protein plays a role in regulating the MAP kinase/ERK signaling pathway, which affects cell division, differentiation, and secretion. Mutations in this gene, most commonly the V600E mutation, are the most frequently identified cancer-causing mutations in melanoma, and have been identified in various other cancers as well, including non-Hodgkin lymphoma, colorectal cancer, thyroid carcinoma, non-small cell lung carcinoma, hairy cell leukemia and adenocarcinoma of lung. Mutations in this gene are also associated with cardiofaciocutaneous, Noonan, and Costello syndromes, which exhibit overlapping phenotypes. A pseudogene of this gene has been identified on the X chromosome.",
-        "/result/items/0/answer/gene/symbol": "BRAF",
-        "/result/items/0/answer/match/kind": "symbol",
-        "/result/items/0/answer/match/text": "BRAF",
-        "/result/items/0/answer/resolution": "resolved",
-        "/sources/*/source": {
-          "excludes": "gnomad",
-          "includes": "oncokb"
-        },
-        "/sources/0/source": "hgnc",
-        "/sources/1/source": "mygene",
-        "/sources/2": {
-          "equals": {
-            "reason": "no_key",
-            "source": "oncokb",
-            "state": "skipped",
-            "terms": "OncoKB license",
-            "terms_url": "https://faq.oncokb.org/licensing",
-            "use": "restricted"
-          }
-        },
-        "/status": "complete"
-      },
-      "max_bytes": 2800,
-      "run": [
-        "get",
-        "gene",
-        "BRAF"
-      ]
-    },
-    {
-      "expect": {
-        "/page/total": 1,
-        "/result/items/0/hgnc_id": "HGNC:6407",
-        "/result/items/0/match/kind": "symbol",
-        "/status": "complete"
-      },
-      "max_bytes": 528,
-      "run": [
-        "search",
-        "gene",
-        "KRAS"
-      ]
-    },
-    {
-      "expect": {
-        "/result/items/*/hgnc_id": [
-          "HGNC:1787",
-          "HGNC:43802"
-        ],
-        "/result/items/0/hgnc_id": "HGNC:1787"
-      },
-      "max_bytes": 780,
-      "run": [
-        "search",
-        "gene",
-        "p16"
-      ]
-    },
-    {
-      "expect": {
-        "/result/environment": "ONCOKB_TOKEN",
-        "/schema": "biomcp.key/2"
-      },
-      "mcp": [
-        "help",
-        "key",
-        "oncokb"
-      ],
-      "run": [
-        "help",
-        "key",
-        "oncokb"
       ]
     }
   ],

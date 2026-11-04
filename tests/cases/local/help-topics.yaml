@@ -1,0 +1,213 @@
+live_check: "local-only command help, validation or stored-state behavior; no recorded source replies"
+feature: schema-discovery
+story: Scoped help identifies each advertised local command and its public arguments without source requests.
+steps:
+- run:
+  - help
+  - article
+  - pdf
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - article
+    - pdf
+- run: &id001
+  - help
+  - config
+  expect:
+    /status: complete
+    /result/commands/0/command: *id001
+- run: &id002
+  - help
+  - exit
+  expect:
+    /status: complete
+    /result/commands/0/command: *id002
+- run:
+  - help
+  - get
+  - biomarker
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - get
+    - biomarker
+- run:
+  - help
+  - health
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - health
+- run:
+  - help
+  - help
+  expect:
+    /status: complete
+    /result/commands/0/arguments/0/name: --format
+- run:
+  - help
+  - key
+  - list
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - key
+    - list
+- run:
+  - help
+  - key
+  - remove
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - key
+    - remove
+- run:
+  - help
+  - key
+  - set
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - key
+    - set
+- run:
+  - help
+  - mcp-config
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - mcp-config
+- run:
+  - help
+  - network
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - help
+    - network
+    - ca_bundle
+- run: &id003
+  - help
+  - relations
+  expect:
+    /status: complete
+    /result/commands/0/command: *id003
+- run:
+  - help
+  - search
+  - biomarker
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - search
+    - biomarker
+- run:
+  - help
+  - search
+  - organization
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - search
+    - organization
+- run:
+  - help
+  - serve
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - serve
+- run:
+  - help
+  - skill
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - skill
+- run:
+  - help
+  - skill
+  - install
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - skill
+    - install
+- run:
+  - help
+  - skill
+  - list
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - skill
+    - list
+- run:
+  - help
+  - skill
+  - render
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - skill
+    - render
+- run:
+  - help
+  - skill
+  - status
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - skill
+    - status
+- run: &id004
+  - help
+  - sources
+  expect:
+    /status: complete
+    /result/commands/0/command: *id004
+- run:
+  - help
+  - sync
+  - clingen
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - sync
+    - clingen
+- run:
+  - help
+  - sync
+  - gencc
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - sync
+    - gencc
+- run:
+  - help
+  - sync
+  - hgnc
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - sync
+    - hgnc
+- run:
+  - help
+  - sync
+  - who-pq
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - sync
+    - who-pq
+- run:
+  - help
+  - version
+  expect:
+    /status: complete
+    /result/commands/0/command:
+    - version

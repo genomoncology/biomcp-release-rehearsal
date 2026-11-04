@@ -10,24 +10,14 @@
         "gwas",
         "association:6114"
       ],
-      "mcp": [
-        "get",
-        "gwas",
-        "association:6114"
-      ],
       "expect": {
         "/status": "complete",
-        "/result/association/id": 6114
+        "/result/association/id": "association:6114"
       },
       "max_bytes": 851
     },
     {
       "run": [
-        "get",
-        "gwas",
-        "GCST000035"
-      ],
-      "mcp": [
         "get",
         "gwas",
         "GCST000035"

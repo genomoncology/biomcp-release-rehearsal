@@ -2,7 +2,9 @@
   "$defs": {
     "ProteinInput": {
       "description": "Exact source accession or a checked display gene symbol needing later resolution.\nThe schema describes the string surface; deserialization checks either identity grammar.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
     "ProteinSection": {
@@ -30,7 +32,7 @@
       ]
     }
   },
-  "$id": "biomcp.protein-get/1",
+  "$id": "biomcp.protein-get/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Read source protein cards; a symbol returns candidates without choosing a protein.\nSections disclose native facts with independent row bounds; function keeps all paragraphs.\nNo variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs.",

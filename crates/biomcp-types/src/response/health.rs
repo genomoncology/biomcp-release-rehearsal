@@ -2,7 +2,6 @@ use crate::{Reason, Source, SourceState, Text, Use};
 use serde::{Deserialize, Serialize};
 /// Source reachability and publisher terms, independent of local HTTP service health.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Health {
     /// Sources and carried components excluded by each supported terms group.
@@ -19,12 +18,11 @@ pub struct Health {
     pub store: crate::StoreSize,
 }
 impl super::ResponseBody for Health {
-    const SCHEMA: &'static str = "biomcp.health/3";
-    type Query = ();
+    const SCHEMA: &'static str = "biomcp.health/6";
+    type Query = super::EmptyQuery;
 }
 /// One bounded source probe, without credentials or provider error text.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SourceHealth {
     /// Local probe limits and recovery guidance.
@@ -63,7 +61,6 @@ pub struct SourceHealth {
 
 /// Local HTTP service health, independent of every upstream source.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct HttpHealth {
     /// Executable version.
@@ -74,7 +71,6 @@ pub struct HttpHealth {
 
 /// Policy labels for one carried source component.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ComponentHealth {
     /// Native component name.
@@ -87,7 +83,6 @@ pub struct ComponentHealth {
 
 /// The consequences of one source-disable selector, regardless of current configuration.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DisableGroup {
     /// Terms category accepted by disable_sources.
@@ -101,7 +96,6 @@ pub struct DisableGroup {
 }
 /// One independently labeled carried field excluded by a terms group.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DisabledComponent {
     /// Aggregator carrying the field.
@@ -112,7 +106,6 @@ pub struct DisabledComponent {
 
 /// Local configuration notices contain names and positions, never supplied entries.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ConfigurationHealth {
     /// First skipped entries in their original comma-separated order.
@@ -123,7 +116,6 @@ pub struct ConfigurationHealth {
 }
 /// One unsupported bypass entry skipped without changing other routing rules.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ConfigurationNotice {
     /// Environment variable owning the entry.
@@ -144,7 +136,7 @@ biodata::wire_enum! {
     /// Nonfatal local configuration conditions.
     ConfigurationNoticeCode {
         /// The entry did not describe a supported host, address or range.
-        UnparseableEntry => "unparseable_entry",
+        UnparseableEntry => "unparseable-entry",
     }
 }
 

@@ -1,5 +1,5 @@
 //! Exact native JSON page counts share the checked request, recording and cache path.
-use crate::{Arg, BadReply, Endpoint, Leg, Reply, ReplyMetadata, RequestError, xml::Decoder};
+use crate::BadReply;
 /// Provider-given inclusive row bounds and exact total, never inferred from page length.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ContentRange {
@@ -55,22 +55,4 @@ fn decimal(text: &str) -> Option<u64> {
     (!text.is_empty() && text.bytes().all(|b| b.is_ascii_digit()))
         .then(|| text.parse().ok())
         .flatten()
-}
-impl Leg<'_> {
-    /// Read an exact-count array, validating native bounds before admission and on every reuse.
-    pub fn json_counted<T: Reply>(
-        &self,
-        endpoint: &Endpoint,
-        params: &[(&str, Arg<'_>)],
-        check: impl Fn(&T, ContentRange, u16) -> Result<(), BadReply>,
-    ) -> Result<(T, ReplyMetadata), RequestError> {
-        let endpoint = endpoint.clone().exact_count();
-        self.parameters(
-            &endpoint,
-            params,
-            Decoder::counted_json(&|reply, range, status| {
-                check(reply, range.ok_or(BadReply)?, status)
-            }),
-        )
-    }
 }

@@ -1,0 +1,244 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/organizations?name=Dana-Farber",
+  "exchanges": [
+    {
+      "fetched": 1793192400,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": [
+            {
+              "name": "Dana Farber Community Cancer Care-Quincy",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-479-1452",
+              "contact_email": "ctsucontact@westat.com",
+              "org_address_line_1": "Ten Willard Street",
+              "org_address_line_2": null,
+              "org_city": "Quincy",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02169",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.246799995191395,
+                "lon": -71.00710001774132
+              },
+              "count": 7
+            },
+            {
+              "name": "Dana Farber-Merrimack Valley",
+              "org_address_line_1": "Five Branch Street",
+              "org_address_line_2": null,
+              "org_city": "Methuen",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "01844",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.73459997959435,
+                "lon": -71.18900005705655
+              },
+              "count": 42
+            },
+            {
+              "name": "Dana-Farber - Harvard Cancer Center LAO",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 1
+            },
+            {
+              "name": "Dana-Farber Cancer Institute",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-442-3324",
+              "contact_email": "",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 3376
+            },
+            {
+              "name": "Dana-Farber Cancer Institute - Chestnut Hill",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-442-3324",
+              "contact_email": null,
+              "org_address_line_1": "300 Boylston Street",
+              "org_address_line_2": null,
+              "org_city": "Newton",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02467",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.31629997026175,
+                "lon": -71.16030000150204
+              },
+              "count": 6
+            },
+            {
+              "name": "Dana-Farber Cancer Institute at Boston Medical Center - Brighton",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-789-2903",
+              "contact_email": "Okozyreva@partners.org",
+              "org_address_line_1": "736 Cambridge Street",
+              "org_address_line_2": null,
+              "org_city": "Brighton",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02135",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.34889999963343,
+                "lon": -71.15650006569922
+              },
+              "count": 57
+            },
+            {
+              "name": "Dana-Farber Cancer Institute at Foxborough",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-338-7425",
+              "contact_email": "natalie_sinclair@dfci.harvard.edu",
+              "org_address_line_1": "22 Patriot Place",
+              "org_address_line_2": null,
+              "org_city": "Foxborough",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02035",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.0630999840796,
+                "lon": -71.24560003168881
+              },
+              "count": 49
+            },
+            {
+              "name": "Dana-Farber Harvard Cancer Center",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": "qcc@partners.org",
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 3
+            },
+            {
+              "name": "Dana-Farber/Brigham and Women's Cancer Center at Milford Regional",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-332-4294",
+              "contact_email": "michael_constantine@dfci.harvard.edu",
+              "org_address_line_1": "20 Prospect Street",
+              "org_address_line_2": null,
+              "org_city": "Milford",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "01757",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.15659998822957,
+                "lon": -71.51860004290938
+              },
+              "count": 122
+            },
+            {
+              "name": "Dana-Farber/Brigham and Women's Cancer Center at South Shore",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "781-624-5000",
+              "contact_email": "Meredith_Faggen@dfci.harvard.edu",
+              "org_address_line_1": "101 Columbian Street",
+              "org_address_line_2": null,
+              "org_city": "South Weymouth",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02190",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.16659997589886,
+                "lon": -70.95210006460547
+              },
+              "count": 141
+            },
+            {
+              "name": "The Dana-Farber Cancer Institute at Londonderry",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "773-702-9171",
+              "contact_email": "protocols@AllianceNCTN.org",
+              "org_address_line_1": "40 Buttrick Road",
+              "org_address_line_2": "Suite B",
+              "org_city": "Londonderry",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "NH",
+              "org_va": false,
+              "org_postal_code": "03053",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.87939999718219,
+                "lon": -71.38770002871752
+              },
+              "count": 53
+            }
+          ],
+          "total": 11
+        }
+      }
+    }
+  ]
+}

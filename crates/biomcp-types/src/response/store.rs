@@ -1,6 +1,5 @@
 /// Counts removed by explicit local store cleanup. Fresh state and bundles remain.
 #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct StoreClean {
     /// Expired source replies.
@@ -15,13 +14,12 @@ pub struct StoreClean {
     pub files: u64,
 }
 impl super::ResponseBody for StoreClean {
-    const SCHEMA: &'static str = "biomcp.store-clean/1";
-    type Query = ();
+    const SCHEMA: &'static str = "biomcp.store-clean/4";
+    type Query = super::EmptyQuery;
 }
 
 /// Measured lengths of owned files, including unused database pages and present sidecars.
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct StoreSize {
     /// All measured owned files, including retained generations and partial downloads.
@@ -37,6 +35,6 @@ biodata::wire_enum! {
     /// Why physical bytes cannot be attributed to one local bundle.
     BundleSize {
         /// Bundles share database pages, indexes and journal files with other stored state.
-        SharedStorage => "shared_storage",
+        SharedStorage => "shared-storage",
     }
 }

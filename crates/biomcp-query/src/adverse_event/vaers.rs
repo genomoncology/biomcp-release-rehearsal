@@ -1,18 +1,19 @@
 //! One native table per request, with provider-free retained continuation.
-use crate::{Action, Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::Text;
 use biomcp_adapters::vaers;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    AdverseEventSearch, PageInfo, QueryBody, Reason, Request, Source, SourceOutcome, Status,
-    StepKind, VaersSection, VaersSummary,
+    AdverseEventSearch, PageInfo, ReplyData, Request, Source, SourceOutcome, StepKind,
+    VaersSection, VaersSummary,
 };
-use sha2::{Digest, Sha256};
 type Saved = (VaersSummary, Vec<SourceOutcome>);
 
 pub(super) fn search(cx: &Ctx<'_>, q: &AdverseEventSearch) -> Outcome {
     let mut out = super::unsupported();
-    out.body = QueryBody::VaersSummary(None);
+    out.body = biomcp_types::VaersSummary::into_reply(q.clone(), None);
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     if let Err(error) = read(cx, q, deadline, &mut out) {
@@ -21,25 +22,16 @@ pub(super) fn search(cx: &Ctx<'_>, q: &AdverseEventSearch) -> Outcome {
     command.finish(deadline.remaining());
     out
 }
-fn key(q: &AdverseEventSearch) -> Vec<u8> {
-    Sha256::digest(
-        format!(
-            "biomcp.vaers_snapshot/1\0{}\0{}",
-            q.vaccine().unwrap_or(""),
-            q.vaers_section().code()
-        )
-        .as_bytes(),
-    )
-    .to_vec()
+fn key(q: &AdverseEventSearch) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key("vaers", &(q.vaccine(), q.vaers_section().code()))
 }
 fn expired(q: &AdverseEventSearch, out: &mut Outcome) {
-    out.body = QueryBody::PoolError { mismatch: false };
-    out.next.push((
+    out.body = ReplyData::PoolError { mismatch: false };
+    out.next.push(crate::next::Step::run(
         StepKind::Restart,
-        Action::Run {
-            request: Request::SearchAdverseEvent(q.restart()),
-            fresh: false,
-        },
+        &[biomcp_types::Source::Vaers],
+        Request::SearchAdverseEvent(q.restart()),
+        false,
     ));
 }
 fn read(
@@ -50,13 +42,7 @@ fn read(
 ) -> Result<(), RequestError> {
     let leg = cx.fetch.leg(&vaers::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::Vaers) {
-        let error = biomcp_fetch::SourceError {
-            source: Source::Vaers,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into();
+        let error = biomcp_fetch::SourceError::disabled(Source::Vaers).into();
         out.sources
             .push(status::source(Source::Vaers, leg.finish(), Some(error)));
         return Err(error);
@@ -66,40 +52,42 @@ fn read(
         return Ok(());
     }
     let (saved, snapshot) = if let Some(snapshot) = q.snapshot() {
-        let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let Some(payload) =
-            store.source_snapshot(snapshot.as_str(), &key(q), |s| cx.fetch.disabled(s))?
-        else {
+        let saved: Option<Saved> =
+            source_snapshot::read(cx, &key(q)?, snapshot.as_str(), deadline)?;
+        let Some(saved) = saved else {
             expired(q, out);
             return Ok(());
         };
-        let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
-        (saved, snapshot.clone())
+        (saved, Some(snapshot.clone()))
     } else {
         let reply = vaers::read(&leg, q.vaccine().unwrap_or(""), q.vaers_section());
         let error = reply.as_ref().err().copied();
         out.sources
             .push(status::source(Source::Vaers, leg.finish(), error));
         let saved = (reply?, out.sources.clone());
-        let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
-        let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-        let snapshot = store.save_source_snapshot(&key(q), &payload, &out.sources)?;
+        let snapshot = crate::publish::keep(
+            source_snapshot::write(cx, &key(q)?, &saved, &out.sources, deadline),
+            out,
+        )?;
         (saved, snapshot)
     };
     out.sources = saved.1;
-    out.status = if out
-        .sources
-        .iter()
-        .any(|s| s.state == biomcp_types::SourceState::Stale)
     {
-        Status::Partial
-    } else {
-        Status::Complete
+        let unavailable = out
+            .sources
+            .iter()
+            .any(|s| s.state == biomcp_types::SourceState::Stale);
+        crate::status::item(out, true, false, unavailable);
     };
     render(q, saved.0, snapshot, out);
     Ok(())
 }
-fn render(q: &AdverseEventSearch, mut table: VaersSummary, snapshot: Text, out: &mut Outcome) {
+fn render(
+    q: &AdverseEventSearch,
+    mut table: VaersSummary,
+    snapshot: Option<Text>,
+    out: &mut Outcome,
+) {
     let total = table.rows.len() as u64;
     table.rows = table
         .rows
@@ -117,13 +105,12 @@ fn render(q: &AdverseEventSearch, mut table: VaersSummary, snapshot: Text, out: 
         truncated: None,
     });
     let offset = q.offset().saturating_add(returned);
-    if returned > 0 && u64::from(offset) < total {
-        out.next.push((
+    if let Some(snapshot) = snapshot.filter(|_| returned > 0 && u64::from(offset) < total) {
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::SearchAdverseEvent(q.with_snapshot(snapshot).at_offset(offset)),
-                fresh: false,
-            },
+            &[biomcp_types::Source::Vaers],
+            Request::SearchAdverseEvent(q.with_snapshot(snapshot).at_offset(offset)),
+            false,
         ));
     }
     for section in [
@@ -132,14 +119,13 @@ fn render(q: &AdverseEventSearch, mut table: VaersSummary, snapshot: Text, out: 
         VaersSection::Age,
     ] {
         if section != q.vaers_section() {
-            out.next.push((
+            out.next.push(crate::next::Step::run(
                 StepKind::Section,
-                Action::Run {
-                    request: Request::SearchAdverseEvent(q.with_vaers_section(section)),
-                    fresh: false,
-                },
+                &[biomcp_types::Source::Vaers],
+                Request::SearchAdverseEvent(q.with_vaers_section(section)),
+                false,
             ));
         }
     }
-    out.body = QueryBody::VaersSummary(Some(table));
+    out.body = table.with_query(q.clone());
 }

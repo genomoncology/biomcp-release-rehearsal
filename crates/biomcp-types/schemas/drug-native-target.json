@@ -1,24 +1,25 @@
 {
   "$defs": {
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.drug-native-target/1",
+  "$id": "biodata.drug-native-target/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "One source-native target identity, without inventing a gene label.",
   "properties": {
     "id": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Exact published target identifier."
     },
     "label": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -26,14 +27,14 @@
       ],
       "description": "Native target label, only when supplied."
     },
-    "source": {
-      "$ref": "#/$defs/Text",
+    "namespace": {
+      "$ref": "#/$defs/Reply_Text",
       "description": "Source responsible for the native identifier."
     },
     "url": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -44,9 +45,10 @@
     }
   },
   "required": [
-    "source",
+    "namespace",
     "id"
   ],
   "title": "DrugNativeTarget",
-  "type": "object"
+  "type": "object",
+  "x-identifier": true
 }

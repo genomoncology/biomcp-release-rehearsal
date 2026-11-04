@@ -1,27 +1,12 @@
 {
   "$defs": {
-    "DrugId": {
+    "Reply_DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
       "type": "string"
     },
-    "DrugIdentityLevel": {
+    "Reply_DrugIdentityLevel": {
       "description": "Identity level established by the source endpoint or record type, never inferred from ID shape.",
-      "enum": [
-        "ingredient",
-        "salt",
-        "clinical_formulation",
-        "branded_product",
-        "spl_set",
-        "spl_version",
-        "ndc_package",
-        "fda_application",
-        "fda_product",
-        "ema_authorization",
-        "ema_application",
-        "orphan_designation",
-        "unknown"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Source-stated ingredient identity.",
@@ -37,39 +22,55 @@
         " Source-stated ema application identity.",
         " Source-stated orphan designation identity.",
         " Source-stated unknown identity."
+      ],
+      "x-extensible-enum": [
+        "ingredient",
+        "salt",
+        "clinical_formulation",
+        "branded_product",
+        "spl_set",
+        "spl_version",
+        "ndc_package",
+        "fda_application",
+        "fda_product",
+        "ema_authorization",
+        "ema_application",
+        "orphan_designation",
+        "unknown"
       ]
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.drug-identity/2",
+  "$id": "biodata.drug-identity/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "One source record identity, without any equivalence or authorization claim.",
   "properties": {
     "id": {
-      "$ref": "#/$defs/DrugId",
+      "$ref": "#/$defs/Reply_DrugId",
       "description": "Published native record identifier."
     },
     "identity_level": {
-      "$ref": "#/$defs/DrugIdentityLevel",
+      "$ref": "#/$defs/Reply_DrugIdentityLevel",
       "description": "Level established by the endpoint or record type; unknown stays unknown."
     },
     "name": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Original source name."
     },
-    "source": {
-      "$ref": "#/$defs/Text",
+    "namespace": {
+      "$ref": "#/$defs/Reply_Text",
       "description": "Source responsible for this identity."
     },
     "type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -80,7 +81,7 @@
     "url": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -92,9 +93,10 @@
   },
   "required": [
     "id",
-    "source",
+    "namespace",
     "identity_level"
   ],
   "title": "DrugIdentity",
-  "type": "object"
+  "type": "object",
+  "x-identifier": true
 }

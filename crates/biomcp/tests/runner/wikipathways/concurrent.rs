@@ -12,7 +12,7 @@ pub(super) fn run() -> Check {
         0,
     )?;
     seed(&env, catalog(true, true), catalog(false, true), 200)?;
-    let (mut writer, observed) = writer(&env, &replay)?;
+    let (mut writer, observed, mut command) = writer(&env, &replay)?;
     let until = Instant::now() + Duration::from_secs(30);
     while fs::metadata(&observed).map_or(true, |m| m.len() == 0) {
         if Instant::now() > until || writer.try_wait().map_err(|e| e.to_string())?.is_some() {
@@ -44,6 +44,9 @@ pub(super) fn run() -> Check {
         [one.join(), two.join()]
     });
     let finished = writer.wait_with_output().map_err(|e| e.to_string())?;
+    command
+        .record(finished.status, &finished.stdout, "cli")
+        .map_err(|e| e.to_string())?;
     if !finished.status.success() {
         return Err(format!(
             "replacement failed {:?}: stdout={} stderr={}",
@@ -84,7 +87,14 @@ fn check_reader(result: &Value) -> Check {
 fn writer(
     env: &Environment,
     replay: &std::path::Path,
-) -> Result<(std::process::Child, std::path::PathBuf), String> {
+) -> Result<
+    (
+        std::process::Child,
+        std::path::PathBuf,
+        super::super::capture::Capture,
+    ),
+    String,
+> {
     use std::process::Stdio;
     let path = recording(replay, GET);
     let mut reply: Value = serde_json::from_slice(&fs::read(&path).map_err(|e| e.to_string())?)
@@ -99,11 +109,11 @@ fn writer(
         "--observe".into(),
         observed.to_string_lossy().into_owned(),
     ]);
-    let writer = env
-        .command(env!("CARGO_BIN_EXE_biomcp"), &args)
+    let mut command = env.command(env!("CARGO_BIN_EXE_biomcp"), &args);
+    let writer = command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| e.to_string())?;
-    Ok((writer, observed))
+    Ok((writer, observed, command))
 }

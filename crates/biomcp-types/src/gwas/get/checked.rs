@@ -4,7 +4,7 @@ use crate::{QueryInvalid, Text};
 use serde::{Deserialize, Deserializer};
 
 #[derive(Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "kebab-case")]
 enum Kind {
     Association,
     Study,
@@ -68,4 +68,8 @@ impl<'de> Deserialize<'de> for GwasGet {
         Self::try_from(Fields::deserialize(deserializer)?).map_err(serde::de::Error::custom)
     }
 }
-crate::query::validation::checked_query!(GwasGet, Fields);
+crate::query::validation::checked_query!(
+    GwasGet,
+    Fields,
+    Some(crate::ErrorMessage::GwasGetArguments)
+);

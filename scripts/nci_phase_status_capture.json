@@ -1,0 +1,84 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "openapi",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/docs",
+      "response_format": "bytes"
+    },
+    {
+      "id": "glossary",
+      "source": "nci",
+      "url": "https://api.strap.trials.nci.nih.gov/api/v2/glossary",
+      "response_format": "bytes"
+    },
+    {
+      "id": "phase",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&phase=II",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    },
+    {
+      "id": "status",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&current_trial_status=Active",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    },
+    {
+      "id": "both",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&phase=II&current_trial_status=Active",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    },
+    {
+      "id": "wrong-phase",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&study_phase=II",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    },
+    {
+      "id": "wrong-status",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&current_status=Active",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    }
+  ]
+}

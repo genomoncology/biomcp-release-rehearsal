@@ -1,0 +1,41 @@
+{
+  "method": "GET",
+  "source": "mutalyzer",
+  "url": "https://mutalyzer.nl/api/normalize/NM_004333.4%3Ac.1799T%3EA",
+  "exchanges": [
+    {
+      "fetched": 1792880292,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 8,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "corrected_description": 42,
+          "equivalent_descriptions": {
+            "g": [
+              {
+                "description": "NC_000007.14:g.140753336A>T"
+              }
+            ]
+          },
+          "infos": [
+            {
+              "code": "ISOURCE",
+              "details": "  native whitespace  "
+            }
+          ],
+          "input_description": "NM_004333.4:c.1799T>A",
+          "normalized_description": "NM_004333.4:c.1799T>A",
+          "protein": {
+            "description": "NP_004324.2:p.(Val600Glu)"
+          },
+          "rna": {
+            "description": "NM_004333.4:r.(1799u>a)"
+          }
+        }
+      }
+    }
+  ]
+}

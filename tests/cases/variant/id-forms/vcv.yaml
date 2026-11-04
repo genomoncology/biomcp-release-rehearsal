@@ -1,0 +1,126 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic response-only routing matrix over existing public IDs",
+  "replay": "variant/id-forms",
+  "story": "vcv input reaches each identity-taking variant command or names accepted forms and its converting command.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "VCV000013961"
+      ],
+      "expect": {
+        "/result/resolution": "resolved"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "VCV000013961",
+        "--source",
+        "clinvar"
+      ],
+      "expect": {
+        "/result/assertions/0/domain": "germline"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "VCV000013961"
+      ],
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/build": "GRCh38"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "recurrence",
+        "VCV000013961",
+        "--source",
+        "cbioportal",
+        "--gene",
+        "BRAF",
+        "--study",
+        "msk_impact_2017",
+        "--profile",
+        "msk_impact_2017_mutations",
+        "--sample-set",
+        "msk_impact_2017_all",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/examined_rows": 3
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "normalize",
+        "--source",
+        "mutalyzer",
+        "--hgvs",
+        "VCV000013961"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/message": "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "VCV000013961",
+        "--source",
+        "erepo"
+      ],
+      "expect": {
+        "/status": "absent"
+      },
+      "exit": 1
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--query",
+        "VCV000013961",
+        "--source",
+        "myvariant"
+      ],
+      "expect": {
+        "/result/source_query": "VCV000013961",
+        "/page/total": 0
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "VCV000013961",
+        "all"
+      ],
+      "expect": {
+        "/result/resolution": "resolved",
+        "/result/candidates/0/sections/clinvar/state": "data",
+        "/result/candidates/0/sections/erepo/state": "empty",
+        "/result/candidates/0/sections/population/state": "data",
+        "/result/candidates/0/sections/gwas/state": "empty",
+        "/result/candidates/0/sections/civic/state": "data",
+        "/result/candidates/0/sections/hotspots/reason": "no-join-id",
+        "/result/candidates/0/sections/oncokb/reason": "no-key",
+        "/result/candidates/0/sections/alphagenome/reason": "no-key",
+        "/result/candidates/0/sections/predict/state": "empty",
+        "/result/candidates/0/sections/conservation/state": "empty",
+        "/result/candidates/0/sections/cosmic/state": "empty"
+      }
+    }
+  ]
+}

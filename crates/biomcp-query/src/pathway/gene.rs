@@ -24,6 +24,7 @@ pub(super) fn headers(
     out.problems.extend(resolved.problems);
     let GeneResolution::Resolved { gene, .. } = resolved.value else {
         return Ok(Mapped {
+            refusals: resolved.refusals,
             value: Vec::new(),
             problems: vec![Problem {
                 source: Source::Hgnc,
@@ -42,11 +43,13 @@ pub(super) fn headers(
     out.sources
         .push(status::source(Source::Reactome, leg.finish(), error));
     let mut mapped = Mapped {
+        refusals: resolved.refusals,
         value: Vec::new(),
         problems: Vec::new(),
     };
     for reply in replies {
         let rows = reply?;
+        mapped.refusals.include(rows.refusals);
         mapped.problems.extend(rows.problems);
         for row in rows.value {
             let id = PathwayId::Reactome(row.id);

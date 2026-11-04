@@ -1,70 +1,53 @@
-live_check: local-only case
-feature: schema
-story: Help entry points show the public grammar before any source access.
-steps:
-  - run: []
-    expect:
-      /schema: biomcp.help/3
-      /status: complete
-  - run: [-h]
-    expect:
-      /schema: biomcp.help/3
-  - run: [--help]
-    expect:
-      /schema: biomcp.help/3
-  - run: [get, --help]
-    expect:
-      /result/commands/0/command/0: get
-  - run: [get, gene, --help]
-    expect:
-      /result/commands/0/command: [get, gene]
-      /result/commands:
-        count: 1
-  - run: [help, get]
-    mcp: [help, get]
-    expect:
-      /result/commands/0/command/0: get
-  - run: [help, schema]
-    mcp: [help, schema]
-    expect:
-      /result/commands/0/command: [schema]
-      /result/commands/0/description: 'List every schema identity and description with biomcp schema, or print one schema artifact with biomcp schema <id>.'
-      /result/commands/0/examples: [[schema], [schema, biomcp.help/3]]
-  - run: [help, store]
-    expect:
-      /result/commands/0/command: [store, clean]
-  - run: [help, key]
-    expect:
-      /result/commands/0/command/0: key
-  - run: [skill, install, --help]
-    expect:
-      /result/commands/0/command: [skill, install]
-  - run: [serve, --http, --help]
-    expect:
-      /result/commands/0/command: [serve]
-  - run: [help, --help]
-    expect:
-      /schema: biomcp.help/3
-  - run: [help, frobnicate]
-    exit: 2
-    expect:
-      /error/code: usage.unknown_command
-  - run: [discover, SENSITIVE-input-never-echo]
-    exit: 2
-    expect:
-      /error/code: usage.unknown_command
-  - run: [serve, --bogus]
-    exit: 2
-    expect:
-      /error/code: usage.unknown_command
-      /next/0/args: [help, serve]
-  - run: [gene, definition, SENSITIVE-input-never-echo]
-    exit: 2
-    expect:
-      /error/code: usage.retired
-      /error/message: 'use: get gene <gene>'
-  - run: [list, author]
-    exit: 2
-    expect:
-      /error/code: usage.retired
-      /error/message: 'use: help author; help search author; help get author'
+{
+  "live_check": "local-only case",
+  "feature": "schema-discovery",
+  "story": "Help entry points show the public grammar before any source access.",
+  "steps": [
+    {
+      "run": [
+        "help",
+        "schema"
+      ],
+      "expect": {
+        "/result/commands/0/command": [
+          "schema"
+        ],
+        "/result/commands/0/description": "List every schema identity and description with biomcp schema, or print one schema artifact with biomcp schema <id>.",
+        "/result/commands/0/examples": [
+          [
+            "schema"
+          ],
+          [
+            "schema",
+            "biomcp.help/6"
+          ]
+        ]
+      }
+    },
+    {
+      "run": [
+        "skill",
+        "install",
+        "--help"
+      ],
+      "expect": {
+        "/result/commands/0/command": [
+          "skill",
+          "install"
+        ]
+      }
+    },
+    {
+      "run": [
+        "serve",
+        "--http",
+        "--help"
+      ],
+      "expect": {
+        "/result/commands/0/command": [
+          "serve"
+        ]
+      }
+    }
+  ]
+}

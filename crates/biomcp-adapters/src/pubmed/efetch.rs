@@ -2,6 +2,7 @@ use super::{SPEC, map::publication_type};
 use crate::mapped::{Problems, record};
 use crate::xml_element::Element;
 use biodata::{PartialDate, Pmid, Text};
+use biomcp_fetch::{Input, Read};
 use biomcp_types::{Problem, Source};
 
 use biomcp_fetch::{
@@ -15,6 +16,9 @@ use serde::Deserialize;
 /// One citation and its separately requested indexing facts.
 #[derive(Debug, Deserialize)]
 pub struct FetchedArticle {
+    /// Actual refused native indexing records.
+    #[serde(with = "crate::mapped::refusal_serde")]
+    pub refusals: crate::Refusal,
     /// Full article for the default card.
     pub article: Article,
     /// Facts from that same citation.
@@ -50,7 +54,12 @@ pub fn resolve_ids(
         params.push(("email", Arg::Contact(email)));
     }
     Ok(leg
-        .json::<super::raw::Search>(&RESOLVE, &params)?
+        .call(
+            &RESOLVE,
+            Input::Params(&params),
+            Read::<super::raw::Search>::json(),
+        )
+        .map(|received| received.value)?
         .esearchresult
         .idlist)
 }
@@ -76,7 +85,9 @@ pub fn fetch_articles(
     if let Some(email) = email {
         params.push(("email", Arg::Contact(email)));
     }
-    let (reply, metadata) = leg.xml_received::<Records>(&FETCH, &params)?;
+    let (reply, metadata) = leg
+        .call(&FETCH, Input::Params(&params), Read::<Records>::xml())
+        .map(|received| (received.value, received.meta))?;
     Ok((reply.articles, metadata))
 }
 #[derive(Deserialize)]
@@ -90,32 +101,11 @@ impl Reply for Records {
 }
 impl XmlReply for Records {
     fn decode_xml(xml: &str) -> Result<Self, BadReply> {
-        let mut reader = quick_xml::Reader::from_str(xml);
-        let start = loop {
-            let begin = reader.buffer_position() as usize;
-            match reader.read_event().map_err(|_| BadReply)? {
-                quick_xml::events::Event::Start(tag)
-                    if tag.name().as_ref() == "PubmedArticleSet" =>
-                {
-                    break begin;
-                }
-                quick_xml::events::Event::Empty(tag)
-                    if tag.name().as_ref() == "PubmedArticleSet" =>
-                {
-                    return Ok(Self {
-                        articles: Vec::new(),
-                    });
-                }
-                quick_xml::events::Event::Eof | quick_xml::events::Event::Start(_) => {
-                    return Err(BadReply);
-                }
-                _ => {}
-            }
-        };
-        if Element(&xml[start..]).child("ERROR")?.is_some() {
+        let root = Element::root(xml, "PubmedArticleSet")?;
+        if root.child("ERROR")?.is_some() {
             return Err(BadReply);
         }
-        let articles = Element(&xml[start..])
+        let articles = root
             .children("PubmedArticle")?
             .into_iter()
             .map(article)
@@ -164,8 +154,11 @@ fn article(root: Element<'_>) -> Result<FetchedArticle, BadReply> {
             }
         }
     }
+    let mut refusals = crate::Refusal::None;
+    let indexing = super::indexing::parse(citation, row, &mut problems, &mut refusals)?;
     Ok(FetchedArticle {
-        indexing: super::indexing::parse(citation, row, &mut problems)?,
+        refusals,
+        indexing,
         article: Article {
             europepmc_id: None,
             pmid: Some(pmid),

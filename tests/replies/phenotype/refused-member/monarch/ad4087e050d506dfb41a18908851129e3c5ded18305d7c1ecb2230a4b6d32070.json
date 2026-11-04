@@ -1,0 +1,47 @@
+{
+  "method": "GET",
+  "source": "monarch",
+  "url": "https://api-v3.monarchinitiative.org/v3/api/search?q=synthetic&category=biolink%3APhenotypicFeature&namespace=HP&limit=5&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "limit": 5,
+          "offset": 0,
+          "total": 2,
+          "items": [
+            {
+              "id": "HP:0000001",
+              "name": "Synthetic term",
+              "category": "biolink:PhenotypicFeature",
+              "namespace": "HP",
+              "description": "Complete synthetic description",
+              "deprecated": false,
+              "has_descendant_count": 3,
+              "association_counts": [],
+              "synonym": [],
+              "xref": []
+            },
+            {
+              "id": 42,
+              "name": "Synthetic term",
+              "category": "biolink:PhenotypicFeature",
+              "namespace": "HP",
+              "description": "Complete synthetic description",
+              "deprecated": false,
+              "has_descendant_count": 3,
+              "association_counts": [],
+              "synonym": [],
+              "xref": []
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

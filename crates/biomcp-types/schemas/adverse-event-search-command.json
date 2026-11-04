@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "AdverseEventSerious": {
+      "description": "Report-level seriousness filter, independent of reaction outcome.",
+      "enum": [
+        "any",
+        "death",
+        "hospitalization",
+        "lifethreatening",
+        "disabling",
+        "congenital-anomaly",
+        "other"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        " Native report seriousness flag.",
+        " Native report death flag.",
+        " Native report hospitalization flag.",
+        " Native report life-threatening flag.",
+        " Native report disabling flag.",
+        " Native report congenital anomaly flag.",
+        " Native report other serious flag."
+      ]
+    },
+    "AdverseEventSource": {
+      "description": "An explicit source; never probe the other family.",
+      "enum": [
+        "faers",
+        "maude",
+        "vaers"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        " Drug event reports.",
+        " Device event reports.",
+        " Explicit CDC WONDER vaccine aggregate tables."
+      ]
+    },
+    "PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
+      "type": "string"
+    },
+    "Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "VaersSection": {
+      "description": "One independent CDC WONDER grouping.",
+      "enum": [
+        "symptoms",
+        "seriousness",
+        "age"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        " Native reported symptom rows.",
+        " Reports classified by native seriousness.",
+        " Native age groups."
+      ]
+    }
+  },
+  "$id": "biomcp.adverse-event-search-command/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.",
+  "properties": {
+    "drug": {
+      "description": "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
+      "items": {
+        "$ref": "#/$defs/Text"
+      },
+      "type": "array"
+    },
+    "limit": {
+      "default": 5,
+      "description": "Native report headers or VAERS rows per page; default five.",
+      "format": "uint32",
+      "maximum": 50,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "manufacturer": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
+    },
+    "offset": {
+      "default": 0,
+      "description": "Native row offset. VAERS continuation requires its retained snapshot.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "problem": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "MAUDE phrase on native product_problems."
+    },
+    "product_code": {
+      "description": "MAUDE exact native device.device_report_product_code; repeated codes join with OR.",
+      "items": {
+        "$ref": "#/$defs/Text"
+      },
+      "type": "array"
+    },
+    "reaction": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "FAERS MedDRA term phrase match, not exact equality."
+    },
+    "received_from": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PartialDate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day."
+    },
+    "received_to": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PartialDate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day."
+    },
+    "section": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VaersSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Independent VAERS table; omitted means reported symptoms.",
+      "x-positional": 1
+    },
+    "serious": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AdverseEventSerious"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
+    },
+    "snapshot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Retained VAERS table for provider-free continuation."
+    },
+    "source": {
+      "$ref": "#/$defs/AdverseEventSource",
+      "default": "faers",
+      "description": "FAERS by default; VAERS accepts only exact supported vaccine names."
+    },
+    "text": {
+      "$ref": "#/$defs/Text",
+      "description": "Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.",
+      "x-positional": 0
+    }
+  },
+  "title": "AdverseEventSearchCommand",
+  "type": "object",
+  "x-reply-query-titles": [
+    "AdverseEventSearch"
+  ]
+}

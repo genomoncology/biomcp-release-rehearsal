@@ -7,10 +7,9 @@ fn roundtrip<T: DeserializeOwned + Serialize>(v: Value) -> Result<Value, serde_j
     serde_json::to_value(serde_json::from_value::<T>(v)?)
 }
 #[test]
-fn source_qualified_identity_checks_checksum_and_aliases() {
+fn source_qualified_identity_checks_checksum_and_spelling() {
     for (input, canonical) in [
         ("semantic-scholar:2060978", "semantic-scholar:2060978"),
-        ("semanticscholar:2060978", "semantic-scholar:2060978"),
         ("orcid:0000-0002-4299-3018", "orcid:0000-0002-4299-3018"),
         ("orcid:0000-0002-1694-233X", "orcid:0000-0002-1694-233X"),
     ] {
@@ -23,6 +22,7 @@ fn source_qualified_identity_checks_checksum_and_aliases() {
         assert_eq!(canonical.parse::<AuthorId>().unwrap(), id);
     }
     for bad in [
+        "semanticscholar:2060978",
         "2060978",
         "0000-0002-4299-3018",
         "orcid:0000-0002-4299-3019",
@@ -86,7 +86,7 @@ fn metadata_absence_and_repeated_byline_names_remain_source_local() {
     // contain no repeated display names. No native titles or abstracts enter Git.
     let header = json!({"paper_id":"0123456789abcdef0123456789abcdef01234567",
 "title":"Synthetic paper",
-"external_ids":[{"id":"CorpusId:123"}],
+"external_ids":[{"namespace":"CorpusId","id":"CorpusId:123"}],
 "doi":"10.1234/example"});
     let detail = json!(
         {"header":header,"authors":[{"id":"123","name":"Repeated name"},{"id":"456","name":"Repeated name"}],
@@ -106,8 +106,8 @@ fn metadata_absence_and_repeated_byline_names_remain_source_local() {
 fn assertion(code: u64, title: Option<&str>) -> Value {
     let mut v = json!(
         {"put_code":code,"work_type":"journal-article","source":{"source_client_id":"APP-1234567890ABCDEF","source_name":"Synthetic source",
-        "assertion_origin_orcid":"0000-0002-4299-3018"},"visibility":"public","external_ids":[{"kind":"doi","value":"10.1234/example",
-        "relationship":"self"},{"kind":"wosuid","value":"native-value","relationship":"part-of"}]}
+        "assertion_origin_orcid":"0000-0002-4299-3018"},"visibility":"public","external_ids":[{"namespace":"doi","id":"10.1234/example",
+        "relationship":"self"},{"namespace":"wosuid","id":"native-value","relationship":"part-of"}]}
     );
     if let (Some(title), Some(object)) = (title, v.as_object_mut()) {
         object.insert("title".into(), json!(title));
@@ -118,11 +118,11 @@ fn assertion(code: u64, title: Option<&str>) -> Value {
 fn orcid_groups_keep_all_ordered_assertions_and_native_relationships() {
     // A 0003 has 73 groups with two summaries; A 0005 has absent title/date.
     let group = json!(
-        {"external_ids":[{"kind":"pmid","value":"123","relationship":"self"}],"assertions":[assertion(2,Some("Synthetic title")),
+        {"external_ids":[{"namespace":"pmid","id":"123","relationship":"self"}],"assertions":[assertion(2,Some("Synthetic title")),
         assertion(1,None)]}
     );
     assert_eq!(roundtrip::<OrcidWorkGroup>(group.clone()).unwrap(), group);
-    let works = json!({"author":"0000-0002-4299-3018","groups":[group],"observed_groups":380,"collection_scope":"whole_public_works_reply"});
+    let works = json!({"author":"0000-0002-4299-3018","groups":[group],"observed_groups":380,"collection_scope":"whole-public-works-reply"});
     assert_eq!(roundtrip::<OrcidWorks>(works.clone()).unwrap(), works);
     assert_eq!(
         roundtrip::<OrcidPublicVisibility>(json!("PUBLIC")).unwrap(),
@@ -169,9 +169,14 @@ where
     assert!(
         jsonschema::validator_for(&schema)
             .map_err(|error| error.to_string())?
-            .is_valid(&value)
+            .is_valid(&value),
+        "Author replies must retain native identity and their schema contract"
     );
-    assert_eq!(value.get("schema"), Some(&json!(T::SCHEMA)));
+    assert_eq!(
+        value.get("schema"),
+        Some(&json!(T::SCHEMA)),
+        "Author replies must retain native identity and their schema contract"
+    );
     Ok(())
 }
 #[cfg(feature = "schema")]
@@ -189,7 +194,7 @@ fn five_standalone_envelopes_validate_without_shared_request_changes() {
     check::<AuthorPaperDetails>(query, body).unwrap();
     check::<OrcidWorks>(
         json!({"id":"orcid:0000-0002-4299-3018"}),
-        json!({"author":"0000-0002-4299-3018","groups":[],"observed_groups":0,"collection_scope":"whole_public_works_reply"}),
+        json!({"author":"0000-0002-4299-3018","groups":[],"observed_groups":0,"collection_scope":"whole-public-works-reply"}),
     )
     .unwrap();
 }

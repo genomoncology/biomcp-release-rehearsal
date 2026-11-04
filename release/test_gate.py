@@ -37,7 +37,7 @@ if args[0] in ('version', 'health'):
     else:
         sys.exit('unexpected CLI arguments')
 elif args[0] == 'schema':
-    print('{"$id":"biodata.problem/1"}')
+    print(json.dumps({'$id': args[1]}))
 elif args[0] == 'help':
     print('{"result":{"commands":["get"]}}')
 elif args == ['serve']:
@@ -58,8 +58,44 @@ else:
 
 @unittest.skipIf(os.name == 'nt', 'synthetic executables use POSIX shebangs')
 class InstalledCli(unittest.TestCase):
+    def test_prepare_stages_python_helpers_for_installed_tool_proofs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = root / 'dist'
+            output.mkdir()
+            binary = root / 'biomcp'
+            binary.write_text('synthetic executable')
+            record = {'distribution': 'biomcp-cli', 'version': '1.0.0', 'platform': platform_tag(False),
+                      'profile': 'release', 'cargo_profile': {'debug_assertions': False, 'opt_level': '3'},
+                      'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(), 'revision': 'a' * 40}
+            write_payloads(output)
+            wheel(output, binary, record)
+            cargo = root / 'cargo'
+            cargo.write_text(f'#!{sys.executable}\nimport json, sys\n'
+                             'if sys.argv[1:3] == ["vendor", "--locked"]:\n'
+                             '    assert len(sys.argv) == 4\n'
+                             '    sys.exit(0)\n'
+                             f'print(json.dumps({{"reason": "compiler-artifact", "target": '
+                             f'{{"name": sys.argv[sys.argv.index("--test") + 1]}}, '
+                             f'"executable": {str(binary)!r}}}))\n')
+            cargo.chmod(0o755)
+            scratch = root / 'prepared'
+            result = subprocess.run([sys.executable, 'release/gate.py', '--prepare-only',
+                                     '--artifacts', str(output), '--scratch', str(scratch)],
+                                    env={**os.environ, 'PATH': str(root) + os.pathsep + os.environ['PATH']},
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            helpers = scratch / 'fixtures/support/scripts'
+            # Import from the installed layout without a checkout on the Python path.
+            imported = subprocess.run([sys.executable, '-c',
+                                       'import icite_discovery_proof as proof; '
+                                       'assert callable(proof.prove) and callable(proof.classify_case)'],
+                                      cwd=helpers, env={**os.environ, 'PYTHONPATH': ''},
+                                      capture_output=True, text=True)
+            self.assertEqual(imported.returncode, 0, imported.stdout + imported.stderr)
+
     def test_installed_cli_rows_bind_results_and_fail_on_cli_exit(self):
-        for fail in ('', 'version', 'health', 'commit'):
+        for fail in ('', 'version', 'health', 'commit', 'LICENSE', 'THIRD-PARTY-NOTICES.txt', 'unexpected'):
             with self.subTest(fail=fail), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 output = root / 'dist'
@@ -79,24 +115,40 @@ class InstalledCli(unittest.TestCase):
                 with zipfile.ZipFile(output / 'synthetic.mcpb', 'w') as bundle:
                     bundle.writestr('manifest.json', json.dumps(manifest))
                     bundle.writestr('server/biomcp', binary.read_bytes())
+                    for name in ('LICENSE', 'THIRD-PARTY-NOTICES.txt'):
+                        if fail != name:
+                            bundle.writestr(name, (output / name).read_bytes())
+                    if fail == 'unexpected':
+                        bundle.writestr('unexpected.txt', 'unexpected')
                 registry = {'name': 'io.github.genomoncology/biomcp', 'version': '1.0.0', 'packages': [
                     {'registryType': 'pypi', 'identifier': 'biomcp-cli', 'version': '1.0.0', 'transport': {'type': 'stdio'},
                      'packageArguments': [{'type': 'positional', 'value': 'serve'}]}]}
                 (output / 'server.json').write_text(json.dumps(registry))
                 scratch = root / 'install'
                 (scratch / 'fixtures').mkdir(parents=True)
+                selected_python = root / 'selected-python.exe'
+                selected_python.write_text(f'#!{sys.executable}\nimport os, sys\nos.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])\n')
+                selected_python.chmod(0o755)
                 runner = scratch / 'case-runner'
-                runner.write_text(f'#!{sys.executable}\n')
+                handoff = (f'import os, subprocess\nselected = os.environ.get("BIOMCP_TEST_PYTHON")\n'
+                           f'assert selected == {str(selected_python)!r}, selected\n'
+                           'subprocess.run([selected, "-c", "pass"], check=True)\n' if not fail else '')
+                runner.write_text(f'#!{sys.executable}\n' + handoff + 'print("test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out")\n')
                 runner.chmod(0o755)
+                tool = runner.with_name("tool-runner")
+                tool.write_text(runner.read_text())
+                tool.chmod(0o755)
                 env = {**os.environ, 'ONCOKB_API_KEY': 'synthetic-must-not-inherit'}
                 # Homebrew has separate installation proof; this fixture uses the shared gate on five channels.
                 env['PATH'] = os.defpath
                 result = subprocess.run([sys.executable, 'release/gate.py', '--prepared', '--artifacts', str(output),
-                                         '--scratch', str(scratch), '--python', sys.executable], env=env,
+                                         '--scratch', str(scratch), '--python', str(selected_python)], env=env,
                                         capture_output=True, text=True, timeout=120)
                 if fail:
                     self.assertNotEqual(result.returncode, 0)
-                    self.assertIn('installed CLI commit differs' if fail == 'commit' else 'installed CLI command failed', result.stderr)
+                    message = ('unexpected desktop bundle members' if fail in ('LICENSE', 'THIRD-PARTY-NOTICES.txt', 'unexpected')
+                               else 'installed CLI commit differs' if fail == 'commit' else 'installed CLI command failed')
+                    self.assertIn(message, result.stderr)
                     continue
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 rows = json.loads((scratch / 'report.json').read_text())
@@ -114,8 +166,11 @@ class InstalledCli(unittest.TestCase):
                         self.assertEqual(row['platform'], record['platform'])
                         self.assertEqual(row['result'], 'pass')
                         self.assertTrue(any(call['args'] == row['command'] and call['binary'] != str(binary) for call in executed))
-                self.assertTrue(all('mcp-http' in row['checks'] for row in rows if row.get('result') == 'pass' and 'checks' in row))
-                self.assertTrue(all('alphagenome-local-tls' in row['checks'] for row in rows if row.get('result') == 'pass' and 'checks' in row))
+                suites = [row for row in rows if row.get('result') == 'pass' and 'checks' in row]
+                self.assertTrue(suites)
+                self.assertTrue(all('all-cases-and-trials' in row['checks'] for row in suites))
+                self.assertTrue(all(row['trials'] == 2 for row in suites))
+
 
 
 if __name__ == '__main__':

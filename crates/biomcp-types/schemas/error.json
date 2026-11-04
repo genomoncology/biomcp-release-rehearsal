@@ -1,15 +1,20 @@
 {
   "$defs": {
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "ErrorCode": {
+    "Reply_ErrorCode": {
       "description": "Stable error codes for command usage, local failures and expired results.",
       "enum": [
         "usage.schema",
@@ -21,15 +26,15 @@
         "pool.expired",
         "usage.pool_mismatch",
         "usage.too_many_pmids",
+        "usage.too_broad",
         "usage.unsupported_filter"
       ],
       "type": "string"
     },
-    "ErrorDetail": {
-      "additionalProperties": false,
+    "Reply_ErrorDetail": {
       "properties": {
         "code": {
-          "$ref": "#/$defs/ErrorCode"
+          "$ref": "#/$defs/Reply_ErrorCode"
         },
         "count": {
           "format": "uint64",
@@ -40,7 +45,7 @@
           ]
         },
         "message": {
-          "$ref": "#/$defs/ErrorMessage"
+          "$ref": "#/$defs/Reply_ErrorMessage"
         },
         "option": {
           "type": [
@@ -51,7 +56,7 @@
         "source": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Source"
+              "$ref": "#/$defs/Reply_Source"
             },
             {
               "type": "null"
@@ -61,7 +66,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -71,7 +76,7 @@
         },
         "valid_values": {
           "items": {
-            "$ref": "#/$defs/Text"
+            "$ref": "#/$defs/Reply_Text"
           },
           "type": [
             "array",
@@ -85,35 +90,42 @@
       ],
       "type": "object"
     },
-    "ErrorMessage": {
+    "Reply_ErrorMessage": {
       "description": "Fixed input-free error and migration guidance.",
       "enum": [
-        "--p-value is not yet supported; threshold filtering is deferred",
+        "biomarker search is too broad; narrow --name or get one exact NCIt code",
+        "organization search is too broad; narrow --name, --city, --state, --country, --postal-code, --family or --lat/--lon/--distance",
+        "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first",
         "--p-value threshold must be a positive probability in scientific notation",
+        "WHO PQ search requires a name or --prequalified-from/--prequalified-to date range",
         "choose one of the source selector values",
         "a selected source does not support the requested filters",
         "citation ordering exceeds the PMID limit; narrow the search",
+        "MCP tool result exceeds the character cap in error.count; narrow --limit or --section-limit, select one source or section, or fetch one exact record",
         "use biomcp schema to list known artifact IDs",
         "expected a supported command with checked arguments",
+        "option is missing or invalid; choose an accepted value or form and use the suggested help command",
         "sync is unavailable over MCP; run it from the command line",
         "store clean is unavailable over MCP; run it from the command line",
         "key is unavailable over MCP; run it from the command line",
+        "this command is unavailable in hosted mode",
+        "add the source key in your account settings",
         "unknown command; use the suggested help command",
         "local configuration, cache or recording failed",
         "use: search gwas with --gene, --trait, --trait-id, --variant, --study or --pubmed; --include-child-traits requires --trait-id; --extended-geneset requires --gene; use exact GCST accessions, rsIDs, positive PMIDs and native trait IDs without repair; --limit is 1..50 and --offset is a nonnegative integer; source p-value order is fixed with no --sort or local prefix intersection",
         "use: get gwas association:<positive ID> [loci] or get gwas <exact GCST accession> [associations|ancestries]; bare numbers are unsupported; sections must match the resource kind; --section-limit is 1..50 and --section-offset is a nonnegative integer; identities are never repaired",
+        "FAERS_QUERY_MAX_BYTES is 4096 bytes for the escaped native query including filters; use fewer or shorter --drug names",
         "use: search adverse-event <TEXT>; text stays literal",
         "--outcome is retired; use --serious death or --serious hospitalization for report flags and reactions for native outcomes; the old hospitalization and disability mappings were wrong",
         "renamed; use: --received-from",
         "renamed; use: --received-to",
-        "only --serious death and --serious hospitalization are supported",
+        "--serious accepts any, death, hospitalization, lifethreatening, disabling, congenital-anomaly or other",
         "this adverse-event filter is not supported",
         "renamed; use: --source faers",
         "use: search adverse-event <TEXT> --source maude",
         "recalls are outside this entity",
+        "use: search diagnostic --source fda-device-recall; covers every medical device",
         "choose --source faers or --source maude",
-        "supported vaccines are MMR and COVID-19 vaccine; use MMR or COVID19",
-        "Influenza VAERS summaries are not available yet; supported vaccines are MMR and COVID-19.",
         "supported vaccines are MMR and COVID19, or one exact native influenza code; use search adverse-event influenza --source vaers to list influenza codes and labels",
         "Choose one exact native influenza vaccine code; tables remain separate and are never summed. One report may list several vaccines.",
         "VAERS does not support FAERS filters; use search adverse-event TEXT --source faers for drug reports",
@@ -122,9 +134,8 @@
         "use the card seriousness flags and the reactions section",
         "renamed; use: drugs",
         "choose a named adverse-event section",
-        "choose --source gtr or fda-cdx for search; choose --source gtr, who-ivd, fda-pma or fda-510k for exact get",
-        "WHO discovery, type and marker search are deferred; use: get diagnostic PRODUCT-ID --source who-ivd",
         "choose --source gtr, who-ivd or fda-cdx for search; choose --source gtr, who-ivd, fda-pma or fda-510k for exact get",
+        "choose --source gtr, who-ivd, fda-cdx or fda-device-recall for search; choose --source gtr, who-ivd, fda-pma, fda-510k or fda-device-recall for exact get",
         "use: --type",
         "use: --condition-id MedGen:CUI with --source gtr; use an exact product card with --source who-ivd",
         "manufacturer and laboratory selectors are deferred",
@@ -150,7 +161,7 @@
         "unphased variants cannot select a diplotype; --diplotype requires an unchanged declared expression",
         "pharmgkb is retired; use: clinpgx",
         "NCI disease filters require an NCIt identifier such as C3224; use --keyword for free text",
-        "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand",
+        "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation needs --build; use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand",
         "renamed; use: --build",
         "renamed; use: --protein with --gene",
         "renamed; use: get variant <ID> predict",
@@ -206,10 +217,8 @@
         "gene cell-lines is deferred until an exact HPA cell identity join exists",
         "drug cell-lines is retired: cell-line screening is outside the cancer-care drug slice.",
         "Vaccine identity lookup and sync are unavailable; search vaccine report summaries with `search adverse-event --source vaers`.",
-        "cvx sync is retired: the cancer-care drug slice has no vaccine alias bridge.",
         "renamed; use: biomcp sync ema",
         "renamed; use: biomcp sync ddinter",
-        "who sync is retired: WHO prequalification is outside this question bank.",
         "renamed; use: biomcp sync who-pq",
         "renamed; use: search drug <TEXT> --source <SOURCE>",
         "--mechanism is retired: semantic mechanism expansion is not supported; select a drug identity and read targets.",
@@ -231,7 +240,6 @@
         "use: search trial --gene <gene>",
         "use: search article --gene <gene>",
         "use: search drug --target <gene>",
-        "moved to the cell line entity",
         "moved to the variant entity",
         "use: --locus-group",
         "use: help author; help search author; help get author",
@@ -281,20 +289,19 @@
         "use: expression",
         "moved to the drug entity",
         "moved to the diagnostic entity",
-        "deferred",
         "pool expired; restart the search",
         "pool selectors do not match this search"
       ],
       "type": "string"
     },
-    "ErrorSchema": {
+    "Reply_ErrorSchema": {
       "enum": [
-        "biomcp.error/1"
+        "biomcp.error/4"
       ],
       "type": "string"
     },
-    "ErrorStatus": {
-      "description": "The status of an invalid schema request.",
+    "Reply_ErrorStatus": {
+      "description": "The status of a command usage error, local failure or expired result.",
       "enum": [
         "usage",
         "local",
@@ -302,81 +309,8 @@
       ],
       "type": "string"
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -446,14 +380,90 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -464,7 +474,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -473,7 +483,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -489,24 +499,25 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.error/1",
+  "$id": "biomcp.error/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "A versioned error response that never contains caller input.",
+  "description": "A versioned error response that never contains rejected caller values.",
   "properties": {
     "error": {
-      "$ref": "#/$defs/ErrorDetail"
+      "$ref": "#/$defs/Reply_ErrorDetail"
     },
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -517,15 +528,15 @@
     "next": {
       "description": "Typed restart when a snapshot cannot answer this query.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "schema": {
-      "$ref": "#/$defs/ErrorSchema"
+      "$ref": "#/$defs/Reply_ErrorSchema"
     },
     "status": {
-      "$ref": "#/$defs/ErrorStatus"
+      "$ref": "#/$defs/Reply_ErrorStatus"
     }
   },
   "required": [

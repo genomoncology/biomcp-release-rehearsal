@@ -15,12 +15,24 @@ pub(super) fn fields(leg: &Leg<'_>) -> String {
     }
     fields
 }
-pub(super) fn candidates(leg: &Leg<'_>, hits: Vec<Hit>, query: &str) -> Mapped<Vec<VariantHeader>> {
+pub(super) fn candidates(
+    leg: &Leg<'_>,
+    hits: Vec<Field<Hit>>,
+    query: &str,
+) -> Mapped<Vec<VariantHeader>> {
     let mut result = Mapped {
+        refusals: crate::Refusal::None,
         value: Vec::new(),
         problems: Vec::new(),
     };
-    for mut hit in hits {
+    for raw in hits {
+        let Some(mut hit) = raw.value() else {
+            result.refusals = crate::Refusal::Refused;
+            result
+                .problems
+                .push(crate::mapped::problem(Source::MyVariant, None, "identity"));
+            continue;
+        };
         let ca = if leg.disabled_source(Source::AlleleRegistry) {
             None
         } else {
@@ -28,7 +40,7 @@ pub(super) fn candidates(leg: &Leg<'_>, hits: Vec<Hit>, query: &str) -> Mapped<V
         };
         let build = super::search_build::source_build(&hit);
         let mut mapped = super::map::candidates(
-            vec![hit],
+            vec![Field::Value(hit)],
             query,
             build,
             !super::components::disabled_on_leg(leg, "clinvar"),
@@ -60,6 +72,7 @@ pub(super) fn candidates(leg: &Leg<'_>, hits: Vec<Hit>, query: &str) -> Mapped<V
                 None => (),
             }
         }
+        result.refusals.include(mapped.refusals);
         result.value.extend(mapped.value);
         result.problems.extend(mapped.problems);
     }

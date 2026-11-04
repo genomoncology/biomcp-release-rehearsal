@@ -27,3 +27,6 @@ pub static SPEC: SourceSpec = SourceSpec {
 };
 
 pub(crate) use bundle::bundle_state;
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

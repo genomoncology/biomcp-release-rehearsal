@@ -8,8 +8,12 @@ use std::collections::BTreeMap;
 
 /// Resolve an input against approved HGNC identity before withdrawn identity.
 /// Rejected source fields remain visible even when no accepted record remains.
-pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution>, RequestError> {
+pub(crate) fn resolve(
+    leg: &Leg<'_>,
+    input: &GeneInput,
+) -> Result<Mapped<GeneResolution>, RequestError> {
     let mut problems = Vec::new();
+    let mut refusals = biomcp_adapters::Refusal::None;
     let mut candidates = Vec::new();
     match input {
         GeneInput::HgncId(id) => collect(
@@ -19,6 +23,7 @@ pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution
             MatchKind::HgncId,
             &mut candidates,
             &mut problems,
+            &mut refusals,
         )?,
         GeneInput::EntrezId(id) => collect(
             leg,
@@ -27,6 +32,7 @@ pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution
             MatchKind::EntrezId,
             &mut candidates,
             &mut problems,
+            &mut refusals,
         )?,
         GeneInput::EnsemblId(id) => collect(
             leg,
@@ -35,6 +41,7 @@ pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution
             MatchKind::EnsemblId,
             &mut candidates,
             &mut problems,
+            &mut refusals,
         )?,
         GeneInput::Text(text) => {
             collect(
@@ -44,6 +51,7 @@ pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution
                 MatchKind::Symbol,
                 &mut candidates,
                 &mut problems,
+                &mut refusals,
             )?;
             if candidates.is_empty() {
                 collect(
@@ -53,6 +61,7 @@ pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution
                     MatchKind::PreviousSymbol,
                     &mut candidates,
                     &mut problems,
+                    &mut refusals,
                 )?;
                 collect(
                     leg,
@@ -61,28 +70,42 @@ pub fn resolve(leg: &Leg<'_>, input: &GeneInput) -> Result<Mapped<GeneResolution
                     MatchKind::Alias,
                     &mut candidates,
                     &mut problems,
+                    &mut refusals,
                 )?;
             }
         }
-        _ => {}
     }
     let value = if candidates.is_empty() {
-        let withdrawn = hgnc::withdrawn(leg, input)?;
-        append_problems(&mut problems, withdrawn.problems);
-        match withdrawn.value.into_iter().next() {
-            Some(row) => GeneResolution::Withdrawn {
-                hgnc_id: row.hgnc_id,
-                symbol: row.symbol,
-                hgnc_status: row.hgnc_status,
-                merged_into: row.merged_into,
-            },
-            None => GeneResolution::NotFound {},
-        }
+        withdrawn(leg, input, &mut problems, &mut refusals)?
     } else {
         resolved(candidates)
     };
-    Ok(Mapped { value, problems })
+    Ok(Mapped {
+        refusals,
+        value,
+        problems,
+    })
 }
+fn withdrawn(
+    leg: &Leg<'_>,
+    input: &GeneInput,
+    problems: &mut Vec<Problem>,
+    refusals: &mut biomcp_adapters::Refusal,
+) -> Result<GeneResolution, RequestError> {
+    let withdrawn = hgnc::withdrawn(leg, input)?;
+    refusals.include(withdrawn.refusals);
+    append_problems(problems, withdrawn.problems);
+    Ok(match withdrawn.value.into_iter().next() {
+        Some(row) => GeneResolution::Withdrawn {
+            hgnc_id: row.hgnc_id,
+            symbol: row.symbol,
+            hgnc_status: row.hgnc_status,
+            merged_into: row.merged_into,
+        },
+        None => GeneResolution::NotFound {},
+    })
+}
+
 fn collect(
     leg: &Leg<'_>,
     key: KeyKind,
@@ -90,8 +113,10 @@ fn collect(
     kind: MatchKind,
     candidates: &mut Vec<(Gene, Match)>,
     problems: &mut Vec<Problem>,
+    refusals: &mut biomcp_adapters::Refusal,
 ) -> Result<(), RequestError> {
     let rows = hgnc::lookup(leg, Find::Exact(key, text))?;
+    refusals.include(rows.refusals);
     append_problems(problems, rows.problems);
     candidates.extend(rows.value.into_iter().filter_map(|gene| {
         let text = match_text(&gene, kind, text)?;
@@ -143,7 +168,7 @@ fn resolved(candidates: Vec<(Gene, Match)>) -> GeneResolution {
     values.sort_by_key(|(gene, matched)| {
         (
             kind_rank(matched.kind),
-            gene.locus_group != LocusGroup::ProteinCoding,
+            gene.locus_group != Some(LocusGroup::ProteinCoding),
             gene.hgnc_id,
         )
     });

@@ -1,4 +1,5 @@
 use super::*;
+use biomcp_fetch::{Input, Read};
 
 #[test]
 fn auto_download_limit_keeps_owned_part_and_offline_miss_stays_offline() {
@@ -122,14 +123,24 @@ fn interrupted_download_resumes_only_the_same_representation() {
 }
 
 fn assert_download(info: biomcp_fetch::BundleInfo, scenario: &str, cut: usize) {
-    assert_eq!(info.rows, 1);
-    assert_eq!(info.bytes, TSV.len() as u64);
+    assert_eq!(
+        info.rows, 1,
+        "Bundle downloads must publish only the complete checked file"
+    );
+    assert_eq!(
+        info.bytes,
+        TSV.len() as u64,
+        "Bundle downloads must publish only the complete checked file"
+    );
     let received = if scenario == "safe" {
         TSV.len() - cut
     } else {
         TSV.len()
     };
-    assert_eq!(info.downloaded_bytes, received as u64);
+    assert_eq!(
+        info.downloaded_bytes, received as u64,
+        "Bundle downloads must publish only the complete checked file"
+    );
 }
 
 #[test]
@@ -278,8 +289,16 @@ fn recovered_path_case(scenario: &str, holder: Option<&str>) {
     };
     let before = snapshot();
     if scenario == "missing" {
-        assert_eq!(sync_reply(&f, &b, &server, 200, "", TSV).unwrap().rows, 1);
-        assert_eq!(std::fs::read_dir(&parts).unwrap().count(), 1);
+        assert_eq!(
+            sync_reply(&f, &b, &server, 200, "", TSV).unwrap().rows,
+            1,
+            "Recovered bundle paths must preserve the owned complete file"
+        );
+        assert_eq!(
+            std::fs::read_dir(&parts).unwrap().count(),
+            1,
+            "Recovered bundle paths must preserve the owned complete file"
+        );
         return;
     }
     let result = f.sync(&b);
@@ -291,7 +310,8 @@ fn recovered_path_case(scenario: &str, holder: Option<&str>) {
     assert!(server.requests.try_recv().is_err(), "{scenario}");
     assert_eq!(
         std::fs::read_to_string(&sentinel).unwrap(),
-        "keep this file"
+        "keep this file",
+        "Recovered bundle paths must preserve the owned complete file"
     );
     assert_eq!(
         prior.symlink_metadata().is_ok(),
@@ -370,7 +390,16 @@ fn bundle_publication_finishes_while_another_owner_holds_the_reply_connection() 
                 let answer = scope.spawn(|| {
                     let leg = fetch.leg(bundle.spec, fetch.deadline(Duration::from_secs(5)));
                     let endpoint = bundle.spec.get("/answer").fresh(Freshness::Hours(1));
-                    assert!(leg.json::<support::Answer>(&endpoint, &[]).unwrap().answer);
+                    assert!(
+                        leg.call(
+                            &endpoint,
+                            Input::Params(&[]),
+                            Read::<support::Answer>::json()
+                        )
+                        .map(|received| received.value)
+                        .unwrap()
+                        .answer
+                    );
                     leg.finish()
                 });
                 server.next().ok();

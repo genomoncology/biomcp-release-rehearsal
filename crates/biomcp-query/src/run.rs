@@ -1,36 +1,14 @@
+#![deny(clippy::wildcard_enum_match_arm)]
 use crate::{Ctx, gene};
 
-use biomcp_fetch::RequestError;
-use biomcp_types::{PageInfo, Problem, QueryBody, Request, SourceOutcome, Status, StepKind};
-/// Housekeeping selector independent of an entity query.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Bundle {
-    /// Both checked WikiPathways metadata catalogs.
-    WikiPathways,
-    /// Complete public cBioPortal metadata catalog.
-    CbioportalStudies,
-    /// Complete WHO finished pharmaceutical products CSV.
-    WhoPq,
-    /// Complete WHO prequalified diagnostics export.
-    WhoIvd,
-    /// Complete FDA companion diagnostic page.
-    FdaCdx,
-    /// Complete GTR version and relation pair.
-    Gtr,
-    /// The complete eight-file DDInter interaction set.
-    Ddinter,
-    /// EMA medicines, synchronized only by an explicit command.
-    Ema,
-    /// The HGNC identity source, including approved and withdrawn records.
-    Hgnc,
-    /// ClinGen validity and dosage files.
-    ClinGen,
-    /// GenCC submission export.
-    Gencc,
-}
+use crate::Outcome;
+pub use biomcp_adapters::decl::Bundle;
+use biomcp_types::Request;
 /// Typed action before an interface spells command arguments.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
+    /// Explain a network configuration setting.
+    NetworkHelp(Box<str>),
     /// Offer a PubMed search with its source explicit in the caller command.
     PubmedSearch(biomcp_types::ArticleSearch),
     /// Follow an exact checked author record to its deferred native paper surface.
@@ -47,7 +25,7 @@ pub enum Action {
         fresh: bool,
     },
     /// Explain configuration names for a keyed source.
-    KeyHelp(biomcp_types::Source),
+    KeyHelp(biomcp_fetch::SecretName),
     /// Explain the required arguments for an existing query.
     QueryHelp(Request),
     /// Synchronize one declared file.
@@ -56,27 +34,9 @@ pub enum Action {
         bundle: Bundle,
     },
 }
-/// Query result before the interface adds its typed envelope and next spelling.
-#[derive(Debug)]
-pub struct Outcome {
-    /// Overall outcome.
-    pub status: Status,
-    /// Typed response body.
-    pub body: QueryBody,
-    /// Search counts.
-    pub page: Option<PageInfo>,
-    /// Sources actually asked.
-    pub sources: Vec<SourceOutcome>,
-    /// Rejected fields.
-    pub problems: Vec<Problem>,
-    /// Typed next actions.
-    pub next: Vec<(StepKind, Action)>,
-    /// Local errors remain distinct even alongside useful answers.
-    pub local: Option<RequestError>,
-}
 /// Run one checked request through the shared query layer.
 pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
-    match request {
+    let mut out = match request {
         Request::AuthorPapers(q) => crate::author::papers(cx, q),
         Request::SearchAuthor(q) => crate::author::search(cx, q),
         Request::GetAuthor(q) => crate::author::get(cx, q),
@@ -97,6 +57,9 @@ pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
         Request::GetProtein(q) => crate::protein::get(cx, q),
         Request::SearchPhenotype(q) => crate::phenotype::search(cx, q),
         Request::GetPhenotype(q) => crate::phenotype::get(cx, q),
+        Request::SearchBiomarker(q) => crate::biomarker::search(cx, q),
+        Request::GetBiomarker(q) => crate::biomarker::get(cx, q),
+        Request::SearchOrganization(q) => crate::organization::search(cx, q),
         Request::SearchPathway(q) => crate::pathway::search(cx, q),
         Request::GetPathway(q) => crate::pathway::get(cx, q),
         Request::PathwayGenes(q) => crate::pathway::genes(cx, q),
@@ -138,5 +101,7 @@ pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
         Request::SearchArticle(query) => crate::article::search(cx, query),
         Request::GetGene(query) => gene::get::get(cx, query),
         Request::SearchGene(query) => gene::search::search(cx, query),
-    }
+    };
+    crate::publish::finish(&mut out, request);
+    out
 }

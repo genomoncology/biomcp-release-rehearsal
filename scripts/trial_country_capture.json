@@ -1,0 +1,25 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "us-site",
+      "source": "ctgov",
+      "response_format": "bytes",
+      "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults%2CLocationCountry&filter.advanced=AREA%5BNCTId%5DNCT03734029+AND+%28AREA%5BLocationCountry%5D%22United+States%22%29&pageSize=1",
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    },
+    {
+      "id": "version",
+      "source": "ctgov",
+      "response_format": "bytes",
+      "url": "https://clinicaltrials.gov/api/v2/version",
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    }
+  ]
+}

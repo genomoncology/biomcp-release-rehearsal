@@ -1,5 +1,6 @@
 //! The actual CLI refuses reflected outbound credentials before persistence or output.
 use super::{launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{
@@ -19,12 +20,13 @@ const SEARCH: &[&str] = &[
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
-        Trial::test("credentials/reflected-wire-never-persists", || {
+        transcript_trial("key-registration/reflected-wire-never-persists", || {
             wire().map_err(Into::into)
         }),
-        Trial::test("credentials/contaminated-replay-and-cache-refused", || {
-            stored().map_err(Into::into)
-        }),
+        transcript_trial(
+            "key-registration/contaminated-replay-and-cache-refused",
+            || stored().map_err(Into::into),
+        ),
     ]
 }
 fn reply(request: &str) -> Result<String, String> {
@@ -80,7 +82,7 @@ fn setup() -> Result<(Environment, Stub), String> {
         },
     )?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!(
         {"proxy":format!("http://{}",stub.address),"ca_bundle":ca,"keys":{"nci_api_key":KEY,
@@ -118,7 +120,7 @@ fn invoke(env: &Environment, mut args: Vec<String>, bad: bool) -> Result<Value, 
     }
     let out: Value =
         serde_json::from_slice(&output.stdout).map_err(|_| "invalid containment output")?;
-    if bad && out.pointer("/sources/0/reason") != Some(&json!("bad_reply")) {
+    if bad && out.pointer("/sources/0/reason") != Some(&json!("bad-reply")) {
         return Err("contamination was not a sanitized bad_reply".into());
     }
     if !bad && out.pointer("/result/items").is_some() {

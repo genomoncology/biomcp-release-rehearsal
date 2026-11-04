@@ -1,0 +1,33 @@
+{
+  "feature": "diagnostic-cdx",
+  "live_check": "public",
+  "story": "The existing exact drug application reads the original FDA companion diagnostic association rows.",
+  "verified": "Captured2026-10-30 from https://www.fda.gov/medical-devices/in-vitro-diagnostics/list-fda-authorized-companion-diagnostic-devices-in-vitro-and-imaging-tools. FDA-authored government tables are public domain unless otherwise noted under https://www.fda.gov/about-fda/about-website/website-policies#linking. Complete captured page and both tables contain no copyright/license/third-party/proprietary/rights notice; permissionsHash occurs only in site script metadata. Git body consists only of the two unchanged table substrings in original order, separated by one newline; site assets/footer/manufacturer documents/linked third-party content excluded. Original page SHA256 d5eea3fcc78417aeadf367341ed78627ca03f035fbd93fd798ac30d2fd813722; projected table SHA256 de4aa79fb8d42da163aea942122f2495b8be97bf0cb9858bb93118258c8bd989. Original request/headers/page retained outside Git in native-fda-trial archive.",
+  "replay": "diagnostic/native-cdx",
+  "steps": [
+    {
+      "run": [
+        "sync",
+        "fda-cdx"
+      ],
+      "expect": {
+        "/result/rows": 241
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-cdx",
+        "--drug-application",
+        "BLA125514"
+      ],
+      "expect": {
+        "/page/total": 15,
+        "/result/items/0/device_ids/0": "P150013/S032",
+        "/result/items/0/drug_applications/0/id": "BLA125514"
+      }
+    }
+  ]
+}

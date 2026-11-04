@@ -1,4 +1,5 @@
 //! Identity-checked openFDA name discovery without clinical text selection.
+use biomcp_fetch::Input;
 use biomcp_fetch::{SourceSpec, Terms};
 use biomcp_types::Source;
 use std::time::Duration;
@@ -17,58 +18,33 @@ pub static SPEC: SourceSpec = SourceSpec {
     key: crate::openfda_key::OPTIONAL,
     deadline: Duration::from_secs(15),
 };
+mod admit;
 mod map;
 mod page;
 mod raw;
+mod wire;
 use biodata::{DrugId, Text};
 use biomcp_fetch::{Arg, BadReply, Endpoint, Freshness, Leg, ReplyMetadata, RequestError};
-pub use raw::Record;
 /// Exact native headings supported by the label surface.
-pub const HEADINGS: [&str; 5] = [
-    "boxed_warning",
-    "dosage_and_administration",
-    "drug_interactions",
-    "indications_and_usage",
-    "warnings_and_cautions",
-];
+pub use biomcp_types::OPENFDA_LABEL_HEADINGS as HEADINGS;
+pub use map::Record;
+use raw::Record as RawRecord;
 const LABEL: Endpoint = SPEC.get("").fresh(Freshness::Days(1)).json_absence();
 /// A source candidate page, preserving native order and source total.
 #[derive(Debug)]
 pub struct Page {
-    /// Source revision records, never merged by ingredient or brand.
-    pub records: Vec<Record>,
-    /// Number of native rows consumed before any name identity filtering.
-    pub scanned: u32,
-    /// Native count for this selector, before any name identity filtering.
-    pub total: u64,
+    /// Source revisions and native positions before name filtering.
+    pub window: crate::NativeWindow<Record>,
+    /// Rejected native source fields.
+    pub problems: Vec<biomcp_types::Problem>,
     /// This reply's actual original retrieval metadata.
     pub metadata: ReplyMetadata,
 }
 fn literal(value: &str) -> String {
     format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }
-/// Exact name discovery, with one tokenized fallback after an empty exact page.
-pub fn search(leg: &Leg<'_>, name: &Text, limit: u32, offset: u32) -> Result<Page, RequestError> {
-    if !(1..=50).contains(&limit) {
-        return Err(bad());
-    }
-    let selector = |suffix: &str| {
-        let name = literal(name.as_str());
-        format!("openfda.brand_name{suffix}:{name} OR openfda.generic_name{suffix}:{name}")
-    };
-    let mut exact = page(leg, &selector(".exact"), limit, offset, None)?;
-    exact
-        .records
-        .retain(|record| record.name_match(name).is_some());
-    if !exact.records.is_empty() {
-        return Ok(exact);
-    }
-    let mut fallback = page(leg, &selector(""), limit, offset, None)?;
-    fallback
-        .records
-        .retain(|record| record.name_match(name).is_some());
-    Ok(fallback)
-}
+mod search;
+pub use search::{Search, search, search_names};
 fn normalize_name(value: &str) -> String {
     value
         .chars()
@@ -76,11 +52,11 @@ fn normalize_name(value: &str) -> String {
         .flat_map(char::to_lowercase)
         .collect()
 }
-impl Record {
+impl RawRecord {
     /// Compare complete publisher values after the established case and spacing normalization.
-    pub fn name_match(&self, input: &Text) -> Option<biomcp_types::DrugNameMatch> {
+    pub(super) fn name_match(&self, input: &Text) -> Option<biomcp_types::DrugNameMatch> {
         let input = normalize_name(input.as_str());
-        let matches = |names: &Option<Vec<Text>>| {
+        let matches = |names: &Option<Vec<crate::native_text::NativeText>>| {
             names
                 .iter()
                 .flatten()
@@ -101,11 +77,21 @@ impl Record {
 /// Read only the explicitly selected SPL set, refusing a mismatched returned set before caching.
 pub fn get(leg: &Leg<'_>, set: &DrugId) -> Result<Page, RequestError> {
     if !biomcp_types::DrugSource::OpenfdaLabel.accepts(set) {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::OpenfdaLabel, Some(200)));
+    }
+    let found = page(
+        leg,
+        &format!("openfda.spl_set_id:{}", literal(&set.to_string())),
+        1,
+        0,
+        Some(set),
+    )?;
+    if !found.window.rows.is_empty() {
+        return Ok(found);
     }
     page(
         leg,
-        &format!("openfda.spl_set_id:{}", literal(&set.to_string())),
+        &format!("set_id:{}", literal(&set.to_string())),
         1,
         0,
         Some(set),
@@ -126,34 +112,44 @@ fn page(
     if offset > 0 {
         args.push(("skip", Arg::Num(offset.into())));
     }
-    let (reply, metadata) =
-        leg.json_received_checked::<raw::Response>(&LABEL, &args, |reply| match reply {
-            raw::Response::Success { meta, results }
-                if meta.results.skip != offset
-                    || meta.results.limit != limit
-                    || set.is_some_and(|set| results.iter().any(|r| r.set_id != *set)) =>
-            {
-                Err(BadReply)
-            }
-            _ => Ok(()),
-        })?;
+    let (reply, metadata) = leg
+        .call(
+            &LABEL,
+            Input::Params(&args),
+            biomcp_fetch::Read::<raw::Response>::json().check(&|reply| match reply {
+                raw::Response::Page { meta, results }
+                    if meta.results.skip != offset
+                        || meta.results.limit != limit
+                        || set.is_some_and(|set| results.iter().any(|r| r.set_id != *set)) =>
+                {
+                    Err(BadReply)
+                }
+                _ => Ok(()),
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
     let (records, total) = match reply {
-        raw::Response::Success { meta, results } => (results, meta.results.total),
+        raw::Response::Page { meta, results } => (results, meta.results.total),
         raw::Response::Absent { .. } => (Vec::new(), 0),
     };
+    let problems = records
+        .iter()
+        .flat_map(|r| r.problems.iter().cloned())
+        .collect();
+    let received = records.len() as u32;
     Ok(Page {
-        scanned: records.len() as u32,
-        records,
-        total,
+        window: crate::NativeWindow::new(
+            records.into_iter().map(map::Record).collect(),
+            offset,
+            limit,
+            Some(total),
+            received,
+            crate::Refusal::None,
+        ),
+        problems,
         metadata,
     })
 }
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::OpenfdaLabel,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
-}
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

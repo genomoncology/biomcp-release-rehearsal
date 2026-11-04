@@ -1,4 +1,5 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "pathway-wikipathways-genes",
   "story": "A WikiPathways genes request accepts the exact WP identifier and requests its missing metadata catalog without calling a provider.",
   "steps": [
@@ -15,12 +16,6 @@
         "/sources/0/reason": "syncing"
       },
       "max_bytes": 2000,
-      "mcp": [
-        "get",
-        "pathway",
-        "WP382",
-        "genes"
-      ],
       "is_error": true
     }
   ]

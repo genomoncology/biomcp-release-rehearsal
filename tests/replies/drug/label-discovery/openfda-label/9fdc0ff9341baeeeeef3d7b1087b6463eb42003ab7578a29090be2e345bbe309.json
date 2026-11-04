@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.application_number%3A%22NDA220089%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"results\":{\"skip\":0,\"limit\":1,\"total\":1}},\"results\":[{\"id\":\"558f7e93-a905-767a-e063-6294a90a1527\",\"set_id\":\"121c1cb8-6f60-4644-a775-b81c6f21d812\",\"version\":\"5\",\"effective_time\":\"20260701\",\"openfda\":{\"application_number\":[\"NDA220089\"],\"brand_name\":[\"PYLARIFY TRUVU\"],\"generic_name\":[\"PIFLUFOLASTAT F-18\"],\"manufacturer_name\":[\"Aphelion LLC\"],\"product_ndc\":[\"85347-001\"],\"product_type\":[\"HUMAN PRESCRIPTION DRUG\"],\"route\":[\"INTRAVENOUS\"],\"substance_name\":[\"PIFLUFOLASTAT F-18\"],\"spl_id\":[\"558f7e93-a905-767a-e063-6294a90a1527\"],\"spl_set_id\":[\"121c1cb8-6f60-4644-a775-b81c6f21d812\"],\"package_ndc\":[\"85347-001-01\"],\"is_original_packager\":[true],\"nui\":[\"N0000177914\",\"N0000175869\"],\"pharm_class_epc\":[\"Radioactive Diagnostic Agent [EPC]\"],\"pharm_class_moa\":[\"Positron Emitting Activity [MoA]\"],\"unii\":[\"3934EF02T7\"]},\"spl_product_data_elements\":[\"PYLARIFY TRUVU PIFLUFOLASTAT F-18 ALCOHOL ISOTONIC SODIUM CHLORIDE SOLUTION SODIUM ASCORBATE PIFLUFOLASTAT F-18 PIFLUFOLASTAT F-18\"],\"package_label_principal_display_panel\":[\"PRINCIPAL DISPLAY PANEL - 50 mL Vial Label Sterile PYLARIFY TRUVU\\u2122 (piflufolastat F 18) Injection Non-pyrogenic 37 MBq/mL to 4,440 MBq/mL (1 mCi/mL to 120 mCi/mL) at end of synthesis (EOS) Diagnostic \\u2013 For Intravenous Use Only Expires within 10 hours from EOS Batch #: _____________________________ EOS Date:__________EOS Time:________ Activity @ EOS:___________________mCi Concentration:__________________mCi/mL Volume:___________________________mL Exp. Date:__________Exp. Time:_________ PRINCIPAL DISPLAY PANEL - 50 mL Vial Label\"]}]}"
+      }
+    }
+  ]
+}

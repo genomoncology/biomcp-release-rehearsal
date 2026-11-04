@@ -1,5 +1,5 @@
-use super::raw::*;
-use crate::mapped::push_problem;
+use super::raw::{Dbnsfp, Numbers, Record, Texts};
+use crate::mapped::{Problems, push_problem};
 use crate::{
     Mapped,
     raw::{Field, OneOrMany},
@@ -14,17 +14,21 @@ struct Output {
     subject: VariantRef,
     scores: Vec<PredictorScore>,
     context: Vec<PredictorContext>,
-    problems: Vec<Problem>,
+    problems: Problems,
 }
 pub(super) fn project(
     record: Record,
+    expected: &str,
     build: Build,
     conservation: bool,
     cadd: bool,
     dbnsfp: bool,
 ) -> Result<Mapped<VariantPredictors>, RequestError> {
-    let subject = record
-        .id
+    let id = match record.id.and_then(Field::value) {
+        Some(id) if id.as_str() == expected => id,
+        _ => return Ok(unqualified(crate::mapped::record(expected), "_id")),
+    };
+    let subject = id
         .as_str()
         .split_once(':')
         .and_then(|(chromosome, suffix)| {
@@ -36,25 +40,29 @@ pub(super) fn project(
             qualified.parse().ok().map(VariantRef::allele_hgvs)
         });
     let Some(subject) = subject else {
-        return Ok(unqualified(record.id));
+        return Ok(unqualified(Some(id), "subject_qualification"));
     };
     let mut out = Output {
-        id: record.id,
+        id: id.clone(),
         subject,
         scores: Vec::new(),
         context: Vec::new(),
-        problems: Vec::new(),
+        problems: Problems {
+            source: Source::MyVariant,
+            record: Some(id),
+            list: Vec::new(),
+        },
     };
-    if cadd && let Some(cadd) = record.cadd {
+    if cadd && let Some(cadd) = out.problems.field("cadd", record.cadd) {
         out.number("cadd.phred", cadd.phred, None)?;
         out.number("cadd.rawscore", cadd.rawscore, None)?;
-        if let Some(sift) = cadd.sift {
+        if let Some(sift) = out.problems.field("cadd.sift", cadd.sift) {
             out.number("cadd.sift.val", sift.val, sift.cat)?;
         }
     }
-    if dbnsfp && let Some(mut db) = record.dbnsfp {
+    if dbnsfp && let Some(mut db) = out.problems.field("dbnsfp", record.dbnsfp) {
         out.context("dbnsfp.hgvsp", db.hgvsp.take())?;
-        if let Some(ensembl) = db.ensembl.take() {
+        if let Some(ensembl) = out.problems.field("dbnsfp.ensembl", db.ensembl.take()) {
             out.context("dbnsfp.ensembl.transcriptid", ensembl.transcriptid)?;
         }
         if conservation {
@@ -64,22 +72,23 @@ pub(super) fn project(
         }
     }
     Ok(Mapped {
+        refusals: crate::Refusal::None,
         value: VariantPredictors {
             subject_qualification: biomcp_types::SubjectQualification::AdapterDerivedReference,
             scores: out.scores.into(),
             components: Box::new([]),
             context: out.context.into(),
         },
-        problems: out.problems,
+        problems: out.problems.list,
     })
 }
 fn project_prediction(out: &mut Output, mut db: Dbnsfp) -> Result<(), RequestError> {
-    if let Some(polyphen) = db.polyphen2.take() {
+    if let Some(polyphen) = out.problems.field("dbnsfp.polyphen2", db.polyphen2.take()) {
         for (name, score) in [
             ("dbnsfp.polyphen2.hdiv", polyphen.hdiv),
             ("dbnsfp.polyphen2.hvar", polyphen.hvar),
         ] {
-            if let Some(score) = score {
+            if let Some(score) = out.problems.field(name, score) {
                 out.number(&format!("{name}.score"), score.score, score.pred)?;
             }
         }
@@ -88,14 +97,14 @@ fn project_prediction(out: &mut Output, mut db: Dbnsfp) -> Result<(), RequestErr
         ("dbnsfp.revel", db.revel),
         ("dbnsfp.mutationtaster", db.mutationtaster),
     ] {
-        if let Some(score) = score {
+        if let Some(score) = out.problems.field(name, score) {
             out.number(&format!("{name}.score"), score.score, score.pred)?;
         }
     }
     Ok(())
 }
 fn project_conservation(out: &mut Output, db: Dbnsfp) -> Result<(), RequestError> {
-    if let Some(gerp) = db.gerp {
+    if let Some(gerp) = out.problems.field("dbnsfp.gerp++", db.gerp) {
         for (name, value) in [
             ("nr", gerp.nr),
             ("rs", gerp.rs),
@@ -105,13 +114,13 @@ fn project_conservation(out: &mut Output, db: Dbnsfp) -> Result<(), RequestError
         }
     }
     for (name, groups) in [("phastcons", db.phastcons), ("phylop", db.phylop)] {
-        if let Some(groups) = groups {
+        if let Some(groups) = out.problems.field(&format!("dbnsfp.{name}"), groups) {
             for (group, score) in [
                 ("100way_vertebrate", groups.vertebrate),
                 ("17way_primate", groups.primate),
                 ("470way_mammalian", groups.mammalian),
             ] {
-                if let Some(score) = score {
+                if let Some(score) = out.problems.field(&format!("dbnsfp.{name}.{group}"), score) {
                     out.number(&format!("dbnsfp.{name}.{group}.score"), score.score, None)?;
                     out.number(
                         &format!("dbnsfp.{name}.{group}.rankscore"),
@@ -122,7 +131,7 @@ fn project_conservation(out: &mut Output, db: Dbnsfp) -> Result<(), RequestError
             }
         }
     }
-    if let Some(siphy) = db.siphy_29way {
+    if let Some(siphy) = out.problems.field("dbnsfp.siphy_29way", db.siphy_29way) {
         out.number(
             "dbnsfp.siphy_29way.logodds_score",
             siphy.logodds_score,
@@ -133,7 +142,7 @@ fn project_conservation(out: &mut Output, db: Dbnsfp) -> Result<(), RequestError
             siphy.logodds_rankscore,
             None,
         )?;
-        if let Some(pi) = siphy.pi {
+        if let Some(pi) = out.problems.field("dbnsfp.siphy_29way.pi", siphy.pi) {
             for (name, value) in [("a", pi.a), ("c", pi.c), ("g", pi.g), ("t", pi.t)] {
                 out.number(&format!("dbnsfp.siphy_29way.pi.{name}"), value, None)?;
             }
@@ -143,24 +152,25 @@ fn project_conservation(out: &mut Output, db: Dbnsfp) -> Result<(), RequestError
 }
 impl Output {
     fn context(&mut self, path: &str, values: Texts) -> Result<(), RequestError> {
-        match values {
-            Some(Field::Value(values)) => self.context.push(PredictorContext {
+        let Some(values) = self.problems.field(path, values) else {
+            return Ok(());
+        };
+        let values: Box<[_]> = values
+            .values()
+            .into_iter()
+            .filter_map(|raw| self.problems.field(path, Some(raw)))
+            .collect();
+        if !values.is_empty() {
+            self.context.push(PredictorContext {
                 field: Text::new(path).map_err(|_| super::super::leg_bad())?,
-                values: values.values().into(),
-            }),
-            Some(Field::Invalid(_)) => push_problem(
-                &mut self.problems,
-                Source::MyVariant,
-                Some(self.id.clone()),
-                path,
-            ),
-            None => {}
+                values,
+            });
         }
         Ok(())
     }
     fn number(&mut self, path: &str, values: Numbers, labels: Texts) -> Result<(), RequestError> {
         let label = match &labels {
-            Some(Field::Value(OneOrMany::One(label))) => Some(label.clone()),
+            Some(Field::Value(OneOrMany::One(Field::Value(label)))) => Some(label.clone()),
             _ => None,
         };
         let label_path = path
@@ -174,7 +184,9 @@ impl Output {
             && (!matches!(&values, Some(Field::Value(OneOrMany::One(_))))
                 || matches!(
                     &labels,
-                    Some(Field::Value(OneOrMany::Many(_))) | Some(Field::Invalid(_))
+                    Some(Field::Value(OneOrMany::Many(_)))
+                        | Some(Field::Value(OneOrMany::One(Field::Invalid(_))))
+                        | Some(Field::Invalid(_))
                 ))
         {
             self.context(&label_path, labels)?;
@@ -182,7 +194,7 @@ impl Output {
         let Some(values) = values else { return Ok(()) };
         let Field::Value(values) = values else {
             push_problem(
-                &mut self.problems,
+                &mut self.problems.list,
                 Source::MyVariant,
                 Some(self.id.clone()),
                 path,
@@ -190,8 +202,13 @@ impl Output {
             return Ok(());
         };
         let array = matches!(&values, OneOrMany::Many(_));
-        for (index, score) in values.values().into_iter().enumerate() {
+        for (index, raw) in values.values().into_iter().enumerate() {
+            let Some(score) = self.problems.field(path, Some(raw)) else {
+                continue;
+            };
             self.scores.push(PredictorScore {
+                gene: None,
+                transcript: None,
                 subject: self.subject.clone(),
                 method: Text::new(&if array {
                     format!("{path}[{index}]")
@@ -202,6 +219,8 @@ impl Output {
                 score,
                 label: if array { None } else { label.clone() },
                 attribution: Attribution {
+                    approved: None,
+                    published: None,
                     source: Source::MyVariant.text(),
                     record: Some(self.id.clone()),
                     version: None,
@@ -216,8 +235,9 @@ impl Output {
     }
 }
 
-fn unqualified(id: Text) -> Mapped<VariantPredictors> {
+fn unqualified(id: Option<Text>, field: &str) -> Mapped<VariantPredictors> {
     Mapped {
+        refusals: crate::Refusal::Refused,
         value: VariantPredictors {
             subject_qualification: biomcp_types::SubjectQualification::AdapterDerivedReference,
             scores: Box::new([]),
@@ -226,8 +246,8 @@ fn unqualified(id: Text) -> Mapped<VariantPredictors> {
         },
         problems: vec![Problem {
             source: Source::MyVariant,
-            record: Some(id),
-            field: "subject_qualification".into(),
+            record: id,
+            field: field.into(),
             code: ProblemCode::ValueUnknown,
         }],
     }

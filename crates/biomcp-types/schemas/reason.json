@@ -1,28 +1,7 @@
 {
-  "$id": "biodata.reason/1",
+  "$id": "biomcp.reason/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Why a source could not supply data.",
-  "enum": [
-    "not_found",
-    "not_open",
-    "not_pdf",
-    "unsupported",
-    "too_large",
-    "rate_limited",
-    "local_quota",
-    "unavailable",
-    "tls",
-    "proxy",
-    "rejected",
-    "bad_reply",
-    "deadline_exceeded",
-    "offline",
-    "no_key",
-    "disabled",
-    "replay_miss",
-    "syncing",
-    "no_join_id"
-  ],
   "title": "Reason",
   "type": "string",
   "x-enum-descriptions": [
@@ -45,5 +24,26 @@
     " No recording matched the request.",
     " The source data was being synchronized.",
     " Identity lacks the identifier required to join this source."
+  ],
+  "x-extensible-enum": [
+    "not-found",
+    "not-open",
+    "not-pdf",
+    "unsupported",
+    "too-large",
+    "rate-limited",
+    "local-quota",
+    "unavailable",
+    "tls",
+    "proxy",
+    "rejected",
+    "bad-reply",
+    "deadline-exceeded",
+    "offline",
+    "no-key",
+    "disabled",
+    "replay-miss",
+    "syncing",
+    "no-join-id"
   ]
 }

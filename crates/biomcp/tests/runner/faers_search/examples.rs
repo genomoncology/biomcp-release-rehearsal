@@ -22,23 +22,7 @@ pub(super) fn record(directory: &Path) -> Check {
             }
         },
     )?;
-    for (index, words) in [
-        vec!["search", "adverse-event", "pembrolizumab"],
-        vec![
-            "search",
-            "adverse-event",
-            "pembrolizumab",
-            "--received-from",
-            "2024-01-01",
-            "--received-to",
-            "2024-12-31",
-        ],
-        vec!["get", "adverse-event", "100"],
-        vec!["get", "adverse-event", "100", "reactions"],
-    ]
-    .into_iter()
-    .enumerate()
-    {
+    for (index, words) in commands().into_iter().enumerate() {
         let env = environment(&stub)?;
         let words = words.into_iter().map(str::to_owned);
         let recording = env.root().join(format!("record-{index}"));
@@ -59,12 +43,57 @@ pub(super) fn record(directory: &Path) -> Check {
     if std::fs::read_dir(directory.join("faers"))
         .map_err(|e| e.to_string())?
         .count()
-        != 3
+        != 7
     {
         return Err("synthetic recordings were not retained".into());
     }
-    if stub.finish()?.len() != 4 {
-        return Err("synthetic examples did not record four actual requests".into());
+    if stub.finish()?.len() != 8 {
+        return Err("synthetic examples did not record eight actual requests".into());
     }
     Ok(())
+}
+
+fn commands() -> [Vec<&'static str>; 8] {
+    [
+        vec!["search", "adverse-event", "pembrolizumab"],
+        vec![
+            "search",
+            "adverse-event",
+            "pembrolizumab",
+            "--received-from",
+            "2024-01-01",
+            "--received-to",
+            "2024-12-31",
+        ],
+        vec![
+            "search",
+            "adverse-event",
+            "pembrolizumab",
+            "--serious",
+            "lifethreatening",
+        ],
+        vec![
+            "search",
+            "adverse-event",
+            "pembrolizumab",
+            "--serious",
+            "disabling",
+        ],
+        vec![
+            "search",
+            "adverse-event",
+            "pembrolizumab",
+            "--serious",
+            "congenital-anomaly",
+        ],
+        vec![
+            "search",
+            "adverse-event",
+            "pembrolizumab",
+            "--serious",
+            "other",
+        ],
+        vec!["get", "adverse-event", "100"],
+        vec!["get", "adverse-event", "100", "reactions"],
+    ]
 }

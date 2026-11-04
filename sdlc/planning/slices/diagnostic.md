@@ -485,8 +485,8 @@ This closes the static legacy surface accounting above. The historical denominat
 <!-- parity-accounting -->
 | 0.9 leaf command | Command outcome | Ported or renamed options | Dropped options | Deferred options | Undecided options | Ruling |
 | --- | --- | --- | --- | --- | --- | --- |
-| `search diagnostic` | Ported or renamed | `--source`, `--gene`, `--type`, `--manufacturer`, `--limit`, `--offset` | `--disease`, `--full` | — | — | Choose gtr, who-ivd or fda-cdx explicitly. GTR uses exact native fields; condition-id replaces phrase expansion. WHO uses literal `--marker` and `--manufacturer` words without synonyms. GTR laboratory selection remains deferred. |
-| `get diagnostic` | Ported or renamed | — | — | — | — | Choose gtr, who-ivd, fda-pma or fda-510k explicitly and an exact native identity. Named sections remain source-scoped; all and the name-derived regulatory overlay retire. |
+| `search diagnostic` | Ported or renamed | `--source`, `--gene`, `--type`, `--manufacturer`, `--limit`, `--offset` | `--disease`, `--full` | — | — | Choose gtr, who-ivd, fda-cdx or fda-device-recall explicitly. FDA device recall search uses recalling-firm phrase, exact product code and initiation dates for every medical device. GTR uses exact native fields; condition-id replaces phrase expansion. WHO uses literal `--marker` and `--manufacturer` words without synonyms. GTR laboratory selection remains deferred. |
+| `get diagnostic` | Ported or renamed | — | — | — | — | Choose gtr, who-ivd, fda-pma, fda-510k or fda-device-recall explicitly and an exact native identity. Device recalls use Z-NNNN-YYYY and optionally add an exact enforcement classification. Named sections remain source-scoped; all and the name-derived regulatory overlay retire. |
 | `gtr sync` | Ported or renamed | — | — | — | — | Use sync gtr; validate and atomically replace the complete two-file bundle. |
 | `who-ivd sync` | Ported or renamed | — | — | — | — | Use sync who-ivd; replace the full unfiltered export. |
 <!-- /parity-accounting -->

@@ -1,17 +1,17 @@
 live_check: local-only case
-feature: mcp
+feature: mcp-parity
 story: The schema command and typed usage results agree through MCP and CLI
 steps:
-  - run: [schema, biodata.source/1]
-    mcp: [schema, biodata.source/1]
+  - run: [schema, biomcp.source/1]
+    mcp: [schema, biomcp.source/1]
     max_bytes: 4096
     expect:
-      /$id: biodata.source/1
+      /$id: biomcp.source/1
   - run: []
     mcp: []
     is_error: false
     expect:
-      /schema: biomcp.help/3
+      /schema: biomcp.help/6
       /status: complete
   - mcp: [serve]
     is_error: true

@@ -1,4 +1,3 @@
-use biodata::Text;
 use biomcp_fetch::{BadReply, Reply};
 use serde::{
     Deserialize, Deserializer,
@@ -11,29 +10,22 @@ pub(super) struct Catalog {
     #[serde(rename = "VariableFormats")]
     pub formats: Formats,
     #[serde(rename = "CancerSites")]
-    pub sites: Vec<Site>,
+    pub sites: Vec<crate::raw::Field<Site>>,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Formats {
-    pub site: BTreeMap<String, Text>,
+    pub site: Option<
+        crate::raw::Field<BTreeMap<String, crate::raw::Field<crate::native_text::NativeText>>>,
+    >,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Site {
     pub value: u32,
-    pub active: bool,
+    pub active: Option<crate::raw::Field<bool>>,
 }
 impl Reply for Catalog {
     fn check(&self) -> Result<(), BadReply> {
-        let labels = &self.formats.site;
-        if self
-            .sites
-            .iter()
-            .all(|s| labels.contains_key(&s.value.to_string()))
-        {
-            Ok(())
-        } else {
-            Err(BadReply)
-        }
+        Ok(())
     }
 }
 
@@ -57,7 +49,7 @@ pub(super) struct Info {
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Series {
-    pub data_series: Vec<Vec<Option<Cell>>>,
+    pub data_series: Vec<Vec<Option<crate::raw::Field<Cell>>>>,
     pub year_range: u32,
 }
 #[derive(Debug, Deserialize)]
@@ -68,6 +60,10 @@ pub(super) enum Cell {
     Text(String),
 }
 impl Cell {
+    pub(super) fn year(&self) -> Result<u32, BadReply> {
+        u32::try_from(self.integer()?).map_err(|_| BadReply)
+    }
+
     pub(super) fn number(&self) -> Result<biodata::FiniteNumber, BadReply> {
         let value = match self {
             Self::Integer(n) => n.to_string().parse().map_err(|_| BadReply)?,
@@ -131,22 +127,6 @@ impl Reply for Document {
                 || series.data_series.iter().any(|r| r.len() != fields.len())
             {
                 return Err(BadReply);
-            }
-            for row in &series.data_series {
-                for (field, value) in fields.iter().zip(row) {
-                    if *field == "year" && value.is_none() {
-                        return Err(BadReply);
-                    }
-                    if let Some(value) = value {
-                        if *field == "year" {
-                            u32::try_from(value.integer()?).map_err(|_| BadReply)?;
-                        } else if *field == "count" {
-                            value.integer()?;
-                        } else {
-                            value.number()?;
-                        }
-                    }
-                }
             }
         }
         Ok(())

@@ -1,6 +1,6 @@
 //! Prove diagnostic request equality through the public checked fetch boundary.
 use super::super::super::{launch::Environment, network_stub::Stub};
-use biomcp_fetch::{Arg, BadReply, Certificates, Fetch, FetchConfig, Network, Reply};
+use biomcp_fetch::{Arg, BadReply, Certificates, Fetch, FetchConfig, Input, Network, Read, Reply};
 use std::{fs, sync::Arc, time::Duration};
 
 #[derive(serde::Deserialize)]
@@ -23,7 +23,7 @@ pub(super) fn prove() -> Result<(), Box<dyn std::error::Error>> {
         |_| "application/json",
         |_| Ok(r#"{"answer":true}"#.into()),
     )?;
-    stub.retain(&environment);
+    stub.retain(environment.shared_root());
     let path = environment.root().join("input-context.jsonl");
     let fetch = Fetch::open(FetchConfig {
         observations: Some(Arc::new(biomcp_fetch::Observations::create(&path)?)),
@@ -38,7 +38,7 @@ pub(super) fn prove() -> Result<(), Box<dyn std::error::Error>> {
         )?,
         ..FetchConfig::default()
     })?;
-    let spec = &biomcp_adapters::pubmed::SPEC;
+    let spec = biomcp_query::sources::requests().find(|spec| spec.source == biomcp_types::Source::PubMed).ok_or("missing source declaration")?;
     for post in [false, true] {
         for (id, mode) in [("1", "fixed"), ("2", "fixed"), ("2", "changed")] {
             let endpoint = if post {
@@ -48,9 +48,10 @@ pub(super) fn prove() -> Result<(), Box<dyn std::error::Error>> {
             };
             fetch
                 .leg(spec, fetch.deadline(Duration::from_secs(15)))
-                .json::<Checked>(
+                .call(
                     &endpoint,
-                    &[("id", Arg::Text(id)), ("mode", Arg::Text(mode))],
+                    Input::Params(&[("id", Arg::Text(id)), ("mode", Arg::Text(mode))]),
+                    Read::<Checked>::json(),
                 )?;
         }
     }

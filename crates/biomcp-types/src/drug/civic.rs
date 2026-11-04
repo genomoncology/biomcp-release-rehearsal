@@ -3,9 +3,8 @@ use crate::{CivicClaimPage, CivicMember, CivicStatement, SourceRecord};
 use biodata::Text;
 use serde::{Deserialize, Serialize};
 
-/// Independent accepted therapy claim collections, without profile count inference.
+/// Independent native therapy claim collections, without profile count inference.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivicStreams {
     /// Evidence items filtered by the selected native therapy and optional profile.
@@ -17,7 +16,6 @@ pub struct DrugCivicStreams {
 }
 /// One native claim stream and its own continuation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivicPage {
     /// Native claim order; each row carries the profile to which that claim belongs.
@@ -28,11 +26,11 @@ pub struct DrugCivicPage {
 }
 /// One native claim with its complete source therapy set and molecular profile.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivicClaim {
     /// Source molecular profile context; its member expression is never collapsed.
-    pub profile: DrugCivicProfile,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<DrugCivicProfile>,
     /// Existing source claim mapping, including unmapped native facts.
     pub claim: CivicStatement,
     /// Complete native therapy identities, without cross-source equivalence.
@@ -50,15 +48,22 @@ pub struct DrugCivicClaim {
 }
 /// Profile context embedded in a therapy claim, with no invented profile totals.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivicProfile {
     /// Native profile identity and link.
     pub record: SourceRecord,
     /// Complete source expression.
-    pub label: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<Text>,
+    /// Exact source expression with native variant references.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub raw_name: Option<Text>,
+    /// Checked source profile subject, independent of an allele join or a clinical claim.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject: Option<crate::VariantRef>,
     /// Source complex-profile flag.
-    pub compound: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compound: Option<bool>,
     /// Every source member, including members without a common-model subject.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub members: Box<[DrugCivicMember]>,
@@ -66,7 +71,6 @@ pub struct DrugCivicProfile {
 
 /// A drug claim member with its source-owned build, without altering variant responses.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugCivicMember {
     /// Existing native member facts and unchanged HGVS descriptions.
@@ -87,13 +91,12 @@ biodata::wire_enum! {
         /// No single genomic description on that build, or a compound profile.
         Variant => "variant",
         /// No source claim tumor label.
-        TumorType => "tumor_type",
+        TumorType => "tumor-type",
     }
 }
 
 /// Link one source member to a checked variant lookup in its claim's tumor context.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DrugOncokbLookup {
     /// Native CIViC member ID to which the genomic description belongs.

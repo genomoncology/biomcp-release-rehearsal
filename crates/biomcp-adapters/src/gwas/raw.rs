@@ -1,3 +1,4 @@
+use crate::native_text::NativeText;
 use biodata::{FiniteNumber, Text};
 
 use biomcp_fetch::{BadReply, Reply};
@@ -12,7 +13,7 @@ pub(super) struct Response {
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Embedded {
-    pub associations: Vec<Association>,
+    pub associations: Vec<super::scope::Row>,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Links {
@@ -33,19 +34,24 @@ pub(super) struct Page {
 }
 /// A source association retains publisher labels and numbers unchanged.
 #[derive(Debug, Deserialize)]
-pub struct Association {
+#[serde(from = "super::receive::ReceivedAssociation")]
+pub(super) struct Association {
+    /// Actual refused native child records.
+    pub refusals: crate::Refusal,
+    /// Rejected source metadata attributed to the association.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Stable association record identity.
-    pub association_id: u64,
+    pub association_id: biodata::GwasAssociationId,
     /// Catalog study accession.
-    pub accession_id: Text,
+    pub accession_id: Option<Text>,
     /// Source-reported traits.
-    pub reported_trait: Vec<Text>,
+    pub reported_trait: Vec<NativeText>,
     /// Source mapped ontology terms.
     pub efo_traits: Vec<Trait>,
     /// Source effect alleles, never interpreted as a classification.
     pub snp_allele: Vec<EffectAllele>,
     /// Reported association p value.
-    pub p_value: FiniteNumber,
+    pub p_value: Option<FiniteNumber>,
     /// Source exact mantissa, independent of rounded p_value.
     #[serde(rename = "pvalue_mantissa")]
     pub p_value_mantissa: Option<u64>,
@@ -57,9 +63,9 @@ pub struct Association {
     pub author: Option<String>,
     /// Source gene mapping strings.
     #[serde(rename = "mapped_genes")]
-    pub mapped_gene: Option<Vec<Text>>,
+    pub mapped_gene: Option<Vec<NativeText>>,
     /// Native mapping locations.
-    pub locations: Option<Vec<Text>>,
+    pub locations: Option<Vec<NativeText>>,
     /// Source interval lower bound.
     pub ci_lower: Option<FiniteNumber>,
     /// Source interval upper bound.
@@ -77,20 +83,72 @@ pub struct Association {
 }
 /// Source trait identity and label.
 #[derive(Debug, Deserialize)]
-pub struct Trait {
+#[serde(from = "ReceivedTrait")]
+pub(super) struct Trait {
+    /// Rejected display metadata.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Source ontology ID.
     pub efo_id: Text,
     /// Whole source label.
-    pub efo_trait: Text,
+    pub efo_trait: Option<biodata::Text>,
 }
+#[derive(Debug, Deserialize)]
+struct ReceivedTrait {
+    /// Source ontology ID.
+    pub efo_id: Text,
+    /// Whole source label.
+    pub efo_trait: Option<crate::raw::Field<NativeText>>,
+}
+impl From<ReceivedTrait> for Trait {
+    fn from(row: ReceivedTrait) -> Self {
+        let mut problems = crate::mapped::Problems {
+            source: biomcp_types::Source::Gwas,
+            record: None,
+            list: Vec::new(),
+        };
+        let value = problems.required_field("efo_trait", row.efo_trait);
+        Self {
+            efo_id: row.efo_id,
+            efo_trait: value.map(Into::into),
+            problems: problems.list,
+        }
+    }
+}
+
 /// Effect allele qualified by its exact source rsID.
 #[derive(Debug, Deserialize)]
-pub struct EffectAllele {
+#[serde(from = "ReceivedEffectAllele")]
+pub(super) struct EffectAllele {
+    /// Rejected display metadata.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Source rsID.
     pub rs_id: Text,
     /// Source effect allele text, not normalized.
-    pub effect_allele: Text,
+    pub effect_allele: Option<Text>,
 }
+#[derive(Debug, Deserialize)]
+struct ReceivedEffectAllele {
+    /// Source rsID.
+    pub rs_id: Text,
+    /// Source effect allele text, not normalized.
+    pub effect_allele: Option<crate::raw::Field<Text>>,
+}
+impl From<ReceivedEffectAllele> for EffectAllele {
+    fn from(row: ReceivedEffectAllele) -> Self {
+        let mut problems = crate::mapped::Problems {
+            source: biomcp_types::Source::Gwas,
+            record: None,
+            list: Vec::new(),
+        };
+        let value = problems.required_field("effect_allele", row.effect_allele);
+        Self {
+            rs_id: row.rs_id,
+            effect_allele: value,
+            problems: problems.list,
+        }
+    }
+}
+
 impl Reply for Response {
     fn check(&self) -> Result<(), BadReply> {
         let rows = self
@@ -116,20 +174,25 @@ impl Reply for Response {
             return Err(BadReply);
         }
         let mut ids = std::collections::BTreeSet::new();
-        if rows.iter().any(|r| {
-            r.association_id == 0
-                || !ids.insert(r.association_id)
-                || r.exact_p_value().is_none()
-                    && (r.p_value_mantissa.is_some()
-                        || r.p_value_exponent.is_some()
-                        || f64::from(r.p_value) == 0.0)
-        }) {
+        if rows
+            .iter()
+            .filter_map(|row| row.value.as_ref())
+            .any(|r| !ids.insert(r.association_id))
+        {
             return Err(BadReply);
         }
         Ok(())
     }
 }
 impl Response {
+    pub(super) fn identities_admitted(&self) -> bool {
+        self.embedded.as_ref().is_none_or(|embedded| {
+            embedded
+                .associations
+                .iter()
+                .all(|row| row.value.as_ref().is_some())
+        })
+    }
     pub(super) fn matches(&self, id: &str, page: u32, size: u32, url: &str) -> bool {
         self.page.number == page
             && self.page.size == size
@@ -137,14 +200,14 @@ impl Response {
             && self.embedded.as_ref().is_none_or(|e| {
                 e.associations
                     .iter()
-                    .all(|a| a.snp_allele.iter().any(|s| s.rs_id.as_str() == id))
+                    .all(|a| a.selectors.alleles().any(|s| s.rs_id.as_str() == id))
             })
     }
 }
 
 impl Association {
     /// Decode exact native parts without converting the probability to a double.
-    pub fn exact_p_value(&self) -> Option<biodata::ScientificPValue> {
+    pub(super) fn exact_p_value(&self) -> Option<biodata::ScientificPValue> {
         let mantissa = self.p_value_mantissa?;
         format!("{mantissa}e{}", self.p_value_exponent?)
             .parse()

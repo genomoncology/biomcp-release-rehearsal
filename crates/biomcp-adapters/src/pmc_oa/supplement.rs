@@ -1,5 +1,6 @@
 use biodata::Text;
-use biomcp_fetch::{Arg, BadReply, Leg, RequestError};
+use biomcp_fetch::{Arg, Leg, RequestError};
+use biomcp_fetch::{Input, Read};
 use biomcp_types::{FileKind, SupplementFile};
 /// Source-confirmed supplement with a confined bucket location.
 #[derive(Debug)]
@@ -14,16 +15,20 @@ pub(super) fn select(
     jats: &[crate::jats::Supplement],
     urls: &[String],
     prefix: &str,
+    problems: &mut crate::mapped::Problems,
 ) -> Result<Vec<Supplement>, RequestError> {
     let mut out = Vec::new();
     for item in jats {
         // Matching the exact href is intentional; no path basename or URL guessing.
         for url in urls {
-            let Ok(location) = super::location::Location::checked(url, prefix) else {
+            let Some(location) = problems.optional(
+                "media_urls",
+                Some(super::location::Location::checked(url, prefix)),
+            ) else {
                 continue;
             };
             let Some(name) = location.path.strip_prefix(&format!("/{prefix}")) else {
-                return Err(super::bad(BadReply));
+                return Err(biomcp_fetch::bad_reply(biomcp_types::Source::PmcOa, None));
             };
             if name != item.href
                 || out
@@ -59,12 +64,14 @@ pub(super) fn select(
             );
             out.push(Supplement {
                 file: SupplementFile {
-                    name: Text::new(name).map_err(super::bad)?,
+                    name: Text::from_source(name)
+                        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::PmcOa, None))?,
                     kind,
                     label: item.label.clone(),
                     caption: item.caption.clone(),
                 },
-                url: Text::new(&public).map_err(super::bad)?,
+                url: Text::new(&public)
+                    .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::PmcOa, None))?,
                 location,
             });
         }
@@ -88,18 +95,26 @@ pub struct Download {
 )]
 pub fn download(leg: &Leg<'_>, file: &Supplement) -> Result<Download, RequestError> {
     if !file.file.kind.readable() {
-        return Err(super::bad(BadReply));
+        return Err(biomcp_fetch::bad_reply(biomcp_types::Source::PmcOa, None));
     }
     let (ep, params) = request(file)?;
     let local_end = leg.local_deadline();
     let parsed = std::cell::RefCell::new(None);
-    let bytes = leg.bytes_checked(&ep, &params, |bytes| {
-        let end = local_end.earlier(leg.local_deadline());
-        let sheets = crate::sheet::read(bytes, file.file.kind, end.clone())?;
-        *parsed.borrow_mut() = Some((sheets, end));
-        Ok(())
-    })?;
-    let (sheets, deadline) = parsed.into_inner().ok_or_else(|| super::bad(BadReply))?;
+    let bytes = leg
+        .call(
+            &ep,
+            Input::Params(&params),
+            Read::bytes().validate_body(&|bytes| {
+                let end = local_end.earlier(leg.local_deadline());
+                let sheets = crate::sheet::read(bytes, file.file.kind, end.clone())?;
+                *parsed.borrow_mut() = Some((sheets, end));
+                Ok(())
+            }),
+        )
+        .map(|received| received.value.0)?;
+    let (sheets, deadline) = parsed
+        .into_inner()
+        .ok_or_else(|| biomcp_fetch::bad_reply(biomcp_types::Source::PmcOa, None))?;
     Ok(Download {
         bytes,
         sheets,
@@ -113,14 +128,15 @@ pub fn download_bytes(leg: &Leg<'_>, file: &Supplement) -> Result<Vec<u8>, Reque
     let (ep, params) = request(file)?;
     // Explicit raw saves never read or admit source file bodies in the reply cache.
     let ep = ep.fresh(biomcp_fetch::Freshness::Never);
-    leg.bytes(&ep, &params)
+    leg.call(&ep, Input::Params(&params), Read::bytes())
+        .map(|received| received.value.0)
 }
 type RequestParts<'a> = (biomcp_fetch::Endpoint, Vec<(&'static str, Arg<'a>)>);
 fn request(file: &Supplement) -> Result<RequestParts<'_>, RequestError> {
     let ep = super::FILE
         .clone()
         .with_path(file.location.path.clone())
-        .map_err(super::bad)?
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::PmcOa, None))?
         .bytes(50 * 1024 * 1024);
     let params: Vec<_> = file
         .location

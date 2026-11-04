@@ -1,8 +1,14 @@
 use crate::QueryInvalid;
 use biodata::{CellLineSourceId, CellosaurusAccession, ChemblCellId, Text};
 use serde::{Deserialize, Serialize};
-fn default_limit() -> u32 {
+pub(super) fn default_limit() -> u32 {
     5
+}
+pub(super) fn check_search_limit(limit: u32) -> Result<(), QueryInvalid> {
+    if !(1..=25).contains(&limit) {
+        return Err(QueryInvalid::new(&["limit"]));
+    }
+    Ok(())
 }
 biodata::wire_enum! { described
     /// Named disclosure sections; all requests each bounded first page without an assay count.
@@ -48,7 +54,7 @@ pub struct CellLineSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Literal source query; positional spelling and --query use the same field.
+    /// Literal source query from the positional argument.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     query: Text,
     /// Native page size.
@@ -63,18 +69,17 @@ crate::query::validation::checked_query!(CellLineSearch, SearchFields);
 impl TryFrom<SearchFields> for CellLineSearch {
     type Error = QueryInvalid;
     fn try_from(v: SearchFields) -> Result<Self, Self::Error> {
-        if !(1..=25).contains(&v.limit) {
-            return Err(QueryInvalid::new(&["limit"]));
-        }
+        check_search_limit(v.limit)?;
         Ok(Self(v))
     }
 }
 impl CellLineSearch {
-    /// Preserve the literal query and page size on continuation.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
+    pub(super) fn from_parts(query: Text, limit: u32, offset: u32) -> Self {
+        Self(SearchFields {
+            query,
+            limit,
+            offset,
+        })
     }
     /// Literal checked search text.
     pub fn query(&self) -> &Text {
@@ -89,6 +94,13 @@ impl CellLineSearch {
         self.0.offset
     }
 }
+impl crate::Paged for CellLineSearch {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+}
+
 /// One exact identity and an optional bounded named section.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "GetFields")]
@@ -181,3 +193,15 @@ pub struct CellLineAssayCountQuery {
 }
 
 crate::query::validation::checked_query!(CellLineAssayCountQuery);
+
+impl CellLineSection {
+    /// Publishers owning the requested data, separate from identity resolution.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        use crate::Source;
+        match self {
+            Self::Chembl => &[Source::Chembl],
+            Self::Names | Self::Identity | Self::Xrefs | Self::Variants => &[Source::Cellosaurus],
+            Self::All => &[Source::Cellosaurus, Source::Chembl],
+        }
+    }
+}

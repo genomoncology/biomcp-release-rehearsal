@@ -1,12 +1,17 @@
 //! Cross-entity commands require complete source context, never a drug-name inference.
-use crate::{Action, Outcome};
+use crate::Outcome;
 use biodata::{Build, Chromosome, GeneSymbol, Text};
 use biomcp_types::{
     DrugCivic, DrugCivicClaim, DrugCivicMember, DrugOncokbLookup, DrugOncokbMissing, Request,
     Section, StepKind, VariantGet, VariantInput, VariantResolver, VariantSection,
 };
 
-pub(super) fn civic(body: &mut DrugCivic, fresh: bool, out: &mut Outcome) {
+pub(super) fn civic(
+    fetch: &biomcp_fetch::Fetch,
+    body: &mut DrugCivic,
+    fresh: bool,
+    out: &mut Outcome,
+) {
     let Section::Data { data, .. } = &mut body.civic else {
         return;
     };
@@ -15,11 +20,21 @@ pub(super) fn civic(body: &mut DrugCivic, fresh: bool, out: &mut Outcome) {
         .flatten()
     {
         for row in &mut stream.records {
-            let member = match row.profile.members.as_ref() {
-                [member] if !row.profile.compound => Some(member),
-                _ => None,
-            };
-            let gene = member.and_then(|m| m.member.feature.as_str().parse::<GeneSymbol>().ok());
+            let member = row
+                .profile
+                .as_ref()
+                .and_then(|profile| match profile.members.as_ref() {
+                    [member] if profile.compound == Some(false) => Some(member),
+                    _ => None,
+                });
+            let gene = member.and_then(|m| {
+                m.member
+                    .feature
+                    .as_ref()?
+                    .as_str()
+                    .parse::<GeneSymbol>()
+                    .ok()
+            });
             let build = member.and_then(build);
             let variant = member.zip(build).and_then(|(m, b)| genomic(m, b));
             let tumor = tumor(row).cloned();
@@ -41,13 +56,14 @@ pub(super) fn civic(body: &mut DrugCivic, fresh: bool, out: &mut Outcome) {
             else {
                 continue;
             };
-            if let Some(lookup) = member.and_then(|m| lookup(m, variant, build, tumor)) {
-                let action = (
+            if let Some(lookup) =
+                member.and_then(|m| lookup(m, variant, build, tumor, &mut out.problems))
+            {
+                let action = crate::next::Step::run(
                     StepKind::Disambiguate,
-                    Action::Run {
-                        request: Request::GetVariant(lookup.query.clone()),
-                        fresh,
-                    },
+                    &crate::variant::next_sources(fetch, &lookup.query),
+                    Request::GetVariant(lookup.query.clone()),
+                    fresh,
                 );
                 row.oncokb_lookup = Some(lookup);
                 if !out.next.contains(&action) {
@@ -90,8 +106,14 @@ fn tumor(row: &DrugCivicClaim) -> Option<&Text> {
         .statement
         .as_ref()
         .and_then(|s| s.condition.as_ref())
-        .or_else(|| row.claim.native.as_ref().and_then(|s| s.condition.as_ref()))
         .map(|c| &c.label)
+        .or_else(|| {
+            row.claim
+                .native
+                .as_ref()
+                .and_then(|s| s.condition.as_ref())
+                .and_then(|c| c.label.as_ref())
+        })
 }
 
 fn lookup(
@@ -99,16 +121,26 @@ fn lookup(
     variant: VariantInput,
     build: Build,
     tumor: Text,
+    problems: &mut Vec<biomcp_types::Problem>,
 ) -> Option<DrugOncokbLookup> {
-    let query = VariantGet::new(variant, VariantResolver::Car, Some(build))
-        .ok()?
-        .with_tumor_type(tumor)
-        .ok()?
-        .with_sections(vec![VariantSection::Oncokb].into());
+    let query = crate::next::checked(
+        VariantGet::new(variant, VariantResolver::Car, Some(build)),
+        biomcp_types::Source::Civic,
+        problems,
+    )?;
+    let query = crate::next::checked(
+        query.with_tumor_type(tumor),
+        biomcp_types::Source::Civic,
+        problems,
+    )?
+    .with_sections(vec![VariantSection::Oncokb].into());
     Some(DrugOncokbLookup {
         member: member.member.record.id.clone(),
-        label: Text::new("Look up this source-listed genomic variant in the stated tumor context")
-            .ok()?,
+        label: crate::next::checked(
+            Text::new("Look up this source-listed genomic variant in the stated tumor context"),
+            biomcp_types::Source::Civic,
+            problems,
+        )?,
         query,
     })
 }

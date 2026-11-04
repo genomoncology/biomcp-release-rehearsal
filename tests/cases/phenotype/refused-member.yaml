@@ -1,0 +1,27 @@
+{
+  "feature": "phenotype-identity",
+  "live_check": "synthetic authored invalid native phenotype identifier with a valid sibling; exclude from live calls",
+  "story": "An actually refused native row makes the page partial while keeping its accepted sibling, total and position.",
+  "replay": "phenotype/refused-member",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "phenotype",
+        "synthetic"
+      ],
+      "exit": 0,
+      "full_output_bytes": true,
+      "max_bytes": 1490,
+      "expect": {
+        "/status": "partial",
+        "/sources/0/state": "ok",
+        "/page/total": 2,
+        "/page/returned": 1,
+        "/page/offset": 0,
+        "/result/items/0/id": "HP:0000001"
+      }
+    }
+  ],
+  "verified": "The prior full envelope limit remains 1490 bytes from a measured 1295 bytes plus 15 percent. full_output_bytes preserves the full-envelope metric."
+}

@@ -2,13 +2,6 @@
   "$id": "biodata.locus-group/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "HGNC locus group, separate from a missing source value.",
-  "enum": [
-    "protein_coding",
-    "non_coding_rna",
-    "pseudogene",
-    "phenotype",
-    "other"
-  ],
   "title": "LocusGroup",
   "type": "string",
   "x-enum-descriptions": [
@@ -17,5 +10,12 @@
     " Pseudogene.",
     " Phenotype.",
     " HGNC's stated other group."
+  ],
+  "x-extensible-enum": [
+    "protein_coding",
+    "non_coding_rna",
+    "pseudogene",
+    "phenotype",
+    "other"
   ]
 }

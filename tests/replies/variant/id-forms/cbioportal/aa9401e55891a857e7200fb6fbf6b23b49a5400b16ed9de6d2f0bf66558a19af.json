@@ -1,0 +1,23 @@
+{
+  "method": "GET",
+  "source": "cbioportal",
+  "url": "https://www.cbioportal.org/api/studies/msk_impact_2017",
+  "exchanges": [
+    {
+      "fetched": 1792870637,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 422,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "studyId": "msk_impact_2017",
+          "name": "Synthetic exact-source cohort",
+          "description": "Synthetic notice: commercial reuse requires separate permission",
+          "citation": "Synthetic citation"
+        }
+      }
+    }
+  ]
+}

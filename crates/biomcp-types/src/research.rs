@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 /// A citable exact source record, without inferred identity or relevance.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ResearchHit {
     /// Exact quoted get argument list, excluding the get verb.
@@ -26,7 +25,6 @@ pub struct ResearchEnvelope {
 }
 /// Search disclosures preserve the original CLI response without inventing hits.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ResearchSearchMetadata<M> {
     /// Complete original CLI envelope.
@@ -38,7 +36,6 @@ pub struct ResearchSearchMetadata<M> {
 }
 /// Research search response.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ResearchSearch<M> {
     /// Citable records in unchanged CLI order.
@@ -49,7 +46,6 @@ pub struct ResearchSearch<M> {
 }
 /// Research fetch response using the existing CLI Markdown view.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ResearchFetch<M> {
     /// Unchanged caller identifier.
@@ -67,9 +63,9 @@ pub struct ResearchFetch<M> {
 
 impl<M> ResearchSearch<M> {
     /// Canonical schema identity shared by discovery and the generated artifact registry.
-    pub const SCHEMA: &'static str = "biomcp.research-search/2";
+    pub const SCHEMA: &'static str = "biomcp.research-search/3";
 }
 impl<M> ResearchFetch<M> {
     /// Canonical schema identity shared by discovery and the generated artifact registry.
-    pub const SCHEMA: &'static str = "biomcp.research-fetch/2";
+    pub const SCHEMA: &'static str = "biomcp.research-fetch/3";
 }

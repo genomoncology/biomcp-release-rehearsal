@@ -1,0 +1,11 @@
+# Registry name searches
+
+The zero and positive bodies are unmodified ClinicalTrials.gov responses captured on 2026-10-29. The bounded requests selected NCT05273554 and United States locations. Both exact `MD Anderson` phrases and both broader native queries (`query.spons` and `query.locn`) returned zero. The exact sponsor phrase `M.D. Anderson Cancer Center` returned one trial. A broader query does not guarantee a match.
+
+The zero body SHA-256 is `b54968c05ff881a1ef7ce604b6a340248f8e2aee8637bef06da0f5693f520df8`. The positive body SHA-256 is `53902d8f35b9cd98b66d77803dc84418398f5416cd0ff6889db93262aced9734`. The version body reuses the same day's retained source-version response.
+
+The sponsor/collaborator pair was captured on 2026-10-30 UTC. With NCT03734029 fixed in both requests, exact `AREA[LeadSponsorName]"AstraZeneca"` returned zero and `query.spons=AstraZeneca` returned one trial. The unmodified broader body in `collaborator-positive.body` has SHA-256 `4f4e9a0fae48a9a276364b7fe22ec3ada7c14f1368544b1f0663193f4a571b9f`. Its lead sponsor is Daiichi Sankyo and its collaborators include AstraZeneca. The [official API reference](https://clinicaltrials.gov/data-api/api) defines `query.spons` as a sponsor/collaborator search. Both original requests included the sponsor and collaborator projection to verify those source facts. The command recordings map the unchanged bodies to the adapter's header projection and retain the same search selectors.
+
+The recording files are explicit request-mapping stubs. They retain these native values while checking the CLI's source request parameters. The combined-filter continuation stub reuses the positive native row and changes only the total and continuation token to exercise paging. It does not claim the source matched those combined filters. The refusal exchanges are synthetic HTTP 403 and 400. No trial field, site, identity or clinical fact is invented.
+
+The sponsor fallback response was refreshed from the public ClinicalTrials.gov API on 2026-10-31. The requested field list does not include sponsor metadata. The current response omits `sponsorCollaboratorsModule`; no sponsor values are reconstructed. The capture body SHA256 is `6e7d85a30709c678c58b53d427e919d7ed3f132d38cde0b94fcb43c24451a02c`.

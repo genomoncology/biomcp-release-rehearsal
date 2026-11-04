@@ -1,0 +1,37 @@
+{
+  "$defs": {
+    "BiomarkerSource": {
+      "description": "Biomarker concept publisher.",
+      "enum": [
+        "nci"
+      ],
+      "type": "string"
+    },
+    "NcitId": {
+      "description": "A native NCI Thesaurus concept code.",
+      "pattern": "^C[0-9]+$",
+      "type": "string"
+    }
+  },
+  "$id": "biomcp.biomarker-get/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Search NCI by exact NCIt code. Several native rows return candidates without choosing one. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. No clinical interpretation is performed.",
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/NcitId",
+      "description": "Exact NCIt code, such as C96022.",
+      "x-positional": 0
+    },
+    "source": {
+      "$ref": "#/$defs/BiomarkerSource",
+      "default": "nci",
+      "description": "NCI is the biomarker concept source."
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "title": "BiomarkerGet",
+  "type": "object"
+}

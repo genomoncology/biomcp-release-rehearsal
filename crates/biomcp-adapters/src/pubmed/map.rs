@@ -10,6 +10,7 @@ use biomcp_types::{Problem, Source};
 pub(super) fn summaries(reply: Summary, ids: &[Box<str>]) -> Mapped<Vec<ArticleHeader>> {
     let mut problems = Vec::new();
     let mut value = Vec::new();
+    let mut refusals = crate::Refusal::None;
     for id in ids {
         let mapped = matches!(reply.result.get(id.as_ref()), Some(SummaryValue::Row(_)));
         if !mapped {
@@ -21,6 +22,7 @@ pub(super) fn summaries(reply: Summary, ids: &[Box<str>]) -> Mapped<Vec<ArticleH
             continue;
         }
         if !ids.iter().any(|id| id.as_ref() == key) {
+            refusals = crate::Refusal::Refused;
             push_problem(&mut problems, Source::PubMed, record_text(&key), "pmid");
             continue;
         }
@@ -31,10 +33,15 @@ pub(super) fn summaries(reply: Summary, ids: &[Box<str>]) -> Mapped<Vec<ArticleH
         if let Some(header) = header {
             value.push(header);
         } else {
+            refusals = crate::Refusal::Refused;
             push_problem(&mut problems, Source::PubMed, record_text(&key), "summary");
         }
     }
-    Mapped { value, problems }
+    Mapped {
+        refusals,
+        value,
+        problems,
+    }
 }
 fn header(row: SummaryRow, key: &str, problems: &mut Vec<Problem>) -> Option<ArticleHeader> {
     if row.error.is_some() {
@@ -122,7 +129,7 @@ fn publication_types(value: Option<Field<Vec<Field<String>>>>, context: &mut Pro
         .into_iter()
         .filter_map(|v| {
             let s = context.required("types", v.value())?;
-            context.text("types", Some(&s))
+            context.checked_text("types", Some(&s))
         })
         .filter_map(|s| publication_type(s.as_str()))
         .collect()

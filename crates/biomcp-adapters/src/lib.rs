@@ -1,15 +1,20 @@
 //! Checked source replies mapped into shared human gene values.
 /// Restricted AlphaGenome prediction service.
 pub mod alphagenome;
+mod bundle_mapping;
 pub mod hgnc;
 mod mapped;
+mod native_positions;
+pub use native_positions::NativePositions;
 pub mod mygene;
 /// Keyed OncoKB gene annotations.
 pub mod oncokb;
 pub mod pubmed;
-mod quotas;
+mod quota_policy;
+pub mod quotas;
 mod raw;
-pub use mapped::Mapped;
+mod strict_input;
+pub use mapped::{Mapped, Refusal};
 
 pub mod complex_portal;
 pub mod gnomad;
@@ -135,3 +140,21 @@ pub mod vaers;
 pub mod cellosaurus;
 
 mod openfda_key;
+
+/// Native medical device recall records and exact enforcement classification.
+pub mod fda_device_recall;
+/// Native FDA drug enforcement records.
+pub mod fda_drug_recall;
+
+mod native_text;
+
+mod native_window;
+pub use native_window::NativeWindow;
+
+mod graphql;
+mod openfda;
+
+/// Adapter-owned source and bundle declarations.
+pub mod decl;
+
+mod device_search;

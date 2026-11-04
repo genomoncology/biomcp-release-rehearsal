@@ -1,7 +1,6 @@
 {
   "$id": "biodata.span0/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "A zero-based half-open span with ordered bounds; empty spans are valid.",
   "properties": {
     "end": {

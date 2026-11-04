@@ -1,0 +1,49 @@
+{
+  "feature": "variant-search",
+  "live_check": "synthetic",
+  "replay": "variant/search/coding-candidates",
+  "story": "Every ambiguous ClinVar search match keeps its stable get command",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333G>T",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "complete",
+        "/result/source_query": "PTEN[GENE] AND \"c.333G>T\"[VRNM]",
+        "/result/items/0/identity/ids/0": "clinvar:3669092",
+        "/sources/0/source": "clinvar",
+        "/next/0/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:3669092"
+          ]
+        },
+        "/result/items": {
+          "count": 2
+        },
+        "/result/items/1/identity/ids/0": "clinvar:1760704",
+        "/next/1/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1760704"
+          ]
+        },
+        "/next": {
+          "count": 2
+        }
+      }
+    }
+  ],
+  "verified": "Synthetic local ESearch page; identities are test anchors and assert no gene or coding equivalence"
+}

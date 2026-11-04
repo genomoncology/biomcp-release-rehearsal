@@ -1,0 +1,57 @@
+{
+  "feature": "trial-search",
+  "live_check": "public",
+  "story": "Registry native condition search preserves captured total and native identity order; provider response from the investigation, source processing date 2026-10-23, delivered locally through the actual CLI record path.",
+  "replay": "trial/condition",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma"
+      ],
+      "mcp": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 3780,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT04631731",
+            "NCT05355701",
+            "NCT06952400",
+            "NCT00847522",
+            "NCT03538028",
+            "NCT05712551",
+            "NCT07381972",
+            "NCT00002892",
+            "NCT00521001",
+            "NCT01874119"
+          ]
+        },
+        "/result/source_updated/value": "2026-10-23T09:00:04Z",
+        "/result/source_updated/timezone": "in-value"
+      },
+      "max_bytes": 5501
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma"
+      ],
+      "offline": true,
+      "expect": {
+        "/status": "complete",
+        "/page/total": 3780
+      },
+      "max_bytes": 5501
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "feature": "variant-search",
+  "live_check": "public",
+  "replay": "variant/search/coding-pten",
+  "story": "Gene and coding notation discover every ClinVar identity without selecting a transcript",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333G>T",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "complete",
+        "/result/source_query": "PTEN[GENE] AND \"c.333G>T\"[VRNM]",
+        "/result/items/0/identity/ids/0": "clinvar:3669092",
+        "/sources/0/source": "clinvar",
+        "/next/0/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:3669092"
+          ]
+        }
+      }
+    }
+  ],
+  "verified": "2026-10-29; unchanged public ClinVar ESearch body; replay request metadata uses the accepted canonical GET URL"
+}

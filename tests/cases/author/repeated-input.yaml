@@ -11,12 +11,6 @@
         "semantic-scholar:123",
         "semantic-scholar:123"
       ],
-      "mcp": [
-        "get",
-        "author",
-        "semantic-scholar:123",
-        "semantic-scholar:123"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items/*/input": [

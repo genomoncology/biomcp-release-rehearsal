@@ -1,38 +1,51 @@
 //! Feature drug-next-steps: source-listed EGFR context captured once on 2026-10-25.
 //! Combined-source capture is projected to each product's explicit one-stream selector.
 use super::super::{launch::Environment, network_stub::Stub, proof};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
-const BODY: &str = include_str!("../../../../../tests/fixtures/drug/civic/next-context.body");
-const META: &str =
-    include_str!("../../../../../tests/fixtures/drug/civic/next-context.provenance.json");
+
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test(
-        "drug-next-steps/native-d05-source-listed-lookup",
+    // Keep dynamic state, source bindings or wire checks that YAML cannot express.
+    vec![transcript_trial(
+        crate::runner::pool_contract::DRUG_CIVIC.0,
         || run().map_err(Into::into),
     )]
 }
 fn run() -> Result<(), String> {
     use sha2::{Digest, Sha256};
     let root = evidence_root()?;
-    fs::write(root.join("original-capture.body"), BODY).map_err(|e| e.to_string())?;
-    fs::write(root.join("original-capture.json"), META).map_err(|e| e.to_string())?;
-    let meta: Value = serde_json::from_str(META).map_err(|e| e.to_string())?;
-    let hash: String = Sha256::digest(BODY.as_bytes())
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect();
+    fs::write(
+        root.join("original-capture.body"),
+        &crate::runner::launch::fixture_text("fixtures/drug/civic/next-context.body")?,
+    )
+    .map_err(|e| e.to_string())?;
+    fs::write(
+        root.join("original-capture.json"),
+        &crate::runner::launch::fixture_text("fixtures/drug/civic/next-context.provenance.json")?,
+    )
+    .map_err(|e| e.to_string())?;
+    let meta: Value = serde_json::from_str(&crate::runner::launch::fixture_text(
+        "fixtures/drug/civic/next-context.provenance.json",
+    )?)
+    .map_err(|e| e.to_string())?;
+    let hash: String = Sha256::digest(
+        crate::runner::launch::fixture_text("fixtures/drug/civic/next-context.body")?.as_bytes(),
+    )
+    .iter()
+    .map(|b| format!("{b:02x}"))
+    .collect();
     if meta.pointer("/capture/sha256") != Some(&json!(hash)) {
         return Err("native body hash changed".into());
     }
     let env = Environment::new().map_err(|e| e.to_string())?;
     let stub = Stub::for_source("civicdb.org", "application/json", reply)?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
         .map_err(|e| e.to_string())?;
@@ -130,7 +143,10 @@ fn verify(result: &Value, stream: &str) -> Result<(), String> {
     if claim.get("oncokb_missing").is_some() {
         return Err("complete lookup context marked missing".into());
     }
-    let native: Value = serde_json::from_str(BODY).map_err(|e| e.to_string())?;
+    let native: Value = serde_json::from_str(&crate::runner::launch::fixture_text(
+        "fixtures/drug/civic/next-context.body",
+    )?)
+    .map_err(|e| e.to_string())?;
     let field = if stream == "evidence" {
         "evidenceItems"
     } else {
@@ -154,7 +170,10 @@ fn reply(request: &str) -> Result<String, String> {
     {
         return Err("native delivery received an unproved identity/profile selector".into());
     }
-    let mut body: Value = serde_json::from_str(BODY).map_err(|e| e.to_string())?;
+    let mut body: Value = serde_json::from_str(&crate::runner::launch::fixture_text(
+        "fixtures/drug/civic/next-context.body",
+    )?)
+    .map_err(|e| e.to_string())?;
     for field in ["evidenceItems", "assertions"] {
         if !query.contains(&format!("{field}(")) {
             body.get_mut("data")
@@ -167,8 +186,7 @@ fn reply(request: &str) -> Result<String, String> {
 }
 
 fn evidence_root() -> Result<PathBuf, String> {
-    let parent = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/native-proof/drug-next");
-    fs::create_dir_all(&parent).map_err(|e| e.to_string())?;
+    let parent = super::super::network_stub::evidence_directory().map_err(|e| e.to_string())?;
     let root = tempfile::Builder::new()
         .prefix("d05-")
         .tempdir_in(parent)

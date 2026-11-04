@@ -1,17 +1,12 @@
 {
-  "live_check": "local-only retained source capture delivered over local TLS",
+  "verified": "tests/replies/trial/get/README.md identifies unchanged public registry GET replies. Local TLS delivered those bodies to the recorder; ordinary public trial section commands check them nightly.",
+  "live_check": "public",
   "feature": "trial-publications",
   "story": "CodeBreaK documents retain exact registry metadata and fixed CDN links without downloading",
   "replay": "trial/get/NCT04303780",
   "steps": [
     {
       "run": [
-        "get",
-        "trial",
-        "NCT04303780",
-        "documents"
-      ],
-      "mcp": [
         "get",
         "trial",
         "NCT04303780",

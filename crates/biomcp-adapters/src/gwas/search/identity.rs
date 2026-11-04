@@ -1,9 +1,16 @@
 //! Pure reply admission before source cache publication.
-use crate::gwas::{SPEC, raw::Association};
+use crate::gwas::{SPEC, scope::Selectors};
 use biomcp_types::GwasSearch;
 use std::collections::BTreeMap;
 pub(super) fn self_link(url: &str, expected: &BTreeMap<String, String>) -> bool {
-    let prefix = format!("{}/associations?", SPEC.base);
+    resource_link(url, "associations", expected)
+}
+pub(in crate::gwas) fn resource_link(
+    url: &str,
+    resource: &str,
+    expected: &BTreeMap<String, String>,
+) -> bool {
+    let prefix = format!("{}/{resource}?", SPEC.base);
     let Some(query) = url.strip_prefix(&prefix) else {
         return false;
     };
@@ -38,43 +45,28 @@ fn decode(text: &str) -> Option<String> {
     }
     String::from_utf8(decoded).ok()
 }
-pub(super) fn row(row: &Association, q: &GwasSearch) -> bool {
-    if row
-        .accession_id
-        .as_str()
-        .parse::<biodata::GwasStudyId>()
-        .is_err()
-        || row.exact_p_value().is_none()
-        || q.study()
-            .is_some_and(|id| row.accession_id.as_str() != id.to_string())
-        || q.pubmed()
-            .is_some_and(|id| row.pubmed_id.as_deref() != Some(id.to_string().as_str()))
-        || q.variant().is_some_and(|id| {
-            !row.snp_allele
-                .iter()
-                .any(|a| a.rs_id.as_str() == id.to_string())
-        })
+pub(super) fn row(row: &Selectors, q: &GwasSearch) -> bool {
+    if q.study().is_some_and(|id| {
+        row.accession_id
+            .as_ref()
+            .and_then(crate::raw::Field::as_ref)
+            .is_none_or(|v| v.as_str() != id.to_string())
+    }) || q.pubmed().is_some_and(|id| {
+        row.pubmed_id
+            .as_ref()
+            .and_then(crate::raw::Field::as_ref)
+            .map(String::as_str)
+            != Some(id.to_string().as_str())
+    }) || q
+        .variant()
+        .is_some_and(|id| !row.alleles().any(|a| a.rs_id.as_str() == id.to_string()))
         || q.trait_id().is_some_and(|id| {
-            !q.include_child_traits()
-                && !row
-                    .efo_traits
-                    .iter()
-                    .any(|t| t.efo_id.as_str() == id.to_string())
+            !q.include_child_traits() && !row.traits().any(|t| t.efo_id.as_str() == id.to_string())
         })
         || q.trait_label()
-            .is_some_and(|label| !row.efo_traits.iter().any(|t| &t.efo_trait == label))
+            .is_some_and(|label| !row.traits().any(|t| t.efo_trait.as_ref() == Some(label)))
     {
         return false;
     }
-    row.snp_allele
-        .iter()
-        .all(|a| a.rs_id.as_str().parse::<biodata::RsId>().is_ok())
-        && row
-            .efo_traits
-            .iter()
-            .all(|t| t.efo_id.as_str().parse::<biodata::GwasTraitId>().is_ok())
-        && row
-            .pubmed_id
-            .as_ref()
-            .is_none_or(|id| id.parse::<biodata::Pmid>().is_ok())
+    true
 }

@@ -1,5 +1,5 @@
 {
-  "feature": "trial-publications",
+  "feature": "trial-search",
   "live_check": "local-only synthetic PDF save example",
   "story": "Document help examples save explicitly named files from an exact manifest entry; PDF bytes are synthetic and never read as text.",
   "replay": "trial/documents/synthetic",
@@ -30,38 +30,6 @@
         "--save",
         "analysis.pdf",
         "--replace"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/file/data/bytes": 67,
-        "/result/file/data/document/filename": "SAP_001.pdf"
-      },
-      "max_bytes": 807
-    },
-    {
-      "mcp": [
-        "trial",
-        "document",
-        "NCT04303780",
-        "SAP_001.pdf",
-        "--save",
-        "stdio-protocol.pdf"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/result/file/data/bytes": 67,
-        "/result/file/data/document/filename": "SAP_001.pdf"
-      },
-      "max_bytes": 807
-    },
-    {
-      "mcp": [
-        "trial",
-        "document",
-        "NCT04303780",
-        "SAP_001.pdf",
-        "--save",
-        "stdio-analysis.pdf"
       ],
       "expect": {
         "/status": "complete",

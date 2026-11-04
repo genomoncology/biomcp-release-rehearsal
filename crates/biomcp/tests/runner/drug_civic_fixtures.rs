@@ -2,17 +2,17 @@
 use serde_json::Value;
 fn fixture(index: usize) -> Result<Value, String> {
     let body = match index {
-        21 => include_str!("../../../../tests/fixtures/drug/civic/021.body"),
-        22 => include_str!("../../../../tests/fixtures/drug/civic/022.body"),
-        23 => include_str!("../../../../tests/fixtures/drug/civic/023.body"),
-        24 => include_str!("../../../../tests/fixtures/drug/civic/024.body"),
-        25 => include_str!("../../../../tests/fixtures/drug/civic/025.body"),
-        26 => include_str!("../../../../tests/fixtures/drug/civic/026.body"),
-        27 => include_str!("../../../../tests/fixtures/drug/civic/027.body"),
-        28 => include_str!("../../../../tests/fixtures/drug/civic/028.body"),
-        29 => include_str!("../../../../tests/fixtures/drug/civic/029.body"),
-        30 => include_str!("../../../../tests/fixtures/drug/civic/030.body"),
-        31 => include_str!("../../../../tests/fixtures/drug/civic/031.body"),
+        21 => &crate::runner::launch::fixture_text("fixtures/drug/civic/021.body")?,
+        22 => &crate::runner::launch::fixture_text("fixtures/drug/civic/022.body")?,
+        23 => &crate::runner::launch::fixture_text("fixtures/drug/civic/023.body")?,
+        24 => &crate::runner::launch::fixture_text("fixtures/drug/civic/024.body")?,
+        25 => &crate::runner::launch::fixture_text("fixtures/drug/civic/025.body")?,
+        26 => &crate::runner::launch::fixture_text("fixtures/drug/civic/026.body")?,
+        27 => &crate::runner::launch::fixture_text("fixtures/drug/civic/027.body")?,
+        28 => &crate::runner::launch::fixture_text("fixtures/drug/civic/028.body")?,
+        29 => &crate::runner::launch::fixture_text("fixtures/drug/civic/029.body")?,
+        30 => &crate::runner::launch::fixture_text("fixtures/drug/civic/030.body")?,
+        31 => &crate::runner::launch::fixture_text("fixtures/drug/civic/031.body")?,
         _ => return Err("undeclared source fixture".into()),
     };
     serde_json::from_str(body).map_err(|e| e.to_string())

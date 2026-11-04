@@ -20,27 +20,11 @@
         "/result/items/0/answer/card/authors/total": 7,
         "/result/items/0/answer/card/authors/items/0": "Chen Y",
         "/result/items/0/answer/card/types": {
-          "includes": "systematic_review"
+          "includes": "systematic-review"
         },
         "/result/items/0/answer/card/abstract_parts/0/text": "The substitution of the seventeenth amino acid glutamate by lysine in the homologous structural domain of the Akt1 gene pleckstrin is a somatic cellular mutation found in breast, colorectal, and ovarian cancers, named p. Glu17Lys or E17K. In recent years, a growing number of studies have suggested that this mutation may play a unique role in the development of tumors. In this review article, we describe how AKT1(E17K) mutations stimulate downstream signals that cause cells to emerge transformed; we explore the differential regulation and function of E17K in different physiological and pathological settings; and we also describe the phenomenon that E17K impedes tumor growth by interfering with growth-promoting and chemotherapy-resistant AKT1<sup>low</sup>QCC generation, an intriguing finding that mutants may prolong tumor patient survival by activating feedback mechanisms and disrupting transcription. This review is intended to provide a better understanding of the role of AKT1(E17K) in cancer and to inform the development of AKT1(E17K)-based antitumor strategies."
       },
-      "mcp": [
-        "get",
-        "article",
-        "33123537"
-      ],
       "max_bytes": 2900
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537"
-      ],
-      "expect": {
-        "/result/items/0/answer/fetched": 1792839535
-      },
-      "offline": true
     }
   ]
 }

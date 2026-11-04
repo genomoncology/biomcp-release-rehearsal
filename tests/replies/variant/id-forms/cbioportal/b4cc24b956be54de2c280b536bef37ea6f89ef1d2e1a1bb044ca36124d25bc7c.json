@@ -1,0 +1,23 @@
+{
+  "method": "GET",
+  "source": "cbioportal",
+  "url": "https://www.cbioportal.org/api/studies/msk_impact_2017/sample-lists?projection=SUMMARY&pageSize=50&pageNumber=0&sortBy=sampleListId&direction=ASC",
+  "exchanges": [
+    {
+      "fetched": 1792870987,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 138,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": [
+          {
+            "studyId": "msk_impact_2017",
+            "sampleListId": "msk_impact_2017_all"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "feature": "protein-domains-complexes",
+  "live_check": "public",
+  "story": "An exact retained UniProt protein and integrated InterPro entry preserve the source domain identity.",
+  "verified": "UniProt CC BY4.0 https://www.uniprot.org/help/license; original body SHA256 ad5d0da858d498a9dbf51d55bf07bf1d762ddb51855d9a37cf7678f91200d7bd captured2026-10-30. InterPro integrated entries CC0 https://interpro-documentation.readthedocs.io/en/latest/license.html; existing native body SHA256 127b98b4c2e8cabfe3d96cd36107c5ecb7f002662814d5829ea792db2359a07f, exact request page_size25. Original requests/bodies retained outside Git.",
+  "replay": "protein/native-domains",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "protein",
+        "Q8N726",
+        "domains",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "Q8N726",
+        "/result/items/0/sections/domains/source": "interpro",
+        "/result/items/0/sections/domains/data/items/0/id": "IPR010868",
+        "/result/items/0/sections/domains/data/items/0/name": "Tumor suppressor ARF"
+      }
+    }
+  ]
+}

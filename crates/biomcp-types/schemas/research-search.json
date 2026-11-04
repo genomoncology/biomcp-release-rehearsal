@@ -1,14 +1,14 @@
 {
   "$defs": {
-    "ResearchEnvelope": {
+    "Reply_ResearchEnvelope": {
       "description": "Forward-compatible envelope metadata; entity fields use their CLI schemas.",
       "properties": {
         "schema": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original CLI schema identity; its schema describes all entity fields."
         },
         "status": {
-          "$ref": "#/$defs/Status",
+          "$ref": "#/$defs/Reply_Status",
           "description": "Original command outcome."
         }
       },
@@ -18,20 +18,19 @@
       ],
       "type": "object"
     },
-    "ResearchHit": {
-      "additionalProperties": false,
+    "Reply_ResearchHit": {
       "description": "A citable exact source record, without inferred identity or relevance.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact quoted get argument list, excluding the get verb."
         },
         "title": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original source title, or its exact identifier when no title is supplied."
         },
         "url": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Nonempty canonical source record URL.",
           "format": "uri"
         }
@@ -43,16 +42,15 @@
       ],
       "type": "object"
     },
-    "ResearchSearchMetadata": {
-      "additionalProperties": false,
+    "Reply_ResearchSearchMetadata": {
       "description": "Search disclosures preserve the original CLI response without inventing hits.",
       "properties": {
         "envelope": {
-          "$ref": "#/$defs/ResearchEnvelope",
+          "$ref": "#/$defs/Reply_ResearchEnvelope",
           "description": "Complete original CLI envelope."
         },
         "note": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Explains where unprojected rows remain available."
         },
         "omitted_rows": {
@@ -69,7 +67,7 @@
       ],
       "type": "object"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -79,25 +77,26 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.research-search/2",
+  "$id": "biomcp.research-search/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "Research search response.",
   "properties": {
     "metadata": {
-      "$ref": "#/$defs/ResearchSearchMetadata",
+      "$ref": "#/$defs/Reply_ResearchSearchMetadata",
       "description": "Original response and projection disclosures."
     },
     "results": {
       "description": "Citable records in unchanged CLI order.",
       "items": {
-        "$ref": "#/$defs/ResearchHit"
+        "$ref": "#/$defs/Reply_ResearchHit"
       },
       "type": "array"
     }

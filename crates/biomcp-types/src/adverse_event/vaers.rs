@@ -95,7 +95,6 @@ pub fn vaers_vaccine_code(text: &str) -> Option<&'static str> {
 pub type VaersCell = BTreeMap<Box<str>, Box<str>>;
 /// One whole native row, never reconstructed from another grouping.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VaersRow {
     /// Native label cell; no code is invented when absent.
@@ -108,7 +107,6 @@ pub struct VaersRow {
 }
 /// Applied source text, retaining its original content and source role.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VaersNotice {
     /// Message, footnote or evaluated caveat.
@@ -118,7 +116,6 @@ pub struct VaersNotice {
 }
 /// Fixed native geographic selection, without a caller-selectable geography filter.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VaersScope {
     /// Native variable attributes, including source name and code.
@@ -128,7 +125,6 @@ pub struct VaersScope {
 }
 /// Bounded page of one independent native vaccine summary table.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VaersSummary {
     /// Native selected vaccine attributes.
@@ -159,6 +155,6 @@ pub struct VaersSummary {
     pub interpretation: Box<str>,
 }
 impl ResponseBody for VaersSummary {
-    const SCHEMA: &'static str = "biomcp.vaers-summary/1";
+    const SCHEMA: &'static str = "biomcp.vaers-summary/5";
     type Query = super::AdverseEventSearch;
 }

@@ -1,24 +1,17 @@
 mod eligibility;
 mod publications;
+mod results;
 mod sites;
-use super::snapshot::Snapshot;
-use crate::{Action, Outcome};
+use super::Snapshot;
+use crate::Outcome;
 use biodata::{NctId, Text};
 
 use biomcp_fetch::{CacheError, RequestError};
 use biomcp_types::{
-    Request, Section, Source, SourceRecord, Status, StepKind, TrialArmRecord, TrialCardItem,
+    Request, Section, Source, SourceRecord, StepKind, TrialArmRecord, TrialCardItem,
     TrialEligibilityPage, TrialGet, TrialRecords, TrialSection, TrialSections,
 };
-const SECTIONS: [TrialSection; 7] = [
-    TrialSection::Eligibility,
-    TrialSection::Outcomes,
-    TrialSection::Arms,
-    TrialSection::Locations,
-    TrialSection::Contacts,
-    TrialSection::References,
-    TrialSection::Documents,
-];
+
 pub(super) fn valid(query: &TrialGet, snapshot: &Snapshot) -> bool {
     let d = &snapshot.detail;
     let total = match query.sections().first() {
@@ -28,6 +21,7 @@ pub(super) fn valid(query: &TrialGet, snapshot: &Snapshot) -> bool {
             .and_then(|e| e.criteria.as_ref())
             .map_or(0, |s| s.as_str().chars().count()),
         Some(TrialSection::Outcomes) => d.outcomes.len(),
+        Some(TrialSection::Results) => d.results.len(),
         Some(TrialSection::Arms) => d.arms.len() + d.interventions.len(),
         Some(TrialSection::References) => d.references.len(),
         Some(TrialSection::Documents) => d.documents.len(),
@@ -51,29 +45,49 @@ pub(super) fn render(
     if requested(TrialSection::Eligibility) {
         sections.eligibility = Some(eligibility(query, &snapshot, pool.as_ref(), out));
     }
+    results::render(query, &snapshot, pool.as_ref(), &mut sections, out)?;
     records_sections(query, &snapshot, pool.as_ref(), &mut sections, out)?;
     sites::render(query, &snapshot, pool.as_ref(), &mut sections, out)?;
     publications::render(query, &snapshot, pool.as_ref(), &mut sections, out)?;
-    for section in SECTIONS.into_iter().filter(|s| !requested(*s)) {
-        out.next.push((
+    for section in biomcp_types::TrialSource::Ctgov
+        .sections()
+        .iter()
+        .copied()
+        .filter(|s| !requested(*s))
+    {
+        out.next.push(crate::next::Step::run(
             StepKind::Section,
-            Action::Run {
-                request: Request::GetTrial(TrialGet::single(id, Some(section), query.limit())),
-                fresh: false,
-            },
+            &[query.source().source()],
+            Request::GetTrial(TrialGet::single(id, Some(section), query.limit())),
+            false,
         ));
+    }
+    out.problems
+        .extend(snapshot.detail.problems.iter().cloned());
+    for problem in &snapshot.processing_problems {
+        if !out.problems.contains(problem) {
+            out.problems.push(problem.clone());
+        }
     }
     Ok(TrialCardItem {
         input: id,
         status: if super::partial(&snapshot) {
-            Status::Partial
+            crate::status::item_status(true, false, true)
         } else {
-            Status::Complete
+            crate::status::item_status(true, false, false)
         },
-        card: Some(snapshot.detail.card),
-        fetched: Some(snapshot.fetched),
+        card: Some(biomcp_types::TrialPostedCard {
+            protocol: snapshot.detail.card,
+            results_first_posted: snapshot.detail.results_first_posted,
+        }),
+        fetched: snapshot.fetched,
         sections: (!query.sections().is_empty()).then_some(sections),
-        more: SECTIONS.into_iter().filter(|s| !requested(*s)).collect(),
+        more: biomcp_types::TrialSource::Ctgov
+            .sections()
+            .iter()
+            .copied()
+            .filter(|s| !requested(*s))
+            .collect(),
     })
 }
 fn eligibility(
@@ -122,7 +136,7 @@ pub(in crate::trial) fn records<T: Clone>(
         .skip(query.offset() as usize)
         .take(query.limit() as usize)
     {
-        let size = size(item).map_err(|_| CacheError::Database)?.len() + 1;
+        let size = size(item).map_err(|_| CacheError::Encoding)?.len() + 1;
         if !items.is_empty() && bytes + size > budget {
             break;
         }
@@ -150,9 +164,11 @@ fn section<T>(page: TrialRecords<T>, id: NctId) -> Section<TrialRecords<T>> {
     }
 }
 fn record(id: NctId) -> Option<SourceRecord> {
-    Text::new(&id.to_string())
-        .ok()
-        .map(|id| SourceRecord { id, url: None })
+    Text::new(&id.to_string()).ok().map(|id| SourceRecord {
+        namespace: biodata::IdentifierNamespace::Unknown,
+        id,
+        url: None,
+    })
 }
 pub(in crate::trial) fn advance(
     query: &TrialGet,
@@ -166,12 +182,11 @@ pub(in crate::trial) fn advance(
     if end < total
         && let Some(pool) = pool
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::GetTrial(query.page(id, section, pool.clone(), end)),
-                fresh: false,
-            },
+            &[query.source().source()],
+            Request::GetTrial(query.page(id, section, pool.clone(), end)),
+            false,
         ));
     }
 }

@@ -372,7 +372,7 @@ The retained native CLI and MCP proof covers every UniProt section command. The 
 
 The evidence store holds the combined proof at `data/biomcp-redux/0239-uniprot-sections/biomcp-redux-0239-native.mXeaPJ.tar.gz`, SHA-256 `47b39aa4ef15ddc8453e8addf2bed30b29c7f370ab67eb3d36ab89fd1b9a7513`. The archive passed exact member and content-hash verification on the build host and Yellow. The retained phase logs and revisions identify reused successful measurements.
 
-`tests/protein-section-budgets.json` owns each case's measured whole CLI bytes and comparable bytes. The native runner enforces measured plus 15% against both, and generated command cases use the same comparable ceiling. A CLI newline accounts for its one-byte difference from MCP. The table shows the largest observed case in each command shape.
+`tests/protein-section-budgets.yaml` owns each case's measured whole CLI bytes and comparable bytes. The native runner enforces measured plus 15% against both, and generated command cases use the same comparable ceiling. A CLI newline accounts for its one-byte difference from MCP. The table shows the largest observed case in each command shape.
 
 | Shape | Largest case key | Whole CLI bytes | Whole MCP bytes | Comparable bytes | Comparable ceiling |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -401,7 +401,7 @@ The native proof uses the exact retained 25-row requests from the investigation 
 
 The retained CLI/MCP proof passed without provider requests. Yellow holds `data/biomcp-redux/0241-protein-domains-complexes/native.E8zfiz.tar.gz`, SHA-256 `28d6a1d13d3834427122406946f4bab2f770732303581b13c2a4746991b37050`. Its exact member list and every content hash passed verification on both machines. The archive preserves the first successful complex walk and its continuation proof from the resumed run.
 
-`tests/protein-domain-budgets.json` owns the whole CLI bytes and comparable bytes for each measured shape. The native runner enforces measured size plus 15 percent; approximate token ceilings use the existing four-bytes-per-token convention. Comparable size subtracts only the three required publisher-terms fields. CLI includes its final newline, and MCP omits that one byte.
+`tests/protein-domain-budgets.yaml` owns the whole CLI bytes and comparable bytes for each measured shape. The native runner enforces measured size plus 15 percent; approximate token ceilings use the existing four-bytes-per-token convention. Comparable size subtracts only the three required publisher-terms fields. CLI includes its final newline, and MCP omits that one byte.
 
 | Shape | Largest measured case | Whole CLI bytes | Comparable bytes | Comparable ceiling |
 | --- | --- | ---: | ---: | ---: |
@@ -436,7 +436,7 @@ Every shipped protein command reads source facts. No command infers a variant ef
 
 Case paths in the first column's owning-case directory refer to `crates/biomcp/tests/runner`. External native cases remain outside Git under their retained archive recipes. Native absence and a known-positive unreviewed result remain unproved. Synthetic controls do not change that evidence boundary. Bulk human proteome, InterPro match, ComplexTab and whole-human STRING bundles remain deferred because no harvested question needs them.
 
-The historical projection archive records the investigation's row projection and design reserve. It supplies no current case bound. The implemented section and relation tables report complete envelopes, including actions, queries, outcomes and publisher terms. The maps `tests/protein-section-budgets.json` and `tests/protein-domain-budgets.json` own native per-case measurements. The owning fixture, command phase and surface select a measurement before fifteen percent headroom is applied. CLI includes its final newline; MCP JSON omits it. No schema-wide, native-family or loop-wide maximum replaces an owning case measurement. Approximate tokens use the existing four-byte convention.
+The historical projection archive records the investigation's row projection and design reserve. It supplies no current case bound. The implemented section and relation tables report complete envelopes, including actions, queries, outcomes and publisher terms. The maps `tests/protein-section-budgets.yaml` and `tests/protein-domain-budgets.yaml` own native per-case measurements. The owning fixture, command phase and surface select a measurement before fifteen percent headroom is applied. CLI includes its final newline; MCP JSON omits it. No schema-wide, native-family or loop-wide maximum replaces an owning case measurement. Approximate tokens use the existing four-byte convention.
 
 Job j15006 retains the historical complete synthetic CLI and MCP measurements for the failure, retirement, wrong-identity, repeated-section and disabled-source cases. Its original `disabled/ACCESSION` label covered both the ordinary `all` phase and disabled-source phase; the measured bytes distinguish these recorded phases. Ordinary `all` measured 2,826 CLI bytes and 2,825 MCP bytes for each accession. Disabled optional sources measured 2,020 CLI bytes and 2,019 MCP bytes. Repeated features measured 1,328 CLI bytes and 1,327 MCP bytes. These measurements are reused without provider calls or another replay run.
 
@@ -444,7 +444,7 @@ Every 0.9 timing and output size remains unmeasured because no verified denied-n
 
 ### Synthetic measurement basis
 
-Job j15029 measures the missing authored fixture outputs serially. `tests/protein-synthetic-budgets.json` holds whole CLI bytes for80 owning Rust fixture, variant and command-phase keys. These older transport, cache and continuation cases exercise CLI only; their measured size is not described as MCP execution. Public command parity remains owned by the native and YAML CLI/MCP cases. Existing j15006 failure, retirement and composite measurements remain in their original owning cases.
+Job j15029 measures the missing authored fixture outputs serially. `tests/protein-synthetic-budgets.yaml` holds whole CLI bytes for80 owning Rust fixture, variant and command-phase keys. These older transport, cache and continuation cases exercise CLI only; their measured size is not described as MCP execution. Public command parity remains owned by the native and YAML CLI/MCP cases. Existing j15006 failure, retirement and composite measurements remain in their original owning cases.
 
 Every protein YAML step owns its `max_bytes` and `max_tokens`. The step bound uses its measured comparable CLI and, where actually exercised, MCP output before headroom. A walk has one ordinary step ceiling applied to every page. Its retained measurement log labels every page, and the chosen step ceiling covers that same step's largest measured page. It does not claim an independently selected bound for each page. No second YAML argument-budget table or global runner hook is added. The canonical `paging.yaml` step0 walk uses its own first page's1,853 comparable CLI bytes as the largest observed page; step1 uses its own second page's798 comparable CLI bytes. The log retains every page label and the original walk IDs and counts remain asserted.
 

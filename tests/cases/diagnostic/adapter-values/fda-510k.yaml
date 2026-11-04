@@ -1,0 +1,28 @@
+{
+  "feature": "diagnostic-510k",
+  "live_check": "synthetic",
+  "story": "One synthetic wrong-shaped nonidentity value retains the native record and names the omitted field.",
+  "replay": "diagnostic/adapter-values/fda-510k",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "diagnostic",
+        "K999994",
+        "--source",
+        "fda-510k"
+      ],
+      "expect": {
+        "/problems/*/field": [
+          "device_name"
+        ],
+        "/result/k_number": "K999994",
+        "/result": {
+          "omits": [
+            "device_name"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -50,6 +50,9 @@ pub(crate) fn local_replies(command: &[String]) -> Vec<String> {
     let Some(verb) = command.first().map(String::as_str) else {
         return Vec::new();
     };
+    if verb == "sync" && command.len() == 1 {
+        return vec![SyncResult::SCHEMA.into(), WikiPathwaysSync::SCHEMA.into()];
+    }
     let id = match verb {
         "schema" => SchemaCatalog::SCHEMA,
         "help" if command.get(1).is_some_and(|word| word == "key") => KeyHelp::SCHEMA,

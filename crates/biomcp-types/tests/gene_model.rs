@@ -8,16 +8,17 @@ type Check = Result<(), Box<dyn std::error::Error>>;
 fn round_trip<T: Serialize + DeserializeOwned + PartialEq + Debug>(value: &T) -> Check {
     assert_eq!(
         serde_json::from_value::<T>(serde_json::to_value(value)?)?,
-        *value
+        *value,
+        "Gene values must preserve their checked serialization contract"
     );
     Ok(())
 }
 fn header() -> Result<GeneHeader, Error> {
     Ok(GeneHeader {
-        hgnc_id: HgncId::new(1097)?,
+        hgnc_id: HgncId::new(1097).map_err(|_| Error::HgncIdInvalid)?,
         symbol: GeneSymbol::new("BRAF")?,
-        name: Text::new("BRAF name")?,
-        locus_group: LocusGroup::ProteinCoding,
+        name: Some(Text::new("BRAF name")?),
+        locus_group: Some(LocusGroup::ProteinCoding),
         location: None,
         status: GeneStatus::Approved,
         r#match: None,
@@ -25,13 +26,13 @@ fn header() -> Result<GeneHeader, Error> {
 }
 fn gene() -> Result<Gene, Error> {
     Ok(Gene {
-        hgnc_id: HgncId::new(1097)?,
+        hgnc_id: HgncId::new(1097).map_err(|_| Error::HgncIdInvalid)?,
         symbol: GeneSymbol::new("BRAF")?,
         entrez_id: None,
         ensembl_id: None,
-        name: Text::new("BRAF name")?,
+        name: Some(Text::new("BRAF name")?),
         status: GeneStatus::Approved,
-        locus_group: LocusGroup::ProteinCoding,
+        locus_group: Some(LocusGroup::ProteinCoding),
         locus_type: None,
         location: None,
         previous_symbols: Box::new([]),
@@ -110,14 +111,27 @@ fn gene_resolutions_preserve_every_candidate_and_withdrawn_identity() -> Check {
     }
     assert_eq!(
         serde_json::to_value(GeneResolution::NotFound {})?,
-        json!({"resolution":"not_found"})
+        json!({"resolution":"not-found"})
     );
-    assert!(
-        serde_json::from_value::<GeneResolution>(json!({"resolution":"not_found","gene":{}}))
-            .is_err()
+    let extended: GeneResolution =
+        serde_json::from_value(json!({"resolution":"not-found","gene":{}}))?;
+    assert_eq!(
+        serde_json::to_value(extended)?,
+        json!({"resolution":"not-found"})
     );
     assert!(serde_json::from_value::<Gene>(json!({})).is_err());
     round_trip(&header()?)?;
+    Ok(())
+}
+#[test]
+fn gene_metadata_can_be_absent_without_losing_identity() -> Check {
+    let mut missing_metadata = gene()?;
+    missing_metadata.name = None;
+    missing_metadata.locus_group = None;
+    round_trip(&missing_metadata)?;
+    let missing_metadata = serde_json::to_value(missing_metadata)?;
+    assert!(missing_metadata.get("name").is_none());
+    assert!(missing_metadata.get("locus_group").is_none());
     Ok(())
 }
 #[test]
@@ -129,19 +143,6 @@ fn mane_requires_curated_versioned_transcripts_at_its_boundary() -> Check {
     )?;
     assert_eq!(valid.refseq().to_string(), "NM_004333.6");
     round_trip(&valid)?;
-    let zero_version = Accession::RefSeq {
-        prefix: RefSeqPrefix::Nm,
-        number: 4333,
-        version: 0,
-    };
-    assert!(
-        Mane::new(
-            ManeStatus::Select,
-            zero_version,
-            "ENST00000646891.2".parse()?
-        )
-        .is_err()
-    );
     for (refseq, ensembl) in [
         ("NM_004333", "ENST00000646891.2"),
         ("NM_004333.6", "ENST00000646891"),
@@ -160,7 +161,7 @@ fn mane_requires_curated_versioned_transcripts_at_its_boundary() -> Check {
         )
         .is_ok()
     );
-    assert!(serde_json::from_value::<Mane>(json!({"status":"select", "refseq":"NM_004333.6","ensembl":"ENST00000646891.2","extra":true})).is_err());
+    assert!(serde_json::from_value::<Mane>(json!({"status":"select", "refseq":"NM_004333.6","ensembl":"ENST00000646891.2","extra":true})).is_ok());
     Ok(())
 }
 #[test]
@@ -201,5 +202,52 @@ fn genomic_intervals_preserve_assembly_strand_and_scaffold_names() -> Check {
     };
     round_trip(&summary)?;
     assert!(serde_json::to_value(summary)?.get("dated").is_none());
+    Ok(())
+}
+
+#[test]
+fn gene_locations_parse_publisher_forms_without_changing_text() -> Check {
+    for (text, kind) in [
+        ("Xp22.33 and Yp11.32", "bands"),
+        ("Xp22.3 and Yp11.3", "bands"),
+        ("7q34", "bands"),
+        ("Xp21.2-p21.1", "range"),
+        ("9p21.2-9p21.1", "range"),
+        ("mitochondria", "mitochondrial"),
+        ("publisher location text", "unparsed"),
+        ("7q34 and invalid", "unparsed"),
+        ("Xp21.2-invalid", "unparsed"),
+        (" 7q34 ", "unparsed"),
+    ] {
+        let location = GeneLocation::from(text);
+        assert_eq!(location.as_str(), text);
+        assert_eq!(serde_json::to_value(&location)?, text);
+        round_trip(&location)?;
+        let parsed = match location.kind() {
+            GeneLocationKind::Cytobands { first, additional } => {
+                assert_eq!(
+                    first.as_str(),
+                    text.split(" and ").next().ok_or("no first band")?
+                );
+                assert_eq!(additional.len(), text.matches(" and ").count());
+                "bands"
+            }
+            GeneLocationKind::Range { start, end } => {
+                assert_eq!(start.as_str(), text.split('-').next().ok_or("no start")?);
+                assert_eq!(
+                    end.as_str(),
+                    if text.starts_with('X') {
+                        "Xp21.1"
+                    } else {
+                        "9p21.1"
+                    }
+                );
+                "range"
+            }
+            GeneLocationKind::Mitochondrial => "mitochondrial",
+            GeneLocationKind::Unparsed => "unparsed",
+        };
+        assert_eq!(parsed, kind);
+    }
     Ok(())
 }

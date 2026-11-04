@@ -3,24 +3,12 @@ use biodata::*;
 use biomcp_types::*;
 pub(super) fn registry() -> Vec<Contract> {
     contracts! {
-        DiseaseAssociation => ("disease-association", "biodata.disease-association/4"),
-        DiseaseRelation => ("disease-relation", "biodata.disease-relation/2"),
-        DiseaseEndpoint => ("disease-endpoint", "biodata.disease-endpoint/1"),
-        DiseaseSynonym => ("disease-synonym", "biodata.disease-synonym/1"),
-        DiseaseStatistic => ("disease-statistic", "biodata.disease-statistic/1"),
+        DiseaseAssociation => ("disease-association", "biodata.disease-association/7"),
+        DiseaseRelation => ("disease-relation", "biodata.disease-relation/4"),
+        DiseaseEndpoint => ("disease-endpoint", "biodata.disease-endpoint/3"),
+        DiseaseSynonym => ("disease-synonym", "biodata.disease-synonym/3"),
+        DiseaseStatistic => ("disease-statistic", "biodata.disease-statistic/4"),
         DiseaseOntology => ("disease-ontology", "biomcp.disease-ontology/1"),
-        DiseaseSearch => ("disease-search", "biomcp.disease-search/1"),
-        DiseaseGet => ("disease-get", "biomcp.disease-get/2"),
-        Envelope<DiseasePage> => ("disease-page", "biomcp.disease-page/2"),
-        Envelope<DiseaseCard> => ("disease-card", "biomcp.disease-card/3"),
-        Envelope<DiseaseSynonyms> => ("disease-synonyms", "biomcp.disease-synonyms/2"),
-        Envelope<DiseaseXrefs> => ("disease-xrefs", "biomcp.disease-xrefs/2"),
-        Envelope<DiseaseHierarchy> => ("disease-hierarchy", "biomcp.disease-hierarchy/2"),
-        Envelope<DiseaseGenes> => ("disease-genes", "biomcp.disease-genes/5"),
-        Envelope<DiseasePhenotypes> => ("disease-phenotypes", "biomcp.disease-phenotypes/5"),
-        Envelope<DiseaseSites> => ("disease-sites", "biomcp.disease-sites/2"),
-        Envelope<DiseaseIncidence> => ("disease-incidence", "biomcp.disease-incidence/3"),
-        Envelope<DiseaseSurvival> => ("disease-survival", "biomcp.disease-survival/3"),
     }
 }
 
@@ -55,7 +43,8 @@ where
     let value = serde_json::to_value(Envelope::new(Status::Complete, query, Some(body)))?;
     assert_eq!(
         value.get("schema").and_then(serde_json::Value::as_str),
-        Some(T::SCHEMA)
+        Some(T::SCHEMA),
+        "Disease schemas must retain their versioned envelope contract"
     );
     let validator = jsonschema::draft202012::new(&generate::<Envelope<T>>())?;
     assert!(validator.is_valid(&value), "{value}");

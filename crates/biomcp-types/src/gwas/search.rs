@@ -1,4 +1,5 @@
 //! Standalone GWAS requests. Shared command registration follows separately.
+use crate::Paged;
 use crate::{GeneSymbol, Pmid, QueryInvalid, RsId, Text};
 use biodata::{GwasStudyId, GwasTraitId, ScientificPValue};
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,9 @@ pub struct GwasSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
+    /// Return study records for the selected publication instead of associations.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    studies: bool,
     /// Exact source rsID.
     #[serde(
         default,
@@ -103,10 +107,38 @@ struct SearchFields {
 fn limit() -> u32 {
     3
 }
-crate::query::validation::checked_query!(GwasSearch, SearchFields);
+impl crate::CheckedQuery for GwasSearch {
+    const USAGE_MESSAGE: Option<crate::ErrorMessage> =
+        Some(crate::ErrorMessage::GwasSearchArguments);
+    fn invalid_field(name: &str) -> QueryInvalid {
+        let cause = QueryInvalid::new(&[name]);
+        if name == "p_value" {
+            cause.with_message(crate::ErrorMessage::GwasPositiveThreshold)
+        } else {
+            cause
+        }
+    }
+    fn from_fields<'de, D: serde::Deserializer<'de, Error = QueryInvalid>>(
+        deserializer: D,
+    ) -> Result<Self, QueryInvalid> {
+        Self::try_from(SearchFields::deserialize(deserializer)?)
+    }
+}
+
 impl TryFrom<SearchFields> for GwasSearch {
     type Error = QueryInvalid;
     fn try_from(f: SearchFields) -> Result<Self, Self::Error> {
+        if f.studies
+            && (f.pubmed.is_none()
+                || f.variant.is_some()
+                || f.r#trait.is_some()
+                || f.trait_id.is_some()
+                || f.gene.is_some()
+                || f.study.is_some()
+                || f.p_value.is_some())
+        {
+            return Err(QueryInvalid::new(&["studies", "pubmed"]));
+        }
         if f.variant.is_none()
             && f.r#trait.is_none()
             && f.trait_id.is_none()
@@ -137,6 +169,7 @@ impl GwasSearch {
     /// Reuse the native search selector for a checked study section window.
     pub fn study_page(id: GwasStudyId, page: &super::GwasSectionPage) -> Self {
         Self(SearchFields {
+            studies: false,
             variant: None,
             r#trait: None,
             trait_id: None,
@@ -151,6 +184,18 @@ impl GwasSearch {
             offset: page.offset(),
             pool: None,
         })
+    }
+
+    /// Select publication studies rather than association rows.
+    pub fn studies(&self) -> bool {
+        self.0.studies
+    }
+
+    /// Read only one association to obtain a native study total.
+    pub fn study_count(id: GwasStudyId) -> Self {
+        let mut query = Self::study_page(id, &super::GwasSectionPage::default());
+        query.0.limit = 1;
+        query
     }
 
     /// Checked variant selector.
@@ -205,29 +250,31 @@ impl GwasSearch {
     pub fn pool(&self) -> Option<&Text> {
         self.0.pool.as_ref()
     }
-    /// Restart the exact selectors at the beginning.
-    pub fn restart(&self) -> Self {
-        let mut q = self.at_offset(0);
-        q.0.pool = None;
-        q
-    }
+
     /// Continue a retained threshold walk.
     pub fn in_pool(&self, pool: Text, offset: u32) -> Self {
         let mut q = self.at_offset(offset);
         q.0.pool = Some(pool);
         q
     }
-    /// Continue without changing source selectors.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut next = self.clone();
-        next.0.offset = offset;
-        next
+}
+impl crate::Paged for GwasSearch {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.pool = None;
     }
 }
 
 mod threshold {
     use biodata::ScientificPValue;
     use serde::{Deserialize, Deserializer, Serializer, ser::Error as _};
+    #[expect(
+        clippy::ref_option,
+        reason = "Serde serialize_with passes a reference to the entire optional field"
+    )]
     pub(super) fn serialize<S: Serializer>(
         value: &Option<ScientificPValue>,
         serializer: S,

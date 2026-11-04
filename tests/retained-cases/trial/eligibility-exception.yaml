@@ -1,0 +1,49 @@
+{
+  "feature": "trial-get",
+  "live_check": "retained native publisher bodies require an explicit external fixtures root",
+  "story": "The NCT07227636 eligibility continuation preserves the source criterion and its HBV exception together. Both pages compare with the native registry text; no eligibility decision is made.",
+  "replay": "user-query/trial-eligibility-exception",
+  "verified": "Native source requests were captured once; unchanged wire bodies were delivered locally to the real CLI recorder. Recording fetch times are local delivery times. Source counts and records describe their dated native captures. Native source facts and clinical record choices supply these expectations. The ordinary default suite does not execute this retained case. Raw archive 19f6440a545a40ede34d0eb9a2a924ee5f51589947cf804e5df22f15f2055675 contains the original captures; corrected CTGov receipts are retained separately. Complete native capture, two corrected requests, local recordings and external source text facts are retained in corrected-recordings-a2ca2bde0/capture.tar.gz SHA256 07a762087f1a823e5abf697737d84c85550b99b410456be4c628e6a58c6c943d. Native facts are retained beside each case; expected text files remain external with the case bundle.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT07227636",
+        "eligibility"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/sections/eligibility/data/total_characters": 6439,
+        "/result/items/0/sections/eligibility/data/offset": 0,
+        "/result/items/0/sections/eligibility/data/criteria": {
+          "equals_file": "eligibility-first.json"
+        },
+        "/result/items/0/sections/eligibility/data/continuation/offset": 5704,
+        "/next/0/kind": "page"
+      },
+      "mcp": [
+        "get",
+        "trial",
+        "NCT07227636",
+        "eligibility"
+      ]
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/sections/eligibility/data/total_characters": 6439,
+        "/result/items/0/sections/eligibility/data/offset": 5704,
+        "/result/items/0/sections/eligibility/data/criteria": {
+          "equals_file": "eligibility-continuation.json"
+        },
+        "/result/items/0/sections/eligibility/data": {
+          "omits": [
+            "continuation"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -25,11 +25,6 @@
         "items": "/result/items",
         "max_pages": 5
       },
-      "mcp": [
-        "article",
-        "references",
-        "34096690"
-      ],
       "max_bytes": 5722
     }
   ],

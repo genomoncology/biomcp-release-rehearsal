@@ -4,68 +4,31 @@ use super::{
 };
 use crate::Mapped;
 use crate::mapped::problem;
-use biodata::{
-    Allele, Build, Expression, Representation, SequenceLocation, Span0, Text, Variant, VariantId,
-};
+use biodata::{Allele, Build, Expression, Representation, SequenceLocation, Span0, Text, Variant};
 
 use biomcp_types::{Problem, Source, SourceRecord, VariantHeader};
-pub(super) fn allele(raw: RawAllele) -> Result<Resolution, biomcp_fetch::BadReply> {
-    if let Some(error) = raw.error_type {
-        return Ok(Resolution::Rejected(error));
+pub(super) fn allele(raw: RawAllele, expected: Option<&str>) -> Resolution {
+    if let Some(error) = &raw.error_type {
+        return rejection(&raw, error);
     }
-    let url = raw.id.ok_or(biomcp_fetch::BadReply)?;
-    let key = url
-        .as_str()
-        .rsplit('/')
-        .next()
-        .ok_or(biomcp_fetch::BadReply)?;
-    let id = key
-        .parse::<VariantId>()
-        .map_err(|_| biomcp_fetch::BadReply)?;
-    let record = Text::new(key).map_err(|_| biomcp_fetch::BadReply)?;
+    let mut fields = crate::mapped::Problems {
+        source: Source::AlleleRegistry,
+        record: expected.and_then(crate::mapped::record),
+        list: Vec::new(),
+    };
+    let Some((url, record, id)) = fields.optional("@id", Some(raw.identity(expected))) else {
+        return Resolution::Refused(fields.list);
+    };
+    fields.record = Some(record.clone());
     let mut ids = vec![id];
-    if let Some(external) = raw.external {
-        for rs in external.rs.into_iter().flatten() {
-            if rs.rs > 0 {
-                ids.push(VariantId::Rs(
-                    biodata::RsId::new(rs.rs).map_err(|_| biomcp_fetch::BadReply)?,
-                ));
-            }
-        }
-        for cv in external.clinvar.into_iter().flatten() {
-            if cv.id > 0 {
-                ids.push(VariantId::ClinVarVariation(
-                    biodata::ClinVarVariationId::new(cv.id).map_err(|_| biomcp_fetch::BadReply)?,
-                ));
-            }
-        }
-    }
+    ids.extend(super::annotations::ids(raw.external, &mut fields));
     let mut problems = Vec::new();
     let mut representations = Vec::new();
-    for g in raw.genomic.into_iter().flatten() {
+    for g in fields.fields("genomicAlleles", raw.genomic) {
         genomic(g, &record, &mut representations, &mut problems);
     }
-    for t in raw.transcripts.into_iter().flatten() {
-        if let Some(m) = t.mane {
-            for forms in [m.nucleotide, m.protein].into_iter().flatten() {
-                for form in [forms.ensembl, forms.refseq].into_iter().flatten() {
-                    match Expression::hgvs(form.hgvs) {
-                        Ok(expression) => representations.push(Representation {
-                            source: Source::AlleleRegistry.text(),
-                            expression,
-                            build: None,
-                            allele: None,
-                        }),
-                        Err(_) => problems.push(problem(
-                            Source::AlleleRegistry,
-                            Some(record.clone()),
-                            "representations.expression",
-                        )),
-                    }
-                }
-            }
-        }
-    }
+    representations.extend(super::annotations::forms(raw.transcripts, &mut fields));
+    problems.extend(fields.list);
     let value = VariantHeader {
         requested: None,
         identity: Variant {
@@ -75,6 +38,7 @@ pub(super) fn allele(raw: RawAllele) -> Result<Resolution, biomcp_fetch::BadRepl
         },
         source: Source::AlleleRegistry,
         record: SourceRecord {
+            namespace: biodata::IdentifierNamespace::Unknown,
             id: record,
             url: Some(url),
         },
@@ -83,21 +47,48 @@ pub(super) fn allele(raw: RawAllele) -> Result<Resolution, biomcp_fetch::BadRepl
         sections: None,
         component_terms: Box::default(),
     };
-    Ok(Resolution::Found(Box::new(Mapped { value, problems })))
+    Resolution::Found(Box::new(Mapped {
+        refusals: crate::Refusal::None,
+        value,
+        problems,
+    }))
 }
-fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &mut Vec<Problem>) {
-    let build = g
-        .assembly
+// Do not silently drop a source mismatch when its explanatory text cannot fit.
+fn rejection(raw: &RawAllele, error: &Text) -> Resolution {
+    let actual = raw
+        .actual_allele
         .as_ref()
-        .and_then(|a| a.as_str().parse::<Build>().ok());
-    if g.assembly.is_some() && build.is_none() {
-        problems.push(problem(
-            Source::AlleleRegistry,
-            Some(record.clone()),
-            "representations.build",
-        ));
+        .and_then(crate::raw::Field::as_ref)
+        .filter(|actual| {
+            error.as_str() == "IncorrectReferenceAllele"
+                && !actual.as_str().is_empty()
+                && actual.as_str().bytes().all(|base| b"ACGTN".contains(&base))
+        });
+    let Some(actual) = actual else {
+        return Resolution::Rejected(error.clone());
+    };
+    match Text::new(&format!("{error}: expected reference {actual}")) {
+        Ok(rejection) => Resolution::Rejected(rejection),
+        Err(_) => Resolution::Refused(vec![problem(Source::AlleleRegistry, None, "actualAllele")]),
     }
-    for notation in g.hgvs {
+}
+
+fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &mut Vec<Problem>) {
+    let mut fields = crate::mapped::Problems {
+        source: Source::AlleleRegistry,
+        record: Some(record.clone()),
+        list: Vec::new(),
+    };
+    let assembly = fields.field("representations.build", g.assembly);
+    let build = fields.optional(
+        "representations.build",
+        assembly.map(|a| a.as_str().parse::<Build>()),
+    );
+    let chromosome = fields.field("representations.chromosome", g.chromosome);
+    let notations = fields.fields("genomicAlleles.hgvs", g.hgvs);
+    let coordinates = fields.field("genomicAlleles.coordinates", g.coordinates);
+    problems.extend(fields.list);
+    for notation in notations {
         let expression = match Expression::hgvs(notation.clone()) {
             Ok(v) => v,
             Err(_) => {
@@ -113,10 +104,10 @@ fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &
             .as_str()
             .parse::<biodata::HgvsText>()
             .and_then(|h| h.accession());
-        let agrees = g.chromosome.as_ref().is_none_or(|given| {
+        let agrees = chromosome.as_ref().is_none_or(|given| {
             build
                 .zip(sequence.as_ref().ok())
-                .is_some_and(|(build, accession)| {
+                .is_none_or(|(build, accession)| {
                     biodata::Chromosome::from_accession(*accession, build)
                         .is_ok_and(|chromosome| chromosome.name() == given.as_str())
                 })
@@ -128,8 +119,10 @@ fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &
                 "representations.chromosome",
             ));
         }
-        let allele = if agrees && g.coordinates.len() == 1 {
-            g.coordinates.first().and_then(|c| {
+        let allele = if let Some(coordinates) = &coordinates
+            && coordinates.len() == 1
+        {
+            coordinates.first().and_then(|c| {
                 Allele::new(
                     SequenceLocation {
                         sequence: sequence.ok()?,
@@ -143,7 +136,7 @@ fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &
         } else {
             None
         };
-        if allele.is_none() {
+        if allele.is_none() && coordinates.is_some() {
             problems.push(problem(
                 Source::AlleleRegistry,
                 Some(record.clone()),
@@ -154,7 +147,7 @@ fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &
             source: Source::AlleleRegistry.text(),
             expression,
             build,
-            allele,
+            allele: allele.filter(|_| agrees),
         });
     }
 }

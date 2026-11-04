@@ -1,0 +1,47 @@
+{
+  "feature": "article-litvar",
+  "live_check": "synthetic empty selection over the existing recorded rs121434592 autocomplete request identity",
+  "story": "An empty LitVar selection offers source-specific searches and an rsID lookup without inventing another variant identity.",
+  "replay": "article/litvar/empty-recovery",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "--variant",
+        "rs121434592",
+        "--source",
+        "litvar"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "litvar",
+        "/sources/0/state": "ok",
+        "/next": {
+          "count": 3
+        },
+        "/next/0/args": [
+          "search",
+          "article",
+          "--source",
+          "europepmc",
+          "--variant",
+          "rs121434592"
+        ],
+        "/next/1/args": [
+          "search",
+          "article",
+          "--variant",
+          "rs121434592"
+        ],
+        "/next/2/args": [
+          "get",
+          "variant",
+          "rs121434592"
+        ],
+        "/sources/0/notices/0/message": "If you have an rsID, look it up in LitVar with --variant RSID --source litvar."
+      }
+    }
+  ]
+}

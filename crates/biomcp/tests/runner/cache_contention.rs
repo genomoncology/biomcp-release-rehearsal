@@ -1,26 +1,69 @@
 //! A checked provider reply survives a competing cache writer.
 use super::{
     configuration::{cached, invoke, root},
-    launch::{Environment, fixtures},
+    launch::Environment,
     mcp::request,
     publication::Peer,
 };
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 
+mod article_publish;
+mod record_publish;
+mod retention;
 mod store_locks;
 
 pub(super) fn trials() -> Vec<Trial> {
     let mut trials = vec![
-        Trial::test("cache/checked-gene-survives-write-contention", || {
-            checked_gene().map_err(Into::into)
-        }),
-        Trial::test(
-            "cache/checked-protein-command-survives-write-contention",
+        transcript_trial(
+            "cache-resilience/checked-gene-survives-write-contention",
+            || checked_gene().map_err(Into::into),
+        ),
+        transcript_trial(
+            "cache-resilience/checked-protein-command-survives-write-contention",
             || checked_protein().map_err(Into::into),
         ),
     ];
+    trials.push(transcript_trial(
+        "cache-resilience/stale-replies-survive-unrelated-write-until-grace",
+        || retention::stale().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "article-search/current-store-opens-without-write-lock",
+        || retention::open_reader().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "adverse-event-get/late-store-lock-keeps-fetched-faers-record",
+        || record_publish::check(false, None).map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "maude-reports/late-store-lock-keeps-fetched-maude-record",
+        || record_publish::check(true, None).map_err(Into::into),
+    ));
+    for (device, section) in [
+        (false, "drugs"),
+        (false, "reactions"),
+        (false, "unii"),
+        (false, "rxcui"),
+        (false, "product-ndc"),
+        (false, "package-ndc"),
+        (false, "spl-id"),
+        (false, "spl-set-id"),
+        (false, "application-number"),
+        (true, "devices"),
+        (true, "narrative"),
+    ] {
+        trials.push(transcript_trial(
+            format!("cache-resilience/late-store-lock-keeps-fetched-{section}"),
+            move || record_publish::check(device, Some(section)).map_err(Into::into),
+        ));
+    }
     trials.extend(store_locks::trials());
+    trials.push(transcript_trial(
+        "article-search/late-store-lock-keeps-fetched-items",
+        || article_publish::check().map_err(Into::into),
+    ));
     trials
 }
 
@@ -64,7 +107,7 @@ fn checked_gene() -> Result<(), String> {
         .find(|s| s.get("source") == Some(&json!("mygene")))
         .ok_or("mygene outcome missing")?;
     if mygene.get("state") != Some(&json!("ok"))
-        || mygene.pointer("/notices/0/kind") != Some(&json!("cache_problem"))
+        || mygene.pointer("/notices/0/kind") != Some(&json!("cache-problem"))
     {
         return Err(format!("checked source lost its cache problem: {answer}"));
     }
@@ -94,6 +137,10 @@ fn recordings(from: &std::path::Path, to: &std::path::Path) -> Result<(), String
             let mut value: Value =
                 serde_json::from_slice(&std::fs::read(&path).map_err(|e| e.to_string())?)
                     .map_err(|e| e.to_string())?;
+            super::response_cases::cache_acquisition(
+                &mut value,
+                super::response_cases::CACHE_ACQUIRED,
+            );
             if let Some(exchanges) = value.get_mut("exchanges").and_then(Value::as_array_mut) {
                 let copy = exchanges.clone();
                 exchanges.extend(copy);
@@ -111,11 +158,13 @@ fn recordings(from: &std::path::Path, to: &std::path::Path) -> Result<(), String
 fn checked_protein() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let case = env.root().join("case");
-    let args = cached(
-        &["get", "protein", "P00533"],
-        &case,
-        Some(&fixtures().join("replies/protein/synthetic")),
-    );
+    let records = env.root().join("known-recordings");
+    super::response_cases::cache_capture(
+        "protein/synthetic",
+        &records,
+        super::response_cases::CACHE_ACQUIRED,
+    )?;
+    let args = cached(&["get", "protein", "P00533"], &case, Some(&records));
     let initial = invoke(&env, args.clone(), 0)?;
     let db = rusqlite::Connection::open(case.join("replay.sqlite")).map_err(|e| e.to_string())?;
     db.execute_batch("BEGIN IMMEDIATE")
@@ -126,7 +175,7 @@ fn checked_protein() -> Result<(), String> {
     if answer.get("result") != initial.get("result")
         || answer.get("status") != Some(&json!("complete"))
         || answer.pointer("/sources/0/state") != Some(&json!("ok"))
-        || answer.pointer("/sources/0/notices/0/kind") != Some(&json!("cache_problem"))
+        || answer.pointer("/sources/0/notices/0/kind") != Some(&json!("cache-problem"))
         || answer.pointer("/sources/0/notices/0/reason") != Some(&json!("busy"))
     {
         return Err(format!(

@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "article-search",
+  "feature": "article-filters",
   "story": "Inclusive publication dates retain most recently added order across typed pages.",
   "replay": "article/filters/since",
   "steps": [
@@ -40,8 +40,10 @@
             "2026-09-30"
           ]
         }
-      },
-      "mcp": [
+      }
+    },
+    {
+      "run": [
         "search",
         "article",
         "KRAS G12C sotorasib",
@@ -50,40 +52,16 @@
         "--sort",
         "date",
         "--limit",
+        "5",
+        "--offset",
         "5"
-      ]
-    },
-    {
-      "follow": "page",
-      "max_bytes": 3191,
+      ],
       "expect": {
         "/page/offset": 5,
         "/page/returned": 5,
         "/query/since": "2024",
-        "/query/sort": "date",
-        "/result/items/*/pmid": {
-          "equals": [
-            "42771901",
-            "42756523",
-            "42726935",
-            "42724606",
-            "42720810"
-          ]
-        },
-        "/result/items/*/header/date": {
-          "equals": [
-            "2026-11",
-            "2026-10",
-            "2026-09-11",
-            "2026-08-31",
-            "2026-09-10"
-          ]
-        }
-      }
-    },
-    {
-      "run": ["search", "article", "KRAS G12C sotorasib", "--since", "2024", "--sort", "date", "--limit", "5", "--offset", "5"],
-      "expect": {"/page/offset": 5, "/page/returned": 5, "/query/since": "2024", "/query/sort": "date"},
+        "/query/sort": "date"
+      },
       "max_bytes": 3191
     }
   ]

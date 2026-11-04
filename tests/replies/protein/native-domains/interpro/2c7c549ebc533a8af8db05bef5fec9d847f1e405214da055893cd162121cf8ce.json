@@ -1,0 +1,86 @@
+{
+  "method": "GET",
+  "source": "interpro",
+  "url": "https://www.ebi.ac.uk/interpro/api/entry/interpro/protein/uniprot/Q8N726/?page_size=25",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "count": 1,
+          "next": null,
+          "previous": null,
+          "results": [
+            {
+              "metadata": {
+                "accession": "IPR010868",
+                "name": "Tumor suppressor ARF",
+                "source_database": "interpro",
+                "type": "family",
+                "integrated": null,
+                "member_databases": {
+                  "pfam": {
+                    "PF07392": "Cyclin-dependent kinase inhibitor 2a p19Arf N-terminus"
+                  }
+                },
+                "go_terms": [
+                  {
+                    "identifier": "GO:0006915",
+                    "name": "apoptotic process",
+                    "category": {
+                      "code": "P",
+                      "name": "biological_process"
+                    }
+                  },
+                  {
+                    "identifier": "GO:0008285",
+                    "name": "negative regulation of cell population proliferation",
+                    "category": {
+                      "code": "P",
+                      "name": "biological_process"
+                    }
+                  },
+                  {
+                    "identifier": "GO:0051726",
+                    "name": "regulation of cell cycle",
+                    "category": {
+                      "code": "P",
+                      "name": "biological_process"
+                    }
+                  }
+                ]
+              },
+              "proteins": [
+                {
+                  "accession": "q8n726",
+                  "protein_length": 132,
+                  "source_database": "reviewed",
+                  "organism": "9606",
+                  "in_alphafold": true,
+                  "entry_protein_locations": [
+                    {
+                      "fragments": [
+                        {
+                          "start": 4,
+                          "end": 54,
+                          "dc-status": "CONTINUOUS"
+                        }
+                      ],
+                      "representative": false,
+                      "model": null,
+                      "score": null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

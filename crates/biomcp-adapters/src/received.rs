@@ -1,6 +1,7 @@
 /// Convert the original reply retrieval time to its UTC calendar date.
-pub fn received_date(fetched: i64) -> Option<biodata::PartialDate> {
-    if fetched <= 0 {
+pub fn received_date(fetched: Option<i64>) -> Option<biodata::PartialDate> {
+    let fetched = fetched?;
+    if fetched < 0 {
         return None;
     }
     let mut days = fetched / 86_400;

@@ -1,0 +1,46 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 10,
+  "requests": [
+    {
+      "id": "inclusion-count",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/biomarkers?codes=C96022&eligibility_criterion=inclusion",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    },
+    {
+      "id": "inclusion",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?biomarkers.nci_thesaurus_concept_id=C96022&biomarkers.eligibility_criterion=inclusion&size=2&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&include=biomarkers",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    },
+    {
+      "id": "wrong-field",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?biomarkers.codes=C96022&size=1&include=nci_id",
+      "response_format": "bytes",
+      "headers": {
+        "Accept-Encoding": "identity"
+      },
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      }
+    }
+  ]
+}

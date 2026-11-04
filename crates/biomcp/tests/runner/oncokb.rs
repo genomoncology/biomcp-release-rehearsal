@@ -1,24 +1,21 @@
 //! The keyed annotation boundary crosses the actual CLI and synthetic TLS peer.
 use super::{launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
+
 const KEY: &str = "synthetic-oncokb-variant-key";
 const INPUT: &str = "chr7:g.140753336A>T";
 const SECTION: &str = "/result/candidates/0/sections/oncokb";
 pub(super) fn trials() -> Vec<Trial> {
+    // The peer checks required outbound key placement and caches while the test inspects recordings for credential leakage.
     vec![
-        Trial::test("variant/oncokb-environment-key-config-precedence", || {
-            environment_key().map_err(Into::into)
-        }),
-        Trial::test("variant/oncokb-key-policy-wire", || {
-            wire().map_err(Into::into)
-        }),
-        Trial::test("variant/oncokb-server-key-reload", || {
+        transcript_trial("variant-oncokb/oncokb-server-key-reload", || {
             reload().map_err(Into::into)
         }),
-        Trial::test("variant/oncokb-reflected-key-never-leaves-wire", || {
-            echo().map_err(Into::into)
+        transcript_trial(crate::runner::required_contract::ONCOKB.0, || {
+            wire().map_err(Into::into)
         }),
     ]
 }
@@ -69,7 +66,7 @@ fn wire() -> Result<(), String> {
     )?;
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     let mut config = json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca});
     env.config(&config).map_err(|e| e.to_string())?;
@@ -81,7 +78,7 @@ fn wire() -> Result<(), String> {
     invoke(&env, &missing_tumor, 2)?;
     let skipped = invoke(&env, &args(), 0)?;
     if skipped.pointer(&format!("{SECTION}/state")) != Some(&json!("skipped"))
-        || skipped.pointer(&format!("{SECTION}/reason")) != Some(&json!("no_key"))
+        || skipped.pointer(&format!("{SECTION}/reason")) != Some(&json!("no-key"))
         || !skipped
             .get("next")
             .and_then(Value::as_array)
@@ -101,7 +98,7 @@ fn wire() -> Result<(), String> {
     recorded.extend(["--record".into(), directory.to_string_lossy().into()]);
     let data = invoke(&env, &recorded, 0)?;
     let size = data.to_string().len();
-    if size > 2098 {
+    if size > crate::runner::output_limit("oncokb-complete-envelope")? {
         return Err(format!(
             "annotation complete envelope exceeds measured ceiling: {size} bytes"
         ));
@@ -120,8 +117,7 @@ fn wire() -> Result<(), String> {
     let request = &keyed.first().ok_or("missing annotation request")?.1;
     if !request.starts_with(
         "GET \
-        /api/v1/annotate/mutations/byHGVSg?hgvsg=7%3Ag.140753336A%3ET&referenceGenome=GRCh38&tumorType=Synth\
-        etic%20tumor HTTP/1.1",
+        /api/v1/annotate/mutations/byHGVSg?hgvsg=7%3Ag.140753336A%3ET&referenceGenome=GRCh38&tumorType=Synthetic%20tumor HTTP/1.1",
     ) || !request.lines().any(|l| l.eq_ignore_ascii_case(&format!("authorization: Bearer {KEY}")))
     {
         return Err(format!(
@@ -165,7 +161,7 @@ fn content(data: &Value) -> Result<(), String> {
         .ok_or("oncogenicity missing")?;
     if oncogenic.pointer("/statement/subject")
         != Some(&json!({"level":"protein","gene":{"label":"BRAF"},"label":"V600E"}))
-        || oncogenic.pointer("/statement/classification/coding/system")
+        || oncogenic.pointer("/statement/classification/codings/0/system")
             != Some(&json!("oncokb_oncogenicity"))
     {
         return Err("source protein subject or own framework changed".into());
@@ -175,7 +171,9 @@ fn content(data: &Value) -> Result<(), String> {
         .find(|r| r.pointer("/statement/proposition") == Some(&json!("functional_impact")))
         .ok_or("effect missing")?;
     if effect.pointer("/statement/direction").is_some()
-        || effect.pointer("/statement/classification/coding").is_some()
+        || effect
+            .pointer("/statement/classification/codings")
+            .is_some()
         || effect.pointer("/statement/citations") != Some(&json!(["17611497"]))
     {
         return Err("functional Neutral gained direction/coding or lost citations".into());
@@ -226,7 +224,7 @@ fn replay_proof(env: &Environment, dir: &Path) -> Result<(), String> {
     }
     env.config(&json!({})).map_err(|e| e.to_string())?;
     let missing = invoke(env, &replay_args(dir), 0)?;
-    if missing.pointer(&format!("{SECTION}/reason")) != Some(&json!("no_key")) {
+    if missing.pointer(&format!("{SECTION}/reason")) != Some(&json!("no-key")) {
         return Err("missing key restored annotation replay".into());
     }
     Ok(())
@@ -246,15 +244,15 @@ fn failures(env: &Environment, dir: &Path) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     for (kind, reason) in [
         (401, "rejected"),
-        (429, "rate_limited"),
+        (429, "rate-limited"),
         (500, "unavailable"),
-        (0, "bad_reply"),
-        (1, "deadline_exceeded"),
-        (2, "bad_reply"),
-        (3, "bad_reply"),
-        (4, "bad_reply"),
-        (5, "bad_reply"),
-        (6, "bad_reply"),
+        (0, "bad-reply"),
+        (1, "deadline-exceeded"),
+        (2, "bad-reply"),
+        (3, "bad-reply"),
+        (4, "bad-reply"),
+        (5, "bad-reply"),
+        (6, "bad-reply"),
     ] {
         let target = env.root().join(format!("failure-{kind}"));
         fs::create_dir_all(target.join("oncokb")).map_err(|e| e.to_string())?;
@@ -297,7 +295,12 @@ fn failures(env: &Environment, dir: &Path) -> Result<(), String> {
         )
         .map_err(|e| e.to_string())?;
         let output = invoke(env, &replay_args(&target), 4)?;
-        if output.pointer(&format!("{SECTION}/reason")) != Some(&json!(reason)) {
+        if output.get("result").is_some()
+            || output.pointer("/status") != Some(&json!("failed"))
+            || output.pointer("/sources/0/source") != Some(&json!("oncokb"))
+            || output.pointer("/sources/0/state") != Some(&json!("failed"))
+            || output.pointer("/sources/0/reason") != Some(&json!(reason))
+        {
             return Err(format!(
                 "annotation failure {kind} lost its reason: {output}"
             ));
@@ -306,12 +309,58 @@ fn failures(env: &Environment, dir: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn walk(env: &Environment, baseline: &Value) -> Result<(), String> {
+    let expected = baseline
+        .pointer(&format!("{SECTION}/data/records"))
+        .and_then(Value::as_array)
+        .ok_or("complete records")?;
+    let mut rows = Vec::new();
+    let mut offset = 0;
+    loop {
+        let mut page = args();
+        *page.last_mut().ok_or("section limit")? = "1".into();
+        page.extend(["--section-offset".into(), offset.to_string()]);
+        let value = invoke(env, &page, 0)?;
+        let data = value
+            .pointer(&format!("{SECTION}/data"))
+            .ok_or("warm annotation data")?;
+        let items = data
+            .get("records")
+            .and_then(Value::as_array)
+            .ok_or("warm annotation rows")?;
+        if items.len() != 1 || data.pointer("/page/total") != Some(&json!(expected.len())) {
+            return Err("annotation warm row bounds".into());
+        }
+        rows.extend(items.iter().cloned());
+        if let Some(next) = data.get("next") {
+            offset += 1;
+            if next.get("section_offset") != Some(&json!(offset))
+                || next.get("build") != Some(&json!("GRCh38"))
+                || next.get("tumor_type") != Some(&json!("Synthetic tumor"))
+                || next.get("section") != Some(&json!(["oncokb"]))
+                || next.get("input") != Some(&json!(INPUT))
+                || rows.len() >= expected.len()
+            {
+                return Err("annotation continuation changed context or repeated a page".into());
+            }
+        } else {
+            break;
+        }
+    }
+    if &rows != expected {
+        return Err("annotation warm walk changed native order or lost records".into());
+    }
+    Ok(())
+}
+
+// Each key snapshot uses a distinct uncached input over both transports.
+
 fn reload() -> Result<(), String> {
     for http in [false, true] {
         let assets = Environment::new().map_err(|e| e.to_string())?;
         let stub = Stub::for_source("www.oncokb.org", "application/json", reload_reply)?;
         let ca = assets.root().join("ca.pem");
-        stub.retain(&assets);
+        stub.retain(assets.shared_root());
         fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
         let mut client = super::key_reload::start(
             http,
@@ -374,152 +423,6 @@ fn reload() -> Result<(), String> {
     Ok(())
 }
 
-fn walk(env: &Environment, baseline: &Value) -> Result<(), String> {
-    let expected = baseline
-        .pointer(&format!("{SECTION}/data/records"))
-        .and_then(Value::as_array)
-        .ok_or("complete records")?;
-    let mut rows = Vec::new();
-    let mut offset = 0;
-    loop {
-        let mut page = args();
-        *page.last_mut().ok_or("section limit")? = "1".into();
-        page.extend(["--section-offset".into(), offset.to_string()]);
-        let value = invoke(env, &page, 0)?;
-        let data = value
-            .pointer(&format!("{SECTION}/data"))
-            .ok_or("warm annotation data")?;
-        let items = data
-            .get("records")
-            .and_then(Value::as_array)
-            .ok_or("warm annotation rows")?;
-        if items.len() != 1 || data.pointer("/page/total") != Some(&json!(expected.len())) {
-            return Err("annotation warm row bounds".into());
-        }
-        rows.extend(items.iter().cloned());
-        if let Some(next) = data.get("next") {
-            offset += 1;
-            if next.get("section_offset") != Some(&json!(offset))
-                || next.get("build") != Some(&json!("GRCh38"))
-                || next.get("tumor_type") != Some(&json!("Synthetic tumor"))
-                || next.get("section") != Some(&json!(["oncokb"]))
-                || next.get("input") != Some(&json!(INPUT))
-                || rows.len() >= expected.len()
-            {
-                return Err("annotation continuation changed context or repeated a page".into());
-            }
-        } else {
-            break;
-        }
-    }
-    if &rows != expected {
-        return Err("annotation warm walk changed native order or lost records".into());
-    }
-    Ok(())
-}
-
-fn echo() -> Result<(), String> {
-    let stub = Stub::for_source("www.oncokb.org", "application/json", echo_reply)?;
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let ca = env.root().join("ca.pem");
-    stub.retain(&env);
-    fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
-    env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca,"keys":{"oncokb_api_key":KEY}}))
-        .map_err(|e| e.to_string())?;
-    let mut command = args();
-    let directory = env.root().join("echo");
-    command.extend(["--record".into(), directory.to_string_lossy().into()]);
-    let output = env
-        .command(env!("CARGO_BIN_EXE_biomcp"), &command)
-        .output()
-        .map_err(|e| e.to_string())?;
-    let requests = stub.finish()?;
-    if requests.len() != 1 {
-        return Err("echo proof did not reach exactly one authenticated TLS request".into());
-    }
-    let leaked_output = [output.stdout.as_slice(), output.stderr.as_slice()]
-        .concat()
-        .windows(KEY.len())
-        .any(|b| b == KEY.as_bytes());
-    let mut leaked_recording = false;
-    if directory.join("oncokb").exists() {
-        for file in fs::read_dir(directory.join("oncokb")).map_err(|e| e.to_string())? {
-            let bytes =
-                fs::read(file.map_err(|e| e.to_string())?.path()).map_err(|e| e.to_string())?;
-            leaked_recording |= bytes.windows(KEY.len()).any(|b| b == KEY.as_bytes());
-        }
-    }
-    if leaked_output || leaked_recording {
-        return Err(format!(
-            "reflected synthetic credential leaked: output={leaked_output}, recording={leaked_recording}"
-        ));
-    }
-    if output.status.code() != Some(4) {
-        return Err("credential-bearing reply was not refused".into());
-    }
-    Ok(())
-}
-fn echo_reply(request: &str) -> Result<String, String> {
-    let mut body: Value = serde_json::from_str(&reply(request)?).map_err(|e| e.to_string())?;
-    body.as_object_mut()
-        .ok_or("synthetic annotation object")?
-        .insert("geneSummary".into(), json!(KEY));
-    Ok(body.to_string())
-}
-
-fn environment_key() -> Result<(), String> {
-    for configured in [false, true] {
-        let stub = Stub::for_source("www.oncokb.org", "application/json", reply)?;
-        let env = Environment::new().map_err(|e| e.to_string())?;
-        let ca = env.root().join("ca.pem");
-        stub.retain(&env);
-        fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
-        let mut config = json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca});
-        if configured {
-            config
-                .as_object_mut()
-                .ok_or("config object")?
-                .insert("keys".into(), json!({"oncokb_api_key":KEY}));
-        }
-        env.config(&config).map_err(|e| e.to_string())?;
-        let output = env
-            .command(env!("CARGO_BIN_EXE_biomcp"), &args())
-            .env(
-                "ONCOKB_TOKEN",
-                if configured {
-                    "synthetic-environment-shadowed"
-                } else {
-                    KEY
-                },
-            )
-            .output()
-            .map_err(|e| e.to_string())?;
-        let requests = stub.finish()?;
-        if !output.status.success()
-            || !output.stderr.is_empty()
-            || requests.len() != 1
-            || !requests.first().is_some_and(|(_, request)| {
-                request
-                    .lines()
-                    .any(|line| line.eq_ignore_ascii_case(&format!("authorization: Bearer {KEY}")))
-            })
-        {
-            return Err("OncoKB environment key or config precedence failed".into());
-        }
-        for marker in [KEY, "synthetic-environment-shadowed"] {
-            if output
-                .stdout
-                .windows(marker.len())
-                .any(|part| part == marker.as_bytes())
-            {
-                return Err("OncoKB environment credential leaked".into());
-            }
-        }
-    }
-    Ok(())
-}
-
-// Each key snapshot uses a distinct uncached input over both transports.
 fn reload_reply(request: &str) -> Result<String, String> {
     let index = (0..4)
         .find(|index| request.contains(&format!("tumorType=Synthetic%20tumor%20{index}")))

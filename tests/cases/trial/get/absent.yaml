@@ -1,21 +1,10 @@
 {
+  "verified": "tests/replies/trial/get/README.md identifies the genuine registry HTTP 404 captured on 2026-10-24; local TLS delivered the unchanged reply to the recorder. Nightly execution checks the ordinary public exact trial GET.",
+  "live_check": "public",
   "feature": "trial-get",
   "story": "A valid absent registry ID stays distinct from malformed ID and source failure",
   "replay": "trial/get/NCT01811710",
   "steps": [
-    {
-      "run": [
-        "get",
-        "trial",
-        "NCT01811710"
-      ],
-      "exit": 1,
-      "expect": {
-        "/status": "absent",
-        "/result/items/0/status": "absent"
-      },
-      "max_bytes": 372
-    },
     {
       "run": [
         "get",
@@ -26,6 +15,20 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT01811710"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/result/items/0/status": "absent",
+        "/sources/0/source": "ctgov",
+        "/sources/0/state": "ok"
       }
     }
   ]

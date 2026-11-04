@@ -76,6 +76,7 @@ esac
 mkdir -p container
 stage container-archive tar -xzf "$archive" -C container
 stage container-runner cp proof/case-runner container/case-runner
+stage container-tool-runner cp proof/tool-runner container/tool-runner
 stage container-fixtures cp -R proof/fixtures container/fixtures
 stage container-recipe cp release/Dockerfile container/Dockerfile
 image="biomcp-candidate:$arch"

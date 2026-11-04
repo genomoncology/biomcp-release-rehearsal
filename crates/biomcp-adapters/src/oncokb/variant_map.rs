@@ -1,296 +1,72 @@
-//! Only the reviewed source label and subject mappings occur here.
-use super::variant::{Annotation, Query, TumorType};
-use crate::Mapped;
-use crate::mapped::push_problem;
-use biodata::{
-    Attribution, Coding, Concept, OncokbLevelCode, OncokbOncogenicityCode, Proposition, Statement,
-    Term, Text, VariantRef,
-};
+//! Checked request identity survives malformed optional annotation content.
+#[path = "variant_labels.rs"]
+mod labels;
+use super::{variant::Annotation, variant_groups as groups};
+use crate::{Mapped, mapped::Problems};
+use biodata::{Text, VariantRef};
+use biomcp_types::{PageInfo, Source, VariantOncokb};
 
-use biomcp_types::{OncokbVariantRecord as Record, Problem, Source};
-
-/// Project native fields without attaching grouped implications to the queried allele.
-pub fn records(row: &Annotation) -> Mapped<Vec<Record>> {
-    let mut out = Mapped {
-        value: Vec::new(),
-        problems: Vec::new(),
+/// Map native values without attaching grouped implications to the queried allele.
+pub fn records(mut row: Annotation, tumor_type: Text) -> Mapped<VariantOncokb> {
+    let mut cx = Problems {
+        source: Source::Oncokb,
+        record: Some(row.query.hgvs.clone()),
+        list: Vec::new(),
     };
-    if let Some(label) = &row.oncogenic {
-        let coding = match label.as_str() {
-            "Oncogenic" => Some(OncokbOncogenicityCode::Oncogenic),
-            "Likely Oncogenic" => Some(OncokbOncogenicityCode::LikelyOncogenic),
-            "Likely Neutral" => Some(OncokbOncogenicityCode::LikelyNeutral),
-            "Inconclusive" => Some(OncokbOncogenicityCode::Inconclusive),
-            "Resistance" => Some(OncokbOncogenicityCode::Resistance),
-            "Unknown" => Some(OncokbOncogenicityCode::Unknown),
-            _ => {
-                push_problem(&mut out.problems, Source::Oncokb, None, "oncogenic");
-                None
-            }
-        }
-        .map(Coding::OncokbOncogenicity);
-        if let Ok(label) = Text::new(label) {
-            classification(
-                &mut out.value,
-                row,
-                "oncogenic",
-                Term { label, coding },
-                Proposition::Oncogenicity,
-                Vec::new(),
-            );
-        }
+    let hugo_symbol = cx.field("query.hugoSymbol", row.query.hugo_symbol.take());
+    let alteration = cx.field("query.alteration", row.query.alteration.take());
+    let gene = hugo_symbol
+        .clone()
+        .and_then(|value| cx.optional("query.hugoSymbol", Some(value.try_into())));
+    let subject = gene
+        .zip(alteration.clone())
+        .map(|(gene, alteration)| VariantRef::protein(gene, alteration));
+    let release = crate::mapped::optional_text(row.data_version.take(), "dataVersion", &mut cx);
+    let mut records = labels::records(
+        row.oncogenic.take(),
+        row.mutation_effect.take(),
+        subject.as_ref(),
+        release.as_ref(),
+        &mut cx,
+    );
+    super::narrative::annotation(&mut row, &mut cx, &mut records);
+    records.extend(groups::treatments(row.treatments.take(), &mut cx));
+    records.extend(groups::implications(
+        row.diagnostic_implications.take(),
+        "diagnosticImplications",
+        &mut cx,
+    ));
+    records.extend(groups::implications(
+        row.prognostic_implications.take(),
+        "prognosticImplications",
+        &mut cx,
+    ));
+    let total = records.len() as u64;
+    Mapped {
+        refusals: crate::Refusal::None,
+        value: VariantOncokb {
+            hgvsg: row.query.hgvs,
+            build: row.query.reference_genome,
+            tumor_type,
+            hugo_symbol,
+            alteration,
+            data_version: release,
+            last_update: crate::mapped::optional_text(row.last_update, "lastUpdate", &mut cx),
+            variant_exist: cx.field("variantExist", row.variant_exist),
+            gene_exist: cx.field("geneExist", row.gene_exist),
+            vus: cx.field("vus", row.vus),
+            hotspot: cx.field("hotspot", row.hotspot),
+            allele_exist: cx.field("alleleExist", row.allele_exist),
+            records: records.into(),
+            page: PageInfo {
+                offset: 0,
+                returned: total as u32,
+                total,
+                pool: None,
+                truncated: None,
+            },
+            next: None,
+        },
+        problems: cx.list,
     }
-    if let Some(effect) = &row.mutation_effect {
-        if let Some(label) = &effect.known_effect {
-            let citations = effect
-                .citations
-                .as_ref()
-                .map(|c| pmids(values(&c.pmids), &mut out.problems))
-                .unwrap_or_default();
-            if let Ok(label) = Text::new(label) {
-                classification(
-                    &mut out.value,
-                    row,
-                    "mutationEffect.knownEffect",
-                    Term {
-                        label,
-                        coding: None,
-                    },
-                    Proposition::FunctionalImpact,
-                    citations,
-                );
-            }
-        }
-        if let Some(citations) = &effect.citations {
-            out.value.extend(
-                values(&citations.abstracts)
-                    .iter()
-                    .map(|r| Record::Citation {
-                        field: "mutationEffect.citations".into(),
-                        text: r.abstract_content.as_deref().map(Into::into),
-                        link: r.link.clone(),
-                    }),
-            );
-        }
-        narrative(
-            &mut out.value,
-            "mutationEffect.description",
-            effect.description.as_deref(),
-        );
-    }
-    for (field, value) in [
-        ("geneSummary", row.gene_summary.as_deref()),
-        ("variantSummary", row.variant_summary.as_deref()),
-        ("tumorTypeSummary", row.tumor_type_summary.as_deref()),
-        ("diagnosticSummary", row.diagnostic_summary.as_deref()),
-        ("prognosticSummary", row.prognostic_summary.as_deref()),
-    ] {
-        narrative(&mut out.value, field, value);
-    }
-    implications(row, &mut out);
-    out
-}
-fn implications(row: &Annotation, out: &mut Mapped<Vec<Record>>) {
-    for r in values(&row.treatments) {
-        let drugs = r
-            .drugs
-            .as_deref()
-            .unwrap_or_default()
-            .iter()
-            .filter_map(|d| {
-                Text::new(&d.drug_name).ok().map(|label| Concept {
-                    id: d
-                        .ncit_code
-                        .as_ref()
-                        .and_then(|s| format!("NCIT:{s}").parse().ok()),
-                    label,
-                })
-            })
-            .collect();
-        out.value.push(Record::Implication {
-            field: "treatments".into(),
-            level: level(&r.level, &mut out.problems),
-            tumor_type: r.level_associated_cancer_type.as_ref().and_then(concept),
-            drugs,
-            alterations: texts(values(&r.alterations)),
-            statement_unmapped: true,
-            statement: None,
-            citations: pmids(values(&r.pmids), &mut out.problems).into(),
-            abstracts: abstracts(values(&r.abstracts)),
-            description: r.description.as_deref().map(Into::into),
-            excluded_tumor_types: values(&r.level_excluded_cancer_types)
-                .iter()
-                .filter_map(concept)
-                .collect(),
-            approved_indications: texts(values(&r.approved_indications)),
-            fda_level: r
-                .fda_level
-                .as_deref()
-                .and_then(|s| Text::new(s).ok())
-                .map(|label| Term {
-                    label,
-                    coding: None,
-                }),
-        });
-    }
-    for (field, rows) in [
-        (
-            "diagnosticImplications",
-            values(&row.diagnostic_implications),
-        ),
-        (
-            "prognosticImplications",
-            values(&row.prognostic_implications),
-        ),
-    ] {
-        for r in rows {
-            out.value.push(Record::Implication {
-                field: field.into(),
-                level: level(&r.level_of_evidence, &mut out.problems),
-                tumor_type: r.tumor_type.as_ref().and_then(concept),
-                drugs: Box::default(),
-                alterations: texts(values(&r.alterations)),
-                statement_unmapped: true,
-                statement: None,
-                citations: pmids(values(&r.pmids), &mut out.problems).into(),
-                abstracts: abstracts(values(&r.abstracts)),
-                description: r.description.as_deref().map(Into::into),
-                excluded_tumor_types: Box::default(),
-                approved_indications: Box::default(),
-                fda_level: None,
-            });
-        }
-    }
-}
-
-fn classification(
-    out: &mut Vec<Record>,
-    row: &Annotation,
-    field: &str,
-    classification: Term,
-    proposition: Proposition,
-    citations: Vec<biodata::Pmid>,
-) {
-    if let Some(subject) = subject(&row.query) {
-        out.push(Record::Statement {
-            statement: Box::new(Statement {
-                subject,
-                proposition,
-                predicate: None,
-                direction: None,
-                classification,
-                strength: None,
-                condition: None,
-                therapies: Box::default(),
-                allele_origin: None,
-                gene_context: row
-                    .query
-                    .hugo_symbol
-                    .clone()
-                    .and_then(|g| g.try_into().ok()),
-                criteria: Box::default(),
-                citations: citations.into(),
-                attribution: Attribution {
-                    source: Source::Oncokb.text(),
-                    record: None,
-                    version: None,
-                    release: row.data_version.as_deref().and_then(|s| Text::new(s).ok()),
-                    submitter: None,
-                    evaluated: None,
-                    url: None,
-                },
-            }),
-        });
-    } else {
-        out.push(Record::UnmappedLabel {
-            field: field.into(),
-            classification,
-            citations: citations.into(),
-            statement_unmapped: true,
-        });
-    }
-}
-fn subject(query: &Query) -> Option<VariantRef> {
-    Some(VariantRef::protein(
-        query.hugo_symbol.clone()?.try_into().ok()?,
-        query.alteration.clone()?,
-    ))
-}
-fn texts(values: &[String]) -> Box<[Text]> {
-    values.iter().filter_map(|s| Text::new(s).ok()).collect()
-}
-
-fn concept(row: &TumorType) -> Option<Concept> {
-    Some(Concept {
-        id: row
-            .code
-            .as_ref()
-            .and_then(|s| format!("ONCOTREE:{s}").parse().ok()),
-        label: Text::new(row.name.as_deref().or(row.code.as_deref())?).ok()?,
-    })
-}
-fn pmids(values: &[String], problems: &mut Vec<Problem>) -> Vec<biodata::Pmid> {
-    values
-        .iter()
-        .filter_map(|s| match s.parse() {
-            Ok(v) => Some(v),
-            Err(_) => {
-                push_problem(problems, Source::Oncokb, None, "pmids");
-                None
-            }
-        })
-        .collect()
-}
-fn level(value: &Text, problems: &mut Vec<Problem>) -> Term {
-    let code = match value.as_str() {
-        "LEVEL_1" => Some(OncokbLevelCode::Level1),
-        "LEVEL_2" => Some(OncokbLevelCode::Level2),
-        "LEVEL_3A" => Some(OncokbLevelCode::Level3a),
-        "LEVEL_3B" => Some(OncokbLevelCode::Level3b),
-        "LEVEL_4" => Some(OncokbLevelCode::Level4),
-        "LEVEL_R1" => Some(OncokbLevelCode::LevelR1),
-        "LEVEL_R2" => Some(OncokbLevelCode::LevelR2),
-        "LEVEL_Dx1" => Some(OncokbLevelCode::LevelDx1),
-        "LEVEL_Dx2" => Some(OncokbLevelCode::LevelDx2),
-        "LEVEL_Dx3" => Some(OncokbLevelCode::LevelDx3),
-        "LEVEL_Px1" => Some(OncokbLevelCode::LevelPx1),
-        "LEVEL_Px2" => Some(OncokbLevelCode::LevelPx2),
-        "LEVEL_Px3" => Some(OncokbLevelCode::LevelPx3),
-        _ => {
-            push_problem(problems, Source::Oncokb, None, "level");
-            None
-        }
-    };
-    Term {
-        label: value.clone(),
-        coding: code.map(Coding::OncokbLevel),
-    }
-}
-fn narrative(out: &mut Vec<Record>, field: &str, value: Option<&str>) {
-    let Some(value) = value else {
-        return;
-    };
-    let total = value.chars().count() as u32;
-    let chars = value.chars().collect::<Vec<_>>();
-    for (index, chunk) in chars.chunks(1000).enumerate() {
-        out.push(Record::Text {
-            field: field.into(),
-            offset: (index * 1000) as u32,
-            total,
-            text: chunk.iter().collect::<String>().into(),
-        });
-    }
-}
-
-fn abstracts(rows: &[super::variant::Abstract]) -> Box<[biomcp_types::OncokbCitation]> {
-    rows.iter()
-        .map(|row| biomcp_types::OncokbCitation {
-            text: row.abstract_content.as_deref().map(Into::into),
-            link: row.link.clone(),
-        })
-        .collect()
-}
-
-fn values<T>(rows: &Option<Vec<T>>) -> &[T] {
-    rows.as_deref().unwrap_or_default()
 }

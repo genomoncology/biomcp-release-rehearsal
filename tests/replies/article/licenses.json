@@ -1,0 +1,25 @@
+{
+  "synthetic_pdf_sha256": [
+    "c9fa846fb44a35850ee9c764fee069a536ada0331b214e3a0477b7ca6954aeaf"
+  ],
+  "PMC5606870": {
+    "license": "CC BY",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5606870/",
+    "evidence": "fulltext/live-introduction/pmc-oa/e278f74c92e84716bcf4824fd52830952e48f9cadd3ee3fbec495f579e06b601.json"
+  },
+  "PMC7573235": {
+    "license": "CC BY",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7573235/",
+    "evidence": "fulltext/live-all/pmc-oa/3494d7c1c00b8556c27ba307fe9e5bffdd613ce2a789291fc935fd422ddcb378.json"
+  },
+  "PMC9018718": {
+    "license": "CC BY",
+    "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9018718/",
+    "evidence": "fulltext/live-results/pmc-oa/1d783298b196ebc9dc8dc2bb7b0648b060de74b9266509c30abd4c81fa75aaa7.json"
+  },
+  "PPR1295425": {
+    "license": "CC BY",
+    "source": "https://www.ebi.ac.uk/europepmc/webservices/rest/PPR1295425/fullTextXML",
+    "evidence": "preprint/live/europepmc/775ddca3c8912bfd97c4fe4957a2866d669921ce7e32840031a6a28d0b814168.json"
+  }
+}

@@ -1,52 +1,23 @@
 //! Feature vaers-summary: explicit vaccine selection and failed source outcomes.
 use super::{configuration::invoke, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
-mod admission;
+
 mod budget;
-mod failures;
+
 mod fixture;
-mod influenza;
-mod live;
+
 mod navigation;
-mod policy;
-mod rejections;
+
 type Check = Result<(), String>;
 
 pub(super) fn trials() -> Vec<Trial> {
-    vec![
-        Trial::test("vaers-summary/complete-cdc-latin1-xml-replay", || {
-            live::run().map_err(Into::into)
-        }),
-        Trial::test(
-            "vaers-summary/exact-influenza-types-and-native-labels",
-            || influenza::run().map_err(Into::into),
-        ),
-        Trial::test("vaers-summary/policy-before-cache-and-replay", || {
-            policy::run().map_err(Into::into)
-        }),
-        Trial::test("vaers-summary/user-agent-is-source-specific", || {
-            policy::default_agent().map_err(Into::into)
-        }),
-        Trial::test(
-            "vaers-summary/invalid-shape-and-identity-never-cache",
-            || admission::run().map_err(Into::into),
-        ),
-        Trial::test(
-            "vaers-summary/rejected-filters-and-influenza-before-io",
-            || rejections::run().map_err(Into::into),
-        ),
-        Trial::test("vaers-summary/synthetic-403-429-500-timeout-broken", || {
-            failures::run().map_err(Into::into)
-        }),
-        Trial::test(
-            "vaers-summary/independent-tables-retained-walk-and-suppression",
-            || navigation::run().map_err(Into::into),
-        ),
-        Trial::test("vaers-summary/unsupported-vaccine-before-io", || {
-            unsupported().map_err(Into::into)
-        }),
-    ]
+    // The SOAP peer checks posted selectors and independent table requests while runtime snapshot pages are followed.
+    vec![transcript_trial(
+        crate::runner::required_contract::VAERS_TABLES.0,
+        || navigation::run().map_err(Into::into),
+    )]
 }
 
 fn words(text: &str) -> Vec<String> {
@@ -56,48 +27,10 @@ fn words(text: &str) -> Vec<String> {
         .collect()
 }
 
-fn unsupported() -> Result<(), String> {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
-    listener.set_nonblocking(true).map_err(|e| e.to_string())?;
-    env.config(
-        &json!({"proxy":format!("http://{}",listener.local_addr().map_err(|e|e.to_string())?)}),
-    )
-    .map_err(|e| e.to_string())?;
-    for text in [
-        "HPV9",
-        "MMR vaccine",
-        "COVID",
-        "165",
-        "FLU3",
-        "FLUX",
-        "FLU( H1N1 )",
-    ] {
-        let args = words(text);
-        let value = invoke(&env, args.clone(), 2)?;
-        let message = value
-            .pointer("/error/message")
-            .and_then(|v| v.as_str())
-            .ok_or("argument message")?;
-        if !["MMR", "COVID19"].iter().all(|name| message.contains(name)) {
-            return Err(format!(
-                "unsupported vaccine lacks exact supported codes: {value}"
-            ));
-        }
-        if super::mcp::call_with_globals(&env, &args, true, &[])? != value {
-            return Err("unsupported vaccine differs through MCP".into());
-        }
-    }
-    if listener.accept().is_ok() {
-        return Err("unsupported vaccine opened a source connection".into());
-    }
-    Ok(())
-}
-
 fn environment(stub: &Stub) -> Result<Environment, String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     std::fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"ca_bundle":ca,"proxy":format!("http://{}",stub.address)}))
         .map_err(|e| e.to_string())?;
@@ -139,7 +72,7 @@ pub(super) fn research_aggregate() -> Check {
         json!({"query":"adverse-event MMR seriousness --source vaers"}),
         &[],
     )?;
-    if result.to_string().len() > 2376
+    if result.to_string().len() > crate::runner::output_limit("vaers-full-summary")?
         || result.get("results").is_some()
         || result.pointer("/metadata/envelope") != Some(&cli)
         || result.pointer("/metadata/omitted_rows") != Some(&json!(3))

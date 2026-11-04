@@ -14,8 +14,10 @@ serde.workspace = true
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
-jsonschema.workspace = true
+biomcp-test-support.workspace = true
 serde_json.workspace = true
+proptest = "1.9"
+jsonschema.workspace = true
 
 [lints]
 workspace = true

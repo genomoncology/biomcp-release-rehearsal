@@ -8,6 +8,7 @@
     clippy::disallowed_methods,
     reason = "Scoped callers exercise public cache behavior against controlled local peers"
 )]
+use biomcp_fetch::{Input, Read};
 #[path = "support/cache_process.rs"]
 mod cache_process;
 mod support;
@@ -47,7 +48,8 @@ fn get(
 ) -> Result<Answer, RequestError> {
     fetch
         .leg(spec, fetch.deadline(Duration::from_secs(10)))
-        .json(endpoint, params)
+        .call(endpoint, Input::Params(params), Read::json())
+        .map(|received| received.value)
 }
 fn exchange<T: Send>(
     server: &Server,
@@ -58,7 +60,10 @@ fn exchange<T: Send>(
     thread::scope(|scope| {
         let worker = scope.spawn(call);
         let request = server.next();
-        assert!(request.text.starts_with("GET /answer"));
+        assert!(
+            request.text.starts_with("GET /answer"),
+            "Cache admission must perform only the expected network exchange"
+        );
         request.respond(status, "", body);
         worker.join().unwrap()
     })
@@ -96,6 +101,7 @@ struct Initialization {
 }
 
 thread_local! {
+    #[expect(clippy::disallowed_types, reason = "Each test thread owns its injected SQLite initialization state")]
     static INITIALIZATION: std::cell::RefCell<Option<Initialization>> = const {
         std::cell::RefCell::new(None)
     };

@@ -6,13 +6,13 @@ use biodata::{Pathway, PathwayEventRef, PathwayId, PathwayMember, PathwaySpecies
 use serde::{Deserialize, Serialize};
 /// Small selectable native pathway identity, without its potentially long description.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PathwayHeader {
     /// Checked source-owned identity.
     pub id: PathwayId,
     /// Whole native name.
-    pub name: Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<Text>,
     /// Explicit native human species.
     pub species: PathwaySpecies,
     /// Whole native Reactome stIdVersion, separate from stable identity.
@@ -27,13 +27,12 @@ biodata::wire_enum! {
     PathwayTotalKind {
         #[doc = "Native source-reported total before exact page admission."] Source => "source",
         #[doc = "Number of observed members in the retained relation."] Observed => "observed",
-        #[doc = "Distinct namespaced references, preserving isoform identifiers."] DistinctReferences => "distinct_references",
-        #[doc = "Native GeneProduct data nodes, including repeated references."] DataNodes => "data_nodes"
+        #[doc = "Distinct namespaced references, preserving isoform identifiers."] DistinctReferences => "distinct-references",
+        #[doc = "Native GeneProduct data nodes, including repeated references."] DataNodes => "data-nodes"
     }
 }
 /// Native page position and explicit count provenance; a short admitted page can continue.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PathwayPageInfo {
     /// Native source or retained relation offset.
@@ -53,7 +52,6 @@ pub struct PathwayPageInfo {
 }
 /// Source-ordered header page; class admission never changes the native total.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PathwayPage {
     /// Whole admitted pathway headers in native order.
@@ -63,12 +61,11 @@ pub struct PathwayPage {
     pub page: PathwayPageInfo,
 }
 impl ResponseBody for PathwayPage {
-    const SCHEMA: &'static str = "biomcp.pathway-page/3";
+    const SCHEMA: &'static str = "biomcp.pathway-page/8";
     type Query = PathwaySearch;
 }
 /// One checked source pathway with supported disclosures and whole native text.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PathwayCard {
     /// Source-native identity, species, versions and requested description.
@@ -90,33 +87,12 @@ pub struct PathwayCard {
     pub events: Option<crate::Section<PathwayEvents>>,
 }
 impl ResponseBody for PathwayCard {
-    const SCHEMA: &'static str = "biomcp.pathway-card/5";
+    const SCHEMA: &'static str = "biomcp.pathway-card/10";
     type Query = PathwayGet;
 }
-macro_rules! relation_page {
-    ($name:ident, $row:ty, $query:ty, $schema:literal) => {
-        /// Independent source-ordered page of whole native references.
-        #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
-        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        pub struct $name {
-            /// Exact source pathway owning this relation.
-            pub header: PathwayHeader,
-            /// Whole native references; unresolved identities remain visible.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub items: Box<[$row]>,
-            /// Relation-specific count provenance and continuation.
-            pub page: PathwayPageInfo,
-        }
-        impl ResponseBody for $name {
-            const SCHEMA: &'static str = $schema;
-            type Query = $query;
-        }
-    };
-}
+
 /// Independent source-ordered distinct membership references and their observed counts.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PathwayGenes {
     /// Exact source pathway owning this relation.
@@ -132,18 +108,19 @@ pub struct PathwayGenes {
     pub physical_entities: u64,
 }
 impl ResponseBody for PathwayGenes {
-    const SCHEMA: &'static str = "biomcp.pathway-genes/4";
+    const SCHEMA: &'static str = "biomcp.pathway-genes/9";
     type Query = PathwayGenesQuery;
 }
-relation_page!(
+page!(
+    pathway,
     PathwayEvents,
     PathwayEventRef,
     PathwayEventsQuery,
-    "biomcp.pathway-events/2"
+    "biomcp.pathway-events/6",
+    "Independent source-ordered page of whole native references."
 );
 /// Receipt for one independently validated WikiPathways metadata catalog.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct WikiPathwaysCatalogReceipt {
     /// Hash of this catalog's retained native bytes.
@@ -159,7 +136,6 @@ pub struct WikiPathwaysCatalogReceipt {
 }
 /// Two independently validated metadata catalogs; no catalog body in stdout.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct WikiPathwaysSync {
     /// Source body bytes received in this synchronization; excludes replay.
@@ -171,6 +147,6 @@ pub struct WikiPathwaysSync {
 }
 
 impl ResponseBody for WikiPathwaysSync {
-    const SCHEMA: &'static str = "biomcp.wikipathways-sync/2";
+    const SCHEMA: &'static str = "biomcp.wikipathways-sync/4";
     type Query = crate::SyncQuery;
 }

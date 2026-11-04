@@ -2,19 +2,6 @@
   "$id": "biodata.expression-syntax/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Published syntax label for a source-preserved expression.",
-  "enum": [
-    "hgvs.g",
-    "hgvs.c",
-    "hgvs.n",
-    "hgvs.r",
-    "hgvs.p",
-    "hgvs.m",
-    "hgvs.o",
-    "spdi",
-    "gnomad",
-    "vcf",
-    "iscn"
-  ],
   "title": "ExpressionSyntax",
   "type": "string",
   "x-enum-descriptions": [
@@ -29,5 +16,18 @@
     " gnomAD chromosome-position-reference-alternate identifier.",
     " Padded VCF chromosome-position-reference-alternate text.",
     " Source-preserved cytogenetic notation."
+  ],
+  "x-extensible-enum": [
+    "hgvs.g",
+    "hgvs.c",
+    "hgvs.n",
+    "hgvs.r",
+    "hgvs.p",
+    "hgvs.m",
+    "hgvs.o",
+    "spdi",
+    "gnomad",
+    "vcf",
+    "iscn"
   ]
 }

@@ -1,0 +1,37 @@
+{
+  "method": "POST",
+  "source": "civic",
+  "url": "https://civicdb.org/api/graphql",
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "a618561389645ec496de34b665acb6d0afff2ab0f465433e46a981678d856784"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "therapy": {
+              "id": 5,
+              "name": "Imatinib",
+              "link": "/therapies/5"
+            },
+            "evidenceItems": {
+              "totalCount": 3,
+              "nodes": [],
+              "pageInfo": {
+                "hasNextPage": true,
+                "endCursor": "A0"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "fda-drug-recall",
+  "url": "https://api.fda.gov/drug/enforcement.json?search=%28product_description%3A%22missing%22%20OR%20openfda.brand_name%3A%22missing%22%20OR%20openfda.generic_name%3A%22missing%22%29&limit=10&skip=0&sort=recall_initiation_date%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 10,
+              "total": 0
+            }
+          },
+          "results": []
+        }
+      }
+    }
+  ]
+}

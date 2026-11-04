@@ -1,22 +1,21 @@
 {
   "$defs": {
-    "Accession": {
+    "Reply_Accession": {
       "description": "A reference sequence accession: RefSeq or Ensembl with its version, or LRG.",
-      "pattern": "^((N[CGMPRTW]|X[MPR])_([0-9]{6}|[0-9]{9})\\.[1-9][0-9]*|ENS[GTP][0-9]{11}\\.[1-9][0-9]*|LRG_[0-9]+([tp][0-9]+)?)$",
+      "pattern": "^(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)$",
       "type": "string"
     },
-    "Allele": {
-      "additionalProperties": false,
+    "Reply_Allele": {
       "description": "Source-stated interbase replacement; equality never claims normalized equivalence.",
       "properties": {
         "alternate": {
-          "$ref": "#/$defs/Sequence"
+          "$ref": "#/$defs/Reply_Sequence"
         },
         "location": {
-          "$ref": "#/$defs/SequenceLocation"
+          "$ref": "#/$defs/Reply_SequenceLocation"
         },
         "reference": {
-          "$ref": "#/$defs/Sequence"
+          "$ref": "#/$defs/Reply_Sequence"
         }
       },
       "required": [
@@ -26,29 +25,28 @@
       ],
       "type": "object"
     },
-    "Build": {
+    "Reply_Build": {
       "description": "The assembly stated by the source; no default is inferred.",
-      "enum": [
-        "GRCh37",
-        "GRCh38"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Genome Reference Consortium human build 37.",
         " Genome Reference Consortium human build 38."
+      ],
+      "x-extensible-enum": [
+        "GRCh37",
+        "GRCh38"
       ]
     },
-    "Expression": {
-      "additionalProperties": false,
-      "description": "Source expression checked for its declared published form, without normalization.",
+    "Reply_Expression": {
+      "description": "Source expression checked for its reference and syntax only, without a full parser or normalization.",
       "properties": {
         "syntax": {
-          "$ref": "#/$defs/ExpressionSyntax"
+          "$ref": "#/$defs/Reply_ExpressionSyntax"
         },
         "syntax_version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -56,7 +54,7 @@
           ]
         },
         "value": {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         }
       },
       "required": [
@@ -65,21 +63,8 @@
       ],
       "type": "object"
     },
-    "ExpressionSyntax": {
+    "Reply_ExpressionSyntax": {
       "description": "Published syntax label for a source-preserved expression.",
-      "enum": [
-        "hgvs.g",
-        "hgvs.c",
-        "hgvs.n",
-        "hgvs.r",
-        "hgvs.p",
-        "hgvs.m",
-        "hgvs.o",
-        "spdi",
-        "gnomad",
-        "vcf",
-        "iscn"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGVS genomic description.",
@@ -93,23 +78,35 @@
         " gnomAD chromosome-position-reference-alternate identifier.",
         " Padded VCF chromosome-position-reference-alternate text.",
         " Source-preserved cytogenetic notation."
+      ],
+      "x-extensible-enum": [
+        "hgvs.g",
+        "hgvs.c",
+        "hgvs.n",
+        "hgvs.r",
+        "hgvs.p",
+        "hgvs.m",
+        "hgvs.o",
+        "spdi",
+        "gnomad",
+        "vcf",
+        "iscn"
       ]
     },
-    "Sequence": {
+    "Reply_Sequence": {
       "description": "A literal IUPAC DNA sequence; empty sequences express insertions or deletions.",
       "pattern": "^[ACGTNRYSWKMBDHV]*$",
       "type": "string"
     },
-    "SequenceLocation": {
-      "additionalProperties": false,
+    "Reply_SequenceLocation": {
       "description": "An interbase interval on one versioned sequence accession.",
       "properties": {
         "sequence": {
-          "$ref": "#/$defs/Accession",
+          "$ref": "#/$defs/Reply_Accession",
           "description": "Versioned source sequence, without an inferred genome build."
         },
         "span": {
-          "$ref": "#/$defs/Span0",
+          "$ref": "#/$defs/Reply_Span0",
           "description": "Zero-based half-open bounds."
         }
       },
@@ -119,8 +116,7 @@
       ],
       "type": "object"
     },
-    "Span0": {
-      "additionalProperties": false,
+    "Reply_Span0": {
       "description": "A zero-based half-open span with ordered bounds; empty spans are valid.",
       "properties": {
         "end": {
@@ -142,21 +138,22 @@
       ],
       "type": "object"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.representation/3",
+  "$id": "biodata.representation/5",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "One source's own expression, assembly and optional source-stated interbase allele.",
   "properties": {
     "allele": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Allele"
+          "$ref": "#/$defs/Reply_Allele"
         },
         {
           "type": "null"
@@ -167,7 +164,7 @@
     "build": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Build"
+          "$ref": "#/$defs/Reply_Build"
         },
         {
           "type": "null"
@@ -176,11 +173,11 @@
       "description": "Assembly stated by the source, omitted when absent."
     },
     "expression": {
-      "$ref": "#/$defs/Expression",
+      "$ref": "#/$defs/Reply_Expression",
       "description": "Published notation kept unchanged."
     },
     "source": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Source asserting this form."
     }
   },

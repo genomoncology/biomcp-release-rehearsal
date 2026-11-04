@@ -25,8 +25,19 @@ fn checked(parent: &Path, name: &str) -> Result<std::path::PathBuf, RecordError>
     Ok(parent.join(name))
 }
 pub(super) fn read(owner: &Path, name: &str, limit: u64) -> Result<Vec<u8>, RecordError> {
-    let path = checked(owner.parent().ok_or(RecordError::Io)?, name)?;
-    let meta = fs::symlink_metadata(&path).map_err(|_| RecordError::Missing)?;
+    let path = checked(
+        owner
+            .parent()
+            .ok_or(RecordError::Io(std::io::ErrorKind::InvalidInput))?,
+        name,
+    )?;
+    let meta = fs::symlink_metadata(&path).map_err(|error| {
+        if error.kind() == std::io::ErrorKind::NotFound {
+            RecordError::Missing
+        } else {
+            error.into()
+        }
+    })?;
     if !meta.is_file() || meta.file_type().is_symlink() {
         return Err(RecordError::Malformed);
     }
@@ -36,10 +47,10 @@ pub(super) fn read(owner: &Path, name: &str, limit: u64) -> Result<Vec<u8>, Reco
     }
     let mut bytes = Vec::new();
     fs::File::open(path)
-        .map_err(|_| RecordError::Io)?
+        .map_err(RecordError::from)?
         .take(limit + 1)
         .read_to_end(&mut bytes)
-        .map_err(|_| RecordError::Io)?;
+        .map_err(RecordError::from)?;
     if bytes.len() as u64 > limit {
         return Err(RecordError::Limit);
     }
@@ -49,17 +60,20 @@ pub(super) fn publish(owner: &Path, index: usize, bytes: &[u8]) -> Result<String
     if bytes.len() as u64 > MAX_BINARY_BYTES {
         return Err(RecordError::Limit);
     }
-    let parent = owner.parent().ok_or(RecordError::Io)?;
+    let parent = owner
+        .parent()
+        .ok_or(RecordError::Io(std::io::ErrorKind::InvalidInput))?;
     let stem = owner
         .file_stem()
         .and_then(|v| v.to_str())
         .ok_or(RecordError::Malformed)?;
     let name = format!("{stem}-{index}.bin");
     let path = checked(parent, &name)?;
-    fs::create_dir_all(parent).map_err(|_| RecordError::Io)?;
-    let mut file = tempfile::NamedTempFile::new_in(parent).map_err(|_| RecordError::Io)?;
-    file.write_all(bytes).map_err(|_| RecordError::Io)?;
-    file.as_file().sync_all().map_err(|_| RecordError::Io)?;
-    file.persist_noclobber(path).map_err(|_| RecordError::Io)?;
+    fs::create_dir_all(parent).map_err(RecordError::from)?;
+    let mut file = tempfile::NamedTempFile::new_in(parent).map_err(RecordError::from)?;
+    file.write_all(bytes).map_err(RecordError::from)?;
+    file.as_file().sync_all().map_err(RecordError::from)?;
+    file.persist_noclobber(path)
+        .map_err(|error| RecordError::from(error.error))?;
     Ok(name)
 }

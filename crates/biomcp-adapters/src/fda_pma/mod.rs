@@ -1,4 +1,5 @@
 //! Canonical diagnostic publisher declaration; runtime dispatch belongs to later slices.
+use biomcp_fetch::{Input, Read};
 use biomcp_fetch::{SourceSpec, Terms};
 use biomcp_types::{Source, Use};
 use std::time::Duration;
@@ -29,6 +30,8 @@ pub use map::{fragments, header, regulatory};
 pub struct Records {
     /// Native records in original order, without harmonized values.
     pub rows: Vec<DeviceSubmission>,
+    /// Rejected nonidentity source fields.
+    pub problems: Vec<biomcp_types::Problem>,
     /// True only when the source application exceeds its single admitted page.
     pub incomplete: bool,
     /// Exact native identity field that conflicts with the request.
@@ -45,14 +48,11 @@ pub fn get(leg: &Leg<'_>, query: &DiagnosticGet) -> Result<Records, RequestError
         .fresh(Freshness::Days(1))
         .bytes(10 * 1024 * 1024)
         .json_absence();
-    let reply = leg.json_checked_admission::<raw::Response>(
-        &endpoint,
-        &[
+    let reply = leg.call(&endpoint, Input::Params(&[
             ("search", Arg::Text(&selector)),
             ("limit", Arg::Num(100)),
             ("skip", Arg::Num(0)),
-        ],
-        |reply| {
+        ]), Read::<raw::Response>::json().check(&|reply| {
             if let raw::Response::Page { meta, results } = reply {
                 if meta.results.skip != 0 || meta.results.limit != 100 {
                     return Err(BadReply);
@@ -69,21 +69,29 @@ pub fn get(leg: &Leg<'_>, query: &DiagnosticGet) -> Result<Records, RequestError
                 }
             }
             Ok(())
-        },
-        |reply| {
+        }).cache_if(&|reply| {
             identity(reply, query).is_none()
                 && !matches!(reply, raw::Response::Page {meta,..} if meta.results.total > 100)
-        },
-    )?;
+        }))?.value;
     let identity_conflict = identity(&reply, query);
+    let mut problems = Vec::new();
     Ok(match reply {
         raw::Response::Page { meta, results } => Records {
-            rows: results.into_iter().map(raw::Record::mapped).collect(),
+            rows: results
+                .into_iter()
+                .map(|row| {
+                    let mapped = row.mapped();
+                    problems.extend(mapped.problems);
+                    mapped.value
+                })
+                .collect(),
+            problems,
             incomplete: meta.results.total > 100,
             identity_conflict,
         },
         raw::Response::Absent { .. } => Records {
             rows: vec![],
+            problems,
             incomplete: false,
             identity_conflict: None,
         },
@@ -112,12 +120,22 @@ fn identity(reply: &raw::Response, query: &DiagnosticGet) -> Option<&'static str
     None
 }
 
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::FdaPma,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
-}
+/// Complete source policy and command declaration.
+pub(crate) mod decl;
+
+mod search;
+pub use search::search;
+
+/// FDA document downloads retain their API source identity and never send its key.
+pub static DOCUMENTS: biomcp_fetch::SourceSpec = biomcp_fetch::SourceSpec {
+    destinations: biomcp_fetch::Destinations::Primary,
+    user_agent: None,
+    source: biomcp_types::Source::FdaPma,
+    base: "https://www.accessdata.fda.gov",
+    terms: SPEC.terms,
+    key: biomcp_fetch::KeyUse::None,
+    quota: &crate::quotas::OPENFDA,
+    deadline: std::time::Duration::from_secs(15),
+};
+
+pub use crate::device_search::Page as SearchPage;

@@ -1,0 +1,35 @@
+{
+  "feature": "variant-search",
+  "live_check": "public",
+  "replay": "variant/search/coding-flcn",
+  "story": "Intronic coding notation discovers the native ClinVar record without guessing a transcript",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "FLCN",
+        "--coding",
+        "c.780-4C>G",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "complete",
+        "/result/source_query": "FLCN[GENE] AND \"c.780-4C>G\"[VRNM]",
+        "/result/items/0/identity/ids/0": "clinvar:1760704",
+        "/sources/0/source": "clinvar",
+        "/next/0/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1760704"
+          ]
+        }
+      }
+    }
+  ],
+  "verified": "2026-10-29; unchanged public ClinVar ESearch body; replay request metadata uses the accepted canonical GET URL"
+}

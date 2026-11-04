@@ -1,4 +1,5 @@
 //! Canonical DRUGSFDA source declaration.
+use biomcp_fetch::Input;
 use biomcp_fetch::{SourceSpec, Terms};
 use biomcp_types::Source;
 use std::time::Duration;
@@ -17,16 +18,24 @@ pub static SPEC: SourceSpec = SourceSpec {
     key: crate::openfda_key::OPTIONAL,
     deadline: Duration::from_secs(15),
 };
+mod admit;
 mod map;
 mod raw;
+mod wire;
 use biodata::{DrugId, DrugIdentityLevel, Text};
 use biomcp_fetch::{Arg, BadReply, Endpoint, Freshness, Leg, ReplyMetadata, RequestError};
 use biomcp_types::{DrugHeader, DrugSource};
-pub use raw::{Application, Document, Ingredient, OpenFda, Product, Property, Submission, date};
+pub use map::Application;
+use raw::Application as RawApplication;
+pub(crate) use raw::date;
 const APPLICATION: Endpoint = SPEC.get("").fresh(Freshness::Days(1)).json_absence();
 /// One native application candidate page and its original retrieval metadata.
 #[derive(Debug)]
 pub struct Page {
+    /// Actual refused native records, independent of optional fields.
+    pub refusals: crate::Refusal,
+    /// Rejected optional source metadata.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Native applications, without selecting a first product.
     pub records: Vec<Application>,
     /// Native application total, independent of product count.
@@ -39,14 +48,31 @@ pub struct Page {
 fn literal(value: &str) -> String {
     format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }
-/// Discover source-native applications using the unchanged literal ingredient phrase.
+/// Discover exact brand or ingredient names, then try their native word fields after a zero total.
 pub fn search(leg: &Leg<'_>, text: &Text, limit: u32, offset: u32) -> Result<Page, RequestError> {
+    let selector = |suffix: &str| {
+        let name = literal(text.as_str());
+        format!(
+            "products.brand_name{suffix}:{name} OR products.active_ingredients.name{suffix}:{name}"
+        )
+    };
+    let exact = page(leg, &selector(".exact"), limit, offset, None)?;
+    if exact.total > 0 {
+        return Ok(exact);
+    }
+    page(leg, &selector(""), limit, offset, None)
+}
+/// Name resolution uses the existing word selector to retain all exact and approved single-term generic forms.
+pub fn search_names(
+    leg: &Leg<'_>,
+    text: &Text,
+    limit: u32,
+    offset: u32,
+) -> Result<Page, RequestError> {
+    let name = literal(text.as_str());
     page(
         leg,
-        &format!(
-            "products.active_ingredients.name:{}",
-            literal(text.as_str())
-        ),
+        &format!("products.brand_name:{name} OR products.active_ingredients.name:{name}"),
         limit,
         offset,
         None,
@@ -55,7 +81,7 @@ pub fn search(leg: &Leg<'_>, text: &Text, limit: u32, offset: u32) -> Result<Pag
 /// Read exactly the named native application; reject a wrong identity before caching it.
 pub fn get(leg: &Leg<'_>, id: &DrugId) -> Result<Page, RequestError> {
     if !DrugSource::Drugsfda.accepts(id) {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::Drugsfda, Some(200)));
     }
     page(
         leg,
@@ -73,7 +99,7 @@ fn page(
     id: Option<&DrugId>,
 ) -> Result<Page, RequestError> {
     if !(1..=50).contains(&limit) {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(Source::Drugsfda, Some(200)));
     }
     let mut args = vec![
         ("search", Arg::Text(selector)),
@@ -82,37 +108,55 @@ fn page(
     if offset > 0 {
         args.push(("skip", Arg::Num(offset.into())));
     }
-    let (response, metadata) =
-        leg.json_received_checked(&APPLICATION, &args, |r: &raw::Response| match r {
-            raw::Response::Success { meta, results }
-                if meta.results.skip != offset
-                    || meta.results.limit != limit
-                    || id.is_some_and(|id| {
-                        meta.results.total != 1
-                            || results.iter().any(|r| r.application_number != *id)
-                    }) =>
-            {
-                Err(BadReply)
-            }
-            _ => Ok(()),
-        })?;
+    let (response, metadata) = leg
+        .call(
+            &APPLICATION,
+            Input::Params(&args),
+            biomcp_fetch::Read::json().check(&|r: &raw::Response| match r {
+                raw::Response::Page { meta, results }
+                    if meta.results.skip != offset
+                        || meta.results.limit != limit
+                        || id.is_some_and(|id| {
+                            meta.results.total != 1
+                                || results.iter().any(|r| r.application_number != *id)
+                        }) =>
+                {
+                    Err(BadReply)
+                }
+                _ => Ok(()),
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
+    let mut problems = crate::mapped::Problems {
+        source: biomcp_types::Source::Drugsfda,
+        record: None,
+        list: Vec::new(),
+    };
     let (records, total, updated) = match response {
-        raw::Response::Success { meta, results } => {
-            (results, meta.results.total, meta.last_updated)
-        }
+        raw::Response::Page { meta, results } => (results, meta.results.total, meta.last_updated),
         raw::Response::Absent { .. } => (Vec::new(), 0, None),
     };
+    problems
+        .list
+        .extend(records.iter().flat_map(|r| r.problems.iter().cloned()));
+    let mut refusals = crate::Refusal::None;
+    for record in &records {
+        refusals.include(record.refusals);
+    }
     Ok(Page {
-        records,
+        refusals,
+        problems: problems.list,
+        records: records.into_iter().map(map::Application).collect(),
         total,
         metadata,
         updated,
     })
 }
-impl Application {
+impl RawApplication {
     /// An application endpoint establishes application identity, without choosing a brand.
-    pub fn header(&self) -> DrugHeader {
+    pub(super) fn header(&self) -> DrugHeader {
         DrugHeader {
+            name_resolution: None,
             matched_name: None,
             id: self.application_number.clone(),
             source: DrugSource::Drugsfda,
@@ -124,12 +168,18 @@ impl Application {
         }
     }
 }
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::Drugsfda,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
-}
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;
+
+/// FDA document downloads retain their API source identity and never send its key.
+pub static DOCUMENTS: biomcp_fetch::SourceSpec = biomcp_fetch::SourceSpec {
+    destinations: biomcp_fetch::Destinations::Primary,
+    user_agent: None,
+    source: biomcp_types::Source::Drugsfda,
+    base: "https://www.accessdata.fda.gov",
+    terms: SPEC.terms,
+    key: biomcp_fetch::KeyUse::None,
+    quota: &crate::quotas::OPENFDA,
+    deadline: std::time::Duration::from_secs(15),
+};

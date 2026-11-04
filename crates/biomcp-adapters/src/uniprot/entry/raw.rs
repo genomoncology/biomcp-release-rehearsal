@@ -1,21 +1,23 @@
-use biodata::{PartialDate, ProteinAudit, Text, UniProtIsoform};
+use crate::{native_text::NativeText, raw::Field};
+use biodata::{PartialDate, Text, UniProtIsoform};
 use biomcp_fetch::{BadReply, Reply};
 use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(in crate::uniprot) struct Entry {
     pub primary_accession: UniProtIsoform,
-    pub uni_protkb_id: Text,
+    pub uni_protkb_id: Option<Field<NativeText>>,
     pub entry_type: Text,
     pub organism: Organism,
-    pub protein_description: Description,
-    pub sequence: Sequence,
-    pub genes: Option<Vec<Gene>>,
-    pub entry_audit: Option<Audit>,
-    pub features: Option<Vec<super::sections_raw::Feature>>,
-    pub comments: Option<Vec<super::sections_raw::Comment>>,
+    pub protein_description: Option<Field<Description>>,
+    pub sequence: Option<Field<Sequence>>,
+    pub genes: Option<Field<Vec<Field<Gene>>>>,
+    pub entry_audit: Option<Field<Audit>>,
+    pub features: Option<Field<Vec<Field<super::sections_raw::Feature>>>>,
+    pub comments: Option<Field<Vec<Field<super::sections_raw::Comment>>>>,
     #[serde(rename = "uniProtKBCrossReferences")]
-    pub uni_prot_kb_cross_references: Option<Vec<super::sections_raw::CrossReference>>,
+    pub uni_prot_kb_cross_references:
+        Option<Field<Vec<Field<super::sections_raw::CrossReference>>>>,
 }
 impl Entry {
     pub(in crate::uniprot) fn admitted(&self, id: &UniProtIsoform) -> bool {
@@ -28,17 +30,7 @@ impl Entry {
 }
 impl Reply for Entry {
     fn check(&self) -> Result<(), BadReply> {
-        if self.sequence.length == 0
-            || self
-                .sequence
-                .value
-                .as_ref()
-                .is_some_and(|v| v.as_str().len() != self.sequence.length as usize)
-        {
-            Err(BadReply)
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 #[derive(Debug, Deserialize)]
@@ -49,50 +41,38 @@ pub(in crate::uniprot) struct Organism {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(in crate::uniprot) struct Description {
-    pub recommended_name: Name,
+    pub recommended_name: Option<Field<Name>>,
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(in crate::uniprot) struct Name {
-    pub full_name: Value,
+    pub full_name: Option<Field<Value>>,
 }
 #[derive(Debug, Deserialize)]
 pub(in crate::uniprot) struct Value {
-    pub value: Text,
+    pub value: Option<Field<NativeText>>,
 }
 #[derive(Debug, Deserialize)]
 pub(in crate::uniprot) struct Sequence {
-    pub length: u32,
-    pub value: Option<biodata::AminoAcids>,
-    pub crc64: Option<Text>,
-    pub md5: Option<Text>,
+    pub length: Option<Field<u32>>,
+    pub value: Option<Field<biodata::AminoAcids>>,
+    pub crc64: Option<Field<NativeText>>,
+    pub md5: Option<Field<NativeText>>,
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(in crate::uniprot) struct Gene {
-    pub gene_name: Option<Value>,
-    pub synonyms: Option<Vec<Value>>,
-    pub ordered_locus_names: Option<Vec<Value>>,
-    pub orf_names: Option<Vec<Value>>,
+    pub gene_name: Option<Field<Value>>,
+    pub synonyms: Option<Field<Vec<Field<Value>>>>,
+    pub ordered_locus_names: Option<Field<Vec<Field<Value>>>>,
+    pub orf_names: Option<Field<Vec<Field<Value>>>>,
 }
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(in crate::uniprot) struct Audit {
-    pub entry_version: Option<u32>,
-    pub sequence_version: Option<u32>,
-    pub first_public_date: Option<PartialDate>,
-    pub last_annotation_update_date: Option<PartialDate>,
-    pub last_sequence_update_date: Option<PartialDate>,
-}
-impl From<Audit> for ProteinAudit {
-    fn from(a: Audit) -> Self {
-        Self {
-            entry_version: a.entry_version,
-            sequence_version: a.sequence_version,
-            first_public: a.first_public_date,
-            last_annotation_update: a.last_annotation_update_date,
-            last_sequence_update: a.last_sequence_update_date,
-            release: None,
-        }
-    }
+    pub entry_version: Option<Field<u32>>,
+    pub sequence_version: Option<Field<u32>>,
+    pub first_public_date: Option<Field<PartialDate>>,
+    pub last_annotation_update_date: Option<Field<PartialDate>>,
+    pub last_sequence_update_date: Option<Field<PartialDate>>,
 }

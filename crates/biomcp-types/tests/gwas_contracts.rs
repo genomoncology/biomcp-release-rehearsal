@@ -1,5 +1,6 @@
 //! Public GWAS value and request contracts before command registration.
 use biodata::{GwasAssociationId, GwasStudyId, GwasTraitId, ScientificPValue};
+use biomcp_types::Paged;
 use biomcp_types::{GwasGet, GwasSearch};
 use serde_json::json;
 
@@ -85,7 +86,8 @@ fn selectors_and_sections_reject_invalid_requests_before_io()
 fn one_association_record_preserves_arrays_unknown_frequency_and_effects()
 -> Result<(), Box<dyn std::error::Error>> {
     let value = json!(
-        {"id":6110,"study":"GCST000035","traits":["Whole synthetic trait","Second trait"],"ontology_traits":[{"id":"MONDO_0004989",
+        {"id":"association:6110","study":"GCST000035","traits":["Whole synthetic trait","Second trait"],
+        "ontology_traits":[{"namespace":"unknown","id":"MONDO_0004989",
         "label":"Native label"}],"alleles":[{"rs_id":"rs2981582","allele":"A"},{"rs_id":"rs1","allele":"T"}],"p_value":0.0,
         "exact_p_value":{"mantissa":"2","exponent":-28539},"odds_ratio":1.26,"beta":"source beta text","risk_frequency":"NR",
         "publication":"17529967","author":"Native author","mapped_genes":["FGFR2","intergenic"],"locations":["10:123"],"ci_lower":1.1,

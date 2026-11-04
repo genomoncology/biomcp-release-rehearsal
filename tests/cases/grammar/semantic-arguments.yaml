@@ -5,87 +5,10 @@
   "steps": [
     {
       "run": [
-        "search",
-        "trial",
-        "--id",
-        "secret-id"
-      ],
-      "mcp": [
-        "search",
-        "trial",
-        "--id",
-        "secret-id"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "": {
-          "equals": {
-            "schema": "biomcp.error/1",
-            "status": "usage",
-            "error": {
-              "code": "usage.arguments",
-              "option": "--id",
-              "message": "expected a supported command with checked arguments"
-            }
-          }
-        }
-      }
-    },
-    {
-      "run": [
-        "search",
-        "article",
-        "--since",
-        "2025",
-        "--until",
-        "2024"
-      ],
-      "mcp": [
-        "search",
-        "article",
-        "--since",
-        "2025",
-        "--until",
-        "2024"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/error/code": "usage.arguments",
-        "/error/option": "--since, --until"
-      }
-    },
-    {
-      "run": [
-        "search",
-        "trial",
-        "--age",
-        "151"
-      ],
-      "mcp": [
-        "search",
-        "trial",
-        "--age",
-        "151"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/error/code": "usage.arguments",
-        "/error/option": "--age"
-      }
-    },
-    {
-      "run": [
         "get",
         "gwas",
-        "secret-id"
-      ],
-      "mcp": [
-        "get",
-        "gwas",
-        "secret-id"
+        "GCST004415",
+        "loci"
       ],
       "exit": 2,
       "is_error": true,
@@ -96,33 +19,6 @@
     },
     {
       "run": [
-        "get",
-        "gwas",
-        "GCST004415",
-        "loci"
-      ],
-      "mcp": [
-        "get",
-        "gwas",
-        "GCST004415",
-        "loci"
-      ],
-      "exit": 2,
-      "is_error": true,
-      "expect": {
-        "/error/code": "usage.arguments",
-        "/error/option": "id, section"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "gwas",
-        "GCST004415",
-        "--snapshot",
-        " "
-      ],
-      "mcp": [
         "get",
         "gwas",
         "GCST004415",

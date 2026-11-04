@@ -1,17 +1,12 @@
 {
-  "live_check": "local-only retained source capture delivered over local TLS",
+  "verified": "tests/replies/trial/get/README.md identifies unchanged public registry GET replies. Local TLS delivered those bodies to the recorder; ordinary public trial section commands check them nightly.",
+  "live_check": "public",
   "feature": "trial-publications",
   "story": "VISION retains registry publication identity and type without classifying its references",
   "replay": "trial/get/NCT03511664",
   "steps": [
     {
       "run": [
-        "get",
-        "trial",
-        "NCT03511664",
-        "references"
-      ],
-      "mcp": [
         "get",
         "trial",
         "NCT03511664",

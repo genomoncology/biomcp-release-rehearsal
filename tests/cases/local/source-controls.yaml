@@ -1,0 +1,27 @@
+{
+  "live_check": "local-only migration guidance or disabled source behavior before provider access",
+  "feature": "source-controls",
+  "story": "A disabled source is skipped before any provider or retained-data access.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "CHEMBL941",
+        "targets",
+        "--source",
+        "chembl",
+        "--disable-sources",
+        "chembl"
+      ],
+      "exit": 4,
+      "is_error": true,
+      "max_bytes": 1000,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "disabled",
+        "/sources/0/state": "skipped"
+      }
+    }
+  ]
+}

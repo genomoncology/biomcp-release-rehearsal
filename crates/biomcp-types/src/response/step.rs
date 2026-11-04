@@ -26,7 +26,6 @@ StepKind {
 }
 /// A command argument list spelled from a typed action.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Step {
     /// Purpose of the action.

@@ -1,0 +1,34 @@
+{
+  "source": "CIViC",
+  "license": "CC0 1.0",
+  "url": "https://civicdb.org/api/graphql",
+  "retrieved": "2026-11-04T18:37:55.479388+00:00",
+  "request": {
+    "query": "query($id:Int!,$after:String){therapy(id:$id){id name link} evidenceItems(therapyId:$id,status:ACCEPTED,evidenceLevel:A,first:25,after:$after){totalCount pageInfo{hasNextPage endCursor} nodes{id status significance disease{name doid} therapies{id name} therapyInteractionType evidenceType evidenceLevel evidenceDirection source{citationId sourceType} molecularProfile{id name rawName link isComplex variants{id name link feature{id name} ... on GeneVariant{alleleRegistryId hgvsDescriptions coordinates{referenceBuild}}}}}}}",
+    "variables": {
+      "id": 5,
+      "after": null
+    }
+  },
+  "request_sha256": "083ae5e899e90fcd8fc6ab6690cd0c68dafd33972fd429d9b6f1fb1c9f7fe052",
+  "response_sha256": "b9a19cad1accf2ed71f6f18649366e6b14ebe6d5eaefe2a0dfa42542d87ceb94",
+  "status": 200,
+  "headers": {
+    "Server": "nginx/1.24.0 (Ubuntu)",
+    "Date": "Wed, 04 Nov 2026 18:37:55 GMT",
+    "Content-Type": "application/json; charset=utf-8",
+    "Content-Length": "4380",
+    "Connection": "close",
+    "x-frame-options": "SAMEORIGIN",
+    "x-xss-protection": "1; mode=block",
+    "x-content-type-options": "nosniff",
+    "x-download-options": "noopen",
+    "x-permitted-cross-domain-policies": "none",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "etag": "W/\"b9a19cad1accf2ed71f6f18649366e6b\"",
+    "cache-control": "max-age=0, private, must-revalidate",
+    "x-request-id": "81b16554-7a84-42b2-a472-3edab2ed792a",
+    "x-runtime": "0.023831",
+    "vary": "Origin"
+  }
+}

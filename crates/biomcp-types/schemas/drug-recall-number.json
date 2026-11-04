@@ -1,0 +1,8 @@
+{
+  "$id": "biodata.drug-recall-number/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Native FDA drug recall number, independent of its event number.",
+  "pattern": "^D-[0-9]{4}-[0-9]{4}$",
+  "title": "DrugRecallNumber",
+  "type": "string"
+}

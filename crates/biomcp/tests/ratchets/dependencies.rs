@@ -10,12 +10,13 @@ const LAYERS: &[(&str, &[&str])] = &[
     (
         "biomcp-fetch",
         &[
-            "biodata",
             "biomcp-types",
             "ureq",
             "url",
+            "idna_adapter",
             "rustls",
             "rustls-platform-verifier",
+            "rustls-webpki",
             "tonic",
             "h2",
             "hyper",
@@ -39,13 +40,16 @@ const LAYERS: &[(&str, &[&str])] = &[
     (
         "biomcp-adapters",
         &[
+            "prost",
             "biodata",
             "biomcp-types",
             "biomcp-fetch",
             "serde",
+            "serde_ignored",
             "quick-xml",
             "thiserror",
             "calamine",
+            "lopdf",
             "csv",
             "zip",
         ],
@@ -58,6 +62,7 @@ const LAYERS: &[(&str, &[&str])] = &[
             "biomcp-fetch",
             "biomcp-adapters",
             "rusqlite",
+            "serde",
             "serde_json",
             "sha2",
             "thiserror",
@@ -69,7 +74,6 @@ const LAYERS: &[(&str, &[&str])] = &[
             "biodata",
             "biomcp-types",
             "biomcp-fetch",
-            "biomcp-adapters",
             "biomcp-query",
             "clap",
             "shlex",
@@ -92,6 +96,7 @@ fn read(path: &Path) -> Result<Value, Box<dyn std::error::Error>> {
 
 pub(super) fn check(root: &Path) -> Check {
     let workspace = read(&root.join("Cargo.toml"))?;
+    super::dependency_sources::check(root, &workspace)?;
     for (name, allowed) in LAYERS {
         let path = root.join("crates").join(name).join("Cargo.toml");
         if !path.exists() {

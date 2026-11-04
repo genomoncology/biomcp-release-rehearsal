@@ -1,4 +1,4 @@
-use super::*;
+use super::{Environment, Value, json, parity, path, recorded_stub, setup};
 pub(super) fn run(measure: bool) -> Result<(), String> {
     let stub = recorded_stub()?;
     let env = setup(&stub)?;
@@ -59,7 +59,7 @@ fn search(env: &Environment, measure: bool) -> Result<(), String> {
             for i in [0, 2] {
                 path(
                     &value,
-                    &format!("/result/items/{i}/species/items/0/accession"),
+                    &format!("/result/items/{i}/species/items/0/id"),
                     json!("10090"),
                 )?;
             }
@@ -188,6 +188,7 @@ fn headers(
     Ok(())
 }
 
+tool_only! {
 pub(super) fn remaining() -> Result<(), String> {
     let stub = recorded_stub()?;
     let env = setup(&stub)?;
@@ -195,6 +196,7 @@ pub(super) fn remaining() -> Result<(), String> {
     reverse(&env, true)?;
     stub.finish()?;
     Ok(())
+}
 }
 
 pub(super) fn canonical(measure: bool) -> Result<(), String> {

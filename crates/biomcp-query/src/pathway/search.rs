@@ -1,10 +1,12 @@
-use super::{empty, overall, run, snapshot};
-use crate::{Ctx, Outcome, status};
+use super::{empty, run};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::reactome;
 use biomcp_fetch::{Deadline, RequestError, SourceError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    PathwayGet, PathwayPage, PathwayPageInfo, PathwaySearch, PathwayTotalKind, QueryBody, Reason,
-    Request, Source, SourceState, Status, StepKind,
+    PathwayGet, PathwayPage, PathwayPageInfo, PathwaySearch, PathwayTotalKind, Reason, ReplyData,
+    Request, Source, SourceState, StepKind,
 };
 fn page(q: &PathwaySearch) -> PathwayPage {
     PathwayPage {
@@ -20,13 +22,13 @@ fn page(q: &PathwaySearch) -> PathwayPage {
     }
 }
 /// Read a retained native page or request only its next bounded native window.
-pub fn search(cx: &Ctx<'_>, q: &PathwaySearch) -> Outcome {
+pub(crate) fn search(cx: &Ctx<'_>, q: &PathwaySearch) -> Outcome {
     if q.sources().len() > 1 {
         return super::union::search(cx, q);
     }
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let mut out = empty(QueryBody::PathwayPage(page(q)));
+    let mut out = empty((page(q)).with_query(q.clone()));
     let source = if q.source() == biomcp_types::PathwaySource::Wikipathways {
         Source::WikiPathways
     } else {
@@ -46,7 +48,7 @@ pub fn search(cx: &Ctx<'_>, q: &PathwaySearch) -> Outcome {
             ));
         }
         out.local = status::local(error);
-        out.status = Status::Failed;
+        crate::status::item(&mut out, false, true, false);
     }
     super::wikipathways::sync_step(&mut out);
     command.finish(deadline.remaining());
@@ -64,23 +66,39 @@ fn execute(
         Source::Reactome
     };
     if cx.fetch.disabled(source) {
-        return Err(SourceError {
-            source,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into());
+        return Err(SourceError::disabled(source).into());
     }
-    let saved = snapshot::load(cx, q, deadline, out)?;
-    if matches!(out.body, QueryBody::PoolError { .. }) {
+    let key = source_snapshot::key("pathway-search", &q.restart())?;
+    let saved: Option<Saved> = if let Some(id) = q.pool().filter(|_| !(cx.fresh || q.fresh())) {
+        let saved: Option<Saved> = source_snapshot::read(cx, &key, id.as_str(), deadline)?;
+        match saved {
+            Some(saved) if saved.complete || q.offset() == saved.body.page.offset => Some(saved),
+            Some(saved) if saved.body.page.next_offset == Some(q.offset()) => None,
+            _ => {
+                out.body = ReplyData::PoolError { mismatch: false };
+                out.next.push(crate::next::Step::new(
+                    StepKind::Restart,
+                    &super::next::search(q),
+                    run(Request::SearchPathway(q.restart())),
+                ));
+                None
+            }
+        }
+    } else {
+        None
+    };
+    if matches!(out.body, ReplyData::PoolError { .. }) {
         return Ok(());
     }
     let saved = match saved {
         Some(saved) => saved,
         None => fetch(cx, q, deadline, out)?,
     };
-    let pool = snapshot::save(cx, q, deadline, &saved)?;
+    let pool = crate::publish::keep(
+        source_snapshot::write(cx, &key, &saved, &saved.sources, deadline),
+        out,
+    )?;
+    out.dropped = saved.dropped;
     out.sources = saved.sources;
     out.problems = saved.problems;
     let mut body = saved.body;
@@ -88,19 +106,21 @@ fn execute(
         slice(&mut body, q);
     }
     for row in &body.items {
-        out.next.push((
+        out.next.push(crate::next::Step::new(
             StepKind::Disambiguate,
+            &[super::next::identity(&row.id)],
             run(Request::GetPathway(PathwayGet::new(row.id.clone()))),
         ));
     }
-    if let Some(offset) = body.page.next_offset {
-        out.next.push((
+    if let (Some(offset), Some(pool)) = (body.page.next_offset, pool) {
+        out.next.push(crate::next::Step::new(
             StepKind::Page,
+            &super::next::search(q),
             run(Request::SearchPathway(q.at_offset(offset).with_pool(pool))),
         ));
     }
-    out.status = overall(out, body.page.total == 0);
-    out.body = QueryBody::PathwayPage(body);
+    crate::status::search(out);
+    out.body = body.with_query(q.clone());
     Ok(())
 }
 fn fetch(
@@ -108,7 +128,7 @@ fn fetch(
     q: &PathwaySearch,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<snapshot::Saved, RequestError> {
+) -> Result<Saved, RequestError> {
     if q.source() == biomcp_types::PathwaySource::Wikipathways {
         return super::wikipathways::headers(cx, q, deadline, out);
     }
@@ -116,6 +136,7 @@ fn fetch(
     let complete = q.top_level() || q.gene().is_some();
     if q.gene().is_some() {
         let mapped = super::gene::headers(cx, q, deadline, out)?;
+        out.include_refusals(mapped.refusals);
         out.problems.extend(mapped.problems);
         body.items = mapped.value.into();
     } else {
@@ -138,6 +159,7 @@ fn fetch(
             reply.as_ref().err().copied(),
         ));
         let reply = reply?;
+        out.include_refusals(reply.rows.refusals);
         out.problems.extend(reply.rows.problems);
         body.items = reply.rows.value.into();
         body.page.total = reply.total;
@@ -150,7 +172,8 @@ fn fetch(
         body.page.total_kind = PathwayTotalKind::Observed;
     }
     body.page.returned = body.items.len() as u32;
-    Ok(snapshot::Saved {
+    Ok(Saved {
+        dropped: out.dropped,
         body,
         complete,
         catalog_revision: None,
@@ -170,4 +193,14 @@ fn slice(body: &mut PathwayPage, q: &PathwaySearch) {
     body.page.returned = body.items.len() as u32;
     let next = q.offset().saturating_add(body.page.returned);
     body.page.next_offset = (u64::from(next) < body.page.total).then_some(next);
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub(super) struct Saved {
+    pub dropped: bool,
+    pub body: PathwayPage,
+    pub complete: bool,
+    pub catalog_revision: Option<biodata::Text>,
+    pub sources: Vec<biomcp_types::SourceOutcome>,
+    pub problems: Vec<biomcp_types::Problem>,
 }

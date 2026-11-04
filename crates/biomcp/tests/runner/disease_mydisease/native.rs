@@ -266,48 +266,7 @@ fn default_pages(
     Ok(())
 }
 
-pub(super) fn retention() -> Result<(), String> {
-    for fail in [false, true] {
-        let root = tempfile::tempdir().map_err(|e| e.to_string())?;
-        let body = super::annotation().to_string();
-        fs::create_dir(root.path().join("synthetic")).map_err(|e| e.to_string())?;
-        fs::write(root.path().join("synthetic/body.raw"), &body).map_err(|e| e.to_string())?;
-        let stub = Stub::for_source_status(
-            "mydisease.info",
-            "application/json",
-            move |_| Ok(body.clone()),
-            |_| 200,
-        )?;
-        let env = setup(&stub)?;
-        let temporary = env.root().to_owned();
-        let row = json!({"requested_id":"MONDO:0005061","returned_id":if fail {"MONDO:9999999"} else {"MONDO:0005061"},"directory":"synthetic"});
-        let result = prove_row(root.path(), &env, 0, &row);
-        drop(env);
-        let requests = stub.finish()?;
-        if temporary.exists() || result.is_err() != fail {
-            return Err(format!("unexpected synthetic proof result: {result:?}"));
-        }
-        if fail
-            && !result
-                .as_ref()
-                .err()
-                .is_some_and(|e| e.contains("/result/returned_id"))
-        {
-            return Err(format!("failed before the intended comparison: {result:?}"));
-        }
-        if requests.len() != 1 {
-            return Err("synthetic proof fetched more than once".into());
-        }
-        let output = root.path().join("product-proof");
-        if !output.join("native-0/mydisease").is_dir()
-            || !output.join("replay-0/cli.stdout").is_file()
-            || !output.join("replay-0/mcp.stdout").is_file()
-        {
-            return Err("native proof artifacts disappeared after cleanup".into());
-        }
-    }
-    Ok(())
-}
+
 
 fn replay(env: &super::Environment, recording: &Path, steps: Value) -> Result<Value, String> {
     let output = recording

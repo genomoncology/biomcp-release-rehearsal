@@ -1,12 +1,13 @@
-use std::{fs, io, path::Path, process::Command, sync::Arc};
+use std::{fs, io, path::Path, sync::Arc};
 
-#[path = "../../../biomcp-fetch/tests/support/environment.rs"]
-mod child_environment;
+use biomcp_test_support::environment as child_environment;
 pub(super) use child_environment::ENV_PATHS;
 
 #[derive(Debug)]
 pub(super) struct Environment {
     root: Arc<tempfile::TempDir>,
+    replay_owner: Option<Arc<tempfile::TempDir>>,
+    transcript: Option<Arc<super::transcript::Context>>,
 }
 
 impl Environment {
@@ -14,7 +15,14 @@ impl Environment {
         let root = child_environment::new()?;
         Ok(Self {
             root: Arc::new(root),
+            replay_owner: None,
+            transcript: super::transcript::current(),
         })
+    }
+
+    pub(super) fn with_replay_owner(mut self, owner: Arc<tempfile::TempDir>) -> Self {
+        self.replay_owner = Some(owner);
+        self
     }
 
     pub(super) fn config(&self, value: &serde_json::Value) -> io::Result<()> {
@@ -48,15 +56,41 @@ impl Environment {
         self.root.path()
     }
 
+    pub(super) fn command(
+        &self,
+        program: impl AsRef<Path>,
+        args: &[String],
+    ) -> super::capture::Capture {
+        self.command_with_arguments(program, args, args)
+    }
+
     // All case steps and launch-boundary proofs use this child-only boundary.
     #[expect(
         clippy::disallowed_methods,
         reason = "The launcher alone selects an explicitly installed artifact"
     )]
-    pub(super) fn command(&self, program: impl AsRef<Path>, args: &[String]) -> Command {
+    pub(super) fn command_with_arguments(
+        &self,
+        program: impl AsRef<Path>,
+        args: &[String],
+        transcript_args: &[String],
+    ) -> super::capture::Capture {
         let mut command =
             child_environment::command(&executable(program.as_ref()), self.root.path(), args);
-        if std::env::current_exe().is_ok_and(|runner| runner == program.as_ref()) {
+        let nested = std::env::current_exe().is_ok_and(|runner| runner == program.as_ref());
+        if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE")
+            && let Some(directory) = Path::new(&profile).parent()
+        {
+            // A nested test runner remains harness execution. Its own product
+            // children pass through this boundary and receive binary profiles.
+            let pattern = if nested {
+                "harness-%m-%p.profraw"
+            } else {
+                "bin-%m-%p.profraw"
+            };
+            command.env("LLVM_PROFILE_FILE", directory.join(pattern));
+        }
+        if nested {
             // Nested runner proofs must retain the selection, never falling
             // back to Cargo's binary merely because a helper cleared its env.
             for key in ["BIOMCP_TEST_EXECUTABLE", "BIOMCP_TEST_FIXTURES"] {
@@ -65,20 +99,21 @@ impl Environment {
                 }
             }
         }
-        command
+        super::capture::Capture::new(
+            command,
+            if !nested {
+                self.transcript.clone()
+            } else {
+                None
+            },
+            transcript_args,
+            self.root.path(),
+            self.replay_owner.clone(),
+        )
     }
 }
 
-#[expect(
-    clippy::disallowed_methods,
-    reason = "Installed checks copy public fixtures outside the checkout"
-)]
-pub(super) fn fixtures() -> std::path::PathBuf {
-    std::env::var_os("BIOMCP_TEST_FIXTURES").map_or_else(
-        || Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests"),
-        std::path::PathBuf::from,
-    )
-}
+pub(crate) use super::fixture_paths::fixtures;
 
 // Provenance and execution use the same installed-artifact selection.
 #[expect(
@@ -102,4 +137,43 @@ pub(super) fn arguments(args: &[String], globals: &[String]) -> Vec<String> {
         .unwrap_or(result.len());
     result.splice(position..position, globals.iter().cloned());
     result
+}
+
+// Only this module knows the build checkout; fixtures may be copied elsewhere.
+pub(super) fn checkout() -> std::path::PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf()
+}
+
+tool_only! {
+pub(super) fn fixture_script(name: &str) -> std::path::PathBuf {
+    let root = if std::env::var_os("BIOMCP_TEST_FIXTURES").is_some() {
+        fixtures().join("support")
+    } else {
+        checkout().join("../..")
+    };
+    root.join("scripts").join(name)
+}
+}
+
+pub(super) fn fixture_text(relative: &str) -> Result<String, String> {
+    let path = fixtures().join(relative);
+    fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+// Feature ownership travels with the runner when installed fixtures are copied.
+pub(super) fn feature_list() -> &'static str {
+    include_str!("../../../../sdlc/features.md")
+}
+
+// Native command ceilings travel with the copied fixtures for both test targets.
+tool_only! {
+pub(super) fn native_budget(key: &str) -> Result<usize, String> {
+    let limits: std::collections::BTreeMap<String, usize> =
+        serde_saphyr::from_str(&fixture_text("native-budgets.yaml")?)
+            .map_err(|error| error.to_string())?;
+    limits
+        .get(key)
+        .copied()
+        .ok_or_else(|| format!("unmeasured native proof: {key}"))
+}
 }

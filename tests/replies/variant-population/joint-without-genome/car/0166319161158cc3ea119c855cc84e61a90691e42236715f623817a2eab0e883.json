@@ -1,0 +1,226 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele/CA123643?fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793814206,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA123643",
+          "communityStandardTitle": [
+            "NM_004333.6(BRAF):c.1799T>A (p.Val600Glu)"
+          ],
+          "externalRecords": {
+            "ClinVarVariations": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/clinvar/variation/13961",
+                "RCV": [
+                  "RCV000014992",
+                  "RCV000014993",
+                  "RCV000014994",
+                  "RCV000022677",
+                  "RCV000080903",
+                  "RCV000037936",
+                  "RCV000067669",
+                  "RCV000208763",
+                  "RCV000420614",
+                  "RCV000425847",
+                  "RCV000429915",
+                  "RCV000440802",
+                  "RCV000425166",
+                  "RCV000430562",
+                  "RCV000443745",
+                  "RCV000433305",
+                  "RCV000435441",
+                  "RCV000440540",
+                  "RCV000443448",
+                  "RCV000417746",
+                  "RCV000424470",
+                  "RCV000432628",
+                  "RCV000662278",
+                  "RCV000860020",
+                  "RCV001030023",
+                  "RCV001248834",
+                  "RCV001254874",
+                  "RCV002051586",
+                  "RCV004018627",
+                  "RCV003458334"
+                ],
+                "variationId": 13961
+              }
+            ],
+            "dbSNP": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/snp/113488022",
+                "rs": 113488022
+              }
+            ]
+          },
+          "genomicAlleles": [
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 140753336,
+                  "referenceAllele": "A",
+                  "start": 140753335
+                }
+              ],
+              "hgvs": [
+                "NC_000007.14:g.140753336A>T",
+                "CM000669.2:g.140753336A>T"
+              ],
+              "referenceGenome": "GRCh38",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000055"
+            },
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 140453136,
+                  "referenceAllele": "A",
+                  "start": 140453135
+                }
+              ],
+              "hgvs": [
+                "NC_000007.13:g.140453136A>T",
+                "CM000669.1:g.140453136A>T"
+              ],
+              "referenceGenome": "GRCh37",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000031"
+            },
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 140099605,
+                  "referenceAllele": "A",
+                  "start": 140099604
+                }
+              ],
+              "hgvs": [
+                "NC_000007.12:g.140099605A>T"
+              ],
+              "referenceGenome": "NCBI36",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000007"
+            },
+            {
+              "coordinates": [
+                {
+                  "allele": "A",
+                  "end": 176429,
+                  "referenceAllele": "T",
+                  "start": 176428
+                }
+              ],
+              "hgvs": [
+                "NG_007873.3:g.176429T>A",
+                "LRG_299:g.176429T>A"
+              ],
+              "referenceSequence": "http://reg.genome.network/refseq/RS000682"
+            }
+          ],
+          "transcriptAlleles": [
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000646891.2:c.1799T>A"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_004333.6:c.1799T>A"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000493543.1:p.Val600Glu"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_004324.2:p.Val600Glu"
+                  }
+                }
+              }
+            },
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000646891.2:c.1799T>A"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_004333.6:c.1799T>A"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000493543.1:p.Val600Glu"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_004324.2:p.Val600Glu"
+                  }
+                }
+              }
+            },
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Plus Clinical",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000644969.2:c.1919T>A"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_001374258.1:c.1919T>A"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000496776.1:p.Val640Glu"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_001361187.1:p.Val640Glu"
+                  }
+                }
+              }
+            },
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Plus Clinical",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000644969.2:c.1919T>A"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_001374258.1:c.1919T>A"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000496776.1:p.Val640Glu"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_001361187.1:p.Val640Glu"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

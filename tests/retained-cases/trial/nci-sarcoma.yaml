@@ -1,0 +1,49 @@
+{
+  "feature": "trial-nci",
+  "live_check": "retained native publisher bodies require an explicit external fixtures root",
+  "story": "Native C9306 and Active filters retain the NCI source count and source record order without a registry fallback.",
+  "replay": "user-query/trial-nci-sarcoma",
+  "verified": "Native source requests were captured once; unchanged wire bodies were delivered locally to the real CLI recorder. Recording fetch times are local delivery times. Source counts and records describe their dated native captures. Native source facts and clinical record choices supply these expectations. The ordinary default suite does not execute this retained case. Raw archive 19f6440a545a40ede34d0eb9a2a924ee5f51589947cf804e5df22f15f2055675 contains the original captures; corrected CTGov receipts are retained separately. Complete native capture, two corrected requests, local recordings and external source text facts are retained in corrected-recordings-a2ca2bde0/capture.tar.gz SHA256 07a762087f1a823e5abf697737d84c85550b99b410456be4c628e6a58c6c943d. Native facts are retained beside each case; expected text files remain external with the case bundle.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "nci",
+        "--condition",
+        "C9306",
+        "--status",
+        "Active",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 149,
+        "/result/items/*/nct_id": [
+          "NCT06422806",
+          "NCT05640999",
+          "NCT04031677"
+        ]
+      },
+      "mcp": [
+        "search",
+        "trial",
+        "--source",
+        "nci",
+        "--condition",
+        "C9306",
+        "--status",
+        "Active",
+        "--limit",
+        "3"
+      ]
+    }
+  ],
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  }
+}

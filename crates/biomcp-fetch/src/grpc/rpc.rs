@@ -49,13 +49,6 @@ impl GrpcEndpoint {
         self
     }
 }
-impl crate::Fetch {
-    /// Cancel queued and active RPCs and join the shared worker. Further RPCs fail closed.
-    /// A started platform DNS lookup retains the documented system resolver exception.
-    pub fn shutdown_grpc(&self) {
-        self.grpc_worker.shutdown();
-    }
-}
 impl Leg<'_> {
     /// Consume bounded protobuf messages using one shared quota permit through terminal status.
     /// Callbacks may see a prefix before an error; callers must publish results only after success.
@@ -101,9 +94,7 @@ impl Leg<'_> {
             .rpc_proxy(self.fetch.config.proxy.as_ref(), &uri)
             .map_err(|_| self.failure(Reason::Proxy, None))?;
         let _permit = self
-            .fetch
-            .limiters
-            .acquire(self.spec.quota, self.keyed(), self.budget())
+            .acquire_quota()
             .map_err(|delay| self.quota_failure(delay))?
             .ok_or_else(|| self.failure(Reason::DeadlineExceeded, None))?;
         let mut mark = Instant::now();

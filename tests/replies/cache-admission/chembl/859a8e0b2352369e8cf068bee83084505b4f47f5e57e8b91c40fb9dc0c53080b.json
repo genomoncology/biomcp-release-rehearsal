@@ -1,0 +1,21 @@
+{
+  "source": "chembl",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL941.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecule_chembl_id": "CHEMBL941",
+          "pref_name": "Synthetic",
+          "molecule_type": "Small molecule"
+        }
+      }
+    }
+  ]
+}

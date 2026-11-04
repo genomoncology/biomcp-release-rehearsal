@@ -1,0 +1,60 @@
+{
+  "feature": "organization-nci",
+  "live_check": "missing nightly NCI user-owned API key; retained native public-tier replies use an isolated replay key",
+  "story": "Documented native filters return positive actual organization counts.",
+  "replay": "organization/native",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "verified": "2026-10-28 bounded public-tier NCI capture. Unsized native totals and row counts preserved. Named personal contact fields omitted from replay when contact_name is not Site Public Contact; other published fields remain unchanged. Raw gzip bytes retained separately with SHA-256 proof. Measured CLI output 2555 bytes; largest row 402 bytes. Ceilings add fifteen percent.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "organization",
+        "--source",
+        "nci",
+        "--name",
+        "Dana-Farber",
+        "--limit",
+        "5"
+      ],
+      "expect": {
+        "/page/total": 11,
+        "/page/returned": 5,
+        "/sources/0/count": 11,
+        "/result/items/0/name": "Dana Farber Community Cancer Care-Quincy",
+        "/result/items/0/count": 7,
+        "/result/items/3/count": 3376,
+        "/result/items/3/name": "Dana-Farber Cancer Institute",
+        "/result/items/0": {
+          "max_bytes": 650
+        },
+        "/result/items/1": {
+          "max_bytes": 650
+        },
+        "/result/items/2": {
+          "max_bytes": 650
+        },
+        "/result/items/3": {
+          "max_bytes": 650
+        },
+        "/result/items/4": {
+          "max_bytes": 650
+        },
+        "/result/items/3/next/kind": "pivot",
+        "/result/items/3/next/args": [
+          "search",
+          "trial",
+          "--facility",
+          "Dana-Farber Cancer Institute",
+          "--source",
+          "nci"
+        ]
+      },
+      "max_bytes": 4000
+    }
+  ]
+}

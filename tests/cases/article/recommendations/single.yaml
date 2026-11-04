@@ -1,18 +1,12 @@
 {
+  "live_check": "public",
   "feature": "article-recommendations",
   "story": "single",
-  "verified": "Actual keyless command capture; preserve native order and whole bibliographic metadata.",
+  "verified": "Actual keyless command capture; preserve native order and whole bibliographic metadata. The existing verification records the actual keyless command capture; the nightly run executes the public recommendation request.",
   "replay": "article/recommendations/single",
   "steps": [
     {
       "run": [
-        "article",
-        "recommendations",
-        "34096690",
-        "--limit",
-        "5"
-      ],
-      "mcp": [
         "article",
         "recommendations",
         "34096690",
@@ -34,12 +28,14 @@
         "recommendations",
         "34096690",
         "--limit",
-        "5"
+        "5",
+        "--offset",
+        "1"
       ],
-      "offline": true,
       "expect": {
-        "/page/total": 5,
-        "/result/items/0/pmid": "42745055"
+        "/page/offset": 1,
+        "/page/returned": 4,
+        "/result/items/0/pmid": "42685317"
       }
     }
   ]

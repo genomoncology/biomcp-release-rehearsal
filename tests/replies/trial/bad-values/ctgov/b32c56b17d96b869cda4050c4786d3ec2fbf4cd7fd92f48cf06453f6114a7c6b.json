@@ -1,0 +1,381 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&filter.overallStatus=RECRUITING&pageSize=10&query.cond=%28melanoma%29",
+  "exchanges": [
+    {
+      "fetched": 1792863143,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 7,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 483,
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT06952400",
+                  "briefTitle": "The Registry Study of Genetic Alterations of Melanoma in Taiwan"
+                },
+                "statusModule": {
+                  "overallStatus": "TEMPORARILY_NOT_AVAILABLE",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2025-05-06"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Primary Melanoma of the Extremity"
+                  ]
+                },
+                "designModule": {},
+                "armsInterventionsModule": {}
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07381972",
+                  "briefTitle": "Photodynamic Therapy Associated With Sonodynamic Therapy for the Treatment of Nodular Basal Cell Carcinoma"
+                },
+                "statusModule": {
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-02-02"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Nodular Basal Cell Carcinoma of Skin"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Control Arm (Conventional Therapy)"
+                    },
+                    {
+                      "name": "Experimental arm"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07760012",
+                  "briefTitle": "68Ga-SorB PET/CT Imaging in Patients With Solid Tumors"
+                },
+                "statusModule": {
+                  "overallStatus": "FUTURE_STATUS",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-15"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Melanoma (Skin Cancer)",
+                    "Hepatocellular Carcinoma",
+                    "Lung Cancer",
+                    "Breast Cancer",
+                    "Pancreatic Cancer",
+                    "Ovarian Cancer",
+                    "Cholangiocarcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "NA"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "68Ga-SorB PET/CT"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07341737",
+                  "briefTitle": "SL-28 for Advanced Solid Tumours"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-99-99"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Head & Neck Cancer",
+                    "Pancreas Carcinoma",
+                    "Pancreas Cancer, Metastatic",
+                    "Lung Adenocarcinoma",
+                    "Lung Cancer (NSCLC)",
+                    "Lung Cancer (Non-Small Cell)",
+                    "Esophageal Cancer",
+                    "Stomach (Gastric) Cancer",
+                    "Liver Cancer",
+                    "Intestinal Cancer",
+                    "Bladder Cancer",
+                    "Renal Cancer",
+                    "Prostate Cancer",
+                    "Melanoma (Skin Cancer)",
+                    "Breast Cancer",
+                    "Ovarian Cancer",
+                    "Endometrial Cancer",
+                    "Colorectal Cancer"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE1",
+                    "PHASE2"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "SL-28"
+                    },
+                    {
+                      "name": "SL-28"
+                    },
+                    {
+                      "name": "SL-28"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT06560905",
+                  "briefTitle": "Preoperative Planning With PSMA-PET in Melanoma Surgery Trial"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2025-07-01"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Malignant Melanoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3",
+                    "FUTURE_PHASE"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "68Ga-PSMA"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07750067",
+                  "briefTitle": "Tunlametinib in Combination With Pucotenlimab and Hydroxychloroquine in NRAS Mutant Melanoma"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-08-10"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Melanoma Metastatic",
+                    "NRAS Mutation"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE2"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Tunlametinib"
+                    },
+                    {
+                      "name": "Pucotenlimab"
+                    },
+                    {
+                      "name": "Hydroxychloroquine (HC)"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07403630",
+                  "briefTitle": "INTEGRATIVE \"MULTI-OMICS\" AND FUNCTIONAL PLATFORM FOR THE COMPLETE DIAGNOSTIC CHARACTERIZATION OF TUMORS: THE ITALIAN TUMOR CHEMOGENOMIC PROFILER (IT-TCP)"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-02-17"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Acute Leukemia",
+                    "Multiple Myeloma",
+                    "Squamous Cell Carcinoma",
+                    "Pleural Mesothelioma",
+                    "Pancreatic Cancer",
+                    "Bladder Cancer",
+                    "Ovarian Cancer",
+                    "Melanoma",
+                    "Pediatric Acute Lymphoblastic Leukemia",
+                    "Chronic Leukemia",
+                    "Myeloproliferative Disorders",
+                    "Myelodysplastic Disorders"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "NA"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Functional tests"
+                    },
+                    {
+                      "name": "Multi-omics analyses"
+                    },
+                    {
+                      "name": "Cytogenetics/ FISH"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07354152",
+                  "briefTitle": "COmparison of the Use of a PERforator Flap Versus Total Skin GRAft in the Management of Loss of Substance After Resection of Cutaneous Melanoma - Pilot Study"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-06-24"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Stage II Cutaneous Melanoma"
+                  ]
+                },
+                "designModule": {},
+                "armsInterventionsModule": {}
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07266142",
+                  "briefTitle": "Prospective Collection of Clinical Data and Human Body Material (HBM) of Cutaneous Melanoma, Non Melanoma Patients and Healthy Controls. Biobank Huidkanker"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-06-12"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Skin Cancer, Non-Melanoma",
+                    "Skin Cancer Melanoma"
+                  ]
+                },
+                "designModule": {},
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Collection of Human Body Material and Clinical Data"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07230613",
+                  "briefTitle": "Neo-adjuvant Immunotherapy in Patients With Localized Melanoma"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-07-21"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Cutaneous Melanoma, Stage III",
+                    "Mucosal Melanoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE2"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Ipilimumab (YervoyTM, 50 mg/10 mL solution)"
+                    },
+                    {
+                      "name": "Nivolumab (OpdivoTM, 40 mg/4mL solution)"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            }
+          ],
+          "nextPageToken": "synthetic-page"
+        }
+      }
+    }
+  ]
+}

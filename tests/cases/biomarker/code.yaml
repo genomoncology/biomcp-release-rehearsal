@@ -1,0 +1,66 @@
+{
+  "feature": "biomarker-nci",
+  "live_check": "missing nightly NCI user-owned API key; retained native public-tier replies use an isolated replay key",
+  "story": "Exact code search returns the complete sole native terminology row.",
+  "replay": "biomarker/native",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "verified": "Captured 2026-10-28. Native codes, list values, row order and trial counts preserved.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "biomarker",
+        "C96022"
+      ],
+      "expect": {
+        "/result/card/header/codes": [
+          "C96022"
+        ],
+        "/result/card/header/name": "CD274 Gene",
+        "/result/card/header/type": [
+          "reference_gene"
+        ],
+        "/result/card/header/count": 326,
+        "/result/card/synonyms": [
+          "CD274",
+          "CD274 Molecule Gene",
+          "PD-L1",
+          "PDL1"
+        ],
+        "/result/card/parent_ids": [
+          "C20103"
+        ],
+        "/result/card/ancestor_ids": [
+          "C16612",
+          "C20103",
+          "C21295"
+        ],
+        "/result/card/eligibility_criterion": [
+          "inclusion",
+          "exclusion"
+        ]
+      },
+      "max_bytes": 5000
+    },
+    {
+      "run": [
+        "get",
+        "biomarker",
+        "C96022",
+        "--source",
+        "nci"
+      ],
+      "expect": {
+        "/result/card/header/codes": [
+          "C96022"
+        ],
+        "/result/card/header/name": "CD274 Gene",
+        "/result/card/header/count": 326
+      }
+    }
+  ]
+}

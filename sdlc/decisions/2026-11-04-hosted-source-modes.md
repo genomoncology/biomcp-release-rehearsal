@@ -1,0 +1,10 @@
+# Hosted BioMCP uses only commercially safe sources, in three modes
+
+Ian, 2026-11-04 (dictated, relayed by Jarvis in m24652): "The basic gist is: if it's not safe for commercial use, then I'm not using it in the hosted solution. That's the goal. That's the plan. ... Restricted mode means even if you give me the keys, it doesn't use those commercial entities. In commercial mode, it means you only use the ones that have keys. Otherwise, you don't use anything commercial. Academic mode means you can use anything. Obviously, the keys sometimes block you from using it completely, and sometimes the keys just degrade your access, meaning you just get fewer requests per second or minute, or you get shared throttling with other non-API-key users."
+
+- `restricted`: only sources whose terms allow commercial use (`open`, `attribution`, and the commercial-permitted records of `per-record` sources). A key never enables any other source.
+- `commercial`: the `restricted` set, plus a `noncommercial` or `licensed` source only when the caller supplies the key that licenses it, which means a source whose key is required. A key that only raises rate limits on a source usable without it does not change that source's mode; the source's license decides.
+- `academic`: every configured source.
+- Ian, directly, 2026-11-04: "Hosting will use restricted. What that means is that, no matter what configurations you do, we will not pass through or support any of the commercial restricted endpoints ... If there are data elements that are not usable for commercial entities, we will not access them, share them, or return them back." So our hosted deployment serves only `restricted`, whatever header or key a caller sends. A deployment sets the highest mode it serves; local CLI and stdio keep every configured source.
+
+0585 built the three modes and the labels. 0619 closes the two gaps this ruling exposes: an optional rate-limit key (Semantic Scholar) enabling a noncommercial source in `commercial`, and the hosted server accepting any caller's `commercial` or `academic` header.

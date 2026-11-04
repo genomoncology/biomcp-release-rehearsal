@@ -1,3 +1,3 @@
-These invented OncoKB replies use public API field shapes. They contain no licensed records. Uppercase enum serialization remains inferred until a key holder checks the deployment outside this repository. HGNC and MyGene replies reuse public recordings.
+These invented OncoKB replies use public API field shapes. They contain no licensed records. The cases exercise the five publisher enum literals. They do not establish production deployment coverage. HGNC and MyGene replies reuse public recordings.
 
 The no-key NOTCH1 identity was captured from the official HGNC REST /fetch/symbol/NOTCH1 endpoint through shared Record transport and projected onto the existing complete TSV header, joining array cells with the published pipe delimiter. The public-not directory retains that public JSON capture and the corresponding MyGene reply. This adds one identity without downloading the full HGNC file again.

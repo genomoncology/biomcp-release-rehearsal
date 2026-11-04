@@ -11,30 +11,9 @@
         "17611497",
         "pdf"
       ],
-      "mcp": [
-        "get",
-        "article",
-        "17611497",
-        "pdf"
-      ],
       "expect": {
         "/result/items/0/sections/pdf/state": "unavailable",
-        "/result/items/0/sections/pdf/reason": "not_open"
-      }
-    },
-    {
-      "run": [
-        "article",
-        "pdf",
-        "17611497",
-        "--save",
-        "failed.pdf"
-      ],
-      "exit": 4,
-      "is_error": true,
-      "expect": {
-        "/result/file/state": "unavailable",
-        "/result/file/reason": "not_open"
+        "/result/items/0/sections/pdf/reason": "not-open"
       }
     }
   ]

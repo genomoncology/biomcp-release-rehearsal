@@ -5,6 +5,60 @@ use super::{Cache, CacheError, Connection, Duration};
 use crate::{Deadline, deadline::VirtualClock};
 
 #[test]
+fn discretionary_read_waits_for_held_local_sql_until_deadline() {
+    let directory = tempfile::tempdir().unwrap();
+    let cache = Cache::open_with_owners(&directory.path().join("cache.sqlite"), &[]).unwrap();
+    let owner = cache.0.lock().unwrap();
+    let deadline = Deadline::start(Duration::from_millis(20), None);
+    let wall_bound = deadline.local();
+    assert_eq!(
+        cache.try_sql(deadline, |_| -> Result<(), CacheError> {
+            panic!("held local SQL became available")
+        }),
+        Err(CacheError::Busy)
+    );
+    assert!(
+        wall_bound.expired(),
+        "local contention returned before its bound"
+    );
+    drop(owner);
+    assert_eq!(
+        cache.try_sql(
+            Deadline::start(Duration::from_secs(5), None),
+            |connection| {
+                let busy: i64 = connection
+                    .query_row("PRAGMA busy_timeout", [], |row| row.get(0))
+                    .unwrap();
+                assert_eq!(busy, 0, "external SQLite contention must remain immediate");
+                Ok(42)
+            }
+        ),
+        Ok(42)
+    );
+}
+
+#[test]
+fn discretionary_read_refuses_expired_or_cancelled_local_wait() {
+    let directory = tempfile::tempdir().unwrap();
+    let cache = Cache::open_with_owners(&directory.path().join("cache.sqlite"), &[]).unwrap();
+    let _owner = cache.0.lock().unwrap();
+    let (fetch, cancellation) = crate::Fetch::open(crate::FetchConfig::default())
+        .unwrap()
+        .cancellable()
+        .unwrap();
+    let cancelled = fetch.deadline(Duration::from_secs(5));
+    cancellation.cancel();
+    for deadline in [Deadline::start(Duration::ZERO, None), cancelled] {
+        assert_eq!(
+            cache.try_sql(deadline, |_| -> Result<(), CacheError> {
+                panic!("expired local wait reached SQL")
+            }),
+            Err(CacheError::Busy)
+        );
+    }
+}
+
+#[test]
 fn replay_admission_preserves_rows_under_an_external_writer() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("cache.sqlite");
@@ -90,4 +144,58 @@ fn required_write_reserves_before_snapshot_and_preserves_existing_reader() {
     assert_eq!(value(&reader), "old");
     reader.execute_batch("COMMIT").unwrap();
     assert_eq!(value(&reader), "new");
+}
+
+#[test]
+fn schema_admission_clears_ownership_before_poison_is_observed() {
+    let directory = tempfile::tempdir().unwrap();
+    let cache = Cache::open_with_owners(&directory.path().join("cache.sqlite"), &[]).unwrap();
+    let deadline = || Deadline::start(Duration::from_secs(5), None);
+    assert_eq!(
+        cache.admit(deadline(), || {
+            assert!(matches!(
+                cache.4.try_read(),
+                Err(std::sync::TryLockError::WouldBlock)
+            ));
+            Ok(42)
+        }),
+        Ok(42)
+    );
+    assert!(cache.4.try_read().is_ok());
+    let failed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        cache.admit(deadline(), || -> Result<(), CacheError> {
+            panic!("schema owner panic");
+        })
+    }));
+    assert!(failed.is_err());
+    assert!(matches!(
+        cache.4.try_read(),
+        Err(std::sync::TryLockError::Poisoned(_))
+    ));
+    assert_eq!(
+        cache.try_sql(deadline(), |_| Ok(())),
+        Err(CacheError::Internal)
+    );
+}
+
+// This inner test owns the diagnostic privacy and nonfatal I/O boundary.
+#[test]
+fn sqlite_diagnostic_records_exclude_error_text_and_ignore_unavailable_files() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("sqlite.jsonl");
+    let error = rusqlite::Error::SqliteFailure(
+        rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CONSTRAINT_TRIGGER),
+        Some("private SQL, binding and database path".into()),
+    );
+    crate::sqlite_diagnostic::append(&path, "fixture.insert", &error);
+    assert!(!path.exists(), "diagnostics must not create a destination");
+    std::fs::write(&path, []).unwrap();
+    crate::sqlite_diagnostic::append(&path, "fixture.insert", &error);
+    let record: serde_json::Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(
+        record,
+        serde_json::json!({"operation":"fixture.insert",
+        "primary_code":19,"extended_code":1811})
+    );
+    crate::sqlite_diagnostic::append(root.path(), "fixture.insert", &error);
 }

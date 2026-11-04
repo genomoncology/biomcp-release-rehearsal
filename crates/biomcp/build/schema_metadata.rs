@@ -18,7 +18,7 @@ pub(super) fn write(
     let mut catalog = String::from("&[\n");
     let mut replies = String::from("&[\n");
     for (id, schema) in &parsed {
-        if id.starts_with("biomcp.") && id.contains('_') {
+        if (id.starts_with("biomcp.") || id.starts_with("biodata.")) && id.contains('_') {
             return Err("schema identities must use hyphens".into());
         }
         let result = schema
@@ -64,7 +64,7 @@ fn references(node: &Value, root: &Value, names: &mut BTreeSet<String>) {
         Value::Object(fields) => {
             if let Some(reference) = fields.get("$ref").and_then(Value::as_str)
                 && let Some(name) = reference.strip_prefix("#/$defs/")
-                && names.insert(name.into())
+                && names.insert(name.strip_prefix("Reply_").unwrap_or(name).into())
                 && let Some(target) = root.pointer(reference.trim_start_matches('#'))
             {
                 references(target, root, names);

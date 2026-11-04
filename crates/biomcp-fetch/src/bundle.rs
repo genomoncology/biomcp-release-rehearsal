@@ -4,6 +4,7 @@ mod native;
 mod parse;
 mod publish;
 mod read;
+pub(crate) mod refresh;
 mod replay;
 mod set;
 mod transfer;
@@ -15,6 +16,8 @@ use std::marker::PhantomData;
 pub const MAX_BUNDLE_BYTES: u64 = 128 * 1024 * 1024;
 /// A decoded bundle row supplies its own search keys.
 pub trait Row: serde::de::DeserializeOwned {
+    /// Refuse a refresh when native rows exist but none survive admission.
+    const REQUIRE_ACCEPTED_ROWS: bool = false;
     /// Source-specific complete transfer bound, capped by the shared bundle ceiling.
     const MAX_BYTES: u64 = MAX_BUNDLE_BYTES;
     /// Decode a complete source document before any row is published.
@@ -140,6 +143,8 @@ pub enum Find<'a> {
 /// Public bundle metadata contains no local filenames or provider diagnostics.
 #[derive(Clone, Debug)]
 pub struct BundleInfo {
+    /// Rejected logical source rows, retained across synchronization reuse.
+    pub rejections: Vec<BundleRejection>,
     /// Native publisher revision validator, when supplied.
     pub etag: Option<Box<str>>,
     /// Native publisher modification header, when supplied.
@@ -159,13 +164,49 @@ pub struct BundleInfo {
     /// Actual local set synchronization time as UTC Unix seconds.
     pub retrieved_at: Option<i64>,
 }
+/// Publication decision made after native row admission.
+#[derive(Clone, Debug)]
+pub enum BundleSync {
+    /// The checked catalog is active, including a valid native empty catalog.
+    Published(BundleInfo),
+    /// Every native row was refused; the active catalog is unchanged.
+    Refused {
+        /// Native rows examined before admission.
+        native_rows: u64,
+        /// Redacted refusal facts from this refresh.
+        rejections: Vec<BundleRejection>,
+        /// Complete refused source body bytes.
+        bytes: u64,
+        /// Bytes transferred during this refresh.
+        downloaded_bytes: u64,
+        /// Last good metadata, separate from the refused refresh.
+        retained: Option<BundleInfo>,
+    },
+}
+impl BundleSync {
+    pub(super) fn published(self, leg: &crate::Leg<'_>) -> Result<BundleInfo, RequestError> {
+        match self {
+            Self::Published(info) => Ok(info),
+            Self::Refused { .. } => Err(leg
+                .failure(biomcp_types::Reason::BadReply, Some(200))
+                .into()),
+        }
+    }
+}
 impl Fetch {
+    /// Synchronize while preserving a refused refresh separately from the active catalog.
+    pub fn sync_catalog<R: Row>(&self, bundle: &Bundle<R>) -> Result<BundleSync, RequestError> {
+        let deadline = self.deadline(self.config.sync_budget);
+        let mut leg = self.leg(bundle.spec, deadline);
+        leg.deadline = deadline;
+        leg.sync_bundle(bundle, false)
+    }
     /// Synchronize a declared bundle under the configured independent sync budget.
     pub fn sync<R: Row>(&self, bundle: &Bundle<R>) -> Result<BundleInfo, RequestError> {
         let deadline = self.deadline(self.config.sync_budget);
         let mut leg = self.leg(bundle.spec, deadline);
         leg.deadline = deadline;
-        leg.sync_bundle(bundle, false)
+        leg.sync_bundle(bundle, false)?.published(&leg)
     }
 }
 /// Serialize a typed source document row for the shared checked bundle store.
@@ -196,4 +237,17 @@ impl DocumentMedia {
             Self::Json => "application/json",
         }
     }
+}
+
+/// A redacted rejection at a stable logical source row.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct BundleRejection {
+    /// One-based logical row number, counting the header.
+    pub row: u64,
+    /// Fixed reason without provider row contents.
+    pub reason: String,
+}
+
+fn query_word(word: &str) -> bool {
+    word.chars().any(char::is_alphanumeric)
 }

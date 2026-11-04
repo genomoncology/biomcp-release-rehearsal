@@ -2,12 +2,12 @@
   "$id": "biodata.summary-source/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "The attribution on a source-provided summary, independent of fetch providers.",
-  "enum": [
-    "refseq"
-  ],
   "title": "SummarySource",
   "type": "string",
   "x-enum-descriptions": [
     " RefSeq attribution."
+  ],
+  "x-extensible-enum": [
+    "refseq"
   ]
 }

@@ -7,6 +7,7 @@ pub(super) struct Records {
     pub id: Option<String>,
     pub rows: Vec<VariantAssertion>,
     pub problems: Vec<biomcp_types::Problem>,
+    pub refusals: crate::Refusal,
     pub accession: Option<String>,
     pub version: Option<String>,
 }
@@ -17,7 +18,7 @@ impl Reply for Records {
 }
 impl XmlReply for Records {
     fn decode_xml(xml: &str) -> Result<Self, BadReply> {
-        let root = root(xml)?;
+        let root = Element::root(xml, "ClinVarResult-Set")?;
         if root.child("ERROR")?.is_some() {
             return Err(BadReply);
         }
@@ -27,6 +28,7 @@ impl XmlReply for Records {
                 id: None,
                 rows: Vec::new(),
                 problems: Vec::new(),
+                refusals: crate::Refusal::None,
                 accession: None,
                 version: None,
             });
@@ -35,78 +37,120 @@ impl XmlReply for Records {
             return Err(BadReply);
         }
         let archive = *archives.first().ok_or(BadReply)?;
-        let id = archive.attr("VariationID")?.ok_or(BadReply)?;
-        format!("clinvar:{id}")
-            .parse::<biodata::VariantId>()
-            .map_err(|_| BadReply)?;
+        let id = archive.attr("VariationID")?;
+        let accession = archive.attr("Accession")?;
+        let version = archive.attr("Version")?;
         let classified = archive.child("ClassifiedRecord")?.ok_or(BadReply)?;
-        let subject =
-            biodata::VariantRef::allele(format!("clinvar:{id}").parse().map_err(|_| BadReply)?);
-        let mut rows = Vec::new();
         let mut problems = crate::mapped::Problems {
             source: biomcp_types::Source::ClinVar,
-            record: archive
-                .attr("Accession")?
-                .and_then(|s| crate::mapped::text(&s).ok()),
+            record: accession.as_ref().and_then(crate::mapped::record),
             list: Vec::new(),
         };
-        if let Some(class) = classified.child("Classifications")? {
-            rows.extend(super::map::aggregate(
-                archive,
-                class,
-                AssertionKind::Vcv,
-                subject.clone(),
-                Vec::new(),
-                &mut problems,
-            )?);
-        }
-        if let Some(rcvs) = classified.child("RCVList")? {
-            for rcv in rcvs.children("RCVAccession")? {
-                if let Some(class) = rcv.child("RCVClassifications")? {
-                    problems.record = rcv
-                        .attr("Accession")?
-                        .as_deref()
-                        .map(crate::mapped::text)
-                        .transpose()?;
-                    rows.extend(super::map::aggregate(
-                        rcv,
-                        class,
-                        AssertionKind::Rcv,
-                        subject.clone(),
-                        super::detail::rcv_conditions(rcv, &mut problems)?,
-                        &mut problems,
-                    )?);
-                }
-            }
-        }
-        if let Some(scvs) = classified.child("ClinicalAssertionList")? {
-            for scv in scvs.children("ClinicalAssertion")? {
-                rows.extend(super::map::submission(scv, subject.clone(), &mut problems)?);
-            }
-        }
+        let subject = problems.optional(
+            "VariationID",
+            Some(id.as_ref().ok_or(BadReply).and_then(|id| {
+                format!("clinvar:{id}")
+                    .parse::<biodata::VariantId>()
+                    .map_err(|_| BadReply)
+            })),
+        );
+        let subject = match subject {
+            Some(id) => super::subject::map(archive, classified, id, &mut problems)?,
+            None => None,
+        };
+        let Some(subject) = subject else {
+            return Ok(Self {
+                id,
+                accession,
+                version,
+                rows: Vec::new(),
+                problems: problems.list,
+                refusals: crate::Refusal::Refused,
+            });
+        };
+        let mut refusals = crate::Refusal::None;
+        let rows = assertions(archive, classified, subject, &mut problems, &mut refusals)?;
         Ok(Self {
-            id: Some(id),
+            id,
             rows,
             problems: problems.list,
-            accession: archive.attr("Accession")?,
-            version: archive.attr("Version")?,
+            refusals,
+            accession,
+            version,
         })
     }
 }
-fn root(xml: &str) -> Result<Element<'_>, BadReply> {
-    let mut reader = quick_xml::Reader::from_str(xml);
-    loop {
-        let begin = reader.buffer_position() as usize;
-        match reader.read_event().map_err(|_| BadReply)? {
-            quick_xml::events::Event::Start(tag) | quick_xml::events::Event::Empty(tag) => {
-                return if tag.name().as_ref() == "ClinVarResult-Set" {
-                    Ok(Element(&xml[begin..]))
-                } else {
-                    Err(BadReply)
-                };
+
+impl Records {
+    pub(super) fn identity_problem(
+        &self,
+        id: &str,
+        selected: Option<(&str, Option<&str>)>,
+    ) -> Option<&'static str> {
+        if self
+            .problems
+            .iter()
+            .any(|problem| problem.field.as_ref() == "VariationID")
+            || self.id.as_deref().is_some_and(|given| given != id)
+        {
+            return Some("VariationID");
+        }
+        if let Some((accession, version)) = selected.filter(|_| self.id.is_some()) {
+            if self.accession.as_deref() != Some(accession) {
+                return Some("Accession");
             }
-            quick_xml::events::Event::Eof => return Err(BadReply),
-            _ => {}
+            if version.is_some_and(|version| self.version.as_deref() != Some(version)) {
+                return Some("Version");
+            }
+        }
+        None
+    }
+}
+
+fn assertions(
+    archive: Element<'_>,
+    classified: Element<'_>,
+    subject: biodata::VariantRef,
+    problems: &mut crate::mapped::Problems,
+    refusals: &mut crate::Refusal,
+) -> Result<Vec<VariantAssertion>, BadReply> {
+    let mut rows = Vec::new();
+    if let Some(class) = classified.child("Classifications")? {
+        rows.extend(super::map::aggregate(
+            archive,
+            class,
+            AssertionKind::Vcv,
+            subject.clone(),
+            Vec::new(),
+            problems,
+            refusals,
+        )?);
+    }
+    if let Some(rcvs) = classified.child("RCVList")? {
+        for rcv in rcvs.children("RCVAccession")? {
+            if let Some(class) = rcv.child("RCVClassifications")? {
+                problems.record = rcv.attr("Accession")?.and_then(crate::mapped::record);
+                rows.extend(super::map::aggregate(
+                    rcv,
+                    class,
+                    AssertionKind::Rcv,
+                    subject.clone(),
+                    super::detail::rcv_conditions(rcv, problems)?,
+                    problems,
+                    refusals,
+                )?);
+            }
         }
     }
+    if let Some(scvs) = classified.child("ClinicalAssertionList")? {
+        for scv in scvs.children("ClinicalAssertion")? {
+            rows.extend(super::map::submission(
+                scv,
+                subject.clone(),
+                problems,
+                refusals,
+            )?);
+        }
+    }
+    Ok(rows)
 }

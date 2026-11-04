@@ -1,34 +1,21 @@
 //! Named normalization preserves provider outcomes through the real command.
 use super::{launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
 
 pub(super) fn trials() -> Vec<Trial> {
-    vec![
-        Trial::test("variant-normalization/keeps-every-transcript", || {
-            transcripts().map_err(Into::into)
-        }),
-        Trial::test("variant-normalization/native-mapping-walk-is-warm", || {
-            walk().map_err(Into::into)
-        }),
-        Trial::test("variant-normalization/warning-is-rejection", || {
-            warning().map_err(Into::into)
-        }),
-        Trial::test(
-            "variant-normalization/nested-rejection-stays-uncached",
-            || nested().map_err(Into::into),
-        ),
-        Trial::test(
-            "variant-normalization/all-keeps-independent-results",
-            || independent().map_err(Into::into),
-        ),
-    ]
+    // The peer checks literal resolver traffic while the test follows bound runtime mapping actions through the warm cache.
+    vec![transcript_trial(
+        crate::runner::required_contract::NORMALIZATION_PAGES.0,
+        || walk().map_err(Into::into),
+    )]
 }
 fn environment(stub: &Stub) -> Result<Environment, String> {
     let environment = Environment::new().map_err(|e| e.to_string())?;
     let ca = environment.root().join("normalization-ca.pem");
-    stub.retain(&environment);
+    stub.retain(environment.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     environment
         .config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
@@ -111,153 +98,4 @@ fn normalized(_: &str) -> Result<String, String> {
         "infos":[{"code":"ISOURCE","details":"  native whitespace  "}]}
     )
     .to_string())
-}
-fn warning() -> Result<(), String> {
-    let stub = Stub::for_source("rest.variantvalidator.org", "application/json", rejected)?;
-    let environment = environment(&stub)?;
-    for _ in 0..2 {
-        let value = run(
-            &environment,
-            &[
-                "variant",
-                "normalize",
-                "--source",
-                "variantvalidator",
-                "--hgvs",
-                "LRG_321p1:p.Arg273His",
-                "--build",
-                "GRCh38",
-            ],
-        )?;
-        if value.pointer("/result/results/0/outcome") != Some(&json!("rejected"))
-            || value.pointer("/result/results/0/messages/0/text")
-                != Some(&json!("  provider warning  "))
-            || value.pointer("/result/results/0/version/0/value")
-                != Some(&json!("synthetic-version"))
-            || value.pointer("/sources/0/reason") != Some(&json!("rejected"))
-        {
-            return Err(format!("warning was resolved or changed: {value}"));
-        }
-    }
-    if stub.finish()?.len() != 2 {
-        return Err("validator cached a warning or made an undeclared fallback".into());
-    }
-    Ok(())
-}
-
-fn rejected(_: &str) -> Result<String, String> {
-    Ok(json!({"flag":"warning",
-"metadata":{"variantvalidator_version":"synthetic-version"},
-"validation_warning_1":{"submitted_variant":"LRG_321p1:p.Arg273His",
-"hgvs_transcript_variant":"",
-"validation_warnings":["  provider warning  "]}})
-    .to_string())
-}
-fn independent() -> Result<(), String> {
-    let stub = Stub::for_source("mutalyzer.nl", "application/json", normalized)?;
-    let environment = environment(&stub)?;
-    let value = run(
-        &environment,
-        &[
-            "variant",
-            "normalize",
-            "--source",
-            "all",
-            "--hgvs",
-            "NM_004333.4:c.1799T>A",
-            "--build",
-            "GRCh38",
-            "--disable-sources",
-            "car,variantvalidator",
-        ],
-    )?;
-    if value.pointer("/status") != Some(&json!("partial"))
-        || value.pointer("/result/results/0/outcome") != Some(&json!("unavailable"))
-        || value.pointer("/result/results/1/outcome") != Some(&json!("resolved"))
-        || value.pointer("/result/results/2/outcome") != Some(&json!("unavailable"))
-    {
-        return Err(format!("one failure hid another service: {value}"));
-    }
-    if stub.finish()?.len() != 1 {
-        return Err("disabled services made requests".into());
-    }
-    Ok(())
-}
-
-fn nested() -> Result<(), String> {
-    let stub = Stub::for_source("mutalyzer.nl", "application/json", nested_body)?;
-    let environment = environment(&stub)?;
-    let args = [
-        "variant",
-        "normalize",
-        "--source",
-        "mutalyzer",
-        "--hgvs",
-        "NC_000017.10:g.7576633A>G",
-    ];
-    for _ in 0..2 {
-        let value = run(&environment, &args)?;
-        if value.pointer("/result/results/0/outcome") != Some(&json!("rejected"))
-            || value.pointer("/result/results/0/messages/0/code")
-                != Some(&json!("ESEQUENCEMISMATCH"))
-        {
-            return Err(format!("nested source rejection lost: {value}"));
-        }
-    }
-    let mut offline = args.to_vec();
-    offline.push("--offline");
-    let value = run(&environment, &offline)?;
-    if value.pointer("/sources/0/reason") != Some(&json!("offline")) || stub.finish()?.len() != 2 {
-        return Err("provider rejection entered shared reply cache".into());
-    }
-    Ok(())
-}
-fn nested_body(_: &str) -> Result<String, String> {
-    Ok(
-        json!({"custom":{"input_description":"NC_000017.10:g.7576633A>G",
-"errors":[{"code":"ESEQUENCEMISMATCH",
-"details":"source reference mismatch"}]},
-"message":"Errors encountered."})
-        .to_string(),
-    )
-}
-
-fn transcripts() -> Result<(), String> {
-    let stub = Stub::for_source(
-        "rest.variantvalidator.org",
-        "application/json",
-        transcripts_body,
-    )?;
-    let environment = environment(&stub)?;
-    let value = run(
-        &environment,
-        &[
-            "variant",
-            "normalize",
-            "--source",
-            "variantvalidator",
-            "--hgvs",
-            "NM_004333.4:c.1799T>A",
-            "--build",
-            "GRCh38",
-        ],
-    )?;
-    if value.pointer("/result/results/0/total_mappings") != Some(&json!(2))
-        || value.pointer("/result/results/0/mappings/0/value") != Some(&json!("NM_004333.4:c.2A>T"))
-        || value.pointer("/result/results/0/mappings/1/value") != Some(&json!("NM_004333.4:c.1A>T"))
-    {
-        return Err(format!("service transcript was dropped or chosen: {value}"));
-    }
-    if stub.finish()?.len() != 1 {
-        return Err("normalization made an undeclared fallback".into());
-    }
-    Ok(())
-}
-fn transcripts_body(_: &str) -> Result<String, String> {
-    Ok(
-        "{\"flag\":\"gene_variant\",\"metadata\":{\"variantvalidator_version\":\"synthetic\"},\"z\":{\"submit\
-        ted_variant\":\"NM_004333.4:c.1799T>A\",\"hgvs_transcript_variant\":\"NM_004333.4:c.2A>T\"},\"a\":{\
-        \"submitted_variant\":\"NM_004333.4:c.1799T>A\",\"hgvs_transcript_variant\":\"NM_004333.4:c.1A>T\"}}"
-            .into(),
-    )
 }

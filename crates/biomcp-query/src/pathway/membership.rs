@@ -46,7 +46,7 @@ pub(super) fn resolve(
                 record: format!(
                     "{}:{}",
                     row.reference.namespace.as_deref().unwrap_or(""),
-                    row.reference.value
+                    row.reference.id
                 )
                 .parse()
                 .ok(),
@@ -60,7 +60,7 @@ fn accession(row: &PathwayMember) -> Option<UniProtAcc> {
     if row.reference.namespace.as_deref() != Some("uniprot") {
         return None;
     }
-    let stated = UniProtIsoform::new(row.reference.value.as_str()).ok()?;
+    let stated = UniProtIsoform::new(row.reference.id.as_str())?;
     let base = stated
         .as_str()
         .split_once('-')

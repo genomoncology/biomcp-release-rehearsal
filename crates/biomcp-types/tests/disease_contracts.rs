@@ -1,5 +1,6 @@
 //! Disease public wire contracts precede provider implementations.
 use biodata::{DiseaseAssociation, Statement};
+use biomcp_types::Paged;
 use biomcp_types::{DiseaseCard, DiseaseGet, DiseaseOntology, DiseaseSearch};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
@@ -58,12 +59,14 @@ fn exact_identity_and_statistics_selectors_cannot_be_mixed() {
 }
 
 #[test]
-fn card_refuses_hidden_associations_statistics_and_related_entities() {
+fn card_omits_unrecognized_associations_statistics_and_related_entities() {
     let card = json!(
         {"requested_id":"MONDO:0007254","returned_id":"MONDO:0007254","concept":{"id":"MONDO:0007254","label":"breast cancer"},
-        "attribution":{"source":"synthetic"},}
+        "attribution":{"source":"synthetic"},"replaced_by":null}
     );
-    roundtrip::<DiseaseCard>(card.clone()).unwrap();
+    let mut expected = card.clone();
+    expected.as_object_mut().unwrap().remove("replaced_by");
+    assert_eq!(roundtrip::<DiseaseCard>(card.clone()).unwrap(), expected);
     for field in [
         "genes",
         "phenotypes",
@@ -74,7 +77,7 @@ fn card_refuses_hidden_associations_statistics_and_related_entities() {
     ] {
         let mut invalid = card.clone();
         invalid[field] = json!([]);
-        assert!(serde_json::from_value::<DiseaseCard>(invalid).is_err());
+        assert_eq!(roundtrip::<DiseaseCard>(invalid).unwrap(), expected);
     }
 }
 
@@ -94,7 +97,7 @@ fn association_keeps_parent_request_and_native_child_without_becoming_statement(
 fn native_statistics_keep_requested_and_returned_dimensions_and_missing_observations() {
     let value = json!(
         {"requested_site":"55","requested_selectors":[{"name":"dataset","code":"4"}],"returned_selectors":[{"name":"site","code":"55"},
-        {"name":"year_range","code":"31"}],"year":2022,"measure":"rel_rate","modeled":{"value":93.690345},
+        {"name":"year_range","code":"31"}],"year":2022,"measure":"rel_rate","modeled":{"value":{"value":93.690345}},
         "attribution":{"source":"synthetic"}}
     );
     let result = roundtrip::<biodata::DiseaseStatistic>(value.clone()).unwrap();
@@ -223,7 +226,9 @@ fn native_alias_proof_keeps_unlabeled_endpoints_and_raw_description() {
         {"requested_id":"DOID:3910","returned_id":"MONDO:0005061","alias":relation,"concept":{"id":"MONDO:0005061","label":"synthetic"},
         "replaced_by":null,"attribution":{"source":"synthetic"},}
     );
-    assert_eq!(roundtrip::<DiseaseCard>(card.clone()).unwrap(), card);
+    let mut expected = card.clone();
+    expected.as_object_mut().unwrap().remove("replaced_by");
+    assert_eq!(roundtrip::<DiseaseCard>(card).unwrap(), expected);
 }
 
 #[test]

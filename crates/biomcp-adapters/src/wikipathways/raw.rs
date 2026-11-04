@@ -1,97 +1,44 @@
+use crate::{native_text::NativeText, raw::Field};
 use biodata::{Text, WikiPathwaysId};
-use biomcp_fetch::{
-    BadReply, KeyKind, Keys, Row, bundle_sha256, decode_bundle_document, encode_bundle_row,
-};
-use biomcp_types::WikiPathwaysCatalogReceipt;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+
 #[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Catalog {
+pub(super) struct Catalog {
     #[serde(rename = "pathwayInfo")]
-    rows: Vec<Native>,
+    pub rows: Vec<Field<WireNative>>,
 }
+#[derive(Debug, Deserialize)]
+pub(super) struct WireNative {
+    pub id: WikiPathwaysId,
+    pub url: Text,
+    pub species: Box<str>,
+    pub name: Option<Field<NativeText>>,
+    pub revision: Option<Field<NativeText>>,
+    pub authors: Option<Field<Box<str>>>,
+    pub description: Option<Field<Box<str>>>,
+    #[serde(rename = "citedIn")]
+    pub cited_in: Option<Field<Box<str>>>,
+    pub datanodes: Option<Field<Box<str>>>,
+    pub annotations: Option<Field<Box<str>>>,
+}
+/// Stored catalog metadata keeps previously serialized required values readable as Some.
 #[derive(Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub(super) struct Native {
     pub id: WikiPathwaysId,
-    url: Text,
-    pub name: Text,
+    pub url: Text,
     pub species: Box<str>,
-    pub revision: Text,
-    authors: Box<str>,
-    pub description: Box<str>,
-    #[serde(rename = "citedIn")]
-    pub cited_in: Box<str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    datanodes: Option<Box<str>>,
+    pub name: Option<Text>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    annotations: Option<Box<str>>,
-}
-#[derive(Debug, Deserialize, Serialize)]
-pub(super) struct CatalogRow {
-    pub native: Native,
-    pub receipt: WikiPathwaysCatalogReceipt,
-}
-impl Row for CatalogRow {
-    const MAX_BYTES: u64 = 8 * 1024 * 1024;
-    fn decode_document(body: &[u8]) -> Result<Vec<String>, BadReply> {
-        if body.len() as u64 > Self::MAX_BYTES {
-            return Err(BadReply);
-        }
-        let catalog: Catalog = decode_bundle_document(body)?;
-        if catalog.rows.is_empty() {
-            return Err(BadReply);
-        }
-        let mut ids = BTreeSet::new();
-        for row in &catalog.rows {
-            if row.species.trim().is_empty()
-                || !ids.insert(row.id.as_str())
-                || row.url.as_str() != format!("https://www.wikipathways.org/instance/{}", row.id)
-                || row.datanodes.is_some() != row.annotations.is_some()
-            {
-                return Err(BadReply);
-            }
-        }
-        let sha256 = bundle_sha256(body);
-        let receipt = WikiPathwaysCatalogReceipt {
-            sha256: sha256.parse().map_err(|_| BadReply)?,
-            bytes: body.len() as u64,
-            revision: format!("sha256:{sha256}").parse().map_err(|_| BadReply)?,
-            human_rows: catalog
-                .rows
-                .iter()
-                .filter(|r| r.species.as_ref() == "Homo sapiens")
-                .count() as u64,
-            total_rows: catalog.rows.len() as u64,
-        };
-        catalog
-            .rows
-            .into_iter()
-            .map(|native| {
-                encode_bundle_row(&Self {
-                    native,
-                    receipt: receipt.clone(),
-                })
-            })
-            .collect()
-    }
-    fn keys(&self) -> Keys {
-        Keys {
-            exact: vec![
-                (KeyKind::Id, self.native.id.to_string().into()),
-                (KeyKind::Band, "catalog".into()),
-            ],
-            words: vec![],
-        }
-    }
-    fn check_part(&self, part: &str) -> Result<(), BadReply> {
-        if (part == "search" && self.native.datanodes.is_some())
-            || (part == "get" && self.native.datanodes.is_none())
-        {
-            Ok(())
-        } else {
-            Err(BadReply)
-        }
-    }
+    pub revision: Option<Text>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub authors: Option<Box<str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<Box<str>>,
+    #[serde(rename = "citedIn", skip_serializing_if = "Option::is_none")]
+    pub cited_in: Option<Box<str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub datanodes: Option<Box<str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<Box<str>>,
 }

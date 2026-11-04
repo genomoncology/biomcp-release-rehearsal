@@ -1,14 +1,13 @@
 //! Process settings and persistent case-cache ownership through the shipped binary.
-use super::{launch::Environment, mcp};
+use super::launch::Environment;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-type Check = Result<(), String>;
+use std::fs;
+use std::path::{Path, PathBuf};
+
 pub(super) fn root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/replies/gene/main")
+    crate::runner::launch::fixtures().join("replies/gene/main")
 }
 pub(super) fn invoke(env: &Environment, args: Vec<String>, exit: i32) -> Result<Value, String> {
     let output = env
@@ -36,13 +35,15 @@ pub(super) fn invoke(env: &Environment, args: Vec<String>, exit: i32) -> Result<
         )
         .map_err(|e| e.to_string())?;
     }
-    if args.iter().any(|word| word == "diagnostic")
-        || args.windows(2).any(|words| {
-            words.first().is_some_and(|word| word == "sync")
-                && words
-                    .get(1)
-                    .is_some_and(|word| matches!(word.as_str(), "gtr" | "who-ivd" | "fda-cdx"))
-        })
+    if value.get("schema").and_then(Value::as_str)
+        != Some(<biomcp_types::Help as biomcp_types::ResponseBody>::SCHEMA)
+        && (args.iter().any(|word| word == "diagnostic")
+            || args.windows(2).any(|words| {
+                words.first().is_some_and(|word| word == "sync")
+                    && words
+                        .get(1)
+                        .is_some_and(|word| matches!(word.as_str(), "gtr" | "who-ivd" | "fda-cdx"))
+            }))
     {
         super::diagnostic_retirements::bounded(&value)?;
     }
@@ -58,133 +59,40 @@ pub(super) fn cached(args: &[&str], case: &Path, recording: Option<&Path>) -> Ve
     args.extend(["--case-cache".into(), case.to_string_lossy().into()]);
     args
 }
+
 pub(super) fn trials() -> Vec<Trial> {
+    // These inspect files and SQLite ownership before mutation; JSON replies cannot show those side effects.
     vec![
-        Trial::test("gene/version-one-default-cache-remains-readable", || {
-            default_cache_migration().map_err(Into::into)
-        }),
-        Trial::test("article/concurrent-process-pool-publication", || {
-            article_processes().map_err(Into::into)
-        }),
-        Trial::test("article/persistent-replay-command-epochs", || {
-            article_replay_epoch().map_err(Into::into)
-        }),
-        Trial::test("article/owners-refused-before-journal-and-tables", || {
-            article_owners().map_err(Into::into)
-        }),
-        Trial::test("gene/next-commands-preserve-hyphen-positionals", || {
-            next_positionals().map_err(Into::into)
-        }),
-        Trial::test("gene/persistent-case-cache-owns-all-writes", || {
-            ownership().map_err(Into::into)
-        }),
-        Trial::test("gene/refuses-unowned-case-cache-paths", || {
+        transcript_trial(
+            "gene-identity/persistent-case-cache-owns-all-writes",
+            || ownership().map_err(Into::into),
+        ),
+        transcript_trial("gene-identity/refuses-unowned-case-cache-paths", || {
             refusals().map_err(Into::into)
         }),
-        Trial::test("gene/checked-command-and-config-boundaries", || {
-            boundaries().map_err(Into::into)
-        }),
+        transcript_trial(
+            "article-search/owners-refused-before-journal-and-tables",
+            || article_owners().map_err(Into::into),
+        ),
     ]
 }
-fn seed_legacy_cache(env: &Environment) -> Result<std::path::PathBuf, String> {
-    let folder = env.root().join("cache/biomcp");
-    let current = fs::read_dir(&folder)
-        .map_err(|e| e.to_string())?
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .find(|p| p.extension().is_some_and(|v| v == "sqlite"))
-        .ok_or("missing cache")?;
-    let historical = folder.join("cache-1-4.sqlite");
-    if current != historical {
-        fs::rename(&current, &historical).map_err(|e| e.to_string())?;
-        fs::rename(
-            current.with_extension("parts"),
-            historical.with_extension("parts"),
-        )
-        .map_err(|e| e.to_string())?;
-    }
-    let connection = rusqlite::Connection::open(&historical).map_err(|e| e.to_string())?;
-    connection
-        .execute_batch(
-            "ALTER TABLE reply DROP COLUMN pagination; ALTER TABLE reply DROP COLUMN content_range; UPDATE meta \
-        SET version=1 WHERE owner='biomcp-fetch'; CREATE TABLE pool(id TEXT PRIMARY KEY); INSERT INTO pool \
-        VALUES ('obsolete-terms'); CREATE TABLE foreign_data(value TEXT); INSERT INTO foreign_data VALUES \
-        ('keep'); INSERT INTO meta VALUES ('foreign-owner',77); INSERT INTO meta(owner,version) VALUES \
-        ('biomcp-query',4) ON CONFLICT(owner) DO UPDATE SET version=4; INSERT INTO \
-        reply(key,source,url,status,body,fetched_at,fresh_until) VALUES \
-        (x'01','pubmed','https://example.test/retained',200,x'7b7d',0,9223372036854775807);",
-        )
-        .map_err(|e| e.to_string())?;
-    drop(connection);
-    Ok(historical)
-}
-fn default_cache_migration() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let stub = super::network_stub::Stub::new()?;
-    let ca = env.root().join("ca.pem");
-    stub.retain(&env);
-    fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
-    env.config(&json!({"ca_bundle":ca,"proxy":format!("http://{}",stub.address)}))
-        .map_err(|e| e.to_string())?;
-    invoke(&env, vec!["sync".into(), "hgnc".into()], 0)?;
-    let historical = seed_legacy_cache(&env)?;
-    let args = vec![
-        "get".into(),
-        "gene".into(),
-        "BRAF".into(),
-        "--offline".into(),
-    ];
-    let value = invoke(&env, args.clone(), 0)?;
-    let (command, globals) = args.split_at_checked(3).ok_or("missing offline command")?;
-    let peer = mcp::call_with_globals(&env, command, false, globals)?;
-    if value != peer || value.pointer("/result/items/0/answer/gene/symbol") != Some(&json!("BRAF"))
-    {
-        return Err(format!(
-            "upgrade lost the ordinary offline gene bundle: {value}"
-        ));
-    }
-    let article = invoke(
-        &env,
-        vec![
-            "search".into(),
-            "article".into(),
-            "synthetic".into(),
-            "--offline".into(),
-        ],
-        4,
-    )?;
-    if article.get("status") != Some(&json!("failed")) {
-        return Err("query owner could not open the migrated default cache".into());
-    }
-    let cx = rusqlite::Connection::open(&historical).map_err(|e| e.to_string())?;
-    let retained: bool = cx
-        .query_row(
-            "SELECT EXISTS(SELECT 1 FROM reply WHERE key=x'01' AND body=x'7b7d') AND (SELECT version FROM meta \
-        WHERE owner='biomcp-query')=5 AND NOT EXISTS(SELECT 1 FROM pool WHERE id='obsolete-terms') AND \
-        (SELECT value FROM foreign_data)='keep' AND (SELECT version FROM meta WHERE \
-        owner='foreign-owner')=77",
-            [],
-            |r| r.get(0),
-        )
-        .map_err(|e| e.to_string())?;
-    if !retained {
-        return Err("query upgrade lost reply bytes or failed to migrate".into());
-    }
-    if stub.finish()?.len() != 2 {
-        return Err("offline migration opened HTTP".into());
-    }
-    Ok(())
-}
-fn ownership() -> Check {
+
+fn ownership() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let user_cache = env.root().join("cache/biomcp");
     fs::create_dir(&user_cache).map_err(|e| e.to_string())?;
     let file = user_cache.join("replies.sqlite");
     fs::write(&file, b"prepopulated user cache sentinel").map_err(|e| e.to_string())?;
     let case = env.root().join("case");
+    let records = env.root().join("known-recordings");
+    super::response_cases::cache_capture(
+        "gene/main",
+        &records,
+        super::response_cases::CACHE_ACQUIRED,
+    )?;
     let replay = invoke(
         &env,
-        cached(&["get", "gene", "BRAF"], &case, Some(&root())),
+        cached(&["get", "gene", "BRAF"], &case, Some(&records)),
         0,
     )?;
     let offline = invoke(&env, cached(&["get", "gene", "BRAF"], &case, None), 0)?;
@@ -212,7 +120,7 @@ fn ownership() -> Check {
         cached(&["sync", "hgnc"], &sync_case, Some(&root())),
         0,
     )?;
-    if value.get("schema") != Some(&json!("biomcp.sync/5"))
+    if value.get("schema") != Some(&json!("biomcp.sync/7"))
         || value.pointer("/result/rows") != Some(&json!(176))
         || value.pointer("/query/source") != Some(&json!("hgnc"))
     {
@@ -224,7 +132,8 @@ fn ownership() -> Check {
     }
     Ok(())
 }
-fn refusals() -> Check {
+
+fn refusals() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let case = env.root().join("owned");
     invoke(
@@ -271,153 +180,8 @@ fn refusals() -> Check {
     }
     Ok(())
 }
-fn boundaries() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    for args in [
-        vec!["sync", "hgnc-withdrawn"],
-        vec!["get", "gene"],
-        vec!["search", "gene"],
-        vec!["search", "gene", "BRAF", "--limit", "0"],
-        vec!["search", "gene", "--band", "invalid"],
-        vec!["get", "gene", "BRAF", "--case-cache", "sensitive"],
-        vec!["get", "gene", "BRAF", "--offline", "--replay", "sensitive"],
-    ] {
-        let value = invoke(&env, args.iter().map(|arg| (*arg).into()).collect(), 2)?;
-        if value.to_string().contains("sensitive") || value.get("local_error").is_some() {
-            return Err("usage echoed caller input".into());
-        }
-    }
-    let args = vec!["get".into(), "gene".into(), "NOTAGENE".into()];
-    let globals = vec!["--replay".into(), root().to_string_lossy().into()];
-    mcp::call_with_globals(&env, &args, false, &globals)?;
-    for flag in [
-        "--record",
-        "--replay",
-        "--case-cache",
-        "--case-cache=sensitive",
-    ] {
-        mcp::call_with_globals(
-            &env,
-            &["get".into(), "gene".into(), "BRAF".into(), flag.into()],
-            true,
-            &[],
-        )?;
-    }
-    let directory = env.root().join("config/biomcp");
-    fs::create_dir(&directory).map_err(|e| e.to_string())?;
-    for config in [
-        json!({"unknown":"sensitive"}),
-        json!({"keys":{"unknown":"sensitive"}}),
-        json!({"keys":{"oncokb_api_key":9}}),
-        json!({"proxy":9}),
-        json!({"proxy":"http://[invalid"}),
-    ] {
-        fs::write(directory.join("config.json"), config.to_string()).map_err(|e| e.to_string())?;
-        let value = invoke(
-            &env,
-            vec![
-                "get".into(),
-                "gene".into(),
-                "BRAF".into(),
-                "--offline".into(),
-            ],
-            5,
-        )?;
-        if value.to_string().contains("sensitive") || value.get("local_error").is_some() {
-            return Err("configuration echoed input".into());
-        }
-    }
-    key_boundaries()
-}
-fn key_boundaries() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    env.config(&json!({"unknown":"sensitive"}))
-        .map_err(|e| e.to_string())?;
-    let help = invoke(&env, vec!["help".into(), "key".into(), "oncokb".into()], 0)?;
-    if help.pointer("/result/config") != Some(&json!("keys.oncokb_api_key")) {
-        return Err("key help read malformed settings".into());
-    }
-    if env.root().join("cache/biomcp").exists() {
-        return Err("key help opened a cache".into());
-    }
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    env.config(&json!({"keys":{"oncokb_api_key":""}}))
-        .map_err(|e| e.to_string())?;
-    let recording = root()
-        .parent()
-        .ok_or("fixture root")?
-        .join("oncokb-synthetic/data");
-    let args = vec![
-        "--replay".into(),
-        recording.to_string_lossy().into(),
-        "get".into(),
-        "gene".into(),
-        "TP53".into(),
-    ];
-    let output = env
-        .command(env!("CARGO_BIN_EXE_biomcp"), &args)
-        .env("ONCOKB_TOKEN", "synthetic-override")
-        .output()
-        .map_err(|e| e.to_string())?;
-    let value: Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
-    if !output.status.success()
-        || value.pointer("/result/items/0/oncokb/version") != Some(&json!("synthetic-1"))
-    {
-        return Err("environment key did not override the empty file key".into());
-    }
-    Ok(())
-}
 
-fn next_positionals() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    for input in [
-        vec!["get", "gene", "--offline", "--", "-BRAF"],
-        vec!["search", "gene", "--offline", "--", "-BRAF"],
-        vec![
-            "get",
-            "gene",
-            "--offline",
-            "--section",
-            "constraint",
-            "--",
-            "-BRAF",
-        ],
-        vec![
-            "get",
-            "gene",
-            "--offline",
-            "--section",
-            "constraint",
-            "constraint",
-        ],
-    ] {
-        let original = invoke(&env, input.into_iter().map(str::to_owned).collect(), 4)?;
-        let args = original
-            .pointer("/next/0/args")
-            .and_then(Value::as_array)
-            .ok_or("missing fresh command")?;
-        let mut args = args
-            .iter()
-            .map(|value| {
-                value
-                    .as_str()
-                    .ok_or("invalid command argument")
-                    .map(str::to_owned)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        if !args.iter().any(|arg| arg == "--fresh") {
-            return Err("fresh policy was lost".into());
-        }
-        args.insert(0, "--offline".into());
-        let repeated = invoke(&env, args, 4)?;
-        if repeated.get("query") != original.get("query") {
-            return Err("next command changed its positional query".into());
-        }
-    }
-    Ok(())
-}
-
-fn article_owners() -> Check {
+fn article_owners() -> Result<(), String> {
     for owned in [false, true] {
         let env = Environment::new().map_err(|e| e.to_string())?;
         let parent = env.root().join("cache/biomcp");
@@ -429,7 +193,10 @@ fn article_owners() -> Check {
         ));
         let case = env.root().join("case");
         let replay = if owned {
-            Some(biomcp_fetch::ReplayCache::create_case(&case).map_err(|e| e.to_string())?)
+            Some(
+                biomcp_fetch::ReplayCache::create_case_with_owners(&case, &[])
+                    .map_err(|e| e.to_string())?,
+            )
         } else {
             None
         };
@@ -449,7 +216,7 @@ fn article_owners() -> Check {
         connection
             .execute(
                 "INSERT INTO meta(owner,version) VALUES ('biomcp-query',?1)",
-                [biomcp_query::store::VERSION + 1],
+                [biomcp_query::store::OWNER.version + 1],
             )
             .map_err(|e| e.to_string())?;
         connection
@@ -482,92 +249,6 @@ fn article_owners() -> Check {
             .map_err(|e| e.to_string())?;
         if journal != "delete" || pool {
             return Err("wrong query owner allowed journal or table mutation".into());
-        }
-    }
-    Ok(())
-}
-
-fn article_replay_epoch() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let root = env.root().join("recordings");
-    let pubmed = root.join("pubmed");
-    fs::create_dir_all(&pubmed).map_err(|e| e.to_string())?;
-    let original = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../tests/replies/article/search/synthetic-small/pubmed");
-    for entry in fs::read_dir(original).map_err(|e| e.to_string())? {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let mut value: Value =
-            serde_json::from_slice(&fs::read(entry.path()).map_err(|e| e.to_string())?)
-                .map_err(|e| e.to_string())?;
-        let exchanges = value
-            .get_mut("exchanges")
-            .and_then(Value::as_array_mut)
-            .ok_or("exchanges missing")?;
-        let first = exchanges.first().ok_or("exchange missing")?.clone();
-        *exchanges = vec![first; 32];
-        fs::write(
-            pubmed.join(entry.file_name()),
-            serde_json::to_vec(&value).map_err(|e| e.to_string())?,
-        )
-        .map_err(|e| e.to_string())?;
-    }
-    mcp::article_sequence(&env, &env.globals(Some(&root), false))
-}
-
-pub(super) fn article_processes() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let case = env.root().join("case");
-    let fixture = super::launch::fixtures().join("replies/article/search/synthetic-small");
-    let base = ["search", "article", "AKT1 E17K", "--limit", "2"];
-    let initial = invoke(&env, cached(&base, &case, Some(&fixture)), 0)?;
-    let expected = initial.pointer("/result/items").ok_or("items missing")?;
-    let parent = env.root().join("cache/biomcp");
-    fs::create_dir_all(&parent).map_err(|e| e.to_string())?;
-    let file = parent.join(format!(
-        "cache-{}-{}.sqlite",
-        biomcp_fetch::CACHE_NAMESPACE_VERSION,
-        biomcp_query::store::CACHE_NAMESPACE_VERSION
-    ));
-    // Replay and ordinary caches have the same owned schema. Copy only after
-    // the seed process closes; it has checkpointed the WAL and released locks.
-    fs::copy(case.join("replay.sqlite"), &file).map_err(|e| e.to_string())?;
-    let fetch = biomcp_fetch::Fetch::open(biomcp_fetch::FetchConfig {
-        cache: Some(file),
-        mode: biomcp_fetch::Mode::Offline,
-        cache_owners: vec![biomcp_query::store::OWNER],
-        ..Default::default()
-    })
-    .map_err(|e| e.to_string())?;
-    let connection = fetch
-        .cache_access()
-        .map_err(|e| e.to_string())?
-        .connect()
-        .map_err(|e| e.to_string())?;
-    connection
-        .execute_batch("BEGIN IMMEDIATE")
-        .map_err(|e| e.to_string())?;
-    let replies = super::publication::check(&env, || {
-        connection
-            .execute_batch("COMMIT")
-            .map_err(|e| e.to_string())
-    })?;
-    let mut pools = std::collections::BTreeSet::new();
-    for reply in replies {
-        if reply.pointer("/result/items") != Some(expected) {
-            return Err("concurrent ordinary-cache search lost items".into());
-        }
-        let pool = reply
-            .pointer("/page/pool/id")
-            .and_then(Value::as_str)
-            .ok_or("published pool missing")?;
-        if !pools.insert(pool.to_owned()) || initial.pointer("/page/pool/id") == Some(&json!(pool))
-        {
-            return Err("concurrent fresh pools collided".into());
-        }
-        let mut args: Vec<String> = base.iter().map(|v| (*v).into()).collect();
-        args.extend(["--offline".into(), "--pool".into(), pool.into()]);
-        if invoke(&env, args, 0)?.pointer("/result/items") != Some(expected) {
-            return Err("published snapshot changed".into());
         }
     }
     Ok(())

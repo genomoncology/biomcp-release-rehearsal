@@ -15,13 +15,13 @@ use std::num::NonZeroU64;
 #[derive(Deserialize)]
 pub(super) struct Works {
     pub path: String,
-    group: Vec<Group>,
+    group: Vec<Field<Group>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct Group {
     external_ids: Option<Field<Identifiers>>,
-    work_summary: Vec<Assertion>,
+    work_summary: Option<Field<Vec<Field<Assertion>>>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -31,7 +31,7 @@ struct Identifiers {
 #[derive(Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct ExternalId {
-    external_id_type: Text,
+    external_id_type: Option<Field<Text>>,
     external_id_value: Text,
     external_id_relationship: Option<Field<Text>>,
     external_id_url: Option<Field<Url>>,
@@ -47,8 +47,8 @@ impl Identifiers {
             .filter_map(|id| {
                 let id = problems.required("external_ids", id.value())?;
                 Some(OrcidExternalId {
-                    kind: id.external_id_type,
-                    value: id.external_id_value,
+                    namespace: problems.field("external_ids", id.external_id_type).into(),
+                    id: id.external_id_value,
                     relationship: optional(
                         problems,
                         "external_ids.relationship",
@@ -64,8 +64,8 @@ impl Identifiers {
 #[derive(Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct Assertion {
-    path: String,
-    put_code: NonZeroU64,
+    path: Option<Field<String>>,
+    put_code: Option<Field<NonZeroU64>>,
     visibility: Option<String>,
     title: Option<Field<Title>>,
     #[serde(rename = "type")]
@@ -74,7 +74,7 @@ struct Assertion {
     journal_title: Option<Field<Wrapped>>,
     url: Option<Field<Url>>,
     external_ids: Option<Field<Identifiers>>,
-    source: Origin,
+    source: Option<Field<Origin>>,
     display_index: Option<Field<Text>>,
 }
 #[derive(Deserialize)]
@@ -86,13 +86,18 @@ struct Title {
 }
 #[derive(Deserialize)]
 struct TranslatedTitle {
-    content: Text,
+    #[serde(deserialize_with = "crate::native_text::deserialize")]
+    content: biodata::Text,
 }
 #[derive(Deserialize)]
 struct Date {
-    year: Wrapped,
-    month: Option<Wrapped>,
-    day: Option<Wrapped>,
+    year: DatePart,
+    month: Option<DatePart>,
+    day: Option<DatePart>,
+}
+#[derive(Deserialize)]
+struct DatePart {
+    value: Text,
 }
 impl Date {
     fn convert(&self) -> Result<PartialDate, BadReply> {
@@ -157,7 +162,14 @@ impl Origin {
     }
 }
 impl Assertion {
-    fn convert(self, problems: &mut Problems) -> OrcidWorkAssertion {
+    fn convert(mut self, prefix: &str, problems: &mut Problems) -> Option<OrcidWorkAssertion> {
+        let path = problems.required_field("path", self.path.take())?;
+        problems.record = record(&path);
+        let put_code = problems.required_field("put_code", self.put_code.take())?;
+        if path != format!("{prefix}/work/{put_code}") {
+            problems.required::<()>("path", None);
+            return None;
+        }
         let (title, subtitle, translated_title) = optional(problems, "title", self.title)
             .map(|v| {
                 (
@@ -167,8 +179,8 @@ impl Assertion {
                 )
             })
             .unwrap_or_default();
-        OrcidWorkAssertion {
-            put_code: self.put_code,
+        Some(OrcidWorkAssertion {
+            put_code,
             title,
             subtitle,
             translated_title,
@@ -180,20 +192,15 @@ impl Assertion {
             external_ids: optional(problems, "external_ids", self.external_ids)
                 .map(|v| v.convert(problems))
                 .unwrap_or_default(),
-            source: self.source.convert(problems),
+            source: optional(problems, "source", self.source).map(|v| v.convert(problems)),
             visibility: OrcidPublicVisibility::Public,
             display_index: optional(problems, "display_index", self.display_index),
-        }
+        })
     }
 }
 impl Works {
     pub(super) fn identity(&self, id: &OrcidId) -> bool {
         self.path == format!("/{id}/works")
-            && self
-                .group
-                .iter()
-                .flat_map(|g| &g.work_summary)
-                .all(|s| s.path == format!("/{id}/work/{}", s.put_code))
     }
     pub(super) fn groups(self) -> Mapped<Box<[OrcidWorkGroup]>> {
         let mut problems = Problems {
@@ -201,17 +208,38 @@ impl Works {
             record: record(&self.path),
             list: Vec::new(),
         };
+        let prefix = self.path.strip_suffix("/works").unwrap_or("");
+        let mut refusals = crate::Refusal::None;
         let value = self
             .group
             .into_iter()
             .filter_map(|g| {
-                let assertions: Box<[_]> = g
-                    .work_summary
+                problems.record = record(&self.path);
+                let Some(g) = problems.field("group", Some(g)) else {
+                    refusals = crate::Refusal::Refused;
+                    return None;
+                };
+                let summaries = problems
+                    .field("work_summary", g.work_summary)
+                    .unwrap_or_default();
+                let assertions: Box<[_]> = summaries
                     .into_iter()
-                    .filter(|s| s.visibility.as_deref() == Some("public"))
-                    .map(|s| {
-                        problems.record = record(&s.path);
-                        s.convert(&mut problems)
+                    .filter_map(|s| {
+                        problems.record = record(&self.path);
+                        let Some(s) = problems.field("work_summary", Some(s)) else {
+                            refusals = crate::Refusal::Refused;
+                            return None;
+                        };
+                        if s.visibility.as_deref() != Some("public") {
+                            return None;
+                        }
+                        match s.convert(prefix, &mut problems) {
+                            Some(row) => Some(row),
+                            None => {
+                                refusals = crate::Refusal::Refused;
+                                None
+                            }
+                        }
                     })
                     .collect();
                 if assertions.is_empty() {
@@ -229,6 +257,7 @@ impl Works {
             })
             .collect();
         Mapped {
+            refusals,
             value,
             problems: problems.list,
         }

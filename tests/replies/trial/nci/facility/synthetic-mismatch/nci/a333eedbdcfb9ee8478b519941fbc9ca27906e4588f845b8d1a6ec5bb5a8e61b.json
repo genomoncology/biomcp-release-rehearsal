@@ -1,0 +1,35 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&sites.org_name=Dana-Farber%20Cancer%20Institute&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&include=sites",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 3,
+          "data": [
+            {
+              "nci_id": "NCI-2026-00001",
+              "nct_id": "NCT02296125",
+              "brief_title": "Synthetic organization site trial",
+              "current_trial_status": "Active",
+              "phase": "II",
+              "diseases": [],
+              "sites": [
+                {
+                  "org_name": "Other organization",
+                  "org_city": "Boston"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

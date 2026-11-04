@@ -8,40 +8,25 @@ use biodata::{
     ProteinFunction, ProteinHeader, ProteinIsoform, ProteinSequence, ProteinStructureRef,
 };
 use serde::{Deserialize, Serialize};
-macro_rules! page {
-    ($name:ident, $row:ty, $query:ty, $schema:literal, $doc:literal) => {
-        #[doc = $doc]
-        #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
-        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        pub struct $name {
-            /// Whole native rows in source order; totals apply only to this collection.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub items: Box<[$row]>,
-        }
-        impl ResponseBody for $name {
-            const SCHEMA: &'static str = $schema;
-            type Query = $query;
-        }
-    };
-}
+
 page!(
+    protein,
     ProteinPage,
     ProteinHeader,
     ProteinSearch,
-    "biomcp.protein-page/1",
+    "biomcp.protein-page/5",
     "Source-ordered human reviewed protein headers."
 );
 page!(
+    protein,
     ProteinFeatures,
     ProteinFeature,
     ProteinFeaturesQuery,
-    "biomcp.protein-features/1",
+    "biomcp.protein-features/4",
     "Native UniProt feature rows, preserving exact labels and uncertain bounds."
 );
 /// Whole native rows with the independent unfiltered source count.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinDomains {
     /// Bounded retained rows in source order.
@@ -51,19 +36,19 @@ pub struct ProteinDomains {
     pub native_total: u64,
 }
 impl ResponseBody for ProteinDomains {
-    const SCHEMA: &'static str = "biomcp.protein-domains/3";
+    const SCHEMA: &'static str = "biomcp.protein-domains/7";
     type Query = ProteinDomainsQuery;
 }
 page!(
+    protein,
     ProteinIsoforms,
     ProteinIsoform,
     ProteinRelationQuery,
-    "biomcp.protein-isoforms/1",
+    "biomcp.protein-isoforms/4",
     "Alternative products with every stated identifier and explicit direct sequence state."
 );
 /// Whole native rows with the independent unfiltered source count.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinComplexes {
     /// Bounded retained rows in source order.
@@ -73,26 +58,27 @@ pub struct ProteinComplexes {
     pub native_total: u64,
 }
 impl ResponseBody for ProteinComplexes {
-    const SCHEMA: &'static str = "biomcp.protein-complexes/3";
+    const SCHEMA: &'static str = "biomcp.protein-complexes/5";
     type Query = ProteinRelationQuery;
 }
 page!(
+    protein,
     ProteinComplexMembers,
     ProteinComplexMember,
     ProteinComplexMembersQuery,
-    "biomcp.protein-complex-members/1",
+    "biomcp.protein-complex-members/4",
     "Native participants of one exact containing complex, including non-protein source facts."
 );
 page!(
+    protein,
     ProteinStructures,
     ProteinStructureRef,
     ProteinRelationQuery,
-    "biomcp.protein-structures/1",
+    "biomcp.protein-structures/5",
     "Source structure links and native properties; no residue coverage claim."
 );
 /// Answers to requested inputs; ambiguous gene inputs retain all candidates.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinCard {
     /// One result per input in caller order.
@@ -100,12 +86,11 @@ pub struct ProteinCard {
     pub items: Box<[ProteinCardItem]>,
 }
 impl ResponseBody for ProteinCard {
-    const SCHEMA: &'static str = "biomcp.protein-card/4";
+    const SCHEMA: &'static str = "biomcp.protein-card/9";
     type Query = ProteinGet;
 }
 /// One requested identity and its source outcome, without first-hit selection.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinCardItem {
     /// Original caller identity.
@@ -130,7 +115,6 @@ pub struct ProteinCardItem {
 }
 /// Independent source section states; all discloses bounded first pages only.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinSections {
     /// Requested UniProt feature page.
@@ -157,19 +141,17 @@ pub struct ProteinSections {
 }
 /// One directly returned source sequence, with exact identity and audit metadata.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinSequenceResult {
     /// Native sequence record; never constructed from another entry.
     pub sequence: ProteinSequence,
 }
 impl ResponseBody for ProteinSequenceResult {
-    const SCHEMA: &'static str = "biomcp.protein-sequence/1";
+    const SCHEMA: &'static str = "biomcp.protein-sequence/4";
     type Query = ProteinSequenceQuery;
 }
 /// Whole source function paragraphs and their own evidence.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ProteinFunctionResult {
     /// Native paragraphs in source order, without inferred interpretation.
@@ -177,6 +159,6 @@ pub struct ProteinFunctionResult {
     pub items: Box<[ProteinFunction]>,
 }
 impl ResponseBody for ProteinFunctionResult {
-    const SCHEMA: &'static str = "biomcp.protein-function/2";
+    const SCHEMA: &'static str = "biomcp.protein-function/4";
     type Query = ProteinGet;
 }

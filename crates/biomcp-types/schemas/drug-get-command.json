@@ -8,6 +8,26 @@
       ],
       "type": "string"
     },
+    "CivicEvidenceLevel": {
+      "description": "Native CIViC evidence level.",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "type": "string"
+    },
+    "CivicEvidenceStatus": {
+      "description": "Native CIViC evidence review status.",
+      "enum": [
+        "accepted",
+        "submitted",
+        "rejected"
+      ],
+      "type": "string"
+    },
     "DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
@@ -41,6 +61,7 @@
       "description": "A supported drug data source.",
       "enum": [
         "who-pq",
+        "fda-drug-recall",
         "mychem",
         "chembl",
         "opentargets",
@@ -53,15 +74,17 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.drug-get-command/1",
+  "$id": "biomcp.drug-get-command/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Exact native ID retrieval with an explicitly selected source.",
+  "description": "Retrieve a drug by source-native ID, brand or generic name, with explicit source-scoped sections.",
   "properties": {
     "civic_cursor": {
       "anyOf": [
@@ -95,9 +118,38 @@
         "null"
       ]
     },
+    "document_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+    },
+    "evidence_level": {
+      "description": "Native CIViC evidence levels; repeat to include several levels.",
+      "items": {
+        "$ref": "#/$defs/CivicEvidenceLevel"
+      },
+      "type": "array"
+    },
+    "evidence_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CivicEvidenceStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+    },
     "input": {
       "$ref": "#/$defs/Text",
-      "description": "Exact source-native ID; WHO references retain native spaces. No name or alias resolution.",
+      "description": "Source-native ID or complete brand or generic name; WHO references retain native spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines",
       "x-positional": 0
     },
     "label_section": {
@@ -109,7 +161,7 @@
           "type": "null"
         }
       ],
-      "description": "Exact native label heading, required only for the label section."
+      "description": "Exact published openFDA SPL section field, including table fields; required for the label section."
     },
     "product_number": {
       "anyOf": [
@@ -151,12 +203,11 @@
     },
     "source": {
       "$ref": "#/$defs/DrugSource",
-      "description": "Required source; there is no default exact-ID resolver."
+      "description": "Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem."
     }
   },
   "required": [
-    "input",
-    "source"
+    "input"
   ],
   "title": "DrugGetCommand",
   "type": "object",

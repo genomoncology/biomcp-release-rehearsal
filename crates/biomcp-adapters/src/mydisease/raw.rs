@@ -1,5 +1,6 @@
+use crate::native_text::NativeText;
 use crate::raw::{Field, OneOrMany};
-use biodata::{Curie, Text};
+use biodata::Curie;
 use biomcp_fetch::{BadReply, Reply};
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -9,24 +10,21 @@ pub(super) struct Document {
     #[serde(rename = "_id")]
     pub id: Curie,
     #[serde(rename = "_version")]
-    pub version: Option<u64>,
-    pub mondo: Option<Component>,
-    pub disease_ontology: Option<Component>,
+    pub version: Option<crate::raw::Field<u64>>,
+    pub mondo: Option<Field<Component>>,
+    pub disease_ontology: Option<Field<Component>>,
 }
 impl Reply for Document {
     fn check(&self) -> Result<(), BadReply> {
-        if self.mondo.as_ref().is_some_and(|c| c.id != self.id)
-            || self
-                .disease_ontology
-                .as_ref()
-                .is_some_and(|c| !c.id.to_string().starts_with("DOID:"))
-        {
-            return Err(BadReply);
-        }
-        let mondo = self.mondo.as_ref().is_some_and(|c| c.id == self.id);
+        let mondo = self
+            .mondo
+            .as_ref()
+            .and_then(Field::as_ref)
+            .is_some_and(|c| c.id == self.id);
         let doid = self
             .disease_ontology
             .as_ref()
+            .and_then(Field::as_ref)
             .is_some_and(|c| c.id == self.id);
         if mondo || doid { Ok(()) } else { Err(BadReply) }
     }
@@ -36,12 +34,12 @@ impl Document {
         let mondo = fields
             .split(',')
             .any(|f| f == "mondo")
-            .then_some(self.mondo.as_ref())
+            .then_some(self.mondo.as_ref().and_then(Field::as_ref))
             .flatten();
         let doid = fields
             .split(',')
             .any(|f| f == "disease_ontology")
-            .then_some(self.disease_ontology.as_ref())
+            .then_some(self.disease_ontology.as_ref().and_then(Field::as_ref))
             .flatten();
         let primary =
             mondo.is_some_and(|c| c.id == self.id) || doid.is_some_and(|c| c.id == self.id);
@@ -68,14 +66,14 @@ pub(super) struct Component {
     #[serde(alias = "mondo", alias = "doid")]
     pub id: Curie,
     #[serde(alias = "name")]
-    pub label: Option<Field<Text>>,
+    pub label: Option<Field<NativeText>>,
     #[serde(alias = "def")]
-    pub definition: Option<Field<Text>>,
+    pub definition: Option<Field<NativeText>>,
     #[serde(alias = "synonyms")]
-    pub synonym: Option<Field<BTreeMap<String, OneOrMany<Field<Text>>>>>,
+    pub synonym: Option<Field<BTreeMap<String, OneOrMany<Field<NativeText>>>>>,
     pub xrefs: Option<Field<BTreeMap<String, OneOrMany<Field<String>>>>>,
     pub parents: Option<Field<Box<[Field<Curie>]>>>,
-    pub is_obsolete: Option<bool>,
+    pub is_obsolete: Option<crate::raw::Field<bool>>,
     pub consider: Option<Field<Box<[Field<Curie>]>>>,
     pub replaced_by: Option<Field<Box<[Field<Curie>]>>>,
 }

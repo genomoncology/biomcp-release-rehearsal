@@ -1,0 +1,8 @@
+{
+  "$id": "biodata.coding-change/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "HGVS 21.1 coding edit syntax without a reference. The parser additionally requires increasing range endpoints, different substitution bases and insertion adjacency where literal positions establish it. It does not check transcript sequence or exon boundaries.",
+  "pattern": "^c\\.(?:[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?[ACGTNRYSWKMBDHV]>[ACGTNRYSWKMBDHV]|[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?(?:_[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?)?(?:del|dup|delins(?=[ACGTNRYSWKMBDHV])[ACGTNRYSWKMBDHV]*)|[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?_[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?ins(?=[ACGTNRYSWKMBDHV])[ACGTNRYSWKMBDHV]*)$",
+  "title": "CodingChange",
+  "type": "string"
+}

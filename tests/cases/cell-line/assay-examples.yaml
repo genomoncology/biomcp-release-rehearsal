@@ -1,15 +1,12 @@
 {
-  "feature": "cell-line-chembl",
+  "verified": "The native ChEMBL status and assay response in tests/fixtures/cell-line/chembl are served unchanged by the existing cell_line/chembl.rs fixture route. Nightly execution requests the public ChEMBL assay total.",
+  "live_check": "public",
+  "feature": "cell-line-identity",
   "story": "Native assay totals remain separately requested counts through two parsed disclosure examples.",
   "replay": "cell-line/assay-examples",
   "steps": [
     {
       "run": [
-        "cell-line",
-        "assay-count",
-        "CHEMBL3706573"
-      ],
-      "mcp": [
         "cell-line",
         "assay-count",
         "CHEMBL3706573"
@@ -24,12 +21,6 @@
     },
     {
       "run": [
-        "cell-line",
-        "assay-count",
-        "CHEMBL3706573",
-        "--fresh"
-      ],
-      "mcp": [
         "cell-line",
         "assay-count",
         "CHEMBL3706573",

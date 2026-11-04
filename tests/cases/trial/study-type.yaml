@@ -13,14 +13,6 @@
         "--study-type",
         "INTERVENTIONAL"
       ],
-      "mcp": [
-        "search",
-        "trial",
-        "--condition",
-        "melanoma",
-        "--study-type",
-        "INTERVENTIONAL"
-      ],
       "expect": {
         "/status": "complete",
         "/page/total": 3143,
@@ -38,8 +30,8 @@
             "NCT07341737"
           ]
         },
-        "/result/source_updated/value": "2026-10-23T09:00:04",
-        "/result/source_updated/timezone": "source_gave_none"
+        "/result/source_updated/value": "2026-10-23T09:00:04Z",
+        "/result/source_updated/timezone": "in-value"
       },
       "max_bytes": 5708
     }

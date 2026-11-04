@@ -1,0 +1,31 @@
+{
+  "source": "cellosaurus",
+  "method": "GET",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=idsy%3A%22MOLM13%22&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca&rows=1",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "invalid"
+                  }
+                ],
+                "name-list": "invalid"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

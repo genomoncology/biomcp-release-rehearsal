@@ -16,7 +16,26 @@ fn optional_string(
         value.map(|value| {
             let value = value.value().ok_or(())?;
             // Keep reference bytes intact until their ID parser has checked them.
-            crate::mapped::text(&value).map(|_| value).map_err(|_| ())
+            let prose = [
+                "name",
+                "pref_name",
+                "display_name",
+                "nonproprietaryname",
+                "proprietaryname",
+                "synonyms",
+                "generic_name",
+                "brand_name",
+                "molecule_synonym",
+            ]
+            .iter()
+            .any(|name| field.ends_with(&format!(".{name}")));
+            if prose {
+                crate::mapped::source_text(&value)
+                    .map(|text| text.to_string())
+                    .map_err(|_| ())
+            } else {
+                crate::mapped::text(&value).map(|_| value).map_err(|_| ())
+            }
         }),
     )
 }

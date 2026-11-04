@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "article-semantic-sections",
   "story": "A Semantic Scholar404 stays a confirmed negative-cache result during a later offline call.",
   "replay": "article/tldr/synthetic-404",
@@ -13,21 +14,7 @@
       "expect": {
         "/status": "partial",
         "/result/items/0/answer/card/pmid": "33123537",
-        "/result/items/0/sections/tldr/reason": "not_found"
-      },
-      "exit": 0
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537",
-        "tldr"
-      ],
-      "offline": true,
-      "expect": {
-        "/status": "partial",
-        "/result/items/0/sections/tldr/reason": "not_found"
+        "/result/items/0/sections/tldr/reason": "not-found"
       },
       "exit": 0
     }

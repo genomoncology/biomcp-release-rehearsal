@@ -1,0 +1,33 @@
+{
+  "feature": "trial-nci",
+  "live_check": "synthetic",
+  "story": "One mechanically poisoned nonidentity value retains the native record and names the omitted field.",
+  "replay": "nci/adapter-values",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT05136196",
+        "--source",
+        "nci"
+      ],
+      "expect": {
+        "/result/items/0/card": {
+          "omits": [
+            "brief_title"
+          ]
+        },
+        "/problems/*/field": [
+          "brief_title"
+        ],
+        "/result/items/0/card/nct_id": "NCT05136196"
+      }
+    }
+  ],
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  }
+}

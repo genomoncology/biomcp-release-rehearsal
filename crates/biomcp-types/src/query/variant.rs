@@ -1,19 +1,24 @@
 use crate::{Build, VariantInput, VariantNamespace};
 use serde::{Deserialize, Serialize};
-#[doc = " Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome \
-    notation requires --build. Use search variant --gene BRAF --protein V600E for shorthand. \
-    Every candidate remains available; source assertions do not classify the variant for the \
-    caller."]
+#[doc = " Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or \
+    VCF-style genomic coordinates such as 7-140753336-A-T through the shared resolver. \
+    MyVariant identity lookups default to GRCh38; --build overrides it. \
+    Chromosome genomic HGVS requires --build. Use search variant --gene BRAF --protein V600E \
+    or search variant --gene PTEN --coding c.333G>T for gene shorthand. \
+    Every candidate remains available; source assertions do not classify the variant for the caller."]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "Fields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "schema", schemars(with = "Fields"))]
+#[cfg_attr(
+    feature = "schema",
+    schemars(with = "Fields", extend("x-reply-query-titles" = ["VariantGetQuery"]))
+)]
 pub struct VariantGet(Fields);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    /// Published rsID, CAid, ClinVar Variation ID or reference-qualified HGVS.
+    /// rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     input: VariantInput,
     /// Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.
@@ -44,10 +49,12 @@ struct Fields {
     /// Native CIViC cursor, retained unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_cursor: Option<crate::Text>,
+    #[serde(flatten)]
+    evidence_filter: crate::CivicEvidenceFilter,
     /// Resolver for reference-qualified notation; never repairs the input locally.
     #[serde(default = "resolver")]
     resolver: VariantResolver,
-    /// Required for chromosome notation; no assembly is guessed.
+    /// MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build.
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -75,6 +82,19 @@ crate::query::validation::checked_query!(VariantGet, Fields);
 impl TryFrom<Fields> for VariantGet {
     type Error = super::gene::QueryInvalid;
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
+        if !fields.evidence_filter.is_empty()
+            && !fields
+                .section
+                .iter()
+                .any(|s| matches!(s, VariantSection::Civic | VariantSection::All))
+        {
+            return Err(super::gene::QueryInvalid::new(&[
+                "evidence_level",
+                "evidence_status",
+                "civic_kind",
+                "section",
+            ]));
+        }
         if !(1..=50).contains(&fields.limit) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
         }
@@ -124,6 +144,7 @@ impl TryFrom<Fields> for VariantGet {
         query.0.civic_profile = fields.civic_profile;
         query.0.civic_kind = fields.civic_kind;
         query.0.civic_cursor = fields.civic_cursor;
+        query.0.evidence_filter = fields.evidence_filter;
         query.0.section_limit = fields.section_limit;
         query.0.section_offset = fields.section_offset;
         query.0.section = fields.section;
@@ -133,13 +154,16 @@ impl TryFrom<Fields> for VariantGet {
     }
 }
 impl VariantGet {
+    /// Default identity lookup assembly; --build overrides this setting.
+    pub const DEFAULT_BUILD: Build = Build::GRCh38;
     /// Check coordinate assembly and preserve resolver choice.
     pub fn new(
         input: VariantInput,
         resolver: VariantResolver,
         build: Option<Build>,
     ) -> Result<Self, super::gene::QueryInvalid> {
-        if input.namespace().ok() == Some(VariantNamespace::Unsupported) {
+        let build = build.or_else(|| input.coordinate_form().then_some(Self::DEFAULT_BUILD));
+        if input.namespace() == VariantNamespace::Unsupported {
             return Err(super::gene::QueryInvalid::new(&["input"]));
         }
         if resolver == VariantResolver::Variantvalidator && build.is_none() {
@@ -148,7 +172,7 @@ impl VariantGet {
         if build.is_some_and(|b| !matches!(b, Build::GRCh37 | Build::GRCh38)) {
             return Err(super::gene::QueryInvalid::new(&["build"]));
         }
-        if input.namespace().ok() == Some(VariantNamespace::Chromosome) && build.is_none() {
+        if input.namespace() == VariantNamespace::Chromosome && build.is_none() {
             return Err(super::gene::QueryInvalid::new(&["input", "build"]));
         }
         Ok(Self(Fields {
@@ -160,6 +184,7 @@ impl VariantGet {
             tumor_type: None,
             civic_kind: None,
             civic_cursor: None,
+            evidence_filter: Default::default(),
             resolver,
             build,
             limit: default_limit(),
@@ -195,6 +220,10 @@ impl VariantGet {
     pub fn civic_kind(&self) -> Option<CivicClaimKind> {
         self.0.civic_kind
     }
+    /// Native evidence selectors retained across pages.
+    pub fn evidence_filter(&self) -> &crate::CivicEvidenceFilter {
+        &self.0.evidence_filter
+    }
     /// Selected native CIViC cursor.
     pub fn civic_cursor(&self) -> Option<&crate::Text> {
         self.0.civic_cursor.as_ref()
@@ -217,6 +246,12 @@ impl VariantGet {
         let mut fields = self.0.clone();
         fields.input = input;
         fields.offset = 0;
+        fields.try_into()
+    }
+    /// Select an assembly through the same checked request boundary.
+    pub fn with_build(&self, build: Build) -> Result<Self, super::gene::QueryInvalid> {
+        let mut fields = self.0.clone();
+        fields.build = Some(build);
         fields.try_into()
     }
     /// Named section rows per page.
@@ -247,12 +282,7 @@ impl VariantGet {
     pub fn offset(&self) -> u32 {
         self.0.offset
     }
-    /// Keep all selectors while selecting another source-ordered page.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut query = self.clone();
-        query.0.offset = offset;
-        query
-    }
+
     /// Unchanged checked identifier.
     pub fn input(&self) -> &VariantInput {
         &self.0.input
@@ -261,11 +291,27 @@ impl VariantGet {
     pub fn resolver(&self) -> VariantResolver {
         self.0.resolver
     }
+    /// Assembly selected for a MyVariant identity request.
+    pub fn myvariant_build(&self) -> Build {
+        self.build().unwrap_or(Self::DEFAULT_BUILD)
+    }
+    /// Echo the assembly selected for a MyVariant identity request.
+    pub fn with_myvariant_build(mut self) -> Self {
+        self.0.build = Some(self.myvariant_build());
+        self
+    }
     /// Caller assembly; never a default.
     pub fn build(&self) -> Option<Build> {
         self.0.build
     }
 }
+impl crate::Paged for VariantGet {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+}
+
 biodata::wire_enum! {
     /// Explicit source service for reference-qualified notation.
     VariantResolver {
@@ -319,9 +365,27 @@ biodata::canonical_enum! {
 biodata::wire_enum! {
     /// CIViC native claim collection.
     CivicClaimKind {
-        /// Accepted evidence items.
+        /// Native evidence items.
         Evidence=>"evidence",
-        /// Accepted assertions.
+        /// Native assertions.
         Assertions=>"assertions",
+    }
+}
+
+impl VariantSection {
+    /// Direct publisher; component sections retain their MyVariant route.
+    pub const fn direct_source(self) -> Option<crate::Source> {
+        use crate::Source;
+        match self {
+            Self::Clinvar => Some(Source::ClinVar),
+            Self::Erepo => Some(Source::Erepo),
+            Self::Population => Some(Source::Gnomad),
+            Self::Gwas => Some(Source::Gwas),
+            Self::Civic => Some(Source::Civic),
+            Self::Oncokb => Some(Source::Oncokb),
+            Self::AlphaGenome => Some(Source::AlphaGenome),
+            Self::Hotspots => Some(Source::CancerHotspots),
+            Self::Predict | Self::Conservation | Self::Cosmic | Self::All => None,
+        }
     }
 }

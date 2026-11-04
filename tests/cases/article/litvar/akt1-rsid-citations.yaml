@@ -20,17 +20,7 @@
       "expect": {
         "/status": "complete",
         "/page/total": 1590
-      },
-      "mcp": [
-        "search",
-        "article",
-        "--variant",
-        "rs121434592",
-        "--source",
-        "litvar",
-        "--sort",
-        "citations"
-      ]
+      }
     },
     {
       "run": [

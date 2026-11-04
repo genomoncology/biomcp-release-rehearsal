@@ -17,7 +17,7 @@ pub(crate) struct Message {
 impl Spool {
     pub(crate) fn new(limits: Limits) -> Result<Self, RecordError> {
         Ok(Self {
-            file: tempfile::NamedTempFile::new().map_err(|_| RecordError::Io)?,
+            file: tempfile::NamedTempFile::new().map_err(RecordError::from)?,
             messages: Vec::new(),
             wire: 0,
             limits,
@@ -39,14 +39,14 @@ impl Spool {
             .file
             .as_file_mut()
             .stream_position()
-            .map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
         self.file
             .write_all(&delay_ms.to_be_bytes())
-            .map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
         self.file
             .write_all(&(bytes.len() as u64).to_be_bytes())
-            .map_err(|_| RecordError::Io)?;
-        self.file.write_all(bytes).map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
+        self.file.write_all(bytes).map_err(RecordError::from)?;
         self.messages.push(Message {
             offset: offset + 16,
             length: bytes.len(),
@@ -59,22 +59,22 @@ impl Spool {
         self.file
             .as_file_mut()
             .seek(SeekFrom::Start(value.offset))
-            .map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
         let mut bytes = vec![0; value.length];
         self.file
             .read_exact(&mut bytes)
-            .map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
         Ok(bytes)
     }
     pub(crate) fn bytes(&mut self) -> Result<Vec<u8>, RecordError> {
         self.file
             .as_file_mut()
             .rewind()
-            .map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
         let mut bytes = Vec::new();
         self.file
             .read_to_end(&mut bytes)
-            .map_err(|_| RecordError::Io)?;
+            .map_err(RecordError::from)?;
         Ok(bytes)
     }
 }

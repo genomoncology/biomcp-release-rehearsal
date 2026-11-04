@@ -1,11 +1,14 @@
+use super::DrugSection;
+use biodata::DrugId;
 use serde::{Deserialize, Serialize};
 /// One explicitly selected drug source; omitted search source means MyChem alone.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "&'static str")]
-#[non_exhaustive]
 pub enum DrugSource {
     /// WHO finished pharmaceutical product prequalification.
     WhoPq,
+    /// FDA native drug recall records.
+    FdaDrugRecall,
     /// MyChem candidate identity.
     Mychem,
     /// ChEMBL native records.
@@ -25,8 +28,9 @@ pub enum DrugSource {
 }
 impl DrugSource {
     /// Every retained drug source; registry bindings use these canonical values.
-    pub const ALL: [Self; 9] = [
+    pub const ALL: [Self; 10] = [
         Self::WhoPq,
+        Self::FdaDrugRecall,
         Self::Mychem,
         Self::Chembl,
         Self::Opentargets,
@@ -43,6 +47,7 @@ impl DrugSource {
     /// Shared transport identity, also owning the canonical source spelling.
     pub const fn source(self) -> crate::Source {
         match self {
+            Self::FdaDrugRecall => crate::Source::FdaDrugRecall,
             Self::WhoPq => crate::Source::WhoPq,
             Self::Mychem => crate::Source::Mychem,
             Self::Chembl => crate::Source::Chembl,
@@ -87,6 +92,115 @@ impl schemars::JsonSchema for DrugSource {
     }
     fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
         let names = Self::ALL.map(Self::as_str);
-        schemars::json_schema!({"description":"A supported drug data source.", "type":"string", "enum":names})
+        schemars::json_schema!({"description":"A supported drug data source.",
+            "type":"string", "enum":names, "x-enum-open":true})
+    }
+}
+
+impl DrugSource {
+    /// Named disclosures actually served by this source's exact-ID endpoint.
+    pub fn sections(self) -> &'static [super::DrugSection] {
+        use super::DrugSection::{
+            Approvals, Civic, Indications, Interactions, Label, Regulatory, Targets, Xrefs,
+        };
+        match self {
+            Self::Mychem => &[Xrefs],
+            Self::Chembl => &[Targets, Indications, Xrefs],
+            Self::Opentargets => &[Targets, Indications],
+            Self::Civic => &[Civic],
+            Self::OpenfdaLabel => &[Label],
+            Self::Drugsfda => &[Approvals],
+            Self::Ema => &[Regulatory],
+            Self::Ddinter => &[Interactions],
+            Self::WhoPq | Self::FdaDrugRecall => &[],
+        }
+    }
+}
+
+impl DrugSource {
+    /// Check only published ID grammar for this endpoint, without inferring identity level or joining records.
+    pub fn accepts(self, id: &DrugId) -> bool {
+        let id = id.to_string();
+        if id.split_once(':').is_some_and(|(prefix, _)| {
+            Self::ALL
+                .into_iter()
+                .any(|source| source.as_str().eq_ignore_ascii_case(prefix))
+        }) {
+            return false;
+        }
+        let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+        match self {
+            Self::FdaDrugRecall => id.parse::<biodata::DrugRecallNumber>().is_ok(),
+            Self::WhoPq => false,
+            Self::Mychem => true,
+            Self::Chembl | Self::Opentargets => id.strip_prefix("CHEMBL").is_some_and(digits),
+            Self::Civic => civic_id(&id).is_some(),
+            Self::Ddinter => id.strip_prefix("DDInter").is_some_and(digits),
+            Self::Drugsfda => ["NDA", "ANDA", "BLA"].iter().any(|p| {
+                id.strip_prefix(p)
+                    .is_some_and(|s| s.len() == 6 && digits(s))
+            }),
+            Self::Ema => id
+                .strip_prefix("EMEA/H/C/")
+                .is_some_and(|s| s.len() == 6 && digits(s)),
+            Self::OpenfdaLabel => {
+                let pieces: Vec<_> = id.split('-').collect();
+                pieces.iter().map(|s| s.len()).eq([8, 4, 4, 4, 12])
+                    && pieces
+                        .iter()
+                        .all(|s| s.bytes().all(|b| b.is_ascii_hexdigit()))
+            }
+        }
+    }
+}
+
+pub(super) fn civic_id(value: &str) -> Option<std::num::NonZeroU32> {
+    if !value.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    value
+        .parse::<std::num::NonZeroU32>()
+        .ok()
+        .filter(|id| id.get() <= i32::MAX as u32)
+}
+
+pub(super) fn inferred_source(sections: &[DrugSection]) -> DrugSource {
+    let candidates: Vec<_> = DrugSource::ALL
+        .into_iter()
+        .filter(|source| {
+            !sections.is_empty()
+                && sections
+                    .iter()
+                    .all(|section| source.sections().contains(section))
+        })
+        .collect();
+    match candidates.as_slice() {
+        [source] => *source,
+        _ => DrugSource::Mychem,
+    }
+}
+impl DrugSource {
+    /// Distinguish native MyChem keys from names; other sources use their existing ID grammar.
+    pub fn native_id(self, input: &DrugId) -> bool {
+        if self != Self::Mychem {
+            return self.accepts(input);
+        }
+        if !self.accepts(input) {
+            return false;
+        }
+        let value = input.to_string();
+        value.len() == 10
+            && value
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+            || value.bytes().all(|b| b.is_ascii_digit() || b == b'-')
+                && value.bytes().any(|b| b.is_ascii_digit())
+            || value.len() == 27
+                && value.as_bytes().get(14) == Some(&b'-')
+                && value.as_bytes().get(25) == Some(&b'-')
+            || value.contains(':')
+            || value.starts_with("CHEMBL")
+            || value.starts_with("DB") && value[2..].bytes().all(|b| b.is_ascii_digit())
+            || value.bytes().all(|b| b.is_ascii_digit())
     }
 }

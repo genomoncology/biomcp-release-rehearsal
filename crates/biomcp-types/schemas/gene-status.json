@@ -2,14 +2,14 @@
   "$id": "biodata.gene-status/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "HGNC approval status.",
-  "enum": [
-    "approved",
-    "withdrawn"
-  ],
   "title": "GeneStatus",
   "type": "string",
   "x-enum-descriptions": [
     " An HGNC approved record.",
     " An HGNC withdrawn record."
+  ],
+  "x-extensible-enum": [
+    "approved",
+    "withdrawn"
   ]
 }

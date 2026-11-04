@@ -27,14 +27,14 @@ impl XmlReply for Listing {}
 pub(super) struct Record {
     pub pmcid: biodata::Pmcid,
     pub pmid: Option<u32>,
-    pub license_code: String,
-    pub is_manuscript: bool,
+    pub license_code: Option<crate::raw::Field<String>>,
+    pub is_manuscript: Option<crate::raw::Field<bool>>,
     pub xml_url: String,
-    pub media_urls: Option<Vec<String>>,
+    pub media_urls: Option<crate::raw::Field<Vec<crate::raw::Field<String>>>>,
 }
 impl Reply for Record {
     fn check(&self) -> Result<(), BadReply> {
-        if self.pmid == Some(0) || self.license_code.trim().is_empty() {
+        if self.pmid == Some(0) {
             Err(BadReply)
         } else {
             Ok(())

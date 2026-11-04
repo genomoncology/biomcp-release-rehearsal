@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "drug-who-medicines",
   "story": "Explicit WHO finished-product sync validates the complete synthetic export and can explicitly refresh it",
   "replay": "drug/who-synthetic",
@@ -8,12 +9,8 @@
         "sync",
         "who-pq"
       ],
-      "mcp": [
-        "sync",
-        "who-pq"
-      ],
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/status": "complete",
         "/query/source": "who-pq",
         "/result/rows": 4,
@@ -27,19 +24,48 @@
         "who-pq",
         "--fresh"
       ],
-      "mcp": [
-        "sync",
-        "who-pq",
-        "--fresh"
-      ],
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/status": "complete",
         "/query/source": "who-pq",
         "/result/rows": 4,
         "/result/bytes": 562
       },
       "max_bytes": 175
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "Trastuzumab",
+        "--source",
+        "who-pq"
+      ],
+      "expect": {
+        "/page/total": 2,
+        "/result/items/1/reference": "BT-ON002",
+        "/result/items/1/date_of_prequalification": ""
+      },
+      "max_bytes": 4000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "Trastuzumab",
+        "--source",
+        "who-pq",
+        "--prequalified-from",
+        "2019",
+        "--prequalified-to",
+        "2019"
+      ],
+      "expect": {
+        "/page/total": 1,
+        "/result/items/0/reference": "BT-ON001",
+        "/result/items/0/date_of_prequalification": "18  Dec,  2019"
+      },
+      "max_bytes": 3000
     }
   ]
 }

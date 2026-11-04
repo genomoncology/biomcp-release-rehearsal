@@ -4,7 +4,7 @@ Status: OPEN.
 
 Milestone: 5
 
-Depends on: 0198, 0334, 0338, 0339, 0340, 0341, 0342, 0343, 0344, 0345, 0346, 0347, 0348, 0349, 0350, 0351, 0352, 0353, 0354, 0355, 0356, 0357, 0358, 0359, 0360, 0361, 0362, 0363, 0364, 0365, 0366, 0367, 0368, 0369, 0370, 0371, 0372, 0373, 0374, 0375, 0376, 0377, 0378, 0379, 0380, 0381, 0382, 0383, 0384, 0385, 0386, 0387, 0388, 0389, 0390, 0391, 0392, 0393, 0394, 0395, 0396, 0397, 0398, 0399, 0400, 0403
+Depends on: 0459, 0547, 0521, 0522, 0523, 0524, 0525, 0526, 0528, 0529, 0530, 0531, 0532, 0533, 0534, 0548, 0549, 0550, 0551, 0553, 0554, 0555, 0556, 0557, 0558, 0559, 0560, 0561, 0562, 0563, 0564, 0565, 0566, 0567, 0568, 0569, 0570, 0571, 0573, 0574, 0575, 0576, 0578, 0580, 0581, 0584, 0585, 0586, 0587, 0588, 0589, 0590, 0591, 0593, 0594, 0595, 0599, 0600, 0601, 0602, 0603, 0604, 0605, 0606, 0607, 0608, 0609, 0610, 0611, 0613, 0614, 0615, 0616, 0617, 0618, 0619
 
 ## Outcome
 
@@ -14,6 +14,7 @@ Depends on: 0198, 0334, 0338, 0339, 0340, 0341, 0342, 0343, 0344, 0345, 0346, 03
 - Starts from: the `release/1.0` head after 0332, main after the last listed ticket lands, and the 0314 snapshot recipe.
 - Rules: the merge has `release/1.0` as first parent and main as second, and its tree equals main's. The manifest names the real product source commit. The hosted run on the new head is the installed proof. The earlier cherry-pick plan and the m10484 net-commit ruling are superseded, because main's whole tree now ships.
 - Baseline (PM ruling 2026-10-28, pre-release review): re-export `release/schema-baseline.*` on main from main's own source as the last commit before the merge, with its status naming the 1.0 release candidate, so the merge tree still equals main's tree and 1.0.1 compares against the shipped set.
+- Release comparison (release review C7, 2026-11-01): the 1.0 schema comparison runs against the baseline this ticket exports, so it compares 1.0 with itself; the first real comparison is 1.0.1's. A break that bumps a schema ID's major version passes, and the release notes list it.
 - Proof: the merge tree equals main's tree; the gate passes; the baseline equals the release head's generated schemas; release/1.0 holds no conflict markers; the hosted run passes all five targets, containers and Homebrew.
 - Changes: the `release/1.0` branch and its baseline.
 - Defers: publication and the history append, which need Ian.

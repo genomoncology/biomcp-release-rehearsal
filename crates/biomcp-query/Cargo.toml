@@ -8,6 +8,7 @@ license.workspace = true
 [dependencies]
 biomcp-types = { workspace = true }
 rusqlite.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 biodata = { workspace = true }
@@ -15,7 +16,17 @@ biomcp-fetch = { workspace = true }
 biomcp-adapters = { workspace = true }
 
 [dev-dependencies]
+biomcp-test-support.workspace = true
+libtest-mimic.workspace = true
 tempfile.workspace = true
 
 [lints]
 workspace = true
+
+[[test]]
+name = "collection_refusals"
+harness = false
+
+[[test]]
+name = "query_refusals"
+harness = false

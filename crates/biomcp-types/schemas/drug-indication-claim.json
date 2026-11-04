@@ -1,13 +1,23 @@
 {
   "$defs": {
-    "Attribution": {
-      "additionalProperties": false,
+    "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -15,10 +25,21 @@
           ],
           "description": "Source evaluation date."
         },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
+        },
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -29,7 +50,7 @@
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -38,13 +59,13 @@
           "description": "Dataset release."
         },
         "source": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the claim."
         },
         "submitter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +76,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -67,7 +88,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -81,18 +102,17 @@
       ],
       "type": "object"
     },
-    "DrugDiseaseReference": {
-      "additionalProperties": false,
+    "Reply_DrugDiseaseReference": {
       "description": "One native disease identifier and its own source label.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact identifier spelling, without CURIE conversion."
         },
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -101,7 +121,7 @@
           "description": "Label attached to this identifier by the source."
         },
         "namespace": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source namespace spelling, such as EFO or MeSH."
         }
       },
@@ -109,37 +129,37 @@
         "namespace",
         "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "DrugId": {
+    "Reply_DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
       "type": "string"
     },
-    "DrugIdentity": {
-      "additionalProperties": false,
+    "Reply_DrugIdentity": {
       "description": "One source record identity, without any equivalence or authorization claim.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/DrugId",
+          "$ref": "#/$defs/Reply_DrugId",
           "description": "Published native record identifier."
         },
         "identity_level": {
-          "$ref": "#/$defs/DrugIdentityLevel",
+          "$ref": "#/$defs/Reply_DrugIdentityLevel",
           "description": "Level established by the endpoint or record type; unknown stays unknown."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original source name."
         },
-        "source": {
-          "$ref": "#/$defs/Text",
+        "namespace": {
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for this identity."
         },
         "type": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -150,7 +170,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -162,28 +182,14 @@
       },
       "required": [
         "id",
-        "source",
+        "namespace",
         "identity_level"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "DrugIdentityLevel": {
+    "Reply_DrugIdentityLevel": {
       "description": "Identity level established by the source endpoint or record type, never inferred from ID shape.",
-      "enum": [
-        "ingredient",
-        "salt",
-        "clinical_formulation",
-        "branded_product",
-        "spl_set",
-        "spl_version",
-        "ndc_package",
-        "fda_application",
-        "fda_product",
-        "ema_authorization",
-        "ema_application",
-        "orphan_designation",
-        "unknown"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Source-stated ingredient identity.",
@@ -199,16 +205,30 @@
         " Source-stated ema application identity.",
         " Source-stated orphan designation identity.",
         " Source-stated unknown identity."
+      ],
+      "x-extensible-enum": [
+        "ingredient",
+        "salt",
+        "clinical_formulation",
+        "branded_product",
+        "spl_set",
+        "spl_version",
+        "ndc_package",
+        "fda_application",
+        "fda_product",
+        "ema_authorization",
+        "ema_application",
+        "orphan_designation",
+        "unknown"
       ]
     },
-    "DrugNativeReference": {
-      "additionalProperties": false,
+    "Reply_DrugNativeReference": {
       "description": "Typed source reference shared by mechanism and indication records.",
       "properties": {
         "ref_id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -217,13 +237,13 @@
           "description": "Source reference identifier, when supplied."
         },
         "ref_type": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native reference type."
         },
         "ref_url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -238,8 +258,7 @@
       ],
       "type": "object"
     },
-    "DrugStage": {
-      "additionalProperties": false,
+    "Reply_DrugStage": {
       "description": "One source development-stage field and its unchanged value.",
       "properties": {
         "field": {
@@ -257,52 +276,60 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.drug-indication-claim/3",
+  "$id": "biodata.drug-indication-claim/7",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "A source indication retaining its full population and combination wording.",
   "properties": {
     "attribution": {
-      "$ref": "#/$defs/Attribution",
+      "$ref": "#/$defs/Reply_Attribution",
       "description": "Native claim provenance."
     },
     "combination": {
       "description": "Complete source-stated combination members, without local joins.",
       "items": {
-        "$ref": "#/$defs/DrugIdentity"
+        "$ref": "#/$defs/Reply_DrugIdentity"
       },
       "type": "array"
     },
     "disease_references": {
       "description": "Independently labeled native disease identifiers, without cross-source normalization.",
       "items": {
-        "$ref": "#/$defs/DrugDiseaseReference"
+        "$ref": "#/$defs/Reply_DrugDiseaseReference"
       },
       "type": "array"
     },
     "drug": {
-      "$ref": "#/$defs/DrugIdentity",
+      "$ref": "#/$defs/Reply_DrugIdentity",
       "description": "Source drug identity."
     },
     "indication": {
-      "$ref": "#/$defs/Text",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "description": "Complete native indication wording."
     },
     "population": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -313,14 +340,14 @@
     "references": {
       "description": "Source-native supporting references.",
       "items": {
-        "$ref": "#/$defs/DrugNativeReference"
+        "$ref": "#/$defs/Reply_DrugNativeReference"
       },
       "type": "array"
     },
     "stage": {
       "anyOf": [
         {
-          "$ref": "#/$defs/DrugStage"
+          "$ref": "#/$defs/Reply_DrugStage"
         },
         {
           "type": "null"
@@ -331,7 +358,6 @@
   },
   "required": [
     "drug",
-    "indication",
     "attribution"
   ],
   "title": "DrugIndicationClaim",

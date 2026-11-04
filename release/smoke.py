@@ -2,9 +2,15 @@
 """Run one installed executable with copied fixtures and no checkout dependency."""
 import json
 import os
+import re
+import shutil
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
+import time
+
+SCHEMA_ID = "biomcp.problem/2"
 
 
 def require(condition, message):
@@ -27,7 +33,7 @@ def environment(root):
     return env
 
 
-def smoke(binary, runner, fixtures, version, server_args=("serve",)):
+def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=None, python=sys.executable):
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory).resolve()
         env = environment(root)
@@ -40,7 +46,7 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",)):
                 raise ValueError("installed command failed: " + result.stdout.decode() + result.stderr.decode())
             return json.loads(result.stdout)
         checks = []
-        require(command(["schema", "biodata.problem/1"])["$id"] == "biodata.problem/1", "schema identity differs")
+        require(command(["schema", SCHEMA_ID])["$id"] == SCHEMA_ID, "schema identity differs")
         checks.append("schemas")
         require(command(["help"])["result"]["commands"], "help commands missing")
         checks.append("help")
@@ -50,17 +56,35 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",)):
         checks.extend(["version", "mcp-all-stdout"])
         require(any((root / "cache").rglob("*.sqlite")), "first tool call did not create the cache")
         checks.append("ordinary-cache-created")
-        env.update(BIOMCP_TEST_EXECUTABLE=str(binary), BIOMCP_TEST_FIXTURES=str(fixtures))
-        subprocess.run([str(runner), "--cases", str(fixtures / "cases"), "--test-threads", "1"], env=env, cwd=root, check=True, timeout=120)
-        checks.append("replay-cli-mcp")
-        # The existing process publication test uses the very same selector.
-        subprocess.run([str(runner), "--installed-process-proof"], env=env, cwd=root, check=True, timeout=120)
-        checks.append("ordinary-cache-two-process")
-        subprocess.run([str(runner), "--installed-http-proof"], env=env, cwd=root, check=True, timeout=120)
-        checks.append("mcp-http")
-        subprocess.run([str(runner), "--installed-alphagenome-proof"], env=env, cwd=root, check=True, timeout=120)
-        checks.append("alphagenome-local-tls")
-        return {"tools": tools, "checks": checks}
+        interpreter = shutil.which(python)
+        require(interpreter is not None, "proof Python interpreter is unavailable: " + python)
+        env.update(BIOMCP_TEST_EXECUTABLE=str(binary), BIOMCP_TEST_FIXTURES=str(fixtures),
+                   BIOMCP_TEST_PYTHON=os.path.abspath(interpreter))
+        tool = runner.with_name("tool-runner" + runner.suffix)
+        case_suite([str(tool), "--proofs"], env, root, fixtures, timeout)
+        checks.append("runner-proofs")
+        summary = case_suite([str(runner)], env, root, fixtures, timeout)
+        checks.append("all-cases-and-trials")
+        return {"tools": tools, "checks": checks, **summary}
+
+
+def case_suite(command, env, root, fixtures, timeout=None, expected_filtered=None):
+    started = time.monotonic()
+    result = subprocess.run(command + ["--test-threads", "2"], env=env, cwd=root,
+                            capture_output=True, text=True, timeout=timeout)
+    elapsed = time.monotonic() - started
+    print(result.stdout, end="", flush=True)
+    require(result.returncode == 0, "installed cases failed: " + result.stdout + result.stderr)
+    counts = re.search(r"test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored; (\d+) measured; (\d+) filtered out", result.stdout)
+    filtered = 0 if expected_filtered is None else expected_filtered
+    require(counts is not None and counts.group(2) == "0" and int(counts.group(5)) == filtered,
+            "installed runner did not report the complete declared selection")
+    if expected_filtered is not None:
+        require(int(counts.group(1)) > 0, "container runner did not execute any proof")
+    return {"cases": sum(1 for path in (fixtures / "cases").rglob("*") if path.suffix in (".yaml", ".yml")),
+            "trials": int(counts.group(1)) + int(counts.group(3)),
+            "elapsed_seconds": elapsed, "timeout_seconds": elapsed * 1.15}
+
 
 def mcp_probe(command, env, root, version):
     frames = [

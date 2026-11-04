@@ -1,0 +1,33 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic source qualification boundary over existing public IDs",
+  "replay": "variant/id-unknown-ca",
+  "story": "A CA cross-reference qualifies its own genomic expression for sections and next commands while the MyVariant parent retains unknown assembly.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "clinvar:13961",
+        "predict"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/predict/state": "empty",
+        "/result/candidates/0/identity/representations/0": {
+          "omits": [
+            "build"
+          ]
+        },
+        "/next/*/args": {
+          "includes_all_of": [
+            [
+              "get",
+              "variant",
+              "CA123643"
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

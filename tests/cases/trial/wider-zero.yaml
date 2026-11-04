@@ -1,23 +1,12 @@
 {
+  "verified": "The declared actual ClinicalTrials.gov captures from 2026-10-24 accompany a synthetic HGNC subset. Nightly execution uses the public resolver and registry endpoints to check the real registry replies.",
   "feature": "trial-search",
-  "live_check": "synthetic HGNC subset; ClinicalTrials.gov responses are public captures",
+  "live_check": "public",
   "story": "A zero rare-variant registry search offers separate variant removal and gene eligibility-text alternatives. The captured variant-removal search returns 99 trials. Captured through actual CLI record requests on 2026-10-24; source processing timestamp 2026-10-23T09:00:04.",
   "replay": "trial/wider-zero",
   "steps": [
     {
       "run": [
-        "search",
-        "trial",
-        "--gene",
-        "KIT",
-        "--variant",
-        "L576P",
-        "--condition",
-        "gastrointestinal stromal tumor",
-        "--limit",
-        "100"
-      ],
-      "mcp": [
         "search",
         "trial",
         "--gene",
@@ -67,16 +56,6 @@
     },
     {
       "run": [
-        "search",
-        "trial",
-        "--gene",
-        "KIT",
-        "--condition",
-        "gastrointestinal stromal tumor",
-        "--limit",
-        "100"
-      ],
-      "mcp": [
         "search",
         "trial",
         "--gene",

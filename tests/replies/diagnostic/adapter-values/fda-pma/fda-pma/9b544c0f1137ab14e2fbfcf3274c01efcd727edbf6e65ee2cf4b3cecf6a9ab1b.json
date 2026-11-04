@@ -1,0 +1,43 @@
+{
+  "method": "GET",
+  "source": "fda-pma",
+  "url": "https://api.fda.gov/device/pma.json?search=pma_number%3A%22P150013%22%20AND%20supplement_number%3A%22S020%22&limit=100&skip=0",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 4,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 100,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "pma_number": "P150013",
+              "supplement_number": "S020",
+              "trade_name": 17,
+              "applicant": "Synthetic applicant",
+              "decision_date": "20240101",
+              "decision_code": "APPR",
+              "date_received": "20230101",
+              "product_code": "ABC",
+              "advisory_committee": "PA",
+              "advisory_committee_description": "Synthetic panel",
+              "supplement_type": "Normal",
+              "supplement_reason": "Synthetic reason",
+              "ao_statement": "Synthetic statement. S020"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

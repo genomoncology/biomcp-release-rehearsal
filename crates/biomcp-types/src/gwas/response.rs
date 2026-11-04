@@ -3,7 +3,6 @@ use biodata::{GwasAssociationId, GwasStudyId, Pmid};
 use serde::{Deserialize, Serialize};
 /// One native association page, also used for a study associations section.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasPage {
     /// Shared complete association records.
@@ -13,6 +12,7 @@ pub struct GwasPage {
     pub page: PageInfo,
     /// Complete qualifying count, unknown until the threshold walk reaches its end.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub qualifying_total: Option<u64>,
     /// Same-selector search continuation.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -20,24 +20,22 @@ pub struct GwasPage {
     pub continuation: Option<GwasPageQuery>,
 }
 impl ResponseBody for GwasPage {
-    const SCHEMA: &'static str = "biomcp.gwas-page/3";
+    const SCHEMA: &'static str = "biomcp.gwas-page/8";
     type Query = GwasPageQuery;
 }
 /// Exact association card; no second association representation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasAssociationCard {
     /// The shared source association record.
     pub association: GwasAssociation,
 }
 impl ResponseBody for GwasAssociationCard {
-    const SCHEMA: &'static str = "biomcp.gwas-association/1";
+    const SCHEMA: &'static str = "biomcp.gwas-association/6";
     type Query = GwasGet;
 }
 /// Source reported gene identity, without a causal-gene interpretation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasReportedGene {
     /// Native source gene name.
@@ -52,7 +50,6 @@ pub struct GwasReportedGene {
 }
 /// One native locus with independent reported genes and risk-allele text.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasLocus {
     /// Complete source locus description.
@@ -71,7 +68,6 @@ pub struct GwasLocus {
 }
 /// One bounded locus section for an association.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasLoci {
     /// Exact owning association.
@@ -85,12 +81,11 @@ pub struct GwasLoci {
     pub continuation: Option<GwasGet>,
 }
 impl ResponseBody for GwasLoci {
-    const SCHEMA: &'static str = "biomcp.gwas-loci/1";
+    const SCHEMA: &'static str = "biomcp.gwas-loci/4";
     type Query = GwasGet;
 }
 /// Native study card; independent source descriptions are never reconciled.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasStudy {
     /// Exact accession.
@@ -156,16 +151,16 @@ pub struct GwasStudy {
     pub license_url: Option<Text>,
 }
 impl ResponseBody for GwasStudy {
-    const SCHEMA: &'static str = "biomcp.gwas-study/1";
+    const SCHEMA: &'static str = "biomcp.gwas-study/6";
     type Query = GwasGet;
 }
 /// Native country and region metadata.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasCountry {
     /// Original country label including NR.
-    pub country: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub country: Option<Text>,
     /// Native source major area when supplied.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub major_area: Option<Text>,
@@ -175,11 +170,11 @@ pub struct GwasCountry {
 }
 /// One independent source ancestry row; counts are never summed.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasAncestry {
     /// Native discovery or replication stage.
-    pub stage: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<Text>,
     /// Source row count; no unique-person denominator is inferred.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub number_of_individuals: Option<u64>,
@@ -198,7 +193,6 @@ pub struct GwasAncestry {
 }
 /// Bounded retained ancestry relation for one exact study.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GwasAncestries {
     /// Exact owning study.
@@ -212,17 +206,45 @@ pub struct GwasAncestries {
     pub continuation: Option<GwasGet>,
 }
 impl ResponseBody for GwasAncestries {
-    const SCHEMA: &'static str = "biomcp.gwas-ancestries/1";
+    const SCHEMA: &'static str = "biomcp.gwas-ancestries/5";
     type Query = GwasGet;
 }
 
 /// Search and study-association pages echo their original checked request.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "operation", content = "query", rename_all = "snake_case")]
+#[serde(tag = "operation", content = "query", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum GwasPageQuery {
     /// Native association search.
     Search(GwasSearch),
     /// Exact study associations relation.
     Get(GwasGet),
+}
+
+/// One publication's native study page, without inferred clinical meaning.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct GwasStudyPage {
+    /// Source study records and their native association totals.
+    pub items: Box<[GwasStudyRow]>,
+    /// Native study page scope and total.
+    pub page: PageInfo,
+    /// Same publication and study result mode.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub continuation: Option<GwasSearch>,
+}
+impl ResponseBody for GwasStudyPage {
+    const SCHEMA: &'static str = "biomcp.gwas-study-page/1";
+    type Query = GwasSearch;
+}
+/// Source study metadata and the count from its association page.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct GwasStudyRow {
+    /// The same source metadata returned by an exact study lookup.
+    #[serde(flatten)]
+    pub study: GwasStudy,
+    /// Catalog association total; absent when the count request fails.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_count: Option<u64>,
 }

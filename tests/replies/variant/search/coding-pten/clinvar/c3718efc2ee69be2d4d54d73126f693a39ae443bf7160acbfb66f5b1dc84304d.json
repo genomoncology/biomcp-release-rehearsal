@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "clinvar",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=PTEN%5BGENE%5D%20AND%20%22c.333G%3ET%22%5BVRNM%5D&retmode=json&retmax=50&tool=biomcp",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"header\":{\"type\":\"esearch\",\"version\":\"0.3\"},\"esearchresult\":{\"count\":\"1\",\"retmax\":\"1\",\"retstart\":\"0\",\"idlist\":[\"3669092\"],\"translationset\":[],\"translationstack\":[{\"term\":\"PTEN[GENE]\",\"field\":\"GENE\",\"count\":\"4300\",\"explode\":\"N\"},{\"term\":\"\\\"c0x2e333G0x3eT\\\"[VRNM]\",\"field\":\"VRNM\",\"count\":\"165\",\"explode\":\"N\"},\"AND\"],\"querytranslation\":\"PTEN[GENE] AND \\\"c0x2e333G0x3eT\\\"[VRNM]\"}}\n"
+      },
+      "fetched": 1793309492
+    }
+  ]
+}

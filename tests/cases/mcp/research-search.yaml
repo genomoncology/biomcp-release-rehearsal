@@ -1,0 +1,14 @@
+feature: mcp-research
+live_check: public
+story: The research search tool preserves registry identities and citable links from the recorded trial search.
+replay: trial/condition
+steps:
+  - mcp_call:
+      name: search
+      arguments:
+        query: trial --condition melanoma
+    expect:
+      /results/0/id: trial NCT04631731
+      /results/0/url: https://clinicaltrials.gov/study/NCT04631731
+      /metadata/envelope/page/total: 3780
+      /metadata/envelope/result/items/0/nct_id: NCT04631731

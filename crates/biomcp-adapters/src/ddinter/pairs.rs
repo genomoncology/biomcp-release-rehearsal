@@ -24,7 +24,7 @@ impl Pair {
     pub(super) fn claim(
         &self,
         content_revision: Option<&str>,
-    ) -> Result<biodata::DrugInteractionClaim, biodata::Error> {
+    ) -> Result<crate::Mapped<biodata::DrugInteractionClaim>, biodata::Error> {
         let anchor_id = if self.reversed {
             self.native.id_b()
         } else {
@@ -36,13 +36,19 @@ impl Pair {
             .map(|origin| attribution(origin, content_revision));
         let primary = origins.next().ok_or(biodata::Error::TextEmpty)??;
         let additional = origins.collect::<Result<Vec<_>, _>>()?;
-        biodata::DrugInteractionClaim::new(
+        let problems = self.native.problems(primary.record.clone());
+        let value = biodata::DrugInteractionClaim::new(
             super::identity::identity(anchor_id, self.anchor_name())?,
             super::identity::identity(self.partner_id(), self.partner_name())?,
-            biodata::Text::new(self.native.level())?,
+            self.native.level().cloned(),
             primary,
             additional.into_boxed_slice(),
-        )
+        )?;
+        Ok(crate::Mapped {
+            refusals: crate::Refusal::None,
+            value,
+            problems,
+        })
     }
     /// Exact native partner ID, without a name join.
     fn partner_id(&self) -> &str {
@@ -53,7 +59,7 @@ impl Pair {
         }
     }
     /// Native partner display name from the retained row.
-    fn partner_name(&self) -> &str {
+    fn partner_name(&self) -> Option<&str> {
         if self.reversed {
             self.native.name_a()
         } else {
@@ -61,7 +67,7 @@ impl Pair {
         }
     }
     /// Native anchor name from the retained row.
-    fn anchor_name(&self) -> &str {
+    fn anchor_name(&self) -> Option<&str> {
         if self.reversed {
             self.native.name_b()
         } else {
@@ -120,6 +126,8 @@ fn attribution(
         .ok_or(biodata::Error::TextEmpty)?;
     let filename = path.rsplit('/').next().ok_or(biodata::Error::TextEmpty)?;
     Ok(biodata::Attribution {
+        approved: None,
+        published: None,
         source: Text::new("ddinter")?,
         record: Some(Text::new(&format!("{filename}:{}", origin.row))?),
         version: revision.map(Text::new).transpose()?,

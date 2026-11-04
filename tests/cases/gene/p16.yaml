@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-commands",
+  "feature": "gene-identity",
   "story": "p16",
   "replay": "gene/main",
   "steps": [

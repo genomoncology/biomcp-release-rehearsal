@@ -1,5 +1,5 @@
 use super::{
-    bad, bundle, map,
+    bundle, map,
     raw::{Native, Object, Relation},
 };
 use biodata::GtrTestId;
@@ -9,6 +9,10 @@ use std::collections::{HashMap, HashSet};
 /// One bounded source page and its complete distinct-test count.
 #[derive(Debug)]
 pub struct Search {
+    /// Actual refused native records, independent of optional fields.
+    pub refusals: crate::Refusal,
+    /// Rejected optional source prose on retained candidates.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Native test candidates in relation report order.
     pub items: Box<[DiagnosticCandidate]>,
     /// Distinct exact accession/version identities, including orphan relations and conflicts.
@@ -35,12 +39,25 @@ pub fn search(leg: &Leg<'_>, query: &DiagnosticSearch) -> Result<Search, Request
     super::revision(query.bundle_revision(), &info)?;
     let mut seen = HashSet::new();
     let mut matched = Vec::new();
+    let mut cx = crate::mapped::Problems {
+        source: biomcp_types::Source::Gtr,
+        record: None,
+        list: Vec::new(),
+    };
+    let mut refusals = crate::Refusal::None;
     for row in rows {
+        if let Native::Refused(r) = &row.value
+            && r.matches(query)
+        {
+            refusals = crate::Refusal::Refused;
+            r.disclose(&mut cx);
+        }
         if let Native::Relation(r) = row.value
+            && let Some(relation) = map::relation(&r, &mut cx, &mut refusals)
             && matches(&r, query)
             && seen.insert(r.id.clone())
         {
-            matched.push(r);
+            matched.push((r, relation));
         }
     }
     let total = matched.len() as u64;
@@ -49,11 +66,11 @@ pub fn search(leg: &Leg<'_>, query: &DiagnosticSearch) -> Result<Search, Request
         .skip(query.offset() as usize)
         .take(query.limit() as usize)
         .collect();
-    let ids: Vec<_> = page.iter().map(|r| r.id.to_string()).collect();
+    let ids: Vec<_> = page.iter().map(|(r, _)| r.id.to_string()).collect();
     let keys: Vec<_> = ids.iter().map(String::as_str).collect();
     let (versions, other) = bundle::read(leg, Find::AnyExact(KeyKind::Id, &keys))?;
     if other.content_revision != info.content_revision {
-        return Err(bad());
+        return Err(biomcp_fetch::bad_reply(biomcp_types::Source::Gtr, None));
     }
     let mut by_id: HashMap<GtrTestId, Vec<_>> = HashMap::new();
     for row in versions {
@@ -64,14 +81,29 @@ pub fn search(leg: &Leg<'_>, query: &DiagnosticSearch) -> Result<Search, Request
                 .push(v);
         }
     }
+    let mut problems = cx.list;
     let items = page
         .iter()
-        .map(|r| candidate(r, by_id.get(&r.id).map(Vec::as_slice).unwrap_or_default()))
+        .map(|(r, relation)| {
+            candidate(
+                r,
+                relation.clone(),
+                by_id.get(&r.id).map(Vec::as_slice).unwrap_or_default(),
+                &mut problems,
+            )
+        })
         .collect::<Result<Box<[_]>, _>>()?;
-    Ok(Search { items, total, info })
+    Ok(Search {
+        refusals,
+        items,
+        total,
+        info,
+        problems,
+    })
 }
 fn matches(r: &Relation, q: &DiagnosticSearch) -> bool {
-    q.test_type().is_none_or(|v| r.test_type == v)
+    q.test_type()
+        .is_none_or(|v| r.test_type.as_ref().and_then(crate::raw::Field::as_ref) == Some(&v))
         && q.gene()
             .is_none_or(|v| r.object == Object::Gene && &*r.gene_symbol == v.as_str())
         && q.gene_id()
@@ -82,16 +114,18 @@ fn matches(r: &Relation, q: &DiagnosticSearch) -> bool {
 }
 fn candidate(
     r: &Relation,
+    relation: biodata::GtrTestRelation,
     versions: &[Box<biodata::GtrTestVersion>],
+    problems: &mut Vec<biomcp_types::Problem>,
 ) -> Result<DiagnosticCandidate, RequestError> {
     Ok(match versions {
         [v] if v.now_current.as_ref() == "1" => DiagnosticCandidate::Resolved {
-            header: map::header(v)?,
-            matched: Some(map::relation(r)?),
+            header: map::header(v, problems)?,
+            matched: Some(relation),
         },
         [] | [_] => DiagnosticCandidate::MissingCard {
             id: r.id.clone(),
-            matched: map::relation(r)?,
+            matched: relation,
         },
         _ => DiagnosticCandidate::Conflict {
             id: r.id.clone(),

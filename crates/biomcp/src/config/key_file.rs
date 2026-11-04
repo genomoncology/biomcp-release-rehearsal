@@ -1,4 +1,5 @@
 //! Configuration persistence is confined to the settings boundary.
+//! Key set/remove own these rereads under their write lock to preserve concurrent edits and field order.
 use serde_json::{Value, json};
 use std::{
     io::{self, Write},

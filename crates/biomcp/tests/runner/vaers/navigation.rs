@@ -27,6 +27,7 @@ pub(super) fn run() -> Check {
     })?;
     let env = environment(&stub)?;
     let mut args = words("MMR");
+    args.push("symptoms".into());
     args.extend(["--limit".into(), "2".into()]);
     let first = both(&env, args.clone(), 0)?;
     if first.pointer("/result/scope/variable/code") != Some(&json!("D8.V12"))

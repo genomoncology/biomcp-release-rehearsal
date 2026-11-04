@@ -1,4 +1,4 @@
-use super::*;
+use super::{Environment, Value, ceiling, fs, json};
 use std::io::Write;
 pub(super) fn run(measure: bool) -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
@@ -121,7 +121,7 @@ fn discovery(env: &Environment) -> Result<(), String> {
         serde_json::to_vec(reply).map_err(|e| e.to_string())?.len() + 1
     )
     .map_err(|e| e.to_string())?;
-    for words in [vec!["help"], vec!["schema", "biodata.source/1"]] {
+    for words in [vec!["help"], vec!["schema", "biomcp.source/1"]] {
         let output = env
             .command(
                 env!("CARGO_BIN_EXE_biomcp"),
@@ -145,7 +145,7 @@ fn discovery(env: &Environment) -> Result<(), String> {
             writeln!(
                 std::io::stderr(),
                 "CELL_LINE_DISCOVERY source-enum={}",
-                serde_json::to_vec(schema.get("enum").ok_or("source enum")?)
+                serde_json::to_vec(schema.get("x-extensible-enum").ok_or("source enum")?)
                     .map_err(|e| e.to_string())?
                     .len()
             )

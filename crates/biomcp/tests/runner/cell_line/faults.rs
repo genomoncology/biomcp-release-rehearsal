@@ -1,11 +1,9 @@
 //! Synthetic source and identity faults never establish empty biology or poison the cache.
-use super::*;
-pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test(
-        "cell-line-identity/synthetic-faults-no-cache-and-provenance",
-        || run(false).map_err(Into::into),
-    )]
-}
+use super::{
+    Environment, Stub, Value, compared, fixture, fs, invoke, json, parity, path,
+    recorded_stub, setup,
+};
+
 pub(super) fn run(measure: bool) -> Result<(), String> {
     for surface in ["search", "card"] {
         for fault in ["429", "500", "broken", "html", "timeout"] {
@@ -94,25 +92,7 @@ fn failed(value: &Value) -> Result<(), String> {
     Ok(())
 }
 fn no_admission(fault: &'static str, measure: bool) -> Result<(), String> {
-    let mut valid: Value =
-        serde_json::from_str(&fixture("portable-cellosaurus-cell-CVCL_2119.json")?)
-            .map_err(|e| e.to_string())?;
-    let healthy = valid.to_string();
-    let row = valid
-        .pointer_mut("/Cellosaurus/cell-line-list/0")
-        .ok_or("record")?;
-    match fault {
-        "accession" => {
-            *row.pointer_mut("/accession-list/0/value")
-                .ok_or("accession")? = json!("CVCL_0004")
-        }
-        "xref" => {
-            row.as_object_mut().ok_or("record")?.remove("xref-list");
-        }
-        "bad-version" => *row.get_mut("entry-version").ok_or("version")? = json!("bad"),
-        _ => *row.get_mut("entry-version").ok_or("version")? = json!("0"),
-    }
-    let bad = valid.to_string();
+    let (bad, healthy) = fault_card(fault)?;
     let release = fixture("portable-cellosaurus-cellosaurus-release.json")?;
     let reverse = fixture("portable-cellosaurus-search-reverse.json")?;
     let mut served = 0;
@@ -141,18 +121,32 @@ fn no_admission(fault: &'static str, measure: bool) -> Result<(), String> {
     } else {
         words("card")
     };
-    // The first ordinary read must exercise cache admission before recording bypasses it.
-    failed(&invoke(&env, &words, 4)?)?;
+    let optional = matches!(fault, "bad-version" | "zero-version");
+    let exit = if optional { 0 } else { 4 };
+    // The first ordinary read exercises cache admission before recording bypasses it.
+    let initial = invoke(&env, &words, exit)?;
+    if optional {
+        omitted_version(&initial)?;
+    } else {
+        failed(&initial)?;
+    }
     let failed_value = parity(
         &format!("synthetic/no-admission/{fault}/failed"),
         &env,
         &words,
-        4,
+        exit,
         measure,
     )?;
-    failed(&failed_value)?;
+    if optional {
+        omitted_version(&failed_value)?;
+    } else {
+        failed(&failed_value)?;
+    }
     // Ordinary live read must fetch a healthy value instead of reusing a rejected cache entry.
-    invoke(&env, &words, 0)?;
+    let ordinary = invoke(&env, &words, 0)?;
+    if optional {
+        omitted_version(&ordinary)?;
+    }
     let repaired = parity(
         &format!("synthetic/no-admission/{fault}/healthy"),
         &env,
@@ -161,14 +155,19 @@ fn no_admission(fault: &'static str, measure: bool) -> Result<(), String> {
         measure,
     )?;
     path(&repaired, "/result/header/accession", json!("CVCL_2119"))?;
+    if optional {
+        path(&repaired, "/result/dates/version", json!(48))?;
+    }
     let calls = stub.finish()?;
     if calls
         .iter()
         .filter(|(_, r)| r.contains("GET /cell-line/"))
         .count()
-        != 4
+        != if optional { 3 } else { 4 }
     {
-        return Err(format!("{fault}: bad identity admitted to cache"));
+        return Err(format!(
+            "{fault}: identity rejection or optional-field cache admission changed"
+        ));
     }
     Ok(())
 }
@@ -300,4 +299,46 @@ fn usage() -> Result<(), String> {
     let value = invoke(&env, &["get", "cell-line", "ArrayExpress:E-MTAB-2770"], 2)?;
     path(&value, "/status", json!("usage"))?;
     Ok(())
+}
+
+fn omitted_version(value: &Value) -> Result<(), String> {
+    path(value, "/status", json!("partial"))?;
+    path(value, "/result/header/accession", json!("CVCL_2119"))?;
+    if value.pointer("/result/dates/version").is_some()
+        || !value
+            .get("problems")
+            .and_then(Value::as_array)
+            .is_some_and(|rows| {
+                rows.iter()
+                    .any(|p| p.get("field") == Some(&json!("entry-version")))
+            })
+    {
+        return Err(format!(
+            "malformed optional version lost identity or precise omission: {value}"
+        ));
+    }
+    Ok(())
+}
+
+fn fault_card(fault: &str) -> Result<(String, String), String> {
+    let mut valid: Value =
+        serde_json::from_str(&fixture("portable-cellosaurus-cell-CVCL_2119.json")?)
+            .map_err(|e| e.to_string())?;
+    let healthy = valid.to_string();
+    let row = valid
+        .pointer_mut("/Cellosaurus/cell-line-list/0")
+        .ok_or("record")?;
+    match fault {
+        "accession" => {
+            *row.pointer_mut("/accession-list/0/value")
+                .ok_or("accession")? = json!("CVCL_0004")
+        }
+        "xref" => {
+            row.as_object_mut().ok_or("record")?.remove("xref-list");
+        }
+        "bad-version" => *row.get_mut("entry-version").ok_or("version")? = json!("bad"),
+        _ => *row.get_mut("entry-version").ok_or("version")? = json!("0"),
+    }
+    let bad = valid.to_string();
+    Ok((bad, healthy))
 }

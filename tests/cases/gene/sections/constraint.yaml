@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-sections",
+  "feature": "gene-constraint",
   "story": "TP53 reports the preferred gnomAD transcript and finite metrics",
   "replay": "gene/constraint",
   "steps": [
@@ -24,13 +24,7 @@
           "includes": "gnomad"
         }
       },
-      "max_bytes": 3600,
-      "mcp": [
-        "get",
-        "gene",
-        "TP53",
-        "constraint"
-      ]
+      "max_bytes": 3600
     }
   ]
 }

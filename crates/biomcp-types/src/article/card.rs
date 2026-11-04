@@ -7,7 +7,7 @@ macro_rules! article {
         #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
         #[serde(try_from = "ArticleFields<A>")]
         #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        #[cfg_attr(feature = "schema", schemars(!try_from, deny_unknown_fields,
+        #[cfg_attr(feature = "schema", schemars(!try_from,
             extend("anyOf" = [
                 {"required":["pmid"]},
                 {"required":["pmcid"]},
@@ -19,15 +19,14 @@ macro_rules! article {
         }
         #[derive(Deserialize)]
         #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        #[serde(deny_unknown_fields)]
-        struct ArticleFields<A> {
+                struct ArticleFields<A> {
             $( $(#[$attribute])* $field: $ty, )*
         }
         impl<A> TryFrom<ArticleFields<A>> for Article<A> {
-            type Error = &'static str;
+            type Error = biodata::Error;
             fn try_from(value: ArticleFields<A>) -> Result<Self, Self::Error> {
                 if value.pmid.is_none() && value.pmcid.is_none() && value.doi.is_none() && value.europepmc_id.is_none() {
-                    return Err("article identity required");
+                    return Err(biodata::Error::ArticleIdentityRequired);
                 }
                 Ok(Self { $( $field: value.$field, )* })
             }
@@ -100,7 +99,6 @@ impl Article {
 }
 /// One source-labelled abstract paragraph.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AbstractPart {
     /// Source label, when supplied.
@@ -117,7 +115,7 @@ biodata::canonical_enum! {
         /// Erratum relationship.
         Erratum => "erratum",
         /// Expression of concern relationship.
-        ExpressionOfConcern => "expression_of_concern",
+        ExpressionOfConcern => "expression-of-concern",
     }
 }
 biodata::canonical_enum! {
@@ -131,7 +129,6 @@ biodata::canonical_enum! {
 }
 /// One correction relationship supplied by PubMed.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Correction {
     /// Correction category.

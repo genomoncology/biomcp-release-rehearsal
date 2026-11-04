@@ -1,9 +1,13 @@
 //! Keyed gene annotations, joined only by checked HGNC Entrez identity.
+use biomcp_fetch::{Absent, Input};
+mod narrative;
 use crate::mapped::push_problem;
 use crate::mapped::record as record_text;
 mod raw;
 pub mod variant;
+mod variant_groups;
 pub mod variant_map;
+mod variant_map_support;
 use crate::{Mapped, quotas};
 use biodata::{GeneSymbol, NcbiGeneId, Text};
 
@@ -20,11 +24,12 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "OncoKB license",
         url: "https://faq.oncokb.org/licensing",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Licensed,
     },
     source: Source::Oncokb,
     base: "https://www.oncokb.org",
     key: KeyUse::Required(Credential {
+        tier: biomcp_types::KeyTier::NoFallback,
         secret: SecretName::OncokbApiKey,
         place: KeyPlace::Bearer,
     }),
@@ -49,35 +54,71 @@ pub fn gene(
     symbol: &GeneSymbol,
     id: NcbiGeneId,
 ) -> Result<Mapped<Option<GeneData>>, RequestError> {
-    let reply = leg.json_opt::<raw::Genes>(
-        &GENES,
-        &[
-            ("hugoSymbol", Arg::Text(symbol.as_str())),
-            ("includeEvidence", Arg::Text("true")),
-        ],
-    )?;
+    let reply = leg
+        .call(
+            &GENES,
+            Input::Params(&[
+                ("hugoSymbol", Arg::Text(symbol.as_str())),
+                ("includeEvidence", Arg::Text("true")),
+            ]),
+            biomcp_fetch::Read::<raw::Genes>::json(),
+        )
+        .map(|received| received.value)
+        .absent()?;
     let rows = reply.map(|reply| reply.0).unwrap_or_default();
     let mut problems = Vec::new();
     let mut accepted = Vec::new();
+    let mut refusals = crate::Refusal::None;
     for row in rows {
-        if row.entrez_gene_id == id {
-            accepted.push(row);
+        if let Some(value) = row.mapped(symbol, id, &mut problems) {
+            accepted.push(value);
         } else {
-            push_problem(&mut problems, Source::Oncokb, record_text(id), "entrez_id");
+            refusals = crate::Refusal::Refused;
         }
     }
     let value = if accepted.len() == 1 {
-        accepted.pop().map(|row| row.mapped(&mut problems))
+        accepted.pop()
     } else {
         if accepted.len() > 1 {
-            push_problem(&mut problems, Source::Oncokb, record_text(id), "entrez_id");
+            refusals = crate::Refusal::Refused;
+            push_problem(
+                &mut problems,
+                Source::Oncokb,
+                record_text(id),
+                "entrezGeneId",
+            );
         }
         None
     };
-    Ok(Mapped { value, problems })
+    Ok(Mapped {
+        refusals,
+        value,
+        problems,
+    })
 }
 /// Read the data version once for the command's accepted gene data.
-pub fn version(leg: &Leg<'_>) -> Result<Text, RequestError> {
-    leg.json::<raw::Info>(&INFO, &[])
-        .map(|info| info.data_version.version)
+pub fn version(leg: &Leg<'_>) -> Result<Mapped<Option<Text>>, RequestError> {
+    let info = leg
+        .call(
+            &INFO,
+            Input::Params(&[]),
+            biomcp_fetch::Read::<raw::Info>::json(),
+        )?
+        .value;
+    let mut cx = crate::mapped::Problems {
+        source: Source::Oncokb,
+        record: None,
+        list: Vec::new(),
+    };
+    let value = cx
+        .field("dataVersion", info.data_version)
+        .and_then(|value| cx.field("dataVersion.version", value.version));
+    Ok(Mapped {
+        refusals: crate::Refusal::None,
+        value,
+        problems: cx.list,
+    })
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

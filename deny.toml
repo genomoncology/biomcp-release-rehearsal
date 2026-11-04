@@ -32,120 +32,9 @@ version = "=2.6.1"
 allow = ["BSD-3-Clause"]
 
 [[licenses.exceptions]]
-name = "webpki-roots"
-version = "=1.0.11"
-allow = ["CDLA-Permissive-2.0"]
-
-[[licenses.exceptions]]
 name = "webpki-root-certs"
 version = "=1.0.11"
 allow = ["CDLA-Permissive-2.0"]
-
-# Approved SQLite and schema-checking dependencies use these permissive licenses.
-[[licenses.exceptions]]
-name = "borrow-or-share"
-version = "=0.2.4"
-allow = ["MIT-0"]
-
-[[licenses.exceptions]]
-name = "foldhash"
-version = "=0.1.5"
-allow = ["Zlib"]
-
-[[licenses.exceptions]]
-name = "foldhash"
-version = "=0.2.0"
-allow = ["Zlib"]
-
-[[licenses.exceptions]]
-name = "icu_collections"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "icu_locale_core"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "icu_normalizer"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "icu_normalizer_data"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "icu_properties"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "icu_properties_data"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "icu_provider"
-version = "=2.4.0"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "litemap"
-version = "=0.8.3"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "potential_utf"
-version = "=0.1.6"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "tinystr"
-version = "=0.8.5"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "writeable"
-version = "=0.6.4"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "yoke"
-version = "=0.8.4"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "yoke-derive"
-version = "=0.8.4"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "zerofrom"
-version = "=0.1.8"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "zerofrom-derive"
-version = "=0.1.8"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "zerotrie"
-version = "=0.2.5"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "zerovec"
-version = "=0.11.9"
-allow = ["Unicode-3.0"]
-
-[[licenses.exceptions]]
-name = "zerovec-derive"
-version = "=0.11.7"
-allow = ["Unicode-3.0"]
 
 # The approved build-time YAML parser reads encoded input through encoding_rs.
 # Its WHATWG tables retain the upstream BSD notice alongside MIT/Apache code.
@@ -176,6 +65,29 @@ name = "zstd-sys"
 version = "=2.1.2+zstd.1.5.7"
 allow = ["BSD-3-Clause"]
 
+# Native bounded FDA PDF reader dependencies retain their permissive upstream licenses.
+# https://crates.io/crates/alloc-no-stdlib/2.0.4 and alloc-stdlib/0.2.4
+[[licenses.exceptions]]
+name = "alloc-no-stdlib"
+version = "=2.0.4"
+allow = ["BSD-3-Clause"]
+
+[[licenses.exceptions]]
+name = "alloc-stdlib"
+version = "=0.2.4"
+allow = ["BSD-3-Clause"]
+
+# https://crates.io/crates/unicode-normalization/0.1.26 and unicode-properties/0.1.5
+[[licenses.exceptions]]
+name = "unicode-normalization"
+version = "=0.1.26"
+allow = ["MIT", "Apache-2.0", "Unicode-3.0"]
+
+[[licenses.exceptions]]
+name = "unicode-properties"
+version = "=0.1.5"
+allow = ["MIT", "Apache-2.0", "Unicode-3.0"]
+
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
@@ -184,4 +96,6 @@ wildcards = "deny"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
-allow-git = []
+required-git-spec = "rev"
+# The dependency ratchet also checks these revisions; cargo-deny compares repository paths.
+allow-git = ["https://github.com/genomoncology/biodata?rev=8bcd2456cab32d04daaac5ea0a17ea4151d4224e"]

@@ -1,0 +1,32 @@
+{
+  "feature": "trial-search",
+  "story": "An exact sponsor phrase that finds a native trial never runs a broader search.",
+  "replay": "trial/name-fallback",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT05273554",
+        "--sponsor",
+        "M.D. Anderson Cancer Center"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT05273554"
+          ]
+        },
+        "/sources/0": {
+          "omits": [
+            "notices"
+          ]
+        }
+      },
+      "max_bytes": 2000
+    }
+  ]
+}

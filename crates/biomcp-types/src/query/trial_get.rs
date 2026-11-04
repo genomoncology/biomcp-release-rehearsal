@@ -137,6 +137,8 @@ biodata::wire_enum! {
         Eligibility => "eligibility",
         /// Primary, secondary and other outcome records.
         Outcomes => "outcomes",
+        /// Posted outcome values, analyses and adverse-event tables (ClinicalTrials.gov).
+        Results => "results",
         /// Arms and interventions with original relationships.
         Arms => "arms",
         /// Whole source sites with their attached contacts.
@@ -153,5 +155,28 @@ biodata::wire_enum! {
         Diseases => "diseases",
         /// Complete NCI summary, paged by original character offsets.
         Summary => "summary",
+    }
+}
+
+impl TrialSource {
+    /// Implemented protocol sections in source presentation order.
+    pub const fn sections(self) -> &'static [TrialSection] {
+        use TrialSection::{
+            Arms, Contacts, Diseases, Documents, Eligibility, Locations, Outcomes, References,
+            Results, Summary,
+        };
+        match self {
+            Self::Ctgov => &[
+                Eligibility,
+                Outcomes,
+                Arms,
+                Locations,
+                Contacts,
+                References,
+                Documents,
+                Results,
+            ],
+            Self::Nci => &[Eligibility, Outcomes, Arms, Diseases, Summary],
+        }
     }
 }

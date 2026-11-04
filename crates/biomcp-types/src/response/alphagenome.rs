@@ -1,24 +1,26 @@
 //! Preserve paged native AlphaGenome values without ranking or clinical interpretation.
-use super::alphagenome_enums::*;
+use super::alphagenome_enums::{
+    AlphaGenomeBiosampleType, AlphaGenomeEndedness, AlphaGenomeOntologyType, AlphaGenomeStrand,
+};
 use serde::{Deserialize, Serialize};
 /// Native ontology identity.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(extend("x-identifier" = true)))]
 pub struct AlphaGenomeOntology {
     /// Publisher ontology vocabulary.
-    pub ontology_type: AlphaGenomeOntologyType,
+    pub namespace: AlphaGenomeOntologyType,
     /// Publisher numeric identifier.
     pub id: i64,
 }
 /// Native biosample metadata.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeBiosample {
     /// Publisher sample category.
     #[serde(rename = "type")]
-    pub kind: AlphaGenomeBiosampleType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kind: Option<AlphaGenomeBiosampleType>,
     /// Publisher sample name.
     pub name: String,
     /// Publisher stage text, when supplied.
@@ -27,7 +29,6 @@ pub struct AlphaGenomeBiosample {
 }
 /// Native metadata for one tensor track.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeTrack {
     /// Publisher track name.
@@ -67,7 +68,6 @@ pub struct AlphaGenomeTrack {
 }
 /// Native gene metadata for a tensor row.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeGene {
     /// Publisher gene identifier.
@@ -90,7 +90,6 @@ pub struct AlphaGenomeGene {
 }
 /// Exact genomic coordinates supplied in the request and echoed by the source.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeVariant {
     /// Exact chromosome sent.
@@ -104,7 +103,6 @@ pub struct AlphaGenomeVariant {
 }
 /// A requested interval; the scoring response does not echo an interval field.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeInterval {
     /// Exact chromosome sent.
@@ -120,11 +118,11 @@ biodata::wire_enum! {
     /// The scorer explicitly requested at this ordinal; not a native response label.
     AlphaGenomeScorer {
         /// Gene-mask log fold change requested on RNA_SEQ.
-        GeneMaskLfcRnaSeq => "gene_mask_lfc_rna_seq",
+        GeneMaskLfcRnaSeq => "gene-mask-lfc-rna-seq",
         /// Gene-mask splicing requested on SPLICE_SITES, with width absent.
-        GeneMaskSplicingSpliceSites => "gene_mask_splicing_splice_sites",
+        GeneMaskSplicingSpliceSites => "gene-mask-splicing-splice-sites",
         /// Center-mask DIFF_MEAN requested on DNASE, width 501.
-        CenterMaskDiffMeanDnase501 => "center_mask_diff_mean_dnase_501",
+        CenterMaskDiffMeanDnase501 => "center-mask-diff-mean-dnase-501",
     }
 }
 biodata::wire_enum! {
@@ -136,7 +134,6 @@ biodata::wire_enum! {
 }
 /// One native tensor value with its unchanged coordinate and metadata.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeValue {
     /// Native row-major tensor coordinate; plane, row and track indices.
@@ -151,7 +148,6 @@ pub struct AlphaGenomeValue {
 }
 /// Independent page of one requested scorer's native values.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AlphaGenomeScorerPage {
     /// Request position used to associate this unlabelled response group.
@@ -173,7 +169,6 @@ pub struct AlphaGenomeScorerPage {
 }
 /// Paged native scorer results with explicit request provenance.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantAlphaGenome {
     /// Source-resolved assembly used for the request.

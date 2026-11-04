@@ -30,6 +30,8 @@ pub(super) const IDS: &[&str] = &[
     "/id",
     "/id/id",
     "/header/id",
+    "/header/recall_number",
+    "/recall_number",
     "/concept/id",
     "/product/id",
     "/protein/accession",
@@ -47,7 +49,7 @@ pub(super) const IDS: &[&str] = &[
     "/association/id",
 ];
 
-use biomcp_adapters::registry::records::RecordKind;
+use biomcp_query::sources::RecordKind;
 pub(super) fn kind(entity: &str) -> Option<RecordKind> {
     Some(match entity {
         "author" => RecordKind::Author,

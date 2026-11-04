@@ -1,0 +1,70 @@
+{
+  "feature": "trial-search",
+  "story": "A real exact-zero sponsor/collaborator positive and honest MD Anderson sponsor/facility zeros each name the exact and single broader native requests.",
+  "replay": "trial/name-fallback",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT03734029",
+        "--sponsor",
+        "AstraZeneca"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/page/returned": 1,
+        "/sources/0/count": 1,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT03734029"
+          ]
+        },
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/sources/0/notices/0/message": "ClinicalTrials.gov exact phrase request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT03734029 AND AREA[LeadSponsorName]\\\"AstraZeneca\\\"\", \"pageSize\": \"10\"} returned zero trials. BioMCP tried the registry's broader name request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT03734029\", \"pageSize\": \"10\", \"query.spons\": \"AstraZeneca\"} once.",
+        "/sources/0/retrieved_count": 1
+      },
+      "max_bytes": 5000
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT05273554",
+        "--sponsor",
+        "MD Anderson"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/sources/0/count": 0,
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/sources/0/notices/0/message": "ClinicalTrials.gov exact phrase request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT05273554 AND AREA[LeadSponsorName]\\\"MD Anderson\\\"\", \"pageSize\": \"10\"} returned zero trials. BioMCP tried the registry's broader name request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT05273554\", \"pageSize\": \"10\", \"query.spons\": \"MD Anderson\"} once.",
+        "/sources/0/retrieved_count": 0
+      },
+      "max_bytes": 4000
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT05273554",
+        "--facility",
+        "MD Anderson"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/sources/0/count": 0,
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/sources/0/notices/0/message": "ClinicalTrials.gov exact phrase request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT05273554 AND AREA[LocationFacility]\\\"MD Anderson\\\"\", \"pageSize\": \"10\"} returned zero trials. BioMCP tried the registry's broader name request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT05273554\", \"pageSize\": \"10\", \"query.locn\": \"MD Anderson\"} once.",
+        "/sources/0/retrieved_count": 0
+      },
+      "max_bytes": 4000
+    }
+  ]
+}

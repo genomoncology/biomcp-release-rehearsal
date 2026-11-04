@@ -1,0 +1,65 @@
+{
+  "live_check": "local-only removed options; no source requests",
+  "feature": "query-validation",
+  "story": "Removed compatibility options return usage arguments.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "author",
+        "-q",
+        "literal"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "author",
+        "--query",
+        "literal"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "-q",
+        "literal"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--query",
+        "literal"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "mcp-config",
+        "--absolute-path"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

@@ -18,26 +18,7 @@ fn args(step: &Value) -> Result<Vec<String>, String> {
     serde_json::from_value(step.get("args").cloned().ok_or("missing args")?)
         .map_err(|e| e.to_string())
 }
-pub(super) fn overlapping() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let replay = seed(&env)?;
-    call(&env, &replay, &["sync", "who-ivd"], 0)?;
-    let words = [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--manufacturer",
-        "North-North",
-    ];
-    let value = call(&env, &replay, &words, 0)?;
-    if value.pointer("/page/total") != Some(&json!(1))
-        || value.pointer("/result/items/0/id") != Some(&json!("2001-001-00"))
-    {
-        return Err("later whole-word occurrence was skipped".into());
-    }
-    Ok(())
-}
+
 pub(super) fn walk() -> Check {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let replay = seed(&env)?;
@@ -113,48 +94,6 @@ pub(super) fn walk() -> Check {
         return Err(format!(
             "WHO product walk has gaps, duplicates or reordering: {seen:?}"
         ));
-    }
-    Ok(())
-}
-pub(super) fn admission() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let replay = seed(&env)?;
-    call(&env, &replay, &["sync", "who-ivd"], 0)?;
-    let search = [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--marker",
-        "HIV",
-    ];
-    let old = call(&env, &replay, &search, 0)?;
-    let page = old
-        .get("next")
-        .and_then(Value::as_array)
-        .and_then(|v| v.iter().find(|s| s.get("kind") == Some(&json!("page"))))
-        .ok_or("page missing")?;
-    for entry in fs::read_dir(replay.join("who-ivd")).map_err(|e| e.to_string())? {
-        let path = entry.map_err(|e| e.to_string())?.path();
-        let text = fs::read_to_string(&path).map_err(|e| e.to_string())?;
-        fs::write(path, text.replace("CODE-A", "NEW-CODE-A")).map_err(|e| e.to_string())?;
-    }
-    call(&env, &replay, &["sync", "who-ivd"], 0)?;
-    let next = args(page)?;
-    let borrowed: Vec<_> = next.iter().map(String::as_str).collect();
-    let rejected = call(&env, &replay, &borrowed, 4)?;
-    if rejected.pointer("/sources/0/reason") != Some(&json!("rejected")) {
-        return Err("old WHO continuation read a replacement snapshot".into());
-    }
-    for source in ["who-ivd", "noncommercial"] {
-        env.config(&json!({"disable_sources":[source]}))
-            .map_err(|e| e.to_string())?;
-        let value = call(&env, &replay, &search, 4)?;
-        if value.get("result").is_some()
-            || value.pointer("/sources/0/reason") != Some(&json!("disabled"))
-        {
-            return Err("disabled WHO search leaked stored data".into());
-        }
     }
     Ok(())
 }

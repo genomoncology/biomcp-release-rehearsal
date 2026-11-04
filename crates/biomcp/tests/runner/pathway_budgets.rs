@@ -24,8 +24,8 @@ pub(super) fn mcp(
     Ok(value)
 }
 pub(super) fn check(value: &Value, phase: &str, surface: &str) -> Result<(), String> {
-    let measurements: std::collections::BTreeMap<String, usize> = serde_json::from_str(
-        include_str!("../../../../tests/pathway-command-budgets.json"),
+    let measurements: std::collections::BTreeMap<String, usize> = serde_saphyr::from_str(
+        &crate::runner::launch::fixture_text("pathway-command-budgets.yaml")?,
     )
     .map_err(|e| e.to_string())?;
     let key = format!("{phase} [{surface}]");

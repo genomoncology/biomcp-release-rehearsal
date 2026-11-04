@@ -18,7 +18,7 @@ biodata::wire_enum! {
 }
 /// Explicit resource sum; impossible section and identity pairings fail during decoding.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum GwasGet {
     /// Read an association.
@@ -92,11 +92,14 @@ impl GwasSectionPage {
     pub fn offset(&self) -> u32 {
         self.0.section_offset
     }
-    /// Select a later relation window.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut page = self.clone();
-        page.0.section_offset = offset;
-        page
+}
+impl crate::Paged for GwasSectionPage {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.section_offset = offset;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.snapshot = None;
     }
 }
 
@@ -152,13 +155,20 @@ impl GwasGet {
         }
         next
     }
-    /// Restart the same relation without a retained reply.
-    pub fn restart(&self) -> Self {
-        self.with_page(GwasSectionPage(PageFields {
-            section_limit: self.page().limit(),
-            section_offset: 0,
-            snapshot: None,
-        }))
+}
+impl crate::Paged for GwasGet {
+    type Offset = ();
+    fn set_page_offset(&mut self, _offset: Self::Offset) {
+        match self {
+            Self::Association { page, .. } | Self::Study { page, .. } => {
+                crate::Paged::set_page_offset(page, 0)
+            }
+        }
+    }
+    fn clear_page_context(&mut self) {
+        match self {
+            Self::Association { page, .. } | Self::Study { page, .. } => page.0.snapshot = None,
+        }
     }
 }
 

@@ -1,0 +1,167 @@
+{
+  "feature": "variant-search",
+  "live_check": "synthetic",
+  "replay": "variant/search/Arg117Gly",
+  "story": "Explicit MyVariant Arg117Gly candidates retain the source identities and query",
+  "harvest": "sdlc/planning/slices/variant.md",
+  "verified": "2026-10-24; factual identity anchors from external0088-source-captures; synthetic response projection, not a fresh whole-source claim",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "CHEK2",
+        "--protein",
+        "Arg117Gly",
+        "--build",
+        "GRCh37"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "CHEK2",
+        "--protein",
+        "Arg117Gly",
+        "--build",
+        "GRCh37"
+      ],
+      "max_bytes": 1202,
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "partial",
+        "/query": {
+          "equals": {
+            "gene": "CHEK2",
+            "protein": "Arg117Gly",
+            "limit": 10,
+            "offset": 0,
+            "build": "GRCh37"
+          }
+        },
+        "/result": {
+          "equals": {
+            "source_query": "dbnsfp.genename:CHEK2 AND dbnsfp.hgvsp:\"p.Arg117Gly\"",
+            "build": "GRCh37",
+            "items": [
+              {
+                "identity": {
+                  "ids": [
+                    "rs28909982",
+                    "clinvar:128071"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr22:g.29121326T>C"
+                      }
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr22:g.29121326T>C",
+                  "namespace": "unknown"
+                },
+                "component_terms": [
+                  {
+                    "component": "clinvar",
+                    "terms": {
+                      "usage": "restricted",
+                      "name": "NCBI policy; submission rights remain source-specific",
+                      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
+                    }
+                  }
+                ]
+              }
+            ],
+            "selector_terms": {
+              "usage": "noncommercial",
+              "name": "dbNSFP academic branch and individual component terms",
+              "url": "https://sites.google.com/site/jpopgen/dbNSFP"
+            }
+          }
+        },
+        "/page": {
+          "equals": {
+            "offset": 0,
+            "returned": 1,
+            "total": 1
+          }
+        },
+        "/sources/0/source": "myvariant"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "CHEK2",
+        "--protein",
+        "Arg117Gly",
+        "--build",
+        "GRCh37"
+      ],
+      "offline": true,
+      "expect": {
+        "/result": {
+          "equals": {
+            "source_query": "dbnsfp.genename:CHEK2 AND dbnsfp.hgvsp:\"p.Arg117Gly\"",
+            "build": "GRCh37",
+            "items": [
+              {
+                "identity": {
+                  "ids": [
+                    "rs28909982",
+                    "clinvar:128071"
+                  ],
+                  "representations": [
+                    {
+                      "source": "myvariant",
+                      "expression": {
+                        "syntax": "hgvs.g",
+                        "value": "chr22:g.29121326T>C"
+                      }
+                    }
+                  ]
+                },
+                "source": "myvariant",
+                "record": {
+                  "id": "chr22:g.29121326T>C",
+                  "namespace": "unknown"
+                },
+                "component_terms": [
+                  {
+                    "component": "clinvar",
+                    "terms": {
+                      "usage": "restricted",
+                      "name": "NCBI policy; submission rights remain source-specific",
+                      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
+                    }
+                  }
+                ]
+              }
+            ],
+            "selector_terms": {
+              "usage": "noncommercial",
+              "name": "dbNSFP academic branch and individual component terms",
+              "url": "https://sites.google.com/site/jpopgen/dbNSFP"
+            }
+          }
+        },
+        "/page": {
+          "equals": {
+            "offset": 0,
+            "returned": 1,
+            "total": 1
+          }
+        },
+        "/status": "partial"
+      }
+    }
+  ]
+}

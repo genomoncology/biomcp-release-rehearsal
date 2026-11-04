@@ -1,0 +1,32 @@
+{
+  "label": "NEW0472",
+  "scope": "Two approved original GET requests; no redirects or retries.",
+  "captures": [
+    {
+      "method": "GET",
+      "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/associations?direction=asc&page=0&pubmed_id=17529967&size=3&sort=p_value",
+      "started_at": "2026-10-29T21:07:15.058240+00:00",
+      "completed_at": "2026-10-29T21:07:16.544318+00:00",
+      "status": "200",
+      "curl_exit": 0,
+      "stderr": "",
+      "file": "page0.body",
+      "headers": "page0.headers",
+      "bytes": 3346,
+      "sha256": "c9d785573a05cc3a97ef756ce3c23d9e66e1b2ecde0cca0371f4a396cd0149e5"
+    },
+    {
+      "method": "GET",
+      "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/associations?direction=asc&page=1&pubmed_id=17529967&size=3&sort=p_value",
+      "started_at": "2026-10-29T21:07:17.544960+00:00",
+      "completed_at": "2026-10-29T21:07:18.616250+00:00",
+      "status": "200",
+      "curl_exit": 0,
+      "stderr": "",
+      "file": "page1.body",
+      "headers": "page1.headers",
+      "bytes": 3369,
+      "sha256": "6288c9e06a06929fc74955f3de25db3d85a424dfe10fe2c019e646817979093d"
+    }
+  ]
+}

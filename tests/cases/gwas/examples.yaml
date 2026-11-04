@@ -9,19 +9,17 @@
         "search",
         "gwas",
         "--pubmed",
-        "17529967"
-      ],
-      "mcp": [
-        "search",
-        "gwas",
-        "--pubmed",
-        "17529967"
+        "17529967",
+        "--limit",
+        "3"
       ],
       "expect": {
         "/status": "complete",
-        "/result/items/0/id": 6110,
+        "/result/items/0/id": "association:6110",
         "/query/query/order": "p_value,asc",
-        "/result/items/0/p_value": 4e-254
+        "/result/items/0/p_value": 4e-254,
+        "/result/items/0/exact_p_value/mantissa": "4",
+        "/result/items/0/exact_p_value/exponent": -254
       },
       "max_bytes": 1828
     },
@@ -32,17 +30,13 @@
         "--variant",
         "rs2981582"
       ],
-      "mcp": [
-        "search",
-        "gwas",
-        "--variant",
-        "rs2981582"
-      ],
       "expect": {
         "/status": "complete",
-        "/result/items/0/id": 6110,
+        "/result/items/0/id": "association:6110",
         "/query/query/order": "p_value,asc",
-        "/result/items/0/p_value": 4e-254
+        "/result/items/0/p_value": 4e-254,
+        "/result/items/0/exact_p_value/mantissa": "4",
+        "/result/items/0/exact_p_value/exponent": -254
       },
       "max_bytes": 1835
     },
@@ -55,26 +49,117 @@
         "--p-value",
         "4e-254"
       ],
-      "mcp": [
-        "search",
-        "gwas",
-        "--pubmed",
-        "17529967",
-        "--p-value",
-        "4e-254"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items": {
           "count": 3
         },
-        "/result/qualifying_total": {
-          "equals": null
-        },
         "/next/0/kind": "page",
         "/query/query/p_value": "4e-254"
       },
       "max_bytes": 2264
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--trait",
+        "breast carcinoma"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/query/query/order": "p_value,asc"
+      },
+      "max_bytes": 2175
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--trait-id",
+        "MONDO_0004989"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/query/query/order": "p_value,asc"
+      },
+      "max_bytes": 2175
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--trait-id",
+        "MONDO_0004989",
+        "--include-child-traits"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/query/query/order": "p_value,asc"
+      },
+      "max_bytes": 2175
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--gene",
+        "FGFR2"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/query/query/order": "p_value,asc"
+      },
+      "max_bytes": 2175
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--gene",
+        "FGFR2",
+        "--extended-geneset"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/query/query/order": "p_value,asc"
+      },
+      "max_bytes": 2175
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--study",
+        "GCST000035"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/query/query/order": "p_value,asc"
+      },
+      "max_bytes": 2175
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17529967",
+        "--offset",
+        "3"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6113",
+        "/page/offset": 3
+      },
+      "max_bytes": 1817
     }
   ]
 }

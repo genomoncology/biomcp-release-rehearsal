@@ -6,7 +6,6 @@ use biodata::{
 use serde::{Deserialize, Serialize};
 /// Native author candidates in provider order; search total counts only this query.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AuthorPage {
     /// Source candidates; no deduplication by display name.
@@ -18,7 +17,6 @@ pub struct AuthorPage {
 }
 /// Exact source cards in input order; outer source outcomes retain failures.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AuthorCards {
     /// Exact returned source cards, with no cross-source links.
@@ -27,7 +25,6 @@ pub struct AuthorCards {
 }
 /// One exact input and its independent outcome.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AuthorCardItem {
     /// Requested qualified provider identity.
@@ -42,7 +39,6 @@ macro_rules! papers {
     ($name:ident, $row:ty, $doc:literal) => {
         #[doc = $doc]
         #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
         #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
         pub struct $name {
             /// Requested provider record.
@@ -67,12 +63,11 @@ biodata::wire_enum! {
     /// Scope of one received ORCID collection.
     OrcidWorksScope {
         /// ORCID sends the whole public works list in one bounded reply; pages are local.
-        WholePublicWorksReply => "whole_public_works_reply"
+        WholePublicWorksReply => "whole-public-works-reply"
     }
 }
 /// Locally paged groups from one complete public ORCID works reply.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct OrcidWorks {
     /// The whole source reply supplies every local page.
@@ -86,22 +81,22 @@ pub struct OrcidWorks {
     pub observed_groups: u64,
 }
 impl ResponseBody for AuthorPage {
-    const SCHEMA: &'static str = "biomcp.author-page/3";
+    const SCHEMA: &'static str = "biomcp.author-page/5";
     type Query = AuthorSearch;
 }
 impl ResponseBody for AuthorCards {
-    const SCHEMA: &'static str = "biomcp.author-card/4";
+    const SCHEMA: &'static str = "biomcp.author-card/6";
     type Query = AuthorGet;
 }
 impl ResponseBody for AuthorPapers {
-    const SCHEMA: &'static str = "biomcp.author-papers/1";
+    const SCHEMA: &'static str = "biomcp.author-papers/6";
     type Query = AuthorPapersQuery;
 }
 impl ResponseBody for AuthorPaperDetails {
-    const SCHEMA: &'static str = "biomcp.author-paper-details/1";
+    const SCHEMA: &'static str = "biomcp.author-paper-details/6";
     type Query = AuthorPapersQuery;
 }
 impl ResponseBody for OrcidWorks {
-    const SCHEMA: &'static str = "biomcp.orcid-works/3";
+    const SCHEMA: &'static str = "biomcp.orcid-works/8";
     type Query = AuthorPapersQuery;
 }

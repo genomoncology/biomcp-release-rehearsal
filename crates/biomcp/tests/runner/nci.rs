@@ -7,26 +7,21 @@ use super::{launch::Environment, network_stub::Stub};
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
-type Check = Result<(), String>;
+mod biomarker;
+
+mod organization;
+
 const KEY: &str = "synthetic-nci-stored-key";
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test("trial/nci/wire-and-failures", || {
-        wire().map_err(Into::into)
-    })]
+    std::iter::once(super::transcript::trial(
+        "trial-nci/nci/wire-and-failures",
+        || wire().map_err(Into::into),
+    ))
+    .chain(organization::trials())
+    .chain(biomarker::trials())
+    .collect()
 }
-fn reply(request: &str) -> Result<String, String> {
-    let card = json!(
-        {"nci_id":"NCI-2026-00001","nct_id":"NCT02296125","brief_title":"Synthetic trial",
-        "current_trial_status":"Temporarily Closed to Accrual","phase":"II/III","brief_summary":"Original source summary Ω",
-        "diseases":[{"name":"Synthetic disease","nci_thesaurus_concept_id":"C3224"}]}
-    );
-    Ok(if request.starts_with("GET /api/v2/trials/NCT02296125 ") {
-        card
-    } else {
-        json!({"total":7,"data":[card]})
-    }
-    .to_string())
-}
+
 pub(super) fn invoke(env: &Environment, args: &[String], exit: i32) -> Result<Value, String> {
     let output = env
         .command(env!("CARGO_BIN_EXE_biomcp"), args)
@@ -49,17 +44,33 @@ pub(super) fn invoke(env: &Environment, args: &[String], exit: i32) -> Result<Va
     super::schema::Registry::embedded()?.validate(&value, args, exit == 0)?;
     Ok(value)
 }
+
+fn reply(request: &str) -> Result<String, String> {
+    let card = json!(
+        {"nci_id":"NCI-2026-00001","nct_id":"NCT02296125","brief_title":"Synthetic trial",
+        "current_trial_status":"Temporarily Closed to Accrual","phase":"II/III","brief_summary":"Original source summary Ω",
+        "diseases":[{"name":"Synthetic disease","nci_thesaurus_concept_id":"C3224"}]}
+    );
+    Ok(if request.starts_with("GET /api/v2/trials/NCT02296125 ") {
+        card
+    } else {
+        json!({"total":7,"data":[card]})
+    }
+    .to_string())
+}
+
 fn globals(args: &[&str], flag: &str, path: &Path) -> Vec<String> {
     args.iter()
         .map(|s| (*s).to_owned())
         .chain([flag.to_owned(), path.to_string_lossy().into_owned()])
         .collect()
 }
-fn wire() -> Check {
+
+fn wire() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let stub = Stub::for_source("clinicaltrialsapi.cancer.gov", "application/json", reply)?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca,"keys":{"nci_api_key":KEY}}))
         .map_err(|e| e.to_string())?;
@@ -122,7 +133,8 @@ fn wire() -> Check {
     failures(&env, &search, &search_dir)?;
     policies(&env, &get, &get_dir)
 }
-fn policies(env: &Environment, get: &[&str], dir: &Path) -> Check {
+
+fn policies(env: &Environment, get: &[&str], dir: &Path) -> Result<(), String> {
     let mut args = globals(get, "--replay", dir);
     args.extend(["--disable-sources".into(), "nci".into()]);
     let out = invoke(env, &args, 4)?;
@@ -139,14 +151,15 @@ fn policies(env: &Environment, get: &[&str], dir: &Path) -> Check {
         .map_err(|e| e.to_string())?;
     let out: Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
     if output.status.code() != Some(4)
-        || out.pointer("/sources/0/reason") != Some(&json!("no_key"))
+        || out.pointer("/sources/0/reason") != Some(&json!("no-key"))
         || out.pointer("/result/items/0/card").is_some()
     {
         return Err("missing NCI key restored a recording".into());
     }
     Ok(())
 }
-fn failures(env: &Environment, search: &[&str], dir: &Path) -> Check {
+
+fn failures(env: &Environment, search: &[&str], dir: &Path) -> Result<(), String> {
     let entry = fs::read_dir(dir.join("nci"))
         .map_err(|e| e.to_string())?
         .next()
@@ -157,12 +170,12 @@ fn failures(env: &Environment, search: &[&str], dir: &Path) -> Check {
         .map_err(|e| e.to_string())?;
     for (kind, reason) in [
         (401, "rejected"),
-        (429, "rate_limited"),
+        (429, "rate-limited"),
         (500, "unavailable"),
-        (0, "bad_reply"),
-        (1, "deadline_exceeded"),
-        (2, "bad_reply"),
-        (3, "bad_reply"),
+        (0, "bad-reply"),
+        (1, "deadline-exceeded"),
+        (2, "bad-reply"),
+        (3, "bad-reply"),
     ] {
         let target = env.root().join(format!("failure-{kind}"));
         fs::create_dir_all(target.join("nci")).map_err(|e| e.to_string())?;

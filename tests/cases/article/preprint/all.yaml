@@ -13,19 +13,11 @@
         "--disable-sources",
         "semantic-scholar"
       ],
-      "mcp": [
-        "get",
-        "article",
-        "PPR1295425",
-        "all",
-        "--disable-sources",
-        "semantic-scholar"
-      ],
       "expect": {
         "/status": "partial",
-        "/result/items/0/sections/annotations/state": "not_applicable",
-        "/result/items/0/sections/citations/state": "not_applicable",
-        "/result/items/0/sections/supplements/state": "not_applicable",
+        "/result/items/0/sections/annotations/state": "not-applicable",
+        "/result/items/0/sections/citations/state": "not-applicable",
+        "/result/items/0/sections/supplements/state": "not-applicable",
         "/sources/*/source": [
           "europepmc",
           "semantic-scholar"

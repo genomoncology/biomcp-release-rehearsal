@@ -1,23 +1,22 @@
 //! Housekeeping runs through the isolated installed command boundary.
+#[path = "../support/housekeeping_contract.rs"]
+mod contract;
 #[path = "housekeeping_path.rs"]
-mod stable_path;
+mod executable_path;
 
 use super::launch::Environment;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{fs, path::Path, process::Output};
 type Check<T = ()> = Result<T, Box<dyn std::error::Error>>;
 
 pub(super) fn trials() -> Vec<Trial> {
-    let mut trials = vec![
-        Trial::test("housekeeping/offline-provenance-and-config", || {
-            check().map_err(|error| error.to_string().into())
-        }),
-        Trial::test("housekeeping/invalid-globals-ignore-key-config", || {
-            invalid_globals().map_err(|error| error.to_string().into())
-        }),
-    ];
-    trials.extend(stable_path::trials());
+    // Keep dynamic state, source bindings or wire checks that YAML cannot express.
+    let mut trials = executable_path::trials();
+    trials.push(transcript_trial(contract::OFFLINE_PROVENANCE.0, || {
+        check().map_err(|error| error.to_string().into())
+    }));
     trials
 }
 fn run(env: &Environment, args: &[&str], empty: bool) -> Check<Output> {
@@ -67,12 +66,20 @@ fn check() -> Check {
         if !text.contains(&format!("Commit: {}\n", env!("BIOMCP_BUILD_COMMIT")))
             || !text.contains(&format!("Target: {}\n", env!("BIOMCP_BUILD_TARGET")))
             || !text.contains(<biomcp_types::Help as biomcp_types::ResponseBody>::SCHEMA)
-            || !text.contains("biomcp.error/1")
+            || !text.contains("biomcp.error/4")
         {
             return Err("verbose build or schema provenance differs from this artifact".into());
         }
-        if !empty && !text.contains(&config.display().to_string()) {
-            return Err("config path does not match the settings boundary".into());
+        if !empty {
+            let actual = text
+                .lines()
+                .find_map(|line| line.strip_prefix("Config: "))
+                .ok_or("missing config path")?;
+            if !Path::new(actual).is_absolute() || !same_file::is_same_file(actual, &config)? {
+                return Err(format!(
+                    "config path does not match the settings boundary: actual={actual:?}, expected={config:?}"
+                ).into());
+            }
         }
         for client in [
             None,
@@ -102,7 +109,7 @@ fn check() -> Check {
 fn check_config(env: &Environment, client: Option<&str>, empty: bool) -> Check {
     let mut args = vec!["mcp-config", "--offline"];
     if let Some(client) = client {
-        args.extend(["--client", client, "--absolute-path"]);
+        args.extend(["--client", client]);
     }
     let output = run(env, &args, empty)?;
     let value: Value = serde_json::from_str(success(&output)?)?;
@@ -120,7 +127,7 @@ fn check_config(env: &Environment, client: Option<&str>, empty: bool) -> Check {
         .and_then(Value::as_str)
         .ok_or("missing executable")?;
     let expected = env.command(env!("CARGO_BIN_EXE_biomcp"), &[]);
-    if Path::new(path).canonicalize()? != Path::new(expected.get_program()).canonicalize()?
+    if !same_file::is_same_file(path, expected.get_program())?
         || !Path::new(path).is_absolute()
         || !Path::new(path).is_file()
         || entry.get("args") != Some(&json!(["serve"]))
@@ -139,9 +146,14 @@ fn help(env: &Environment) -> Check {
             .pointer("/result/commands")
             .and_then(Value::as_array)
             .ok_or("missing help")?;
-        if commands.len() != 1
+        if commands
+            .iter()
+            .map(|command| command.get("command"))
+            .collect::<Vec<_>>()
+            != vec![Some(&json!([name]))]
             || commands
-                .first()
+                .iter()
+                .find(|command| command.get("command") == Some(&json!([name])))
                 .and_then(|c| c.get("arguments"))
                 .and_then(Value::as_array)
                 .is_none_or(|args| !args.iter().any(|arg| arg.get("name") == Some(&json!(flag))))
@@ -176,17 +188,18 @@ fn shell_client(env: &Environment, empty: bool) -> Check {
     )?;
     let words = shlex::split(success(&output)?).ok_or("invalid shell command")?;
     let expected = env.command(env!("CARGO_BIN_EXE_biomcp"), &[]);
-    let path = Path::new(expected.get_program()).canonicalize()?;
-    let expected = [
-        "codex",
-        "mcp",
-        "add",
-        "biomcp",
-        "--",
-        path.to_str().ok_or("invalid executable path")?,
-        "serve",
-    ];
-    if words != expected {
+    let [codex, mcp, add, biomcp, separator, path, serve] = words.as_slice() else {
+        return Err(format!("wrong shell client configuration: {words:?}").into());
+    };
+    if codex != "codex"
+        || mcp != "mcp"
+        || add != "add"
+        || biomcp != "biomcp"
+        || separator != "--"
+        || serve != "serve"
+        || !Path::new(path).is_absolute()
+        || !same_file::is_same_file(path, expected.get_program())?
+    {
         return Err(format!("wrong shell client configuration: {words:?}").into());
     }
     Ok(())
@@ -196,16 +209,24 @@ fn shell_client(env: &Environment, empty: bool) -> Check {
 // raises a configuration budget when an installed executable has a longer path.
 fn limit(args: &[&str], executable: &Path) -> Check<usize> {
     let (mut bytes, path) = match args {
-        ["version", ..] if args.contains(&"--verbose") => (7023, None),
-        ["version" | "--version", ..] => (13, None),
-        ["help", "version", ..] => (1275, None),
-        ["help", "mcp-config", ..] => (1650, None),
-        ["mcp-config", ..] if args.contains(&"unknown") => (221, None),
-        ["mcp-config", ..] if args.contains(&"codex") => (94, Some(true)),
-        ["mcp-config", ..] if args.contains(&"servers") || args.contains(&"vscode") => {
-            (169, Some(false))
+        ["version", ..] if args.contains(&"--verbose") => {
+            (super::output_limit("housekeeping-version-verbose")?, None)
         }
-        ["mcp-config", ..] => (172, Some(false)),
+        ["version" | "--version", ..] => (super::output_limit("housekeeping-version")?, None),
+        ["help", "version", ..] => (super::output_limit("housekeeping-help-version")?, None),
+        ["help", "mcp-config", ..] => (super::output_limit("housekeeping-help-mcp-config")?, None),
+        ["mcp-config", ..] if args.contains(&"unknown") => {
+            (super::output_limit("housekeeping-invalid-client")?, None)
+        }
+        ["mcp-config", ..] if args.contains(&"codex") => (
+            super::output_limit("housekeeping-shell-config")?,
+            Some(true),
+        ),
+        ["mcp-config", ..] if args.contains(&"servers") || args.contains(&"vscode") => (
+            super::output_limit("housekeeping-servers-config")?,
+            Some(false),
+        ),
+        ["mcp-config", ..] => (super::output_limit("housekeeping-config")?, Some(false)),
         _ => return Err("housekeeping command requires a measured output budget".into()),
     };
     if let Some(shell) = path {
@@ -219,37 +240,4 @@ fn limit(args: &[&str], executable: &Path) -> Check<usize> {
         bytes += encoded.saturating_sub(63);
     }
     Ok((bytes * 115).div_ceil(100))
-}
-
-fn invalid_globals() -> Check {
-    let env = Environment::new()?;
-    env.config(&json!({"format":"md","keys":{"ncbi_api_key":"must-not-be-read"}}))?;
-    let config = env.root().join("config/biomcp/config.json");
-    let config = config.to_str().ok_or("invalid config path")?;
-    for root in ["version", "mcp-config"] {
-        for prefix in [
-            vec!["--format", "invalid"],
-            vec!["--config", config, "--config", config],
-            vec!["--unknown-global"],
-        ] {
-            let mut args = prefix;
-            args.push(root);
-            if root == "mcp-config" {
-                args.extend(["--client", "unknown"]);
-            }
-            let words: Vec<_> = args.iter().map(|word| (*word).to_owned()).collect();
-            let output = env.command(env!("CARGO_BIN_EXE_biomcp"), &words).output()?;
-            if output.status.code() != Some(2) || output.stdout.len() > 255 {
-                return Err(format!("invalid global error exceeded its contract: {args:?}").into());
-            }
-            let value: Value = serde_json::from_slice(&output.stdout)?;
-            if value.pointer("/error/code") != Some(&json!("usage.arguments")) {
-                return Err(format!(
-                    "invalid globals changed the command's error: {args:?}: {value}"
-                )
-                .into());
-            }
-        }
-    }
-    Ok(())
 }

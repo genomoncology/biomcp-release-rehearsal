@@ -1,0 +1,20 @@
+{
+  "feature": "organization-nci",
+  "live_check": "synthetic",
+  "story": "Invalid organization filters and unsupported get fail before source I/O.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "organization",
+        "--source",
+        "ctgov"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      },
+      "max_bytes": 600
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "source": "monarch",
+  "method": "GET",
+  "url": "https://api-v3.monarchinitiative.org/v3/api/association?object=MONDO%3A0000001&subject_category=biolink%3AGene&limit=1&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "limit": 1,
+          "offset": 0,
+          "total": 1,
+          "items": [
+            {
+              "subject": "HGNC:1",
+              "object": "MONDO:0000001",
+              "id": {},
+              "predicate": "biolink:has_phenotype",
+              "subject_label": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

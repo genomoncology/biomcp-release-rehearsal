@@ -1,0 +1,82 @@
+{
+  "live_check": "local-only migration guidance or disabled source behavior before provider access",
+  "feature": "pathway-retirements",
+  "story": "Each retired command returns fixed migration guidance before source access.",
+  "steps": [
+    {
+      "run": [
+        "enrich"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "list",
+        "pathway"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "pathway",
+        "drugs",
+        "R-HSA-109581"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "pathway",
+        "articles",
+        "R-HSA-109581"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "pathway",
+        "trials",
+        "R-HSA-109581"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "pathway",
+        "hsa04151"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "pathway",
+        "R-HSA-109581",
+        "enrichment"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    }
+  ]
+}

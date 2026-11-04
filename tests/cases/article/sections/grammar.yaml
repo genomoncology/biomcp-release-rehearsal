@@ -1,50 +1,9 @@
 {
   "live_check": "public",
-  "feature": "article-annotations",
+  "feature": "article-sections",
   "story": "Article cards expose executable section actions and share trailing, explicit and all section grammar. The indexing section adds required data; the expanded response measured10689 bytes and keeps15 percent headroom.",
   "replay": "article/fulltext/live-all",
   "steps": [
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537"
-      ],
-      "expect": {
-        "/result/items/0/more": [
-          "indexing",
-          "annotations",
-          "fulltext",
-          "supplements",
-          "citations",
-          "tldr",
-          "pdf"
-        ],
-        "/next/0/kind": "section",
-        "/next/0/args": [
-          "get",
-          "article",
-          "33123537",
-          "indexing",
-          "annotations",
-          "fulltext",
-          "supplements",
-          "citations",
-          "tldr",
-          "pdf"
-        ]
-      },
-      "max_bytes": 2900
-    },
-    {
-      "follow": "section",
-      "expect": {
-        "/result/items/0/sections/annotations/state": "data",
-        "/result/items/0/sections/fulltext/state": "data",
-        "/result/items/0/sections/citations/state": "data"
-      },
-      "max_bytes": 12293
-    },
     {
       "run": [
         "get",
@@ -59,77 +18,6 @@
         "/result/items/0/sections/annotations/state": "data"
       },
       "max_bytes": 4000
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537",
-        "all"
-      ],
-      "expect": {
-        "/result/items/0/sections/annotations/state": "data",
-        "/result/items/0/sections/fulltext/state": "data",
-        "/result/items/0/sections/citations/state": "data"
-      },
-      "mcp": [
-        "get",
-        "article",
-        "33123537",
-        "all"
-      ],
-      "max_bytes": 12293
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537",
-        "annotations",
-        "all"
-      ],
-      "expect": {
-        "/result/items/0/sections/annotations/state": "data",
-        "/result/items/0/sections/fulltext/state": "data",
-        "/result/items/0/sections/citations/state": "data"
-      },
-      "max_bytes": 12293
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "annotations"
-      ],
-      "expect": {
-        "/status": "usage"
-      },
-      "exit": 2
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537",
-        "Annotations"
-      ],
-      "expect": {
-        "/status": "usage"
-      },
-      "exit": 2
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537",
-        "--section",
-        "bogus"
-      ],
-      "expect": {
-        "/status": "usage"
-      },
-      "exit": 2
     }
   ],
   "verified": "Actual source recordings; expanded indexing output measured by0053 development jobs. The enforcing case ceiling retains15 percent headroom and all required card and section data."

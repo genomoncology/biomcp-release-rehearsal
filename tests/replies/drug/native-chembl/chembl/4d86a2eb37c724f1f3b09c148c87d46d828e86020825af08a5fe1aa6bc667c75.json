@@ -1,0 +1,44 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/drug_indication.json?molecule_chembl_id=CHEMBL941&limit=1&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "drug_indications": [
+            {
+              "drugind_id": 68560,
+              "efo_id": "EFO:0000220",
+              "efo_term": "acute lymphoblastic leukemia",
+              "indication_refs": [
+                {
+                  "ref_id": "NCT00130195,NCT00137111,NCT00149136,NCT00287105,NCT00376467,NCT00476190,NCT00973752,NCT02081378,NCT02881086,NCT03589326,NCT04307576,NCT04688983,NCT04722848,NCT06051409,NCT06061094",
+                  "ref_type": "ClinicalTrials",
+                  "ref_url": "https://clinicaltrials.gov/search?term=NCT00130195%20NCT00137111%20NCT00149136%20NCT00287105%20NCT00376467%20NCT00476190%20NCT00973752%20NCT02081378%20NCT02881086%20NCT03589326%20NCT04307576%20NCT04688983%20NCT04722848%20NCT06051409%20NCT06061094"
+                }
+              ],
+              "max_phase_for_ind": "3.0",
+              "mesh_heading": "Precursor Cell Lymphoblastic Leukemia-Lymphoma",
+              "mesh_id": "D054198",
+              "molecule_chembl_id": "CHEMBL941",
+              "parent_molecule_chembl_id": "CHEMBL941"
+            }
+          ],
+          "page_meta": {
+            "limit": 1,
+            "next": "/chembl/api/data/drug_indication.json?limit=1&offset=1&molecule_chembl_id=CHEMBL941",
+            "offset": 0,
+            "previous": null,
+            "total_count": 52
+          }
+        }
+      }
+    }
+  ]
+}

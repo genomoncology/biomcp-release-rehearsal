@@ -1,14 +1,16 @@
 //! One explicit adverse-event source; no inference, drug choice or source probing.
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 mod get;
 mod vaers;
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
 use biomcp_adapters::{faers, maude};
 use biomcp_types::{
-    AdverseEventPage, AdverseEventSearch, PageInfo, QueryBody, ReportUnit, Request, Source, Status,
+    AdverseEventPage, AdverseEventSearch, PageInfo, ReplyData, ReportUnit, Request, Source,
     StepKind,
 };
 /// Search report headers through the declared source and its reviewed component admission.
-pub fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
+pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
     if query.source() == biomcp_types::AdverseEventSource::Vaers {
         return vaers::search(cx, query);
     }
@@ -36,28 +38,34 @@ pub fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
         maude::search(&leg, query)
     };
     let error = reply.as_ref().err().copied();
-    let mut out = Outcome {
-        status: Status::Failed,
-        body: QueryBody::AdverseEventPage(AdverseEventPage {
-            reaction_match: query
-                .reaction()
-                .map(|_| biomcp_types::AdverseEventReactionMatch::PhraseMatch),
-            source_query: selector.into_boxed_str(),
-            source_updated: None,
-            fetched: None,
-            items: Box::default(),
-            unit: ReportUnit::Reports,
-            components: Box::default(),
-        }),
-        page: None,
-        sources: vec![status::source(source, leg.finish(), error)],
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: error.and_then(status::local),
-    };
+    let mut out = crate::status::finish(
+        [crate::status::item_status(false, true, false)],
+        crate::status::Parts {
+            dropped: false,
+            body: (AdverseEventPage {
+                reaction_match: query
+                    .reaction()
+                    .map(|_| biomcp_types::AdverseEventReactionMatch::PhraseMatch),
+                source_query: selector.into_boxed_str(),
+                source_updated: None,
+                fetched: None,
+                items: Box::default(),
+                unit: ReportUnit::Reports,
+                components: Box::default(),
+            })
+            .with_query(query.clone()),
+            page: None,
+            sources: vec![status::source(source, leg.finish(), error)],
+            problems: Vec::new(),
+            next: Vec::new(),
+            local: error.and_then(status::local),
+        },
+    );
     if let Ok(page) = reply {
         let returned = page.items.len() as u32;
         navigation(query, &page, &mut out);
+        out.include_refusals(page.refusals);
+        out.problems.extend(page.problems);
         out.page = Some(PageInfo {
             offset: query.offset(),
             returned,
@@ -65,22 +73,18 @@ pub fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
             pool: None,
             truncated: None,
         });
-        out.status = if page.total == 0 {
-            Status::Absent
-        } else if out
-            .sources
-            .iter()
-            .any(|s| s.state == biomcp_types::SourceState::Stale)
+        crate::status::search(&mut out);
+        if let ReplyData::AdverseEventPage {
+            body: Some(body), ..
+        } = &mut out.body
         {
-            Status::Partial
-        } else {
-            Status::Complete
-        };
-        if let QueryBody::AdverseEventPage(body) = &mut out.body {
             body.items = page.items.into();
             body.components = page.components;
-            body.source_updated = page.updated;
-            body.fetched = biomcp_adapters::received_date(page.metadata.fetched);
+            body.source_updated = page.updated.map(Into::into);
+            body.fetched = page
+                .metadata
+                .fetched
+                .and_then(|value| u64::try_from(value).ok());
         }
     }
     command.finish(deadline.remaining());
@@ -88,47 +92,41 @@ pub fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
 }
 
 /// An unimplemented report get has no source effects until its owning slice lands.
-pub fn unsupported() -> Outcome {
-    Outcome {
-        status: Status::Failed,
-        body: QueryBody::UnsupportedAdverseEvent,
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    }
+pub(crate) fn unsupported() -> Outcome {
+    crate::status::empty(ReplyData::Usage(
+        biomcp_types::UsageError::UnsupportedAdverseEvent,
+    ))
 }
 
 fn navigation(query: &AdverseEventSearch, page: &faers::Page, out: &mut Outcome) {
     let returned = page.items.len() as u32;
     for row in &page.items {
-        if let Ok(get) =
-            serde_json::from_value(serde_json::json!({"id":row.id,"source":query.source()}))
-        {
-            out.next.push((
+        if let Some(get) = crate::next::checked(
+            biomcp_types::AdverseEventGet::new(row.id.clone(), query.source()),
+            query.source().source(),
+            &mut out.problems,
+        ) {
+            out.next.push(crate::next::Step::run(
                 StepKind::Disambiguate,
-                Action::Run {
-                    request: Request::GetAdverseEvent(get),
-                    fresh: false,
-                },
+                &[query.source().source()],
+                Request::GetAdverseEvent(get),
+                false,
             ));
         }
     }
     let offset = query.offset().saturating_add(returned);
     if returned > 0 && u64::from(offset) < page.total {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::SearchAdverseEvent(query.at_offset(offset)),
-                fresh: false,
-            },
+            &[query.source().source()],
+            Request::SearchAdverseEvent(query.at_offset(offset)),
+            false,
         ));
     }
 }
 
 /// Read an exact FAERS report and its independent retained sections.
-pub fn get(cx: &Ctx<'_>, query: &biomcp_types::AdverseEventGet) -> Outcome {
+pub(crate) fn get(cx: &Ctx<'_>, query: &biomcp_types::AdverseEventGet) -> Outcome {
     if query.source() != biomcp_types::AdverseEventSource::Faers {
         return unsupported();
     }

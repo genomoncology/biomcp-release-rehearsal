@@ -1,7 +1,9 @@
 //! ChEMBL metadata and independent assay-count disclosure.
-use super::*;
+use super::{CellLineGet, Ctx, Outcome, Request, Source, StepKind, empty, recovery, run, status};
 use biodata::CellosaurusAccession;
 use biomcp_adapters::chembl;
+use biomcp_types::ReplyBody;
+use biomcp_types::ReplyData;
 use biomcp_types::{
     Capped, CellLineAssayCount, CellLineAssayCountQuery, CellLineChembl, Problem, ProblemCode,
 };
@@ -33,30 +35,30 @@ pub(super) fn get_at(
     let limit = query.section_limit().unwrap_or(5);
     let reply = chembl::cells(&leg, accession, limit, body.offset);
     let error = reply.as_ref().err().copied();
-    let mut out = empty(QueryBody::CellLineChembl(body.clone()));
+    let mut out = empty((body.clone()).with_query(query.clone()));
     out.sources
         .push(status::source(Source::Chembl, leg.finish(), error));
     out.local = error.and_then(status::local);
-    if let Ok((items, total, metadata)) = reply {
-        let end = u64::from(body.offset) + items.len() as u64;
-        out.status = if total == 0 {
-            Status::Absent
-        } else if end < total {
-            Status::Partial
-        } else {
-            Status::Complete
-        };
-        if end < total
-            && let Some(offset) = body.offset.checked_add(limit)
-        {
-            out.next.push((
+    if let Ok(page) = reply {
+        out.problems.extend(page.problems);
+        let total = page.window.total().unwrap_or(0);
+        let next_offset = page.window.next_offset();
+        let more = page.window.has_more();
+        out.include_refusals(page.window.refusals());
+        let items = page.window.rows;
+        let metadata = page.metadata;
+        crate::status::item(&mut out, total != 0, false, more);
+        if let Some(offset) = next_offset {
+            out.next.push(crate::next::Step::new(
                 StepKind::Page,
+                &[biomcp_types::Source::Chembl],
                 run(Request::GetCellLine(query.at_section_offset(offset))),
             ));
         }
         for row in &items {
-            out.next.push((
+            out.next.push(crate::next::Step::new(
                 StepKind::Section,
+                &[biomcp_types::Source::Chembl],
                 run(Request::CellLineAssayCount(CellLineAssayCountQuery {
                     id: row.id.clone(),
                 })),
@@ -66,8 +68,8 @@ pub(super) fn get_at(
             items: items.into(),
             total,
         };
-        body.fetched = u64::try_from(metadata.fetched).ok();
-        out.body = QueryBody::CellLineChembl(body);
+        body.fetched = metadata.fetched.and_then(|value| u64::try_from(value).ok());
+        out.body = body.with_query(query.clone());
         attach(cx, deadline, &mut out);
     } else if error.is_some() {
         out.problems.push(problem("cellosaurus_id"));
@@ -76,29 +78,33 @@ pub(super) fn get_at(
     out
 }
 /// One exact assay request with its native total, including zero.
-pub fn assay_count(cx: &Ctx<'_>, query: &CellLineAssayCountQuery) -> Outcome {
+pub(crate) fn assay_count(cx: &Ctx<'_>, query: &CellLineAssayCountQuery) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&chembl::SPEC, deadline).fresh(cx.fresh);
     let reply = chembl::assay_count(&leg, &query.id);
     let error = reply.as_ref().err().copied();
-    let mut out = empty(QueryBody::CellLineAssayCount(CellLineAssayCount {
-        id: query.id.clone(),
-        assay_count: 0,
-        release: None,
-        fetched: None,
-    }));
+    let mut out = empty(
+        (CellLineAssayCount {
+            id: query.id.clone(),
+            assay_count: 0,
+            release: None,
+            fetched: None,
+        })
+        .with_query(query.clone()),
+    );
     out.sources
         .push(status::source(Source::Chembl, leg.finish(), error));
     out.local = error.and_then(status::local);
     if let Ok((assay_count, metadata)) = reply {
-        out.status = Status::Complete;
-        out.body = QueryBody::CellLineAssayCount(CellLineAssayCount {
+        crate::status::item(&mut out, true, false, false);
+        out.body = (CellLineAssayCount {
             id: query.id.clone(),
             assay_count,
             release: None,
-            fetched: u64::try_from(metadata.fetched).ok(),
-        });
+            fetched: metadata.fetched.and_then(|value| u64::try_from(value).ok()),
+        })
+        .with_query(query.clone());
         attach(cx, deadline, &mut out);
     } else if error.is_some() {
         out.problems.push(problem("cell_chembl_id"));
@@ -124,13 +130,22 @@ fn attach(cx: &Ctx<'_>, deadline: biomcp_fetch::Deadline<'_>, out: &mut Outcome)
         status::retain_source_state(source, &incoming);
     }
     if error.is_some() {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
         out.local = error.and_then(status::local);
         out.problems.push(problem("release"));
     }
+    let release = release.ok().map(|mapped| {
+        out.include_refusals(mapped.refusals);
+        out.problems.extend(mapped.problems);
+        mapped.value
+    });
     match &mut out.body {
-        QueryBody::CellLineChembl(body) => body.release = release.ok(),
-        QueryBody::CellLineAssayCount(body) => body.release = release.ok(),
+        ReplyData::CellLineChembl {
+            body: Some(body), ..
+        } => body.release = release.clone(),
+        ReplyData::CellLineAssayCount {
+            body: Some(body), ..
+        } => body.release = release.clone(),
         _ => {}
     }
     if out
@@ -138,6 +153,6 @@ fn attach(cx: &Ctx<'_>, deadline: biomcp_fetch::Deadline<'_>, out: &mut Outcome)
         .iter()
         .any(|s| s.state == biomcp_types::SourceState::Stale)
     {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
     }
 }

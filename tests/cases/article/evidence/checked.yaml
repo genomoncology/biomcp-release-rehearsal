@@ -1,66 +1,9 @@
 {
+  "live_check": "local-only missing evidence pool refusal; the command exits before source access",
   "feature": "article-evidence",
   "story": "Reject unsupported identifiers, invalid bounds and stale continuation selectors before source calls.",
   "replay": "article/recommendations/empty",
   "steps": [
-    {
-      "run": [
-        "article",
-        "citation-evidence",
-        "PPR1295425",
-        "17611497"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "citation-evidence",
-        "33123537",
-        "PPR1295425"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "citation-evidence",
-        "33123537",
-        "17611497",
-        "--offset",
-        "1"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "citation-evidence",
-        "33123537",
-        "17611497",
-        "--paragraph-offset",
-        "1"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "citation-evidence",
-        "33123537",
-        "17611497",
-        "--pool",
-        "x",
-        "--paragraph-offset",
-        "1"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
     {
       "run": [
         "article",

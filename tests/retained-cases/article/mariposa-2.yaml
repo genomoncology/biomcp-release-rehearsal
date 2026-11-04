@@ -1,0 +1,28 @@
+{
+  "feature": "article-search",
+  "live_check": "retained publisher bodies require an explicit external fixtures root",
+  "story": "The original amivantamab search preserves PubMed's recorded count and first MARIPOSA-2 record.",
+  "replay": "article/user-query/mariposa-2",
+  "harvest": "sdlc/planning/slices/article.md",
+  "verified": "Clinical review confirms PMID 37879444 is the primary MARIPOSA-2 report. These assertions prove retrieval and source identity, without a treatment recommendation. Chemotherapy accompanies the amivantamab arms. Native ESearch recorded on 2026-10-24T23:12:30Z in j11408 reports count 22 and PMID 37879444 first for the exact query and relevance sort. Returned 10 is the requested page size. Counts and ranks describe this recording only. Publisher bodies remain outside Git. Run this retained case explicitly with the existing runner and an external BIOMCP_TEST_FIXTURES root; the default routine suite does not execute it. Original capture archive biomcp-redux-0121-2qoxr6zi.tar.gz SHA256 5aeea5debaa1883ffe1118038bf777c6bd454d681588c19664db4f28825eacaf; original proof archive biomcp-redux-0121-proof.tar.gz SHA256 dee068ce79404c7899945eeab998c56009aabb6e5e25b907fd8f6d9fc339ec31. Original member amivantamab-default/record/pubmed/3fa54d9ec4bb950af0855f109082198a4ae2b38e12c064edabdc0e396cafc07b.json SHA256 b847d00489b018fb2e227fd2f509544e2e37400094d4a332137ef70e227a727e; original member amivantamab-default/record/pubmed/f397deef9712f3b0043634b47be396f2df4beadab3ac58a2592b69d08eef73d6.json SHA256 155e57d8d70bb281b11b233c9c7ab12d2106fa1b0c1d344d8a1a214baf08dfaa. Both member paths have archive prefix biomcp-redux-0121-2qoxr6zi/. Public identity: https://pubmed.ncbi.nlm.nih.gov/37879444/ .",
+  "steps": [
+    {
+      "run": ["search", "article", "amivantamab lazertinib after osimertinib"],
+      "mcp": ["search", "article", "amivantamab lazertinib after osimertinib"],
+      "expect": {
+        "/status": "complete",
+        "/query": {"equals": {"text": "amivantamab lazertinib after osimertinib", "source": ["pubmed"], "sort": "rank", "limit": 10, "offset": 0}},
+        "/sources/*/state": ["ok"],
+        "/page/total": 22,
+        "/page/returned": 10,
+        "/result/items": {"count": 10},
+        "/result/items/*/pmid": {"rank_of": {"37879444": 1}},
+        "/result/items/0/pmid": "37879444",
+        "/result/items/0/header/doi": "10.1016/j.annonc.2023.10.117",
+        "/result/items/0/header/title": "Amivantamab plus chemotherapy with and without lazertinib in EGFR-mutant advanced NSCLC after disease progression on osimertinib: primary results from the phase III MARIPOSA-2 study.",
+        "/result/items/0/header/date": "2024-01",
+        "/result/items/0/header/electronic_date": "2023-10-23"
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "method": "POST",
+  "post": {
+    "request_body_sha256": "43742b588dd15794f7061c5c74e4c293e46b17b00f3b133174e24d33c0546bd6",
+    "request_content_type": "application/json"
+  },
+  "source": "gnomad",
+  "url": "https://gnomad.broadinstitute.org/api",
+  "exchanges": [
+    {
+      "fetched": 1792871321,
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "synthetic_error": "malformed"
+        }
+      }
+    }
+  ]
+}

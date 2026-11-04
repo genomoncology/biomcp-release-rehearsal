@@ -4,12 +4,15 @@
     clippy::unwrap_used,
     reason = "Local HTTP fixtures and scoped public API callers"
 )]
+use biomcp_fetch::{Input, Read};
+
 mod support;
 use biomcp_fetch::{
     Arg, BadReply, Fetch, FetchConfig, Freshness, KeyUse, Quota, Rate, Reply, SourceKey,
     xml::{MixedText, XmlReply},
 };
 use std::{thread, time::Duration};
+use support::Answer as JsonAnswer;
 type Server = support::Server;
 #[derive(Debug, serde::Deserialize)]
 struct Answer {
@@ -77,7 +80,12 @@ fn checked_get_and_form_xml_preserve_text_and_select_media() {
             let worker = scope.spawn(|| {
                 fetch
                     .leg(spec, fetch.deadline(Duration::from_secs(10)))
-                    .xml::<Answer>(&ep, &[("q", Arg::Num(1))])
+                    .call(
+                        &ep,
+                        Input::Params(&[("q", Arg::Num(1))]),
+                        Read::<Answer>::xml(),
+                    )
+                    .map(|received| received.value)
             });
             let request = server.next();
             assert!(
@@ -112,9 +120,21 @@ fn invoke(
     fetch: &Fetch,
     spec: &'static biomcp_fetch::SourceSpec,
 ) -> Result<Answer, biomcp_fetch::RequestError> {
-    fetch
-        .leg(spec, fetch.deadline(Duration::from_secs(10)))
-        .xml(&spec.get("/answer").fresh(Freshness::Days(1)), &[])
+    invoke_leg(
+        &fetch.leg(spec, fetch.deadline(Duration::from_secs(10))),
+        spec,
+    )
+}
+fn invoke_leg(
+    leg: &biomcp_fetch::Leg<'_>,
+    spec: &'static biomcp_fetch::SourceSpec,
+) -> Result<Answer, biomcp_fetch::RequestError> {
+    leg.call(
+        &spec.get("/answer").fresh(Freshness::Days(1)),
+        Input::Params(&[]),
+        Read::xml(),
+    )
+    .map(|received| received.value)
 }
 #[test]
 fn invalid_xml_media_encodings_documents_and_reply_checks_are_input_free() {
@@ -267,8 +287,7 @@ fn xml_cache_codec_invalid_entries_and_stale_fallback_remain_checked() {
         .unwrap();
     let leg = fetch.leg(spec, fetch.deadline(Duration::from_secs(10)));
     thread::scope(|scope| {
-        let worker =
-            scope.spawn(|| leg.xml::<Answer>(&spec.get("/answer").fresh(Freshness::Days(1)), &[]));
+        let worker = scope.spawn(|| invoke_leg(&leg, spec));
         server.next().respond(403, "", "unchecked-secret");
         assert_eq!(worker.join().unwrap().unwrap().text.as_str(), "BRAFV600E");
     });
@@ -291,11 +310,13 @@ fn xml_cache_codec_invalid_entries_and_stale_fallback_remain_checked() {
     );
     assert!(exchange(&server, &fetch, spec, "text/xml", body).is_ok());
     // A caller selecting JSON for the same request replaces the XML entry.
+    let endpoint = spec.get("/answer").fresh(Freshness::Days(1));
     thread::scope(|scope| {
         let worker = scope.spawn(|| {
             fetch
                 .leg(spec, fetch.deadline(Duration::from_secs(10)))
-                .json::<support::Answer>(&spec.get("/answer").fresh(Freshness::Days(1)), &[])
+                .call(&endpoint, Input::Params(&[]), Read::<JsonAnswer>::json())
+                .map(|received| received.value)
         });
         server.next().ok();
         assert!(worker.join().unwrap().unwrap().answer);
@@ -375,8 +396,13 @@ fn record_xml_text_replays_without_http_and_offline_uses_checked_codec() {
     .unwrap();
     let leg = offline.leg(spec, offline.deadline(Duration::from_secs(10)));
     assert!(
-        leg.xml::<Answer>(&spec.get("/answer").fresh(Freshness::Days(1)), &[])
-            .is_ok()
+        leg.call(
+            &spec.get("/answer").fresh(Freshness::Days(1)),
+            Input::Params(&[]),
+            Read::<Answer>::xml()
+        )
+        .map(|received| received.value)
+        .is_ok()
     );
     assert!(leg.finish().stale);
 }
@@ -391,7 +417,12 @@ fn ordinary_xml_replies_use_default_serde_decoding() {
         let worker = scope.spawn(|| {
             fetch
                 .leg(spec, fetch.deadline(Duration::from_secs(10)))
-                .xml::<support::Answer>(&spec.get("/plain"), &[])
+                .call(
+                    &spec.get("/plain"),
+                    Input::Params(&[]),
+                    Read::<JsonAnswer>::xml(),
+                )
+                .map(|received| received.value)
         });
         respond(
             server.next(),
@@ -459,7 +490,8 @@ fn application_octet_stream_permission_keeps_xml_checks_and_bounds() {
             let worker = scope.spawn(|| {
                 fetch
                     .leg(spec, fetch.deadline(Duration::from_secs(10)))
-                    .xml::<Answer>(&endpoint, &[])
+                    .call(&endpoint, Input::Params(&[]), Read::<Answer>::xml())
+                    .map(|received| received.value)
             });
             respond(server.next(), media, body.as_bytes());
             assert_eq!(worker.join().unwrap().is_ok(), accepted);

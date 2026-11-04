@@ -1,0 +1,27 @@
+{
+  "feature": "diagnostic-device-recall",
+  "live_check": "public",
+  "story": "Existing literal FDA selectors retain native recall identifiers and source-reported totals.",
+  "verified": "Native openFDA captures2026-10-30. Source https://open.fda.gov/license/ and https://open.fda.gov/terms/. Git projection retains only source identifiers, government classification/status/date facts and native counts; manufacturer/product/reason/distribution prose and third-party content omitted. Original bodies/headers/requests/hashes retained in native-fda-trial archive outside Git. No rows or values invented.",
+  "replay": "diagnostic/native-recall-dates",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-device-recall",
+        "--initiated-from",
+        "2024-01-01",
+        "--initiated-to",
+        "2024-12-31",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/items/0/header/recall_number": "Z-0991-2025",
+        "/page/total": 3279
+      }
+    }
+  ]
+}

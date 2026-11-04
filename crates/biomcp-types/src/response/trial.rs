@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 /// Registry page preserving source order and source processing time.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TrialPage {
     /// Native study headers in registry order.
@@ -9,7 +8,7 @@ pub struct TrialPage {
     pub items: Box<[crate::TrialHeader]>,
     /// Registry's source processing timestamp, independently of retrieval time.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_updated: Option<super::SourceTimestamp>,
+    pub source_updated: Option<crate::SourceUpdated>,
     /// Unresolved gene identity, without a registry request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gene_resolution: Option<crate::GeneResolution>,
@@ -20,13 +19,12 @@ pub struct TrialPage {
     pub attribution: String,
 }
 impl super::ResponseBody for TrialPage {
-    const SCHEMA: &'static str = "biomcp.trial-page/7";
+    const SCHEMA: &'static str = "biomcp.trial-page/14";
     type Query = crate::TrialSearch;
 }
 
 /// One exact source request parameter, in canonical name order.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TrialParameter {
     /// Native parameter name.

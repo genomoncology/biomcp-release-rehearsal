@@ -1,0 +1,20 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "facility-header",
+      "source": "nci",
+      "response_format": "bytes",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?sites.org_name=Dana-Farber+Cancer+Institute&size=1&from=0&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases&include=sites",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    }
+  ]
+}

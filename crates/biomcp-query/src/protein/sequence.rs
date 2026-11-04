@@ -1,11 +1,12 @@
 //! Direct sequence identity never inherits another isoform's residues or audit.
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
 use biodata::{ProteinSequence, Text};
 use biomcp_adapters::{Mapped, uniprot};
 use biomcp_fetch::{Leg, RequestError, SourceError};
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    Problem, ProblemCode, ProteinSequenceQuery, ProteinSequenceResult, QueryBody, Reason, Request,
-    Source, Status, StepKind,
+    Problem, ProblemCode, ProteinSequenceQuery, ProteinSequenceResult, Reason, Request, Source,
+    StepKind,
 };
 pub(super) fn read(
     leg: &Leg<'_>,
@@ -13,6 +14,7 @@ pub(super) fn read(
 ) -> Result<Mapped<Option<ProteinSequence>>, RequestError> {
     if q.isoform.as_str().contains('-') {
         return uniprot::sequence(leg, &q.isoform).map(|sequence| Mapped {
+            refusals: biomcp_adapters::Refusal::None,
             value: Some(sequence),
             problems: Vec::new(),
         });
@@ -25,11 +27,13 @@ pub(super) fn read(
                 source: Source::UniProt,
                 reason: Reason::BadReply,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }))
         })
         .transpose()?;
     Ok(Mapped {
+        refusals: mapped.refusals,
         value,
         problems: mapped.problems,
     })
@@ -46,20 +50,21 @@ pub(super) fn run(cx: &Ctx<'_>, q: &ProteinSequenceQuery) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
-    let mut out = super::empty(QueryBody::ProteinSequence(None));
+    let mut out = super::empty(biomcp_types::ProteinSequenceResult::into_reply(
+        q.clone(),
+        None,
+    ));
     let result = read(&leg, q);
     let error = result.as_ref().err().copied();
     if let Ok(mapped) = result {
+        out.include_refusals(mapped.refusals);
         out.problems = mapped.problems;
-        out.status = if mapped.value.is_some() {
-            Status::Complete
-        } else {
-            Status::Absent
+        {
+            let found = mapped.value.is_some();
+            crate::status::item(&mut out, found, false, false);
         };
-        if !out.problems.is_empty() {
-            out.status = Status::Failed;
-        }
-        out.body = QueryBody::ProteinSequence(
+        out.body = biomcp_types::ProteinSequenceResult::into_reply(
+            q.clone(),
             mapped
                 .value
                 .map(|sequence| ProteinSequenceResult { sequence }),
@@ -71,19 +76,18 @@ pub(super) fn run(cx: &Ctx<'_>, q: &ProteinSequenceQuery) -> Outcome {
     out.sources
         .push(status::source(Source::UniProt, leg.finish(), error));
     if error.is_some() {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: Request::ProteinSequence(q.clone()),
-                fresh: true,
-            },
+            &[biomcp_types::Source::UniProt],
+            Request::ProteinSequence(q.clone()),
+            true,
         ));
     } else if out
         .sources
         .iter()
         .any(|s| s.state == biomcp_types::SourceState::Stale)
     {
-        out.status = Status::Partial;
+        crate::status::item(&mut out, true, false, true);
     }
     out.local = error.and_then(status::local);
     command.finish(deadline.remaining());

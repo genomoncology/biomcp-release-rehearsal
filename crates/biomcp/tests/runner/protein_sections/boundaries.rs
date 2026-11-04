@@ -1,4 +1,4 @@
-use super::*;
+use super::{Environment, Stub, Value, call, entry, json, setup};
 pub(super) fn features() -> Result<(), String> {
     let stub = Stub::for_sources(
         &["rest.uniprot.org", "www.ebi.ac.uk"],
@@ -24,6 +24,7 @@ pub(super) fn features() -> Result<(), String> {
     coordinates(&env)?;
     retained(&env, &first)?;
     section_context(&env)?;
+    retained_relations(&env)?;
     usage(&env)?;
     if stub.finish()?.len() != 3 {
         return Err("retained entry sections repeated provider requests".into());
@@ -155,45 +156,39 @@ fn usage(env: &Environment) -> Result<(), String> {
     }
     Ok(())
 }
-pub(super) fn sequence() -> Result<(), String> {
-    let stub = Stub::for_source("rest.uniprot.org", "text/plain", |_| {
-        Ok(
-            ">sp|P38398-2|SYNTHETIC_HUMAN Synthetic OS=Homo sapiens OX=9606 GN=SYN\nACDEFG\n"
-                .into(),
-        )
-    })?;
-    let env = setup(&stub)?;
-    let directory = env.root().join("sequence-recording");
-    let value = record(&env, &["protein", "sequence", "P38398-2"], &directory, 0)?;
-    super::super::protein_budgets::check(&value, "sequence-admission/valid", "cli")?;
-    if value.pointer("/result/sequence/length") != Some(&json!(6))
-        || value.pointer("/result/sequence/audit") != Some(&json!({}))
-    {
-        return Err("alternative sequence inherited displayed audit or residues".into());
-    }
-    stub.finish()?;
-    for replacement in [
-        ">sp|P38398|SYNTHETIC_HUMAN Synthetic OX=9606 GN=SYN\nACDEFG\n",
-        ">sp|P38398-2|SYNTHETIC_HUMAN Synthetic OX=9606 GN=SYN\nACD!\n",
+
+tool_only! {}
+
+fn retained_relations(env: &Environment) -> Result<(), String> {
+    for (section, pointer, expected) in [
+        ("isoforms", "/result/items/0/ids/0", "Q8N726"),
+        ("structures", "/result/items/0/id", "1ABC"),
     ] {
-        super::super::protein_budgets::steps(
-            if replacement.contains("ACD!") {
-                "sequence-admission/invalid-alphabet"
-            } else {
-                "sequence-admission/wrong-accession"
-            },
-            directory.to_str().ok_or("capture directory")?,
-            |_, recording| {
-                if let Some(exchange) = recording.pointer_mut("/exchanges/0/body") {
-                    *exchange = json!({"kind":"text","value":replacement});
-                }
-            },
-            json!([{"run":["protein","sequence","P38398-2"],"exit":4,
-            "expect":{"/status":"failed","/problems/0/code":"value.unknown"}},
-            {"run":["protein","sequence","P38398-2"],"offline":true,"exit":4,
-            "expect":{"/sources/0/reason":"offline"}}]),
-        )
-        .map_err(|e| e.to_string())?;
+        let first = call(
+            env,
+            None,
+            &["protein", section, "P00533", "--limit", "1"],
+            0,
+        )?;
+        let pool = first
+            .pointer("/page/pool/id")
+            .and_then(Value::as_str)
+            .ok_or("relation pool")?;
+        let kept = call(
+            env,
+            None,
+            &[
+                "protein", section, "P00533", "--limit", "1", "--pool", pool, "--offset", "0",
+            ],
+            0,
+        )?;
+        if kept.pointer(pointer) != Some(&json!(expected))
+            || kept.pointer("/page/pool/id").and_then(Value::as_str) != Some(pool)
+        {
+            return Err(format!(
+                "retained {section} changed its source identity: {kept}"
+            ));
+        }
     }
     Ok(())
 }

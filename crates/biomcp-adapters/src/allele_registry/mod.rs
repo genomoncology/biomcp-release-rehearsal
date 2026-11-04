@@ -1,5 +1,8 @@
 //! Read-only ClinGen Allele Registry resolution, without local allele repair.
+use biomcp_fetch::Input;
+mod annotations;
 mod map;
+mod normalization;
 mod raw;
 use crate::quotas;
 use biodata::Text;
@@ -13,7 +16,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "ClinGen Allele Registry service terms; output rights require review",
         url: "https://clinicalgenome.org/about/terms-of-use/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::AlleleRegistry,
     base: "https://reg.genome.network",
@@ -33,14 +36,16 @@ pub enum Resolution {
     Found(Box<crate::Mapped<VariantHeader>>),
     /// Source rejected the unchanged notation.
     Rejected(Text),
+    /// A native record identity was refused with its scoped field problem.
+    Refused(Vec<biomcp_types::Problem>),
 }
 /// Resolve unchanged HGVS through the declared GET endpoint.
 pub fn hgvs(leg: &Leg<'_>, input: &str) -> Result<Resolution, RequestError> {
-    map::allele(read(leg, input, false)?).map_err(|_| bad())
+    Ok(map::allele(read(leg, input, false)?, None))
 }
 /// Read a canonical source record directly, without another resolver.
 pub fn by_id(leg: &Leg<'_>, input: &str) -> Result<Resolution, RequestError> {
-    map::allele(read(leg, input, true)?).map_err(|_| bad())
+    Ok(map::allele(read(leg, input, true)?, Some(input)))
 }
 fn read(leg: &Leg<'_>, input: &str, by_id: bool) -> Result<raw::Allele, RequestError> {
     let endpoint = if by_id {
@@ -52,34 +57,16 @@ fn read(leg: &Leg<'_>, input: &str, by_id: bool) -> Result<raw::Allele, RequestE
     if !by_id {
         params.insert(0, ("hgvs", Arg::Text(input)));
     }
-    let reply = leg.json_checked_admission::<raw::Allele>(
-        &endpoint,
-        &params,
-        |r| {
-            if !by_id
-                || r.error_type.is_some()
-                || r.id
-                    .as_ref()
-                    .is_some_and(|url| url.as_str().rsplit('/').next() == Some(input))
-            {
-                Ok(())
-            } else {
-                Err(biomcp_fetch::BadReply)
-            }
-        },
-        |r| r.error_type.is_none(),
-    )?;
+    let reply = leg
+        .call(
+            &endpoint,
+            Input::Params(&params),
+            biomcp_fetch::Read::<raw::Allele>::json().cache_if(&|r| {
+                r.error_type.is_none() && r.identity(by_id.then_some(input)).is_ok()
+            }),
+        )?
+        .value;
     Ok(reply)
-}
-
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::AlleleRegistry,
-        reason: biomcp_types::Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
 }
 
 /// Preserve the registry's own mapped forms and validation rejection.
@@ -87,61 +74,10 @@ pub fn normalize(
     leg: &Leg<'_>,
     input: &str,
     build: Option<biodata::Build>,
-) -> Result<biomcp_types::NormalizationResult, RequestError> {
-    let mut result = biomcp_types::NormalizationResult::unavailable(Source::AlleleRegistry);
+) -> Result<crate::Mapped<biomcp_types::NormalizationResult>, RequestError> {
     let qualified = qualify(input, build)?;
     let raw = read(leg, &qualified, false)?;
-    if let Some(code) = raw.error_type {
-        result.outcome = biomcp_types::VariantResolution::Rejected;
-        let mut messages = vec![biomcp_types::NormalizationMessage {
-            category: "description".into(),
-            code: Some(code.to_string().into()),
-            text: raw.error_description.unwrap_or_default().into(),
-        }];
-        if let Some(text) = raw.message {
-            messages.push(biomcp_types::NormalizationMessage {
-                category: "message".into(),
-                code: None,
-                text: text.into(),
-            });
-        }
-        result.messages = messages.into();
-    } else {
-        result.outcome = biomcp_types::VariantResolution::Resolved;
-        let mut mappings = Vec::new();
-        if let Some(value) = raw.id {
-            mappings.push(biomcp_types::NormalizationField {
-                field: "@id".into(),
-                value: value.to_string().into(),
-            });
-        }
-        for row in raw.genomic.into_iter().flatten() {
-            for value in row.hgvs {
-                mappings.push(biomcp_types::NormalizationField {
-                    field: row.assembly.as_ref().map_or_else(
-                        || "genomicAlleles.hgvs".into(),
-                        |b| format!("genomicAlleles.{}.hgvs", b.as_str()).into(),
-                    ),
-                    value: value.to_string().into(),
-                });
-            }
-        }
-        for row in raw.transcripts.into_iter().flatten() {
-            if let Some(mane) = row.mane {
-                for forms in [mane.nucleotide, mane.protein].into_iter().flatten() {
-                    for hgvs in [forms.ensembl, forms.refseq].into_iter().flatten() {
-                        mappings.push(biomcp_types::NormalizationField {
-                            field: "transcriptAlleles.MANE.hgvs".into(),
-                            value: hgvs.hgvs.to_string().into(),
-                        });
-                    }
-                }
-            }
-        }
-        result.total_mappings = mappings.len() as u32;
-        result.mappings = mappings.into();
-    }
-    Ok(result)
+    Ok(normalization::map(raw))
 }
 
 // CAR GET accepts reference-qualified HGVS. Bind only the explicit chromosome alias
@@ -153,8 +89,11 @@ fn qualify(input: &str, build: Option<biodata::Build>) -> Result<String, Request
     else {
         return Ok(input.into());
     };
-    let build = build.ok_or(bad())?;
+    let build = build.ok_or(biomcp_fetch::bad_reply(Source::AlleleRegistry, None))?;
     let chromosome = biodata::Chromosome::parse(if chromosome == "M" { "MT" } else { chromosome })
-        .map_err(|_| bad())?;
+        .map_err(|_| biomcp_fetch::bad_reply(Source::AlleleRegistry, None))?;
     Ok(format!("{}:{description}", chromosome.accession(build)))
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

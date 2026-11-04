@@ -1,3 +1,4 @@
+use super::assertion_id::AssertionId;
 use crate::{Text, VariantInput, VariantNamespace};
 use serde::{Deserialize, Serialize};
 /// Page assertions from one explicitly selected evidence source.
@@ -5,19 +6,23 @@ use serde::{Deserialize, Serialize};
 #[serde(try_from = "Fields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "schema", schemars(with = "Fields"))]
-pub struct VariantAssertionsGet(Fields);
+pub struct VariantAssertionsGet(Fields<AssertionId>);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, bound(deserialize = "I: Deserialize<'de>"))]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-struct Fields {
-    /// Checked Variation ID for ClinVar, or CAid for ERepo.
+#[cfg_attr(feature = "schema", schemars(rename = "Fields"))]
+struct Fields<I = Text> {
+    /// Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
     #[cfg_attr(feature="schema",schemars(extend("x-positional"=0)))]
     input: VariantInput,
-    /// One native source; no fallback or text search.
+    /// One native assertion source; shared identity conversion precedes source access when needed.
     source: AssertionSource,
+    /// Identity lookup assembly; omitted uses the shared GRCh38 default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    build: Option<crate::Build>,
     /// Native assertion accession or document ID.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    assertion: Option<Text>,
+    assertion: Option<I>,
     /// VCV archive or ERepo document version; RCV/SCV selectors match a returned native version.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     version: Option<Text>,
@@ -37,12 +42,13 @@ crate::query::validation::checked_query!(VariantAssertionsGet, Fields);
 impl TryFrom<Fields> for VariantAssertionsGet {
     type Error = super::gene::QueryInvalid;
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let expected = match fields.source {
-            AssertionSource::Clinvar => VariantNamespace::ClinVar,
-            AssertionSource::Erepo => VariantNamespace::Ca,
-        };
-        if fields.input.namespace().ok() != Some(expected) {
-            return Err(super::gene::QueryInvalid::new(&["input", "source"]));
+        crate::VariantGet::new(
+            fields.input.clone(),
+            crate::VariantResolver::Car,
+            fields.build,
+        )?;
+        if fields.input.namespace() == VariantNamespace::Unsupported {
+            return Err(super::gene::QueryInvalid::new(&["input"]));
         }
         if fields.limit.is_some_and(|n| !(1..=50).contains(&n)) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
@@ -50,24 +56,11 @@ impl TryFrom<Fields> for VariantAssertionsGet {
         if fields.version.is_some() && fields.assertion.is_none() {
             return Err(super::gene::QueryInvalid::new(&["version", "assertion"]));
         }
-        if let Some(id) = &fields.assertion {
-            let valid = match fields.source {
-                AssertionSource::Clinvar => {
-                    (id.as_str().parse::<crate::VcvId>().is_ok()
-                        || id.as_str().parse::<crate::RcvId>().is_ok()
-                        || id.as_str().parse::<crate::ScvId>().is_ok())
-                        && !id.as_str().contains('.')
-                }
-                AssertionSource::Erepo => id.as_str().strip_prefix("PCER").is_some_and(|n| {
-                    n.len() == 9
-                        && n.bytes().all(|b| b.is_ascii_digit())
-                        && n.parse::<u64>().is_ok_and(|n| n > 0)
-                }),
-            };
-            if !valid {
-                return Err(super::gene::QueryInvalid::new(&["assertion", "source"]));
-            }
-        }
+        let assertion = fields
+            .assertion
+            .as_ref()
+            .map(|id| AssertionId::parse(id, fields.source))
+            .transpose()?;
         if let Some(version) = &fields.version {
             let parts = version.as_str().split('.').collect::<Vec<_>>();
             let count = match fields.source {
@@ -89,7 +82,15 @@ impl TryFrom<Fields> for VariantAssertionsGet {
                 return Err(super::gene::QueryInvalid::new(&["version", "source"]));
             }
         }
-        Ok(Self(fields))
+        Ok(Self(Fields {
+            input: fields.input,
+            source: fields.source,
+            build: fields.build,
+            assertion,
+            version: fields.version,
+            limit: fields.limit,
+            offset: fields.offset,
+        }))
     }
 }
 impl VariantAssertionsGet {
@@ -97,12 +98,22 @@ impl VariantAssertionsGet {
     pub fn input(&self) -> &VariantInput {
         &self.0.input
     }
+    /// Keep assertion and page selectors after shared identity resolution.
+    pub fn with_input(&self, input: VariantInput) -> Self {
+        let mut query = self.clone();
+        query.0.input = input;
+        query
+    }
+    /// Caller assembly for identity resolution.
+    pub fn build(&self) -> Option<crate::Build> {
+        self.0.build
+    }
     /// Explicit evidence source.
     pub fn source(&self) -> AssertionSource {
         self.0.source
     }
     /// Native record selection.
-    pub fn assertion(&self) -> Option<&Text> {
+    pub fn assertion(&self) -> Option<&AssertionId> {
         self.0.assertion.as_ref()
     }
     /// Native version selection.
@@ -119,12 +130,7 @@ impl VariantAssertionsGet {
     pub fn offset(&self) -> u32 {
         self.0.offset
     }
-    /// Continue the same source result.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
-    }
+
     /// Construct a checked source query without selecting an assertion.
     pub fn new(
         input: VariantInput,
@@ -133,6 +139,7 @@ impl VariantAssertionsGet {
         Fields {
             input,
             source,
+            build: None,
             assertion: None,
             version: None,
             limit: None,
@@ -140,21 +147,63 @@ impl VariantAssertionsGet {
         }
         .try_into()
     }
+    /// Select the assertion provider and page from a parsed candidate identity.
+    pub fn from_identity(
+        id: crate::VariantId,
+        limit: u32,
+        offset: u32,
+    ) -> Result<Self, crate::QueryInvalid> {
+        let source = match &id {
+            crate::VariantId::ClinVarVariation(_) | crate::VariantId::Vcv(_) => {
+                AssertionSource::Clinvar
+            }
+            crate::VariantId::Ca(_) => AssertionSource::Erepo,
+            _ => return Err(crate::QueryInvalid::new(&["input", "source"])),
+        };
+        if !(1..=50).contains(&limit) {
+            return Err(crate::QueryInvalid::new(&["limit"]));
+        }
+        let input =
+            VariantInput::from_identity(id).map_err(|_| crate::QueryInvalid::new(&["input"]))?;
+        Ok(Self(Fields {
+            input,
+            source,
+            build: None,
+            assertion: None,
+            version: None,
+            limit: Some(limit),
+            offset,
+        }))
+    }
     /// Select an existing native assertion and its exact source version.
-    pub fn select(&self, record: Text, version: Option<Text>) -> Self {
+    pub fn select(
+        &self,
+        record: Text,
+        version: Option<Text>,
+    ) -> Result<Self, super::gene::QueryInvalid> {
         let mut q = self.clone();
-        q.0.assertion = Some(record);
+        q.0.assertion = Some(AssertionId::parse(&record, self.source())?);
         q.0.version = version;
         q.0.offset = 0;
-        q
+        Ok(q)
     }
     /// Retain the identity while selecting a page size and offset.
     pub fn page(mut self, limit: u32, offset: u32) -> Result<Self, super::gene::QueryInvalid> {
         self.0.limit = Some(limit);
         self.0.offset = offset;
-        self.0.try_into()
+        if !(1..=50).contains(&limit) {
+            return Err(super::gene::QueryInvalid::new(&["limit"]));
+        }
+        Ok(self)
     }
 }
+impl crate::Paged for VariantAssertionsGet {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+}
+
 biodata::wire_enum! {
     /// Native assertion provider.
     AssertionSource {

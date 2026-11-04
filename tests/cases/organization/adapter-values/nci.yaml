@@ -1,0 +1,36 @@
+{
+  "feature": "organization-nci",
+  "live_check": "synthetic",
+  "story": "One synthetic invalid trial count keeps its native row and names the omitted field.",
+  "replay": "organization/adapter-values/nci",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "organization",
+        "--source",
+        "nci",
+        "--name",
+        "Dana-Farber",
+        "--limit",
+        "5"
+      ],
+      "expect": {
+        "/result/items/0": {
+          "omits": [
+            "count"
+          ]
+        },
+        "/problems/*/field": {
+          "includes": "count"
+        },
+        "/result/items/0/name": "Dana Farber Community Cancer Care-Quincy"
+      }
+    }
+  ]
+}

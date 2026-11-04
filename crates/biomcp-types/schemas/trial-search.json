@@ -2,12 +2,25 @@
   "$defs": {
     "Curie": {
       "description": "Checked prefix:local ontology identifier.",
-      "pattern": "^[A-Za-z0-9_.-]+:[^\\s\\x00-\\x1f\\x7f-\\x9f]+$",
+      "pattern": "^[A-Za-z0-9_.-]+:[^:/\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f][^:\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]*$",
       "type": "string"
     },
     "GeneInput": {
       "description": "An input classified before source resolution; aliases remain free text.",
-      "pattern": "\\S",
+      "pattern": "^[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*(?:HGNC:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})|ENSG[0-9]{11}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})|(?!(?:[Hh][Gg][Nn][Cc]:|[Ee][Nn][Ss][Gg]))(?![0-9]+[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$)[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000](?:[\\s\\S]*[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000])?)[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$",
+      "type": "string"
+    },
+    "NciBiomarkerUse": {
+      "description": "NCI's native biomarker eligibility criterion, without clinical interpretation.",
+      "enum": [
+        "inclusion",
+        "exclusion"
+      ],
+      "type": "string"
+    },
+    "NcitId": {
+      "description": "A native NCI Thesaurus concept code.",
+      "pattern": "^C[0-9]+$",
       "type": "string"
     },
     "NctId": {
@@ -16,22 +29,8 @@
       "type": "string"
     },
     "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
-      "type": "string"
-    },
-    "PhaseFilter": {
-      "description": "Explicit source phase selection, including the registry's combined phases.",
-      "enum": [
-        "early-1",
-        "1",
-        "2",
-        "3",
-        "4",
-        "not-applicable",
-        "1/2",
-        "2/3"
-      ],
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
     "SponsorType": {
@@ -54,8 +53,31 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "TrialPhaseFilter": {
+      "enum": [
+        "early-1",
+        "1",
+        "2",
+        "3",
+        "4",
+        "not-applicable",
+        "1/2",
+        "2/3",
+        "NA",
+        "0",
+        "I",
+        "I_II",
+        "II",
+        "II_III",
+        "III",
+        "IV"
+      ],
       "type": "string"
     },
     "TrialSex": {
@@ -75,8 +97,7 @@
       ],
       "type": "string"
     },
-    "TrialStatus": {
-      "description": "Source-native registry value.",
+    "TrialStatusFilter": {
       "enum": [
         "ACTIVE_NOT_RECRUITING",
         "COMPLETED",
@@ -88,17 +109,29 @@
         "WITHDRAWN",
         "AVAILABLE",
         "NO_LONGER_AVAILABLE",
+        "TEMPORARILY_NOT_AVAILABLE",
         "APPROVED_FOR_MARKETING",
         "WITHHELD",
-        "UNKNOWN"
+        "UNKNOWN",
+        "Active",
+        "Administratively Complete",
+        "Approved",
+        "Closed to Accrual",
+        "Closed to Accrual and Intervention",
+        "Complete",
+        "INACTIVE",
+        "Enrolling by Invitation",
+        "Temporarily Closed to Accrual",
+        "Temporarily Closed to Accrual and Intervention",
+        "Withdrawn"
       ],
       "type": "string"
     }
   },
-  "$id": "biodata.trial-search/2",
+  "$id": "biomcp.trial-search/6",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Search one provider with bounded pages and source-native counts; default ClinicalTrials.gov, explicit keyed NCI, never a fallback.",
+  "description": "Search ClinicalTrials.gov or keyed NCI with native counts. NCI --facility matches exact organization names; a listed site is not necessarily enrolling.",
   "properties": {
     "age": {
       "description": "Age in years; unstated source bounds count as no limit.",
@@ -106,9 +139,21 @@
       "minimum": 0,
       "type": "integer"
     },
+    "biomarker_code": {
+      "$ref": "#/$defs/NcitId",
+      "description": "Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
+    },
+    "biomarker_use": {
+      "$ref": "#/$defs/NciBiomarkerUse",
+      "description": "Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
+    },
     "condition": {
-      "$ref": "#/$defs/Text",
-      "description": "Registry condition text, or an NCIt code for NCI; use --keyword for NCI free text."
+      "description": "Condition alternatives joined with OR; NCI requires NCIt codes.",
+      "items": {
+        "$ref": "#/$defs/Text"
+      },
+      "maxItems": 5,
+      "type": "array"
     },
     "condition_id": {
       "$ref": "#/$defs/Curie",
@@ -117,6 +162,242 @@
     "count_only": {
       "description": "Source total only; no returned study rows.",
       "type": "boolean"
+    },
+    "country": {
+      "description": "Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+      "items": {
+        "enum": [
+          "Afghanistan",
+          "Aland Islands",
+          "Albania",
+          "Algeria",
+          "American Samoa",
+          "Andorra",
+          "Angola",
+          "Anguilla",
+          "Antarctica",
+          "Antigua and Barbuda",
+          "Argentina",
+          "Armenia",
+          "Aruba",
+          "Australia",
+          "Austria",
+          "Azerbaijan",
+          "Bahrain",
+          "Bangladesh",
+          "Barbados",
+          "Belarus",
+          "Belgium",
+          "Belize",
+          "Benin",
+          "Bermuda",
+          "Bhutan",
+          "Bolivia",
+          "Bonaire, Saint Eustatius and Saba ",
+          "Bosnia and Herzegovina",
+          "Botswana",
+          "Brazil",
+          "Brunei",
+          "Bulgaria",
+          "Burkina Faso",
+          "Burma",
+          "Burundi",
+          "Cabo Verde",
+          "Cambodia",
+          "Cameroon",
+          "Canada",
+          "Cayman Islands",
+          "Central African Republic",
+          "Chad",
+          "Chile",
+          "China",
+          "Christmas Island",
+          "Colombia",
+          "Comoros",
+          "Costa Rica",
+          "Croatia",
+          "Cuba",
+          "Curacao",
+          "Cyprus",
+          "Czechia",
+          "Côte d’Ivoire",
+          "Democratic Republic of the Congo",
+          "Denmark",
+          "Djibouti",
+          "Dominica",
+          "Dominican Republic",
+          "Ecuador",
+          "Egypt",
+          "El Salvador",
+          "Equatorial Guinea",
+          "Eritrea",
+          "Estonia",
+          "Eswatini",
+          "Ethiopia",
+          "Faroe Islands",
+          "Federal Republic of Yugoslavia",
+          "Fiji",
+          "Finland",
+          "France",
+          "French Guiana",
+          "French Polynesia",
+          "French Southern and Antarctic Lands",
+          "Gabon",
+          "Georgia",
+          "Germany",
+          "Ghana",
+          "Gibraltar",
+          "Greece",
+          "Greenland",
+          "Grenada",
+          "Guadeloupe",
+          "Guam",
+          "Guatemala",
+          "Guinea",
+          "Guinea-Bissau",
+          "Guyana",
+          "Haiti",
+          "Holy See",
+          "Honduras",
+          "Hong Kong",
+          "Hungary",
+          "Iceland",
+          "India",
+          "Indonesia",
+          "Iran",
+          "Iraq",
+          "Ireland",
+          "Israel",
+          "Italy",
+          "Jamaica",
+          "Japan",
+          "Jersey",
+          "Jordan",
+          "Kazakhstan",
+          "Kenya",
+          "Kiribati",
+          "Kosovo",
+          "Kuwait",
+          "Kyrgyzstan",
+          "Laos",
+          "Latvia",
+          "Lebanon",
+          "Lesotho",
+          "Liberia",
+          "Libya",
+          "Liechtenstein",
+          "Lithuania",
+          "Luxembourg",
+          "Macau",
+          "Madagascar",
+          "Malawi",
+          "Malaysia",
+          "Maldives",
+          "Mali",
+          "Malta",
+          "Martinique",
+          "Mauritania",
+          "Mauritius",
+          "Mayotte",
+          "Mexico",
+          "Micronesia",
+          "Moldova",
+          "Monaco",
+          "Mongolia",
+          "Montenegro",
+          "Montserrat",
+          "Morocco",
+          "Mozambique",
+          "Namibia",
+          "Nepal",
+          "Netherlands",
+          "Netherlands Antilles",
+          "New Caledonia",
+          "New Zealand",
+          "Nicaragua",
+          "Niger",
+          "Nigeria",
+          "Niue",
+          "North Korea",
+          "North Macedonia",
+          "Northern Mariana Islands",
+          "Norway",
+          "Oman",
+          "Pakistan",
+          "Palestinian Territories",
+          "Panama",
+          "Papua New Guinea",
+          "Paraguay",
+          "Peru",
+          "Philippines",
+          "Poland",
+          "Portugal",
+          "Puerto Rico",
+          "Qatar",
+          "Republic of the Congo",
+          "Reunion",
+          "Romania",
+          "Russia",
+          "Rwanda",
+          "Saint Kitts and Nevis",
+          "Saint Lucia",
+          "Saint Martin",
+          "Saint Vincent and the Grenadines",
+          "Samoa",
+          "San Marino",
+          "Saudi Arabia",
+          "Senegal",
+          "Serbia",
+          "Serbia and Montenegro",
+          "Seychelles",
+          "Sierra Leone",
+          "Singapore",
+          "Slovakia",
+          "Slovenia",
+          "Solomon Islands",
+          "Somalia",
+          "South Africa",
+          "South Korea",
+          "South Sudan",
+          "Spain",
+          "Sri Lanka",
+          "Sudan",
+          "Suriname",
+          "Sweden",
+          "Switzerland",
+          "Syria",
+          "Taiwan",
+          "Tajikistan",
+          "Tanzania",
+          "Thailand",
+          "The Bahamas",
+          "The Gambia",
+          "Timor-Leste",
+          "Togo",
+          "Trinidad and Tobago",
+          "Tunisia",
+          "Turkey (Türkiye)",
+          "Turkmenistan",
+          "Uganda",
+          "Ukraine",
+          "United Arab Emirates",
+          "United Kingdom",
+          "United States",
+          "United States Minor Outlying Islands",
+          "Uruguay",
+          "Uzbekistan",
+          "Vanuatu",
+          "Venezuela",
+          "Vietnam",
+          "Virgin Islands",
+          "Yemen",
+          "Zambia",
+          "Zimbabwe"
+        ],
+        "type": "string"
+      },
+      "maxItems": 5,
+      "type": "array"
     },
     "criteria": {
       "$ref": "#/$defs/Text",
@@ -132,7 +413,7 @@
     },
     "facility": {
       "$ref": "#/$defs/Text",
-      "description": "Exact registry facility field; cannot combine with radius."
+      "description": "Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
     },
     "gene": {
       "$ref": "#/$defs/GeneInput",
@@ -147,12 +428,20 @@
       "description": "Exact NCT identity in a conjunction with other filters."
     },
     "intervention": {
-      "$ref": "#/$defs/Text",
-      "description": "Literal source intervention text."
+      "description": "Intervention alternatives joined with OR; supported by ClinicalTrials.gov.",
+      "items": {
+        "$ref": "#/$defs/Text"
+      },
+      "maxItems": 5,
+      "type": "array"
     },
     "keyword": {
-      "$ref": "#/$defs/Text",
-      "description": "NCI free text; explicit keyword mode never substitutes for a disease identity."
+      "description": "Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
+      "items": {
+        "$ref": "#/$defs/Text"
+      },
+      "maxItems": 5,
+      "type": "array"
     },
     "lat": {
       "$ref": "#/$defs/Text",
@@ -174,9 +463,16 @@
       "$ref": "#/$defs/Text",
       "description": "Opaque registry continuation; keep filters unchanged."
     },
+    "offset": {
+      "default": 0,
+      "description": "Zero-based offset of the first row in this continuation page.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
     "phase": {
-      "$ref": "#/$defs/PhaseFilter",
-      "description": "Registry phase: 1, 2, 3, 4, early-1, not-applicable, 1/2 or 2/3."
+      "$ref": "#/$defs/TrialPhaseFilter",
+      "description": "Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
     },
     "query": {
       "$ref": "#/$defs/Text",
@@ -193,15 +489,15 @@
     },
     "sponsor": {
       "$ref": "#/$defs/Text",
-      "description": "Exact lead sponsor field."
+      "description": "Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
     },
     "sponsor_type": {
       "$ref": "#/$defs/SponsorType",
-      "description": "Registry sponsor funding facet."
+      "description": "Registry sponsor funding category; use --sponsor for a sponsor name."
     },
     "status": {
-      "$ref": "#/$defs/TrialStatus",
-      "description": "Exact registry overall status."
+      "$ref": "#/$defs/TrialStatusFilter",
+      "description": "Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
     },
     "study_type": {
       "$ref": "#/$defs/StudyType",

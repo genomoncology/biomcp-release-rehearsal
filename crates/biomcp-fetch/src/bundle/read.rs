@@ -51,8 +51,9 @@ impl Leg<'_> {
             .as_ref()
             .is_some_and(|names| !names.contains(bundle.name));
         let forced = replay || force_fresh || matches!(self.fetch.mode, Mode::Record { .. });
-        if !offline && (!fresh || forced) {
-            match self.sync_bundle(bundle, true) {
+        let background = old.is_some() && !fresh && !forced && self.background_read(bundle);
+        if !offline && !background && (!fresh || forced) {
+            match self.sync_for_read(bundle) {
                 Ok(_) => {
                     if let Some(names) = &mut refreshed {
                         names.insert(bundle.name);
@@ -81,7 +82,7 @@ impl Leg<'_> {
                 0,
                 crate::Shape::default(),
                 std::time::Duration::ZERO,
-                ("bundle", true, &url, crate::Provenance::default()),
+                ("bundle", true, &url, crate::Provenance::default(), None),
             );
         }
         if offline && !fresh {
@@ -94,8 +95,80 @@ impl Leg<'_> {
         let rows = decode(rows)?;
         Ok(rows)
     }
+    // Live readers share the last complete snapshot. Only an absent snapshot
+    // waits for its first publisher, within the existing leg deadline.
+    fn sync_for_read<R: Row>(&self, bundle: &Bundle<R>) -> Result<BundleInfo, RequestError> {
+        let cache = self.bundle_cache()?;
+        let live = matches!(self.fetch.mode, Mode::Live { .. });
+        let mut waited = false;
+        loop {
+            let active = live && cache.syncing(bundle.name, self.budget())?;
+            if active && self.fresh {
+                self.wait_for_bundle(bundle, waited)?;
+                waited = true;
+                continue;
+            }
+            if active || waited {
+                if let Some(meta) = cache.bundle_info(bundle.name, self.budget())?
+                    && (!self.fresh || meta.fresh_until > crate::cache::now())
+                {
+                    if meta.fresh_until <= crate::cache::now() {
+                        self.report
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner)
+                            .stale = true;
+                    }
+                    return Ok(store::info(bundle, &meta));
+                }
+                if active {
+                    self.wait_for_bundle(bundle, waited)?;
+                    waited = true;
+                    continue;
+                }
+            }
+            match self
+                .sync_bundle(bundle, true)
+                .and_then(|result| result.published(self))
+            {
+                Err(RequestError::Source(error))
+                    if live
+                        && error.reason == biomcp_types::Reason::Syncing
+                        && cache.syncing(bundle.name, self.budget())? => {}
+                result => return result,
+            }
+        }
+    }
+    fn wait_for_bundle<R: Row>(
+        &self,
+        bundle: &Bundle<R>,
+        waited: bool,
+    ) -> Result<(), RequestError> {
+        if !waited && self.fetch.config.observations.is_some() {
+            let url = format!("{}{}", self.spec.base.trim_end_matches('/'), bundle.path);
+            self.observed(
+                &crate::retry::identity(&url),
+                None,
+                0,
+                crate::Shape::default(),
+                std::time::Duration::ZERO,
+                (
+                    "bundle-wait",
+                    false,
+                    &url,
+                    crate::Provenance::default(),
+                    None,
+                ),
+            );
+        }
+        if crate::retry::wait(std::time::Duration::from_millis(10), self.budget()) {
+            Ok(())
+        } else {
+            Err(self.failure(biomcp_types::Reason::Syncing, None).into())
+        }
+    }
     /// Read only the last validated local bundle, even when fresh or replay is selected.
-    /// Missing data reports `Syncing`; the caller must explicitly synchronize it.
+    /// A first live reader waits for an active publisher within its deadline.
+    /// Missing data without an active publisher still requires explicit synchronization.
     pub fn stored_rows<R: Row>(
         &self,
         bundle: &Bundle<R>,
@@ -104,9 +177,23 @@ impl Leg<'_> {
         self.bundle_source(bundle)?;
         let cache = self.bundle_cache()?;
         self.import_predecessor(cache, bundle.name)?;
-        let (meta, rows) = cache
-            .stored_bundle(bundle.name, find, self.budget())?
-            .ok_or_else(|| self.failure(biomcp_types::Reason::Syncing, None))?;
+        let mut snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
+        let mut waiting = false;
+        while snapshot.is_none() {
+            if !matches!(self.fetch.mode, Mode::Live { .. })
+                || !cache.syncing(bundle.name, self.budget())?
+            {
+                // A publisher may have committed between the snapshot read and
+                // the lease check. Read once more before declaring it absent.
+                snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
+                break;
+            }
+            self.wait_for_bundle(bundle, waiting)?;
+            waiting = true;
+            snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
+        }
+        let (meta, rows) =
+            snapshot.ok_or_else(|| self.failure(biomcp_types::Reason::Syncing, None))?;
         let rows = decode(rows)?;
         if meta.fresh_until <= crate::cache::now() {
             self.report
@@ -131,7 +218,7 @@ impl Leg<'_> {
         for path in &self.fetch.config.cache_predecessors {
             match path.try_exists() {
                 Ok(false) => continue,
-                Err(_) => return Err(crate::CacheError::Database.into()),
+                Err(_) => return Err(crate::CacheError::Filesystem.into()),
                 Ok(true) => {}
             }
             if cache.import_bundle(path, name, &self.fetch.config.cache_owners, self.budget())? {
@@ -142,6 +229,9 @@ impl Leg<'_> {
     }
     pub(super) fn bundle_source<R: Row>(&self, bundle: &Bundle<R>) -> Result<(), RequestError> {
         self.check_source()?;
+        if self.licensed() {
+            return Err(self.failure(biomcp_types::Reason::Rejected, None).into());
+        }
         self.spec.admit(
             &format!("{}{}", self.spec.base.trim_end_matches('/'), bundle.path),
             false,
@@ -160,12 +250,12 @@ impl Leg<'_> {
         self.fetch
             .cache
             .as_deref()
-            .ok_or(crate::CacheError::Database.into())
+            .ok_or(crate::CacheError::Internal.into())
     }
 }
 
 fn decode<R: Row>(rows: Vec<String>) -> Result<Vec<R>, RequestError> {
     rows.into_iter()
-        .map(|row| serde_json::from_str(&row).map_err(|_| crate::CacheError::Database.into()))
+        .map(|row| serde_json::from_str(&row).map_err(|_| crate::CacheError::Encoding.into()))
         .collect()
 }

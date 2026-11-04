@@ -1,4 +1,5 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "store-clean",
   "story": "Explicit cleanup reports bounded local removal counts and help explains preserved fresh state.",
   "steps": [
@@ -7,12 +8,8 @@
         "store",
         "clean"
       ],
-      "mcp": [
-        "store",
-        "clean"
-      ],
       "expect": {
-        "/schema": "biomcp.store-clean/1",
+        "/schema": "biomcp.store-clean/4",
         "/status": "complete",
         "/result/replies": 0,
         "/result/pools": 0,
@@ -24,11 +21,6 @@
     },
     {
       "run": [
-        "help",
-        "store",
-        "clean"
-      ],
-      "mcp": [
         "help",
         "store",
         "clean"

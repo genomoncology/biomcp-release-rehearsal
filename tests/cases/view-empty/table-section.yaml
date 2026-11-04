@@ -1,0 +1,36 @@
+{
+  "feature": "markdown-view",
+  "live_check": "local presentation over existing retained replies",
+  "story": "An empty section inside a flattened table still names its source.",
+  "replay": "protein/synthetic",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "features",
+        "--format",
+        "json"
+      ],
+      "expect": {
+        "/result/items/0/sections/features/state": "empty"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "features",
+        "--format",
+        "md"
+      ],
+      "expect": {
+        "": {
+          "includes": "uniprot returned no data."
+        }
+      }
+    }
+  ]
+}

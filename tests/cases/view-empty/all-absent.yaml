@@ -1,0 +1,37 @@
+{
+  "feature": "markdown-view",
+  "live_check": "local presentation over existing retained replies",
+  "story": "Markdown names the source that confirmed an identity absent.",
+  "replay": "trial/get/NCT01811710",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT01811710",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/sources/0/source": "ctgov"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT01811710",
+        "--format",
+        "md"
+      ],
+      "exit": 1,
+      "expect": {
+        "": {
+          "includes": "ctgov returned no data."
+        }
+      }
+    }
+  ]
+}

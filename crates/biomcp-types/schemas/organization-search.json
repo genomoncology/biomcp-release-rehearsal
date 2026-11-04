@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "OrganizationSource": {
+      "description": "Organization discovery source.",
+      "enum": [
+        "nci"
+      ],
+      "type": "string"
+    },
+    "Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    }
+  },
+  "$id": "biomcp.organization-search/2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Find NCI organizations. Names are not unique; trial counts cover every status, including closed trials. No organization ID or get is available.",
+  "properties": {
+    "city": {
+      "$ref": "#/$defs/Text",
+      "description": "Native organization city."
+    },
+    "country": {
+      "$ref": "#/$defs/Text",
+      "description": "Native organization country."
+    },
+    "distance": {
+      "$ref": "#/$defs/Text",
+      "description": "Positive radius with explicit mi or km units."
+    },
+    "family": {
+      "$ref": "#/$defs/Text",
+      "description": "Native organization family."
+    },
+    "lat": {
+      "$ref": "#/$defs/Text",
+      "description": "Radius center latitude in degrees; requires lon and distance."
+    },
+    "limit": {
+      "default": 5,
+      "description": "Five headers by default, at most fifty.",
+      "format": "uint32",
+      "maximum": 50,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "lon": {
+      "$ref": "#/$defs/Text",
+      "description": "Radius center longitude in degrees; requires lat and distance."
+    },
+    "name": {
+      "$ref": "#/$defs/Text",
+      "description": "NCI partial organization name; names are not unique."
+    },
+    "offset": {
+      "default": 0,
+      "description": "Offset within the complete retained organization snapshot.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pool": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Snapshot identity retained by continuation commands."
+    },
+    "postal_code": {
+      "$ref": "#/$defs/Text",
+      "description": "Native postal code."
+    },
+    "source": {
+      "$ref": "#/$defs/OrganizationSource",
+      "description": "Explicit keyed NCI source."
+    },
+    "state": {
+      "$ref": "#/$defs/Text",
+      "description": "Native state or province."
+    }
+  },
+  "required": [
+    "source"
+  ],
+  "title": "OrganizationSearch",
+  "type": "object"
+}

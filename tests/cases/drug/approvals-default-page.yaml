@@ -1,0 +1,36 @@
+{
+  "feature": "drug-approvals",
+  "story": "Approvals return multiple submissions by default and respect configured and explicit page sizes.",
+  "live_check": "Synthetic two-submission page; recorded only",
+  "replay": "drug/approvals-page",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/page/returned": 2
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/page/returned": 1
+      }
+    }
+  ]
+}

@@ -1,26 +1,57 @@
 {
   "$defs": {
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "ClinPgxAccession": {
+    "Reply_ClinPgxAccession": {
       "description": "A ClinPGx object accession, distinct from the protein allele namespace PaId.",
       "pattern": "^PA[1-9][0-9]*$",
       "type": "string"
     },
-    "FiniteNumber": {
+    "Reply_FiniteNumber": {
       "description": "A finite decimal that JSON can represent without losing its value to null.",
       "format": "double",
       "type": "number"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_IdentifierNamespace": {
+      "description": "A source-stated authority or an explicit unknown authority, represented by the string unknown.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "Reply_Identifier_int64": {
+      "description": "An authority and its unchanged native identifier; unknown means the authority was not stated.",
+      "properties": {
+        "id": {
+          "description": "Native identifier value, with its original scalar type and precision.",
+          "format": "int64",
+          "type": "integer"
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
+          "description": "Native authority spelling; the literal unknown carries an unstated authority."
+        }
+      },
+      "required": [
+        "namespace",
+        "id"
+      ],
+      "type": "object",
+      "x-identifier": true
+    },
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -32,7 +63,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -67,46 +98,49 @@
       ],
       "type": "object"
     },
-    "PgxAllelePhenotype": {
-      "additionalProperties": false,
+    "Reply_PgxAllelePhenotype": {
       "description": "Source-native PgxAllelePhenotype fields; no clinical interpretation.",
       "properties": {
         "allele": {
           "description": "Native `allele`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "id": {
-          "description": "Native `id`; literal source value.",
-          "format": "int64",
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; literal source value."
         },
         "limitedEvidence": {
           "description": "Native `limitedEvidence`; literal source value.",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "phenotype": {
           "description": "Native `phenotype`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
-        "id",
-        "allele",
-        "limitedEvidence",
-        "phenotype"
+        "id"
       ],
       "type": "object"
     },
-    "PgxAnnotation": {
-      "additionalProperties": false,
+    "Reply_PgxAnnotation": {
       "description": "Complete proved base-tier annotation.",
       "properties": {
         "annotation": {
-          "$ref": "#/$defs/PgxAnnotationDetail",
+          "$ref": "#/$defs/Reply_PgxAnnotationDetail",
           "description": "Complete native base record, including history and genotype text."
         },
         "header": {
-          "$ref": "#/$defs/PgxAnnotationIdentity",
+          "$ref": "#/$defs/Reply_PgxAnnotationIdentity",
           "description": "Exact selected source identity."
         }
       },
@@ -116,60 +150,80 @@
       ],
       "type": "object"
     },
-    "PgxAnnotationDetail": {
-      "additionalProperties": false,
+    "Reply_PgxAnnotationDetail": {
       "description": "Source-native PgxAnnotationDetail fields; no clinical interpretation.",
       "properties": {
         "accessionId": {
-          "$ref": "#/$defs/ClinPgxAccession",
+          "$ref": "#/$defs/Reply_ClinPgxAccession",
           "description": "Native `accessionId`; literal source value."
         },
         "allelePhenotypes": {
           "description": "Native `allelePhenotypes`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxAllelePhenotype"
+            "$ref": "#/$defs/Reply_PgxAllelePhenotype"
           },
           "type": "array"
         },
         "conflictingVariantAnnotationIds": {
           "description": "Native `conflictingVariantAnnotationIds`; literal source value.",
           "items": {
-            "format": "int64",
-            "type": "integer"
+            "$ref": "#/$defs/Reply_Identifier_int64"
           },
           "type": "array"
         },
         "history": {
           "description": "Native `history`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxAnnotationHistory"
+            "$ref": "#/$defs/Reply_PgxAnnotationHistory"
           },
           "type": "array"
         },
         "id": {
-          "description": "Native `id`; literal source value.",
-          "format": "int64",
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; literal source value."
         },
         "levelOfEvidence": {
-          "$ref": "#/$defs/PgxEvidenceTerm",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PgxEvidenceTerm"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native `levelOfEvidence`; literal source value."
         },
         "location": {
-          "$ref": "#/$defs/PgxLocation",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PgxLocation"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native `location`; literal source value."
         },
         "name": {
           "description": "Native `name`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "objCls": {
           "description": "Native `objCls`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "overrideLevel": {
           "description": "Native `overrideLevel`; literal source value.",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "overrideLevelDescription": {
           "description": "Native `overrideLevelDescription` when supplied.",
@@ -180,54 +234,70 @@
         },
         "pediatric": {
           "description": "Native `pediatric`; literal source value.",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "relatedAlleles": {
           "description": "Native `relatedAlleles`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "relatedChemicals": {
           "description": "Native `relatedChemicals`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "relatedChemicalsLogic": {
           "description": "Native `relatedChemicalsLogic`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "relatedDiseases": {
           "description": "Native `relatedDiseases`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "relatedGuidelines": {
           "description": "Native `relatedGuidelines`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "relatedLabels": {
           "description": "Native `relatedLabels`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "score": {
-          "$ref": "#/$defs/FiniteNumber",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_FiniteNumber"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native `score`; literal source value."
         },
         "scoreDetails": {
           "description": "Native `scoreDetails`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "types": {
           "description": "Native `types`; literal source value.",
@@ -239,29 +309,19 @@
       },
       "required": [
         "id",
-        "accessionId",
-        "levelOfEvidence",
-        "location",
-        "name",
-        "objCls",
-        "overrideLevel",
-        "pediatric",
-        "relatedChemicalsLogic",
-        "score",
-        "scoreDetails"
+        "accessionId"
       ],
       "type": "object"
     },
-    "PgxAnnotationGet": {
-      "additionalProperties": false,
+    "Reply_PgxAnnotationGet": {
       "description": "Exact single clinical annotation get, with no inferred source or annotation kind.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/ClinPgxAccession",
+          "$ref": "#/$defs/Reply_ClinPgxAccession",
           "description": "Checked ClinPGx accession, never a shared PaId."
         },
         "source": {
-          "$ref": "#/$defs/PgxSource",
+          "$ref": "#/$defs/Reply_PgxSource",
           "description": "Required ClinPGx source."
         }
       },
@@ -271,13 +331,15 @@
       ],
       "type": "object"
     },
-    "PgxAnnotationHistory": {
-      "additionalProperties": false,
+    "Reply_PgxAnnotationHistory": {
       "description": "Source-native PgxAnnotationHistory fields; no clinical interpretation.",
       "properties": {
         "date": {
           "description": "Native `date`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "description": {
           "description": "Native `description` when supplied.",
@@ -287,38 +349,39 @@
           ]
         },
         "id": {
-          "description": "Native `id`; literal source value.",
-          "format": "int64",
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; literal source value."
         },
         "type": {
           "description": "Native `type`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "version": {
           "description": "Native `version`; literal source value.",
           "format": "int64",
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "required": [
-        "id",
-        "date",
-        "type",
-        "version"
+        "id"
       ],
       "type": "object"
     },
-    "PgxAnnotationIdentity": {
-      "additionalProperties": false,
+    "Reply_PgxAnnotationIdentity": {
       "description": "Exact clinical annotation identity, distinct from any genomic allele identity.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/ClinPgxAccession",
+          "$ref": "#/$defs/Reply_ClinPgxAccession",
           "description": "Selected exact accession."
         },
         "source": {
-          "$ref": "#/$defs/PgxSource",
+          "$ref": "#/$defs/Reply_PgxSource",
           "description": "Explicit ClinPGx source."
         }
       },
@@ -328,19 +391,20 @@
       ],
       "type": "object"
     },
-    "PgxCrossReference": {
-      "additionalProperties": false,
+    "Reply_PgxCrossReference": {
       "description": "Source-native PgxCrossReference fields; no clinical interpretation.",
       "properties": {
         "_url": {
           "description": "Native `_url`; literal source value.",
           "format": "uri",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "id": {
-          "description": "Native `id`; literal source value.",
-          "format": "int64",
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; literal source value."
         },
         "name": {
           "description": "Native `name` when supplied.",
@@ -351,29 +415,17 @@
         },
         "resource": {
           "description": "Native `resource`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "resourceId": {
           "description": "Native `resourceId`; literal source value.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "resource",
-        "resourceId",
-        "_url"
-      ],
-      "type": "object"
-    },
-    "PgxDiplotypeReference": {
-      "additionalProperties": false,
-      "description": "Native location diplotype reference; its numeric ID is not a ClinPGx accession.",
-      "properties": {
-        "id": {
-          "description": "Native `id`; no expression, phase or phenotype is inferred.",
-          "format": "int64",
-          "type": "integer"
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
@@ -381,23 +433,37 @@
       ],
       "type": "object"
     },
-    "PgxEvidenceTerm": {
-      "additionalProperties": false,
+    "Reply_PgxDiplotypeReference": {
+      "description": "Native location diplotype reference; its numeric ID is not a ClinPGx accession.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; no expression, phase or phenotype is inferred."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "type": "object"
+    },
+    "Reply_PgxEvidenceTerm": {
       "description": "Source-native PgxEvidenceTerm fields; no clinical interpretation.",
       "properties": {
         "id": {
-          "description": "Native `id`; literal source value.",
-          "format": "int64",
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; literal source value."
         },
         "resource": {
           "description": "Native `resource`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "synonyms": {
           "description": "Native `synonyms` when supplied.",
           "items": {
-            "$ref": "#/$defs/PgxUnobserved"
+            "$ref": "#/$defs/Reply_PgxUnobserved"
           },
           "type": [
             "array",
@@ -406,11 +472,17 @@
         },
         "term": {
           "description": "Native `term`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "termId": {
           "description": "Native `termId`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "valid": {
           "description": "Native `valid` when supplied.",
@@ -421,15 +493,11 @@
         }
       },
       "required": [
-        "id",
-        "resource",
-        "term",
-        "termId"
+        "id"
       ],
       "type": "object"
     },
-    "PgxLocation": {
-      "additionalProperties": false,
+    "Reply_PgxLocation": {
       "description": "Source-native PgxLocation fields; no clinical interpretation.",
       "properties": {
         "buildVersion": {
@@ -455,54 +523,62 @@
         },
         "copyNumber": {
           "description": "Native `copyNumber`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "diplotypes": {
           "description": "Native `diplotypes`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxDiplotypeReference"
+            "$ref": "#/$defs/Reply_PgxDiplotypeReference"
           },
           "type": "array"
         },
         "displayName": {
           "description": "Native `displayName`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "genes": {
           "description": "Native `genes`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "gpPosition": {
           "description": "Native `gpPosition`; literal source value.",
           "format": "int64",
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "haplotypes": {
           "description": "Native `haplotypes`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "id": {
-          "description": "Native `id`; literal source value.",
-          "format": "int64",
-          "type": "integer"
+          "$ref": "#/$defs/Reply_Identifier_int64",
+          "description": "Native `id`; literal source value."
         },
         "linkedObjects": {
           "description": "Native `linkedObjects`; literal source value.",
           "items": {
-            "$ref": "#/$defs/PgxObjectReference"
+            "$ref": "#/$defs/Reply_PgxObjectReference"
           },
           "type": "array"
         },
         "refSeqCrossReference": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PgxCrossReference"
+              "$ref": "#/$defs/Reply_PgxCrossReference"
             },
             {
               "type": "null"
@@ -513,7 +589,10 @@
         "refSeqPosition": {
           "description": "Native `refSeqPosition`; literal source value.",
           "format": "int64",
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "rsid": {
           "description": "Native `rsid` when supplied.",
@@ -524,16 +603,22 @@
         },
         "tagGene": {
           "description": "Native `tagGene`; literal source value.",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "type": {
           "description": "Native `type`; literal source value.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "variant": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PgxObjectReference"
+              "$ref": "#/$defs/Reply_PgxObjectReference"
             },
             {
               "type": "null"
@@ -543,22 +628,15 @@
         }
       },
       "required": [
-        "id",
-        "copyNumber",
-        "displayName",
-        "gpPosition",
-        "refSeqPosition",
-        "tagGene",
-        "type"
+        "id"
       ],
       "type": "object"
     },
-    "PgxObjectReference": {
-      "additionalProperties": false,
+    "Reply_PgxObjectReference": {
       "description": "Source-native PgxObjectReference fields; no clinical interpretation.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/ClinPgxAccession",
+          "$ref": "#/$defs/Reply_ClinPgxAccession",
           "description": "Native `id`; literal source value."
         },
         "name": {
@@ -588,7 +666,7 @@
       ],
       "type": "object"
     },
-    "PgxSource": {
+    "Reply_PgxSource": {
       "description": "Explicit independent source.",
       "enum": [
         "cpic",
@@ -600,12 +678,11 @@
         " ClinPGx annotation records."
       ]
     },
-    "PgxUnobserved": {
+    "Reply_PgxUnobserved": {
       "description": "No element shape was captured for these empty arrays. Populated values require new source proof.",
       "not": {}
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -621,7 +698,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -639,12 +716,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -654,7 +730,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -663,7 +739,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -674,43 +750,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -732,83 +787,31 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
       ]
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -878,21 +881,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -916,11 +995,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -935,15 +1013,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -954,15 +1031,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -973,11 +1049,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -992,11 +1067,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -1018,17 +1092,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -1040,8 +1113,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -1053,26 +1125,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -1080,18 +1143,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1109,7 +1181,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -1122,7 +1194,7 @@
       ],
       "type": "object"
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -1133,7 +1205,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -1143,8 +1215,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -1155,7 +1226,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -1164,7 +1235,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -1180,31 +1251,33 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.pgx-annotation/1",
+  "$id": "biomcp.pgx-annotation/5",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1215,14 +1288,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1233,18 +1306,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/PgxAnnotationGet",
+      "$ref": "#/$defs/Reply_PgxAnnotationGet",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PgxAnnotation"
+          "$ref": "#/$defs/Reply_PgxAnnotation"
         },
         {
           "type": "null"
@@ -1253,18 +1326,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.pgx-annotation/1",
+      "const": "biomcp.pgx-annotation/5",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

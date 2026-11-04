@@ -12,9 +12,9 @@ Retrieve source records for biomedical evidence questions.
 Usage: biomcp [OPTIONS] <COMMAND>
 
 Commands:
-  author      Read papers attributed to a source author record.
   search      Search source records by entity and checked filters.
   get         Retrieve one entity and its source sections.
+  author      Read papers attributed to a source author record.
   cell-line   Read source cell line assay counts.
   protein     Read protein sequences, features and source relationships.
   pathway     Read pathway genes and source events.
@@ -35,30 +35,39 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 -h, --help: Print scoped command help without source requests.
 --version: Print the installed version without source requests.
 
 ```
 
-author: Read papers attributed to a source author record.
 search: Search source records by entity and checked filters.
 get: Retrieve one entity and its source sections.
+author: Read papers attributed to a source author record.
 cell-line: Read source cell line assay counts.
 protein: Read protein sequences, features and source relationships.
 pathway: Read pathway genes and source events.
@@ -78,105 +87,12 @@ help: Describe commands and their arguments.
 
 - `--format`: Choose JSON or Markdown output; configuration can change the default.
 - `--disable-sources`: Exclude source names or source terms groups.
+- `--source_pacing`: Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 - `--config`: Read configuration from this file.
 - `--offline`: Read local data without source requests.
 - `--fresh`: Request fresh source data instead of cached replies.
-- `-h, --help`: Print scoped command help without source requests.
+- `--help`: Print scoped command help without source requests.
 - `--version`: Print the installed version without source requests.
-
-## biomcp author
-
-```text
-Read papers attributed to a source author record.
-
-Usage: biomcp author [OPTIONS] <COMMAND>
-
-Commands:
-  papers  One exact provider record's publication window. ORCID sends its whole public works list in one reply and pages groups locally.
-
-Options:
-      --format <format>
-          Choose JSON or Markdown output; configuration can change the default.
-          
-          [default: json]
-          [possible values: json, md]
-
-      --disable-sources <disable-sources>
-          Exclude source names or source terms groups.
-
-      --config <config>
-          Read configuration from this file.
-
-      --offline
-          Read local data without source requests.
-
-      --fresh
-          Request fresh source data instead of cached replies.
-
-```
-
-Read papers attributed to a source author record.
-
-
-## biomcp author papers
-
-```text
-One exact provider record's publication window. ORCID sends its whole public works list in one reply and pages groups locally.
-
-Usage: biomcp author papers [OPTIONS] <id> [section]
-
-Arguments:
-  <id>
-          Exact qualified provider record.
-
-  [section]
-          Detailed disclosure when requested.
-
-Options:
-      --format <format>
-          Choose JSON or Markdown output; configuration can change the default.
-          
-          [default: json]
-          [possible values: json, md]
-
-      --full
-          Legacy alias for details; normalized on construction.
-
-      --disable-sources <disable-sources>
-          Exclude source names or source terms groups.
-
-  -l, --limit <limit>
-          Bounded row count.
-
-      --config <config>
-          Read configuration from this file.
-
-      --offset <offset>
-          Native or retained collection offset.
-
-      --pool <pool>
-          Retained collection identity.
-
-      --offline
-          Read local data without source requests.
-
-      --fresh
-          Request fresh source data instead of cached replies.
-
-```
-
-One exact source record's publication window. ORCID sends its whole public works list in one reply and pages groups locally. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.
-
-- `--full`: Legacy alias for details; normalized on construction.
-- `id`: Exact qualified source record.
-- `--limit`: Bounded row count.
-- `--offset`: Source or retained collection offset.
-- `--pool`: Retained collection identity.
-- `section`: Detailed disclosure when requested.
-
-Detailed disclosure when requested.
-
-- `details`: Source detailed metadata for the same paper window.
 
 ## biomcp search
 
@@ -186,8 +102,10 @@ Search source records by entity and checked filters.
 Usage: biomcp search [OPTIONS] <COMMAND>
 
 Commands:
+  biomarker      Find NCI biomarker concepts by name or synonym. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. These concepts differ from diagnostic --biomarker filters and literal trial --variant text. Use search trial --source nci --biomarker-code CODE for trials that list an exact concept. Native criteria do not establish patient eligibility.
   author         Literal author name query and native window; positional text maps to query.
-  cell-line      One literal cell line search, with native order and no total claim.
+  organization   Find NCI organizations. Names are not unique; trial counts cover every status, including closed trials. No organization ID or get is available.
+  cell-line      One native cell line search with optional text, species and NCIt disease filters.
   gwas           Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic.
   protein        Search five reviewed human UniProt headers by literal text or exact gene.
                  No variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs.
@@ -195,54 +113,123 @@ Commands:
   pathway        Search Reactome (default) or WikiPathways human pathways. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.
   study          Literal stored metadata search; text is never parsed as a query language. No frequency, denominator, survival or comparison is calculated. Source counts keep their native names.
   pgx            Checked gene-keyed CPIC pair search. No phenotype, phase or dose is calculated.
-  diagnostic     Search one diagnostic source. A listing is not authorization; a companion row is not a treatment recommendation.
-  adverse-event  Search five report headers by default. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.
+  diagnostic     Search five source records by default. FDA device recalls cover every medical device; totals count recall records, without harm inference.
+  adverse-event  Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.
   disease        Literal discovery text or an explicit SEER catalog page.
-  drug           Literal single-source candidate discovery, without an implicit identity selection.
+  drug           Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. WHO prequalification accepts a name or date range. Other sources require a name.
   gene           Search genes by text, cytoband, or their intersection.
   article        Checked search selectors and pool cursor.
-  trial          Search one provider with bounded pages and source-native counts; default ClinicalTrials.gov, explicit keyed NCI, never a fallback.
+  trial          Search ClinicalTrials.gov or keyed NCI with native counts. NCI --facility matches exact organization names; a listed site is not necessarily enrolling.
   variant        Discover source candidates using one declared selector, without interpreting free text.
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
 Search source records by entity and checked filters.
 
 
+## biomcp search biomarker
+
+```text
+Find NCI biomarker concepts by name or synonym. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. These concepts differ from diagnostic --biomarker filters and literal trial --variant text. Use search trial --source nci --biomarker-code CODE for trials that list an exact concept. Native criteria do not establish patient eligibility.
+
+Usage: biomcp search biomarker [OPTIONS] --source <source>
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --limit <limit>
+          Maximum headers per local page.
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --name <name>
+          Native partial name or synonym search.
+
+      --offset <offset>
+          Offset within the complete retained observation.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --pool <pool>
+          Snapshot identity retained by continuation commands.
+
+      --source <source>
+          Explicit keyed NCI source.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Find NCI biomarker concepts by name or synonym. Sources: nci.
+
+- `--limit`: Maximum headers per local page.
+- `--name`: Source partial name or synonym search.
+- `--offset`: Offset within the complete retained observation.
+- `--pool`: Snapshot identity retained by continuation commands.
+- `--source`: Explicit keyed NCI source.
+
 ## biomcp search author
 
 ```text
 Literal author name query and native window; positional text maps to query.
 
-Usage: biomcp search author [OPTIONS] [query]
+Usage: biomcp search author [OPTIONS] <query>
 
 Arguments:
-  [query]
-          Literal query from the positional argument or --query.
+  <query>
+          Literal query from the positional argument.
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -255,82 +242,192 @@ Options:
       --offset <offset>
           Native offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained page identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Native author source.
 
-  -q, --query <query_option>
-          Literal query from the positional argument or --query.
-
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Exact author name query and source window; positional text maps to query. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l
+Exact author name query and source window; positional text maps to query. Sources: semantic-scholar.
 
 - `--limit`: Bounded source page size.
 - `--offset`: Source offset.
 - `--pool`: Retained page identity.
-- `query`: Exact query from the positional argument or --query.
+- `query`: Exact query from the positional argument.
 - `--source`: Source author source.
-- `--query`: Exact query from the positional argument or --query.
+
+## biomcp search organization
+
+```text
+Find NCI organizations. Names are not unique; trial counts cover every status, including closed trials. No organization ID or get is available.
+
+Usage: biomcp search organization [OPTIONS] --source <source>
+
+Options:
+      --city <city>
+          Native organization city.
+
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --country <country>
+          Native organization country.
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --distance <distance>
+          Positive radius with explicit mi or km units.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --family <family>
+          Native organization family.
+
+      --lat <lat>
+          Radius center latitude in degrees; requires lon and distance.
+
+      --limit <limit>
+          Five headers by default, at most fifty.
+
+      --lon <lon>
+          Radius center longitude in degrees; requires lat and distance.
+
+      --name <name>
+          NCI partial organization name; names are not unique.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --offset <offset>
+          Offset within the complete retained organization snapshot.
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+      --pool <pool>
+          Snapshot identity retained by continuation commands.
+
+      --postal-code <postal_code>
+          Native postal code.
+
+      --source <source>
+          Explicit keyed NCI source.
+
+      --state <state>
+          Native state or province.
+
+```
+
+Find NCI organizations. Sources: nci.
+
+- `--city`: Source organization city.
+- `--country`: Source organization country.
+- `--distance`: Positive radius with explicit mi or km units.
+- `--family`: Source organization family.
+- `--lat`: Radius center latitude in degrees; requires lon and distance.
+- `--limit`: Five headers by default, at most fifty.
+- `--lon`: Radius center longitude in degrees; requires lat and distance.
+- `--name`: NCI partial organization name; names are not unique.
+- `--offset`: Offset within the complete retained organization snapshot.
+- `--pool`: Snapshot identity retained by continuation commands.
+- `--postal-code`: Source postal code.
+- `--source`: Explicit keyed NCI source.
+- `--state`: Source state or province.
 
 ## biomcp search cell-line
 
 ```text
-One literal cell line search, with native order and no total claim.
+One native cell line search with optional text, species and NCIt disease filters.
 
 Usage: biomcp search cell-line [OPTIONS] [query]
 
 Arguments:
   [query]
-          Literal source query; positional spelling and --query use the same field.
+          Literal source query from the positional argument.
 
 Options:
+      --disease <disease>
+          Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224).
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
-
-  -l, --limit <limit>
-          Native page size.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+  -l, --limit <limit>
+          Native page size.
+
       --offset <offset>
           Native start offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
 
-  -q, --query <query_option>
-          Literal source query; positional spelling and --query use the same field.
+      --species <species>
+          Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606).
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-One exact cell line search, with source order and no total claim. An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.
+One source cell line search with optional text, species and NCIt disease filters. Sources: cellosaurus.
 
+- `--disease`: Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224).
 - `--limit`: Source page size.
 - `--offset`: Source start offset.
-- `query`: Exact source query; positional spelling and --query use the same field.
-- `--query`: Exact source query; positional spelling and --query use the same field.
+- `query`: Exact source query from the positional argument.
+- `--species`: Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606).
 
 ## biomcp search gwas
 
@@ -344,12 +441,15 @@ Arguments:
           Exact native mapped gene; legacy positional query aliases this field.
 
 Options:
-      --extended-geneset
+      --extended-geneset[=<extended_geneset>]
           Source extended gene set; requires gene.
+
+          [default: false]
+          [possible values: true, false]
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -359,11 +459,17 @@ Options:
   -g, --gene <gene>
           Exact native mapped gene; legacy positional query aliases this field.
 
+      --include-child-traits[=<include_child_traits>]
+          Source child-trait expansion; requires trait_id.
+
+          [default: false]
+          [possible values: true, false]
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
-
-      --include-child-traits
-          Source child-trait expansion; requires trait_id.
 
   -l, --limit <limit>
           Maximum association rows.
@@ -377,14 +483,26 @@ Options:
       --pool <pool>
           Retained threshold walk identity; requires a threshold.
 
-      --offline
-          Read local data without source requests.
-
       --pubmed <pubmed>
           Exact source publication identity.
 
-      --fresh
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --studies[=<studies>]
+          Return study records for the selected publication instead of associations.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
       --study <study>
           Exact source study accession.
@@ -400,7 +518,7 @@ Options:
 
 ```
 
-Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic. BioMCP's local request deadline expired. GWAS Catalog response times can vary; retry later or use https://www.ebi.ac.uk/gwas/. Contact the GWAS Catalog helpdesk if this persists.
+Source associations in default p-value-ascending order. Sources: gwas.
 
 - `--extended-geneset`: Source extended gene set; requires gene.
 - `--gene`: Exact source mapped gene; legacy positional query aliases this field.
@@ -411,6 +529,7 @@ Source associations in default p-value-ascending order. Reports no personal risk
 - `--pool`: Retained threshold walk identity; requires a threshold.
 - `--pubmed`: Exact source publication identity.
 - `query`: Exact source mapped gene; legacy positional query aliases this field.
+- `--studies`: Return study records for the selected publication instead of associations.
 - `--study`: Exact source study accession.
 - `--trait`: Exact source efo_trait label; never searches reported_trait prose.
 - `--trait-id`: Exact source ontology identity.
@@ -431,7 +550,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -444,28 +563,40 @@ Options:
       --limit <limit>
           Five rows by default; no more than 25.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Source/retained result offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Exact retained collection identity.
 
-      --reviewed
+      --reviewed[=<reviewed>]
           Reviewed human scope stays enabled; unreviewed search is deferred.
 
-      --offline
+          [default: false]
+          [possible values: true, false]
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
 Search five reviewed human UniProt headers by exact text or exact gene.
-No variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs.
+No variant effect, structure, interaction or clinical meaning is inferred. Sources: uniprot.
 
 - `--gene`: Exact source gene field, without identifier inference.
 - `--limit`: Five rows by default; no more than 25.
@@ -488,7 +619,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -501,21 +632,30 @@ Options:
       --offset <offset>
           Native source row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --source <source>
           Monarch only; HPO search is unsupported.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Search exact human HP term candidates through Monarch with bounded source pages. A term lookup answers terminology and does not establish a diagnosis.
+Search exact human HP term candidates through Monarch with bounded source pages. Sources: hpo, monarch.
 
 - `--limit`: Maximum source headers, default five.
 - `--offset`: Source source row offset.
@@ -536,12 +676,15 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --fresh
+      --fresh[=<fresh>]
           Request a new retained observation.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
@@ -549,11 +692,14 @@ Options:
       --gene <gene>
           Human gene input for exact resolution and UniProt mapping; Reactome only.
 
-      --config <config>
-          Read configuration from this file.
-
   -l, --limit <limit>
           Five rows by default, one to fifty. Reactome rows equals this limit without refill.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Native Reactome Start row or retained WikiPathways catalog offset.
@@ -564,15 +710,21 @@ Options:
       --source <source>
           Sources in caller order; repeated sources take turns without title joins.
 
-      --top-level
+      --top-level[=<top_level>]
           Native human Reactome top-level discovery, exclusive with text and gene.
 
-      --offline
+          [default: false]
+          [possible values: true, false]
+
+      --offline[=<offline>]
           Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Search Reactome (default) or WikiPathways human pathways. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.
+Search Reactome (default) or WikiPathways human pathways. Sources: reactome, wikipathways.
 
 - `--fresh`: Request a new retained observation.
 - `--gene`: Human gene input for exact resolution and UniProt mapping; Reactome only.
@@ -600,7 +752,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -610,24 +762,33 @@ Options:
       --limit <limit>
           Maximum headers per page.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Zero-based offset in the checked snapshot.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Opaque continuation retaining the catalog revision and selectors.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Exact stored metadata search; text is never parsed as a query language. No frequency, denominator, survival or comparison is calculated. Source counts keep their source names.
+Exact stored metadata search; text is never parsed as a query language. Sources: cbioportal.
 
 - `--cancer-type`: Exact cBioPortal cancer-type code; no OncoTree conversion.
 - `--limit`: Maximum headers per page.
@@ -648,7 +809,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -658,11 +819,14 @@ Options:
       --gene <gene>
           Explicit source gene symbol.
 
-      --config <config>
-          Read configuration from this file.
-
       --limit <limit>
           Rows per native page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Native source offset.
@@ -670,15 +834,21 @@ Options:
       --source <source>
           Required CPIC source; ClinPGx is not supported for search.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Checked gene-keyed CPIC pair search. No phenotype, phase or dose is calculated.
+Checked gene-keyed CPIC pair search. Sources: cpic.
 
 - `--cpic-level`: Exact source level, including compound levels such as B/C.
 - `--gene`: Explicit source gene symbol.
@@ -689,7 +859,7 @@ Checked gene-keyed CPIC pair search. No phenotype, phase or dose is calculated.
 ## biomcp search diagnostic
 
 ```text
-Search one diagnostic source. A listing is not authorization; a companion row is not a treatment recommendation.
+Search five source records by default. FDA device recalls cover every medical device; totals count recall records, without harm inference.
 
 Usage: biomcp search diagnostic [OPTIONS] --source <source>
 
@@ -699,7 +869,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -712,8 +882,17 @@ Options:
       --condition-id <condition_id>
           Exact MedGen:CUI identifier only.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
+
+      --decision-from <decision_from>
+          Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+
+      --decision-to <decision_to>
+          Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
 
       --device-id <device_id>
           Exact PMA application, application/supplement or native K identity.
@@ -727,116 +906,165 @@ Options:
       --gene-id <gene_id>
           Exact source GeneID, exclusive with gene symbol.
 
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+      --initiated-from <initiated_from>
+          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+
+      --initiated-to <initiated_to>
+          Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+
       --limit <limit>
           Five results by default; at most fifty source rows or product headers.
 
-      --offline
-          Read local data without source requests.
-
-      --fresh
-          Request fresh source data instead of cached replies.
-
       --manufacturer <manufacturer>
-          Literal whole-word phrase in WHO's Manufacturer name cell.
+          WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase.
 
       --marker <marker>
           Literal whole-word phrase in WHO's Pathogen/Disease/Marker cell.
 
+      --name <name>
+          Native trade_name (PMA) or device_name (510(k)) phrase.
+
       --offset <offset>
           Zero-based source result offset.
 
+      --product-code <product_code>
+          Exact native FDA device recall product code.
+
       --source <source>
-          Explicit native GTR, WHO IVD or FDA companion discovery.
+          Explicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
 
       --type <type>
           Exact native test_type value.
 
 ```
 
-Search one diagnostic source. A listing is not authorization; a companion row is not a treatment recommendation.
+Search five source records by default. Sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd.
 
 - `--biomarker`: Exact table-0 biomarker cell; unsupported in the group table.
 - `--bundle-revision`: Immutable stored bundle revision retained by a continuation.
 - `--condition-id`: Exact MedGen:CUI identifier only.
+- `--decision-from`: Inclusive source decision date, YYYY-MM-DD; PMA and 510(k) only.
+- `--decision-to`: Inclusive source decision date, YYYY-MM-DD; PMA and 510(k) only.
 - `--device-id`: Exact PMA application, application/supplement or source K identity.
 - `--drug-application`: Cell-owned typed NDA/BLA application.
 - `--gene`: Exact source gene_symbol field, without alias expansion.
 - `--gene-id`: Exact source GeneID, exclusive with gene symbol.
+- `--initiated-from`: Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+- `--initiated-to`: Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
 - `--limit`: Five results by default; at most fifty source rows or product headers.
-- `--manufacturer`: Exact whole-word phrase in WHO's Manufacturer name cell.
+- `--manufacturer`: WHO manufacturer words, source FDA applicant (PMA/510(k)) or recalling_firm phrase.
 - `--marker`: Exact whole-word phrase in WHO's Pathogen/Disease/Marker cell.
+- `--name`: Source trade_name (PMA) or device_name (510(k)) phrase.
 - `--offset`: Zero-based source result offset.
-- `--source`: Explicit source GTR, WHO IVD or FDA companion discovery.
+- `--product-code`: Exact source FDA device recall product code.
+- `--source`: Explicit source GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
 - `--type`: Exact source test_type value.
 
 ## biomcp search adverse-event
 
 ```text
-Search five report headers by default. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.
+Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.
 
-Usage: biomcp search adverse-event [OPTIONS] <text> [section]
+Usage: biomcp search adverse-event [OPTIONS] [text] [section]
 
 Arguments:
-  <text>
+  [text]
           Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.
 
   [section]
           Independent VAERS table; omitted means reported symptoms.
 
 Options:
+      --drug <drug>...
+          FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
-
-      --limit <limit>
-          Native report headers or VAERS rows per page; default five.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --offset <offset>
-          Native row offset. VAERS continuation requires its retained snapshot.
+      --limit <limit>
+          Native report headers or VAERS rows per page; default five.
+
+      --manufacturer <manufacturer>
+          MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
+
+      --offset <offset>
+          Native row offset. VAERS continuation requires its retained snapshot.
+
+      --problem <problem>
+          MAUDE phrase on native product_problems.
+
+      --product-code <product_code>...
+          MAUDE exact native device.device_report_product_code; repeated codes join with OR.
 
       --reaction <reaction>
           FAERS MedDRA term phrase match, not exact equality.
 
       --received-from <received_from>
-          Inclusive first FDA receipt lower bound, YYYY-MM-DD.
+          Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
 
       --received-to <received_to>
-          Inclusive first FDA receipt upper bound, YYYY-MM-DD.
+          Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
       --serious <serious>
-          FAERS report flag: death or hospitalization; never a reaction outcome.
+          FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
 
       --snapshot <snapshot>
           Retained VAERS table for provider-free continuation.
 
-      --offline
-          Read local data without source requests.
-
       --source <source>
           FAERS by default; VAERS accepts only exact supported vaccine names.
 
-      --fresh
-          Request fresh source data instead of cached replies.
-
 ```
 
-Search five report headers by default. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified source influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety. CDC WONDER can take longer than BioMCP's local command deadline. Use the interactive form at https://wonder.cdc.gov/vaers.html for a longer query. See https://wonder.cdc.gov/wonder/help/faq.html. BioMCP's local quota refused this request before contacting CDC WONDER. Retry after the reported seconds left. Automated queries must follow the spacing at https://wonder.cdc.gov/wonder/help/wonder-api.html.
+Search five report headers by default. Sources: faers, maude, vaers.
 
+- `--drug`: FAERS exact drug name; repeat --drug for OR. OR inside one quoted value stays exact. Other filters AND with the names. BioMCP caps the escaped source query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
 - `--limit`: Source report headers or VAERS rows per page; default five.
+- `--manufacturer`: MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
 - `--offset`: Source row offset. VAERS continuation requires its retained snapshot.
+- `--problem`: MAUDE phrase on source product_problems.
+- `--product-code`: MAUDE exact source device.device_report_product_code; repeated codes join with OR.
 - `--reaction`: FAERS MedDRA term phrase match, not exact equality.
-- `--received-from`: Inclusive first FDA receipt lower bound, YYYY-MM-DD.
-- `--received-to`: Inclusive first FDA receipt upper bound, YYYY-MM-DD.
+- `--received-from`: Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
+- `--received-to`: Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
 - `section`: Independent VAERS table; omitted means reported symptoms.
-- `--serious`: FAERS report flag: death or hospitalization; never a reaction outcome.
+- `--serious`: FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
 - `--snapshot`: Retained VAERS table for source-free continuation.
 - `--source`: FAERS by default; VAERS accepts only exact supported vaccine names.
 - `text`: Exact drug text, MAUDE device phrase or exact supported VAERS vaccine.
@@ -861,7 +1089,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -874,24 +1102,33 @@ Options:
       --offset <offset>
           Native row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --ontology <ontology>
           Exactly one ontology, default MONDO.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           One explicit source, default OLS.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Exact discovery text or an explicit SEER catalog page.
+Exact discovery text or an explicit SEER catalog page. Sources: monarch, mydisease, ols, seer.
 
 - `--limit`: Maximum source rows on one page.
 - `--offset`: Source row offset.
@@ -902,54 +1139,101 @@ Exact discovery text or an explicit SEER catalog page.
 ## biomcp search drug
 
 ```text
-Literal single-source candidate discovery, without an implicit identity selection.
+Search one drug source. FDA drug recalls accept a name or native firm, classification, status, reason and initiation dates; counts are recall records. WHO prequalification accepts a name or date range. Other sources require a name.
 
-Usage: biomcp search drug [OPTIONS] <query>
+Usage: biomcp search drug [OPTIONS] [query]
 
 Arguments:
-  <query>
-          Literal source name selector, unchanged by the consumer.
+  [query]
+          Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,
+          exact names before word matches. openFDA labels search exact then word brand/generic names,
+          then label text (including indications) when no names match; source matches need not be exact names.
+          Harmonized recall names match but never become display names.
 
 Options:
+      --classification <classification>
+          Native FDA classification; drug recalls only.
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
-
-      --limit <limit>
-          Native candidate rows per page.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --name-selector <name_selector>
-          Explicit ChEMBL native name selector; omitted means preferred name.
+      --firm <firm>
+          Literal published recalling firm phrase; drug recalls only.
+
+      --initiated-from <initiated_from>
+          Inclusive initiation day, YYYY-MM-DD; drug recalls only.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
 
+      --initiated-to <initiated_to>
+          Inclusive initiation day, YYYY-MM-DD; drug recalls only.
+
+      --limit <limit>
+          Native candidate rows per page.
+
+      --name-selector <name_selector>
+          Explicit ChEMBL native name selector; omitted means preferred name.
+
       --offset <offset>
           Native rows to skip.
+
+      --prequalified-from <prequalified_from>
+          Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --prequalified-to <prequalified_to>
+          Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+      --reason <reason>
+          Phrase in the published recall reason; drug recalls only.
 
       --source <source>
           Exactly one source; default MyChem never fans out.
 
-      --offline
-          Read local data without source requests.
-
-      --fresh
-          Request fresh source data instead of cached replies.
+      --status <status>
+          Literal native recall status; drug recalls only.
 
 ```
 
-Exact single-source candidate discovery, without an implicit identity selection.
+Search one drug source. Sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq.
 
+- `--classification`: Source FDA classification; drug recalls only.
+- `--firm`: Exact published recalling firm phrase; drug recalls only.
+- `--initiated-from`: Inclusive initiation day, YYYY-MM-DD; drug recalls only.
+- `--initiated-to`: Inclusive initiation day, YYYY-MM-DD; drug recalls only.
 - `--limit`: Source candidate rows per page.
 - `--name-selector`: Explicit ChEMBL source name selector; omitted means preferred name.
 - `--offset`: Source rows to skip.
-- `query`: Exact source name selector, unchanged by the consumer.
+- `--prequalified-from`: Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+- `--prequalified-to`: Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+- `query`: Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,
+exact names before word matches. openFDA labels search exact then word brand/generic names,
+then label text (including indications) when no names match; source matches need not be exact names.
+Harmonized recall names match but never become display names.
+- `--reason`: Phrase in the published recall reason; drug recalls only.
 - `--source`: Exactly one source; default MyChem never fans out.
+- `--status`: Exact source recall status; drug recalls only.
 
 ## biomcp search gene
 
@@ -968,7 +1252,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -978,24 +1262,33 @@ Options:
       --limit <limit>
           Number of results per page.
 
-      --config <config>
-          Read configuration from this file.
-
       --locus-group <locus_group>
           Optional HGNC locus group intersected with the selector.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Number of results to skip.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Search genes by text, cytoband, or their intersection.
+Search genes by text, cytoband, or their intersection. Sources: hgnc.
 
 - `--band`: A cytoband prefix.
 - `--limit`: Number of results per page.
@@ -1020,7 +1313,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1030,11 +1323,14 @@ Options:
       --disease <disease>
           Disease words.
 
-      --config <config>
-          Read configuration from this file.
-
       --drug <drug>
           Drug words.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --gene <gene>
           Gene input; PubMed resolves it through HGNC.
@@ -1045,29 +1341,41 @@ Options:
       --limit <limit>
           Maximum page length.
 
-      --no-preprints
+      --no-preprints[=<no_preprints>]
           Exclude preprints using the source's native filter.
 
-      --offline
-          Read local data without source requests.
+          [default: false]
+          [possible values: true, false]
 
       --offset <offset>
           Number of pool items to skip.
 
-      --fresh
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --open-access[=<open_access>]
+          Require the source's native open-access filter; Semantic Scholar means a public PDF.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
-      --open-access
-          Require the source's native open-access filter; Semantic Scholar means a public PDF.
+          [default: false]
+          [possible values: true, false]
 
       --pool <pool>
           Stable snapshot from an earlier response.
 
       --exclude-retracted
-          
+
 
       --include-retracted
-          
+
 
       --since <since>
           Inclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date.
@@ -1097,9 +1405,12 @@ Options:
       --variant <variant>
           Variant words.
 
+  -q, --query <query_alias>
+          Alias for positional article text.
+
 ```
 
-Checked search selectors and pool cursor.
+Checked search selectors and pool cursor. Sources: europepmc, litsense, litvar, pubmed, pubtator, semantic-scholar.
 
 - `--author`: Author words sent to PubMed's author field.
 - `--disease`: Disease words.
@@ -1130,11 +1441,12 @@ pubtator: entity and word search including full text; needs the right entity ID;
 - `--type`: Publication-type filter.
 - `--until`: Inclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date.
 - `--variant`: Variant words.
+- `--query`: Alias for positional article text.
 
 ## biomcp search trial
 
 ```text
-Search one provider with bounded pages and source-native counts; default ClinicalTrials.gov, explicit keyed NCI, never a fallback.
+Search ClinicalTrials.gov or keyed NCI with native counts. NCI --facility matches exact organization names; a listed site is not necessarily enrolling.
 
 Usage: biomcp search trial [OPTIONS] [query]
 
@@ -1148,24 +1460,39 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --condition <condition>
-          Registry condition text, or an NCIt code for NCI; use --keyword for NCI free text.
+      --biomarker-code <biomarker_code>
+          Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --condition-id <condition_id>
-          Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes.
+      --biomarker-use <biomarker_use>
+          Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --condition <condition>...
+          Condition alternatives joined with OR; NCI requires NCIt codes.
 
       --config <config>
           Read configuration from this file.
 
-      --count-only
+      --condition-id <condition_id>
+          Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes.
+
+      --count-only[=<count_only>]
           Source total only; no returned study rows.
+
+          [default: false]
+          [possible values: true, false]
+
+      --country <country>...
+          Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.
 
       --criteria <criteria>
           Search literal registry eligibility text for discovery only; no eligibility judgment.
@@ -1173,32 +1500,44 @@ Options:
       --distance <distance>
           Source distance with explicit mi or km units.
 
-      --exact-condition
-          Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.
-
-      --facility <facility>
-          Exact registry facility field; cannot combine with radius.
-
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --exact-condition[=<exact_condition>]
+          Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+      --facility <facility>
+          Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius.
 
       --gene <gene>
           Resolve one checked gene for registry text discovery only; no eligibility judgment.
 
-      --has-results
+      --has-results[=<has_results>]
           Require posted source results.
+
+          [default: false]
+          [possible values: true, false]
 
       --id <id>
           Exact NCT identity in a conjunction with other filters.
 
-      --intervention <intervention>
-          Literal source intervention text.
+      --intervention <intervention>...
+          Intervention alternatives joined with OR; supported by ClinicalTrials.gov.
 
-      --keyword <keyword>
-          NCI free text; explicit keyword mode never substitutes for a disease identity.
+      --keyword <keyword>...
+          Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.
 
       --lat <lat>
           Radius center latitude in degrees.
@@ -1212,8 +1551,11 @@ Options:
       --next-page <next_page>
           Opaque registry continuation; keep filters unchanged.
 
+      --offset <offset>
+          Zero-based offset of the first row in this continuation page.
+
       --phase <phase>
-          Registry phase: 1, 2, 3, 4, early-1, not-applicable, 1/2 or 2/3.
+          Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV.
 
       --sex <sex>
           Registry sex facet.
@@ -1222,13 +1564,13 @@ Options:
           Explicit provider; defaults to ClinicalTrials.gov and never falls back.
 
       --sponsor <sponsor>
-          Exact lead sponsor field.
+          Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category.
 
       --sponsor-type <sponsor_type>
-          Registry sponsor funding facet.
+          Registry sponsor funding category; use --sponsor for a sponsor name.
 
       --status <status>
-          Exact registry overall status.
+          Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels.
 
       --study-type <study_type>
           Exact registry study type.
@@ -1244,32 +1586,36 @@ Options:
 
 ```
 
-Search one source with bounded pages and source counts; default ClinicalTrials.gov, explicit keyed NCI, never a fallback.
+Search ClinicalTrials.gov or keyed NCI with source counts. Sources: ctgov, nci.
 
 - `--age`: Age in years; unstated source bounds count as no limit.
-- `--condition`: Registry condition text, or an NCIt code for NCI; use --keyword for NCI free text.
+- `--biomarker-code`: Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility.
+- `--biomarker-use`: Filter by NCI's source inclusion or exclusion criterion. Check each result's biomarker entry and reported problems.
+- `--condition`: Condition alternatives joined with OR; NCI requires NCIt codes.
 - `--condition-id`: Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes.
 - `--count-only`: Source total only; no returned study rows.
+- `--country`: Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its source country filter.
 - `--criteria`: Search exact registry eligibility text for discovery only; no eligibility judgment.
 - `--distance`: Source distance with explicit mi or km units.
 - `--exact-condition`: Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.
-- `--facility`: Exact registry facility field; cannot combine with radius.
+- `--facility`: Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius.
 - `--gene`: Resolve one checked gene for registry text discovery only; no eligibility judgment.
 - `--has-results`: Require posted source results.
 - `--id`: Exact NCT identity in a conjunction with other filters.
-- `--intervention`: Exact source intervention text.
-- `--keyword`: NCI free text; explicit keyword mode never substitutes for a disease identity.
+- `--intervention`: Intervention alternatives joined with OR; supported by ClinicalTrials.gov.
+- `--keyword`: Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.
 - `--lat`: Radius center latitude in degrees.
 - `--limit`: Headers per page; NCI applies its own lower publisher limit.
 - `--lon`: Radius center longitude in degrees.
 - `--next-page`: Opaque registry continuation; keep filters unchanged.
-- `--phase`: Registry phase: 1, 2, 3, 4, early-1, not-applicable, 1/2 or 2/3.
+- `--offset`: Zero-based offset of the first row in this continuation page.
+- `--phase`: Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV.
 - `query`: General registry discovery text.
 - `--sex`: Registry sex facet.
 - `--source`: Explicit source; defaults to ClinicalTrials.gov and never falls back.
-- `--sponsor`: Exact lead sponsor field.
-- `--sponsor-type`: Registry sponsor funding facet.
-- `--status`: Exact registry overall status.
+- `--sponsor`: Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category.
+- `--sponsor-type`: Registry sponsor funding category; use --sponsor for a sponsor name.
+- `--status`: Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels.
 - `--study-type`: Exact registry study type.
 - `--updated-since`: First included registry update date.
 - `--updated-until`: Last included registry update date.
@@ -1288,21 +1634,27 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
+
+      --coding <coding>
+          Coding HGVS change searched literally in ClinVar with --gene, without choosing a transcript.
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
 
       --condition <condition>
           Literal MyVariant clinvar.rcv.conditions.name phrase; source text is not a local diagnosis. Requires a declared protein or region selector.
 
-      --disable-sources <disable-sources>
-          Exclude source names or source terms groups.
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
 
       --gene <gene>
-          Exact checked gene symbol for the fixed dbNSFP gene/protein field query; obeys component terms switches.
+          Checked gene symbol for the dbNSFP substitution or ClinVar coding/synonymous selector.
 
       --has <has>
           Require the selected component's identifier field. Only source-proven mappings are offered.
@@ -1314,16 +1666,22 @@ Options:
           Native offset within this command's bounded result window; larger native totals remain visible.
 
       --protein <protein>
-          Explicit substitution using checked one-letter or three-letter amino-acid codes.
+          Explicit substitution or synonymous change using checked amino-acid codes.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
 
       --query <query>
           Raw MyVariant query, passed and echoed unchanged when component policy allows; requires --source myvariant. With disabled components use declared selectors instead.
 
-      --fresh
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
       --region <region>
           Exact one-based inclusive MyVariant region, such as chr7:55259500-55259600; requires --build.
@@ -1336,15 +1694,16 @@ Options:
 
 ```
 
-Discover source candidates using one declared selector, without interpreting free text.
+Discover source candidates using one declared selector, without interpreting free text. Sources: myvariant.
 
 - `--build`: Optional caller assembly sent to MyVariant; regions require it explicitly.
+- `--coding`: Coding HGVS change searched literally in ClinVar with --gene, without choosing a transcript.
 - `--condition`: Exact MyVariant clinvar.rcv.conditions.name phrase; source text is not a local diagnosis. Requires a declared protein or region selector.
-- `--gene`: Exact checked gene symbol for the fixed dbNSFP gene/protein field query; obeys component terms switches.
+- `--gene`: Checked gene symbol for the dbNSFP substitution or ClinVar coding/synonymous selector.
 - `--has`: Require the selected component's identifier field. Only source-proven mappings are offered.
 - `--limit`: Source candidates per page, default 10, maximum 50; all candidates remain candidates.
 - `--offset`: Source offset within this command's bounded result window; larger source totals remain visible.
-- `--protein`: Explicit substitution using checked one-letter or three-letter amino-acid codes.
+- `--protein`: Explicit substitution or synonymous change using checked amino-acid codes.
 - `--query`: Raw MyVariant query, passed and echoed unchanged when component policy allows; requires --source myvariant. With disabled components use declared selectors instead.
 - `--region`: Exact one-based inclusive MyVariant region, such as chr7:55259500-55259600; requires --build.
 - `--review-status`: Exact MyVariant clinvar.rcv.review_status phrase; no star conversion. Requires a declared protein or region selector.
@@ -1358,6 +1717,7 @@ Retrieve one entity and its source sections.
 Usage: biomcp get [OPTIONS] <COMMAND>
 
 Commands:
+  biomarker      Search NCI by exact NCIt code. Several native rows return candidates without choosing one. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. No clinical interpretation is performed.
   author         Exact qualified records in caller order, with no name reconciliation.
   cell-line      One exact identity and an optional bounded named section.
   gwas           Source association or study and native context. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic.
@@ -1371,35 +1731,93 @@ Commands:
   diagnostic     Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.
   adverse-event  Exact native report identity and an optional independently paged section.
   disease        Exact concept or native SEER site with independently paged section.
-  drug           Exact native ID retrieval with an explicitly selected source.
+  drug           Retrieve a drug by source-native ID, brand or generic name, with explicit source-scoped sections.
   gene           Get one to twenty human gene inputs in their original order.
   article        Get one to twenty article inputs in caller order.
   trial          Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.
-  variant        Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E for shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
+  variant        Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates such as 7-140753336-A-T through the shared resolver. MyVariant identity lookups default to GRCh38; --build overrides it. Chromosome genomic HGVS requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
 Retrieve one entity and its source sections.
 
+
+## biomcp get biomarker
+
+```text
+Search NCI by exact NCIt code. Several native rows return candidates without choosing one. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. No clinical interpretation is performed.
+
+Usage: biomcp get biomarker [OPTIONS] <id>
+
+Arguments:
+  <id>
+          Exact NCIt code, such as C96022.
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --source <source>
+          NCI is the biomarker concept source.
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Search NCI by exact NCIt code. Sources: nci.
+
+- `id`: Exact NCIt code, such as C96022.
+- `--source`: NCI is the biomarker concept source.
 
 ## biomcp get author
 
@@ -1415,25 +1833,34 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Exact qualified records in caller order, with no name reconciliation. Author IDs identify source records, not resolved people. Counts cover that source record. Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l and Semantic Scholar details/--full.
+Exact qualified records in caller order, with no name reconciliation. Sources: orcid, semantic-scholar.
 
 - `ids`: One or more exact qualified IDs.
 
@@ -1454,7 +1881,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1467,18 +1894,27 @@ Options:
       --section-offset <section_offset>
           Offset within each independently requested collection.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-One exact identity and an optional bounded named section. An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.
+One exact identity and an optional bounded named section. Sources: cellosaurus.
 
 - `id`: One exact primary accession or qualified source ID.
 - `section`: Omit for the default card; all returns bounded first pages without an assay count.
@@ -1511,7 +1947,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1524,21 +1960,30 @@ Options:
       --section-offset <section_offset>
           Native relation row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --snapshot <snapshot>
           Retained ancestry reply for a local page.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Source association or study and source context. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic. BioMCP's local request deadline expired. GWAS Catalog response times can vary; retry later or use https://www.ebi.ac.uk/gwas/. Contact the GWAS Catalog helpdesk if this persists.
+Source association or study and source context. Sources: gwas.
 
 - `id`: Qualified association ID or exact GCST study accession.
 - `section`: Association loci or study associations and ancestries.
@@ -1568,7 +2013,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1581,20 +2026,29 @@ Options:
       --section-limit <section_limit>
           First-page row limit; function keeps one whole native text record and does not page its paragraphs.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
 Read source protein cards; a symbol returns candidates without choosing a protein.
 Sections disclose source facts with independent row bounds; function keeps all paragraphs.
-No variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs. BioMCP's local request deadline expired. The health probe uses a shorter local cap than protein requests. InterPro documents that some queries take minutes; this timeout does not establish an outage. Please retry later or check https://www.ebi.ac.uk/interpro/. See https://interpro-documentation.readthedocs.io/en/latest/faq.html.
+No variant effect, structure, interaction or clinical meaning is inferred. Sources: complex-portal, hgnc, interpro, uniprot.
 
 - `input`: Source accessions or gene symbols, preserving caller order.
 - `--section`: Select source sections or all bounded first pages; function keeps one whole text record.
@@ -1628,7 +2082,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1641,24 +2095,33 @@ Options:
       --section-offset <section_offset>
           Native section row offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --snapshot <snapshot>
           Retained exact source reply for local text and link pages; unsupported for diseases and genes.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           HPO or Monarch for cards, synonyms and xrefs; Monarch only for hierarchy, diseases and genes. Defaults to HPO for cards, synonyms and xrefs, otherwise Monarch.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read an exact HP term from HPO or Monarch, or page source sections. A term lookup answers terminology; an association answers what its publisher asserts. Neither establishes a diagnosis.
+Read an exact HP term from HPO or Monarch, or page source sections. Sources: hpo, monarch.
 
 - `id`: Exact HP identifier.
 - `section`: Absent means the source identity card.
@@ -1692,12 +2155,15 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --fresh
+      --fresh[=<fresh>]
           Request a new source observation.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
@@ -1705,21 +2171,27 @@ Options:
       --pool <pool>
           Retained snapshot, when continuing a source relation.
 
-      --config <config>
-          Read configuration from this file.
-
       --section-limit <section_limit>
           Bounded initial section size; each all section has its own first page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --section-offset <section_offset>
           Native relation offset for a selected genes or events section.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Get an exact human Reactome R-HSA or WikiPathways WP card. Read whole summary, genes, Reactome events or bounded all sections. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.
+Get an exact human Reactome R-HSA or WikiPathways WP card. Sources: reactome, wikipathways.
 
 - `--fresh`: Request a new source observation.
 - `id`: Exact human Reactome or WikiPathways identity without version suffixes.
@@ -1752,33 +2224,50 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --section-limit <section_limit>
-          Maximum records in each selected section.
+      --gene <gene>
+          Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --section-offset <section_offset>
-          Offset within one named section; all requires zero.
+      --molecular-profile <molecular_profile>
+          Exact mutation profile ID; omitted selects the study's first mutation profile.
+
+      --section-limit <section_limit>
+          Maximum records in each selected section.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --section-offset <section_offset>
+          Offset within one named section; all requires zero.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Exact case-sensitive study card or bounded metadata section. No frequency, denominator, survival or comparison is calculated. Source counts keep their source names.
+Exact case-sensitive study card or bounded metadata section. Sources: cbioportal.
 
+- `--gene`: Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations.
 - `id`: Exact source study ID; no default or repair.
+- `--molecular-profile`: Exact mutation profile ID; omitted selects the study's first mutation profile.
 - `section`: Omit for the card; all returns bounded first pages only.
 - `--section-limit`: Maximum records in each selected section.
 - `--section-offset`: Offset within one named section; all requires zero.
@@ -1787,8 +2276,10 @@ Omit for the card; all returns bounded first pages only.
 
 - `profiles`: Five exact source molecular profile references.
 - `sample-lists`: Five sample-list metadata records, without member sample IDs.
+- `mutations`: Source mutation rows for the required gene and selected mutation profile.
+- `samples`: Source sample identities and types only.
 - `files`: Five repository file references; no automatic download.
-- `all`: Each named section's bounded first page; never a gene aggregate request.
+- `all`: Bounded first pages; mutations are included only when gene is supplied.
 
 ## biomcp get pgx
 
@@ -1807,7 +2298,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1817,11 +2308,14 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --drug-id <drug_id>
           Exact published CPIC drug key; recommendations only.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --gene <gene>
           Explicit source gene symbol.
@@ -1835,21 +2329,27 @@ Options:
       --section-offset <section_offset>
           Offset within the selected section.
 
-      --offline
-          Read local data without source requests.
-
       --snapshot <snapshot>
           Retained collection for local continuation.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
 
       --source <source>
           Required source, checked against the section.
 
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
 ```
 
-PGx card or section. No phenotype, phase or dose is calculated.
+PGx card or section. Sources: clinpgx, cpic.
 
 - `--annotation-id`: Checked ClinPGx accession, never a shared PaId.
 - `--diplotype`: Unchanged declared expression required for the diplotype section only.
@@ -1881,7 +2381,8 @@ Arguments:
           Exact native identity, including version for GTR.
 
   [section]
-          gtr: genes, conditions, methods. fda-pma: regulatory, supplements. WHO and 510(k) have no sections; omit for the card.
+          GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.
+          WHO, 510(k) and device recalls have no sections; omit for the card.
 
 Options:
       --bundle-revision <bundle_revision>
@@ -1889,7 +2390,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1899,41 +2400,55 @@ Options:
       --section-limit <section_limit>
           Maximum native rows; omitted means five rows, or one regulatory fragment.
 
-      --config <config>
-          Read configuration from this file.
-
       --section-offset <section_offset>
           Zero-based native row or fragment offset.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
       --source <source>
-          Explicit source; gtr needs accession/version, who-ivd a known Product ID, fda-pma a P number, fda-510k a K number.
+          Explicit source: GTR accession/version, WHO Product ID, PMA P number,
+          510(k) K number or device recall Z-NNNN-YYYY.
 
       --supplement <supplement>
           Exact native PMA supplement; absent selects the base row.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.
+Get one exact source record or supported section. Sources: fda-510k, fda-device-recall, fda-pma, gtr, who-ivd.
 
 - `--bundle-revision`: Immutable stored bundle revision retained by a continuation.
 - `id`: Exact source identity, including version for GTR.
-- `section`: gtr: genes, conditions, methods. fda-pma: regulatory, supplements. WHO and 510(k) have no sections; omit for the card.
+- `section`: GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.
+WHO, 510(k) and device recalls have no sections; omit for the card.
 - `--section-limit`: Maximum source rows; omitted means five rows, or one regulatory fragment.
 - `--section-offset`: Zero-based source row or fragment offset.
-- `--source`: Explicit source; gtr needs accession/version, who-ivd a known Product ID, fda-pma a P number, fda-510k a K number.
+- `--source`: Explicit source: GTR accession/version, WHO Product ID, PMA P number,
+510(k) K number or device recall Z-NNNN-YYYY.
 - `--supplement`: Exact source PMA supplement; absent selects the base row.
 
-gtr: genes, conditions, methods. fda-pma: regulatory, supplements. WHO and 510(k) have no sections; omit for the card.
+GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.
+WHO, 510(k) and device recalls have no sections; omit for the card.
 
 - `genes`: GTR source gene rows; five per page.
 - `conditions`: GTR source condition rows; five per page.
 - `methods`: GTR source method entries; five per page.
+- `summary`: FDA SSED PDF text: 25 MiB, 100 pages and 6144 escaped bytes per fragment; scans without text are explicit.
 - `regulatory`: Selected PMA submission statement; one fragment per page.
 - `supplements`: PMA base application supplement headers; five per page.
 
@@ -1957,7 +2472,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -1967,11 +2482,14 @@ Options:
       --section-limit <section_limit>
           Whole source rows per section page.
 
-      --config <config>
-          Read configuration from this file.
-
       --section-offset <section_offset>
           Offset within the selected native section.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --snapshot <snapshot>
           Checked retained report snapshot for provider-free continuation.
@@ -1979,15 +2497,21 @@ Options:
       --source <source>
           FAERS by default; MAUDE is explicit.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Exact source report identity and an optional independently paged section. CDC WONDER can take longer than BioMCP's local command deadline. Use the interactive form at https://wonder.cdc.gov/vaers.html for a longer query. See https://wonder.cdc.gov/wonder/help/faq.html. BioMCP's local quota refused this request before contacting CDC WONDER. Retry after the reported seconds left. Automated queries must follow the spacing at https://wonder.cdc.gov/wonder/help/wonder-api.html.
+Exact source report identity and an optional independently paged section. Sources: faers, maude.
 
 - `--drug-index`: Absolute source-array index; required only for identifier sections.
 - `id`: Published report ID with no source prefix.
@@ -2031,7 +2555,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2041,11 +2565,14 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --interval <interval>
           Survival-only interval code.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --ontology <ontology>
           One OLS ontology.
@@ -2059,24 +2586,30 @@ Options:
       --section-limit <section_limit>
           Native rows per page: default 2 for Monarch genes, 1 for Monarch phenotypes, otherwise 5.
 
-      --offline
-          Read local data without source requests.
-
       --section-offset <section_offset>
           Native row offset within the selected section.
 
-      --fresh
-          Request fresh source data instead of cached replies.
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
 
       --sex <sex>
           Native sex code.
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
       --source <source>
           Default MyDisease; no automatic fallback.
 
 ```
 
-Exact concept or source SEER site with independently paged section.
+Exact concept or source SEER site with independently paged section. Sources: monarch, mydisease, ols, seer.
 
 - `--age-range`: Source age-range code.
 - `--dataset`: Requested source dataset selector, not proof of returned membership.
@@ -2104,13 +2637,13 @@ One named section; absent means identity card only.
 ## biomcp get drug
 
 ```text
-Exact native ID retrieval with an explicitly selected source.
+Retrieve a drug by source-native ID, brand or generic name, with explicit source-scoped sections.
 
-Usage: biomcp get drug [OPTIONS] --source <source> <input> [section]...
+Usage: biomcp get drug [OPTIONS] <input> [section]...
 
 Arguments:
   <input>
-          Exact source-native ID; WHO references retain native spaces. No name or alias resolution.
+          Source-native ID or complete brand or generic name; WHO references retain native spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
 
   [section]...
           Explicit named disclosures; empty means identity only.
@@ -2121,7 +2654,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2134,44 +2667,67 @@ Options:
       --civic-profile <civic_profile>
           Selected native CIViC molecular profile for a drug-scoped claim stream.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
+      --document-id <document_id>
+          Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
+          and 6144 escaped bytes per fragment. No-text scans are explicit.
+
+      --evidence-level <evidence_level>...
+          Native CIViC evidence levels; repeat to include several levels.
+
+      --evidence-status <evidence_status>
+          Native CIViC evidence status; omitted preserves the source's existing default.
+
       --label-section <label_section>
-          Exact native label heading, required only for the label section.
+          Exact published openFDA SPL section field, including table fields; required for the label section.
 
       --product-number <product_number>
           Explicit native application product number, only for approvals.
 
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
       --section-limit <section_limit>
           Named section page size, refused on an identity-only card.
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
       --section-offset <section_offset>
           Named section continuation, refused on an identity-only card.
 
-      --offline
-          Read local data without source requests.
-
       --source <source>
-          Required source; there is no default exact-ID resolver.
-
-      --fresh
-          Request fresh source data instead of cached replies.
+          Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 
 ```
 
-Exact source ID retrieval with an explicitly selected source.
+Retrieve a drug by source ID, brand or generic name, with explicit source-scoped sections. Sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq.
 
 - `--civic-cursor`: Source continuation cursor for that exact drug, profile and claim collection.
 - `--civic-kind`: Independent source evidence or assertion collection within the selected profile.
 - `--civic-profile`: Selected source CIViC molecular profile for a drug-scoped claim stream.
-- `input`: Exact source ID; WHO references retain source spaces. No name or alias resolution.
-- `--label-section`: Exact source label heading, required only for the label section.
+- `--document-id`: Exact source Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
+and 6144 escaped bytes per fragment. No-text scans are explicit.
+- `--evidence-level`: Source CIViC evidence levels; repeat to include several levels.
+- `--evidence-status`: Source CIViC evidence status; omitted preserves the source's existing default.
+- `input`: Source-source ID or complete brand or generic name; WHO references retain source spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
+- `--label-section`: Exact published openFDA SPL section field, including table fields; required for the label section.
 - `--product-number`: Explicit source application product number, only for approvals.
 - `section`: Explicit named disclosures; empty means identity only.
 - `--section-limit`: Named section page size, refused on an identity-only card.
 - `--section-offset`: Named section continuation, refused on an identity-only card.
-- `--source`: Required source; there is no default exact-ID resolver.
+- `--source`: Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 
 Explicit named disclosures; empty means identity only.
 
@@ -2198,7 +2754,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2209,18 +2765,27 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Get one to twenty human gene inputs in their original order.
+Get one to twenty human gene inputs in their original order. Sources: civic, clingen, gencc, gnomad, hgnc, hpa, mygene, oncokb, reactome, uniprot.
 
 - `input`: Gene symbols or checked identifiers, in input order.
 - `--section`: Requested section words, preserving caller order and repetitions.
@@ -2253,7 +2818,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2263,18 +2828,27 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Get one to twenty article inputs in caller order.
+Get one to twenty article inputs in caller order. Sources: europepmc, icite, pmc-oa, pubmed, pubtator, semantic-scholar.
 
 - `input`: PubMed, PMC or DOI identifiers in input order.
 - `--section`: Requested section words; trailing words and --section share this field.
@@ -2304,7 +2878,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2317,11 +2891,14 @@ Options:
       --offset <offset>
           Character offset for ClinicalTrials.gov eligibility or NCI summary; whole-record offset for other collections.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Checked stored source record, supplied by a continuation.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --section <section>
           Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.
@@ -2329,15 +2906,21 @@ Options:
       --source <source>
           Explicit provider; defaults to ClinicalTrials.gov and never falls back.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.
+Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations. Sources: ctgov, nci.
 
 - `input`: One to twenty exact NCT identifiers, in caller order.
 - `--limit`: Whole-record count per source collection page; text fragments follow the text budget.
@@ -2350,6 +2933,7 @@ Optional intact source sections. Default cards only; diseases and summary requir
 
 - `eligibility`: Intact criteria and structured age/sex fields.
 - `outcomes`: Primary, secondary and other outcome records.
+- `results`: Posted outcome values, analyses and adverse-event tables (ClinicalTrials.gov).
 - `arms`: Arms and interventions with original relationships.
 - `locations`: Whole source sites with their attached contacts.
 - `contacts`: Central contacts and overall officials in their original roles.
@@ -2362,24 +2946,24 @@ Optional intact source sections. Default cards only; diseases and summary requir
 ## biomcp get variant
 
 ```text
-Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E for shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
+Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates such as 7-140753336-A-T through the shared resolver. MyVariant identity lookups default to GRCh38; --build overrides it. Chromosome genomic HGVS requires --build. Use search variant --gene BRAF --protein V600E or search variant --gene PTEN --coding c.333G>T for gene shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
 
 Usage: biomcp get variant [OPTIONS] <input> [section]...
 
 Arguments:
   <input>
-          Published rsID, CAid, ClinVar Variation ID or reference-qualified HGVS.
+          rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.
 
   [section]...
           Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.
 
 Options:
       --build <build>
-          Required for chromosome notation; no assembly is guessed.
+          MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build.
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2392,11 +2976,20 @@ Options:
       --civic-kind <civic_kind>
           Native CIViC claim collection within the selected profile.
 
-      --config <config>
-          Read configuration from this file.
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --civic-profile <civic_profile>
           Selected CIViC molecular profile for native claim paging.
+
+      --config <config>
+          Read configuration from this file.
+
+      --evidence-level <evidence_level>...
+          Native CIViC evidence levels; repeat to include several levels.
+
+      --evidence-status <evidence_status>
+          Native CIViC evidence status; omitted preserves the source's existing default.
 
       --limit <limit>
           Candidate rows per page; more remain reachable through typed next commands.
@@ -2404,17 +2997,23 @@ Options:
       --offset <offset>
           Candidate rows to skip in source order.
 
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
       --resolver <resolver>
           Resolver for reference-qualified notation; never repairs the input locally.
 
-      --offline
-          Read local data without source requests.
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
       --section-limit <section_limit>
           Rows per named source section page; omitted uses the native source default.
-
-      --fresh
-          Request fresh source data instead of cached replies.
 
       --section-offset <section_offset>
           Source rows to skip independently of identity candidate paging.
@@ -2424,13 +3023,15 @@ Options:
 
 ```
 
-Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E for shorthand. Every candidate remains available; source assertions do not classify the variant for the caller.
+Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates such as 7-140753336-A-T through the shared resolver. Sources: alphagenome, car, civic, clinvar, erepo, gnomad, gwas, hotspots, mutalyzer, myvariant, oncokb, variantvalidator.
 
-- `--build`: Required for chromosome notation; no assembly is guessed.
+- `--build`: MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build.
 - `--civic-cursor`: Source CIViC cursor, retained unchanged.
 - `--civic-kind`: Source CIViC claim collection within the selected profile.
 - `--civic-profile`: Selected CIViC molecular profile for source claim paging.
-- `input`: Published rsID, CAid, ClinVar Variation ID or reference-qualified HGVS.
+- `--evidence-level`: Source CIViC evidence levels; repeat to include several levels.
+- `--evidence-status`: Source CIViC evidence status; omitted preserves the source's existing default.
+- `input`: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.
 - `--limit`: Candidate rows per page; more remain reachable through typed next commands.
 - `--offset`: Candidate rows to skip in source order.
 - `--resolver`: Resolver for reference-qualified notation; never repairs the input locally.
@@ -2454,6 +3055,121 @@ Named source sections; omitted by default. Each calls its own source. all keeps 
 - `cosmic`: Historical COSMIC fragments carried by MyVariant; parent-to-fragment allele identity remains unverified.
 - `all`: Every implemented variant section.
 
+## biomcp author
+
+```text
+Read papers attributed to a source author record.
+
+Usage: biomcp author [OPTIONS] <COMMAND>
+
+Commands:
+  papers  One exact provider record's publication window. ORCID sends its whole public works list in one reply and pages groups locally.
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Read papers attributed to a source author record.
+
+
+## biomcp author papers
+
+```text
+One exact provider record's publication window. ORCID sends its whole public works list in one reply and pages groups locally.
+
+Usage: biomcp author papers [OPTIONS] <id> [section]
+
+Arguments:
+  <id>
+          Exact qualified provider record.
+
+  [section]
+          Detailed disclosure when requested.
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --full[=<full>]
+          Legacy alias for details; normalized on construction.
+
+          [default: false]
+          [possible values: true, false]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+  -l, --limit <limit>
+          Bounded row count.
+
+      --offset <offset>
+          Native or retained collection offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --pool <pool>
+          Retained collection identity.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+One exact source record's publication window. Sources: orcid, semantic-scholar.
+
+- `--full`: Legacy alias for details; normalized on construction.
+- `id`: Exact qualified source record.
+- `--limit`: Bounded row count.
+- `--offset`: Source or retained collection offset.
+- `--pool`: Retained collection identity.
+- `section`: Detailed disclosure when requested.
+
+Detailed disclosure when requested.
+
+- `details`: Source detailed metadata for the same paper window.
+
 ## biomcp cell-line
 
 ```text
@@ -2467,21 +3183,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -2502,25 +3227,34 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-A separate assay-count request, never implicit in metadata or all. An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.
+A separate assay-count request, never implicit in metadata or all. Sources: chembl.
 
 - `id`: Exact ChEMBL cell identity returned by metadata.
 
@@ -2544,21 +3278,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -2579,7 +3322,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2592,11 +3335,14 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --position <position>
           Native one-based residue; zero fails during deserialization.
@@ -2604,15 +3350,21 @@ Options:
       --type <type>
           Exact UniProt native label, without an alias map.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page five source UniProt features by exact type and displayed residue. No variant effect or clinical meaning is inferred; no bioinformatics tool runs.
+Page five source UniProt features by exact type and displayed residue. Sources: uniprot.
 
 - `accession`: Exact source protein sequence identity.
 - `--limit`: Five rows by default, at most 25.
@@ -2635,7 +3387,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2648,21 +3400,30 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page five source isoforms, exact-participant complexes or PDB links. Source identities stay separate. No structure, interaction or clinical meaning is inferred; no bioinformatics tool runs.
+Page five source isoforms, exact-participant complexes or PDB links. Sources: uniprot.
 
 - `accession`: Exact source protein sequence identity.
 - `--limit`: Five rows by default, at most 25.
@@ -2683,7 +3444,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2696,24 +3457,33 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --type <type>
           Exact native InterPro type, not a normalized domain label.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page five source InterPro matches with original types and fragments. No structure or clinical meaning is inferred; no bioinformatics tool runs. BioMCP's local request deadline expired. The health probe uses a shorter local cap than protein requests. InterPro documents that some queries take minutes; this timeout does not establish an outage. Please retry later or check https://www.ebi.ac.uk/interpro/. See https://interpro-documentation.readthedocs.io/en/latest/faq.html.
+Page five source InterPro matches with original types and fragments. Sources: interpro.
 
 - `accession`: Exact source protein sequence identity.
 - `--limit`: Five rows by default, at most 25.
@@ -2735,7 +3505,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2748,21 +3518,30 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page five source isoforms, exact-participant complexes or PDB links. Source identities stay separate. No structure, interaction or clinical meaning is inferred; no bioinformatics tool runs.
+Page five source isoforms, exact-participant complexes or PDB links. Sources: complex-portal.
 
 - `accession`: Exact source protein sequence identity.
 - `--limit`: Five rows by default, at most 25.
@@ -2786,7 +3565,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2796,24 +3575,33 @@ Options:
       --limit <limit>
           Five rows by default, at most 25.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Native or retained page offset.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Retained collection identity.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page five source participants of an exact Complex Portal complex containing the anchor. No interaction or clinical meaning is inferred; no bioinformatics tool runs.
+Page five source participants of an exact Complex Portal complex containing the anchor. Sources: complex-portal.
 
 - `accession`: Exact source protein sequence identity.
 - `--complex`: Exact complex whose source participants contain the anchor.
@@ -2835,7 +3623,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2848,21 +3636,30 @@ Options:
       --offset <offset>
           Native or retained page offset.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Retained collection identity.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page five source isoforms, exact-participant complexes or PDB links. Source identities stay separate. No structure, interaction or clinical meaning is inferred; no bioinformatics tool runs.
+Page five source isoforms, exact-participant complexes or PDB links. Sources: uniprot.
 
 - `accession`: Exact source protein sequence identity.
 - `--limit`: Five rows by default, at most 25.
@@ -2884,26 +3681,35 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
 Read one complete source sequence for an exact source accession.
-No variant effect, structure or clinical meaning is inferred; no bioinformatics tool runs.
+No variant effect, structure or clinical meaning is inferred; no bioinformatics tool runs. Sources: uniprot.
 
 - `isoform`: Exact isoform or base accession; no canonical suffix is synthesized.
 
@@ -2921,21 +3727,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -2959,7 +3774,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -2972,21 +3787,30 @@ Options:
       --offset <offset>
           Offset within the retained selected relation.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Immutable relation snapshot.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read Reactome exact references or WikiPathways GeneProduct data nodes. The details layer discloses complete Reactome physical contexts. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.
+Read Reactome exact references or WikiPathways GeneProduct data nodes. Sources: reactome, wikipathways.
 
 - `details`: Include every physical entity context for these references; never clips source text.
 - `id`: Checked source-owned human pathway identity.
@@ -3008,7 +3832,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3021,21 +3845,30 @@ Options:
       --offset <offset>
           Offset within the retained selected relation.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Immutable relation snapshot.
 
-      --offline
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read Reactome event objects and unresolved source integer references in source order. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.
+Read Reactome event objects and unresolved source integer references in source order. Sources: reactome.
 
 - `id`: Checked source-owned human pathway identity.
 - `--limit`: Five complete relation rows by default, at most fifty.
@@ -3061,21 +3894,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -3102,7 +3944,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3112,11 +3954,17 @@ Options:
       --offset <offset>
           Matching-row or text-fragment offset.
 
+      --replace[=<replace>]
+          Replace an existing destination only when explicitly requested with save.
+
+          [default: false]
+          [possible values: true, false]
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
-
-      --replace
-          Replace an existing destination only when explicitly requested with save.
 
       --rows <rows>
           Inclusive original row range.
@@ -3130,15 +3978,21 @@ Options:
       --variant <variant>
           Explicit protein substitution.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read a checked supplement file or page its original rows.
+Read a checked supplement file or page its original rows. Sources: pmc-oa, pubmed.
 
 - `file`: Exact file name from the supplements section.
 - `--find`: Exact case-insensitive needle.
@@ -3164,12 +4018,15 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --replace
+      --replace[=<replace>]
           Replace an existing file only when explicitly requested.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
@@ -3177,18 +4034,27 @@ Options:
       --save <save>
           Destination file or existing folder.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Download one publisher PDF to an explicit file or existing folder.
+Download one publisher PDF to an explicit file or existing folder. Sources: semantic-scholar.
 
 - `input`: Article identity.
 - `--replace`: Replace an existing file only when explicitly requested.
@@ -3211,7 +4077,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3221,14 +4087,20 @@ Options:
       --offset <offset>
           Number of matching rows already returned.
 
-      --config <config>
-          Read configuration from this file.
-
       --part <part>
           One-based outline part number.
 
-      --replace
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --replace[=<replace>]
           Replace an existing destination only when explicitly requested with save.
+
+          [default: false]
+          [possible values: true, false]
 
       --save <save>
           Save the whole original document to an explicit file or existing folder.
@@ -3236,15 +4108,21 @@ Options:
       --variant <variant>
           Explicit checked protein substitution.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read one bounded body part, find matching rows, or save the complete Markdown document.
+Read one bounded body part, find matching rows, or save the complete Markdown document. Sources: europepmc, pmc-oa, pubmed.
 
 - `--find`: Case-insensitive exact text to find.
 - `input`: PubMed or PMC identity. DOI selectors are not accepted by the reader.
@@ -3268,7 +4146,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3281,24 +4159,33 @@ Options:
       --offset <offset>
           Number of pool items to skip.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Fixed snapshot from an earlier page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Graph provider; iCite remains the default.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page the citing or referenced PubMed papers of one checked PMID.
+Page the citing or referenced PubMed papers of one checked PMID. Sources: icite, pubmed, semantic-scholar.
 
 - `--limit`: Maximum papers on one page.
 - `--offset`: Number of pool items to skip.
@@ -3320,7 +4207,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3333,24 +4220,33 @@ Options:
       --offset <offset>
           Number of pool items to skip.
 
-      --config <config>
-          Read configuration from this file.
-
       --pool <pool>
           Fixed snapshot from an earlier page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --source <source>
           Graph provider; iCite remains the default.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page the PubMed papers referenced by one checked article identifier.
+Page the citing or referenced PubMed papers of one checked PMID. Sources: icite, pubmed, semantic-scholar.
 
 - `--limit`: Maximum papers on one page.
 - `--offset`: Number of pool items to skip.
@@ -3375,12 +4271,15 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --fulltext
+      --fulltext[=<fulltext>]
           Include the citing paper's own explicit reference paragraphs.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
@@ -3388,24 +4287,33 @@ Options:
       --offset <offset>
           Context fragment position returned by the advancing step.
 
-      --config <config>
-          Read configuration from this file.
-
       --paragraph-offset <paragraph_offset>
           Full-text fragment position returned by the advancing step.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Stored checked source scan and original hit positions.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read every source context and optional explicit full-text citation paragraph.
+Read every source context and optional explicit full-text citation paragraph. Sources: pmc-oa, pubmed, semantic-scholar.
 
 - `cited`: Cited PMID, PMC identity or DOI.
 - `citing`: Citing PMID, PMC identity or DOI.
@@ -3428,7 +4336,7 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3441,24 +4349,33 @@ Options:
       --negative <negative>...
           Up to ten negative paper identities.
 
-      --config <config>
-          Read configuration from this file.
-
       --offset <offset>
           Number of stored recommendations to skip.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --pool <pool>
           Fixed recommendation pool.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Recommendations in the source's recent-paper pool order.
+Recommendations in the source's recent-paper pool order. Sources: semantic-scholar.
 
 - `--limit`: Maximum recommendations requested, in source order.
 - `--negative`: Up to ten negative paper identities.
@@ -3479,21 +4396,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -3517,12 +4443,15 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --replace
+      --replace[=<replace>]
           Replace an existing file only when explicitly requested.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
@@ -3530,18 +4459,27 @@ Options:
       --save <save>
           Caller-owned file or existing folder.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Download one exact ClinicalTrials.gov manifest PDF to an explicit caller path; never read its text. CLI and stdio MCP support saves; HTTP refuses with the source URL.
+Download one exact ClinicalTrials.gov manifest PDF to an explicit caller path; never read its text. Sources: ctgov.
 
 - `file`: Exact filename from the registry manifest; never a URL or inferred path.
 - `input`: Exact registry identity.
@@ -3564,21 +4502,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -3594,7 +4541,7 @@ Usage: biomcp variant assertions [OPTIONS] --source <source> <input>
 
 Arguments:
   <input>
-          Checked Variation ID for ClinVar, or CAid for ERepo.
+          Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
 
 Options:
       --assertion <assertion>
@@ -3602,15 +4549,21 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
+
+      --build <build>
+          Identity lookup assembly; omitted uses the shared GRCh38 default.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
       --limit <limit>
           Assertions per page; omitted uses the native source default.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -3619,26 +4572,33 @@ Options:
           Assertions to skip in source order.
 
       --source <source>
-          One native source; no fallback or text search.
+          One native assertion source; shared identity conversion precedes source access when needed.
 
       --version <version>
           VCV archive or ERepo document version; RCV/SCV selectors match a returned native version.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Page assertions from one explicitly selected evidence source.
+Page assertions from one explicitly selected evidence source. Sources: clinvar, erepo.
 
 - `--assertion`: Source assertion accession or document ID.
-- `input`: Checked Variation ID for ClinVar, or CAid for ERepo.
+- `--build`: Identity lookup assembly; omitted uses the shared GRCh38 default.
+- `input`: Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
 - `--limit`: Assertions per page; omitted uses the source default.
 - `--offset`: Assertions to skip in source order.
-- `--source`: One source; no fallback or text search.
+- `--source`: One source assertion source; shared identity conversion precedes source access when needed.
 - `--version`: VCV archive or ERepo document version; RCV/SCV selectors match a returned source version.
 
 ## biomcp variant population
@@ -3658,21 +4618,27 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --detail
+      --detail[=<detail>]
           Read source ancestry groups, preserving overlapping groups individually.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --config <config>
-          Read configuration from this file.
-
       --limit <limit>
           Maximum rows per page.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Native rows to skip.
@@ -3680,15 +4646,21 @@ Options:
       --resolver <resolver>
           Resolver for reference-qualified input.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Read a bounded ancestry-detail page from the exact source-given GRCh38 allele.
+Read a bounded ancestry-detail page from the exact source-given GRCh38 allele. Sources: car, gnomad, mutalyzer, myvariant, variantvalidator.
 
 - `--build`: Explicit source assembly when required by identity input.
 - `--detail`: Read source ancestry groups, preserving overlapping groups individually.
@@ -3709,20 +4681,26 @@ Arguments:
           Published variant identity; ambiguous identities are never selected silently.
 
 Options:
+      --build <build>
+          Identity lookup assembly; omitted uses the shared GRCh38 default.
+
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
-
-      --gene <gene>
-          HGNC symbol resolved to the source's Entrez gene identifier.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --gene <gene>
+          HGNC symbol resolved to the source's Entrez gene identifier.
+
       --limit <limit>
           Source mutation rows per page, including excluded alleles.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
 
       --config <config>
           Read configuration from this file.
@@ -3742,16 +4720,23 @@ Options:
       --study <study>
           Explicit study; there is no default cohort.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Observe exact-allele samples within one caller-selected source page.
+Observe exact-allele samples within one caller-selected source page. Sources: cbioportal.
 
+- `--build`: Identity lookup assembly; omitted uses the shared GRCh38 default.
 - `--gene`: HGNC symbol resolved to the source's Entrez gene identifier.
 - `input`: Published variant identity; ambiguous identities are never selected silently.
 - `--limit`: Source mutation rows per page, including excluded alleles.
@@ -3774,7 +4759,7 @@ Options:
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
@@ -3783,12 +4768,16 @@ Options:
 
       --hgvs <hgvs>
           Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.
-
-      --config <config>
-          Read configuration from this file.
+          Checked for reference and syntax only; no full HGVS parser.
 
       --limit <limit>
           Source mapping rows per service, with typed continuation for remaining rows.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
 
       --offset <offset>
           Source mapping rows to skip per service.
@@ -3796,18 +4785,25 @@ Options:
       --source <source>
           Explicit service; all preserves independent results without consensus.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Send unchanged reference-qualified notation to explicitly named services.
+Send unchanged reference-qualified notation to explicitly named services. Sources: car, mutalyzer, variantvalidator.
 
 - `--build`: Caller assembly; required when VariantValidator is selected.
 - `--hgvs`: Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.
+Checked for reference and syntax only; no full HGVS parser.
 - `--limit`: Source mapping rows per service, with typed continuation for remaining rows.
 - `--offset`: Source mapping rows to skip per service.
 - `--source`: Explicit service; all preserves independent results without consensus.
@@ -3822,28 +4818,37 @@ Usage: biomcp sync [OPTIONS] [bundle]
 Arguments:
   [bundle]
           Local source bundle to synchronize.
-          
+
           [default: hgnc]
           [possible values: hgnc, clingen, gencc, wikipathways, cbioportal-studies, ema, ddinter, who-pq, gtr, who-ivd, fda-cdx]
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -3867,21 +4872,30 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp skill list
 
@@ -3900,21 +4914,30 @@ Usage: biomcp skill list [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp skill list
 
@@ -3933,21 +4956,30 @@ Usage: biomcp skill render [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp skill render
 
@@ -3970,21 +5002,30 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp skill status biomcp-guidance
 
@@ -4006,26 +5047,38 @@ Arguments:
           Directory to inspect or install BioMCP guidance.
 
 Options:
-      --force
+      --force[=<force>]
           Repair managed files; retain unrelated files.
+
+          [default: false]
+          [possible values: true, false]
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp skill install biomcp-guidance
 
@@ -4046,24 +5099,36 @@ Usage: biomcp version [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --verbose
+      --verbose[=<verbose>]
           Include commit, target, schema versions, config and cache paths.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp version
 
@@ -4083,30 +5148,36 @@ Usage: biomcp mcp-config [OPTIONS]
 Options:
       --client <client>
           Choose a JSON client or the codex shell registration command; default mcp-servers.
-          
+
           [default: mcp-servers]
           [possible values: mcp-servers, servers, codex]
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
-
-      --absolute-path
-          Retained compatibility flag; executable paths are always absolute.
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp mcp-config
 
@@ -4115,7 +5186,6 @@ Example: biomcp mcp-config
 Print MCP configuration with this executable’s absolute path. JSON formats name their top-level object and retain released client aliases. The codex client prints its shell registration command. No source requests or key reads.
 
 - `--client`: Choose a JSON client or the codex shell registration command; default mcp-servers.
-- `--absolute-path`: Retained compatibility flag; executable paths are always absolute.
 
 ## biomcp health
 
@@ -4127,21 +5197,30 @@ Usage: biomcp health [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp health --offline
 
@@ -4158,26 +5237,35 @@ Manage local cached replies and snapshots.
 Usage: biomcp store [OPTIONS] <COMMAND>
 
 Commands:
-  clean  
+  clean
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -4192,21 +5280,30 @@ Usage: biomcp store clean [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp store clean
 
@@ -4223,28 +5320,37 @@ Register and manage source credentials without showing values.
 Usage: biomcp key [OPTIONS] <COMMAND>
 
 Commands:
-  list    List supported discovery topics.
-  set     
-  remove  
+  list    List source credentials and their origins without showing values.
+  set
+  remove
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp key list
 
@@ -4256,34 +5362,43 @@ Register and manage source credentials without showing values.
 ## biomcp key list
 
 ```text
-List supported discovery topics.
+List source credentials and their origins without showing values.
 
 Usage: biomcp key list [OPTIONS]
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp key list
 
 ```
 
-List supported credential names and their origin without values.
+List source credentials and their origins without showing values.
 
 
 ## biomcp key set
@@ -4294,30 +5409,42 @@ Usage: biomcp key set [OPTIONS] <source>
 Arguments:
   <source>
           Source credential name to register or remove.
-          
+
           [possible values: ncbi, semantic-scholar, orcid, oncokb, alphagenome, nci, openfda]
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --replace
+      --replace[=<replace>]
           Replace an existing stored credential.
+
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp key set oncokb
 
@@ -4336,27 +5463,36 @@ Usage: biomcp key remove [OPTIONS] <source>
 Arguments:
   <source>
           Source credential name to register or remove.
-          
+
           [possible values: ncbi, semantic-scholar, orcid, oncokb, alphagenome, nci, openfda]
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp key remove oncokb
 
@@ -4376,36 +5512,66 @@ Usage: biomcp serve [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
-      --http [<http>]
-          Listen on an HTTP address; omit its value for the loopback default.
+      --hosted[=<hosted>]
+          Refuse host file saves, health details and store or key changes over MCP.
 
-      --allow-host <allow-host>
-          Allow an HTTP Host authority; required for non-loopback listeners.
+          [default: false]
+          [possible values: true, false]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --rate-share <rate-share>
+          Use this share of keyed source rates in hosted mode (greater than 0, at most 1).
+
+          [default: 1]
+
+      --http [<http>]
+          Listen on an HTTP address; omit its value for the loopback default.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --http_max_calls <http_max_calls>
+          Limit tool calls in flight.
+
+      --http_max_connections <http_max_connections>
+          Limit open HTTP connections; must cover http_max_calls.
+
+      --allow-host <allow-host>
+          Allow an HTTP Host authority; required for non-loopback listeners.
+
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 Example: biomcp serve
 Example: biomcp help serve
 
 ```
 
-Serve MCP over stdio or --http [ADDR]. Non-loopback binds require --allow-host HOST or http.allowed_hosts; neither authenticates callers. HTTP refuses sync, store clean and --fresh. Stdio saves refuse --replace. MCP revisions: 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26. Send MCP-Protocol-Version on HTTP requests. Without it, initialize uses its requested legacy revision; other requests default to 2025-03-26. Unsupported headers return HTTP 400.
+Serve MCP over stdio or --http [ADDR]. Non-loopback binds require --allow-host HOST or http.allowed_hosts; neither authenticates callers. HTTP refuses sync, store clean and --fresh. Stdio saves refuse --replace. --hosted refuses file saves, health details, sync, store clean, --fresh and key commands on every transport with a usage.mcp_unavailable error. MCP revisions: 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26. --rate-share scales only keyed hosted source rates. Hosted HTTP calls have bounded work and one whole-call deadline. Send MCP-Protocol-Version on HTTP requests. Without it, initialize uses its requested legacy revision; other requests default to 2025-03-26. Unsupported headers return HTTP 400.
 
+- `--hosted`: Refuse host file saves, health details and store or key changes over MCP.
+- `--rate-share`: Use this share of keyed source rates in hosted mode (greater than 0, at most 1).
 - `--http`: Listen on an HTTP address; omit its value for the loopback default.
+- `--http_max_calls`: Limit tool calls in flight.
+- `--http_max_connections`: Limit open HTTP connections; must cover http_max_calls.
 - `--allow-host`: Allow an HTTP Host authority; required for non-loopback listeners.
 
 ## biomcp schema
@@ -4422,24 +5588,35 @@ Arguments:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
+JSON reply readers ignore unknown fields and unknown growable enum values within a major. Query schemas remain closed.
+
 Example: biomcp schema
-Example: biomcp schema biomcp.help/3
+Example: biomcp schema biomcp.help/6
 
 ```
 
@@ -4455,9 +5632,9 @@ Describe commands and their arguments.
 Usage: biomcp help [OPTIONS] [COMMAND]
 
 Commands:
-  author      Read papers attributed to a source author record.
   search      Search source records by entity and checked filters.
   get         Retrieve one entity and its source sections.
+  author      Read papers attributed to a source author record.
   cell-line   Read source cell line assay counts.
   protein     Read protein sequences, features and source relationships.
   pathway     Read pathway genes and source events.
@@ -4465,102 +5642,54 @@ Commands:
   trial       Read trial groups and public documents.
   variant     Read source variant assertions, populations and recurrence.
   sync        Synchronize a local source bundle.
-  skill       
-  version     
-  mcp-config  
+  skill
+  version
+  mcp-config
   health      Report source terms and bounded reachability.
   store       Manage local cached replies and snapshots.
   key         Register and manage source credentials without showing values.
   serve       Serve MCP over standard input or HTTP.
-  schema      
+  schema
   help        Describe commands and their arguments.
-  network     
-  sources     
-  config      
+  network
+  sources
+  config
   exit        Explain process exit and error codes.
   relations   Map entities through sections and search filters.
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
 Print generated command help.
 
 - `command`: Command path or discovery topic to describe.
-
-## biomcp help author
-
-```text
-Read papers attributed to a source author record.
-
-Usage: biomcp help author [OPTIONS] [COMMAND]
-
-Commands:
-  papers  
-
-Options:
-      --format <format>
-          Choose JSON or Markdown output; configuration can change the default.
-          
-          [default: json]
-          [possible values: json, md]
-
-      --disable-sources <disable-sources>
-          Exclude source names or source terms groups.
-
-      --config <config>
-          Read configuration from this file.
-
-      --offline
-          Read local data without source requests.
-
-      --fresh
-          Request fresh source data instead of cached replies.
-
-```
-
-## biomcp help author papers
-
-```text
-Usage: biomcp help author papers [OPTIONS]
-
-Options:
-      --format <format>
-          Choose JSON or Markdown output; configuration can change the default.
-          
-          [default: json]
-          [possible values: json, md]
-
-      --disable-sources <disable-sources>
-          Exclude source names or source terms groups.
-
-      --config <config>
-          Read configuration from this file.
-
-      --offline
-          Read local data without source requests.
-
-      --fresh
-          Request fresh source data instead of cached replies.
-
-```
 
 ## biomcp help search
 
@@ -4570,19 +5699,21 @@ Search source records by entity and checked filters.
 Usage: biomcp help search [OPTIONS] [COMMAND]
 
 Commands:
+  biomarker
   author         Read papers attributed to a source author record.
+  organization
   cell-line      Read source cell line assay counts.
-  gwas           
+  gwas
   protein        Read protein sequences, features and source relationships.
-  phenotype      
+  phenotype
   pathway        Read pathway genes and source events.
-  study          
-  pgx            
-  diagnostic     
-  adverse-event  
-  disease        
-  drug           
-  gene           
+  study
+  pgx
+  diagnostic
+  adverse-event
+  disease
+  drug
+  gene
   article        Read article text, references, citations and files.
   trial          Read trial groups and public documents.
   variant        Read source variant assertions, populations and recurrence.
@@ -4590,23 +5721,73 @@ Commands:
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Search source records by entity and checked filters.
+
+
+## biomcp help search biomarker
+
+```text
+Usage: biomcp help search biomarker [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Describe help search biomarker.
+
 
 ## biomcp help search author
 
@@ -4618,23 +5799,73 @@ Usage: biomcp help search author [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read papers attributed to a source author record.
+
+
+## biomcp help search organization
+
+```text
+Usage: biomcp help search organization [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Describe help search organization.
+
 
 ## biomcp help search cell-line
 
@@ -4646,23 +5877,35 @@ Usage: biomcp help search cell-line [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read source cell line assay counts.
+
 
 ## biomcp help search gwas
 
@@ -4672,23 +5915,35 @@ Usage: biomcp help search gwas [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search gwas.
+
 
 ## biomcp help search protein
 
@@ -4700,23 +5955,35 @@ Usage: biomcp help search protein [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read protein sequences, features and source relationships.
+
 
 ## biomcp help search phenotype
 
@@ -4726,23 +5993,35 @@ Usage: biomcp help search phenotype [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search phenotype.
+
 
 ## biomcp help search pathway
 
@@ -4754,23 +6033,35 @@ Usage: biomcp help search pathway [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read pathway genes and source events.
+
 
 ## biomcp help search study
 
@@ -4780,23 +6071,35 @@ Usage: biomcp help search study [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search study.
+
 
 ## biomcp help search pgx
 
@@ -4806,23 +6109,35 @@ Usage: biomcp help search pgx [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search pgx.
+
 
 ## biomcp help search diagnostic
 
@@ -4832,23 +6147,35 @@ Usage: biomcp help search diagnostic [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search diagnostic.
+
 
 ## biomcp help search adverse-event
 
@@ -4858,23 +6185,35 @@ Usage: biomcp help search adverse-event [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search adverse-event.
+
 
 ## biomcp help search disease
 
@@ -4884,23 +6223,35 @@ Usage: biomcp help search disease [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search disease.
+
 
 ## biomcp help search drug
 
@@ -4910,23 +6261,35 @@ Usage: biomcp help search drug [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search drug.
+
 
 ## biomcp help search gene
 
@@ -4936,23 +6299,35 @@ Usage: biomcp help search gene [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help search gene.
+
 
 ## biomcp help search article
 
@@ -4964,23 +6339,35 @@ Usage: biomcp help search article [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read article text, references, citations and files.
+
 
 ## biomcp help search trial
 
@@ -4992,23 +6379,35 @@ Usage: biomcp help search trial [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read trial groups and public documents.
+
 
 ## biomcp help search variant
 
@@ -5020,23 +6419,35 @@ Usage: biomcp help search variant [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read source variant assertions, populations and recurrence.
+
 
 ## biomcp help get
 
@@ -5046,43 +6457,95 @@ Retrieve one entity and its source sections.
 Usage: biomcp help get [OPTIONS] [COMMAND]
 
 Commands:
+  biomarker
   author         Read papers attributed to a source author record.
   cell-line      Read source cell line assay counts.
-  gwas           
+  gwas
   protein        Read protein sequences, features and source relationships.
-  phenotype      
+  phenotype
   pathway        Read pathway genes and source events.
-  study          
-  pgx            
-  diagnostic     
-  adverse-event  
-  disease        
-  drug           
-  gene           
+  study
+  pgx
+  diagnostic
+  adverse-event
+  disease
+  drug
+  gene
   article        Read article text, references, citations and files.
   trial          Read trial groups and public documents.
   variant        Read source variant assertions, populations and recurrence.
+  clingen
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Retrieve one entity and its source sections.
+
+
+## biomcp help get biomarker
+
+```text
+Usage: biomcp help get biomarker [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Describe help get biomarker.
+
 
 ## biomcp help get author
 
@@ -5094,23 +6557,35 @@ Usage: biomcp help get author [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read papers attributed to a source author record.
+
 
 ## biomcp help get cell-line
 
@@ -5122,23 +6597,35 @@ Usage: biomcp help get cell-line [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read source cell line assay counts.
+
 
 ## biomcp help get gwas
 
@@ -5148,23 +6635,35 @@ Usage: biomcp help get gwas [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get gwas.
+
 
 ## biomcp help get protein
 
@@ -5176,23 +6675,35 @@ Usage: biomcp help get protein [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read protein sequences, features and source relationships.
+
 
 ## biomcp help get phenotype
 
@@ -5202,23 +6713,35 @@ Usage: biomcp help get phenotype [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get phenotype.
+
 
 ## biomcp help get pathway
 
@@ -5230,23 +6753,35 @@ Usage: biomcp help get pathway [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read pathway genes and source events.
+
 
 ## biomcp help get study
 
@@ -5256,23 +6791,35 @@ Usage: biomcp help get study [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get study.
+
 
 ## biomcp help get pgx
 
@@ -5282,23 +6829,35 @@ Usage: biomcp help get pgx [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get pgx.
+
 
 ## biomcp help get diagnostic
 
@@ -5308,23 +6867,35 @@ Usage: biomcp help get diagnostic [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get diagnostic.
+
 
 ## biomcp help get adverse-event
 
@@ -5334,23 +6905,35 @@ Usage: biomcp help get adverse-event [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get adverse-event.
+
 
 ## biomcp help get disease
 
@@ -5360,23 +6943,35 @@ Usage: biomcp help get disease [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get disease.
+
 
 ## biomcp help get drug
 
@@ -5386,23 +6981,35 @@ Usage: biomcp help get drug [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get drug.
+
 
 ## biomcp help get gene
 
@@ -5412,23 +7019,35 @@ Usage: biomcp help get gene [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help get gene.
+
 
 ## biomcp help get article
 
@@ -5440,23 +7059,35 @@ Usage: biomcp help get article [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read article text, references, citations and files.
+
 
 ## biomcp help get trial
 
@@ -5468,23 +7099,35 @@ Usage: biomcp help get trial [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read trial groups and public documents.
+
 
 ## biomcp help get variant
 
@@ -5496,23 +7139,154 @@ Usage: biomcp help get variant [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read source variant assertions, populations and recurrence.
+
+
+## biomcp help get clingen
+
+```text
+Usage: biomcp help get clingen [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Describe help get clingen.
+
+
+## biomcp help author
+
+```text
+Read papers attributed to a source author record.
+
+Usage: biomcp help author [OPTIONS] [COMMAND]
+
+Commands:
+  papers
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Read papers attributed to a source author record.
+
+
+## biomcp help author papers
+
+```text
+Usage: biomcp help author papers [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
+      --config <config>
+          Read configuration from this file.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Describe help author papers.
+
 
 ## biomcp help cell-line
 
@@ -5522,28 +7296,40 @@ Read source cell line assay counts.
 Usage: biomcp help cell-line [OPTIONS] [COMMAND]
 
 Commands:
-  assay-count  
+  assay-count
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read source cell line assay counts.
+
 
 ## biomcp help cell-line assay-count
 
@@ -5553,23 +7339,35 @@ Usage: biomcp help cell-line assay-count [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help cell-line assay-count.
+
 
 ## biomcp help protein
 
@@ -5579,34 +7377,46 @@ Read protein sequences, features and source relationships.
 Usage: biomcp help protein [OPTIONS] [COMMAND]
 
 Commands:
-  features         
-  isoforms         
-  domains          
-  complexes        
-  complex-members  
-  structures       
-  sequence         
+  features
+  isoforms
+  domains
+  complexes
+  complex-members
+  structures
+  sequence
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read protein sequences, features and source relationships.
+
 
 ## biomcp help protein features
 
@@ -5616,23 +7426,35 @@ Usage: biomcp help protein features [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein features.
+
 
 ## biomcp help protein isoforms
 
@@ -5642,23 +7464,35 @@ Usage: biomcp help protein isoforms [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein isoforms.
+
 
 ## biomcp help protein domains
 
@@ -5668,23 +7502,35 @@ Usage: biomcp help protein domains [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein domains.
+
 
 ## biomcp help protein complexes
 
@@ -5694,23 +7540,35 @@ Usage: biomcp help protein complexes [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein complexes.
+
 
 ## biomcp help protein complex-members
 
@@ -5720,23 +7578,35 @@ Usage: biomcp help protein complex-members [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein complex-members.
+
 
 ## biomcp help protein structures
 
@@ -5746,23 +7616,35 @@ Usage: biomcp help protein structures [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein structures.
+
 
 ## biomcp help protein sequence
 
@@ -5772,23 +7654,35 @@ Usage: biomcp help protein sequence [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help protein sequence.
+
 
 ## biomcp help pathway
 
@@ -5798,29 +7692,41 @@ Read pathway genes and source events.
 Usage: biomcp help pathway [OPTIONS] [COMMAND]
 
 Commands:
-  genes   
-  events  
+  genes
+  events
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read pathway genes and source events.
+
 
 ## biomcp help pathway genes
 
@@ -5830,23 +7736,35 @@ Usage: biomcp help pathway genes [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help pathway genes.
+
 
 ## biomcp help pathway events
 
@@ -5856,23 +7774,35 @@ Usage: biomcp help pathway events [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help pathway events.
+
 
 ## biomcp help article
 
@@ -5882,34 +7812,46 @@ Read article text, references, citations and files.
 Usage: biomcp help article [OPTIONS] [COMMAND]
 
 Commands:
-  supplement         
-  pdf                
-  text               
-  citations          
-  references         
-  citation-evidence  
-  recommendations    
+  supplement
+  pdf
+  text
+  citations
+  references
+  citation-evidence
+  recommendations
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read article text, references, citations and files.
+
 
 ## biomcp help article supplement
 
@@ -5919,23 +7861,35 @@ Usage: biomcp help article supplement [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article supplement.
+
 
 ## biomcp help article pdf
 
@@ -5945,23 +7899,35 @@ Usage: biomcp help article pdf [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article pdf.
+
 
 ## biomcp help article text
 
@@ -5971,23 +7937,35 @@ Usage: biomcp help article text [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article text.
+
 
 ## biomcp help article citations
 
@@ -5997,23 +7975,35 @@ Usage: biomcp help article citations [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article citations.
+
 
 ## biomcp help article references
 
@@ -6023,23 +8013,35 @@ Usage: biomcp help article references [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article references.
+
 
 ## biomcp help article citation-evidence
 
@@ -6049,23 +8051,35 @@ Usage: biomcp help article citation-evidence [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article citation-evidence.
+
 
 ## biomcp help article recommendations
 
@@ -6075,23 +8089,35 @@ Usage: biomcp help article recommendations [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help article recommendations.
+
 
 ## biomcp help trial
 
@@ -6101,28 +8127,40 @@ Read trial groups and public documents.
 Usage: biomcp help trial [OPTIONS] [COMMAND]
 
 Commands:
-  document  
+  document
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read trial groups and public documents.
+
 
 ## biomcp help trial document
 
@@ -6132,23 +8170,35 @@ Usage: biomcp help trial document [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help trial document.
+
 
 ## biomcp help variant
 
@@ -6158,31 +8208,43 @@ Read source variant assertions, populations and recurrence.
 Usage: biomcp help variant [OPTIONS] [COMMAND]
 
 Commands:
-  assertions  
-  population  
-  recurrence  
-  normalize   
+  assertions
+  population
+  recurrence
+  normalize
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Read source variant assertions, populations and recurrence.
+
 
 ## biomcp help variant assertions
 
@@ -6192,23 +8254,35 @@ Usage: biomcp help variant assertions [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help variant assertions.
+
 
 ## biomcp help variant population
 
@@ -6218,23 +8292,35 @@ Usage: biomcp help variant population [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help variant population.
+
 
 ## biomcp help variant recurrence
 
@@ -6244,23 +8330,35 @@ Usage: biomcp help variant recurrence [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help variant recurrence.
+
 
 ## biomcp help variant normalize
 
@@ -6270,23 +8368,35 @@ Usage: biomcp help variant normalize [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help variant normalize.
+
 
 ## biomcp help sync
 
@@ -6296,38 +8406,50 @@ Synchronize a local source bundle.
 Usage: biomcp help sync [OPTIONS] [COMMAND]
 
 Commands:
-  hgnc                
-  clingen             
-  gencc               
-  wikipathways        
-  cbioportal-studies  
-  ema                 
-  ddinter             
-  who-pq              
-  gtr                 
-  who-ivd             
-  fda-cdx             
+  hgnc
+  clingen
+  gencc
+  wikipathways
+  cbioportal-studies
+  ema
+  ddinter
+  who-pq
+  gtr
+  who-ivd
+  fda-cdx
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Synchronize a local source bundle.
+
 
 ## biomcp help sync hgnc
 
@@ -6337,23 +8459,35 @@ Usage: biomcp help sync hgnc [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync hgnc.
+
 
 ## biomcp help sync clingen
 
@@ -6363,23 +8497,35 @@ Usage: biomcp help sync clingen [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync clingen.
+
 
 ## biomcp help sync gencc
 
@@ -6389,23 +8535,35 @@ Usage: biomcp help sync gencc [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync gencc.
+
 
 ## biomcp help sync wikipathways
 
@@ -6415,23 +8573,35 @@ Usage: biomcp help sync wikipathways [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync wikipathways.
+
 
 ## biomcp help sync cbioportal-studies
 
@@ -6441,23 +8611,35 @@ Usage: biomcp help sync cbioportal-studies [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync cbioportal-studies.
+
 
 ## biomcp help sync ema
 
@@ -6467,23 +8649,35 @@ Usage: biomcp help sync ema [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync ema.
+
 
 ## biomcp help sync ddinter
 
@@ -6493,23 +8687,35 @@ Usage: biomcp help sync ddinter [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync ddinter.
+
 
 ## biomcp help sync who-pq
 
@@ -6519,23 +8725,35 @@ Usage: biomcp help sync who-pq [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync who-pq.
+
 
 ## biomcp help sync gtr
 
@@ -6545,23 +8763,35 @@ Usage: biomcp help sync gtr [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync gtr.
+
 
 ## biomcp help sync who-ivd
 
@@ -6571,23 +8801,35 @@ Usage: biomcp help sync who-ivd [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync who-ivd.
+
 
 ## biomcp help sync fda-cdx
 
@@ -6597,23 +8839,35 @@ Usage: biomcp help sync fda-cdx [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sync fda-cdx.
+
 
 ## biomcp help skill
 
@@ -6622,30 +8876,42 @@ Usage: biomcp help skill [OPTIONS] [COMMAND]
 
 Commands:
   list     List supported discovery topics.
-  render   
-  status   
-  install  
+  render
+  status
+  install
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help skill.
+
 
 ## biomcp help skill list
 
@@ -6657,23 +8923,35 @@ Usage: biomcp help skill list [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+List supported discovery topics.
+
 
 ## biomcp help skill render
 
@@ -6683,23 +8961,35 @@ Usage: biomcp help skill render [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help skill render.
+
 
 ## biomcp help skill status
 
@@ -6709,23 +8999,35 @@ Usage: biomcp help skill status [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help skill status.
+
 
 ## biomcp help skill install
 
@@ -6735,23 +9037,35 @@ Usage: biomcp help skill install [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help skill install.
+
 
 ## biomcp help version
 
@@ -6761,23 +9075,35 @@ Usage: biomcp help version [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help version.
+
 
 ## biomcp help mcp-config
 
@@ -6787,23 +9113,35 @@ Usage: biomcp help mcp-config [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help mcp-config.
+
 
 ## biomcp help health
 
@@ -6815,23 +9153,35 @@ Usage: biomcp help health [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Report source terms and bounded reachability.
+
 
 ## biomcp help store
 
@@ -6841,28 +9191,40 @@ Manage local cached replies and snapshots.
 Usage: biomcp help store [OPTIONS] [COMMAND]
 
 Commands:
-  clean  
+  clean
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Manage local cached replies and snapshots.
+
 
 ## biomcp help store clean
 
@@ -6872,23 +9234,35 @@ Usage: biomcp help store clean [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help store clean.
+
 
 ## biomcp help key
 
@@ -6899,33 +9273,48 @@ Usage: biomcp help key [OPTIONS] [source] [COMMAND]
 
 Commands:
   list    List supported discovery topics.
-  set     
-  remove  
+  set
+  remove
 
 Arguments:
   [source]
+          Credential source to describe.
+
           [possible values: ncbi, semantic-scholar, orcid, oncokb, alphagenome, nci, openfda]
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Register and manage source credentials without showing values.
+
+- `source`: Credential source to describe.
 
 ## biomcp help key list
 
@@ -6937,23 +9326,35 @@ Usage: biomcp help key list [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+List supported discovery topics.
+
 
 ## biomcp help key set
 
@@ -6963,23 +9364,35 @@ Usage: biomcp help key set [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help key set.
+
 
 ## biomcp help key remove
 
@@ -6989,23 +9402,35 @@ Usage: biomcp help key remove [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help key remove.
+
 
 ## biomcp help serve
 
@@ -7017,23 +9442,35 @@ Usage: biomcp help serve [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Serve MCP over standard input or HTTP.
+
 
 ## biomcp help schema
 
@@ -7043,51 +9480,80 @@ Usage: biomcp help schema [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help schema.
+
 
 ## biomcp help help
 
 ```text
 Describe commands and their arguments.
 
-Usage: biomcp help help [OPTIONS]
+Usage: biomcp help help [OPTIONS] [command]...
+
+Arguments:
+  [command]...
+          Command help path to describe.
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe commands and their arguments.
+
+- `command`: Command help path to describe.
 
 ## biomcp help network
 
@@ -7096,28 +9562,43 @@ Usage: biomcp help network [OPTIONS] [setting]
 
 Arguments:
   [setting]
+          Network setting to describe.
+
           [possible values: ca_bundle, proxy]
 
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help network.
+
+- `setting`: Network setting to describe.
 
 ## biomcp help sources
 
@@ -7127,23 +9608,35 @@ Usage: biomcp help sources [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help sources.
+
 
 ## biomcp help config
 
@@ -7153,23 +9646,35 @@ Usage: biomcp help config [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
+          [default: false]
+          [possible values: true, false]
+
 ```
+
+Describe help config.
+
 
 ## biomcp help exit
 
@@ -7181,21 +9686,30 @@ Usage: biomcp help exit [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
@@ -7206,7 +9720,7 @@ Process exit codes:
 3: expired result pool
 4: source request failed
 5: local configuration, storage or output failed
-Error codes: usage.schema, usage.arguments, usage.mcp_unavailable, usage.unknown_command, usage.retired, local.failure, pool.expired, usage.pool_mismatch, usage.too_many_pmids, usage.unsupported_filter. Source problems and reasons appear in their reply fields.
+Error codes: usage.schema, usage.arguments, usage.mcp_unavailable, usage.unknown_command, usage.retired, local.failure, pool.expired, usage.pool_mismatch, usage.too_many_pmids, usage.too_broad, usage.unsupported_filter. Source problems and reasons appear in their reply fields.
 
 
 ## biomcp help relations
@@ -7219,137 +9733,33 @@ Usage: biomcp help relations [OPTIONS]
 Options:
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
-          
+
           [default: json]
           [possible values: json, md]
 
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
+
       --config <config>
           Read configuration from this file.
 
-      --offline
+      --offline[=<offline>]
           Read local data without source requests.
 
-      --fresh
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
 
 ```
 
-Follow source relationships through a named get section or a search filter. These links retrieve source records without deciding their clinical meaning.
-adverse-event -> drug (get section drugs)
-author -> article (search --author)
-cell-line -> variant (get section variants)
-diagnostic -> gene (get section genes)
-disease -> article (search --disease), gene (get section genes), phenotype (get section phenotypes)
-drug -> article (search --drug)
-gene -> article (search --gene), diagnostic (search --gene), diagnostic (search --gene-id), gwas (search --gene), pathway (get section pathways), pathway (search --gene), pgx (search --gene), protein (get section protein), protein (search --gene), trial (search --gene), variant (search --gene)
-pathway -> gene (get section genes)
-phenotype -> disease (get section diseases), gene (get section genes)
-protein -> variant (search --protein)
-study -> gwas (search --study)
-trial -> disease (get section diseases)
-variant -> article (search --variant), gwas (get section gwas), gwas (search --variant), trial (search --variant)
-
-
-## biomcp sync hgnc
-
-Synchronize a local source bundle.
-
-
-## biomcp sync clingen
-
-Synchronize a local source bundle.
-
-
-## biomcp sync gencc
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync wikipathways
-
-Replace WikiPathways search/get metadata catalogs atomically; reads never sync. Membership names a source and release; it implies no therapy, response or actionability. No enrichment is calculated.
-
-
-## biomcp sync cbioportal-studies
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync ema
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync ddinter
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync who-pq
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync gtr
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync who-ivd
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp sync fda-cdx
-
-Replace the complete validated local bundle atomically. Reads use stored data and never synchronize. Failed replacement preserves the last usable bundle.
-
-
-## biomcp help key ncbi
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help key semantic-scholar
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help key orcid
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help key oncokb
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help key alphagenome
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help key nci
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help key openfda
-
-Show credential registration and environment fallback names.
-
-
-## biomcp help network ca_bundle
-
-Set ca_bundle in config.json to a PEM certificate file. These roots add to platform trust for every source. Keep certificate verification enabled.
-
-
-## biomcp help network proxy
-
-Set proxy in config.json to an HTTP or HTTPS proxy URL. Otherwise https_proxy/HTTPS_PROXY and http_proxy/HTTP_PROXY select routes for their schemes; lower case wins when both names are set. no_proxy/NO_PROXY bypasses exact hosts/IPs, CIDR ranges, .domain, *.domain, optional ports, or *. Bare IPv6 is accepted. Unsupported entries are skipped and health reports configuration notices. Malformed ports and credentials refuse with the variable name. An explicit proxy overrides proxy environment settings. Publisher PDF downloads are refused when a proxy applies.
+Map entities through sections and search filters.
 
 

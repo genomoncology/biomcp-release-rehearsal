@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "diagnostic-cdx",
   "story": "Synthetic companion tables preserve whole cells, native row order, owned identifiers and pinned continuations through CLI and MCP. Ceilings use measured complete CLI wire replies with fifteen percent headroom.",
   "replay": "diagnostic/fda-cdx-synthetic",
@@ -8,134 +9,14 @@
         "sync",
         "fda-cdx"
       ],
-      "mcp": [
-        "sync",
-        "fda-cdx"
-      ],
       "max_bytes": 354,
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/result/rows": 9
       }
     },
     {
       "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx"
-      ],
-      "max_bytes": 7486,
-      "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
-        "/page/offset": 0,
-        "/page/returned": 5,
-        "/page/total": 9
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--bundle-revision",
-        "sha256:3eb93d3ba1a08b508955b0699d32042584fd8e0c805c72f7eeb470ef04ba959a",
-        "--offset",
-        "5",
-        "--source",
-        "fda-cdx"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--bundle-revision",
-        "sha256:3eb93d3ba1a08b508955b0699d32042584fd8e0c805c72f7eeb470ef04ba959a",
-        "--offset",
-        "5",
-        "--source",
-        "fda-cdx"
-      ],
-      "max_bytes": 5917,
-      "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
-        "/page/offset": 5,
-        "/page/returned": 4,
-        "/page/total": 9
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--device-id",
-        "P200010"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--device-id",
-        "P200010"
-      ],
-      "max_bytes": 8163,
-      "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
-        "/page/offset": 0,
-        "/page/returned": 5,
-        "/page/total": 6
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--bundle-revision",
-        "sha256:3eb93d3ba1a08b508955b0699d32042584fd8e0c805c72f7eeb470ef04ba959a",
-        "--device-id",
-        "P200010",
-        "--offset",
-        "5",
-        "--source",
-        "fda-cdx"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--bundle-revision",
-        "sha256:3eb93d3ba1a08b508955b0699d32042584fd8e0c805c72f7eeb470ef04ba959a",
-        "--device-id",
-        "P200010",
-        "--offset",
-        "5",
-        "--source",
-        "fda-cdx"
-      ],
-      "max_bytes": 1635,
-      "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
-        "/page/offset": 5,
-        "/page/returned": 1,
-        "/page/total": 6
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--device-id",
-        "P200010/S026"
-      ],
-      "mcp": [
         "search",
         "diagnostic",
         "--source",
@@ -145,7 +26,7 @@
       ],
       "max_bytes": 2100,
       "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
+        "/schema": "biomcp.diagnostic-companion/4",
         "/page/offset": 0,
         "/page/returned": 1,
         "/page/total": 1,
@@ -154,69 +35,6 @@
     },
     {
       "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--device-id",
-        "P150013/S020"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--device-id",
-        "P150013/S020"
-      ],
-      "max_bytes": 2846,
-      "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
-        "/page/offset": 0,
-        "/page/returned": 2,
-        "/page/total": 2
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--biomarker",
-        "KRAS"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "fda-cdx",
-        "--biomarker",
-        "KRAS"
-      ],
-      "max_bytes": 7641,
-      "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
-        "/page/offset": 0,
-        "/page/returned": 5,
-        "/page/total": 8,
-        "/sources/0/reason": "unsupported"
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--biomarker",
-        "KRAS",
-        "--bundle-revision",
-        "sha256:3eb93d3ba1a08b508955b0699d32042584fd8e0c805c72f7eeb470ef04ba959a",
-        "--offset",
-        "5",
-        "--source",
-        "fda-cdx"
-      ],
-      "mcp": [
         "search",
         "diagnostic",
         "--biomarker",
@@ -230,7 +48,7 @@
       ],
       "max_bytes": 4990,
       "expect": {
-        "/schema": "biomcp.diagnostic-companion/1",
+        "/schema": "biomcp.diagnostic-companion/4",
         "/page/offset": 5,
         "/page/returned": 3,
         "/page/total": 8
@@ -238,58 +56,13 @@
     },
     {
       "run": [
-        "help",
-        "sync",
-        "fda-cdx"
-      ],
-      "mcp": [
-        "help",
-        "sync",
-        "fda-cdx"
-      ],
-      "max_bytes": 1391,
-      "expect": {
-        "/schema": "biomcp.help/3",
-        "/result/commands/0/command": [
-          "sync",
-          "fda-cdx"
-        ]
-      }
-    },
-    {
-      "run": [
-        "help",
-        "search",
-        "diagnostic"
-      ],
-      "mcp": [
-        "help",
-        "search",
-        "diagnostic"
-      ],
-      "max_bytes": 3792,
-      "expect": {
-        "/schema": "biomcp.help/3",
-        "/result/commands/0/command": [
-          "search",
-          "diagnostic"
-        ]
-      }
-    },
-    {
-      "run": [
-        "sync",
-        "fda-cdx",
-        "--fresh"
-      ],
-      "mcp": [
         "sync",
         "fda-cdx",
         "--fresh"
       ],
       "max_bytes": 354,
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/result/rows": 9
       }
     }

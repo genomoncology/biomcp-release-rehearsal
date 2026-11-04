@@ -25,7 +25,7 @@ const SECTIONS: &[(&str, ErrorMessage)] = &[
     ("all", ErrorMessage::DiseaseAll),
     ("clinical_features", ErrorMessage::DiseaseClinicalFeatures),
 ];
-pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
+pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMessage> {
     let mut positional = Vec::new();
     let mut source = None;
     let mut section = None;
@@ -57,7 +57,7 @@ pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
             option = Some(ErrorMessage::DiseaseName);
         }
         if matches!(flag, "--name" | "--section")
-            || super::takes_value(flag, &positional).unwrap_or(false)
+            || super::takes_value(root, flag, &positional).unwrap_or(false)
         {
             let value = inline.or_else(|| args.next().and_then(|v| v.to_str()));
             match flag {

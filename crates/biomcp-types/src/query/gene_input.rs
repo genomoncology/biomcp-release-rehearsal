@@ -4,7 +4,6 @@ use std::{fmt, str::FromStr};
 
 /// An input classified before source resolution; aliases remain free text.
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
 pub enum GeneInput {
     /// An explicitly namespaced HGNC identifier.
     HgncId(HgncId),
@@ -23,7 +22,10 @@ impl GeneInput {
             .get(..5)
             .is_some_and(|prefix| prefix.eq_ignore_ascii_case("HGNC:"))
         {
-            return value.parse().map(Self::HgncId);
+            return value
+                .parse()
+                .map(Self::HgncId)
+                .map_err(|_| Error::HgncIdInvalid);
         }
         if value
             .get(..4)
@@ -32,7 +34,10 @@ impl GeneInput {
             return value.parse().map(Self::EnsemblId);
         }
         if !value.is_empty() && value.bytes().all(|ch| ch.is_ascii_digit()) {
-            return value.parse().map(Self::EntrezId);
+            return value
+                .parse()
+                .map(Self::EntrezId)
+                .map_err(|_| Error::NcbiGeneIdInvalid);
         }
         Text::new(value).map(Self::Text)
     }
@@ -57,6 +62,21 @@ impl fmt::Display for GeneInput {
 text_value!(
     GeneInput,
     "GeneInput",
-    r"\S",
+    {
+        let whitespace = biodata::schema_pattern::WHITESPACE;
+        let hgnc = HgncId::pattern();
+        let ensembl = EnsemblGeneId::pattern();
+        let ncbi = NcbiGeneId::pattern();
+        format!(
+            concat!(
+                r"^[{whitespace}]*(?:{}|{}|{}|(?!(?:[Hh][Gg][Nn][Cc]:|[Ee][Nn][Ss][Gg]))",
+                r"(?![0-9]+[{whitespace}]*$)[^{whitespace}](?:[\s\S]*[^{whitespace}])?)[{whitespace}]*$"
+            ),
+            hgnc.trim_start_matches('^').trim_end_matches('$'),
+            ensembl.trim_start_matches('^').trim_end_matches('$'),
+            ncbi.trim_start_matches('^').trim_end_matches('$'),
+            whitespace = whitespace
+        )
+    },
     "An input classified before source resolution; aliases remain free text."
 );

@@ -1,0 +1,72 @@
+{
+  "feature": "disease-mydisease",
+  "live_check": "public",
+  "story": "A caller reads source-native synonyms, cross-references and parents for the existing disease identifier.",
+  "verified": "MONDO CC BY 4.0 and Disease Ontology CC0; component licenses remain in the unchanged original body. SHA256 76a103bc457cc0047f9fc6bdb8e6bda5129efa512058dcdc78caaef5dfc0ad71. Captured 2026-10-30 with no key.",
+  "replay": "disease/native-mydisease",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "disease",
+        "MONDO:0007254",
+        "synonyms",
+        "--source",
+        "mydisease",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/value": "breast cancer"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "MONDO:0007254",
+        "xrefs",
+        "--source",
+        "mydisease",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/object/id": "DOID:1612"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "MONDO:0007254",
+        "hierarchy",
+        "--source",
+        "mydisease",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/object/id": "MONDO:0003274"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "MONDO:0007254",
+        "synonyms",
+        "--source",
+        "mydisease",
+        "--section-limit",
+        "2",
+        "--section-offset",
+        "1"
+      ],
+      "expect": {
+        "/page/offset": 1,
+        "/result/items/0/value": "cancer of breast"
+      }
+    }
+  ]
+}

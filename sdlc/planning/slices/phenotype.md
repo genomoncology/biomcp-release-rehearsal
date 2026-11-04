@@ -366,7 +366,7 @@ HPO synonym rows have no relationship class. Monarch rows preserve their native 
 
 ## Section and card action measurements
 
-The retained CLI and MCP run validates forty-nine section witnesses and twenty revised cards. The canonical measured baselines live in `tests/phenotype-section-budgets.json`; both full CLI envelopes and comparable replies use ceilings computed from those baselines plus fifteen percent. The table shows comparable MCP bytes. CLI output adds its newline. These values include whole row text, native references and executable continuation arguments. No provider request ran.
+The retained CLI and MCP run validates forty-nine section witnesses and twenty revised cards. The canonical measured baselines live in `tests/phenotype-section-budgets.yaml`; both full CLI envelopes and comparable replies use ceilings computed from those baselines plus fifteen percent. The table shows comparable MCP bytes. CLI output adds its newline. These values include whole row text, native references and executable continuation arguments. No provider request ran.
 
 | Case | Source and term | Section or card | Offset / limit | Measured bytes | Ceiling bytes | Ceiling tokens |
 | --- | --- | --- | --- | ---: | ---: | ---: |
@@ -463,7 +463,7 @@ Job j14910 verified all six native command pairs and their original source ident
 
 ## Accounting case ownership and current envelope limits
 
-The synthetic attribution uses every ordinary phenotype case and leaves both opt-in native collections ignored. `tests/phenotype-command-budgets.json` records full-envelope measurements by named command phase and actual surface. CLI measurements include the newline; MCP measurements count compact structured JSON. Markdown help has separate verb-specific measured limits. Each check multiplies its fixed baseline by 115 percent and rounds up. Each loop variant names its source, fault, kind, attempt, section or explicit-limit choice in the fixed key. Ordinary YAML steps keep their own measured limits and do not share an argv budget table. The YAML `max_bytes` checks separately retain the existing validated source-terms subtraction and include the CLI newline. The runtime never grants headroom from the output it is checking.
+The synthetic attribution uses every ordinary phenotype case and leaves both opt-in native collections ignored. `tests/phenotype-command-budgets.yaml` records full-envelope measurements by named command phase and actual surface. CLI measurements include the newline; MCP measurements count compact structured JSON. Markdown help has separate verb-specific measured limits. Each check multiplies its fixed baseline by 115 percent and rounds up. Each loop variant names its source, fault, kind, attempt, section or explicit-limit choice in the fixed key. Ordinary YAML steps keep their own measured limits and do not share an argv budget table. The YAML `max_bytes` checks separately retain the existing validated source-terms subtraction and include the CLI newline. The runtime never grants headroom from the output it is checking.
 
 | Owning case | Behavior and measured phases |
 | --- | --- |

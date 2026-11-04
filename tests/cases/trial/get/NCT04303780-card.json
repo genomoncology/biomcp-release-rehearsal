@@ -26,10 +26,9 @@
     "date": "2026-06-24",
     "kind": "ACTUAL"
   },
-  "updated": {
-    "date": "2026-07-22",
-    "kind": "ACTUAL"
-  },
+  "updated": "2026-07-22",
   "brief_summary": "A Phase 3 Study to Compare AMG 510 with Docetaxel in Non Small Cell Lung Cancer (NSCLC) subjects with KRAS p. G12c mutation",
-  "url": "https://clinicaltrials.gov/study/NCT04303780"
+  "url": "https://clinicaltrials.gov/study/NCT04303780",
+  "updated_kind": "ACTUAL",
+  "results_first_posted": "2023-05-10"
 }

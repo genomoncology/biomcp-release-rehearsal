@@ -1,29 +1,8 @@
+#[path = "helper_owner_proof.rs"]
+mod helper_owner_proof;
+use super::proof_support::{put, rejects, tree};
 use super::{Check, check};
-use std::{fs, path::Path};
-
-fn tree() -> Result<tempfile::TempDir, Box<dyn std::error::Error>> {
-    let tree = tempfile::tempdir()?;
-    fs::write(
-        tree.path().join("Cargo.toml"),
-        "[workspace]\n[workspace.dependencies]\nhttp = { package = 'ureq', version = '3' }\n",
-    )?;
-    put(
-        tree.path(),
-        "crates/biodata/Cargo.toml",
-        "[package]\nname = 'biodata'\n[lints]\nworkspace = true\n",
-    )?;
-    put(tree.path(), "crates/biodata/src/lib.rs", "//! Values.\n")?;
-    Ok(tree)
-}
-
-fn put(root: &Path, path: &str, text: &str) -> Check {
-    let path = root.join(path);
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    fs::write(path, text)?;
-    Ok(())
-}
+use std::fs;
 
 #[test]
 fn isolated_trees_reject_structural_violations() -> Check {
@@ -104,20 +83,6 @@ fn isolated_trees_reject_structural_violations() -> Check {
         &"// line\n".repeat(301),
         "file line limit",
     )?;
-    Ok(())
-}
-
-fn rejects(path: &str, content: &str, rule: &str) -> Check {
-    let tree = tree()?;
-    put(tree.path(), path, content)?;
-    let failure = match check(tree.path()) {
-        Ok(()) => return Err("planted violation passed".into()),
-        Err(error) => error.to_string(),
-    };
-    assert!(
-        failure.contains(path) && failure.contains(rule),
-        "{failure}"
-    );
     Ok(())
 }
 
@@ -226,78 +191,6 @@ fn source_outcomes_require_registry_terms() -> Check {
 }
 
 #[test]
-fn source_registry_accepts_directory_and_file_modules_and_names_missing_entry() -> Check {
-    let tree = tree()?;
-    put(
-        tree.path(),
-        "crates/biomcp-adapters/src/registry.rs",
-        "&crate::directory::SPEC, &crate::single_file::SPEC",
-    )?;
-    let declaration = r#"SourceSpec { terms: Terms { name: "Publisher", url: "https://example.org/terms", usage: Open } }"#;
-    for path in ["directory/mod.rs", "single_file.rs"] {
-        put(
-            tree.path(),
-            &format!("crates/biomcp-adapters/src/{path}"),
-            &format!("pub static SPEC: SourceSpec = {declaration};"),
-        )?;
-    }
-    check(tree.path())?;
-    let auxiliary = "crates/biomcp-adapters/src/directory/other.rs";
-    put(
-        tree.path(),
-        auxiliary,
-        &format!("pub static EXTRA: SourceSpec = {declaration};"),
-    )?;
-    let failure = check(tree.path())
-        .err()
-        .ok_or("unregistered auxiliary source accepted")?
-        .to_string();
-    assert!(
-        failure.contains("&crate::directory::other::EXTRA"),
-        "{failure}"
-    );
-    put(
-        tree.path(),
-        "crates/biomcp-adapters/src/registry.rs",
-        "&crate::directory::SPEC, &crate::single_file::SPEC, &crate::directory::other::EXTRA",
-    )?;
-    check(tree.path())?;
-    put(
-        tree.path(),
-        auxiliary,
-        &format!(
-            "pub static EXTRA: SourceSpec = {declaration};\nfn hidden() {{\n    let other = {declaration};\n}}\n"
-        ),
-    )?;
-    let failure = check(tree.path())
-        .err()
-        .ok_or("dynamic source escaped the registry")?
-        .to_string();
-    assert!(
-        failure.contains("source declarations require named statics"),
-        "{failure}"
-    );
-    put(
-        tree.path(),
-        auxiliary,
-        &format!("pub static EXTRA: SourceSpec = {declaration};"),
-    )?;
-    let path = "crates/biomcp-adapters/src/missing.rs";
-    put(
-        tree.path(),
-        path,
-        &format!("pub static SPEC: SourceSpec = {declaration};"),
-    )?;
-    let failure = check(tree.path())
-        .err()
-        .ok_or("unregistered single-file source accepted")?
-        .to_string();
-    assert!(failure.contains(path), "{failure}");
-    assert!(failure.contains("&crate::missing::SPEC"), "{failure}");
-    Ok(())
-}
-
-#[test]
 fn rust_lines_obey_width_limit() -> Check {
     for path in ["crates/biodata/src/lib.rs", "crates/biodata/tests/width.rs"] {
         let tree = tree()?;
@@ -343,8 +236,8 @@ fn request_reason_mapping_cannot_be_copied() -> Check {
 #[test]
 fn generated_exception_cannot_hide_product_code() -> Check {
     let tree = tree()?;
-    let path = "crates/biomcp-fetch/src/grpc/proto.rs";
-    let wrapper = r#"#![allow(dead_code, reason="pinned generation")]
+    let path = "crates/biomcp-adapters/src/alphagenome/proto.rs";
+    let wrapper = r#"#![expect(dead_code, reason="pinned generation")]
 include!("generated/mod.rs");
 "#;
     put(tree.path(), path, wrapper)?;
@@ -356,7 +249,7 @@ include!("generated/mod.rs");
     )?;
     for modified in [
         wrapper.replace("dead_code", "dead_code, unused_variables"),
-        wrapper.replace("allow", "expect"),
+        wrapper.replace("#![expect", "#[expect"),
         format!("fn hidden() {{}}\n{wrapper}"),
     ] {
         rejects(path, &modified, "generated exception requires only")?;
@@ -375,18 +268,6 @@ include!("generated/mod.rs");
 }
 
 #[test]
-fn adapter_mapping_helpers_require_one_owner() -> Check {
-    for declaration in ["fn problem() {}", "fn text() {}"] {
-        rejects(
-            "crates/biomcp-adapters/src/example/map.rs",
-            declaration,
-            "mapping helpers belong in mapped.rs",
-        )?;
-    }
-    Ok(())
-}
-
-#[test]
 fn new_optional_drop_requires_its_own_classification() -> Check {
     let tree = tree()?;
     let path = "crates/biomcp-adapters/src/new_source/details.rs";
@@ -401,6 +282,318 @@ fn new_optional_drop_requires_its_own_classification() -> Check {
         "fn map() { let title = input.parse() . ok ( ); }",
     ] {
         rejects(path, source, "classify new optional-value drop")?;
+        rejects(
+            "crates/biomcp-query/src/new_query.rs",
+            source,
+            "classify new optional-value drop",
+        )?;
+    }
+    Ok(())
+}
+
+#[test]
+fn test_fixture_paths_have_one_owner() -> Check {
+    for read in [
+        "env!(\"CARGO_MANIFEST_DIR\")",
+        "env! { \"CARGO_MANIFEST_DIR\" }",
+        "option_env!(\"CARGO_MANIFEST_DIR\")",
+        "std::env::var(\"CARGO_MANIFEST_DIR\")",
+        "std::env::var_os(\"CARGO_MANIFEST_DIR\")",
+    ] {
+        rejects(
+            "crates/biomcp/tests/runner/planted.rs",
+            &format!("fn fixture() {{ let root = {read}; }}"),
+            "fixture paths belong in shared support/fixtures.rs",
+        )?;
+    }
+    Ok(())
+}
+
+#[test]
+fn audit_rejects_owned_underscores_and_old_tags_but_allows_native_values() {
+    for text in [
+        "#[serde(tag = \"annotationkind\")] enum Pgx {}",
+        "#[serde(rename_all = \"snake_case\")] enum Owned {}",
+        "wire_enum! { Reason { NoKey => \"no_key\" } }",
+    ] {
+        assert!(
+            super::spellings::audit(&super::source::tokens(text), true).is_err(),
+            "{text}"
+        );
+    }
+    assert!(
+        super::spellings::audit(
+            &super::source::tokens("wire_enum! { Native { Value => \"source_native\" } }"),
+            true
+        )
+        .is_ok()
+    );
+}
+
+#[test]
+fn enum_return_types_are_not_macro_declarations() {
+    assert!(
+        super::spellings::audit(
+            &super::source::tokens(
+                "fn kind() -> ArticleMatchKind { match self { X => ArticleMatchKind::Doi } }"
+            ),
+            true
+        )
+        .is_ok()
+    );
+}
+
+#[test]
+fn namespaced_error_codes_are_exempt_by_type() {
+    for name in ["ErrorCode", "ProblemCode"] {
+        for literal in ["usage.future_name", "wire_enum.unknown"] {
+            let source = format!("wire_enum! {{ {name} {{ New => {literal:?} }} }}");
+            assert!(super::spellings::audit(&super::source::tokens(&source), true).is_ok());
+            let ordinary = source.replace(name, "Reason");
+            assert!(super::spellings::audit(&super::source::tokens(&ordinary), true).is_err());
+        }
+    }
+}
+
+#[test]
+fn crate_ownership_keeps_biodata_values_and_audits_biomcp_values() -> Check {
+    for source in [
+        "#[serde(rename_all = \"snake_case\")] enum Owned {}",
+        "wire_enum! { DrugRecallCountUnit { Value => \"recall_records\" } }",
+    ] {
+        let tree = tree()?;
+        put(tree.path(), "crates/biodata/src/lib.rs", source)?;
+        check(tree.path())?;
+        rejects("crates/biomcp-types/src/lib.rs", source, "kebab-case")?;
+    }
+    Ok(())
+}
+
+#[test]
+fn planted_error_signature_and_exit_literals_are_rejected() -> Check {
+    super::errors::signatures(
+        "fn valid() -> Result<(), Failure> { Ok(()) } ExitCode::from(Status::Local.code())",
+    )?;
+    for planted in [
+        "fn bad() -> Result<Vec<u8>, ()> {}",
+        "fn bad() -> Result<Vec<u8>, (),> {}",
+        "impl From<()> for Failure {}",
+        "impl From<(),> for Failure {}",
+        "ExitCode::from(5)",
+    ] {
+        assert!(
+            super::errors::signatures(planted).is_err(),
+            "planted violation must fail: {planted}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn planted_undeclared_display_code_is_rejected() -> Check {
+    assert!(
+        super::errors::display_codes("One => \"same.error\", Two => \"same.error\"", "").is_err(),
+        "duplicate declared codes must fail"
+    );
+    let declaration = "Known => \"known.error\"";
+    super::errors::display_codes(
+        declaration,
+        "impl Display for Known { f.write_str(\"known.error\") }",
+    )?;
+    assert!(
+        super::errors::display_codes(
+            declaration,
+            "impl Display for Stray { f.write_str(\"stray.error\") }"
+        )
+        .is_err(),
+        "an undeclared display code must fail"
+    );
+    Ok(())
+}
+
+#[test]
+fn adapter_drop_forms_and_file_rules_require_pending_identity() -> Check {
+    let root = tempfile::tempdir()?;
+    let directory = root.path().join("crates/biomcp-adapters/src/example");
+    fs::create_dir_all(&directory)?;
+    let path = directory.join("details.rs");
+    for source in [
+        "fn value() { let native = input.parse().ok(); }",
+        "fn value() { if let Ok(native) = input.parse() { use_value(native); } }",
+        "fn value() { let Ok(native) = input.parse() else { return; }; }",
+        "fn value() { input.filter_map(|v| v.parse().ok()); }",
+        "fn value() { input.parse::<u64>().unwrap_or_default(); }",
+        "fn value() { let parsed = input.parse::<u64>(); parsed.unwrap_or_default(); }",
+        "fn value() { serde_json::from_value::<u64>(input).unwrap_or_default(); }",
+        "fn value() { serde_json::from_reader::<_, u64>(input).unwrap_or_default(); }",
+        "#[serde(default)] struct Raw;",
+        "#[serde(deny_unknown_fields)] struct Raw;",
+    ] {
+        fs::write(&path, source)?;
+        let failure = super::source::check(root.path())
+            .expect_err("planted adapter violation passed")
+            .to_string();
+        assert!(failure.contains("example/details.rs"), "{failure}");
+    }
+    fs::write(&path, "// line\n".repeat(301))?;
+    assert!(
+        super::source::check(root.path())
+            .expect_err("301-line adapter passed")
+            .to_string()
+            .contains("file line limit")
+    );
+    fs::write(&path, "// line\n".repeat(300))?;
+    super::source::check(root.path())?;
+    fs::write(
+        &path,
+        "fn value() { /* .ok() */ let note = \"if let Ok(v) .ok()\"; }",
+    )?;
+    super::source::check(root.path())
+}
+
+#[test]
+fn inventory_allows_shrinking_and_reclassification_but_refuses_new_identities() -> Check {
+    super::proof_support::check_inventory_mutations()
+}
+
+#[test]
+fn provider_codecs_stay_outside_transport_and_query() -> Check {
+    rejects(
+        "crates/biomcp-fetch/src/grpc/worker.rs",
+        "fn request() { let alphagenome = 1; consume(alphagenome); }",
+        "transport names source alphagenome",
+    )?;
+    rejects(
+        "crates/biomcp-query/Cargo.toml",
+        "[lints]\nworkspace=true\n[dependencies]\nprost='0.14'\n",
+        "forbidden dependencies dependency",
+    )
+}
+
+#[test]
+fn discovery_rejects_unknown_missing_and_unfeatured_trials() -> Check {
+    let features =
+        "known: A caller receives a known answer.\nother: A caller receives another answer.\n";
+    super::feature_contract::validate(features, ["known/case", "other/trial"], true)?;
+    for (names, expected) in [
+        (vec!["unknown/case", "other/trial"], "unlisted feature"),
+        (vec!["known/case"], "features without tests"),
+        (vec!["unfeatured", "other/trial"], "trial lacks feature"),
+    ] {
+        let failure = super::feature_contract::validate(features, names, true)
+            .err()
+            .ok_or("invalid discovery was accepted")?;
+        assert!(failure.contains(expected), "{failure}");
+    }
+    Ok(())
+}
+
+#[test]
+fn tool_dispatch_stays_outside_cases() -> Check {
+    rejects(
+        "crates/biomcp/tests/cases.rs",
+        r##"fn main() { if arg == r#"--planted-tool-mode"# { tool(); } }"##,
+        "tool modes belong in tools.rs",
+    )
+}
+
+#[test]
+fn mapped_constructions_require_their_own_refusal_decision() -> Check {
+    super::proof_support::check_mapped_refusal_decisions()
+}
+
+#[test]
+fn only_owned_private_refusal_defaults_bypass_native_ceiling() -> Check {
+    super::proof_support::private_refusal_defaults()
+}
+
+#[test]
+fn structural_diagnostics_keep_independent_categories() -> Check {
+    super::proof_support::independent_structural_failures()
+}
+
+#[test]
+fn adapter_mapping_helpers_require_one_owner() -> Check {
+    helper_owner_proof::check()
+}
+
+#[test]
+fn reject_config_reads_and_tree_builds_in_commands() -> Check {
+    super::process_setup::reject_config_reads_and_tree_builds_in_commands()
+}
+
+#[test]
+fn module_shape_rejects_new_source_debt() -> Check {
+    let tree = tree()?;
+    let root = tree.path();
+    let parent = "crates/biodata/src/lib.rs";
+    let leaf = "crates/biodata/src/value.rs";
+    put(
+        root,
+        parent,
+        "//! Values.\n#[cfg(any())] pub(crate) mod value;\npub use value::{Value};\n",
+    )?;
+    put(root, leaf, "//! A value.\npub struct Value;\n")?;
+    super::module_shape::limits(root, 0, 0)?;
+    put(root, "crates/biodata/src/new.rs", "pub struct New;\n")?;
+    let failure = super::module_shape::limits(root, 0, 0)
+        .expect_err("undocumented file must fail")
+        .to_string();
+    assert!(
+        failure.contains("missing first-line module docs"),
+        "{failure}"
+    );
+    fs::remove_file(root.join("crates/biodata/src/new.rs"))?;
+    for item in [
+        "pub fn value() {}",
+        "pub struct Value;",
+        "const VALUE: u8 = 1;",
+        "mod nested {}",
+        "macro_rules! value { () => {} }",
+    ] {
+        put(root, parent, &format!("//! Values.\nmod value;\n{item}\n"))?;
+        let failure = super::module_shape::limits(root, 0, 0)
+            .expect_err("parent logic must fail")
+            .to_string();
+        assert!(failure.contains("parent modules with logic"), "{failure}");
+    }
+    for literal in [
+        "'{'",
+        "'}'",
+        "'\"'",
+        "'\\''",
+        "'\\\\'",
+        "r#\"\" }\"#",
+        "br##\"\" }\"##",
+    ] {
+        put(
+            root,
+            parent,
+            &format!("//! Values.\nfn value() {{ let _ = {literal}; }}\nmod value;\n"),
+        )?;
+        let failure = super::module_shape::limits(root, 0, 0)
+            .expect_err("quoted delimiters must not hide a parent")
+            .to_string();
+        assert!(failure.contains("parent modules with logic"), "{failure}");
+    }
+    put(
+        root,
+        parent,
+        "/*! Values. */\nmod value;\nextern crate core;\nuse core::{fmt, hash};\n",
+    )?;
+    super::module_shape::limits(root, 0, 0)?;
+    put(
+        root,
+        parent,
+        "#![doc = include_str!(\"../README.md\")]\nmod value;\n",
+    )?;
+    super::module_shape::limits(root, 0, 0)?;
+    for prefix in ["/// Outer item docs.", "//!", "\n//! Late module docs."] {
+        put(root, leaf, &format!("{prefix}\npub struct Value;\n"))?;
+        assert!(
+            super::module_shape::limits(root, 0, 0).is_err(),
+            "invalid first-line module doc passed: {prefix:?}"
+        );
     }
     Ok(())
 }

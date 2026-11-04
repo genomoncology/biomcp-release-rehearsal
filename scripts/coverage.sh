@@ -1,9 +1,8 @@
 #!/bin/sh
-# Follow cargo-llvm-cov's documented external-test sequence.
+# Instrument cases, but report only the product binary and its child profiles.
 set -eu
 cd "$(dirname "$0")/.."
-
-# One product-source denominator for both collections, including child processes.
+root=$(pwd)
 ignore='(^|/)(tests|target|generated)/|(^|/)build\.rs$|_tests\.rs$'
 threshold=$(awk '
     NR != 1 || $0 !~ /^[0-9]+([.][0-9]+)?$/ || $0 + 0 > 100 { bad = 1 }
@@ -21,33 +20,14 @@ case "$profile_dir" in
     /*) ;;
     *) echo 'coverage: expected an absolute profile directory' >&2; exit 1 ;;
 esac
+binary="$CARGO_LLVM_COV_TARGET_DIR/debug/biomcp"
+llvm_tools="$(rustc --print target-libdir)/../bin"
+profdata="$profile_dir/bin.profdata"
 complete="$profile_dir/coverage-complete"
 summary=$(mktemp)
-saved=$(mktemp -d)
-clear_profiles() {
-    python3 - "$profile_dir" <<'PYCLEAR'
-from pathlib import Path
-import sys
+trap 'rm -f "$summary"' EXIT HUP INT TERM
 
-for profile in Path(sys.argv[1]).glob('*.profraw'):
-    profile.unlink(missing_ok=True)
-PYCLEAR
-}
-cleanup() {
-    # Excluded profiles never remain available to a later outside-in report.
-    if [ -f "$saved/collecting-library" ]; then
-        clear_profiles
-        for profile in "$saved"/*.profraw; do
-            [ ! -f "$profile" ] || mv "$profile" "$profile_dir/"
-        done
-    fi
-    rm -rf "$saved"
-    rm -f "$summary"
-}
-trap cleanup EXIT HUP INT TERM
-
-# Bind reusable profiles to the inputs that produced them, including dirty and
-# untracked source files. Git's revision alone misses working-tree changes.
+# Bind reusable profiles to source inputs, including dirty and untracked files.
 inputs() {
     python3 - <<'PYINPUTS'
 import hashlib
@@ -56,8 +36,8 @@ import subprocess
 
 names = subprocess.check_output([
     'git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--',
-    'crates', 'tests', 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml',
-    'scripts/coverage.sh', 'scripts/contract_targets.py', 'sdlc/features.md',
+    'crates', 'tests', 'skills', 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml',
+    'scripts/coverage.sh', 'sdlc/features.md',
 ]).split(b'\0')
 digest = hashlib.sha256()
 for name in sorted(set(names) - {b''}):
@@ -69,14 +49,37 @@ print(digest.hexdigest())
 PYINPUTS
 }
 
+selected_source() {
+    mode=$1
+    # Explicit source selection excludes dependencies. Unlinked library functions
+    # have no coverage mapping in this object and never enter the denominator.
+    set --
+    for crate in "$root"/crates/*; do
+        [ ! -d "$crate/src" ] || set -- "$@" "$crate/src"
+    done
+    python3 - "$mode" "$llvm_tools/llvm-cov" "$binary" "$profdata" "$ignore" "$@" <<'PYREPORT'
+from pathlib import Path
+import subprocess
+import sys
+
+mode, tool, binary, profile, ignore, *directories = sys.argv[1:]
+sources = sorted(str(path) for directory in directories for path in Path(directory).rglob('*.rs'))
+options = ['--show-line-counts-or-regions'] if mode == 'show' else []
+subprocess.run([tool, mode, '--object', binary, '--instr-profile', profile,
+                '--ignore-filename-regex', ignore, *options, '--sources', *sources], check=True)
+PYREPORT
+}
+
 report() {
-    label=$1
-    shift
-    report_result=0
-    cargo llvm-cov report --locked --ignore-filename-regex "$ignore" "$@" >"$summary" || report_result=$?
-    awk -v label="$label" '/^TOTAL/ { print "coverage (" label "; product source): " $0 }' "$summary"
-    counts=$(awk '/^TOTAL/ { print $8, $9 }' "$summary")
-    return "$report_result"
+    selected_source report >"$summary"
+    awk '/^TOTAL/ { print "coverage (cases; product binary source): " $0 }' "$summary"
+    awk -v threshold="$threshold" '
+        /^TOTAL/ { found = 1; value = $10 + 0; if (value < threshold) bad = 1 }
+        END {
+            if (!found) { print "coverage: missing line totals" > "/dev/stderr"; exit 1 }
+            if (bad) { print "coverage: below floor tolerance " threshold > "/dev/stderr"; exit 1 }
+        }
+    ' "$summary"
 }
 
 case "${1:-run}" in
@@ -85,11 +88,14 @@ case "${1:-run}" in
         mkdir -p "$profile_dir"
         rm -f "$complete"
         collected_inputs=$(inputs)
-        # Build both collections before reporting, so neither gains a smaller
-        # denominator from product functions linked only by the other collection.
-        cargo test --workspace --locked --no-run
-        clear_profiles
-        LLVM_PROFILE_FILE="$profile_dir/cases-%m-%p.profraw"
+        cargo test --locked -p biomcp --test cases --test ratchets --no-run
+        cargo build --locked -p biomcp --bin biomcp
+        if ! cargo test --locked -p biomcp --test ratchets; then
+            echo 'coverage: structure ratchets failed before case collection' >&2
+            exit 1
+        fi
+        # Keep harness profiles available for diagnosis, but never merge them.
+        LLVM_PROFILE_FILE="$profile_dir/harness-%m-%p.profraw"
         export LLVM_PROFILE_FILE
         set --
         if [ -n "${RUST_TEST_THREADS:-}" ]; then
@@ -99,60 +105,24 @@ case "${1:-run}" in
             echo 'coverage: cases collection incomplete because its suite failed' >&2
             exit 1
         fi
-        # Keep the historical command-only figure on the same denominator.
-        report 'command cases only; historical comparison'
-        contracts=$(python3 scripts/contract_targets.py)
-        printf '%s\n' "$contracts" | while IFS="$(printf '\t')" read -r package target features owner; do
-            [ -n "$package" ] || continue
-            echo "coverage: counted public contract $package/$target; feature $owner; cargo features $features"
-            set --
-            if [ "$features" != "-" ]; then set -- --features "$features"; fi
-            LLVM_PROFILE_FILE="$profile_dir/contracts-%m-%p.profraw" \
-                cargo test --locked -p "$package" --test "$target" "$@" || {
-                echo 'coverage: public contract collection incomplete because its suite failed' >&2
-                exit 1
-            }
-        done
-        result=0
-        report 'command cases plus reviewed public contracts' --fail-under-lines "$threshold" || result=$?
-        cases_counts=$counts
-        # Save only counted outside-in profiles outside the directory cargo-llvm-cov scans.
-        for profile in "$profile_dir"/*.profraw; do
-            [ ! -f "$profile" ] || mv "$profile" "$saved/"
-        done
-        touch "$saved/collecting-library"
-        LLVM_PROFILE_FILE="$profile_dir/library-%m-%p.profraw"
-        export LLVM_PROFILE_FILE
-        if ! python3 scripts/contract_targets.py --library ||
-           ! cargo test --locked -p biomcp --test ratchets; then
-            echo 'coverage: library collection incomplete because its suite failed' >&2
-            exit 1
-        fi
-        report 'unlisted contracts and library tests; excluded from floor'
-        library_counts=$counts
-        # The union measures overlap only. It never supplies the floor check.
-        for profile in "$saved"/*.profraw; do
-            [ ! -f "$profile" ] || cp "$profile" "$profile_dir/"
-        done
-        cargo llvm-cov report --locked --ignore-filename-regex "$ignore" >"$summary"
-        union_counts=$(awk '/^TOTAL/ { print $8, $9 }' "$summary")
-        awk -v cases="$cases_counts" -v library="$library_counts" -v union="$union_counts" '
-            BEGIN {
-                split(cases, a); split(library, b); split(union, u)
-                if (a[1] != b[1] || a[1] != u[1]) {
-                    print "coverage: collection denominators differ" > "/dev/stderr"
-                    exit 1
-                }
-                printf "coverage lines: outside only %d; library only %d; both %d; unobserved %d; incomplete collections 0\n", b[2]-u[2], a[2]-u[2], u[1]-a[2]-b[2]+u[2], u[2]
-            }
-        '
-        # Restore counted profiles even when their floor check failed.
+        python3 - "$llvm_tools/llvm-profdata" "$profile_dir" "$profdata" <<'PYMERGE'
+from pathlib import Path
+import subprocess
+import sys
+
+tool, directory, output = sys.argv[1:]
+profiles = sorted(str(path) for path in Path(directory).glob('bin-*.profraw'))
+if not profiles:
+    raise SystemExit('coverage: cases produced no product binary profiles')
+subprocess.run([tool, 'merge', '-sparse', '-o', output, '--input-files=-'],
+               input='\n'.join(profiles) + '\n', text=True, check=True)
+PYMERGE
         if [ "$(inputs)" != "$collected_inputs" ]; then
             echo 'coverage: inputs changed during collection; run make coverage again' >&2
             exit 1
         fi
         printf '%s\n' "$collected_inputs" >"$complete"
-        exit "$result"
+        report
         ;;
     report|unreached)
         if [ ! -f "$complete" ]; then
@@ -164,9 +134,9 @@ case "${1:-run}" in
             exit 1
         fi
         if [ "$1" = unreached ]; then
-            cargo llvm-cov report --locked --ignore-filename-regex "$ignore" --show-missing-lines
+            selected_source show
         else
-            report 'command cases plus reviewed public contracts' --fail-under-lines "$threshold"
+            report
         fi
         ;;
     *) echo 'usage: coverage.sh [run|report|unreached]' >&2; exit 2 ;;

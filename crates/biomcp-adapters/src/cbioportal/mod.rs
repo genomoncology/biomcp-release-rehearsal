@@ -1,9 +1,12 @@
 //! Bounded explicit-cohort mutation observations and stored public study metadata.
+use biomcp_fetch::{Input, Read};
 mod raw;
+mod scope;
 use biodata::NcbiGeneId;
 use biomcp_fetch::{Arg, BadReply, Freshness, KeyUse, Leg, PathSegment, RequestError, SourceSpec};
 use biomcp_types::{RecurrenceStudy, Source, VariantRecurrenceQuery};
-pub use raw::Mutation;
+mod map;
+pub use map::Mutation;
 use std::time::Duration;
 /// Reviewed DataHub directory API origin.
 pub(crate) const GITHUB_ORIGIN: &str = "https://api.github.com";
@@ -19,12 +22,14 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "cBioPortal study-specific terms unverified; commercial restrictions may apply",
         url: "https://docs.cbioportal.org/user-guide/faq/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Attribution,
     },
 };
 /// Checked metadata for the exact caller-selected cohort.
 #[derive(Debug)]
 pub struct Cohort {
+    /// Rejected native descriptive fields.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Source title, description and citation without access-group license inference.
     pub study: RecurrenceStudy,
     /// Selected list size, without assuming gene assay eligibility.
@@ -38,44 +43,80 @@ pub fn cohort(leg: &Leg<'_>, query: &VariantRecurrenceQuery) -> Result<Cohort, R
         .get("/studies")
         .with_segments(&[PathSegment::new(query.study().as_str())?])
         .fresh(Freshness::Days(1));
-    let (study, _) = leg.json_received_checked::<raw::Study>(&endpoint, &[], |v| {
-        if v.study_id == *query.study() {
-            Ok(())
-        } else {
-            Err(BadReply)
-        }
-    })?;
+    let (study, _) = leg
+        .call(
+            &endpoint,
+            Input::Params(&[]),
+            Read::<raw::Study>::json().check(&|v| {
+                if v.study_id == *query.study() {
+                    Ok(())
+                } else {
+                    Err(BadReply)
+                }
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
     let endpoint = SPEC
         .get("/molecular-profiles")
         .with_segments(&[PathSegment::new(query.profile().as_str())?])
         .fresh(Freshness::Days(1));
-    leg.json_received_checked::<raw::Profile>(&endpoint, &[], |v| {
-        if v.study_id == *query.study()
-            && v.molecular_profile_id == *query.profile()
-            && v.molecular_alteration_type.as_str() == "MUTATION_EXTENDED"
-        {
-            Ok(())
-        } else {
-            Err(BadReply)
+    leg.call(
+        &endpoint,
+        Input::Params(&[]),
+        Read::<raw::Profile>::json().check(&|v| {
+            if v.study_id == *query.study()
+                && v.molecular_profile_id == *query.profile()
+                && v.molecular_alteration_type.as_str() == "MUTATION_EXTENDED"
+            {
+                Ok(())
+            } else {
+                Err(BadReply)
+            }
+        }),
+    )
+    .map(|received| (received.value, received.meta))?;
+    let mut problems = crate::mapped::Problems {
+        source: Source::Cbioportal,
+        record: Some(study.study_id.clone()),
+        list: Vec::new(),
+    };
+    let name = problems.required_field("name", study.name).map(Into::into);
+    let description = problems
+        .field("description", study.description)
+        .map(Into::into);
+    let citation = problems.field("citation", study.citation).map(Into::into);
+    let (selected_sample_count, count_error) = match sample_count(leg, query) {
+        Ok(count) => {
+            problems.list.extend(count.problems);
+            (count.value, None)
         }
-    })?;
-    let count = sample_count(leg, query);
+        Err(error) => (None, Some(error)),
+    };
     Ok(Cohort {
+        problems: problems.list,
         study: RecurrenceStudy {
-            name: study.name,
-            description: study.description,
-            citation: study.citation,
+            name,
+            description,
+            citation,
         },
-        selected_sample_count: count.as_ref().ok().copied().flatten(),
-        count_error: count.err(),
+        selected_sample_count,
+        count_error,
     })
+}
+/// Checked mutation records with their native window and field diagnostics.
+#[derive(Debug)]
+pub struct MutationPage {
+    /// Accepted mutations and actual refusal events.
+    pub window: crate::NativeWindow<Mutation>,
+    /// Independent field diagnostics.
+    pub problems: Vec<biomcp_types::Problem>,
 }
 /// One native gene page. Wrong study, profile or gene cannot enter the cache.
 pub fn mutations(
     leg: &Leg<'_>,
     query: &VariantRecurrenceQuery,
     gene: NcbiGeneId,
-) -> Result<Vec<Mutation>, RequestError> {
+) -> Result<MutationPage, RequestError> {
     let endpoint = SPEC
         .get("/molecular-profiles")
         .with_segments(&[
@@ -90,20 +131,54 @@ pub fn mutations(
         ("pageSize", Arg::Num(u64::from(query.limit()))),
         ("pageNumber", Arg::Num(u64::from(query.page()))),
     ];
-    let (rows, _) = leg.json_received_checked::<raw::Mutations>(&endpoint, &params, |rows| {
-        if rows.0.len() <= query.limit() as usize
-            && rows.0.iter().all(|v| {
-                v.study_id == *query.study()
-                    && v.molecular_profile_id == *query.profile()
-                    && v.entrez_gene_id == gene.get()
-            })
-        {
-            Ok(())
+    let (rows, _) = leg
+        .call(
+            &endpoint,
+            Input::Params(&params),
+            Read::<raw::Mutations>::json()
+                .check(&|rows| {
+                    if rows.0.len() <= query.limit() as usize
+                        && rows.0.iter().all(|v| {
+                            v.scope.study_id == *query.study()
+                                && v.scope.molecular_profile_id == *query.profile()
+                                && v.scope.entrez_gene_id == gene.get()
+                        })
+                    {
+                        Ok(())
+                    } else {
+                        Err(BadReply)
+                    }
+                })
+                .cache_if(&raw::Mutations::identities_admitted),
+        )
+        .map(|received| (received.value, received.meta))?;
+    let received = rows.0.len() as u32;
+    let mut problems = crate::mapped::Problems {
+        source: Source::Cbioportal,
+        record: Some(query.study().clone()),
+        list: Vec::new(),
+    };
+    let mut values = Vec::new();
+    let mut refusals = crate::Refusal::None;
+    for row in rows.0 {
+        if let Some(mut row) = problems.field("sampleId", Some(row.value)) {
+            problems.list.append(&mut row.problems);
+            values.push(map::mutation(row));
         } else {
-            Err(BadReply)
+            refusals = crate::Refusal::Refused;
         }
-    })?;
-    Ok(rows.0)
+    }
+    Ok(MutationPage {
+        window: crate::NativeWindow::new(
+            values,
+            query.page().saturating_mul(query.limit()),
+            query.limit(),
+            None,
+            received,
+            refusals,
+        ),
+        problems: problems.list,
+    })
 }
 
 // This bounds metadata discovery, never mutation-cohort traversal.
@@ -112,7 +187,7 @@ const LIST_PAGES: u64 = 3;
 fn sample_count(
     leg: &Leg<'_>,
     query: &VariantRecurrenceQuery,
-) -> Result<Option<u64>, RequestError> {
+) -> Result<crate::Mapped<Option<u64>>, RequestError> {
     let endpoint = SPEC
         .get("/studies")
         .with_segments(&[
@@ -128,24 +203,40 @@ fn sample_count(
             ("sortBy", Arg::Text("sampleListId")),
             ("direction", Arg::Text("ASC")),
         ];
-        let (lists, _) =
-            leg.json_received_checked::<raw::SampleLists>(&endpoint, &params, |v| {
-                if v.0.len() <= LIST_PAGE_SIZE as usize
-                    && v.0.iter().all(|l| l.study_id == *query.study())
-                {
-                    Ok(())
-                } else {
-                    Err(BadReply)
-                }
-            })?;
+        let (lists, _) = leg
+            .call(
+                &endpoint,
+                Input::Params(&params),
+                Read::<raw::SampleLists>::json().check(&|v| {
+                    if v.0.len() <= LIST_PAGE_SIZE as usize
+                        && v.0.iter().all(|l| l.study_id == *query.study())
+                    {
+                        Ok(())
+                    } else {
+                        Err(BadReply)
+                    }
+                }),
+            )
+            .map(|received| (received.value, received.meta))?;
+        let count = lists.0.len();
         if let Some(list) = lists
             .0
-            .iter()
+            .into_iter()
             .find(|l| l.sample_list_id == *query.sample_set())
         {
-            return Ok(list.sample_count);
+            let mut problems = crate::mapped::Problems {
+                source: Source::Cbioportal,
+                record: Some(list.sample_list_id),
+                list: Vec::new(),
+            };
+            let value = problems.field("sampleCount", list.sample_count);
+            return Ok(crate::Mapped {
+                refusals: crate::Refusal::None,
+                value,
+                problems: problems.list,
+            });
         }
-        if lists.0.len() < LIST_PAGE_SIZE as usize {
+        if count < LIST_PAGE_SIZE as usize {
             break;
         }
     }
@@ -153,6 +244,7 @@ fn sample_count(
         source: Source::Cbioportal,
         reason: biomcp_types::Reason::Unavailable,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into())
@@ -163,3 +255,6 @@ pub mod studies;
 pub use studies::sync as sync_studies;
 
 pub(crate) use studies::bundle_state;
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

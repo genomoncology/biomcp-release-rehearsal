@@ -2,11 +2,13 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import platform
 import re
 import subprocess
 import sys
+import tarfile
 import tempfile
 import urllib.request
 
@@ -91,9 +93,44 @@ def install_rust():
                         '--default-toolchain', pins['rust']], check=True)
 
 
+def install_mcp_publisher():
+    pins = manifest()['mcp-publisher']
+    arch = {'x86_64': 'amd64', 'aarch64': 'arm64'}.get(platform.machine().lower(), platform.machine().lower())
+    target = platform.system().lower() + '_' + arch
+    expected = pins['archives'][target]
+    name = 'mcp-publisher_' + target + '.tar.gz'
+    base = 'https://github.com/modelcontextprotocol/registry/releases/download/' + pins['version'] + '/'
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        archive = root / name
+        bundle = root / (name + '.sigstore.json')
+        for path in (archive, bundle):
+            with urllib.request.urlopen(base + path.name, timeout=120) as response:
+                path.write_bytes(response.read())
+        if hashlib.sha256(archive.read_bytes()).hexdigest() != expected:
+            raise ValueError('MCP publisher archive checksum differs')
+        subprocess.run(['cosign', 'verify-blob', '--bundle', str(bundle),
+                        '--certificate-identity', 'https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/' + pins['version'],
+                        '--certificate-oidc-issuer', 'https://token.actions.githubusercontent.com', str(archive)], check=True)
+        with tarfile.open(archive, 'r:gz') as package:
+            entries = [entry for entry in package.getmembers() if entry.name == 'mcp-publisher']
+            if len(entries) != 1 or not entries[0].isfile():
+                raise ValueError('MCP publisher archive must contain one regular executable')
+            payload = package.extractfile(entries[0]).read()
+        destination = Path.home() / '.local/bin'
+        destination.mkdir(parents=True, exist_ok=True)
+        executable = destination / 'mcp-publisher'
+        executable.write_bytes(payload)
+        executable.chmod(0o700)
+        if os.environ.get('GITHUB_PATH'):
+            with open(os.environ['GITHUB_PATH'], 'a') as output:
+                output.write(str(destination) + '\n')
+        print('Installed the verified MCP Registry publisher')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['get', 'image', 'outputs', 'check', 'install-rust', 'python-check'])
+    parser.add_argument('command', choices=['get', 'image', 'outputs', 'check', 'install-rust', 'install-machete', 'install-mcp-publisher', 'python-check'])
     parser.add_argument('key', nargs='?')
     args = parser.parse_args()
     pins = manifest()
@@ -103,12 +140,23 @@ def main():
     elif args.command == 'image':
         print(pins['images'][args.key])
     elif args.command == 'outputs':
-        for key in ('rust', 'rustup', 'python', 'cargo-deny'):
+        for key in ('rust', 'rustup', 'python', 'cargo-deny', 'cosign'):
             print(key.replace('-', '_') + '=' + pins[key])
     elif args.command == 'check':
         check()
     elif args.command == 'install-rust':
         install_rust()
+    elif args.command == 'install-mcp-publisher':
+        install_mcp_publisher()
+    elif args.command == 'install-machete':
+        expected = pins['cargo-machete']
+        try:
+            installed = subprocess.check_output(['cargo', 'machete', '--version'], text=True).strip()
+        except (OSError, subprocess.CalledProcessError):
+            installed = ''
+        if installed != expected:
+            subprocess.run(['cargo', 'install', 'cargo-machete', '--locked',
+                            '--version', pins['cargo-machete']], check=True)
     else:
         expected = tuple(map(int, pins['python'].split('.')))
         if sys.version_info[:len(expected)] != expected:

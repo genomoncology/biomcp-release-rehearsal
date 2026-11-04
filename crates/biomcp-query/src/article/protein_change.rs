@@ -6,9 +6,15 @@ pub(super) struct Selection {
     pub(super) needles: Vec<String>,
 }
 impl Selection {
-    pub(super) fn new(find: Option<&Text>, variant: Option<&Text>) -> Result<Self, ()> {
+    pub(super) fn new(
+        find: Option<&Text>,
+        variant: Option<&Text>,
+    ) -> Result<Self, biomcp_types::QueryInvalid> {
         let forms = variant
-            .map(|v| biomcp_types::protein_query_forms(v.as_str()).map_err(|_| ()))
+            .map(|v| {
+                biomcp_types::protein_query_forms(v.as_str())
+                    .map_err(|_| biomcp_types::QueryInvalid::default())
+            })
             .transpose()?;
         let needles = forms.clone().map(|v| v.to_vec()).unwrap_or_else(|| {
             find.map(|v| vec![v.as_str().to_owned()])

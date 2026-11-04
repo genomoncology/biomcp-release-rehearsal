@@ -1,5 +1,6 @@
 //! Publisher policy for explicit WikiPathways catalog synchronization.
 mod catalog;
+mod catalog_row;
 mod gpml;
 mod gpml_raw;
 pub use gpml::{Members, members};
@@ -26,3 +27,6 @@ pub static SPEC: SourceSpec = SourceSpec {
 };
 
 pub(crate) use catalog::bundle_state;
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

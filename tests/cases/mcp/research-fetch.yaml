@@ -1,0 +1,13 @@
+feature: mcp-research
+live_check: public
+story: The research fetch tool preserves the recorded trial identity and its source URL.
+replay: trial/get/NCT02296125
+steps:
+  - mcp_call:
+      name: fetch
+      arguments:
+        id: trial NCT02296125
+    expect:
+      /id: trial NCT02296125
+      /url: https://clinicaltrials.gov/study/NCT02296125
+      /metadata/result/items/0/card/nct_id: NCT02296125

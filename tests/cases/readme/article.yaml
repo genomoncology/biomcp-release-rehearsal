@@ -1,0 +1,45 @@
+{
+  "live_check": "public",
+  "feature": "article-search",
+  "story": "Which PubMed articles match AKT1 E17K?",
+  "replay": "article/search/live",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "AKT1 E17K"
+      ],
+      "max_bytes": 4771,
+      "max_tokens": 1192,
+      "expect": {
+        "/status": "complete",
+        "/query/source": [
+          "pubmed"
+        ],
+        "/query/sort": "rank",
+        "/page/total": 192,
+        "/result/items/*/pmid": {
+          "equals": [
+            "33377972",
+            "33123537",
+            "34837233",
+            "33303690",
+            "31138602",
+            "35312980",
+            "40135844",
+            "39506119",
+            "18504432",
+            "33030203"
+          ],
+          "includes": "33123537"
+        },
+        "/next/1/args": [
+          "get",
+          "article",
+          "33377972"
+        ]
+      }
+    }
+  ]
+}

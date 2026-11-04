@@ -1,4 +1,6 @@
 //! Checked blocking source requests with explicit configuration and deadlines.
+#[cfg(test)]
+extern crate self as biomcp_fetch;
 
 mod cancellation;
 pub mod grpc;
@@ -11,49 +13,66 @@ mod batch;
 mod bundle;
 mod cache;
 mod cache_access;
-mod cache_hgnc;
 mod cleanup;
+mod sqlite_diagnostic;
 mod store_size;
 pub use cache_access::CacheAccess;
+#[doc(hidden)]
+pub use observe::record_sqlite_error;
+#[doc(hidden)]
+pub use sqlite_diagnostic::SQLITE_DIAGNOSTICS;
 mod cache_request;
 mod containment;
 mod deadline;
 mod declaration;
 mod destination;
+pub use destination::check_annotation_url;
 mod hosts;
 pub use hosts::Destinations;
 mod error;
 mod network;
 mod prepared;
+mod privacy;
 mod tls;
 pub use network::{Certificates, Network};
-mod json_request;
+pub use tls::TlsCause;
 mod quota;
+mod read;
 mod record;
 mod request;
+pub use read::Read;
+mod call;
+pub use call::{Absent, Input, JsonBody, Received};
+pub use xml::Bytes;
 mod retry;
 mod secret;
 mod wire_request;
 pub mod xml;
 
+/// Original JSON row bytes carried through a typed transport document boundary.
+pub use serde_json::value::RawValue;
+
 pub use batch::MAX_BATCH_WORKERS;
 pub use bundle::{
-    Bundle, BundleInfo, BundlePart, BundleSet, DocumentMedia, Find, KeyKind, Keys,
-    MAX_BUNDLE_BYTES, Row, RowFormat, SetRow, bundle_sha256, decode_bundle_document,
+    Bundle, BundleInfo, BundlePart, BundleRejection, BundleSet, BundleSync, DocumentMedia, Find,
+    KeyKind, Keys, MAX_BUNDLE_BYTES, Row, RowFormat, SetRow, bundle_sha256, decode_bundle_document,
     encode_bundle_row,
 };
-pub use cache::{CACHE_NAMESPACE_VERSION, SchemaOwner, VERSION, check_owners};
+pub use cache::sql_deadline as configure_sqlite_deadline;
+pub use cache::{CACHE_NAMESPACE_VERSION, STALE_GRACE_SECONDS, SchemaOwner, VERSION, check_owners};
 pub use deadline::{CommandDeadline, Deadline, LocalDeadline};
 pub use declaration::{
     Arg, Credential, Endpoint, Freshness, KeyPlace, KeyUse, PathSegment, SecretName, SourceSpec,
     Terms,
 };
 pub use error::{
-    BadReply, CacheError, FetchError, InputError, RecordError, RequestError, SourceError,
+    BadReply, CacheError, FetchError, InputError, RecordError, RequestError, SourceError, bad_reply,
 };
-pub use quota::{Quota, Rate, SourceKey};
+pub use quota::{
+    InvalidRateShare, PacingOverride, PacingRate, Quota, Rate, RateShare, SourceKey, SourcePacing,
+};
 pub use record::ReplayCache;
-pub use secret::{Secret, Secrets};
+pub use secret::{KeyFingerprint, Secret, Secrets};
 use std::{collections::BTreeMap, fmt, time::Duration};
 
 /// A decoded response must verify that it contains a usable answer.
@@ -62,6 +81,10 @@ pub trait Reply: serde::de::DeserializeOwned {
     fn check(&self) -> Result<(), BadReply>;
     /// Source-given identities used to discover dependent requests, only for explicit reply types.
     fn discovery(&self) -> Option<Identities> {
+        None
+    }
+    /// Complete checked provider sequences when discovery spans identifier namespaces.
+    fn discoveries(&self) -> Option<Vec<Identities>> {
         None
     }
     /// Explicit namespace and ID parameter used by this dependent request.
@@ -81,6 +104,10 @@ pub trait Reply: serde::de::DeserializeOwned {
 /// Explicit transport configuration. Construction reads no environment settings.
 #[derive(Debug)]
 pub struct FetchConfig {
+    /// This process's share of provider rates in hosted mode.
+    pub rate_share: RateShare,
+    /// Checked source-specific rates and simultaneous request counts.
+    pub source_pacing: SourcePacing,
     /// Bounded streaming RPC resources, independent of blocking HTTP requests.
     pub grpc_limits: grpc::Limits,
     /// Explicit bounded wire summaries, disabled by default.
@@ -91,6 +118,8 @@ pub struct FetchConfig {
     pub disabled_sources: std::collections::BTreeSet<biomcp_types::Source>,
     /// Component terms categories switched off by the same source policy.
     pub disabled_uses: std::collections::BTreeSet<biomcp_types::Use>,
+    /// Preserve the retired restricted configuration group.
+    pub legacy_restricted: bool,
     /// Configured credentials.
     pub secrets: Secrets,
     /// Explicit SQLite cache path; absence disables storage.
@@ -118,11 +147,14 @@ pub struct FetchConfig {
 impl Default for FetchConfig {
     fn default() -> Self {
         Self {
+            rate_share: RateShare::default(),
+            source_pacing: SourcePacing::default(),
             grpc_limits: grpc::Limits::default(),
             observations: None,
             cache_owners: Vec::new(),
             disabled_sources: Default::default(),
             disabled_uses: Default::default(),
+            legacy_restricted: false,
             secrets: Secrets::default(),
             cache: None,
             cache_predecessors: Vec::new(),
@@ -146,20 +178,34 @@ impl Default for FetchConfig {
 #[derive(Clone)]
 pub struct Fetch {
     secrets: std::sync::Arc<Secrets>,
+    hosted: bool,
     agents: std::sync::Arc<network::Agents>,
+    tls: std::sync::Arc<rustls::ClientConfig>,
     grpc_worker: std::sync::Arc<grpc::Worker>,
     cancelled: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    call_end: Option<std::time::Instant>,
     mode: Mode,
     limiters: std::sync::Arc<quota::Limiters>,
     cache: Option<std::sync::Arc<cache::Cache>>,
     recordings: std::sync::Arc<record::Recordings>,
     clock: Option<std::sync::Arc<deadline::VirtualClock>>,
     config: std::sync::Arc<FetchConfig>,
+    background_refresh: Option<std::sync::Arc<BundleRefresh>>,
     bundle_imports: std::sync::Arc<std::sync::Mutex<std::collections::BTreeSet<&'static str>>>,
     disabled_sources: std::collections::BTreeSet<biomcp_types::Source>,
     disabled_uses: std::collections::BTreeSet<biomcp_types::Use>,
+    legacy_restricted: bool,
 }
 
+#[expect(
+    clippy::disallowed_types,
+    reason = "The server owns and joins at most one refresh worker per declared bundle"
+)]
+struct BundleRefresh {
+    agents: std::sync::Arc<network::Agents>,
+    running:
+        std::sync::Mutex<std::collections::BTreeMap<&'static str, std::thread::JoinHandle<()>>>,
+}
 impl fmt::Debug for Fetch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Fetch")
@@ -169,6 +215,21 @@ impl fmt::Debug for Fetch {
 }
 
 impl Fetch {
+    /// Retain automatic stale refreshes until the last server transport is dropped.
+    /// One-shot commands keep their synchronous read behavior.
+    #[expect(
+        clippy::disallowed_types,
+        reason = "The server owns and joins at most one refresh worker per declared bundle"
+    )]
+    pub fn with_background_refresh(mut self) -> Self {
+        if self.background_refresh.is_none() {
+            self.background_refresh = Some(std::sync::Arc::new(BundleRefresh {
+                agents: self.agents.clone(),
+                running: std::sync::Mutex::new(std::collections::BTreeMap::new()),
+            }));
+        }
+        self
+    }
     /// Bounded nonfatal settings notices for local health diagnostics.
     pub fn configuration_health(&self) -> Option<&biomcp_types::ConfigurationHealth> {
         self.config.network.configuration()
@@ -178,11 +239,9 @@ impl Fetch {
         if config.max_body == u64::MAX {
             return Err(FetchError::BodyLimit);
         }
-        let grpc_worker = std::sync::Arc::new(grpc::Worker::new(
-            config.network.clone(),
-            config.grpc_limits,
-        )?);
-        let agents = network::Agents::new(&config.network, config.proxy.as_ref())?;
+        let tls = std::sync::Arc::new(config.network.tls_configuration()?);
+        let grpc_worker = std::sync::Arc::new(grpc::Worker::new(tls.clone(), config.grpc_limits)?);
+        let agents = network::Agents::new(&config.network, config.proxy.as_ref(), tls.clone())?;
         if matches!(config.mode, Mode::Replay { .. }) && config.replay_cache.is_none() {
             config.replay_cache = Some(
                 ReplayCache::temporary_with_owners(&config.cache_owners)
@@ -209,17 +268,22 @@ impl Fetch {
             matches!(config.mode, Mode::Replay { .. }).then(deadline::VirtualClock::default);
         Ok(Self {
             secrets: std::sync::Arc::new(std::mem::take(&mut config.secrets)),
+            hosted: false,
             agents: std::sync::Arc::new(agents),
             grpc_worker,
+            tls,
             cancelled: None,
+            call_end: None,
             mode: std::mem::take(&mut config.mode),
             cache,
             recordings: std::sync::Arc::new(recordings),
             clock: clock.map(std::sync::Arc::new),
             disabled_sources: config.disabled_sources.clone(),
             disabled_uses: config.disabled_uses.clone(),
+            legacy_restricted: config.legacy_restricted,
             config: std::sync::Arc::new(config),
             limiters: std::sync::Arc::default(),
+            background_refresh: None,
             bundle_imports: std::sync::Arc::default(),
         })
     }
@@ -246,6 +310,17 @@ impl Fetch {
         let mut restricted = self.clone();
         restricted.disabled_sources.extend(disabled);
         restricted
+    }
+
+    /// Whether the retired restricted configuration group is selected.
+    pub fn legacy_restricted(&self) -> bool {
+        self.legacy_restricted
+    }
+    /// Preserve legacy configuration exclusions without publishing a use label.
+    pub fn restrict_legacy(&self, disabled: bool) -> Self {
+        let mut fetch = self.clone();
+        fetch.legacy_restricted |= disabled;
+        fetch
     }
 
     /// Whether a component category was explicitly switched off.
@@ -278,13 +353,19 @@ impl Fetch {
 
     /// Create a real deadline or an initial replay budget for independent legs.
     pub fn deadline(&self, budget: Duration) -> Deadline<'_> {
-        Deadline::start(budget, self.clock.as_deref()).with_cancellation(self.cancelled.as_ref())
+        Deadline::start(self.bounded_budget(budget), self.clock.as_deref())
+            .with_cancellation(self.cancelled.as_ref())
     }
 
     /// Own a sequential command's replay origin without changing independent leg consumers.
     pub fn command_deadline(&self, budget: Duration) -> CommandDeadline<'_> {
-        CommandDeadline::start(budget, self.clock.as_deref())
+        CommandDeadline::start(self.bounded_budget(budget), self.clock.as_deref())
             .with_cancellation(self.cancelled.as_ref())
+    }
+    fn bounded_budget(&self, budget: Duration) -> Duration {
+        self.call_end.map_or(budget, |end| {
+            budget.min(end.saturating_duration_since(std::time::Instant::now()))
+        })
     }
 
     /// Start a leg capped by this source's budget.
@@ -390,6 +471,10 @@ impl Leg<'_> {
     pub fn disabled_use(&self, usage: biomcp_types::Use) -> bool {
         self.fetch.disabled_use(usage)
     }
+    /// Whether legacy component exclusions apply to this leg.
+    pub fn legacy_restricted(&self) -> bool {
+        self.fetch.legacy_restricted()
+    }
 
     /// Bypass cached reads and stale fallback for this leg and its batch children.
     /// The process policy cannot be weakened by a call.
@@ -429,8 +514,8 @@ impl Leg<'_> {
 pub struct ReplyMetadata {
     /// Credential-free request identity.
     pub identity: [u8; 32],
-    /// Original fetch time in Unix seconds; zero for legacy recordings without a timestamp.
-    pub fetched: i64,
+    /// Original fetch time in Unix seconds, absent in legacy recordings without a timestamp.
+    pub fetched: Option<i64>,
     /// Native exact count and selected bounds, when supplied by the provider.
     pub content_range: Option<ContentRange>,
     /// Bounded native count and next link, only on UniProt search replies.
@@ -443,3 +528,7 @@ mod counted;
 pub use counted::ContentRange;
 
 mod request_body;
+
+#[cfg(test)]
+#[path = "../tests/transport/tls_builds.rs"]
+mod tls_build_tests;

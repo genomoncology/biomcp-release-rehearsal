@@ -1,21 +1,37 @@
 {
   "$defs": {
-    "CacheProblem": {
+    "Reply_CacheProblem": {
       "description": "A local cache failure that leaves the provider outcome intact.",
       "enum": [
         "busy",
         "database",
+        "encoding",
+        "filesystem",
+        "internal",
+        "limit",
+        "snapshot",
         "version"
       ],
       "type": "string"
     },
-    "CbioportalCancerTypeId": {
+    "Reply_CbioportalCancerTypeId": {
       "description": "Native cBioPortal cancer-type code, with no OncoTree equivalence.",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
-    "PageInfo": {
-      "additionalProperties": false,
+    "Reply_IdentifierNamespace": {
+      "description": "A source-stated authority or an explicit unknown authority, represented by the string unknown.",
+      "maxLength": 1048576,
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "Reply_NcbiGeneId": {
+      "description": "A positive NCBI Gene identifier in canonical decimal text.",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
+      "type": "string"
+    },
+    "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
       "properties": {
         "offset": {
@@ -27,7 +43,7 @@
         "pool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PoolInfo"
+              "$ref": "#/$defs/Reply_PoolInfo"
             },
             {
               "type": "null"
@@ -62,13 +78,12 @@
       ],
       "type": "object"
     },
-    "Pmid": {
+    "Reply_Pmid": {
       "description": "Positive PubMed identifier.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PoolInfo": {
-      "additionalProperties": false,
+    "Reply_PoolInfo": {
       "description": "Fixed lifetime and size of a stored search snapshot.",
       "properties": {
         "created": {
@@ -84,7 +99,7 @@
           "type": "integer"
         },
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Opaque snapshot identifier."
         },
         "size": {
@@ -102,12 +117,11 @@
       ],
       "type": "object"
     },
-    "Problem": {
-      "additionalProperties": false,
+    "Reply_Problem": {
       "description": "A field that could not be accepted from a source record.",
       "properties": {
         "code": {
-          "$ref": "#/$defs/ProblemCode",
+          "$ref": "#/$defs/Reply_ProblemCode",
           "description": "Why the field value was not accepted."
         },
         "field": {
@@ -117,7 +131,7 @@
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -126,7 +140,7 @@
           "description": "The record's canonical identifier, when known."
         },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "The source that supplied the record."
         }
       },
@@ -137,43 +151,22 @@
       ],
       "type": "object"
     },
-    "ProblemCode": {
+    "Reply_ProblemCode": {
       "description": "A stable code for a rejected field value.",
-      "enum": [
-        "value.unknown",
-        "collection.incomplete",
-        "identity.conflict"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The field value was not recognized.",
         " Native collection exceeds the admitted complete source page.",
         " A source repeats one exact identity with incompatible records."
+      ],
+      "x-extensible-enum": [
+        "value.unknown",
+        "collection.incomplete",
+        "identity.conflict"
       ]
     },
-    "Reason": {
+    "Reply_Reason": {
       "description": "Why a source could not supply data.",
-      "enum": [
-        "not_found",
-        "not_open",
-        "not_pdf",
-        "unsupported",
-        "too_large",
-        "rate_limited",
-        "local_quota",
-        "unavailable",
-        "tls",
-        "proxy",
-        "rejected",
-        "bad_reply",
-        "deadline_exceeded",
-        "offline",
-        "no_key",
-        "disabled",
-        "replay_miss",
-        "syncing",
-        "no_join_id"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The requested record was not found.",
@@ -195,446 +188,611 @@
         " No recording matched the request.",
         " The source data was being synchronized.",
         " Identity lacks the identifier required to join this source."
-      ]
-    },
-    "Section": {
-      "description": "A requested section has exactly one state.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "description": "The source returned data.",
-          "properties": {
-            "data": {
-              "$ref": "#/$defs/StudyProfiles",
-              "description": "Whole section data."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "data",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "data"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "The source answered with no data.",
-          "properties": {
-            "record": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/SourceRecord"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Native entry, if any."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "empty",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "A requested source failed.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "unavailable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "User settings prevented the source request.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "skipped",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "Entity facts rule this section out.",
-          "properties": {
-            "state": {
-              "const": "not_applicable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "Section2": {
-      "description": "A requested section has exactly one state.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "description": "The source returned data.",
-          "properties": {
-            "data": {
-              "$ref": "#/$defs/StudySampleLists",
-              "description": "Whole section data."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "data",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "data"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "The source answered with no data.",
-          "properties": {
-            "record": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/SourceRecord"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Native entry, if any."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "empty",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "A requested source failed.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "unavailable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "User settings prevented the source request.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "skipped",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "Entity facts rule this section out.",
-          "properties": {
-            "state": {
-              "const": "not_applicable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "Section3": {
-      "description": "A requested section has exactly one state.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "description": "The source returned data.",
-          "properties": {
-            "data": {
-              "$ref": "#/$defs/StudyFiles",
-              "description": "Whole section data."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "data",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "data"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "The source answered with no data.",
-          "properties": {
-            "record": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/SourceRecord"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Native entry, if any."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "empty",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "A requested source failed.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "unavailable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "User settings prevented the source request.",
-          "properties": {
-            "reason": {
-              "$ref": "#/$defs/Reason",
-              "description": "Typed reason."
-            },
-            "source": {
-              "$ref": "#/$defs/Source",
-              "description": "Source identity."
-            },
-            "state": {
-              "const": "skipped",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state",
-            "source",
-            "reason"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "description": "Entity facts rule this section out.",
-          "properties": {
-            "state": {
-              "const": "not_applicable",
-              "type": "string"
-            }
-          },
-          "required": [
-            "state"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "Source": {
-      "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
       ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
+      ]
+    },
+    "Reply_Section_StudyFiles": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudyFiles",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Section_StudyMutations": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudyMutations",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Section_StudyProfiles": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudyProfiles",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Section_StudySampleLists": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudySampleLists",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Section_StudySamples": {
+      "description": "A requested section has exactly one state.",
+      "oneOf": [
+        {
+          "description": "The source returned data.",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Reply_StudySamples",
+              "description": "Whole section data."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "data"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The source answered with no data.",
+          "properties": {
+            "record": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_SourceRecord"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Native entry, if any."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "empty",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A requested source failed.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "User settings prevented the source request.",
+          "properties": {
+            "reason": {
+              "$ref": "#/$defs/Reply_Reason",
+              "description": "Typed reason."
+            },
+            "source": {
+              "$ref": "#/$defs/Reply_Source",
+              "description": "Source identity."
+            },
+            "state": {
+              "const": "skipped",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "source",
+            "reason"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Entity facts rule this section out.",
+          "properties": {
+            "state": {
+              "const": "not-applicable",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Reply_Source": {
+      "description": "A source of BioMCP data, identified by its canonical short name.",
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -704,21 +862,97 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "SourceNotice": {
+    "Reply_SourceNotice": {
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "additionalProperties": false,
           "description": "Local request limits and source-specific recovery guidance.",
           "properties": {
             "kind": {
-              "const": "request_guidance",
+              "const": "request-guidance",
               "type": "string"
             },
             "message": {
@@ -742,11 +976,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "Registered conditions lack the literal words requested in a condition search.",
           "properties": {
             "kind": {
-              "const": "condition_word_mismatch",
+              "const": "condition-word-mismatch",
               "type": "string"
             },
             "message": {
@@ -761,15 +994,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "A checked provider answer survived a local cache failure.",
           "properties": {
             "kind": {
-              "const": "cache_problem",
+              "const": "cache-problem",
               "type": "string"
             },
             "reason": {
-              "$ref": "#/$defs/CacheProblem",
+              "$ref": "#/$defs/Reply_CacheProblem",
               "description": "Bounded local failure without paths or database diagnostics."
             }
           },
@@ -780,15 +1012,14 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "The source still has graph pages after the bounded fetch window.",
           "properties": {
             "fallback": {
-              "$ref": "#/$defs/Text",
+              "$ref": "#/$defs/Reply_Text",
               "description": "Default-source command offering another graph view."
             },
             "kind": {
-              "const": "graph_truncated",
+              "const": "graph-truncated",
               "type": "string"
             }
           },
@@ -799,11 +1030,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "An empty LitVar lookup can be repeated with a caller-supplied rsID.",
           "properties": {
             "kind": {
-              "const": "litvar_rsid_hint",
+              "const": "litvar-rsid-hint",
               "type": "string"
             },
             "message": {
@@ -818,11 +1048,10 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed supplied a named ESearch warning without changing its phrases.",
           "properties": {
             "kind": {
-              "const": "pubmed_warning",
+              "const": "pubmed-warning",
               "type": "string"
             },
             "name": {
@@ -844,17 +1073,16 @@
           "type": "object"
         },
         {
-          "additionalProperties": false,
           "description": "PubMed did not index these words.",
           "properties": {
             "kind": {
-              "const": "not_found_words",
+              "const": "not-found-words",
               "type": "string"
             },
             "words": {
               "description": "Whole source words.",
               "items": {
-                "$ref": "#/$defs/Text"
+                "$ref": "#/$defs/Reply_Text"
               },
               "type": "array"
             }
@@ -866,8 +1094,7 @@
         }
       ]
     },
-    "SourceOutcome": {
-      "additionalProperties": false,
+    "Reply_SourceOutcome": {
       "description": "One source's outcome, without provider text.",
       "properties": {
         "count": {
@@ -879,26 +1106,17 @@
             "null"
           ]
         },
-        "fetched": {
-          "description": "Retrieved identity depth.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
         "notices": {
           "description": "Source notices and request recovery guidance.",
           "items": {
-            "$ref": "#/$defs/SourceNotice"
+            "$ref": "#/$defs/Reply_SourceNotice"
           },
           "type": "array"
         },
         "reason": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reason"
+              "$ref": "#/$defs/Reply_Reason"
             },
             {
               "type": "null"
@@ -906,18 +1124,27 @@
           ],
           "description": "Failure or stale-fallback reason."
         },
+        "retrieved_count": {
+          "description": "Number of retrieved identities.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "source": {
-          "$ref": "#/$defs/Source",
+          "$ref": "#/$defs/Reply_Source",
           "description": "Asked source."
         },
         "state": {
-          "$ref": "#/$defs/SourceState",
+          "$ref": "#/$defs/Reply_SourceState",
           "description": "Retained state."
         },
         "term": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -935,7 +1162,7 @@
           "type": "string"
         },
         "use": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Reviewed source use category; publisher terms remain authoritative."
         }
       },
@@ -948,18 +1175,21 @@
       ],
       "type": "object"
     },
-    "SourceRecord": {
-      "additionalProperties": false,
+    "Reply_SourceRecord": {
       "description": "The source's own entry for an entity.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native source identifier."
+        },
+        "namespace": {
+          "$ref": "#/$defs/Reply_IdentifierNamespace",
+          "description": "Native authority; unknown means the source did not state one."
         },
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -970,11 +1200,13 @@
         }
       },
       "required": [
+        "namespace",
         "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-identifier": true
     },
-    "SourceState": {
+    "Reply_SourceState": {
       "description": "State of a source actually asked by the command.",
       "enum": [
         "ok",
@@ -985,7 +1217,7 @@
       ],
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -995,8 +1227,7 @@
       ],
       "type": "string"
     },
-    "Step": {
-      "additionalProperties": false,
+    "Reply_Step": {
       "description": "A command argument list spelled from a typed action.",
       "properties": {
         "args": {
@@ -1007,7 +1238,7 @@
           "type": "array"
         },
         "kind": {
-          "$ref": "#/$defs/StepKind",
+          "$ref": "#/$defs/Reply_StepKind",
           "description": "Purpose of the action."
         }
       },
@@ -1016,7 +1247,7 @@
       ],
       "type": "object"
     },
-    "StepKind": {
+    "Reply_StepKind": {
       "description": "Purpose of an available next command.",
       "enum": [
         "restart",
@@ -1032,30 +1263,42 @@
       ],
       "type": "string"
     },
-    "Study": {
-      "additionalProperties": false,
+    "Reply_Study": {
       "description": "Source-specific study card metadata; no inferred denominator or gene aggregate.",
       "properties": {
         "cnaSampleCount": {
           "description": "Native cnaSampleCount.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "description": {
           "description": "Native description.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "groups": {
           "description": "Native access groups, possibly empty; not a reuse license.",
           "type": "string"
         },
         "header": {
-          "$ref": "#/$defs/StudyHeader",
+          "$ref": "#/$defs/Reply_StudyHeader",
           "description": "Compact study identity and publication references."
         },
         "importDate": {
-          "$ref": "#/$defs/StudyImportTime",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_StudyImportTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native timezone-unstated import time."
         },
         "patientCount": {
@@ -1078,7 +1321,7 @@
         "resourceCounts": {
           "description": "Independent resource-scoped counts, never summed into study totals.",
           "items": {
-            "$ref": "#/$defs/StudyResourceCount"
+            "$ref": "#/$defs/Reply_StudyResourceCount"
           },
           "type": "array"
         },
@@ -1086,48 +1329,50 @@
           "description": "Native sequencedSampleCount, not gene coverage.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "structuralVariantCount": {
           "description": "Native structuralVariantCount; its name does not imply sample units.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "treatmentCount": {
           "description": "Native treatmentCount without a unit conversion.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "required": [
         "header",
-        "description",
-        "sequencedSampleCount",
-        "cnaSampleCount",
-        "structuralVariantCount",
-        "treatmentCount",
-        "importDate",
         "groups",
         "readPermission",
         "publicStudy"
       ],
       "type": "object"
     },
-    "StudyBlobSha": {
+    "Reply_StudyBlobSha": {
       "description": "GitHub repository blob revision, not a data-content checksum.",
       "pattern": "^[0-9a-f]{40}$",
       "type": "string"
     },
-    "StudyCard": {
-      "additionalProperties": false,
+    "Reply_StudyCard": {
       "description": "Exact card with independent live section states and catalog provenance.",
       "properties": {
         "files": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Section3"
+              "$ref": "#/$defs/Reply_Section_StudyFiles"
             },
             {
               "type": "null"
@@ -1135,10 +1380,21 @@
           ],
           "description": "Requested file-reference page, with no downloaded data."
         },
+        "mutations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Section_StudyMutations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Requested source mutation rows."
+        },
         "profiles": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Section"
+              "$ref": "#/$defs/Reply_Section_StudyProfiles"
             },
             {
               "type": "null"
@@ -1149,7 +1405,7 @@
         "sample_lists": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Section2"
+              "$ref": "#/$defs/Reply_Section_StudySampleLists"
             },
             {
               "type": "null"
@@ -1157,17 +1413,28 @@
           ],
           "description": "Requested sample-list metadata page, without member IDs."
         },
+        "samples": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Section_StudySamples"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Requested sample identities and types."
+        },
         "snapshot": {
-          "$ref": "#/$defs/StudySnapshot",
+          "$ref": "#/$defs/Reply_StudySnapshot",
           "description": "Catalog revision and acquisition, apart from each live section's time."
         },
         "source_url": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact publisher study page for this checked source identity.",
           "format": "uri"
         },
         "study": {
-          "$ref": "#/$defs/Study",
+          "$ref": "#/$defs/Reply_Study",
           "description": "Native card metadata, preserving all source count distinctions."
         }
       },
@@ -1178,14 +1445,13 @@
       ],
       "type": "object"
     },
-    "StudyFile": {
-      "additionalProperties": false,
+    "Reply_StudyFile": {
       "description": "Publisher file reference; repository blob bytes never mean data-content bytes.",
       "properties": {
         "downloadUrl": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1195,20 +1461,20 @@
           "format": "uri"
         },
         "htmlUrl": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Publisher browser link.",
           "format": "uri"
         },
         "kind": {
-          "$ref": "#/$defs/StudyFileKind",
+          "$ref": "#/$defs/Reply_StudyFileKind",
           "description": "Native file or directory kind."
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native repository entry name."
         },
         "path": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Exact native repository path."
         },
         "repositoryBlobSize": {
@@ -1218,7 +1484,7 @@
           "type": "integer"
         },
         "sha": {
-          "$ref": "#/$defs/StudyBlobSha",
+          "$ref": "#/$defs/Reply_StudyBlobSha",
           "description": "Repository blob or tree revision, not a data-content checksum."
         }
       },
@@ -1232,7 +1498,7 @@
       ],
       "type": "object"
     },
-    "StudyFileKind": {
+    "Reply_StudyFileKind": {
       "description": "Native GitHub contents entry kind.",
       "enum": [
         "file",
@@ -1240,27 +1506,29 @@
       ],
       "type": "string"
     },
-    "StudyFiles": {
-      "additionalProperties": false,
+    "Reply_StudyFiles": {
       "description": "One native repository directory page; blob sizes do not describe data content.",
       "properties": {
         "acquired": {
           "description": "Directory acquisition wall time in Unix seconds.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "items": {
           "description": "Source-ordered repository file references.",
           "items": {
-            "$ref": "#/$defs/StudyFile"
+            "$ref": "#/$defs/Reply_StudyFile"
           },
           "type": "array"
         },
         "license_notice": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1270,34 +1538,54 @@
           "format": "uri"
         },
         "page": {
-          "$ref": "#/$defs/PageInfo",
+          "$ref": "#/$defs/Reply_PageInfo",
           "description": "Bounds within the complete received directory."
         },
         "study_id": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact study directory scope."
         }
       },
       "required": [
         "study_id",
-        "page",
-        "acquired"
+        "page"
       ],
       "type": "object"
     },
-    "StudyGet": {
-      "additionalProperties": false,
+    "Reply_StudyGet": {
       "description": "Exact case-sensitive study card or bounded metadata section. No frequency, denominator, survival or comparison is calculated. Source counts keep their native names.",
       "properties": {
+        "gene": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations."
+        },
         "id": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact source study ID; no default or repair.",
           "x-positional": 0
+        },
+        "molecular_profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_StudyProfileId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact mutation profile ID; omitted selects the study's first mutation profile."
         },
         "section": {
           "anyOf": [
             {
-              "$ref": "#/$defs/StudySection"
+              "$ref": "#/$defs/Reply_StudySection"
             },
             {
               "type": "null"
@@ -1327,18 +1615,27 @@
       ],
       "type": "object"
     },
-    "StudyHeader": {
-      "additionalProperties": false,
+    "Reply_StudyHeader": {
       "description": "Compact source study identity; source codes and counts retain their own scope.",
       "properties": {
         "allSampleCount": {
           "description": "Native allSampleCount, never a patient or profiled-gene denominator.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "cancerTypeId": {
-          "$ref": "#/$defs/CbioportalCancerTypeId",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CbioportalCancerTypeId"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "cBioPortal namespace only; no ontology inference."
         },
         "citation": {
@@ -1349,13 +1646,20 @@
           ]
         },
         "name": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native study name."
         },
         "pmids": {
           "description": "Every validated source PMID in native order, including repetitions; absent remains absent.",
           "items": {
-            "$ref": "#/$defs/Pmid"
+            "$ref": "#/$defs/Reply_Pmid"
           },
           "type": [
             "array",
@@ -1363,49 +1667,141 @@
           ]
         },
         "referenceGenome": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native study metadata label, never a coordinate assembly."
         },
         "studyId": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact case-sensitive source identity."
         }
       },
       "required": [
-        "studyId",
-        "name",
-        "cancerTypeId",
-        "allSampleCount",
-        "referenceGenome"
+        "studyId"
       ],
       "type": "object"
     },
-    "StudyId": {
+    "Reply_StudyId": {
       "description": "Opaque case-sensitive cBioPortal study identity, without repair.",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
-    "StudyImportTime": {
-      "description": "Native study import timestamp with unstated timezone; never an acquisition time.",
-      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$",
+    "Reply_StudyImportTime": {
+      "description": "Native study import timestamp with unstated timezone; never an acquisition time. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$",
       "type": "string"
     },
-    "StudyProfile": {
-      "additionalProperties": false,
+    "Reply_StudyMutation": {
+      "description": "A source mutation observation, without clinical interpretation.",
+      "properties": {
+        "mutation_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native mutation class."
+        },
+        "protein_change": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source protein change, without normalization."
+        },
+        "sample_id": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Native sample ID within this study."
+        }
+      },
+      "required": [
+        "sample_id"
+      ],
+      "type": "object"
+    },
+    "Reply_StudyMutations": {
+      "description": "Source mutation rows and the explicit gene/profile scope used to obtain them.",
+      "properties": {
+        "acquired": {
+          "description": "Source collection acquisition time.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "entrez_gene_id": {
+          "$ref": "#/$defs/Reply_NcbiGeneId",
+          "description": "Exact cBioPortal gene identifier."
+        },
+        "items": {
+          "description": "Source mutation observations in source order.",
+          "items": {
+            "$ref": "#/$defs/Reply_StudyMutation"
+          },
+          "type": "array"
+        },
+        "molecular_profile_id": {
+          "$ref": "#/$defs/Reply_StudyProfileId",
+          "description": "Selected mutation profile, including an automatically chosen default."
+        },
+        "page": {
+          "$ref": "#/$defs/Reply_PageInfo",
+          "description": "Bounds within the received collection."
+        },
+        "study_id": {
+          "$ref": "#/$defs/Reply_StudyId",
+          "description": "Exact source study ID."
+        }
+      },
+      "required": [
+        "study_id",
+        "molecular_profile_id",
+        "entrez_gene_id",
+        "items",
+        "page"
+      ],
+      "type": "object"
+    },
+    "Reply_StudyProfile": {
       "description": "Molecular profile reference with exact study membership.",
       "properties": {
         "datatype": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Extensible native data-type label."
         },
         "description": {
           "description": "Source description.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "genericAssayType": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -1414,95 +1810,111 @@
           "description": "Native generic assay type, absent outside those profiles."
         },
         "molecularAlterationType": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Extensible source alteration-type label."
         },
         "molecularProfileId": {
-          "$ref": "#/$defs/StudyProfileId",
+          "$ref": "#/$defs/Reply_StudyProfileId",
           "description": "Exact native profile ID; never constructed from a study ID."
         },
         "name": {
           "description": "Source profile name.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "patientLevel": {
           "description": "Native patient-level flag, not a unit inferred for other records.",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "showProfileInAnalysisTab": {
           "description": "Native profile display setting.",
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "studyId": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Native profile study scope."
         }
       },
       "required": [
         "molecularProfileId",
-        "studyId",
-        "molecularAlterationType",
-        "datatype",
-        "name",
-        "description",
-        "patientLevel",
-        "showProfileInAnalysisTab"
+        "studyId"
       ],
       "type": "object"
     },
-    "StudyProfileId": {
+    "Reply_StudyProfileId": {
       "description": "Exact cBioPortal molecular profile identity.",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
-    "StudyProfiles": {
-      "additionalProperties": false,
+    "Reply_StudyProfiles": {
       "description": "One independently acquired, bounded native metadata collection.",
       "properties": {
         "acquired": {
           "description": "Live collection acquisition wall time in Unix seconds, distinct from catalog acquisition.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "items": {
           "description": "Complete ordered metadata records, never member sample IDs.",
           "items": {
-            "$ref": "#/$defs/StudyProfile"
+            "$ref": "#/$defs/Reply_StudyProfile"
           },
           "type": "array"
         },
         "page": {
-          "$ref": "#/$defs/PageInfo",
+          "$ref": "#/$defs/Reply_PageInfo",
           "description": "Bounds and source-stated total for this collection."
         },
         "study_id": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact study scope of this collection."
         }
       },
       "required": [
         "study_id",
-        "page",
-        "acquired"
+        "page"
       ],
       "type": "object"
     },
-    "StudyResourceCount": {
-      "additionalProperties": false,
+    "Reply_StudyResourceCount": {
       "description": "One native resource scope; counts remain attached to its study and resource.",
       "properties": {
         "cancerStudyIdentifier": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact resource study scope."
         },
         "description": {
           "description": "Native resource description.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "displayName": {
           "description": "Native resource display name.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "openByDefault": {
           "description": "Native access/display setting, not a reuse license.",
@@ -1512,60 +1924,110 @@
           "description": "Native patient count within this resource only.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "priority": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Native priority string, without numeric reinterpretation."
         },
         "resourceId": {
-          "$ref": "#/$defs/StudyResourceId",
+          "$ref": "#/$defs/Reply_StudyResourceId",
           "description": "Native resource ID."
         },
         "resourceType": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Extensible native resource type, not a derived count unit."
         },
         "sampleCount": {
           "description": "Native count within this resource only.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "required": [
         "resourceId",
-        "displayName",
-        "description",
-        "resourceType",
-        "priority",
         "openByDefault",
-        "cancerStudyIdentifier",
-        "sampleCount",
-        "patientCount"
+        "cancerStudyIdentifier"
       ],
       "type": "object"
     },
-    "StudyResourceId": {
+    "Reply_StudyResourceId": {
       "description": "Exact cBioPortal resource identity scoped to one study.",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
-    "StudySampleList": {
-      "additionalProperties": false,
+    "Reply_StudySample": {
+      "description": "A source sample identity and type, without patient or clinical attributes.",
+      "properties": {
+        "sample_id": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Native sample ID within this study."
+        },
+        "sample_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native sample type, when supplied."
+        }
+      },
+      "required": [
+        "sample_id"
+      ],
+      "type": "object"
+    },
+    "Reply_StudySampleList": {
       "description": "Sample-list metadata without a representation for member sample IDs.",
       "properties": {
         "category": {
-          "$ref": "#/$defs/Text",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "description": "Extensible native list category."
         },
         "description": {
           "description": "Native list description.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "name": {
           "description": "Native list name.",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "sampleCount": {
           "description": "Stated source sampleCount when supplied, never computed from member IDs.",
@@ -1577,66 +2039,100 @@
           ]
         },
         "sampleListId": {
-          "$ref": "#/$defs/StudySampleListId",
+          "$ref": "#/$defs/Reply_StudySampleListId",
           "description": "Exact native list ID."
         },
         "studyId": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Native study scope."
         }
       },
       "required": [
         "sampleListId",
-        "studyId",
-        "category",
-        "name",
-        "description"
+        "studyId"
       ],
       "type": "object"
     },
-    "StudySampleListId": {
+    "Reply_StudySampleListId": {
       "description": "Exact cBioPortal sample-list identity.",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
-    "StudySampleLists": {
-      "additionalProperties": false,
+    "Reply_StudySampleLists": {
       "description": "One independently acquired, bounded native metadata collection.",
       "properties": {
         "acquired": {
           "description": "Live collection acquisition wall time in Unix seconds, distinct from catalog acquisition.",
           "format": "uint64",
           "minimum": 0,
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "items": {
           "description": "Complete ordered metadata records, never member sample IDs.",
           "items": {
-            "$ref": "#/$defs/StudySampleList"
+            "$ref": "#/$defs/Reply_StudySampleList"
           },
           "type": "array"
         },
         "page": {
-          "$ref": "#/$defs/PageInfo",
+          "$ref": "#/$defs/Reply_PageInfo",
           "description": "Bounds and source-stated total for this collection."
         },
         "study_id": {
-          "$ref": "#/$defs/StudyId",
+          "$ref": "#/$defs/Reply_StudyId",
           "description": "Exact study scope of this collection."
         }
       },
       "required": [
         "study_id",
-        "page",
-        "acquired"
+        "page"
       ],
       "type": "object"
     },
-    "StudySection": {
+    "Reply_StudySamples": {
+      "description": "Source sample identities and types from one complete received collection.",
+      "properties": {
+        "acquired": {
+          "description": "Source collection acquisition time.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "items": {
+          "description": "Source sample identities and types in native order.",
+          "items": {
+            "$ref": "#/$defs/Reply_StudySample"
+          },
+          "type": "array"
+        },
+        "page": {
+          "$ref": "#/$defs/Reply_PageInfo",
+          "description": "Bounds within the received collection."
+        },
+        "study_id": {
+          "$ref": "#/$defs/Reply_StudyId",
+          "description": "Exact native study scope."
+        }
+      },
+      "required": [
+        "study_id",
+        "page"
+      ],
+      "type": "object"
+    },
+    "Reply_StudySection": {
       "description": "Supported bounded study metadata sections; gene counts are deferred.",
       "enum": [
         "profiles",
         "sample-lists",
+        "mutations",
+        "samples",
         "files",
         "all"
       ],
@@ -1644,12 +2140,13 @@
       "x-enum-descriptions": [
         " Five exact native molecular profile references.",
         " Five sample-list metadata records, without member sample IDs.",
+        " Source mutation rows for the required gene and selected mutation profile.",
+        " Source sample identities and types only.",
         " Five repository file references; no automatic download.",
-        " Each named section's bounded first page; never a gene aggregate request."
+        " Bounded first pages; mutations are included only when gene is supplied."
       ]
     },
-    "StudySnapshot": {
-      "additionalProperties": false,
+    "Reply_StudySnapshot": {
       "description": "Metadata catalog revision and acquisition time; never a biological release date.",
       "properties": {
         "acquired": {
@@ -1659,7 +2156,7 @@
           "type": "integer"
         },
         "revision": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Immutable bundle revision."
         }
       },
@@ -1669,31 +2166,33 @@
       ],
       "type": "object"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.study-card/2",
+  "$id": "biomcp.study-card/7",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "description": "One versioned command response; schema identity comes only from its body type.",
+  "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
     "local_error": {
       "anyOf": [
         {
-          "$ref": "#/$defs/CacheProblem"
+          "$ref": "#/$defs/Reply_CacheProblem"
         },
         {
           "type": "null"
@@ -1704,14 +2203,14 @@
     "next": {
       "description": "Available next commands.",
       "items": {
-        "$ref": "#/$defs/Step"
+        "$ref": "#/$defs/Reply_Step"
       },
       "type": "array"
     },
     "page": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PageInfo"
+          "$ref": "#/$defs/Reply_PageInfo"
         },
         {
           "type": "null"
@@ -1722,18 +2221,18 @@
     "problems": {
       "description": "Rejected source fields.",
       "items": {
-        "$ref": "#/$defs/Problem"
+        "$ref": "#/$defs/Reply_Problem"
       },
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/StudyGet",
+      "$ref": "#/$defs/Reply_StudyGet",
       "description": "Parsed query."
     },
     "result": {
       "anyOf": [
         {
-          "$ref": "#/$defs/StudyCard"
+          "$ref": "#/$defs/Reply_StudyCard"
         },
         {
           "type": "null"
@@ -1742,18 +2241,18 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.study-card/2",
+      "const": "biomcp.study-card/7",
       "type": "string"
     },
     "sources": {
       "description": "Sources actually asked.",
       "items": {
-        "$ref": "#/$defs/SourceOutcome"
+        "$ref": "#/$defs/Reply_SourceOutcome"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/Status",
+      "$ref": "#/$defs/Reply_Status",
       "description": "Overall outcome."
     }
   },

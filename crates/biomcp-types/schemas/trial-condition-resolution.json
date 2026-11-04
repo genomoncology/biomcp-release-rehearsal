@@ -1,13 +1,23 @@
 {
   "$defs": {
-    "Attribution": {
-      "additionalProperties": false,
+    "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -15,10 +25,21 @@
           ],
           "description": "Source evaluation date."
         },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
+        },
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -29,7 +50,7 @@
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -38,13 +59,13 @@
           "description": "Dataset release."
         },
         "source": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the claim."
         },
         "submitter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +76,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -67,7 +88,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -81,16 +102,15 @@
       ],
       "type": "object"
     },
-    "ComponentLabel": {
-      "additionalProperties": false,
+    "Reply_ComponentLabel": {
       "description": "Terms attached to a named carried component on a consumer response.",
       "properties": {
         "component": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native component name."
         },
         "terms": {
-          "$ref": "#/$defs/ComponentTerms",
+          "$ref": "#/$defs/Reply_ComponentTerms",
           "description": "Canonical publisher terms."
         }
       },
@@ -100,21 +120,20 @@
       ],
       "type": "object"
     },
-    "ComponentTerms": {
-      "additionalProperties": false,
+    "Reply_ComponentTerms": {
       "description": "Terms attached to one independently licensed source component.",
       "properties": {
         "name": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Publisher terms name."
         },
         "url": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Publisher terms page.",
           "format": "uri"
         },
         "usage": {
-          "$ref": "#/$defs/Use",
+          "$ref": "#/$defs/Reply_Use",
           "description": "Publisher use category."
         }
       },
@@ -125,19 +144,18 @@
       ],
       "type": "object"
     },
-    "Curie": {
+    "Reply_Curie": {
       "description": "Checked prefix:local ontology identifier.",
-      "pattern": "^[A-Za-z0-9_.-]+:[^\\s\\x00-\\x1f\\x7f-\\x9f]+$",
+      "pattern": "^[A-Za-z0-9_.-]+:[^:/\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f][^:\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]*$",
       "type": "string"
     },
-    "DiseaseConcept": {
-      "additionalProperties": false,
+    "Reply_DiseaseConcept": {
       "description": "A disease identity whose optional display label never determines record admission.",
       "properties": {
         "id": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Curie"
+              "$ref": "#/$defs/Reply_Curie"
             },
             {
               "type": "null"
@@ -146,24 +164,23 @@
           "description": "Source-stated exact identifier."
         },
         "label": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Native display label when supplied and valid."
         }
       },
       "type": "object"
     },
-    "DiseaseEndpoint": {
-      "additionalProperties": false,
-      "description": "One native endpoint with an identifier and an optional source label.",
+    "Reply_DiseaseEndpoint": {
+      "description": "One native endpoint with an identifier and an optional source label.\nNative associations use this reference because a source may omit a display label.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Exact source identifier."
         },
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -177,12 +194,11 @@
       ],
       "type": "object"
     },
-    "DiseaseRelation": {
-      "additionalProperties": false,
+    "Reply_DiseaseRelation": {
       "description": "A publisher relation with distinct endpoints and predicate.",
       "properties": {
         "attribution": {
-          "$ref": "#/$defs/Attribution",
+          "$ref": "#/$defs/Reply_Attribution",
           "description": "Publisher record and version."
         },
         "description": {
@@ -193,15 +209,15 @@
           ]
         },
         "object": {
-          "$ref": "#/$defs/DiseaseEndpoint",
+          "$ref": "#/$defs/Reply_DiseaseEndpoint",
           "description": "Native object."
         },
         "predicate": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Publisher predicate, without equivalence promotion."
         },
         "subject": {
-          "$ref": "#/$defs/DiseaseEndpoint",
+          "$ref": "#/$defs/Reply_DiseaseEndpoint",
           "description": "Native subject."
         }
       },
@@ -213,86 +229,13 @@
       ],
       "type": "object"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Source": {
+    "Reply_Source": {
       "description": "A source of BioMCP data, identified by its canonical short name.",
-      "enum": [
-        "hgnc",
-        "mygene",
-        "reactome",
-        "wikipathways",
-        "hpa",
-        "uniprot",
-        "interpro",
-        "complex-portal",
-        "gnomad",
-        "clinvar",
-        "erepo",
-        "gwas",
-        "clingen",
-        "gencc",
-        "pubmed",
-        "europepmc",
-        "litvar",
-        "litsense",
-        "semantic-scholar",
-        "orcid",
-        "pmc-oa",
-        "icite",
-        "pubtator",
-        "ctgov",
-        "nci",
-        "civic",
-        "hotspots",
-        "alphagenome",
-        "oncokb",
-        "myvariant",
-        "car",
-        "mutalyzer",
-        "variantvalidator",
-        "mychem",
-        "chembl",
-        "opentargets",
-        "openfda-label",
-        "drugsfda",
-        "ema",
-        "who-pq",
-        "ddinter",
-        "drugbank-open",
-        "drugcentral",
-        "gtopdb",
-        "unii",
-        "ndc",
-        "openfda-xref",
-        "ols",
-        "mydisease",
-        "monarch",
-        "seer",
-        "mondo",
-        "doid",
-        "ncit",
-        "hpo",
-        "orphanet",
-        "omim",
-        "faers",
-        "vaers",
-        "maude",
-        "meddra",
-        "gmdn",
-        "gtr",
-        "who-ivd",
-        "fda-cdx",
-        "fda-pma",
-        "fda-510k",
-        "cpic",
-        "clinpgx",
-        "cbioportal",
-        "cellosaurus"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " HGNC.",
@@ -362,37 +305,116 @@
         " FDA companion diagnostic device tables.",
         " openFDA premarket approval submissions.",
         " FDA native 510(k) clearance records.",
+        " openFDA medical device product recall records.",
+        " FDA drug enforcement recall records.",
         " Clinical Pharmacogenetics Implementation Consortium.",
         " ClinPGx pharmacogenomics annotations.",
         " Public cBioPortal with study-specific reuse terms.",
         " Cellosaurus cell line identity."
+      ],
+      "x-extensible-enum": [
+        "hgnc",
+        "mygene",
+        "reactome",
+        "wikipathways",
+        "hpa",
+        "uniprot",
+        "interpro",
+        "complex-portal",
+        "gnomad",
+        "clinvar",
+        "erepo",
+        "gwas",
+        "clingen",
+        "gencc",
+        "pubmed",
+        "europepmc",
+        "litvar",
+        "litsense",
+        "semantic-scholar",
+        "orcid",
+        "pmc-oa",
+        "icite",
+        "pubtator",
+        "ctgov",
+        "nci",
+        "civic",
+        "hotspots",
+        "alphagenome",
+        "oncokb",
+        "myvariant",
+        "car",
+        "mutalyzer",
+        "variantvalidator",
+        "mychem",
+        "chembl",
+        "opentargets",
+        "openfda-label",
+        "drugsfda",
+        "ema",
+        "who-pq",
+        "ddinter",
+        "drugbank-open",
+        "drugcentral",
+        "gtopdb",
+        "unii",
+        "ndc",
+        "openfda-xref",
+        "ols",
+        "mydisease",
+        "monarch",
+        "seer",
+        "mondo",
+        "doid",
+        "ncit",
+        "hpo",
+        "orphanet",
+        "omim",
+        "faers",
+        "vaers",
+        "maude",
+        "meddra",
+        "gmdn",
+        "gtr",
+        "who-ivd",
+        "fda-cdx",
+        "fda-pma",
+        "fda-510k",
+        "fda-device-recall",
+        "fda-drug-recall",
+        "cpic",
+        "clinpgx",
+        "cbioportal",
+        "cellosaurus"
       ]
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "Use": {
+    "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",
       "enum": [
         "open",
         "attribution",
         "noncommercial",
-        "restricted"
+        "licensed",
+        "per-record"
       ],
       "type": "string"
     }
   },
-  "$id": "biomcp.trial-condition-resolution/2",
+  "$id": "biomcp.trial-condition-resolution/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "Exact condition identity used for one trial request, without eligibility inference.",
   "properties": {
     "alias": {
       "anyOf": [
         {
-          "$ref": "#/$defs/DiseaseRelation"
+          "$ref": "#/$defs/Reply_DiseaseRelation"
         },
         {
           "type": "null"
@@ -403,7 +425,7 @@
     "attribution": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Attribution"
+          "$ref": "#/$defs/Reply_Attribution"
         },
         {
           "type": "null"
@@ -414,14 +436,14 @@
     "components": {
       "description": "Admitted resolver components and their own terms.",
       "items": {
-        "$ref": "#/$defs/ComponentLabel"
+        "$ref": "#/$defs/Reply_ComponentLabel"
       },
       "type": "array"
     },
     "concept": {
       "anyOf": [
         {
-          "$ref": "#/$defs/DiseaseConcept"
+          "$ref": "#/$defs/Reply_DiseaseConcept"
         },
         {
           "type": "null"
@@ -430,20 +452,20 @@
       "description": "Returned concept with its unchanged native primary label."
     },
     "input": {
-      "$ref": "#/$defs/Curie",
+      "$ref": "#/$defs/Reply_Curie",
       "description": "Caller-selected CURIE, never a source-name search."
     },
     "ncit_candidates": {
       "description": "Native NCIt mapping rows; duplicate targets keep their independent provenance.",
       "items": {
-        "$ref": "#/$defs/DiseaseRelation"
+        "$ref": "#/$defs/Reply_DiseaseRelation"
       },
       "type": "array"
     },
     "resolver": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Source"
+          "$ref": "#/$defs/Reply_Source"
         },
         {
           "type": "null"
@@ -454,7 +476,7 @@
     "selected_ncit": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Curie"
+          "$ref": "#/$defs/Reply_Curie"
         },
         {
           "type": "null"

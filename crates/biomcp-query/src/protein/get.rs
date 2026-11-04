@@ -3,19 +3,23 @@ use crate::{Action, Bundle, Ctx, Outcome, status};
 use biodata::UniProtIsoform;
 use biomcp_adapters::{hgnc, uniprot};
 use biomcp_fetch::{Find, KeyKind, Leg, RequestError};
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    ProteinCard, ProteinCardItem, ProteinGet, ProteinInput, QueryBody, Request, Source,
-    SourceState, Status, StepKind,
+    ProteinCard, ProteinCardItem, ProteinGet, ProteinInput, Request, Source, SourceState, Status,
+    StepKind,
 };
 /// Exact accessions resolve independently and remain in caller order.
-pub fn get(cx: &Ctx<'_>, q: &ProteinGet) -> Outcome {
+pub(crate) fn get(cx: &Ctx<'_>, q: &ProteinGet) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let hgnc_leg = cx.fetch.leg(&hgnc::SPEC, deadline).fresh(cx.fresh);
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
-    let mut out = super::empty(QueryBody::ProteinCard(ProteinCard {
-        items: Box::default(),
-    }));
+    let mut out = super::empty(
+        (ProteinCard {
+            items: Box::default(),
+        })
+        .with_query(q.clone()),
+    );
     let mut hgnc_error = None;
     let mut protein_error = None;
     let mut items = Vec::new();
@@ -48,26 +52,27 @@ pub fn get(cx: &Ctx<'_>, q: &ProteinGet) -> Outcome {
     {
         for item in &mut items {
             if item.status == Status::Complete {
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
             }
         }
     }
     super::source_sections::supplement(cx, q, &mut items, &mut out, deadline);
-    out.status = status::status(items.iter().map(|i| i.status));
+    status::get(&mut out, items.iter().map(|i| i.status));
     if out.next.is_empty() {
-        out.next = next::cards(&items);
+        out.next = next::cards(&items, &mut out.problems);
     }
     recovery(q, &mut out);
-    out.body = QueryBody::ProteinCard(ProteinCard {
+    out.body = (ProteinCard {
         items: items.into(),
-    });
+    })
+    .with_query(q.clone());
     command.finish(deadline.remaining());
     out
 }
 fn empty_item(input: ProteinInput) -> ProteinCardItem {
     ProteinCardItem {
         input,
-        status: Status::Failed,
+        status: crate::status::item_status(false, true, false),
         header: None,
         candidates: Box::default(),
         audit: None,
@@ -95,7 +100,7 @@ fn ids(
         .filter(|g| g.symbol.as_str() == symbol.as_str())
     {
         for id in gene.uniprot {
-            if let Ok(id) = UniProtIsoform::new(id.as_str())
+            if let Some(id) = UniProtIsoform::new(id.as_str())
                 && !ids.contains(&id)
             {
                 ids.push(id);
@@ -113,18 +118,19 @@ fn hydrate(
     error: &mut Option<RequestError>,
 ) {
     let ambiguous = ids.len() > 1;
-    item.status = Status::Absent;
+    item.status = crate::status::item_status(false, false, false);
     let mut failed = false;
     for id in ids {
         match uniprot::entry(leg, &id) {
             Ok(mapped) => {
-                failed |= !mapped.problems.is_empty();
-                if mapped.value.is_none() && !mapped.problems.is_empty() {
+                failed |= mapped.refusals == biomcp_adapters::Refusal::Refused;
+                if mapped.value.is_none() && mapped.refusals == biomcp_adapters::Refusal::Refused {
                     *error = Some(
                         biomcp_fetch::SourceError {
                             source: Source::UniProt,
                             reason: biomcp_types::Reason::BadReply,
                             status: Some(200),
+                            tls_cause: None,
                             retry_after: None,
                         }
                         .into(),
@@ -132,7 +138,7 @@ fn hydrate(
                 }
                 status::append(&mut out.problems, mapped.problems);
                 if let Some(entry) = mapped.value {
-                    item.status = Status::Complete;
+                    item.status = crate::status::item_status(true, false, false);
                     if ambiguous {
                         let mut rows = item.candidates.to_vec();
                         rows.push(entry.header);
@@ -178,9 +184,9 @@ fn hydrate(
     }
     if failed {
         item.status = if item.header.is_some() || !item.candidates.is_empty() {
-            Status::Partial
+            crate::status::item_status(true, false, true)
         } else {
-            Status::Failed
+            crate::status::item_status(false, true, false)
         };
     }
 }
@@ -200,20 +206,20 @@ fn recovery(q: &ProteinGet, out: &mut Outcome) {
     out.next
         .truncate(5 - usize::from(fresh) - usize::from(sync));
     if sync {
-        out.next.push((
+        out.next.push(crate::next::Step::new(
             StepKind::Sync,
+            &[biomcp_types::Source::Hgnc],
             Action::Sync {
-                bundle: Bundle::Hgnc,
+                bundle: Bundle::HGNC,
             },
         ));
     }
     if fresh {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: Request::GetProtein(q.clone()),
-                fresh: true,
-            },
+            &[biomcp_types::Source::UniProt],
+            Request::GetProtein(q.clone()),
+            true,
         ));
     }
 }

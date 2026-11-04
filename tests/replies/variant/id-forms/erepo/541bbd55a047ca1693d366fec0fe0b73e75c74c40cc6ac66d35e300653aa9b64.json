@@ -1,0 +1,30 @@
+{
+  "method": "GET",
+  "source": "erepo",
+  "url": "https://erepo.clinicalgenome.org/evrepo/api/summary/classifications?columns=caId&values=CA118639&matchTypes=exact&pgSize=3&pg=1",
+  "exchanges": [
+    {
+      "fetched": 1793808996,
+      "status": 404,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "metadata": {
+            "rendered": {
+              "by": "https://erepo.genome.network/evrepo/api/summary/srvc",
+              "when": "2026-11-04T16:16:36.947Z"
+            }
+          },
+          "status": {
+            "code": 404,
+            "msg": "No records were found for given query",
+            "name": "Not Found"
+          }
+        }
+      }
+    }
+  ]
+}

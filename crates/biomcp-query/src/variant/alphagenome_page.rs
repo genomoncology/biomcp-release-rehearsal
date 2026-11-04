@@ -1,8 +1,6 @@
 //! Page every native tensor independently in publisher row-major order.
-use biomcp_fetch::{
-    BadReply, RequestError,
-    grpc::alphagenome::{ScoreGroup, ScoreReply, ScoreRequest},
-};
+use biomcp_adapters::alphagenome::{ScoreGroup, ScoreReply, ScoreRequest};
+use biomcp_fetch::{BadReply, RequestError};
 use biomcp_types::{
     AlphaGenomeDataType, AlphaGenomeScorer, AlphaGenomeScorerPage, AlphaGenomeValue, PageInfo,
     Reason, Source, VariantAlphaGenome, VariantGet, VariantSection,
@@ -11,17 +9,25 @@ use biomcp_types::{
 pub(super) fn page(
     query: &VariantGet,
     request: &ScoreRequest,
-    reply: ScoreReply,
-) -> Result<VariantAlphaGenome, RequestError> {
-    mapped(query, request, reply).map_err(|_| {
-        biomcp_fetch::SourceError {
-            source: Source::AlphaGenome,
-            reason: Reason::BadReply,
-            status: None,
-            retry_after: None,
-        }
-        .into()
-    })
+    mut reply: ScoreReply,
+) -> Result<biomcp_adapters::Mapped<VariantAlphaGenome>, RequestError> {
+    let problems = std::mem::take(&mut reply.problems);
+    mapped(query, request, reply)
+        .map(|value| biomcp_adapters::Mapped {
+            refusals: biomcp_adapters::Refusal::None,
+            value,
+            problems,
+        })
+        .map_err(|_| {
+            biomcp_fetch::SourceError {
+                source: Source::AlphaGenome,
+                reason: Reason::BadReply,
+                status: None,
+                tls_cause: None,
+                retry_after: None,
+            }
+            .into()
+        })
 }
 fn mapped(
     query: &VariantGet,
@@ -65,9 +71,14 @@ fn group_page(
         .skip(query.section_offset() as usize)
         .take(query.section_limit() as usize)
         .map(|(index, bytes)| value(&group, shape, index, bytes))
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>();
     let returned = rows.len() as u32;
-    let next_offset = u64::from(query.section_offset()) + u64::from(returned);
+    // Consume native tensor positions, including refused identities; never repeat or shift axes.
+    let next_offset =
+        total.min(query.section_offset() as usize + query.section_limit() as usize) as u64;
     Ok(AlphaGenomeScorerPage {
         request_ordinal: ordinal.try_into().map_err(|_| BadReply)?,
         requested_scorer: match ordinal {
@@ -98,7 +109,7 @@ fn value(
     shape: [u32; 3],
     index: usize,
     bytes: &[u8],
-) -> Result<AlphaGenomeValue, BadReply> {
+) -> Result<Option<AlphaGenomeValue>, BadReply> {
     let tracks = shape[2] as usize;
     let genes = shape[1] as usize;
     if tracks == 0 || genes == 0 {
@@ -107,17 +118,24 @@ fn value(
     let plane = index / tracks / genes;
     let row = index / tracks % genes;
     let track = index % tracks;
-    Ok(AlphaGenomeValue {
+    let Some(track_metadata) = group.tracks.get(track).ok_or(BadReply)?.clone() else {
+        return Ok(None);
+    };
+    let gene = if group.genes.is_empty() {
+        None
+    } else {
+        let Some(gene) = group.genes.get(row).ok_or(BadReply)?.clone() else {
+            return Ok(None);
+        };
+        Some(gene)
+    };
+    Ok(Some(AlphaGenomeValue {
         tensor_index: [plane as u32, row as u32, track as u32],
         value: biomcp_types::AlphaGenomeScalar::from_float32(f32::from_le_bytes(
             bytes.try_into().map_err(|_| BadReply)?,
         ))
         .map_err(|_| BadReply)?,
-        track: group.tracks.get(track).ok_or(BadReply)?.clone(),
-        gene: if group.genes.is_empty() {
-            None
-        } else {
-            Some(group.genes.get(row).ok_or(BadReply)?.clone())
-        },
-    })
+        track: track_metadata,
+        gene,
+    }))
 }

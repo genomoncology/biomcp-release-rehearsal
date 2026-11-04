@@ -25,8 +25,12 @@ use serde::{Deserialize, Deserializer};
 /// Body text with source row boundaries and deterministic reading order.
 #[derive(Debug)]
 pub struct Body {
+    /// Actual refused source bibliography records.
+    pub refusals: crate::Refusal,
     /// Source title from article metadata, without an extra lookup.
     pub title: Option<Text>,
+    /// Optional values rejected independently of the document.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Explicit source article identifiers in metadata order.
     pub identifiers: Vec<(Text, Text)>,
     /// Own PMC identity when present in JATS metadata.
@@ -60,9 +64,14 @@ impl XmlReply for Body {
             .ok_or(BadReply)?;
         let metadata = root.at(&["front", "article-meta"])?;
         let pmcid = own_id(metadata)?;
-        let (title, identifiers) = header(metadata)?;
+        let mut problems = crate::mapped::Problems {
+            source: biomcp_types::Source::PmcOa,
+            record: pmcid.and_then(crate::mapped::record),
+            list: Vec::new(),
+        };
+        let (title, identifiers) = header(metadata, &mut problems)?;
         let body = root.child("body")?.ok_or(BadReply)?;
-        let (parts, rows) = render::body(body)?;
+        let (parts, rows) = render::body(body, &mut problems)?;
         let mut figures = Vec::new();
         for fig in blocks::descendants(body.0, "fig")? {
             let Some(caption) = fig.child("caption")? else {
@@ -72,19 +81,27 @@ impl XmlReply for Body {
                 continue;
             }
             figures.push(FigureCaption {
-                label: Text::new(&fig.value(&["label"])?.unwrap_or_else(|| "Figure".into()))
-                    .map_err(|_| BadReply)?,
+                label: problems.optional(
+                    "figures.label",
+                    Some(Text::from_source(
+                        &fig.value(&["label"])?.unwrap_or_else(|| "Figure".into()),
+                    )),
+                ),
                 caption: markdown(caption.0)?,
             });
         }
+        let mut refusals = crate::Refusal::None;
+        let references = references::rows(root.0, &mut problems, &mut refusals)?;
         Ok(Self {
+            refusals,
             title,
             identifiers,
             pmcid,
-            supplements: supplements::read(root.0)?,
+            supplements: supplements::read(root.0, &mut problems)?,
             parts,
             rows,
-            references: references::rows(root.0)?,
+            references,
+            problems: problems.list,
             figures,
         })
     }
@@ -113,21 +130,25 @@ fn own_id(metadata: Option<Element<'_>>) -> Result<Option<Pmcid>, BadReply> {
 }
 
 type Header = (Option<Text>, Vec<(Text, Text)>);
-fn header(metadata: Option<Element<'_>>) -> Result<Header, BadReply> {
+fn header(
+    metadata: Option<Element<'_>>,
+    problems: &mut crate::mapped::Problems,
+) -> Result<Header, BadReply> {
     let Some(metadata) = metadata else {
         return Ok((None, Vec::new()));
     };
     let title = metadata
         .value(&["title-group", "article-title"])?
-        .map(|s| Text::new(&s).map_err(|_| BadReply))
-        .transpose()?;
+        .and_then(|s| problems.optional("title", Some(Text::from_source(&s))));
     let mut ids = Vec::new();
     for id in metadata.children("article-id")? {
         if let Some(kind) = id.attr("pub-id-type")? {
-            ids.push((
-                Text::new(&kind).map_err(|_| BadReply)?,
-                Text::new(&id.text()?).map_err(|_| BadReply)?,
-            ));
+            let value = id.text()?;
+            let kind = problems.optional("identifiers.kind", Some(Text::new(&kind)));
+            let value = problems.optional("identifiers.value", Some(Text::new(&value)));
+            if let (Some(kind), Some(value)) = (kind, value) {
+                ids.push((kind, value));
+            }
         }
     }
     Ok((title, ids))

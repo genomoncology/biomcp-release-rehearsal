@@ -6,7 +6,8 @@
         "gtr",
         "who-ivd",
         "fda-pma",
-        "fda-510k"
+        "fda-510k",
+        "fda-device-recall"
       ],
       "type": "string"
     },
@@ -16,6 +17,7 @@
         "genes",
         "conditions",
         "methods",
+        "summary",
         "regulatory",
         "supplements"
       ],
@@ -24,6 +26,7 @@
         "GTR native gene rows; five per page.",
         "GTR native condition rows; five per page.",
         "GTR native method entries; five per page.",
+        "FDA SSED PDF text: 25 MiB, 100 pages and 6144 escaped bytes per fragment; scans without text are explicit.",
         "Selected PMA submission statement; one fragment per page.",
         "PMA base application supplement headers; five per page."
       ]
@@ -34,12 +37,14 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.diagnostic-get/1",
+  "$id": "biomcp.diagnostic-get/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.",
@@ -69,7 +74,7 @@
           "type": "null"
         }
       ],
-      "description": "gtr: genes, conditions, methods. fda-pma: regulatory, supplements. WHO and 510(k) have no sections; omit for the card.",
+      "description": "GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.\nWHO, 510(k) and device recalls have no sections; omit for the card.",
       "x-positional": 1
     },
     "section_limit": {
@@ -88,7 +93,7 @@
     },
     "source": {
       "$ref": "#/$defs/DiagnosticGetSource",
-      "description": "Explicit source; gtr needs accession/version, who-ivd a known Product ID, fda-pma a P number, fda-510k a K number."
+      "description": "Explicit source: GTR accession/version, WHO Product ID, PMA P number,\n510(k) K number or device recall Z-NNNN-YYYY."
     },
     "supplement": {
       "anyOf": [

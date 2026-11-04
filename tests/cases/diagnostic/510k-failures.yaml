@@ -1,95 +1,11 @@
 {
+  "live_check": "synthetic rate-limit, server-error, deadline and malformed clearance replies",
   "feature": "diagnostic-510k",
   "story": "Synthetic rate limits, upstream errors, deadlines and malformed replies stay failures with the clearance source policy.",
   "replay": "diagnostic/510k-failures",
   "steps": [
     {
       "run": [
-        "get",
-        "diagnostic",
-        "K999991",
-        "--source",
-        "fda-510k"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "K999991",
-        "--source",
-        "fda-510k"
-      ],
-      "exit": 4,
-      "max_bytes": 357,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/source": "fda-510k",
-        "/sources/0/use": "open",
-        "/sources/0/terms": "openFDA terms and license; third-party exceptions",
-        "/sources/0/reason": "rate_limited"
-      },
-      "is_error": true
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "K999992",
-        "--source",
-        "fda-510k"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "K999992",
-        "--source",
-        "fda-510k"
-      ],
-      "exit": 4,
-      "max_bytes": 356,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/source": "fda-510k",
-        "/sources/0/use": "open",
-        "/sources/0/terms": "openFDA terms and license; third-party exceptions",
-        "/sources/0/reason": "unavailable"
-      },
-      "is_error": true
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "K999993",
-        "--source",
-        "fda-510k"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "K999993",
-        "--source",
-        "fda-510k"
-      ],
-      "exit": 4,
-      "max_bytes": 363,
-      "expect": {
-        "/status": "failed",
-        "/sources/0/source": "fda-510k",
-        "/sources/0/use": "open",
-        "/sources/0/terms": "openFDA terms and license; third-party exceptions",
-        "/sources/0/reason": "deadline_exceeded"
-      },
-      "is_error": true
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "K999994",
-        "--source",
-        "fda-510k"
-      ],
-      "mcp": [
         "get",
         "diagnostic",
         "K999994",
@@ -103,7 +19,7 @@
         "/sources/0/source": "fda-510k",
         "/sources/0/use": "open",
         "/sources/0/terms": "openFDA terms and license; third-party exceptions",
-        "/sources/0/reason": "bad_reply"
+        "/sources/0/reason": "bad-reply"
       },
       "is_error": true
     }

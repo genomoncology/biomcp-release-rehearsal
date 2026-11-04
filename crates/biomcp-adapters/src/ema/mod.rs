@@ -3,8 +3,8 @@ mod map;
 mod raw;
 use biodata::DrugId;
 use biomcp_fetch::{
-    Bundle, BundleInfo, Fetch, Find, Freshness, KeyKind, KeyUse, Leg, RequestError, RowFormat,
-    SourceSpec, Terms,
+    Bundle, Fetch, Find, Freshness, KeyKind, KeyUse, Leg, RequestError, RowFormat, SourceSpec,
+    Terms,
 };
 use biomcp_types::Source;
 use biomcp_types::{DrugCard, DrugHeader, DrugRecords, DrugRegulatory, Section};
@@ -38,24 +38,67 @@ const MEDICINES: Bundle<raw::Medicine> = Bundle {
     row: PhantomData,
 };
 /// Explicit complete-file synchronization through the shared atomic bundle store.
-pub fn sync(fetch: &Fetch) -> Result<BundleInfo, RequestError> {
-    fetch.sync(&MEDICINES)
+pub fn sync(fetch: &Fetch) -> Result<crate::Mapped<biomcp_types::SyncResult>, RequestError> {
+    fetch
+        .sync(&MEDICINES)
+        .map(|info| crate::mapped::bundle_sync(SPEC.source, info))
 }
 /// Literal medicine-name candidates in native bundle order; never synchronize on reads.
 pub fn search(leg: &Leg<'_>, query: &str) -> Result<crate::Mapped<Vec<DrugHeader>>, RequestError> {
     let (rows, _) = leg.stored_rows(&MEDICINES, Find::Words(query))?;
+    Ok(name_headers(&rows, query, false))
+}
+/// Resolve names from the existing local rows, including snapshots whose older word index omitted generic fields.
+/// Native ID lookup remains indexed; reads never synchronize or modify the stored snapshot.
+pub fn search_names(
+    leg: &Leg<'_>,
+    query: &str,
+) -> Result<crate::Mapped<Vec<DrugHeader>>, RequestError> {
+    let (rows, _) = leg.stored_rows(&MEDICINES, Find::Prefix(KeyKind::Id, ""))?;
+    Ok(name_headers(&rows, query, true))
+}
+fn name_headers(
+    rows: &[raw::Medicine],
+    query: &str,
+    only_matches: bool,
+) -> crate::Mapped<Vec<DrugHeader>> {
     let mut problems = fields(None);
     let value = rows
         .iter()
-        .map(|row| {
+        .filter_map(|row| {
+            let exact = |field| {
+                row.field(field)
+                    .and_then(Result::ok)
+                    .is_some_and(|n| biomcp_types::DrugNameMatch::same_name(n, query))
+            };
+            let fields = [
+                "active_substance",
+                "international_non_proprietary_name_common_name",
+            ];
+            let generic_exact = fields.iter().any(|field| exact(field));
+            let generic = fields.iter().any(|field| {
+                row.field(field)
+                    .and_then(Result::ok)
+                    .is_some_and(|value| biomcp_types::DrugNameMatch::generic_name(value, query))
+            });
+            let matched = biomcp_types::DrugNameMatch::from_fields(
+                exact("name_of_medicine") && !generic_exact,
+                generic,
+            );
+            if only_matches && matched.is_none() {
+                return None;
+            }
             problems.record = Some(row.record.clone());
-            map::header(row, &mut problems)
+            let mut header = map::header(row, &mut problems);
+            header.matched_name = matched;
+            Some(header)
         })
         .collect();
-    Ok(crate::Mapped {
+    crate::Mapped {
+        refusals: crate::Refusal::None,
         value,
         problems: problems.list,
-    })
+    }
 }
 fn exact(leg: &Leg<'_>, id: &DrugId) -> Result<Option<raw::Medicine>, RequestError> {
     let (mut rows, _) = leg.stored_rows(&MEDICINES, Find::Exact(KeyKind::Id, &id.to_string()))?;
@@ -69,6 +112,7 @@ pub fn card(leg: &Leg<'_>, id: &DrugId) -> Result<crate::Mapped<Option<DrugCard>
         .as_ref()
         .map(|row| map::card(row, &mut problems));
     Ok(crate::Mapped {
+        refusals: crate::Refusal::None,
         value,
         problems: problems.list,
     })
@@ -88,12 +132,13 @@ pub fn regulatory(
                 offset: 0,
                 total: Some(1),
                 truncated: None,
-                version: Some(row.meta.timestamp),
+                version: problems.field("_bundle_meta.timestamp", row.meta.timestamp),
                 retrieved: None,
             },
         },
     });
     Ok(crate::Mapped {
+        refusals: crate::Refusal::None,
         value,
         problems: problems.list,
     })
@@ -110,3 +155,6 @@ fn fields(id: Option<&DrugId>) -> crate::mapped::Problems {
 pub(crate) fn bundle_state(leg: &Leg<'_>) -> Result<biomcp_types::LocalBundleState, RequestError> {
     leg.stored_bundle_state(&MEDICINES)
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

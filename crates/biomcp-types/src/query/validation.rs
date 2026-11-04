@@ -5,13 +5,24 @@ use serde::Deserializer;
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct QueryInvalid {
     arguments: Box<[Box<str>]>,
+    message: Option<crate::ErrorMessage>,
 }
 impl QueryInvalid {
     /// Retain argument identities only; callers must never pass rejected values.
     pub fn new(arguments: &[&str]) -> Self {
         Self {
             arguments: arguments.iter().map(|name| Box::from(*name)).collect(),
+            message: None,
         }
+    }
+    /// Preserve fixed refusal guidance from the checked constructor.
+    pub fn with_message(mut self, message: crate::ErrorMessage) -> Self {
+        self.message = Some(message);
+        self
+    }
+    /// Fixed guidance, without rejected input.
+    pub fn message(&self) -> Option<crate::ErrorMessage> {
+        self.message
     }
     /// Translate a field identity when an adapter renames the input field.
     pub fn rename(mut self, from: &str, to: &str) -> Self {
@@ -41,6 +52,12 @@ impl serde::de::Error for QueryInvalid {
 
 /// Decode fields and preserve the constructor's typed validation cause.
 pub trait CheckedQuery: Sized {
+    /// Fixed command guidance for failed checked input.
+    const USAGE_MESSAGE: Option<crate::ErrorMessage> = None;
+    /// Name a rejected field without retaining its value.
+    fn invalid_field(name: &str) -> QueryInvalid {
+        QueryInvalid::new(&[name])
+    }
     /// Decode checked fields once, then call the owning constructor.
     fn from_fields<'de, D: Deserializer<'de, Error = QueryInvalid>>(
         deserializer: D,
@@ -49,7 +66,11 @@ pub trait CheckedQuery: Sized {
 
 macro_rules! checked_query {
     ($query:ty, $fields:ty) => {
+        $crate::query::validation::checked_query!($query, $fields, None);
+    };
+    ($query:ty, $fields:ty, $message:expr) => {
         impl $crate::CheckedQuery for $query {
+            const USAGE_MESSAGE: Option<$crate::ErrorMessage> = $message;
             fn from_fields<'de, D: serde::Deserializer<'de, Error = $crate::QueryInvalid>>(
                 deserializer: D,
             ) -> Result<Self, $crate::QueryInvalid> {

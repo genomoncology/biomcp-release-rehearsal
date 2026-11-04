@@ -26,15 +26,8 @@ pub static SPEC: SourceSpec = SourceSpec {
     deadline: Duration::from_secs(15),
 };
 
-fn bad() -> biomcp_fetch::RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::FdaCdx,
-        reason: biomcp_types::Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
-}
-
 /// Small read-only publisher probe; never an export or synchronization.
 pub(crate) const HEALTH_PATH: &str = "/about-fda/about-website/website-policies";
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

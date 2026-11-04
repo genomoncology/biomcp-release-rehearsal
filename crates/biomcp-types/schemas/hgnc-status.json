@@ -2,14 +2,14 @@
   "$id": "biodata.hgnc-status/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "HGNC's stated withdrawn-file status.",
-  "enum": [
-    "entry_withdrawn",
-    "merged_split"
-  ],
   "title": "HgncStatus",
   "type": "string",
   "x-enum-descriptions": [
     " Entry withdrawn.",
     " Entry merged or split."
+  ],
+  "x-extensible-enum": [
+    "entry_withdrawn",
+    "merged_split"
   ]
 }

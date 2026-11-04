@@ -27,15 +27,6 @@ pub static SPEC: SourceSpec = SourceSpec {
     deadline: Duration::from_secs(15),
 };
 
-fn bad() -> biomcp_fetch::RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::Gtr,
-        reason: biomcp_types::Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
-}
 fn revision(
     expected: Option<&biodata::Text>,
     info: &biomcp_fetch::BundleInfo,
@@ -45,6 +36,7 @@ fn revision(
             source: Source::Gtr,
             reason: biomcp_types::Reason::Rejected,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into());
@@ -54,7 +46,7 @@ fn revision(
 fn conflict(id: &biodata::GtrTestId) -> biomcp_types::Problem {
     biomcp_types::Problem {
         source: Source::Gtr,
-        record: biodata::Text::new(&id.to_string()).ok(),
+        record: crate::mapped::record(id),
         field: "test_accession_ver".into(),
         code: biomcp_types::ProblemCode::IdentityConflict,
     }
@@ -62,3 +54,6 @@ fn conflict(id: &biodata::GtrTestId) -> biomcp_types::Problem {
 
 /// Small read-only publisher probe; never an export or synchronization.
 pub(crate) const HEALTH_PATH: &str = "/data/";
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

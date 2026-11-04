@@ -1,13 +1,18 @@
 //! Native registry discovery; no local clinical interpretation or reordering.
+use biomcp_fetch::Input;
 pub mod detail;
 pub mod document;
+mod filters;
 mod raw;
+mod refusals;
+mod version;
 use biodata::Text;
 use biomcp_fetch::{Arg, Endpoint, Freshness, KeyUse, Leg, RequestError, SourceSpec};
 use biomcp_types::TrialHeader;
 use biomcp_types::TrialSearch;
-use raw::{FirstPage, RawPage, Version};
+use raw::{FirstPage, RawPage};
 use std::{collections::BTreeMap, time::Duration};
+pub use version::version;
 /// Reviewed document download origin.
 pub(crate) const DOCUMENT_ORIGIN: &str = "https://cdn.clinicaltrials.gov";
 /// Publisher terms apply to this registry; individual records are not a blanket CC0 grant.
@@ -22,7 +27,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "ClinicalTrials.gov attribution and source processing date; publisher terms",
         url: "https://clinicaltrials.gov/about-site/terms-conditions",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Attribution,
     },
 };
 const SEARCH: Endpoint = SPEC.get("/studies").fresh(Freshness::Days(1));
@@ -31,8 +36,12 @@ pub const VERSION: Endpoint = SPEC.get("/version").fresh(Freshness::Days(1));
 /// A native search page with opaque source cursor.
 #[derive(Debug)]
 pub struct SearchPage {
+    /// Actual refused studies or native child records, independent of field problems.
+    pub refusals: crate::Refusal,
     /// Source order, untouched.
     pub items: Vec<TrialHeader>,
+    /// Rejected nonidentity fields from retained studies.
+    pub problems: Vec<biomcp_types::Problem>,
     /// At least one complete native condition list lacks the searched words.
     pub condition_word_mismatch: bool,
     /// Exact native total.
@@ -46,23 +55,27 @@ pub struct SearchPage {
 }
 /// Exact parameters; resolved gene text is explicit and attributed to HGNC by the caller.
 pub fn parameters(query: &TrialSearch, gene: Option<&str>) -> BTreeMap<String, String> {
-    let mut p = BTreeMap::from([
-        ("countTotal".into(), "true".into()),
-        ("pageSize".into(), if query.count_only() { "1".into() } else { query.limit().to_string() }),
-        (
-            "fields".into(),
-            "NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults".into(),
-        ),
-    ]);
-    for (name, value) in [
+    name_parameters(query, gene, query.broader_names())
+}
+/// Provider-native name search, preserving every other registry filter.
+pub fn broader_parameters(query: &TrialSearch, gene: Option<&str>) -> BTreeMap<String, String> {
+    name_parameters(query, gene, true)
+}
+fn name_parameters(
+    query: &TrialSearch,
+    gene: Option<&str>,
+    broader_names: bool,
+) -> BTreeMap<String, String> {
+    let mut p = filters::base_parameters(query);
+    for (name, values) in [
         ("query.cond", query.condition()),
         ("query.intr", query.intervention()),
-        ("pageToken", query.next_page()),
     ] {
-        if let Some(value) = value {
-            p.insert(name.into(), value.as_str().into());
+        if !values.is_empty() {
+            p.insert(name.into(), alternatives(values));
         }
     }
+    filters::name_parameters(query, broader_names, &mut p);
     let mut text = Vec::new();
     if let Some(value) = query.query() {
         text.push(value.as_str().to_owned());
@@ -73,13 +86,24 @@ pub fn parameters(query: &TrialSearch, gene: Option<&str>) -> BTreeMap<String, S
     if let Some(value) = gene {
         text.push(value.to_owned());
     }
+    if !query.keyword().is_empty() {
+        let keywords = if text.is_empty() {
+            alternatives(query.keyword())
+        } else {
+            for value in &mut text {
+                *value = format!("({value})");
+            }
+            format!("({})", alternatives(query.keyword()))
+        };
+        text.push(keywords);
+    }
     if !text.is_empty() {
         p.insert("query.term".into(), text.join(" AND "));
     }
     if let Some(status) = query.status() {
         p.insert("filter.overallStatus".into(), status.as_str().to_owned());
     }
-    let advanced = advanced(query);
+    let advanced = filters::advanced(query, broader_names);
     if !advanced.is_empty() {
         p.insert("filter.advanced".into(), advanced);
     }
@@ -113,70 +137,28 @@ pub fn parameters(query: &TrialSearch, gene: Option<&str>) -> BTreeMap<String, S
     }
     p
 }
-fn advanced(query: &TrialSearch) -> String {
-    let mut advanced = Vec::new();
-    if query.exact_condition()
-        && let Some(condition) = query.condition()
-    {
-        advanced.push(format!(
-            "AREA[Condition]EXPANSION[None]{}",
-            quote(condition.as_str())
-        ));
-    }
-    if let Some(id) = query.id() {
-        advanced.push(format!("AREA[NCTId]{id}"));
-    }
-    if let Some(phase) = query.phase() {
-        advanced.extend(
-            phase
-                .phases()
-                .iter()
-                .map(|phase| format!("AREA[Phase]{}", phase.as_str())),
-        );
-    }
-    for (field, value) in [
-        ("EligibilityCriteria", query.criteria()),
-        ("LocationFacility", query.facility()),
-        ("LeadSponsorName", query.sponsor()),
-    ] {
-        if let Some(value) = value {
-            advanced.push(format!("AREA[{field}]{}", quote(value.as_str())));
-        }
-    }
-    if let Some(study_type) = query.study_type() {
-        advanced.push(format!("AREA[StudyType]{}", study_type.as_str()));
-    }
-    if let Some(age) = query.age() {
-        advanced.push(format!(
-            "(AREA[MinimumAge]RANGE[MIN,{age} years] OR AREA[MinimumAge]MISSING) AND \
-            (AREA[MaximumAge]RANGE[{age} years,MAX] OR AREA[MaximumAge]MISSING)"
-        ));
-    }
-    if query.updated_since().is_some() || query.updated_until().is_some() {
-        advanced.push(format!(
-            "AREA[LastUpdatePostDate]RANGE[{},{}]",
-            query
-                .updated_since()
-                .map_or("MIN".into(), ToString::to_string),
-            query
-                .updated_until()
-                .map_or("MAX".into(), ToString::to_string)
-        ));
-    }
-    if query.has_results() {
-        advanced.push("AREA[ResultsFirstPostDate]RANGE[MIN,MAX]".into());
-    }
-    advanced.join(" AND ")
-}
-fn quote(value: &str) -> String {
-    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
-}
 /// Read and validate native discovery results before shared cache admission.
 pub fn search(
     leg: &Leg<'_>,
     params: &BTreeMap<String, String>,
+    conditions: &[Text],
+    countries: &[Box<str>],
 ) -> Result<SearchPage, RequestError> {
     let raw = fetch_page(leg, params)?;
+    if !countries.is_empty()
+        && raw
+            .studies
+            .as_deref()
+            .unwrap_or_default()
+            .iter()
+            .filter_map(crate::raw::Field::as_ref)
+            .any(|row| !row.protocol_section.has_country(countries))
+    {
+        return Err(biomcp_fetch::bad_reply(
+            biomcp_types::Source::ClinicalTrialsGov,
+            Some(200),
+        ));
+    }
     let mut total = raw.total_count;
     let mut count_error = None;
     let mut count_request = None;
@@ -190,22 +172,47 @@ pub fn search(
         }
         count_request = Some(count);
     }
-    let condition_word_mismatch = params.get("query.cond").is_some_and(|condition| {
-        raw.studies
-            .as_deref()
-            .unwrap_or_default()
-            .iter()
-            .any(|row| !row.protocol_section.contains_condition_words(condition))
-    });
+    let condition_word_mismatch = raw
+        .studies
+        .as_deref()
+        .unwrap_or_default()
+        .iter()
+        .filter_map(crate::raw::Field::as_ref)
+        .any(|row| {
+            conditions.iter().any(|condition| {
+                !row.protocol_section
+                    .contains_condition_words(condition.as_str())
+            })
+        });
+    let mut rejected = Vec::new();
+    let mut refusals = crate::Refusal::None;
+    let mapped = raw
+        .studies
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|row| match row.value() {
+            Some(row) => Some(row.protocol_section.header()),
+            None => {
+                refusals = crate::Refusal::Refused;
+                rejected.push(crate::mapped::problem(SPEC.source, None, "nctId"));
+                None
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::ClinicalTrialsGov, Some(200)))?;
+    let (items, problems): (Vec<_>, Vec<_>) = mapped
+        .into_iter()
+        .map(|row| {
+            refusals.include(row.refusals);
+            (row.value, row.problems)
+        })
+        .unzip();
+    rejected.extend(problems.into_iter().flatten());
     Ok(SearchPage {
+        refusals,
+        problems: rejected,
         condition_word_mismatch,
-        items: raw
-            .studies
-            .unwrap_or_default()
-            .into_iter()
-            .map(|row| row.protocol_section.header())
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|_| bad())?,
+        items,
         total,
         count_error,
         count_request,
@@ -218,22 +225,33 @@ fn fetch_page(leg: &Leg<'_>, params: &BTreeMap<String, String>) -> Result<RawPag
         .map(|(k, v)| (k.as_str(), Arg::Text(v)))
         .collect();
     if params.contains_key("pageToken") {
-        leg.json::<RawPage>(&SEARCH, &args)
+        leg.call(
+            &SEARCH,
+            Input::Params(&args),
+            biomcp_fetch::Read::<RawPage>::json(),
+        )
+        .map(|received| received.value)
     } else {
-        leg.json::<FirstPage>(&SEARCH, &args).map(|page| page.0)
+        leg.call(
+            &SEARCH,
+            Input::Params(&args),
+            biomcp_fetch::Read::<FirstPage>::json(),
+        )
+        .map(|received| received.value)
+        .map(|page| page.0)
     }
-}
-/// Source processing timestamp, distinct from request time and record update dates.
-pub fn version(leg: &Leg<'_>) -> Result<Text, RequestError> {
-    Ok(leg.json::<Version>(&VERSION, &[])?.data_timestamp)
 }
 
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: biomcp_types::Source::ClinicalTrialsGov,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
+fn alternatives(values: &[Text]) -> String {
+    values
+        .iter()
+        .map(|value| format!("({})", value.as_str()))
+        .collect::<Vec<_>>()
+        .join(" OR ")
 }
+
+mod search_query;
+pub use search_query::search_query;
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

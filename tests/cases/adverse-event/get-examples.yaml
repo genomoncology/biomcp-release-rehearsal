@@ -10,11 +10,6 @@
         "adverse-event",
         "100"
       ],
-      "mcp": [
-        "get",
-        "adverse-event",
-        "100"
-      ],
       "expect": {
         "/status": "complete",
         "/result/header/id": "100",
@@ -26,12 +21,6 @@
     },
     {
       "run": [
-        "get",
-        "adverse-event",
-        "100",
-        "reactions"
-      ],
-      "mcp": [
         "get",
         "adverse-event",
         "100",

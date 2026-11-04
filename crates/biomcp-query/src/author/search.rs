@@ -1,16 +1,19 @@
-use super::{empty, retry, run, snapshot};
-use crate::{Ctx, Outcome, status};
+use super::{empty, retry, run};
+use crate::{Ctx, Outcome, source_snapshot as snapshot, status};
 use biomcp_adapters::semantic_scholar::{self, author};
 use biomcp_fetch::{Deadline, RequestError, SourceError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    AuthorGet, AuthorPage, AuthorSearch, PageInfo, QueryBody, Reason, Request, Source, SourceState,
-    Status, StepKind,
+    AuthorGet, AuthorPage, AuthorSearch, PageInfo, Reason, ReplyData, Request, Source, SourceState,
+    StepKind,
 };
+type Saved = super::NativePages<(author::Page, bool)>;
 /// Preserve the source's exact query, candidate order and continuation.
-pub fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
+pub(crate) fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let mut out = empty(QueryBody::AuthorPage(None));
+    let mut out = empty(biomcp_types::AuthorPage::into_reply(q.clone(), None));
     if let Err(error) = execute(cx, q, deadline, &mut out) {
         out.local = status::local(error);
         if out.sources.is_empty() {
@@ -24,7 +27,7 @@ pub fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
     let key = out
         .next
         .iter()
-        .position(|(kind, _)| *kind == StepKind::Key)
+        .position(|step| step.0 == StepKind::Key)
         .map(|index| out.next.remove(index));
     retry(&mut out, Request::SearchAuthor(q.restart()));
     if let Some(key) = key {
@@ -45,23 +48,18 @@ fn execute(
             SourceState::Skipped,
             Some(Reason::Disabled),
         ));
-        return Err(SourceError {
-            source: Source::SemanticScholar,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into());
+        return Err(SourceError::disabled(Source::SemanticScholar).into());
     }
-    let saved = snapshot::load(cx, q, deadline, out)?;
-    if matches!(out.body, QueryBody::PoolError { .. }) {
+    let key = snapshot::key("author-search", &(q.query(), q.source(), q.limit()))?;
+    let saved = retained(cx, q, &key, deadline, out)?;
+    if matches!(out.body, ReplyData::PoolError { .. }) {
         return Ok(());
     }
     let (mut saved, old_pool) = if let Some((saved, pool)) = saved {
         (saved, Some(pool))
     } else {
         (
-            snapshot::Saved {
+            super::NativePages {
                 pages: vec![],
                 key_needed: false,
                 source: biomcp_adapters::registry::outcome(
@@ -73,7 +71,10 @@ fn execute(
             None,
         )
     };
-    let cached = saved.pages.iter().any(|p| p.offset == q.offset());
+    for (page, refused) in &mut saved.pages {
+        page.restore_refusals(*refused);
+    }
+    let cached = saved.pages.iter().any(|p| p.0.offset() == q.offset());
     if !cached {
         let leg = cx
             .fetch
@@ -91,61 +92,112 @@ fn execute(
             super::key_step(out);
         }
         saved.key_needed |= key_needed;
-        saved.pages.push(result?);
+        let page = result?;
+        let refused = page.refusals() == biomcp_adapters::Refusal::Refused;
+        saved.pages.push((page, refused));
         status::retain_source_state(&mut saved.source, &source);
     }
     let pool = if cached {
-        old_pool.ok_or(biomcp_fetch::CacheError::Database)?
+        Some(old_pool.ok_or(biomcp_fetch::CacheError::Internal)?)
     } else {
-        snapshot::save(cx, q, deadline, &saved, old_pool)?
+        crate::publish::keep(
+            snapshot::publish(
+                cx,
+                &key,
+                &saved,
+                saved.pages.iter().map(|p| p.0.len() as u32).sum(),
+                std::slice::from_ref(&saved.source),
+                old_pool,
+                deadline,
+            ),
+            out,
+        )?
     };
     present(q, out, saved, pool)
 }
 fn present(
     q: &AuthorSearch,
     out: &mut Outcome,
-    saved: snapshot::Saved,
-    pool: crate::store::Pool,
+    saved: Saved,
+    pool: Option<crate::store::Pool>,
 ) -> Result<(), RequestError> {
     let page = saved
         .pages
         .into_iter()
-        .find(|p| p.offset == q.offset())
-        .ok_or(biomcp_fetch::CacheError::Database)?;
-    let items: Box<[_]> = page.data.into_iter().map(|r| r.header()).collect();
+        .find(|p| p.0.offset() == q.offset())
+        .ok_or(biomcp_fetch::CacheError::Internal)?
+        .0;
+    let next = page.next();
+    let total = page.total();
+    let mapped = page.headers();
+    out.include_refusals(mapped.refusals);
+    out.problems.extend(mapped.problems);
+    let items = mapped.value;
     for row in &items {
-        out.next.push((
+        out.next.push(crate::next::Step::new(
             StepKind::Disambiguate,
+            &[super::next::author(&row.id)],
             run(Request::GetAuthor(AuthorGet::one(row.id.clone()))),
         ));
     }
-    if let Some(offset) = page.next {
-        out.next.push((
+    if let (Some(offset), Some(pool)) = (next, pool.as_ref()) {
+        out.next.push(crate::next::Step::new(
             StepKind::Page,
+            &[biomcp_types::Source::SemanticScholar],
             run(Request::SearchAuthor(
                 q.at_offset(offset).with_pool(pool.info.id.clone()),
             )),
         ));
     }
-    out.page = page.total.map(|total| PageInfo {
+    out.page = total.map(|total| PageInfo {
         offset: q.offset(),
         returned: items.len() as u32,
         total,
-        pool: Some(pool.info),
+        pool: pool.map(|p| p.info),
         truncated: None,
     });
-    out.status = if saved.source.state == SourceState::Stale {
-        Status::Partial
-    } else {
-        Status::Complete
+    {
+        let unavailable = saved.source.state == SourceState::Stale;
+        crate::status::item(out, true, false, unavailable);
     };
     if saved.key_needed && saved.source.reason == Some(Reason::RateLimited) {
         super::key_step(out);
     }
     out.sources = vec![saved.source];
-    out.body = QueryBody::AuthorPage(Some(AuthorPage {
+    out.body = (AuthorPage {
         items,
-        matching_records: page.total,
-    }));
+        matching_records: total,
+    })
+    .with_query(q.clone());
     Ok(())
+}
+
+fn retained(
+    cx: &Ctx<'_>,
+    q: &AuthorSearch,
+    key: &[u8],
+    deadline: Deadline<'_>,
+    out: &mut Outcome,
+) -> Result<Option<(Saved, crate::store::Pool)>, RequestError> {
+    let (saved, mismatch) = if cx.fresh {
+        (None, false)
+    } else {
+        snapshot::find::<Saved>(cx, key, q.pool(), deadline)?
+    };
+    let saved = saved.filter(|(saved, _)| {
+        saved.pages.iter().any(|p| q.offset() == p.0.offset())
+            || saved
+                .pages
+                .last()
+                .is_some_and(|p| p.0.next() == Some(q.offset()))
+    });
+    if saved.is_none() && q.pool().is_some() {
+        out.body = ReplyData::PoolError { mismatch };
+        out.next.push(crate::next::Step::new(
+            StepKind::Restart,
+            &[Source::SemanticScholar],
+            super::run(Request::SearchAuthor(q.restart())),
+        ));
+    }
+    Ok(saved)
 }

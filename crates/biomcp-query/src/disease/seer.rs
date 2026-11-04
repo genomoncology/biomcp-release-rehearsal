@@ -1,65 +1,74 @@
-use crate::{Action, Ctx, Outcome, status};
+use crate::{Ctx, Outcome, status};
 use biomcp_adapters::seer;
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
     DiseaseGet, DiseaseIncidence, DiseaseSearch, DiseaseSection, DiseaseSites, DiseaseSurvival,
-    PageInfo, QueryBody, Request, Source, Status, StepKind,
+    Request, Source, StepKind,
 };
 
 /// Page the native site catalog without selecting an ontology identity.
-pub fn search(cx: &Ctx<'_>, query: &DiseaseSearch) -> Outcome {
+pub(crate) fn search(cx: &Ctx<'_>, query: &DiseaseSearch) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&seer::SPEC, deadline).fresh(cx.fresh);
     let reply = seer::catalog(&leg, query.limit(), query.offset());
     let error = reply.as_ref().err().copied();
-    let mut out = empty(QueryBody::DiseaseSites(DiseaseSites {
-        items: Box::default(),
-        components: Box::default(),
-        fetched: None,
-    }));
+    let mut out = empty(
+        (DiseaseSites {
+            items: Box::default(),
+            components: Box::default(),
+            fetched: None,
+        })
+        .with_query(query.clone()),
+    );
     out.sources
         .push(status::source(Source::Seer, leg.finish(), error));
     out.local = error.and_then(status::local);
     if let Ok(page) = reply {
-        let returned = page.rows.len() as u32;
-        out.page = Some(page_info(query.offset(), returned, page.total));
-        if returned > 0 && u64::from(query.offset()) + u64::from(returned) < page.total {
-            out.next.push((
+        out.include_refusals(page.window.refusals());
+        let total = page.window.total().unwrap_or(0);
+        let returned = page.window.rows.len() as u32;
+        out.page = Some(page_info(query.offset(), returned, total));
+        if let Some(offset) = page.window.next_offset() {
+            out.next.push(crate::next::Step::new(
                 StepKind::Page,
-                run(Request::SearchDisease(
-                    query.at_offset(query.offset().saturating_add(returned)),
-                )),
+                &[biomcp_types::Source::Seer],
+                run(Request::SearchDisease(query.at_offset(offset))),
             ));
         }
-        out.problems = page.problems;
-        out.body = QueryBody::DiseaseSites(DiseaseSites {
-            items: page.rows.into(),
+        out.problems.extend(page.problems);
+        out.body = (DiseaseSites {
+            items: page.window.rows.into(),
             components: Box::default(),
             fetched: fetched(page.metadata.fetched),
-        });
-        out.status = overall(&out, page.total == 0);
+        })
+        .with_query(query.clone());
+        crate::status::search(&mut out);
     }
     command.finish(deadline.remaining());
     out
 }
 /// Preserve source stage or annual rows behind an explicit native site selection.
-pub fn get(cx: &Ctx<'_>, query: &DiseaseGet) -> Outcome {
+pub(crate) fn get(cx: &Ctx<'_>, query: &DiseaseGet, id: &biodata::Text) -> Outcome {
     let survival = query.section() == Some(DiseaseSection::Survival);
     let body = if survival {
-        QueryBody::DiseaseSurvival(DiseaseSurvival {
+        (DiseaseSurvival {
             items: Box::default(),
             components: Box::default(),
             fetched: None,
         })
+        .with_query(query.clone())
     } else {
-        QueryBody::DiseaseIncidence(DiseaseIncidence {
+        (DiseaseIncidence {
             items: Box::default(),
             components: Box::default(),
             fetched: None,
         })
+        .with_query(query.clone())
     };
     let mut out = empty(body);
-    let Ok(selection) = seer::selection(query) else {
+    let Ok(selection) = seer::selection(query, id) else {
         return out;
     };
     let command = cx.fetch.command_deadline(cx.budget);
@@ -76,80 +85,53 @@ pub fn get(cx: &Ctx<'_>, query: &DiseaseGet) -> Outcome {
         .push(status::source(Source::Seer, leg.finish(), error));
     out.local = error.and_then(status::local);
     if let Ok(page) = reply {
-        let returned = page.rows.len() as u32;
-        out.page = Some(page_info(query.section_offset(), returned, page.total));
-        if returned > 0 && u64::from(query.section_offset()) + u64::from(returned) < page.total {
-            out.next.push((
+        out.include_refusals(page.window.refusals());
+        let total = page.window.total().unwrap_or(0);
+        let returned = page.window.rows.len() as u32;
+        out.page = Some(page_info(query.section_offset(), returned, total));
+        if let Some(offset) = page.window.next_offset() {
+            out.next.push(crate::next::Step::new(
                 StepKind::Page,
-                run(Request::GetDisease(query.at_section_offset(
-                    query.section_offset().saturating_add(returned),
-                ))),
+                &[biomcp_types::Source::Seer],
+                run(Request::GetDisease(query.at_section_offset(offset))),
             ));
         }
-        if let Ok(catalog) = serde_json::from_value(serde_json::json!({"source":"seer"})) {
-            out.next
-                .push((StepKind::Disambiguate, run(Request::SearchDisease(catalog))));
+        if let Some(catalog) = crate::next::checked(
+            biomcp_types::DiseaseSearch::seer(),
+            biomcp_types::Source::Seer,
+            &mut out.problems,
+        ) {
+            out.next.push(crate::next::Step::new(
+                StepKind::Disambiguate,
+                &[biomcp_types::Source::Seer],
+                run(Request::SearchDisease(catalog)),
+            ));
         }
-        out.problems = page.problems;
+        out.problems.extend(page.problems);
         out.body = if survival {
-            QueryBody::DiseaseSurvival(DiseaseSurvival {
-                items: page.rows.into(),
+            (DiseaseSurvival {
+                items: page.window.rows.into(),
                 components: Box::default(),
                 fetched: fetched(page.metadata.fetched),
             })
+            .with_query(query.clone())
         } else {
-            QueryBody::DiseaseIncidence(DiseaseIncidence {
-                items: page.rows.into(),
+            (DiseaseIncidence {
+                items: page.window.rows.into(),
                 components: Box::default(),
                 fetched: fetched(page.metadata.fetched),
             })
+            .with_query(query.clone())
         };
-        out.status = overall(&out, page.total == 0);
+        crate::status::item(&mut out, total != 0, false, false);
     }
     super::page::record_problem(&mut out, query, Source::Seer);
     command.finish(deadline.remaining());
     out
 }
-fn fetched(value: i64) -> Option<u64> {
-    u64::try_from(value).ok().filter(|v| *v > 0)
+fn fetched(value: Option<i64>) -> Option<u64> {
+    value.and_then(|value| u64::try_from(value).ok())
 }
-fn empty(body: QueryBody) -> Outcome {
-    Outcome {
-        status: Status::Failed,
-        body,
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    }
-}
-fn page_info(offset: u32, returned: u32, total: u64) -> PageInfo {
-    PageInfo {
-        offset,
-        returned,
-        total,
-        pool: None,
-        truncated: None,
-    }
-}
-fn run(request: Request) -> Action {
-    Action::Run {
-        request,
-        fresh: false,
-    }
-}
-fn overall(out: &Outcome, absent: bool) -> Status {
-    if !out.problems.is_empty()
-        || out
-            .sources
-            .iter()
-            .any(|s| s.state == biomcp_types::SourceState::Stale)
-    {
-        Status::Partial
-    } else if absent {
-        Status::Absent
-    } else {
-        Status::Complete
-    }
-}
+use crate::next::run;
+pub(super) use crate::status::empty;
+pub(super) use crate::status::page_info;

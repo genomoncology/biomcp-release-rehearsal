@@ -3,7 +3,6 @@ use biomcp_types::ErrorMessage;
 use std::ffi::OsString;
 const FLAGS: &[(&str, ErrorMessage)] = &[
     ("-d", ErrorMessage::AdverseText),
-    ("--drug", ErrorMessage::AdverseText),
     ("--device", ErrorMessage::AdverseMaude),
     ("--outcome", ErrorMessage::AdverseOutcome),
     ("--date-from", ErrorMessage::AdverseFrom),
@@ -15,19 +14,18 @@ const FLAGS: &[(&str, ErrorMessage)] = &[
     ("--age-min", ErrorMessage::AdverseFilter),
     ("--age-max", ErrorMessage::AdverseFilter),
     ("--reporter", ErrorMessage::AdverseFilter),
-    ("--manufacturer", ErrorMessage::AdverseFilter),
-    ("--product-code", ErrorMessage::AdverseFilter),
     ("--count", ErrorMessage::AdverseFilter),
-    ("--classification", ErrorMessage::AdverseRecalls),
+    ("--classification", ErrorMessage::AdverseDeviceRecalls),
     ("-l", ErrorMessage::DiseaseLimit),
     ("-j", ErrorMessage::DiseaseJson),
     ("--json", ErrorMessage::DiseaseJson),
 ];
-pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
+pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMessage> {
     let mut positional = Vec::new();
     let mut source = None;
     let mut serious = None;
     let mut faers_filter = false;
+    let mut maude_filter = false;
     let mut section = None;
     let mut shared = None;
     let mut literal = false;
@@ -55,10 +53,13 @@ pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
         if adverse
             && matches!(
                 flag,
-                "--reaction" | "--serious" | "--received-from" | "--received-to"
+                "--drug" | "--reaction" | "--serious" | "--received-from" | "--received-to"
             )
         {
             faers_filter = true;
+        }
+        if adverse && matches!(flag, "--manufacturer" | "--product-code" | "--problem") {
+            maude_filter = true;
         }
         if adverse && let Some(found) = super::find(FLAGS, flag) {
             return Some(found);
@@ -70,13 +71,17 @@ pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
             return match inline.or_else(|| args.next().and_then(|v| v.to_str())) {
                 Some("faers") => Some(ErrorMessage::AdverseFaers),
                 Some("device" | "devices" | "maude") => Some(ErrorMessage::AdverseMaude),
-                Some("recall" | "recalls" | "enforcement") => Some(ErrorMessage::AdverseRecalls),
+                Some("recall" | "recalls" | "enforcement") => {
+                    Some(ErrorMessage::AdverseDeviceRecalls)
+                }
                 _ => None,
             };
         }
         if adverse && flag == "--serious" {
             serious = Some(inline.or_else(|| args.next().and_then(|v| v.to_str())));
-        } else if flag == "--section" || super::takes_value(flag, &positional).unwrap_or(false) {
+        } else if flag == "--section"
+            || super::takes_value(root, flag, &positional).unwrap_or(false)
+        {
             let value = inline.or_else(|| args.next().and_then(|v| v.to_str()));
             match flag {
                 "--source" => source = value,
@@ -84,6 +89,9 @@ pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
                 _ => (),
             }
         }
+    }
+    if maude_filter && source != Some("maude") {
+        return Some(ErrorMessage::AdverseFilter);
     }
     if source == Some("vaers") && faers_filter {
         return Some(ErrorMessage::VaersFilter);
@@ -132,8 +140,19 @@ fn guidance(
                 if source == Some("maude") {
                     return Some(ErrorMessage::AdverseFilter);
                 }
-                if !matches!(value, Some("death" | "hospitalization")) {
-                    return Some(ErrorMessage::AdverseSerious);
+                if !matches!(
+                    value,
+                    Some(
+                        "any"
+                            | "death"
+                            | "hospitalization"
+                            | "lifethreatening"
+                            | "disabling"
+                            | "congenital-anomaly"
+                            | "other"
+                    )
+                ) {
+                    return Some(ErrorMessage::AdverseSeriousChoices);
                 }
             }
             if positional.first() == Some(&"get") {

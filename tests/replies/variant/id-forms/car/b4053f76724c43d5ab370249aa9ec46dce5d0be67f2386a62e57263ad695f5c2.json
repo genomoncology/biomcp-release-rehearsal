@@ -1,0 +1,154 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele?hgvs=NC_000007.14%3Ag.55174774_55174792delAATTAAGAGAAGCAACATCinsT&fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793808996,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA180574",
+          "communityStandardTitle": [
+            "NM_005228.5(EGFR):c.2237_2255delinsT (p.Glu746_Ser752delinsVal)"
+          ],
+          "externalRecords": {
+            "ClinVarVariations": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/clinvar/variation/177652",
+                "RCV": [
+                  "RCV000154239",
+                  "RCV003998243"
+                ],
+                "variationId": 177652
+              }
+            ],
+            "dbSNP": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/snp/727504258",
+                "rs": 727504258
+              }
+            ]
+          },
+          "genomicAlleles": [
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 55174792,
+                  "referenceAllele": "AATTAAGAGAAGCAACATC",
+                  "start": 55174773
+                }
+              ],
+              "hgvs": [
+                "NC_000007.14:g.55174774_55174792delinsT",
+                "CM000669.2:g.55174774_55174792delinsT"
+              ],
+              "referenceGenome": "GRCh38",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000055"
+            },
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 55242485,
+                  "referenceAllele": "AATTAAGAGAAGCAACATC",
+                  "start": 55242466
+                }
+              ],
+              "hgvs": [
+                "NC_000007.13:g.55242467_55242485delinsT",
+                "CM000669.1:g.55242467_55242485delinsT"
+              ],
+              "referenceGenome": "GRCh37",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000031"
+            },
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 55209979,
+                  "referenceAllele": "AATTAAGAGAAGCAACATC",
+                  "start": 55209960
+                }
+              ],
+              "hgvs": [
+                "NC_000007.12:g.55209961_55209979delinsT"
+              ],
+              "referenceGenome": "NCBI36",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000007"
+            },
+            {
+              "coordinates": [
+                {
+                  "allele": "T",
+                  "end": 160761,
+                  "referenceAllele": "AATTAAGAGAAGCAACATC",
+                  "start": 160742
+                }
+              ],
+              "hgvs": [
+                "NG_007726.3:g.160743_160761delinsT",
+                "LRG_304:g.160743_160761delinsT"
+              ],
+              "referenceSequence": "http://reg.genome.network/refseq/RS000672"
+            }
+          ],
+          "transcriptAlleles": [
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000275493.7:c.2237_2255delinsT"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_005228.5:c.2237_2255delinsT"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000275493.2:p.Glu746_Ser752delinsVal"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_005219.2:p.Glu746_Ser752delinsVal"
+                  }
+                }
+              }
+            },
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000275493.7:c.2237_2255delinsT"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_005228.5:c.2237_2255delinsT"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000275493.2:p.Glu746_Ser752delinsVal"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_005219.2:p.Glu746_Ser752delinsVal"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

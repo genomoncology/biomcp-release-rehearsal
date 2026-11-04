@@ -26,7 +26,7 @@ macro_rules! singleton {
 }
 
 singleton! {
-    /// The status of an invalid schema request.
+    /// The status of a command usage error, local failure or expired result.
     pub ErrorStatus { Usage => "usage", Local => "local", Expired => "expired" }
 }
 
@@ -41,25 +41,37 @@ singleton! {
  PoolExpired => "pool.expired",
  PoolMismatch => "usage.pool_mismatch",
  TooManyPmids => "usage.too_many_pmids",
+ TooBroad => "usage.too_broad",
  UnsupportedFilter => "usage.unsupported_filter" }
 }
 
 singleton! {
-    ErrorSchema { V1 => "biomcp.error/1" }
+    ErrorSchema { V2 => "biomcp.error/4" }
 }
 
 singleton! {
     /// Fixed input-free error and migration guidance.
-    pub ErrorMessage { GwasThreshold => "--p-value is not yet supported; threshold filtering is deferred",
+    pub ErrorMessage { BiomarkerTooBroad => "biomarker search is too broad; narrow --name or get one exact NCIt code",
+        OrganizationTooBroad => "organization search is too broad; narrow --name, --city, --state, --country, \
+        --postal-code, --family or --lat/--lon/--distance",
+
+ VariantNormalizeForms => "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR \
+ and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first",
  GwasPositiveThreshold => "--p-value threshold must be a positive probability in scientific notation",
+ WhoSearchArguments => "WHO PQ search requires a name or --prequalified-from/--prequalified-to date range",
  SourceSelector => "choose one of the source selector values",
  UnsupportedFilter => "a selected source does not support the requested filters",
  TooManyPmids => "citation ordering exceeds the PMID limit; narrow the search",
+ McpResultTooBroad => "MCP tool result exceeds the character cap in error.count; narrow \
+ --limit or --section-limit, select one source or section, or fetch one exact record",
  SchemaUsage => "use biomcp schema to list known artifact IDs",
  Arguments => "expected a supported command with checked arguments",
+ ArgumentGuidance => "option is missing or invalid; choose an accepted value or form and use the suggested help command",
  McpSync => "sync is unavailable over MCP; run it from the command line",
  McpStoreClean => "store clean is unavailable over MCP; run it from the command line",
  McpKey => "key is unavailable over MCP; run it from the command line",
+ McpHosted => "this command is unavailable in hosted mode",
+ HostedKey => "add the source key in your account settings",
  UnknownCommand => "unknown command; use the suggested help command",
  Local => "local configuration, cache or recording failed",
 
@@ -72,19 +84,23 @@ singleton! {
             [associations|ancestries]; bare numbers are unsupported; sections must match the resource kind; \
             --section-limit is 1..50 and --section-offset is a nonnegative integer; identities are never \
             repaired",
+        FaersQueryLength => "FAERS_QUERY_MAX_BYTES is 4096 bytes for the escaped native query including filters; use fewer or shorter --drug names",
         AdverseText => "use: search adverse-event <TEXT>; text stays literal",
         AdverseOutcome => "--outcome is retired; use --serious death or --serious hospitalization for report flags and \
             reactions for native outcomes; the old hospitalization and disability mappings were wrong",
         AdverseFrom => "renamed; use: --received-from",
         AdverseTo => "renamed; use: --received-to",
-        AdverseSerious => "only --serious death and --serious hospitalization are supported",
+        // Preserve the published error/1 literal; active guidance uses AdverseSeriousChoices.
+
+        AdverseSeriousChoices => "--serious accepts any, death, hospitalization, lifethreatening, disabling, congenital-anomaly or other",
         AdverseFilter => "this adverse-event filter is not supported",
         AdverseFaers => "renamed; use: --source faers",
         AdverseMaude => "use: search adverse-event <TEXT> --source maude",
         AdverseRecalls => "recalls are outside this entity",
+        AdverseDeviceRecalls => "use: search diagnostic --source fda-device-recall; covers every medical device",
         AdverseSource => "choose --source faers or --source maude",
-        VaersVaccine => "supported vaccines are MMR and COVID-19 vaccine; use MMR or COVID19",
-        VaersInfluenza => "Influenza VAERS summaries are not available yet; supported vaccines are MMR and COVID-19.",
+
+
         VaersVaccineChoices => "supported vaccines are MMR and COVID19, or one exact native influenza code; use search \
             adverse-event influenza --source vaers to list influenza codes and labels",
         VaersInfluenzaCodes => "Choose one exact native influenza vaccine code; tables remain separate and are never summed. One \
@@ -95,9 +111,11 @@ singleton! {
         AdverseOutcomes => "use the card seriousness flags and the reactions section",
         AdverseConcomitant => "renamed; use: drugs",
         AdverseSection => "choose a named adverse-event section",
-        DiagnosticSource => "choose --source gtr or fda-cdx for search; choose --source gtr, who-ivd, fda-pma or fda-510k for exact get",
-        DiagnosticWho => "WHO discovery, type and marker search are deferred; use: get diagnostic PRODUCT-ID --source who-ivd",
+
+
         DiagnosticSearchSources => "choose --source gtr, who-ivd or fda-cdx for search; choose --source gtr, who-ivd, fda-pma or fda-510k for exact get",
+        DiagnosticRecallSources => "choose --source gtr, who-ivd, fda-cdx or fda-device-recall for search; \
+            choose --source gtr, who-ivd, fda-pma, fda-510k or fda-device-recall for exact get",
         DiagnosticType => "use: --type",
         DiagnosticCondition => "use: --condition-id MedGen:CUI with --source gtr; use an exact product card with --source who-ivd",
         DiagnosticManufacturer => "manufacturer and laboratory selectors are deferred",
@@ -124,7 +142,8 @@ singleton! {
         Pharmgkb => "pharmgkb is retired; use: clinpgx",
         NciDisease => "NCI disease filters require an NCIt identifier such as C3224; use --keyword for free text",
         VariantIdentifier => "get variant needs an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome \
-            notation needs --build; use search variant --gene BRAF --protein V600E for gene/protein shorthand",
+            notation needs --build; use search variant --gene BRAF --protein V600E or \
+            search variant --gene PTEN --coding c.333G>T for gene shorthand",
         VariantBuild => "renamed; use: --build",
         VariantProtein => "renamed; use: --protein with --gene",
         VariantPredict => "renamed; use: get variant <ID> predict",
@@ -182,10 +201,10 @@ singleton! {
         CellLineExpression => "gene cell-lines is deferred until an exact HPA cell identity join exists",
         DrugCellLines => "drug cell-lines is retired: cell-line screening is outside the cancer-care drug slice.",
         CvxUnavailable => "Vaccine identity lookup and sync are unavailable; search vaccine report summaries with `search adverse-event --source vaers`.",
-        CvxSync => "cvx sync is retired: the cancer-care drug slice has no vaccine alias bridge.",
+
         EmaSync => "renamed; use: biomcp sync ema",
         DdinterSync => "renamed; use: biomcp sync ddinter",
-        WhoSync => "who sync is retired: WHO prequalification is outside this question bank.",
+
         WhoPqSync => "renamed; use: biomcp sync who-pq",
         DrugQuery => "renamed; use: search drug <TEXT> --source <SOURCE>",
         DrugMechanism => "--mechanism is retired: semantic mechanism expansion is not supported; select a drug identity and read targets.",
@@ -205,7 +224,7 @@ singleton! {
         TrialDocument => "use: trial document <NCT> <FILE> --save PATH; first list get trial <NCT> documents",
         Gene => "use: get gene <gene>", Pathways => "use: get gene <gene> pathways",
         Trials => "use: search trial --gene <gene>", Articles => "use: search article --gene <gene>",
-        Drugs => "use: search drug --target <gene>", CellLines => "moved to the cell line entity",
+        Drugs => "use: search drug --target <gene>",
         Variant => "moved to the variant entity", LocusGroup => "use: --locus-group",
         AuthorHelp => "use: help author; help search author; help get author",
         AuthorDeferred => "topic ranking, coauthors and cross-provider merging are not supported; use: search author TEXT or search article",
@@ -246,14 +265,13 @@ singleton! {
         Band => "use: --band", Dropped => "dropped in 1.0", Expression => "use: expression",
         Drug => "moved to the drug entity",
  Diagnostic => "moved to the diagnostic entity",
- Deferred => "deferred",
+
  PoolExpired => "pool expired; restart the search",
  PoolMismatch => "pool selectors do not match this search"
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct ErrorDetail {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -271,9 +289,8 @@ struct ErrorDetail {
     message: ErrorMessage,
 }
 
-/// A versioned error response that never contains caller input.
+/// A versioned error response that never contains rejected caller values.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ErrorEnvelope {
     schema: ErrorSchema,
@@ -287,263 +304,167 @@ pub struct ErrorEnvelope {
     pub next: Vec<super::Step>,
 }
 
-impl ErrorEnvelope {
-    /// Name a refused command with fixed guidance and no caller arguments.
-    pub fn mcp_unavailable(message: ErrorMessage) -> Self {
-        let mut error = Self::arguments();
-        error.error.code = ErrorCode::McpUnavailable;
-        error.error.message = message;
-        error
-    }
-    /// Name a rejected configuration field or environment variable without its value.
-    pub fn configuration(option: String) -> Self {
-        let mut envelope = Self::local();
-        envelope.error.option = Some(option.into_boxed_str());
-        envelope
-    }
-    /// Refuse opaque source syntax when a component terms restriction is selected.
-    pub fn variant_query_policy() -> Self {
-        let mut error = Self::arguments();
-        error.error.message = ErrorMessage::VariantQueryPolicy;
-        error
-    }
-    /// Explain the published variant identifier boundary without interpreting caller text.
-    pub fn variant_arguments() -> Self {
-        let mut error = Self::arguments();
-        error.error.message = ErrorMessage::VariantIdentifier;
-        error
-    }
-    /// Construct the fixed response for every invalid schema request.
-    pub fn schema_usage() -> Self {
-        Self {
-            local_error: None,
-            next: Vec::new(),
-            schema: ErrorSchema::V1,
-            status: ErrorStatus::Usage,
-            error: ErrorDetail {
-                url: None,
-                source: None,
-                option: None,
-                valid_values: None,
-                count: None,
-                code: ErrorCode::SchemaUsage,
-                message: ErrorMessage::SchemaUsage,
-            },
+impl From<crate::UsageError> for ErrorEnvelope {
+    fn from(usage: crate::UsageError) -> Self {
+        use crate::UsageError;
+        let mut out = Self::empty(
+            ErrorStatus::Usage,
+            ErrorCode::Arguments,
+            ErrorMessage::Arguments,
+        );
+        match usage {
+            UsageError::Arguments(arguments) => out.next = out.error.arguments(arguments),
+            UsageError::Schema => {
+                out.error.code = ErrorCode::SchemaUsage;
+                out.error.message = ErrorMessage::SchemaUsage;
+            }
+            UsageError::UnknownCommand { next } => {
+                out.error.code = ErrorCode::UnknownCommand;
+                out.error.message = ErrorMessage::UnknownCommand;
+                out.next = vec![next];
+            }
+            UsageError::Retired(message) => {
+                out.error.code = ErrorCode::Retired;
+                out.error.message = message;
+                out.error.valid_values = retired_values(message);
+            }
+            UsageError::McpUnavailable(message) => {
+                out.error.code = ErrorCode::McpUnavailable;
+                out.error.message = message;
+            }
+            UsageError::HostedKey(source) => {
+                out.error.code = ErrorCode::McpUnavailable;
+                out.error.message = ErrorMessage::HostedKey;
+                out.error.source = Some(source);
+            }
+            UsageError::McpResultTooBroad { cap } => {
+                out.error.code = ErrorCode::TooBroad;
+                out.error.message = ErrorMessage::McpResultTooBroad;
+                out.error.count = Some(cap);
+            }
+            UsageError::BiomarkerTooBroad => {
+                out.error.code = ErrorCode::TooBroad;
+                out.error.message = ErrorMessage::BiomarkerTooBroad;
+                out.error.source = Some(crate::Source::Nci);
+            }
+            UsageError::OrganizationTooBroad => {
+                out.error.code = ErrorCode::TooBroad;
+                out.error.message = ErrorMessage::OrganizationTooBroad;
+                out.error.source = Some(crate::Source::Nci);
+            }
+            UsageError::UnsupportedAdverseEvent | UsageError::TextPositionError => {}
+            UsageError::UnsupportedTrialFilter { source, option } => {
+                out.error.filter(source, option.as_str())
+            }
+            UsageError::UnsupportedFilter { source, option } => {
+                out.error.filter(source, option.as_str())
+            }
+            UsageError::NciDiseaseError => out.error.message = ErrorMessage::NciDisease,
+            UsageError::VariantQueryPolicyError => {
+                out.error.message = ErrorMessage::VariantQueryPolicy
+            }
+            UsageError::PdfSaveRefused(link) => out.error.url = Some(link.url),
+            UsageError::ArticleSaveRefused(url) => out.error.url = Some(url),
+            UsageError::TooManyPmids { count } => {
+                out.error.code = ErrorCode::TooManyPmids;
+                out.error.message = ErrorMessage::TooManyPmids;
+                out.error.count = Some(count);
+            }
+            UsageError::SourceSelector {
+                source,
+                option,
+                valid_values,
+                next,
+            } => {
+                out.error.source_selector(source, option, valid_values);
+                out.next = next;
+            }
+            UsageError::PoolMismatch { restart } => {
+                out.error.code = ErrorCode::PoolMismatch;
+                out.error.message = ErrorMessage::PoolMismatch;
+                out.next = vec![restart];
+            }
         }
+        out
     }
 }
 
 impl ErrorEnvelope {
-    /// Report fixed migration guidance without accepting caller input.
-    pub fn retired(message: ErrorMessage) -> Self {
-        let valid_values = (message == ErrorMessage::VaersInfluenzaCodes).then(|| {
-            crate::VAERS_INFLUENZA
-                .iter()
-                .filter_map(|(code, label)| crate::Text::new(&format!("{code}: {label}")).ok())
-                .collect()
-        });
-        Self {
-            local_error: None,
-            next: Vec::new(),
-            schema: ErrorSchema::V1,
-            status: ErrorStatus::Usage,
-            error: ErrorDetail {
-                url: None,
-                source: None,
-                option: None,
-                valid_values,
-                count: None,
-                code: ErrorCode::Retired,
-                message,
-            },
-        }
-    }
-    /// Report an unknown command with recovery supplied only from the known grammar.
-    pub fn unknown_command() -> Self {
-        let mut error = Self::arguments();
-        error.error.code = ErrorCode::UnknownCommand;
-        error.error.message = ErrorMessage::UnknownCommand;
-        error
-    }
-    /// Refuse invalid command arguments without echoing input.
-    pub fn arguments() -> Self {
-        Self {
-            local_error: None,
-            next: Vec::new(),
-            schema: ErrorSchema::V1,
-            status: ErrorStatus::Usage,
-            error: ErrorDetail {
-                url: None,
-                source: None,
-                option: None,
-                valid_values: None,
-                count: None,
-                code: ErrorCode::Arguments,
-                message: ErrorMessage::Arguments,
-            },
-        }
-    }
-    /// Name a grammar-owned argument without retaining its rejected value.
-    pub fn argument(option: Box<str>) -> Self {
-        Self::arguments().with_argument(option)
-    }
-    /// Name a checked argument and its supported vocabulary without echoing input.
-    pub fn argument_values(option: Box<str>, values: Box<[crate::Text]>) -> Self {
-        let mut error = Self::argument(option);
-        error.error.valid_values = Some(values);
-        error
-    }
-    /// Attach a grammar-owned identity while preserving fixed command guidance.
-    pub fn with_argument(mut self, option: Box<str>) -> Self {
-        self.error.option = Some(option);
-        self
-    }
-    /// Direct composite readers to independently paged named sections.
-    pub fn cell_line_all_paging() -> Self {
-        let mut error = Self::arguments();
-        error.error.message = ErrorMessage::CellLineAllPaging;
-        error
-    }
-    /// Explain a failed checked GWAS command without changing its usage code.
-    pub fn gwas_arguments(message: ErrorMessage) -> Self {
-        let mut error = Self::arguments();
-        error.error.message = message;
-        error
-    }
-    /// Explain the exact positive threshold boundary before source access.
-    pub fn gwas_threshold() -> Self {
-        let mut error = Self::arguments();
-        error.error.message = ErrorMessage::GwasPositiveThreshold;
-        error
-    }
-    /// Explain explicit NCI identity and keyword modes.
-    pub fn nci_disease() -> Self {
-        let mut error = Self::arguments();
-        error.error.message = ErrorMessage::NciDisease;
-        error
-    }
-    /// Explain the registry's facility and radius limitation before any request.
-    pub fn trial_facility_radius() -> Self {
-        let mut error = Self::arguments();
-        error.error.message = ErrorMessage::TrialFacilityRadius;
-        error
-    }
     /// Report a local failure without paths or provider diagnostics.
     pub fn local() -> Self {
+        Self::empty(ErrorStatus::Local, ErrorCode::Local, ErrorMessage::Local)
+    }
+    /// Name a rejected configuration field without its value.
+    pub fn configuration(option: String) -> Self {
+        let mut out = Self::local();
+        out.error.option = Some(option.into_boxed_str());
+        out
+    }
+    /// Report an expired pool independently of command usage.
+    pub fn expired_pool(restart: super::Step) -> Self {
+        let mut out = Self::empty(
+            ErrorStatus::Expired,
+            ErrorCode::PoolExpired,
+            ErrorMessage::PoolExpired,
+        );
+        out.next = vec![restart];
+        out
+    }
+    fn empty(status: ErrorStatus, code: ErrorCode, message: ErrorMessage) -> Self {
         Self {
-            local_error: None,
-            next: Vec::new(),
-            schema: ErrorSchema::V1,
-            status: ErrorStatus::Local,
+            schema: ErrorSchema::V2,
+            status,
             error: ErrorDetail {
                 url: None,
                 source: None,
                 option: None,
                 valid_values: None,
                 count: None,
-                code: ErrorCode::Local,
-                message: ErrorMessage::Local,
+                code,
+                message,
             },
+            local_error: None,
+            next: Vec::new(),
         }
     }
 }
 
-impl ErrorEnvelope {
-    /// Report an unavailable or mismatched pool with its typed restart.
-    pub fn pool(mismatch: bool, next: super::Step) -> Self {
-        Self {
-            schema: ErrorSchema::V1,
-            status: if mismatch {
-                ErrorStatus::Usage
+impl ErrorDetail {
+    fn arguments(&mut self, arguments: crate::UsageArguments) -> Vec<super::Step> {
+        self.option = arguments.argument;
+        self.message = arguments.message.unwrap_or_else(|| {
+            if self.option.is_some() && arguments.valid_values.is_some() {
+                ErrorMessage::ArgumentGuidance
             } else {
-                ErrorStatus::Expired
-            },
-            error: ErrorDetail {
-                url: None,
-                source: None,
-                option: None,
-                valid_values: None,
-                count: None,
-                code: if mismatch {
-                    ErrorCode::PoolMismatch
-                } else {
-                    ErrorCode::PoolExpired
-                },
-                message: if mismatch {
-                    ErrorMessage::PoolMismatch
-                } else {
-                    ErrorMessage::PoolExpired
-                },
-            },
-            local_error: None,
-            next: vec![next],
-        }
+                ErrorMessage::Arguments
+            }
+        });
+        self.valid_values = arguments.valid_values;
+        arguments.next
     }
-}
-
-impl ErrorEnvelope {
-    /// Refuse citation enrichment above its checked PMID window.
-    pub fn too_many_pmids(count: u64) -> Self {
-        Self {
-            schema: ErrorSchema::V1,
-            status: ErrorStatus::Usage,
-            error: ErrorDetail {
-                url: None,
-                source: None,
-                option: None,
-                valid_values: None,
-                count: Some(count),
-                code: ErrorCode::TooManyPmids,
-                message: ErrorMessage::TooManyPmids,
-            },
-            local_error: None,
-            next: Vec::new(),
-        }
-    }
-}
-
-impl ErrorEnvelope {
-    /// Refuse a source-native trial capability without borrowing article semantics.
-    pub fn unsupported_trial_filter(source: crate::Source, option: crate::TrialFilter) -> Self {
-        let mut out = Self::arguments();
-        out.error.source = Some(source);
-        out.error.option = Some(option.as_str().into());
-        out.error.code = ErrorCode::UnsupportedFilter;
-        out.error.message = ErrorMessage::UnsupportedFilter;
-        out
-    }
-    /// Refuse a source/filter combination before requesting any source.
-    pub fn unsupported_filter(source: crate::Source, option: crate::ArticleFilter) -> Self {
-        let mut out = Self::arguments();
-        out.error.source = Some(source);
-        out.error.option = Some(option.as_str().into());
-        out.error.code = ErrorCode::UnsupportedFilter;
-        out.error.message = ErrorMessage::UnsupportedFilter;
-        out
-    }
-}
-
-impl ErrorEnvelope {
-    /// Refuse a save while retaining the source URL for the caller.
-    pub fn save_refused(url: crate::Text) -> Self {
-        let mut out = Self::arguments();
-        out.error.url = Some(url);
-        out
-    }
-}
-
-impl ErrorEnvelope {
-    /// Refuse an absent or unknown native selector without echoing caller input.
-    pub fn source_selector(
+    fn source_selector(
+        &mut self,
         source: crate::Source,
         option: Box<str>,
-        valid_values: Box<[crate::Text]>,
-    ) -> Self {
-        let mut out = Self::arguments();
-        out.error.source = Some(source);
-        out.error.option = Some(option);
-        out.error.valid_values = Some(valid_values);
-        out.error.message = ErrorMessage::SourceSelector;
-        out
+        values: Box<[crate::Text]>,
+    ) {
+        self.source = Some(source);
+        self.option = Some(option);
+        self.valid_values = Some(values);
+        self.message = ErrorMessage::SourceSelector;
     }
+    fn filter(&mut self, source: crate::Source, option: &str) {
+        self.source = Some(source);
+        self.option = Some(option.into());
+        self.code = ErrorCode::UnsupportedFilter;
+        self.message = ErrorMessage::UnsupportedFilter;
+    }
+}
+fn retired_values(message: ErrorMessage) -> Option<Box<[crate::Text]>> {
+    (message == ErrorMessage::VaersInfluenzaCodes).then(|| {
+        crate::VAERS_INFLUENZA
+            .iter()
+            .filter_map(|(code, label)| crate::Text::new(&format!("{code}: {label}")).ok())
+            .collect()
+    })
 }

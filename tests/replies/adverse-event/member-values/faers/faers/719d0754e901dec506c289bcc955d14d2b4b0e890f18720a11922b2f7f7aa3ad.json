@@ -1,0 +1,97 @@
+{
+  "method": "GET",
+  "source": "faers",
+  "url": "https://api.fda.gov/drug/event.json?search=safetyreportid%3A%22100%22&limit=5&skip=0&sort=receivedate%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 4,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2024-09-01",
+            "results": {
+              "limit": 5,
+              "skip": 0,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "patient": {
+                "drug": [
+                  {
+                    "medicinalproduct": "Synthetic retained drug",
+                    "openfda": {
+                      "unii": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ],
+                      "rxcui": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ],
+                      "product_ndc": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ],
+                      "package_ndc": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ],
+                      "spl_id": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ],
+                      "spl_set_id": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ],
+                      "application_number": [
+                        17,
+                        "Synthetic retained member",
+                        ""
+                      ]
+                    }
+                  },
+                  {
+                    "openfda": {
+                      "unii": [],
+                      "rxcui": null
+                    }
+                  },
+                  {
+                    "openfda": {
+                      "unii": [
+                        17
+                      ]
+                    }
+                  }
+                ],
+                "reaction": [
+                  {
+                    "reactionmeddrapt": "Synthetic term"
+                  }
+                ]
+              },
+              "receivedate": "20240102",
+              "safetyreportid": "100",
+              "safetyreportversion": "1",
+              "serious": "1"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

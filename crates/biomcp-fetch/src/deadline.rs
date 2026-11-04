@@ -1,11 +1,17 @@
-#![expect(
+#[expect(
     clippy::disallowed_types,
-    reason = "Advance each replay leg clock atomically across its requests"
+    reason = "Share bounded transport state across the request owners named by this module"
 )]
 use std::{
     sync::Mutex,
     time::{Duration, Instant},
 };
+
+#[expect(
+    clippy::disallowed_types,
+    reason = "Name the shared cancellation flag borrowed by a command deadline"
+)]
+type CancellationFlag = std::sync::Arc<std::sync::atomic::AtomicBool>;
 
 /// An absolute request budget measured by the transport clock.
 #[derive(Clone, Copy, Debug)]
@@ -13,12 +19,20 @@ pub struct Deadline<'a> {
     end: Instant,
     frozen: Option<Instant>,
     clock: Option<&'a VirtualClock>,
-    cancelled: Option<&'a std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    cancelled: Option<&'a CancellationFlag>,
 }
 
 #[derive(Debug)]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Advance replay clocks and observe command cancellation across request workers"
+)]
 pub(crate) struct VirtualClock(Mutex<Instant>);
 impl Default for VirtualClock {
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Advance replay clocks and observe command cancellation across request workers"
+    )]
     fn default() -> Self {
         Self(Mutex::new(Instant::now()))
     }
@@ -77,6 +91,10 @@ impl<'a> Deadline<'a> {
             cancelled: self.cancelled,
         }
     }
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Advance replay clocks and observe command cancellation across request workers"
+    )]
     pub(crate) fn fork(&self) -> Option<VirtualClock> {
         self.clock.map(|_| VirtualClock(Mutex::new(self.now())))
     }
@@ -112,6 +130,10 @@ impl<'a> Deadline<'a> {
         }
         self.end.saturating_duration_since(self.now())
     }
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Advance replay clocks and observe command cancellation across request workers"
+    )]
     pub(crate) fn with_cancellation(
         mut self,
         cancelled: Option<&'a std::sync::Arc<std::sync::atomic::AtomicBool>>,
@@ -160,6 +182,10 @@ impl<'a> CommandDeadline<'a> {
         deadline.frozen = clock.map(VirtualClock::now);
         Self(deadline)
     }
+    #[expect(
+        clippy::disallowed_types,
+        reason = "Advance replay clocks and observe command cancellation across request workers"
+    )]
     pub(crate) fn with_cancellation(
         mut self,
         cancelled: Option<&'a std::sync::Arc<std::sync::atomic::AtomicBool>>,
@@ -187,6 +213,10 @@ impl<'a> CommandDeadline<'a> {
 
 /// Wall-clock bound for cooperative local parsing, including replay commands.
 #[derive(Clone, Debug)]
+#[expect(
+    clippy::disallowed_types,
+    reason = "Advance replay clocks and observe command cancellation across request workers"
+)]
 pub struct LocalDeadline {
     pub(crate) end: Instant,
     cancelled: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,

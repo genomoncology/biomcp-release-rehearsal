@@ -1,8 +1,8 @@
 {
-  "$id": "biodata.ensembl-gene-id/1",
+  "$id": "biodata.ensembl-gene-id/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": " A human Ensembl gene stable identifier with a separately retained version.",
-  "pattern": "^ENSG[0-9]{11}(\\.[1-9][0-9]*)?$",
+  "pattern": "^ENSG[0-9]{11}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?$",
   "title": "EnsemblGeneId",
   "type": "string"
 }

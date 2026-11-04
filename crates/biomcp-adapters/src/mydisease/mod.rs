@@ -1,4 +1,5 @@
 //! Canonical mydisease publisher declaration.
+use biomcp_fetch::Input;
 mod map;
 mod native;
 mod raw;
@@ -58,34 +59,51 @@ pub fn get(leg: &Leg<'_>, id: &Curie) -> Result<Record, RequestError> {
     }
     let fields = crate::disease_sources::components::allowed_fields(leg, FIELDS)?;
     let endpoint = GET.clone().with_segments(&[PathSegment::new(&identifier)?]);
-    let (raw, metadata) = leg.json_received_checked::<raw::Document>(
-        &endpoint,
-        &[("fields", Arg::Text(&fields))],
-        |record| {
-            if record.matches(id, &fields) {
-                Ok(())
-            } else {
-                Err(BadReply)
-            }
-        },
-    )?;
-    // Ignore any unrequested component even if a provider or old replay includes it.
+    let (raw, metadata) = leg
+        .call(
+            &endpoint,
+            Input::Params(&[("fields", Arg::Text(&fields))]),
+            biomcp_fetch::Read::<raw::Document>::json().check(&|record| {
+                if record.matches(id, &fields) {
+                    Ok(())
+                } else {
+                    Err(BadReply)
+                }
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
+    // Ignore any unrequested component even when an old replay contains it.
     let mut components = Vec::new();
-    if fields.split(',').any(|f| f == "mondo")
-        && let Some(value) = raw.mondo
-    {
-        components.push(native::component("mondo", value));
+    let mut problems = crate::mapped::Problems {
+        source: Source::MyDisease,
+        record: crate::mapped::record(&raw.id),
+        list: Vec::new(),
+    };
+    for (field, name, value, prefix) in [
+        ("mondo", "mondo", raw.mondo, "MONDO:"),
+        ("disease_ontology", "doid", raw.disease_ontology, "DOID:"),
+    ] {
+        if !fields.split(',').any(|f| f == field) {
+            continue;
+        }
+        if let Some(value) = problems.field(field, value) {
+            if value.id.to_string().starts_with(prefix) {
+                components.push(native::component(name, value));
+            } else {
+                problems.required::<()>(&format!("{field}.id"), None);
+            }
+        }
     }
-    if fields.split(',').any(|f| f == "disease_ontology")
-        && let Some(value) = raw.disease_ontology
-    {
-        components.push(native::component("doid", value));
-    }
+    let version = problems.field("_version", raw.version);
     Ok(Record {
+        problems: problems.list,
         requested_id: id.clone(),
         returned_id: raw.id,
-        version: raw.version,
+        version,
         components: components.into(),
         metadata,
     })
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

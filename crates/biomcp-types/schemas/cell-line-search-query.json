@@ -1,12 +1,14 @@
 {
   "$defs": {
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.cell-line-search-query/1",
+  "$id": "biomcp.cell-line-search-query/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "One literal cell line search, with native order and no total claim.",
@@ -28,7 +30,7 @@
     },
     "query": {
       "$ref": "#/$defs/Text",
-      "description": "Literal source query; positional spelling and --query use the same field.",
+      "description": "Literal source query from the positional argument.",
       "x-positional": 0
     }
   },

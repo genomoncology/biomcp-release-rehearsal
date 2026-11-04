@@ -32,7 +32,7 @@ pub struct AuthorSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Literal query from the positional argument or --query.
+    /// Literal query from the positional argument.
     #[cfg_attr(feature = "schema", schemars(length(min = 1), extend("x-positional" = 0)))]
     query: Box<str>,
     /// Native author source.
@@ -72,24 +72,14 @@ impl AuthorSearch {
     pub fn query(&self) -> &str {
         &self.0.query
     }
-    /// Start a replacement native search without retained state.
-    pub fn restart(&self) -> Self {
-        let mut q = self.at_offset(0);
-        q.0.pool = None;
-        q
-    }
+
     /// Retain the checked snapshot identity for this native page.
     pub fn with_pool(&self, pool: Text) -> Self {
         let mut q = self.clone();
         q.0.pool = Some(pool);
         q
     }
-    /// Continue at the provider's own next offset.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
-    }
+
     /// Selected native provider.
     pub fn source(&self) -> AuthorSearchSource {
         self.0.source
@@ -107,6 +97,16 @@ impl AuthorSearch {
         self.0.pool.as_ref()
     }
 }
+impl crate::Paged for AuthorSearch {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.pool = None;
+    }
+}
+
 /// Exact qualified records in caller order, with no name reconciliation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "GetFields")]
@@ -198,18 +198,6 @@ impl TryFrom<PapersFields> for AuthorPapersQuery {
     }
 }
 impl AuthorPapersQuery {
-    /// Restart the exact provider collection.
-    pub fn restart(&self) -> Self {
-        let mut q = self.at_offset(0);
-        q.0.pool = None;
-        q
-    }
-    /// Select a bounded local or native page.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
-    }
     /// Retain this collection identity.
     pub fn with_pool(&self, pool: Text) -> Self {
         let mut q = self.clone();
@@ -246,5 +234,23 @@ impl AuthorPapersQuery {
     /// Retained collection identity.
     pub fn pool(&self) -> Option<&Text> {
         self.0.pool.as_ref()
+    }
+}
+impl crate::Paged for AuthorPapersQuery {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.pool = None;
+    }
+}
+
+impl AuthorPaperSection {
+    /// Publishers implementing this disclosure for their exact author identities.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        match self {
+            Self::Details => &[crate::Source::SemanticScholar, crate::Source::Orcid],
+        }
     }
 }

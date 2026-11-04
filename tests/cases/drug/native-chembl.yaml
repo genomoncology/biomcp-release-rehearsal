@@ -1,0 +1,56 @@
+{
+  "feature": "drug-native-sources",
+  "live_check": "public",
+  "story": "A caller reads source-stated ChEMBL indication and cross-reference values from retained publisher replies.",
+  "verified": "Existing ChEMBL CC BY-SA 3.0 source fixtures and their original request dates remain in tests/fixtures/drug/native/provenance.json. Bodies copied unchanged: 010.json 4d432e495473f7dcd8c8c8e37b58f6f173140fcc90c3d4f34b9fac28e63ce46a, 011.json 42fa20820af908bb5546fdbe50e01083a018bf588b65674a9df67993f2c61a45, 014.json 79a5a2442197531d35dae525ec0720033c96f9d0c00328b1679613c1900cf10e",
+  "replay": "drug/native-chembl",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "CHEMBL941",
+        "indications",
+        "--source",
+        "chembl",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "0"
+      ],
+      "expect": {
+        "/result/identity/id": "CHEMBL941",
+        "/page/total": 52,
+        "/page/offset": 0,
+        "/page/returned": 1,
+        "/result/indications/data/records/0/disease_references/0/id": "EFO:0000220",
+        "/result/indications/data/records/0/disease_references/1/id": "D054198",
+        "/result/indications/data/records/0/stage/value": "3.0"
+      },
+      "max_bytes": 2139
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "CHEMBL1201585",
+        "xrefs",
+        "--source",
+        "chembl",
+        "--section-limit",
+        "1",
+        "--section-offset",
+        "1"
+      ],
+      "expect": {
+        "/page/total": 12,
+        "/page/offset": 1,
+        "/result/xrefs/data/records/0/identity/id": "human/EPAR/ogivri",
+        "/result/xrefs/data/records/0/identity/namespace": "EMA",
+        "/result/xrefs/data/records/0/identity/identity_level": "unknown",
+        "/result/xrefs/data/records/0/attribution/source": "chembl"
+      },
+      "max_bytes": 1253
+    }
+  ]
+}

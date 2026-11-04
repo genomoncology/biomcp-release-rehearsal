@@ -1,4 +1,5 @@
 //! PubMed native search order and citation metadata, without abstracts.
+use biomcp_fetch::{Input, Read};
 mod efetch;
 mod indexing;
 mod map;
@@ -22,11 +23,12 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCBI policies; publisher rights in abstracts",
         url: "https://www.ncbi.nlm.nih.gov/home/about/policies/",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::PubMed,
     base: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils",
     key: KeyUse::Optional(Credential {
+        tier: biomcp_types::KeyTier::Fallback,
         secret: SecretName::NcbiApiKey,
         place: KeyPlace::Query("api_key"),
     }),
@@ -64,6 +66,16 @@ pub fn search_ids(
     sort: ArticleSort,
     email: Option<&Secret>,
 ) -> Result<SearchIds, RequestError> {
+    search_ids_with_inputs(leg, term, sort, email, None)
+}
+/// Preserve the explicit identifier group that built a search term.
+pub fn search_ids_with_inputs(
+    leg: &Leg<'_>,
+    term: &str,
+    sort: ArticleSort,
+    email: Option<&Secret>,
+    inputs: Option<biomcp_fetch::Identities>,
+) -> Result<SearchIds, RequestError> {
     let mut params = vec![
         ("db", Arg::Text("pubmed")),
         ("term", Arg::Text(term)),
@@ -82,7 +94,26 @@ pub fn search_ids(
     } else {
         &SEARCH
     };
-    let raw = leg.json::<raw::Search>(endpoint, &params)?.esearchresult;
+    let raw = match inputs {
+        Some(ids) => leg
+            .call(
+                endpoint,
+                Input::Params(&params),
+                Read::<raw::Search>::json().inputs(ids, "term"),
+            )
+            .map(|received| received.value),
+        None => leg
+            .call(
+                endpoint,
+                Input::Params(&params),
+                Read::<raw::Search>::json(),
+            )
+            .map(|received| received.value),
+    }?
+    .esearchresult;
+    Ok(search_result(raw))
+}
+fn search_result(raw: raw::SearchResult) -> SearchIds {
     let mut problems = crate::mapped::Problems {
         source: Source::PubMed,
         record: None,
@@ -126,12 +157,12 @@ pub fn search_ids(
             }
         }
     }
-    Ok(SearchIds {
+    SearchIds {
         ids: raw.idlist,
         count: raw.count,
         notices,
         problems: problems.list,
-    })
+    }
 }
 /// Retrieve a selected page's metadata. Each result is joined by checked PMID.
 pub fn summaries(
@@ -152,6 +183,18 @@ pub fn summaries(
     if let Some(email) = email {
         params.push(("email", Arg::Contact(email)));
     }
-    let reply = leg.json::<raw::Summary>(&SUMMARY, &params)?;
+    let reply = leg
+        .call(
+            &SUMMARY,
+            Input::Params(&params),
+            Read::<raw::Summary>::json(),
+        )?
+        .value;
     Ok(map::summaries(reply, &ids))
 }
+
+mod query;
+pub use query::{search_dois, search_query};
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

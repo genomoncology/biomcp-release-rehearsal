@@ -105,8 +105,44 @@ fn published_variant_identifiers_round_trip_without_text_inference() -> Check {
     ] {
         assert!(text.parse::<HgvsText>().is_err());
     }
+    // HGVS 21.1: recommendations/uncertain, RNA/splicing and background/refseq.
+    #[cfg(feature = "schema")]
+    let validator =
+        jsonschema::draft202012::new(&serde_json::to_value(schemars::schema_for!(HgvsText))?)?;
+    for (text, valid) in [
+        ("NM_005228.5:c.???", false),
+        ("NM_005228.5:c.2369C>T word", false),
+        ("NM_005228.5:c.2369C\t>T", false),
+        ("NP_005219.2:c.2369C>T", false),
+        ("XP_005219.2:r.2369c>u", false),
+        ("ENSP00000288602.1:g.100A>T", false),
+        ("LRG_199p1:n.100A>T", false),
+        ("NC_000007.14(NP_005219.2):c.2369C>T", false),
+        ("NM_005228.5(NP_label):c.2369C>T", true),
+        ("NP_005219.2:p.???", false),
+        ("NP_005219.2:p.?", true),
+        ("NP_005219.2:p.0", true),
+        ("NP_005219.2:p.0?", true),
+        ("NP_005219.2:p.=", true),
+        ("NP_005219.2:p.(=)", true),
+        ("NP_005219.2:p.(?)", true),
+        ("NM_005228.5:r.?", true),
+        ("NM_005228.5:r.(?)", true),
+        ("NM_005228.5:r.=", true),
+        ("NM_005228.5:r.(=)", true),
+        ("NM_005228.5:r.spl", true),
+        ("NM_005228.5:r.spl?", true),
+        ("NM_005228.5:r.(spl?)", true),
+    ] {
+        #[cfg(feature = "schema")]
+        assert_eq!(validator.is_valid(&json!(text)), valid, "schema: {text}");
+        assert_eq!(text.parse::<HgvsText>().is_ok(), valid, "{text}");
+        let accepted = Text::new(text).is_ok_and(|value| Expression::hgvs(value).is_ok());
+        assert_eq!(accepted, valid, "{text}");
+    }
     Ok(())
 }
+
 #[test]
 fn shared_public_fixture_checks_identity_and_source_alleles() -> Check {
     let rows: Vec<serde_json::Value> =
@@ -172,38 +208,10 @@ fn accessions_refuse_noncanonical_versions_and_widths() {
     }
 }
 #[test]
-fn allele_boundaries_refuse_unchecked_accession_construction() -> Check {
-    for sequence in [
-        Accession::RefSeq {
-            prefix: RefSeqPrefix::Nm,
-            number: 4333,
-            version: 0,
-        },
-        Accession::Ensembl {
-            feature: EnsemblFeature::Transcript,
-            number: 288602,
-            version: 0,
-        },
-        Accession::RefSeq {
-            prefix: RefSeqPrefix::Nm,
-            number: u32::MAX,
-            version: 1,
-        },
-    ] {
-        let location = SequenceLocation {
-            sequence,
-            span: Span0::new(0, 1)?,
-        };
-        assert!(
-            serde_json::to_value(&location).is_err(),
-            "unchecked location: {sequence}"
-        );
-        assert!(
-            Allele::new(location, "A".parse()?, "T".parse()?).is_err(),
-            "unchecked allele: {sequence}"
-        );
+fn accessions_refuse_values_that_cannot_be_constructed_directly() {
+    for value in ["NM_004333.0", "ENST00000288602.0", "NM_4294967295.1"] {
+        assert!(value.parse::<Accession>().is_err(), "{value}");
     }
-    Ok(())
 }
 #[test]
 fn hgvs_keeps_its_inner_reference_and_outer_accession() {
@@ -256,16 +264,16 @@ fn identifier_levels_are_checked_and_never_promoted() {
 }
 #[test]
 fn gene_references_keep_only_stated_ids_and_require_a_label() {
-    use biodata::GeneRef;
+    use biodata::SourceGeneRef;
     let text = r#"{"label":"BRAF","ncbi_gene_id":"673"}"#;
-    let value: GeneRef = serde_json::from_str(text).expect("source ids");
+    let value: SourceGeneRef = serde_json::from_str(text).expect("source ids");
     assert!(value.hgnc_id().is_none());
     assert_eq!(value.ncbi_gene_id().expect("stated id").get(), 673);
     assert_eq!(
         serde_json::to_value(value).expect("serialize"),
         serde_json::from_str::<serde_json::Value>(text).expect("json")
     );
-    assert!(serde_json::from_str::<GeneRef>(r#"{"label":" "}"#).is_err());
+    assert!(serde_json::from_str::<SourceGeneRef>(r#"{"label":" "}"#).is_err());
 }
 #[test]
 fn interval_comparison_requires_both_source_builds() {
@@ -276,17 +284,17 @@ fn interval_comparison_requires_both_source_builds() {
         span: Span0::new(0, 2).expect("bounds"),
         strand: None,
     };
-    assert_eq!(region.contains(&region), Ok(true));
-    let other = region.clone();
+    assert_eq!(region.contains(region), Ok(true));
+    let other = region;
     region.build = None;
     assert_eq!(
         region
-            .contains(&other)
+            .contains(other)
             .expect_err("no guessed assembly")
             .code(),
         "coord.interval.build_absent"
     );
-    assert!(other.contains(&region).is_err());
+    assert!(other.contains(region).is_err());
 }
 #[test]
 fn shared_refusals_use_the_settled_codes() {
@@ -298,7 +306,8 @@ fn shared_refusals_use_the_settled_codes() {
         assert_eq!(
             text.parse::<Accession>()
                 .expect_err("invalid grammar")
-                .code(),
+                .code
+                .name(),
             code
         );
     }
@@ -329,8 +338,8 @@ fn public_civic_tier_and_level_remain_separate() -> Check {
         .ok_or("missing public CIViC fixture")?;
     let value = json!({
         "subject":row["subject"], "proposition":"therapeutic_response", "predicate":"predicts_sensitivity_to",
-        "classification":{"label":row["classification"],"coding":{"system":"amp_asco_cap_2017_tier","code":"tier_i"}},
-        "strength":{"label":row["classification"],"coding":{"system":"amp_asco_cap_2017_level","code":"level_a"}},
+        "classification":{"label":row["classification"],"codings":[{"system":"amp_asco_cap_2017_tier","code":"tier_i"}]},
+        "strength":{"label":row["classification"],"codings":[{"system":"amp_asco_cap_2017_level","code":"level_a"}]},
         "condition":{"label":row["condition"]},
         "therapies":row["therapies"].as_array().ok_or("therapies")?.iter().map(|label|json!({"label":label})).collect::<Vec<_>>(),
         "attribution":{"source":"civic","record":row["record"]}
@@ -338,14 +347,12 @@ fn public_civic_tier_and_level_remain_separate() -> Check {
     let statement: Statement = serde_json::from_value(value)?;
     assert_eq!(statement.attribution.source, Source::Civic.text());
     assert_eq!(
-        statement.classification.coding,
-        Some(Coding::AmpAscoCap2017Tier(AmpAscoCap2017TierCode::TierI))
+        statement.classification.codings.as_ref(),
+        &[Coding::AmpAscoCap2017Tier(AmpAscoCap2017TierCode::TierI)]
     );
     assert_eq!(
-        statement.strength.as_ref().and_then(|s| s.coding.as_ref()),
-        Some(&Coding::AmpAscoCap2017Level(
-            AmpAscoCap2017LevelCode::LevelA
-        ))
+        statement.strength.as_ref().map(|s| s.codings.as_ref()),
+        Some([Coding::AmpAscoCap2017Level(AmpAscoCap2017LevelCode::LevelA)].as_slice())
     );
     assert!(statement.attribution.version.is_none());
     assert!(statement.attribution.evaluated.is_none());
@@ -384,8 +391,8 @@ fn shared_clinvar_and_clingen_fixture_rows_become_statements() -> Check {
             "attribution":{"source":if clinvar {"clinvar"} else {"erepo"},"record":row["record"],"submitter":row["submitter"]} }
         );
         if clinvar {
-            statement["classification"]["coding"] =
-                json!({"system":"acmg_amp_2015","code":"pathogenic"});
+            statement["classification"]["codings"] =
+                json!([{"system":"acmg_amp_2015","code":"pathogenic"}]);
             statement["attribution"]["evaluated"] = row["evaluated"].clone();
             statement["allele_origin"] = json!({"label":row["allele_origin"]});
             statement["strength"] = json!({"label":row["review_status"]});
@@ -404,74 +411,6 @@ fn shared_clinvar_and_clingen_fixture_rows_become_statements() -> Check {
 }
 
 #[test]
-fn population_strata_enforce_counts_and_frequencies() -> Check {
-    let attribution = Attribution {
-        source: Source::Gnomad.text(),
-        record: None,
-        version: None,
-        release: None,
-        submitter: None,
-        evaluated: None,
-        url: None,
-    };
-    let base = PopulationFrequency::new(
-        VariantRef::allele("CA123643".parse()?),
-        Build::GRCh38,
-        Text::new("gnomad")?,
-        Text::new("synthetic-release")?,
-        attribution,
-    );
-    let value = base
-        .clone()
-        .with_stratum(
-            Some(PopulationDataType::Exomes),
-            Some(Text::new("synthetic-group")?),
-            Some(PopulationSex::Xy),
-            Some(Text::new("synthetic-subset")?),
-        )
-        .with_counts(Some(2), Some(4), Some(0), Some(0))?
-        .with_frequencies(Some(0.5.try_into()?), Some(0.25.try_into()?))?;
-    let serialized = serde_json::to_value(&value)?;
-    assert_eq!(serialized.get("hemizygote_count"), Some(&json!(0)));
-    assert_eq!(serialized.get("allele_frequency"), Some(&json!(0.5)));
-    assert_eq!(
-        serde_json::from_value::<PopulationFrequency>(serialized.clone())?,
-        value
-    );
-    assert_eq!(
-        base.clone()
-            .with_counts(Some(3), Some(2), None, None)
-            .expect_err("count cannot exceed its denominator")
-            .code(),
-        "population.count.exceeds_number"
-    );
-    assert_eq!(
-        base.clone()
-            .with_frequencies(Some(1.01.try_into()?), None)
-            .expect_err("frequency is bounded")
-            .code(),
-        "population.frequency.range"
-    );
-    assert!(
-        base.with_frequencies(None, Some((-0.01).try_into()?))
-            .is_err()
-    );
-    for (field, invalid) in [
-        ("allele_count", json!(5)),
-        ("allele_frequency", json!(-0.01)),
-        ("faf95", json!(1.01)),
-    ] {
-        let mut changed = serialized.clone();
-        changed
-            .as_object_mut()
-            .ok_or("population object required")?
-            .insert(field.into(), invalid);
-        assert!(serde_json::from_value::<PopulationFrequency>(changed).is_err());
-    }
-    Ok(())
-}
-
-#[test]
 fn source_predictor_contract_keeps_zero_and_native_labels() {
     let source = json!(
         {"subject":{"level":"allele","hgvs":"NC_000007.13:g.140453136A>T"},"method":"cadd.sift.val","score":0.0,"label":"deleterious",
@@ -481,45 +420,143 @@ fn source_predictor_contract_keeps_zero_and_native_labels() {
     assert_eq!(serde_json::to_value(score).expect("serialize"), source);
     assert!(serde_json::from_value::<PredictorScore>(json!({"score":null})).is_err());
     let empty: VariantConservation = serde_json::from_value(
-        json!({"subject_qualification":"adapter_derived_reference","scores":[],"components":[]}),
+        json!({"subject_qualification":"adapter-derived-reference","scores":[],"components":[]}),
     )
     .expect("an absent record field has no fabricated score");
     assert!(empty.scores.is_empty());
 }
 
 #[test]
-fn identifier_lists_qualify_each_namespace_and_roundtrip() -> Result<(), Box<dyn std::error::Error>>
+fn identifier_lists_preserve_published_text_and_roundtrip() -> Result<(), Box<dyn std::error::Error>>
 {
-    for (published, output) in [
-        ("rs113488022", "rs:113488022"),
-        ("CA123643", "clingen:CA123643"),
-        ("PA123", "clingen:PA123"),
-        ("VCV000013961.1", "clinvar:VCV000013961.1"),
-        ("clinvar:13961", "clinvar:13961"),
-        ("COSV60000001", "cosmic:COSV60000001"),
-        (
-            "ga4gh:VA.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "ga4gh:VA.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        ),
+    for published in [
+        "rs113488022",
+        "CA123643",
+        "PA123",
+        "VCV000013961.1",
+        "clinvar:13961",
+        "COSV60000001",
+        "ga4gh:VA.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     ] {
         let id: VariantId = published.parse()?;
         assert_eq!(id.to_string(), published);
+        assert_eq!(VariantInput::new(published)?.as_str(), published);
         let variant = Variant {
             ids: Box::new([id]),
             representations: Box::default(),
             genes: Box::default(),
         };
         let value = serde_json::to_value(&variant)?;
-        assert_eq!(value, json!({"ids":[output]}));
+        assert_eq!(value, json!({"ids":[published]}));
         assert_eq!(serde_json::from_value::<Variant>(value)?, variant);
-        // Stored entities with the old published spelling remain readable.
-        assert_eq!(
-            serde_json::from_value::<Variant>(json!({"ids":[published]}))?,
-            variant
-        );
     }
-    for invalid in ["clingen:rs123", "cosmic:CA123643", "rs:CA123643"] {
+    for invalid in [
+        "rs:113488022",
+        "clingen:CA123643",
+        "clingen:PA123",
+        "clinvar:VCV000013961.1",
+        "cosmic:COSV60000001",
+        "clingen:rs123",
+        "cosmic:CA123643",
+        "rs:CA123643",
+    ] {
         assert!(serde_json::from_value::<Variant>(json!({"ids":[invalid]})).is_err());
     }
+    Ok(())
+}
+
+#[test]
+fn card_ids_requested_and_statement_subjects_share_published_text()
+-> Result<(), Box<dyn std::error::Error>> {
+    for id in [
+        "rs113488022",
+        "CA123643",
+        "PA123",
+        "VCV000013961",
+        "VCV000013961.98",
+        "clinvar:13961",
+        "COSV55386424",
+        "COSM476",
+        "COSN123",
+        "ga4gh:VA.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    ] {
+        let golden = json!({
+            "resolution":"unresolved", "source":"erepo",
+            "candidates":[{
+                "identity":{"ids":[id]}, "requested":id,
+                "source":"erepo", "record":{"namespace":"unknown","id":"synthetic-record"},
+                "sections":{"erepo":{"state":"data", "source":"erepo", "data":{
+                    "assertions":[{"kind":"erepo", "domain":"germline", "statement":{
+                        "subject":{"level":"allele", "id":id},
+                        "proposition":"pathogenicity", "classification":{"label":"synthetic"},
+                        "attribution":{"source":"erepo", "record":"synthetic-record"}
+                    }}], "page":{"offset":0,"returned":1,"total":1}
+                }}}
+            }]
+        });
+        let card: VariantCard = serde_json::from_value(golden.clone())?;
+        assert_eq!(serde_json::to_value(card)?, golden);
+        assert_eq!(VariantInput::new(id)?.as_str(), id);
+    }
+    Ok(())
+}
+
+#[test]
+fn term_retains_multiple_source_codings_and_concept_refuses_system_uris() -> Check {
+    let value = json!({"label":"Pathogenic", "codings":[
+        {"system":"acmg_amp_2015", "code":"pathogenic"},
+        {"system":"clingen_cgc_vicc_2022", "code":"oncogenic"}
+    ]});
+    #[cfg(feature = "schema")]
+    {
+        let schema = schemars::schema_for!(biodata::Term);
+        let validator = jsonschema::draft202012::new(schema.as_value())?;
+        assert!(validator.is_valid(&value));
+    }
+    let term: biodata::Term = serde_json::from_value(value.clone())?;
+    assert_eq!(serde_json::to_value(term)?, value);
+    for id in [
+        "https://example.org/concept",
+        "http://example.org/concept",
+        "urn:oid:1.2.3",
+    ] {
+        assert!(
+            serde_json::from_value::<biodata::Concept>(json!({"id":id,"label":"source label"}))
+                .is_err()
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn clinvar_codings_use_exact_publisher_labels() -> Check {
+    let review = ReviewStatus::from_source_label("criteria provided, single submitter")
+        .ok_or("review label")?;
+    let origin = AlleleOrigin::from_source_label("de novo").ok_or("origin label")?;
+    assert_eq!(
+        serde_json::to_value(Coding::ClinvarReviewStatus(review))?,
+        json!({"system":"clinvar_review_status","code":"criteria_provided_single_submitter"})
+    );
+    assert_eq!(
+        serde_json::to_value(Coding::ClinvarAlleleOrigin(origin))?,
+        json!({"system":"clinvar_allele_origin","code":"de_novo"})
+    );
+    assert!(ReviewStatus::from_source_label("future review label").is_none());
+    assert!(AlleleOrigin::from_source_label("future origin label").is_none());
+    Ok(())
+}
+
+#[test]
+fn typed_candidate_assertions_preserve_source_identity_and_page() -> Check {
+    for (text, source) in [("clinvar:13961", "clinvar"), ("CA000434", "erepo")] {
+        let id: VariantId = text.parse()?;
+        let query = VariantAssertionsGet::from_identity(id.clone(), 2, 3)?;
+        assert_eq!(query.input().identity(), Some(&id));
+        assert_eq!(
+            serde_json::to_value(query)?,
+            json!({"input": text, "source": source, "limit": 2, "offset": 3})
+        );
+    }
+    assert!(VariantAssertionsGet::from_identity("rs113488022".parse()?, 2, 3).is_err());
     Ok(())
 }

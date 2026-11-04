@@ -1,0 +1,35 @@
+{
+  "feature": "maude-reports",
+  "live_check": "Native-field behavior uses synthetic data. The bounded capture plan checks field availability.",
+  "replay": "adverse-event/maude-filters-synthetic",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "--source",
+        "maude",
+        "--manufacturer",
+        "Synthetic maker",
+        "--product-code",
+        "ABC",
+        "--product-code",
+        "XYZ",
+        "--problem",
+        "Synthetic problem"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/source_query": "device.manufacturer_d_name:\"Synthetic maker\" AND (device.device_report_product_code.exact:\"ABC\" OR device.device_report_product_code.exact:\"XYZ\") AND product_problems:\"Synthetic problem\"",
+        "/page/total": 1,
+        "/result/items/0/id": "160",
+        "": {
+          "max_bytes": 1201
+        }
+      },
+      "max_bytes": 1202,
+      "full_output_bytes": true
+    }
+  ],
+  "story": "A caller searches MAUDE report fields without device text and combines exact native product codes with OR."
+}

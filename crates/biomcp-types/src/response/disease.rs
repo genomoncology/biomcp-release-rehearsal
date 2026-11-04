@@ -7,7 +7,6 @@ use biodata::{
 use serde::{Deserialize, Serialize};
 /// A disease identity whose optional display label never determines record admission.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiseaseConcept {
     /// Source-stated exact identifier.
@@ -20,7 +19,6 @@ pub struct DiseaseConcept {
 }
 /// One source candidate without a selected identity.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiseaseHeader {
     /// Native concept and optional exact ID.
@@ -35,7 +33,6 @@ pub struct DiseaseHeader {
 }
 /// Exact identity and available pages without hidden enrichment.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiseaseCard {
     /// Exact requested identifier.
@@ -58,6 +55,7 @@ pub struct DiseaseCard {
     pub consider: Option<Box<[Curie]>>,
     /// Publisher explicit replacement identifiers; null preserves no native replacement.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub replaced_by: Option<Box<[Curie]>>,
     /// Publisher record and version.
     pub attribution: Attribution,
@@ -69,24 +67,24 @@ pub struct DiseaseCard {
     pub components: Box<[ComponentLabel]>,
 }
 impl ResponseBody for DiseaseCard {
-    const SCHEMA: &'static str = "biomcp.disease-card/3";
+    const SCHEMA: &'static str = "biomcp.disease-card/6";
     type Query = DiseaseGet;
 }
 /// One publisher catalog site, independent of ontology identities.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiseaseSite {
     /// Native publisher site code.
     pub code: Text,
     /// Complete publisher site label.
-    pub label: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<Text>,
     /// Publisher active-state flag.
-    pub active: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active: Option<bool>,
 }
 /// One native association and the component terms governing that row.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiseaseAssociationItem {
     /// Complete neutral association, including requested and actual endpoints.
@@ -95,113 +93,99 @@ pub struct DiseaseAssociationItem {
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub components: Box<[ComponentLabel]>,
 }
-macro_rules! page {
-    ($name:ident, $row:ty, $query:ty, $schema:literal, $doc:literal) => {
-        page!($name, $row, $query, $schema, $doc, []);
-    };
-    ($name:ident, $row:ty, $query:ty, $schema:literal, $doc:literal, [$($extra:tt)*]) => {
-        #[doc = $doc]
-        #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
-        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        pub struct $name {
-            /// Native source rows; totals in the envelope count rows, not distinct entities.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub items: Box<[$row]>,
-            /// Applicable component use terms, independent of row provenance.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub components: Box<[ComponentLabel]>,
-            $($extra)*
-        }
-        impl ResponseBody for $name {
-            const SCHEMA: &'static str = $schema;
-            type Query = $query;
-        }
-    };
-}
+
 page!(
+    disease,
     DiseasePage,
     DiseaseHeader,
     DiseaseSearch,
-    "biomcp.disease-page/2",
+    "biomcp.disease-page/5",
     "One source-ordered disease candidate page."
 );
 page!(
+    disease,
     DiseaseSynonyms,
     DiseaseSynonym,
     DiseaseGet,
-    "biomcp.disease-synonyms/2",
+    "biomcp.disease-synonyms/5",
     "One publisher synonym page with scope and language."
 );
 page!(
+    disease,
     DiseaseXrefs,
     DiseaseRelation,
     DiseaseGet,
-    "biomcp.disease-xrefs/2",
+    "biomcp.disease-xrefs/5",
     "Native cross-reference predicates without equivalence promotion."
 );
 page!(
+    disease,
     DiseaseHierarchy,
     DiseaseRelation,
     DiseaseGet,
-    "biomcp.disease-hierarchy/2",
+    "biomcp.disease-hierarchy/5",
     "Native parent relations with both endpoints."
 );
 page!(
-    DiseaseGenes,
-    DiseaseAssociationItem,
-    DiseaseGet,
-    "biomcp.disease-genes/5",
-    "Native association rows, not a unique-gene count.",
-    [
+disease,
+DiseaseGenes,
+DiseaseAssociationItem,
+DiseaseGet,
+"biomcp.disease-genes/9",
+"Native association rows, not a unique-gene count.",
+[
         /// Original response retrieval Unix seconds, independent of local delivery.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fetched: Option<u64>,
     ]
 );
 page!(
-    DiseasePhenotypes,
-    DiseaseAssociationItem,
-    DiseaseGet,
-    "biomcp.disease-phenotypes/5",
-    "Native phenotype association rows without diagnostic inference.",
-    [
+disease,
+DiseasePhenotypes,
+DiseaseAssociationItem,
+DiseaseGet,
+"biomcp.disease-phenotypes/9",
+"Native phenotype association rows without diagnostic inference.",
+[
         /// Original response retrieval Unix seconds, independent of local delivery.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fetched: Option<u64>,
     ]
 );
 page!(
-    DiseaseSites,
-    DiseaseSite,
-    DiseaseSearch,
-    "biomcp.disease-sites/2",
-    "Publisher site catalog without an ontology-to-site mapping.",
-    [
+disease,
+DiseaseSites,
+DiseaseSite,
+DiseaseSearch,
+"biomcp.disease-sites/5",
+"Publisher site catalog without an ontology-to-site mapping.",
+[
         /// Original response retrieval time in Unix seconds, distinct from publisher version/date.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fetched: Option<u64>,
     ]
 );
 page!(
-    DiseaseIncidence,
-    DiseaseStatistic,
-    DiseaseGet,
-    "biomcp.disease-incidence/3",
-    "Native incidence rows preserving requested and returned dimensions.",
-    [
+disease,
+DiseaseIncidence,
+DiseaseStatistic,
+DiseaseGet,
+"biomcp.disease-incidence/7",
+"Native incidence rows preserving requested and returned dimensions.",
+[
         /// Original response retrieval time in Unix seconds, distinct from dataset publication.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fetched: Option<u64>,
     ]
 );
 page!(
-    DiseaseSurvival,
-    DiseaseStatistic,
-    DiseaseGet,
-    "biomcp.disease-survival/3",
-    "Native annual survival rows with separate observed and modeled values.",
-    [
+disease,
+DiseaseSurvival,
+DiseaseStatistic,
+DiseaseGet,
+"biomcp.disease-survival/7",
+"Native annual survival rows with separate observed and modeled values.",
+[
         /// Original response retrieval time in Unix seconds, distinct from dataset publication.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fetched: Option<u64>,

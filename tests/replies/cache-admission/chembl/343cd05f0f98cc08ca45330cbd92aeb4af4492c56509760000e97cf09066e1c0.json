@@ -1,0 +1,31 @@
+{
+  "source": "chembl",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/mechanism.json?molecule_chembl_id=CHEMBL1201585&limit=1&offset=0",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "mechanisms": [
+            {
+              "mec_id": 0,
+              "molecule_chembl_id": "CHEMBL1201585",
+              "mechanism_of_action": {},
+              "target_chembl_id": "CHEMBL1824"
+            }
+          ],
+          "page_meta": {
+            "offset": 0,
+            "limit": 1,
+            "total_count": 1
+          }
+        }
+      }
+    }
+  ]
+}

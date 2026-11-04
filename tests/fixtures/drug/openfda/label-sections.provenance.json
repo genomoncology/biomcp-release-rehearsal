@@ -1,0 +1,5 @@
+{
+  "url": "https://api.fda.gov/drug/label.json?search=set_id:%22211ef2da-2868-4a77-8055-1cb2cd78e24b%22&limit=1&sort=effective_time:desc",
+  "sha256": "453cc0a70402a5bae3a22b8bde209445e32b430408c99f7ac1db947108134f2b",
+  "retained": "Unchanged complete openFDA response; test stub supplies request envelope."
+}

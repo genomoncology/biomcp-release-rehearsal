@@ -4,6 +4,8 @@ use biodata::{Curie, Text};
 /// One exact received annotation with independently attributed component facts.
 #[derive(Debug)]
 pub struct Record {
+    /// Rejected top-level metadata.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Exact caller-selected identifier.
     pub requested_id: Curie,
     /// Native top-level identifier, checked against the request or its own alias.
@@ -73,7 +75,7 @@ pub(super) fn component(name: &'static str, raw: super::raw::Component) -> Compo
             "{root}.{}",
             if name == "doid" { "def" } else { "definition" }
         ),
-        raw.definition.map(|v| v.value().ok_or(())),
+        raw.definition.map(|v| v.value().map(Into::into).ok_or(())),
     );
     let synonyms = values(
         raw.synonym,
@@ -100,13 +102,13 @@ pub(super) fn component(name: &'static str, raw: super::raw::Component) -> Compo
         id: raw.id,
         label: problems.optional(
             &format!("{root}.{}", if name == "doid" { "name" } else { "label" }),
-            raw.label.map(|v| v.value().ok_or(())),
+            raw.label.map(|v| v.value().map(Into::into).ok_or(())),
         ),
         definition,
         synonyms,
         xrefs,
         parents,
-        obsolete: raw.is_obsolete,
+        obsolete: problems.field(&format!("{root}.is_obsolete"), raw.is_obsolete),
         consider,
         replaced_by,
         problems: problems.list,
@@ -130,7 +132,10 @@ fn ids(
 fn values(
     fields: Option<
         crate::raw::Field<
-            std::collections::BTreeMap<String, crate::raw::OneOrMany<crate::raw::Field<Text>>>,
+            std::collections::BTreeMap<
+                String,
+                crate::raw::OneOrMany<crate::raw::Field<crate::native_text::NativeText>>,
+            >,
         >,
     >,
     root: &str,
@@ -147,7 +152,7 @@ fn values(
             {
                 result.push(Value {
                     field: field.clone(),
-                    value,
+                    value: value.into(),
                 });
             }
         }

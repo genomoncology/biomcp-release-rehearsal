@@ -1,0 +1,33 @@
+{
+  "deadline_seconds": 30,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "synonym",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/biomarkers?name=PD-L1",
+      "response_format": "bytes",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    },
+    {
+      "id": "code",
+      "source": "nci",
+      "url": "https://clinicaltrialsapi.cancer.gov/api/v2/biomarkers?codes=C96022",
+      "response_format": "bytes",
+      "key": {
+        "env": "NCI_API_KEY",
+        "header": "X-API-KEY"
+      },
+      "headers": {
+        "Accept-Encoding": "identity"
+      }
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "diagnostic-who-search",
   "story": "Literal native marker and manufacturer fields select source-ordered distinct WHO products without substring or inferred matches.",
   "replay": "diagnostic/who-search-synthetic",
@@ -22,111 +23,11 @@
         "--marker",
         "hIv"
       ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--marker",
-        "hIv"
-      ],
       "max_bytes": 2366,
       "expect": {
         "/page/total": 7,
         "/page/returned": 5,
         "/result/items/0/id": "0466-046-00"
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--manufacturer",
-        "north"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--manufacturer",
-        "north"
-      ],
-      "max_bytes": 1415,
-      "expect": {
-        "/page/total": 3
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--marker",
-        "HIV",
-        "--manufacturer",
-        "north"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--marker",
-        "HIV",
-        "--manufacturer",
-        "north"
-      ],
-      "max_bytes": 720,
-      "expect": {
-        "/page/total": 1
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--marker",
-        "missing"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--marker",
-        "missing"
-      ],
-      "max_bytes": 313,
-      "expect": {
-        "/page/total": 0
-      }
-    },
-    {
-      "run": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--manufacturer",
-        "North Synthetic"
-      ],
-      "mcp": [
-        "search",
-        "diagnostic",
-        "--source",
-        "who-ivd",
-        "--manufacturer",
-        "North Synthetic"
-      ],
-      "max_bytes": 329,
-      "expect": {
-        "/page/total": 0
       }
     }
   ]

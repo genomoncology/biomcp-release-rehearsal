@@ -1,0 +1,40 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies/NCT02296125",
+  "exchanges": [
+    {
+      "fetched": 1792864148,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "Synthetic source failure."
+      }
+    },
+    {
+      "fetched": 1792864148,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "Synthetic source failure."
+      }
+    },
+    {
+      "fetched": 1792864148,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "Synthetic source failure."
+      }
+    }
+  ]
+}

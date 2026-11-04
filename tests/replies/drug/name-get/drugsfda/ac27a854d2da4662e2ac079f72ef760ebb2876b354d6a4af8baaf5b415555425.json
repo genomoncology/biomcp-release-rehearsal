@@ -1,0 +1,51 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=products.brand_name%3A%22Unlisted%20medicine%22%20OR%20products.active_ingredients.name%3A%22Unlisted%20medicine%22&limit=50",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2026-10-28",
+            "results": {
+              "skip": 0,
+              "limit": 50,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "application_number": "NDA009999",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Other brand",
+                  "active_ingredients": [
+                    {
+                      "name": "Unlisted medicine bromate"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_number": "1",
+                  "submission_type": "ORIG",
+                  "submission_status": "AP",
+                  "submission_status_date": "20010101"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "feature": "biomarker-nci",
+  "live_check": "missing nightly NCI user-owned API key; retained native public-tier replies use an isolated replay key",
+  "story": "A native synonym search returns CD274 Gene and preserves NCI header lists.",
+  "replay": "biomarker/native",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  },
+  "verified": "Captured 2026-10-28. Native codes, list values, row order and trial counts preserved.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "biomarker",
+        "--source",
+        "nci",
+        "--name",
+        "PD-L1"
+      ],
+      "expect": {
+        "/page/total": 37,
+        "/page/returned": 5,
+        "/result/items/0/codes": [
+          "C96022"
+        ],
+        "/result/items/0/name": "CD274 Gene",
+        "/result/items/0/type": [
+          "reference_gene"
+        ],
+        "/result/items/0/count": 326
+      },
+      "max_bytes": 5000
+    }
+  ]
+}

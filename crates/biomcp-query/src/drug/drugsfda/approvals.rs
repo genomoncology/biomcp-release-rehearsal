@@ -1,42 +1,54 @@
-use crate::{Action, Ctx, Outcome};
+use crate::{Ctx, Outcome};
 use biomcp_adapters::{drugsfda as source, received_date};
 use biomcp_fetch::RequestError;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    DrugApprovals, DrugGet, DrugRecords, PageInfo, QueryBody, Reason, Request, Section, Source,
-    Status, StepKind,
+    DrugApprovals, DrugGet, DrugRecords, PageInfo, Reason, Request, Section, Source, StepKind,
 };
 pub(super) fn select(
     cx: &Ctx<'_>,
     query: &DrugGet,
     row: &source::Application,
-    fetched: i64,
-    updated: Option<biodata::PartialDate>,
+    metadata: (Option<i64>, Option<biodata::PartialDate>),
+    deadline: biomcp_fetch::Deadline<'_>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
+    let (fetched, updated) = metadata;
     let products: Box<[_]> = row
-        .products
-        .iter()
+        .products()
+        .into_vec()
+        .into_iter()
         .filter(|p| {
             query
                 .product_number()
                 .is_none_or(|n| n == &p.product_number)
         })
-        .map(|p| p.mapped())
         .collect();
     let approvals = if query.product_number().is_some() && products.is_empty() {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
         Section::unavailable(Source::Drugsfda, Reason::NotFound)
+    } else if let Some(records) = super::letter::select(cx, query, row, deadline, out)? {
+        Section::Data {
+            source: Source::Drugsfda,
+            data: DrugRecords {
+                records,
+                offset: 0,
+                total: Some(1),
+                truncated: None,
+                version: None,
+                retrieved: received_date(fetched),
+            },
+        }
     } else {
         let offset = query.section_offset().unwrap_or(0);
-        let records = row
-            .submissions
-            .iter()
-            .skip(offset as usize)
-            .take(query.section_limit().unwrap_or(1) as usize)
-            .map(|s| s.mapped(row))
-            .collect::<Result<Box<[_]>, _>>()?;
+        let records = row.submissions(
+            offset,
+            query
+                .section_limit()
+                .unwrap_or(biomcp_types::DEFAULT_DRUG_APPROVALS_LIMIT),
+        )?;
         let returned = records.len() as u32;
-        let total = row.submissions.len() as u64;
+        let total = row.submission_count() as u64;
         out.page = Some(PageInfo {
             offset,
             returned,
@@ -47,14 +59,17 @@ pub(super) fn select(
         if let Some(next) = offset
             .checked_add(returned)
             .filter(|n| returned > 0 && u64::from(*n) < total)
-            && let Ok(request) = query.at_section_offset(next)
+            && let Some(request) = crate::next::checked(
+                query.at_section_offset(next),
+                biomcp_types::Source::Drugsfda,
+                &mut out.problems,
+            )
         {
-            out.next.push((
+            out.next.push(crate::next::Step::run(
                 StepKind::Page,
-                Action::Run {
-                    request: Request::GetDrug(request),
-                    fresh: cx.fresh,
-                },
+                &[biomcp_types::Source::Drugsfda],
+                Request::GetDrug(request),
+                cx.fresh,
             ));
         }
         Section::Data {
@@ -69,11 +84,13 @@ pub(super) fn select(
             },
         }
     };
-    out.body = QueryBody::DrugApprovals(Some(DrugApprovals {
+    out.body = (DrugApprovals {
         identity: row.header(),
         products,
-        source_updated: updated,
+        source_updated: updated.map(Into::into),
         approvals,
-    }));
+        order: DrugApprovals::ORDER.into(),
+    })
+    .with_query(query.clone());
     Ok(())
 }

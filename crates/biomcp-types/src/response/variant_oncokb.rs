@@ -1,9 +1,8 @@
-use crate::{Build, Concept, PageInfo, Statement, Term, Text, VariantGet};
+use crate::{Build, PageInfo, Statement, Term, Text, VariantGet};
 use serde::{Deserialize, Serialize};
 
 /// Keyed OncoKB annotation, preserving the caller's assembly and tumor context.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantOncokb {
     /// Exact genomic query sent to OncoKB.
@@ -12,6 +11,12 @@ pub struct VariantOncokb {
     pub build: Build,
     /// Explicit caller tumor type, checked against the response query.
     pub tumor_type: Text,
+    /// Source-resolved gene, without a genomic or protein conversion.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hugo_symbol: Option<crate::GeneSymbol>,
+    /// Source-resolved protein alteration, independent of the requested genomic identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub alteration: Option<Text>,
     /// Native dataset version.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data_version: Option<Text>,
@@ -19,7 +24,8 @@ pub struct VariantOncokb {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_update: Option<Text>,
     /// Native exact variant curation flag; never a clinical conclusion.
-    pub variant_exist: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub variant_exist: Option<bool>,
     /// Source gene curation flag.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gene_exist: Option<bool>,
@@ -44,7 +50,7 @@ pub struct VariantOncokb {
 
 /// A native annotation row; no level or classification is inferred from other fields.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "kind", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum OncokbVariantRecord {
     /// A complete source statement with its original label.
@@ -92,14 +98,17 @@ pub enum OncokbVariantRecord {
     Implication {
         /// Original provider collection name.
         field: Box<str>,
+        /// Zero-based position in the named native response collection, not a publisher record ID.
+        ordinal: u32,
         /// Source evidence level, without a clinical interpretation.
-        level: Term,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        level: Option<Term>,
         /// Native tumor type; never replaced with the request's context.
         #[serde(skip_serializing_if = "Option::is_none")]
-        tumor_type: Option<Concept>,
+        tumor_type: Option<OncokbConcept>,
         /// Source-listed drugs, preserving order.
         #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
-        drugs: Box<[Concept]>,
+        drugs: Box<[OncokbConcept]>,
         /// Source alteration labels, which may describe a group or protein subject.
         #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
         alterations: Box<[Text]>,
@@ -122,7 +131,7 @@ pub enum OncokbVariantRecord {
         /// Native excluded contexts, never filled from the caller context.
         #[serde(default)]
         #[serde(skip_serializing_if = "<[_]>::is_empty")]
-        excluded_tumor_types: Box<[Concept]>,
+        excluded_tumor_types: Box<[OncokbConcept]>,
         /// Native approved indication labels.
         #[serde(default)]
         #[serde(skip_serializing_if = "<[_]>::is_empty")]
@@ -139,7 +148,6 @@ fn unmapped() -> bool {
 
 /// One native non-PubMed source citation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct OncokbCitation {
     /// Complete native citation content.
@@ -149,4 +157,16 @@ pub struct OncokbCitation {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("format" = "uri")))]
     pub link: Option<Text>,
+}
+
+/// Independent native concept values, retained when a display label is malformed.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct OncokbConcept {
+    /// Checked native external identifier, without a label conversion.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<crate::Curie>,
+    /// Complete native display label.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<Text>,
 }

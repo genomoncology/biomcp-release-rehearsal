@@ -3,6 +3,7 @@ use super::SPEC;
 use crate::Mapped;
 use biodata::{ProteinAudit, ProteinHeader, UniProtIsoform};
 use biomcp_fetch::{Freshness, Leg, RequestError};
+use biomcp_fetch::{Input, Read};
 use serde::{Deserialize, Serialize};
 pub(super) mod map;
 pub(super) mod raw;
@@ -33,9 +34,17 @@ pub fn entry(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<Mapped<Option<Entry>>
         .with_path(format!("/uniprotkb/{id}.json"))?
         .identity_encoding()
         .fresh(Freshness::Days(7));
-    match leg.json_checked_cache::<raw::Entry>(&ep, &[], |raw| raw.admitted(id)) {
+    match leg
+        .call(
+            &ep,
+            Input::Params(&[]),
+            Read::<raw::Entry>::json().cache_if(&|raw| raw.admitted(id)),
+        )
+        .map(|received| received.value)
+    {
         Ok(raw) => Ok(map::entry(raw, id)),
         Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::NotFound => Ok(Mapped {
+            refusals: crate::Refusal::None,
             value: None,
             problems: Vec::new(),
         }),

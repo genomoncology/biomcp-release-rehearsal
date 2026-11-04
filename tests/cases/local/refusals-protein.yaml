@@ -1,0 +1,59 @@
+live_check: "local-only command help, validation or stored-state behavior; no recorded source replies"
+feature: query-validation
+story: Each public command refuses an unsupported argument before it reads a source.
+steps:
+- run:
+  - protein
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - complex-members
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - complexes
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - domains
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - features
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - isoforms
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - sequence
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - protein
+  - structures
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments

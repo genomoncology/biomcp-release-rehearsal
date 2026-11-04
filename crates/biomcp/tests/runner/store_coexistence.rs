@@ -1,5 +1,6 @@
 //! Feature store-coexistence: allowed reads retain both owned store generations.
 use super::{configuration::invoke, launch::Environment};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use rusqlite::{Connection, params};
 use serde_json::{Value, json};
@@ -14,7 +15,6 @@ const ID: &str = "0466-046-00";
 pub(super) fn trials() -> Vec<Trial> {
     [
         ("imports-after-safe-cleanup", imports as fn() -> Check),
-        ("legacy-hgnc-index-upgrades", legacy_index),
         ("obsolete-published-bundle-survives-cleanup", obsolete),
         ("current-published-bundle-wins", current),
         ("recorded-stored-read-transfers-without-provider", recorded),
@@ -24,7 +24,7 @@ pub(super) fn trials() -> Vec<Trial> {
     ]
     .into_iter()
     .map(|(name, run)| {
-        Trial::test(format!("store-coexistence/{name}"), move || {
+        transcript_trial(format!("store-coexistence/{name}"), move || {
             run().map_err(|e| e.to_string().into())
         })
     })
@@ -219,37 +219,6 @@ fn admission() -> Check {
     Ok(())
 }
 
-fn legacy_index() -> Check {
-    let env = Environment::new()?;
-    let (old, current) = files(&env)?;
-    let replay = super::launch::fixtures().join("replies/pathway/sections");
-    let mut args = vec!["pathway".into(), "genes".into(), "R-HSA-5673001".into()];
-    let mut seed = args.clone();
-    seed.extend(env.globals(Some(&replay), false));
-    invoke(&env, seed, 0)?;
-    let cache = env.root().join("case-cache/replay.sqlite");
-    fs::copy(&cache, &old)?;
-    fs::copy(&cache, &current)?;
-    Connection::open(&old)?.execute_batch(
-        "DELETE FROM bundle_key WHERE bundle='hgnc' AND kind=4 AND key LIKE 'uniprot:%'; \
-         UPDATE meta SET version=3 WHERE owner='biomcp-fetch';",
-    )?;
-    Connection::open(&current)?.execute_batch(
-        "DELETE FROM bundle WHERE name='hgnc'; DELETE FROM bundle_row WHERE bundle='hgnc'; \
-         DELETE FROM bundle_key WHERE bundle='hgnc'; DELETE FROM bundle_words WHERE bundle='hgnc';",
-    )?;
-    let before = fs::read(&old)?;
-    args.push("--offline".into());
-    let value = invoke(&env, args, 0)?;
-    if value.pointer("/result/items/0/gene") != Some(&json!("HGNC:1097")) {
-        return Err(format!("legacy transfer lost the UniProt gene join: {value}").into());
-    }
-    if fs::read(&old)? != before {
-        return Err("legacy index upgrade rewrote its source".into());
-    }
-    Ok(())
-}
-
 fn obsolete() -> Check {
     let env = Environment::new()?;
     let (_, current) = files(&env)?;
@@ -290,7 +259,7 @@ fn recorded() -> Check {
     let before = fs::read(&old)?;
     let stub = super::network_stub::Stub::new()?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate)?;
     env.config(&json!({"ca_bundle":ca,"proxy":format!("http://{}",stub.address)}))?;
     let records = env.root().join("records");

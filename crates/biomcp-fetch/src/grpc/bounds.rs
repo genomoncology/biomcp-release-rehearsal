@@ -75,7 +75,8 @@ impl Limits {
             zstd_window_log: self.zstd_window_log.min(ceiling.zstd_window_log),
         }
     }
-    pub(super) fn check(self) -> Result<Self, CodecError> {
+    /// Validate explicit allocation bounds before decoding a stream.
+    pub fn check(self) -> Result<Self, CodecError> {
         let values = [
             self.request_bytes,
             self.message_bytes,

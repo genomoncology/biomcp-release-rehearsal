@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "clinvar",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=FLCN%5BGENE%5D%20AND%20%22c.780-4C%3EG%22%5BVRNM%5D&retmode=json&retmax=50&tool=biomcp",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"header\":{\"type\":\"esearch\",\"version\":\"0.3\"},\"esearchresult\":{\"count\":\"1\",\"retmax\":\"1\",\"retstart\":\"0\",\"idlist\":[\"1760704\"],\"translationset\":[],\"translationstack\":[{\"term\":\"FLCN[GENE]\",\"field\":\"GENE\",\"count\":\"3132\",\"explode\":\"N\"},{\"term\":\"\\\"c0x2e7800x2d4C0x3eG\\\"[VRNM]\",\"field\":\"VRNM\",\"count\":\"1\",\"explode\":\"N\"},\"AND\"],\"querytranslation\":\"FLCN[GENE] AND \\\"c0x2e7800x2d4C0x3eG\\\"[VRNM]\"}}\n"
+      },
+      "fetched": 1793309493
+    }
+  ]
+}

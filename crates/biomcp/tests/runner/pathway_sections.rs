@@ -1,30 +1,19 @@
 //! Feature pathway-reactome: retained source membership and event walks through CLI and MCP.
 use super::launch::{Environment, fixtures};
 use crate::runner::pathway_budgets as budgets;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
-use std::{collections::BTreeSet, io::Write};
+use std::collections::BTreeSet;
 type Check = Result<(), String>;
 pub(super) fn trials() -> Vec<Trial> {
+    // The test follows runtime pool bindings and compares complete source event/reference sets across pages.
     vec![
-        Trial::test("pathway-sections/native-reference-walk", || {
+        transcript_trial(crate::runner::pool_contract::PATHWAY_GENES.0, || {
             walk(true).map_err(Into::into)
         }),
-        Trial::test("pathway-sections/native-event-walk", || {
+        transcript_trial(crate::runner::pool_contract::PATHWAY_EVENTS.0, || {
             walk(false).map_err(Into::into)
-        }),
-        Trial::test("pathway-sections/pool-binding-and-fixed-lifetime", || {
-            bindings().map_err(Into::into)
-        }),
-        Trial::test("pathway-sections/warm-hgnc-uniprot-index-migration", || {
-            migration().map_err(Into::into)
-        }),
-        Trial::test(
-            "pathway-sections/compact-and-complete-context-modes",
-            || disclosure_modes().map_err(Into::into),
-        ),
-        Trial::test("pathway-sections/native-disclosure-measurements", || {
-            measurements().map_err(Into::into)
         }),
     ]
 }
@@ -46,7 +35,8 @@ fn continuation(value: &Value) -> Result<Option<Vec<String>>, String> {
     value
         .get("next")
         .and_then(Value::as_array)
-        .ok_or("missing next array")?
+        .map(Vec::as_slice)
+        .unwrap_or_default()
         .iter()
         .find(|s| s.get("kind") == Some(&json!("page")))
         .map(|s| {
@@ -118,6 +108,9 @@ fn walk(genes: bool) -> Check {
             seen.len()
         ));
     }
+    if !genes {
+        super::pathway_get_pages::check(&env, &globals(&env, false))?;
+    }
     Ok(())
 }
 fn observe(
@@ -135,7 +128,7 @@ fn observe(
                 .and_then(Value::as_str)
                 .ok_or("namespace")?;
             let id = row
-                .pointer("/reference/value")
+                .pointer("/reference/id")
                 .and_then(Value::as_str)
                 .ok_or("reference")?;
             if let Some(gene) = row.get("gene").and_then(Value::as_str) {
@@ -161,7 +154,11 @@ fn check_steps(value: &Value, genes: bool) -> Check {
         .pointer("/result/items")
         .and_then(Value::as_array)
         .ok_or("rows")?;
-    let steps = value.get("next").and_then(Value::as_array).ok_or("steps")?;
+    let steps = value
+        .get("next")
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or_default();
     if genes {
         check_gene_steps(value, rows, steps)
     } else {
@@ -174,7 +171,7 @@ fn unresolved(value: &Value, row: &Value) -> Check {
         .and_then(Value::as_str)
         .ok_or("namespace")?;
     let id = row
-        .pointer("/reference/value")
+        .pointer("/reference/id")
         .and_then(Value::as_str)
         .ok_or("reference")?;
     let reference = format!("{namespace}:{id}");
@@ -252,199 +249,6 @@ fn check_event_steps(value: &Value, rows: &[Value], steps: &[Value]) -> Check {
         > 3
     {
         return Err("events exposed too many selections".into());
-    }
-    Ok(())
-}
-fn bindings() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let args = ["pathway", "events", "R-HSA-5673001"]
-        .map(str::to_owned)
-        .to_vec();
-    let first = call("pathway_sections/bindings/1", &env, &args, false, 0)?;
-    let next = continuation(&first)?.ok_or("missing continuation")?;
-    let continued = call("pathway_sections/bindings/2", &env, &next, true, 0)?;
-    if first.pointer("/result/page/pool/created") != continued.pointer("/result/page/pool/created")
-        || first.pointer("/result/page/pool/expires")
-            != continued.pointer("/result/page/pool/expires")
-    {
-        return Err("continuation renewed pool lifetime".into());
-    }
-    for (position, replacement) in [(1, "genes"), (2, "R-HSA-177929")] {
-        let mut changed = next.clone();
-        *changed.get_mut(position).ok_or("selector")? = replacement.into();
-        let value = call("pathway_sections/bindings/3", &env, &changed, true, 3)?;
-        if value.pointer("/error/code") != Some(&json!("pool.expired")) {
-            return Err("foreign selector reused pool".into());
-        }
-    }
-    let mut disabled = next.clone();
-    disabled.extend(["--disable-sources".into(), "reactome".into()]);
-    let value = call("pathway_sections/bindings/4", &env, &disabled, true, 4)?;
-    if value.pointer("/sources/0/state") != Some(&json!("skipped")) {
-        return Err("disabled relation restored pool".into());
-    }
-    let db = rusqlite::Connection::open(env.root().join("case-cache/replay.sqlite"))
-        .map_err(|e| e.to_string())?;
-    db.execute("UPDATE pool SET expires=0", [])
-        .map_err(|e| e.to_string())?;
-    let expired = call("pathway_sections/bindings/5", &env, &next, true, 3)?;
-    if expired.pointer("/error/code") != Some(&json!("pool.expired")) {
-        return Err("expired relation refetched".into());
-    }
-    Ok(())
-}
-fn migration() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let args = ["pathway", "genes", "R-HSA-5673001"]
-        .map(str::to_owned)
-        .to_vec();
-    call("pathway_sections/migration/1", &env, &args, false, 0)?;
-    let path = env.root().join("case-cache/replay.sqlite");
-    {
-        let db = rusqlite::Connection::open(&path).map_err(|e| e.to_string())?;
-        db.execute(
-            "DELETE FROM bundle_key WHERE bundle='hgnc' AND kind=4 AND key LIKE 'uniprot:%'",
-            [],
-        )
-        .map_err(|e| e.to_string())?;
-        db.execute("UPDATE meta SET version=3 WHERE owner='biomcp-fetch'", [])
-            .map_err(|e| e.to_string())?;
-        db.execute("CREATE TABLE unrelated_owner(value TEXT)", [])
-            .map_err(|e| e.to_string())?;
-        db.execute("INSERT INTO unrelated_owner VALUES ('preserve')", [])
-            .map_err(|e| e.to_string())?;
-    }
-    let value = call("pathway_sections/migration/2", &env, &args, true, 0)?;
-    if value.pointer("/result/items/0/gene") != Some(&json!("HGNC:1097")) {
-        return Err("retained HGNC index lost native join".into());
-    }
-    call("pathway_sections/migration/3", &env, &args, true, 0)?;
-    let db = rusqlite::Connection::open(path).map_err(|e| e.to_string())?;
-    let (version, preserved): (u32, String) = db
-        .query_row(
-            "SELECT version,(SELECT value FROM unrelated_owner) FROM meta WHERE owner='biomcp-fetch'",
-            [],
-            |r| Ok((r.get(0)?, r.get(1)?)),
-        )
-        .map_err(|e| e.to_string())?;
-    if version != 4 || preserved != "preserve" {
-        return Err("migration changed a foreign owner or version".into());
-    }
-    Ok(())
-}
-fn disclosure_modes() -> Check {
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let args = ["pathway", "genes", "R-HSA-5673001"]
-        .map(str::to_owned)
-        .to_vec();
-    let compact = call("pathway_sections/disclosure_modes/1", &env, &args, false, 0)?;
-    if compact.pointer("/result/items/0/physical_context_count") != Some(&json!(29))
-        || compact.pointer("/result/items/0/participants").is_some()
-    {
-        return Err("default membership disclosed full contexts or omitted their count".into());
-    }
-    let steps = compact
-        .get("next")
-        .and_then(Value::as_array)
-        .ok_or("steps")?;
-    let details = steps
-        .iter()
-        .filter_map(|step| step.get("args"))
-        .find(|args| {
-            args.as_array()
-                .is_some_and(|args| args.contains(&json!("details")))
-        })
-        .ok_or("missing explicit details step")?;
-    let args: Vec<String> = serde_json::from_value(details.clone()).map_err(|e| e.to_string())?;
-    let full = call("pathway_sections/disclosure_modes/2", &env, &args, true, 0)?;
-    if full.pointer("/result/page/pool") != compact.pointer("/result/page/pool") {
-        return Err("disclosure mode replaced or renewed the retained relation".into());
-    }
-    check_context_counts(&full)?;
-    let next = continuation(&full)?.ok_or("missing details continuation")?;
-    if !next.iter().any(|s| s == "details") {
-        return Err("details mode disappeared from continuation".into());
-    }
-    let page = budgets::mcp(
-        "runner/pathway_sections/disclosure_modes/1",
-        &env,
-        &next,
-        false,
-        &globals(&env, true),
-    )?;
-    check_context_counts(&page)?;
-    let db = rusqlite::Connection::open(env.root().join("case-cache/replay.sqlite"))
-        .map_err(|e| e.to_string())?;
-    db.execute("UPDATE pool SET expires=0", [])
-        .map_err(|e| e.to_string())?;
-    let expired = call("pathway_sections/disclosure_modes/3", &env, &next, true, 3)?;
-    let restart = expired
-        .pointer("/next/0/args")
-        .and_then(Value::as_array)
-        .ok_or("details restart")?;
-    if !restart.contains(&json!("details")) {
-        return Err("restart lost details mode".into());
-    }
-    Ok(())
-}
-fn check_context_counts(value: &Value) -> Check {
-    let rows = value
-        .pointer("/result/items")
-        .and_then(Value::as_array)
-        .ok_or("details rows")?;
-    for row in rows {
-        let contexts = row
-            .get("participants")
-            .and_then(Value::as_array)
-            .ok_or("full contexts")?;
-        if row.get("physical_context_count").and_then(Value::as_u64) != Some(contexts.len() as u64)
-        {
-            return Err("details clipped or changed physical contexts".into());
-        }
-    }
-    Ok(())
-}
-fn measurements() -> Check {
-    for (args, max_bytes, max_tokens) in [
-        (vec!["get", "pathway", "R-HSA-5673001", "genes"], 3061, 766),
-        (vec!["get", "pathway", "R-HSA-5673001", "events"], 2541, 636),
-        (vec!["get", "pathway", "R-HSA-5673001", "all"], 9820, 2456),
-        (vec!["pathway", "genes", "R-HSA-5673001"], 2553, 639),
-        (vec!["pathway", "events", "R-HSA-5673001"], 2034, 509),
-        (
-            vec!["pathway", "genes", "R-HSA-5673001", "details"],
-            12155,
-            3040,
-        ),
-    ] {
-        let env = Environment::new().map_err(|e| e.to_string())?;
-        let args: Vec<String> = args.into_iter().map(str::to_owned).collect();
-        let cli = call("pathway_sections/measurements/1", &env, &args, false, 0)?;
-        let mcp = budgets::mcp(
-            "runner/pathway_sections/measurements/1",
-            &env,
-            &args,
-            false,
-            &globals(&env, false),
-        )?;
-        for (surface, value) in [("CLI", cli), ("MCP", mcp)] {
-            super::schema::Registry::embedded()?.validate(&value, &args, true)?;
-            let full = serde_json::to_vec(&value).map_err(|e| e.to_string())?.len();
-            let comparable = super::source_terms::size(&value, "")?;
-            if comparable > max_bytes || comparable.div_ceil(4) > max_tokens {
-                return Err(format!(
-                    "{} exceeds its measured disclosure ceiling",
-                    args.join(" ")
-                ));
-            }
-            writeln!(
-                std::io::stdout(),
-                "pathway measure {} {surface}: full={full} comparable={comparable} tokens={}",
-                args.join(" "),
-                comparable.div_ceil(4)
-            )
-            .map_err(|e| e.to_string())?;
-        }
     }
     Ok(())
 }

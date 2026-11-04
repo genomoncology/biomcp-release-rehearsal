@@ -2,14 +2,14 @@
   "$id": "biodata.strand/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Source-stated forward or reverse strand.",
-  "enum": [
-    "+",
-    "-"
-  ],
   "title": "Strand",
   "type": "string",
   "x-enum-descriptions": [
     " Forward strand.",
     " Reverse strand."
+  ],
+  "x-extensible-enum": [
+    "+",
+    "-"
   ]
 }

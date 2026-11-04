@@ -1,82 +1,60 @@
 //! Retained UniProt windows bind literal selectors and hide native cursors.
 use super::next;
-use crate::{
-    Action, Ctx, Outcome, status,
-    store::{Pool, Store},
-};
-use biodata::Text;
+use crate::{Ctx, Outcome, source_snapshot, status, store::Pool};
 use biomcp_adapters::uniprot;
-use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_fetch::{Deadline, RequestError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    PageInfo, ProteinPage, ProteinSearch, QueryBody, Request, Source, SourceOutcome, Status,
+    PageInfo, ProteinPage, ProteinSearch, ReplyData, Request, Source, SourceOutcome, Status,
     StepKind,
 };
-use sha2::{Digest, Sha256};
+#[derive(serde::Serialize, serde::Deserialize)]
 struct Saved {
+    dropped: bool,
     page: uniprot::SearchPage,
     sources: Vec<SourceOutcome>,
     problems: Vec<biomcp_types::Problem>,
 }
-impl Saved {
-    fn encode(&self) -> Result<String, CacheError> {
-        serde_json::to_string(&(&self.page, &self.sources, &self.problems))
-            .map_err(|_| CacheError::Database)
-    }
-    fn decode(payload: &str) -> Result<Self, CacheError> {
-        type Wire = (
-            uniprot::SearchPage,
-            Vec<SourceOutcome>,
-            Vec<biomcp_types::Problem>,
-        );
-        let (page, sources, problems): Wire =
-            serde_json::from_str(payload).map_err(|_| CacheError::Database)?;
-        Ok(Self {
-            page,
-            sources,
-            problems,
-        })
-    }
-}
 struct Loaded {
     saved: Saved,
-    prior: Option<(Pool, String)>,
+    prior: Option<Pool>,
 }
 /// Walk the retained collection; an invalid pool never silently refetches.
-pub fn search(cx: &Ctx<'_>, q: &ProteinSearch) -> Outcome {
+pub(crate) fn search(cx: &Ctx<'_>, q: &ProteinSearch) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let mut out = super::empty(QueryBody::ProteinPage(ProteinPage {
-        items: Box::default(),
-    }));
+    let mut out = super::empty(
+        (ProteinPage {
+            items: Box::default(),
+        })
+        .with_query(q.clone()),
+    );
     if let Err(error) = read(cx, q, deadline, &mut out) {
         out.local = status::local(error);
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: Request::SearchProtein(q.restart()),
-                fresh: true,
-            },
+            &[biomcp_types::Source::UniProt],
+            Request::SearchProtein(q.restart()),
+            true,
         ));
     }
     command.finish(deadline.remaining());
     out
 }
-fn key(q: &ProteinSearch) -> Vec<u8> {
-    Sha256::digest(format!(
-        "biomcp.protein_pool/1\0{}\0{}\0reviewed-human-uniprot",
-        q.query().map_or("", Text::as_str),
-        q.gene().map_or("", biodata::GeneSymbol::as_str)
-    ))
-    .to_vec()
+fn key(q: &ProteinSearch) -> Result<Vec<u8>, RequestError> {
+    source_snapshot::key(
+        "protein-search",
+        &(q.query(), q.gene(), "reviewed-human-uniprot"),
+    )
 }
 fn restart(q: &ProteinSearch, out: &mut Outcome, mismatch: bool) {
-    out.body = QueryBody::PoolError { mismatch };
-    out.next.push((
+    out.body = ReplyData::PoolError { mismatch };
+    out.next.push(crate::next::Step::run(
         StepKind::Restart,
-        Action::Run {
-            request: Request::SearchProtein(q.restart()),
-            fresh: false,
-        },
+        &[biomcp_types::Source::UniProt],
+        Request::SearchProtein(q.restart()),
+        false,
     ));
 }
 fn read(
@@ -87,13 +65,7 @@ fn read(
 ) -> Result<(), RequestError> {
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::UniProt) {
-        let error = biomcp_fetch::SourceError {
-            source: Source::UniProt,
-            reason: biomcp_types::Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into();
+        let error = biomcp_fetch::SourceError::disabled(Source::UniProt).into();
         out.sources
             .push(status::source(Source::UniProt, leg.finish(), Some(error)));
         return Err(error);
@@ -102,8 +74,7 @@ fn read(
         restart(q, out, false);
         return Ok(());
     }
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let loaded = load(q, &leg, &store, cx, out);
+    let loaded = load(q, &leg, deadline, cx, out);
     let Loaded { mut saved, prior } = match loaded {
         Ok(Some(saved)) => saved,
         Ok(None) => return Ok(()),
@@ -125,52 +96,40 @@ fn read(
     out.sources = saved.sources.clone();
     out.problems = saved.problems.clone();
     out.local = error.and_then(status::local);
-    let payload = saved.encode()?;
     let size = saved.page.items.len() as u32;
-    let pool = match prior {
-        Some((pool, old)) if old == payload => pool,
-        Some((pool, _)) => store.extend_source_pool(pool, &payload, size, &out.sources)?,
-        None => store.publish_source_pool(&key(q), &payload, size, &out.sources)?,
-    };
-    render(q, saved, pool.info.id.clone(), pool.info, out);
+    let pool = crate::publish::keep(
+        source_snapshot::publish(cx, &key(q)?, &saved, size, &out.sources, prior, deadline),
+        out,
+    )?;
+    render(q, saved, pool.map(|p| p.info), out);
     Ok(())
 }
 fn load(
     q: &ProteinSearch,
     leg: &biomcp_fetch::Leg<'_>,
-    store: &Store<'_>,
+    deadline: Deadline<'_>,
     cx: &Ctx<'_>,
     out: &mut Outcome,
 ) -> Result<Option<Loaded>, RequestError> {
-    let pool = if cx.fresh {
-        None
+    let (saved, mismatch) = if cx.fresh {
+        (None, false)
     } else {
-        store.find(&key(q), q.pool().map(Text::as_str))?
+        source_snapshot::find::<Saved>(cx, &key(q)?, q.pool(), deadline)?
     };
-    if let Some(pool) = pool {
-        if pool.key != key(q) {
-            restart(q, out, true);
-            return Ok(None);
-        }
-        let Some(payload) =
-            store.source_snapshot(pool.info.id.as_str(), &key(q), |s| cx.fetch.disabled(s))?
-        else {
-            restart(q, out, false);
-            return Ok(None);
-        };
-        let saved = Saved::decode(&payload)?;
+    if let Some((saved, pool)) = saved {
         return Ok(Some(Loaded {
             saved,
-            prior: Some((pool, payload)),
+            prior: Some(pool),
         }));
     }
     if q.pool().is_some() {
-        restart(q, out, false);
+        restart(q, out, mismatch);
         return Ok(None);
     }
     let mapped = uniprot::search(leg, q, None)?;
     Ok(Some(Loaded {
         saved: Saved {
+            dropped: mapped.refusals == biomcp_adapters::Refusal::Refused,
             page: mapped.value,
             sources: vec![status::source(Source::UniProt, Default::default(), None)],
             problems: mapped.problems,
@@ -213,11 +172,13 @@ fn extend(
                     source: Source::UniProt,
                     reason: biomcp_types::Reason::BadReply,
                     status: Some(200),
+                    tls_cause: None,
                     retry_after: None,
                 }
                 .into(),
             );
         }
+        saved.dropped |= page.refusals == biomcp_adapters::Refusal::Refused;
         status::append(&mut saved.problems, page.problems);
         saved.page.items.extend(page.value.items);
         saved.page.cursor = page.value.cursor;
@@ -230,8 +191,7 @@ fn extend(
 fn render(
     q: &ProteinSearch,
     saved: Saved,
-    pool: Text,
-    info: biomcp_types::PoolInfo,
+    info: Option<biomcp_types::PoolInfo>,
     out: &mut Outcome,
 ) {
     let rows: Vec<_> = saved
@@ -241,41 +201,31 @@ fn render(
         .skip(q.offset() as usize)
         .take(q.limit() as usize)
         .collect();
-    out.status = if saved
-        .sources
-        .iter()
-        .any(|s| s.state != biomcp_types::SourceState::Ok)
-        || !out.problems.is_empty()
-    {
-        if rows.is_empty()
-            && saved
-                .sources
-                .iter()
-                .any(|s| s.state == biomcp_types::SourceState::Failed)
-        {
-            Status::Failed
-        } else {
-            Status::Partial
-        }
-    } else {
-        Status::Complete
-    };
+    out.dropped = saved.dropped;
+    out.sources = saved.sources;
+    status::search(out);
     let returned = rows.len() as u32;
     let offset = q.offset().saturating_add(returned);
-    out.next = next::search(
-        q,
-        &rows,
-        pool,
-        offset,
-        returned > 0 && u64::from(offset) < saved.page.total,
-        out.status != Status::Complete,
-    );
+    out.next = info
+        .as_ref()
+        .map(|info| {
+            next::search(
+                q,
+                &rows,
+                info.id.clone(),
+                offset,
+                returned > 0 && u64::from(offset) < saved.page.total,
+                out.status() != Status::Complete,
+                &mut out.problems,
+            )
+        })
+        .unwrap_or_default();
     out.page = Some(PageInfo {
         offset: q.offset(),
         returned,
         total: saved.page.total,
-        pool: Some(info),
+        pool: info,
         truncated: Some(saved.page.cursor.is_some()),
     });
-    out.body = QueryBody::ProteinPage(ProteinPage { items: rows.into() });
+    out.body = (ProteinPage { items: rows.into() }).with_query(q.clone());
 }

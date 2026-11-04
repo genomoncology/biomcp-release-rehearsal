@@ -1,5 +1,6 @@
 //! Feature diagnostic-types: checked source-owned records before adapters exist.
 use biodata::*;
+use biomcp_types::Paged;
 use biomcp_types::*;
 use serde_json::{Value, json};
 
@@ -314,13 +315,11 @@ fn pma_absent_empty_and_explicit_supplement_roles_stay_distinct() {
             .is_err()
         );
     }
-    assert!(
-        serde_json::from_value::<DiagnosticPmaHeader>(json!({"pma_number":"P150013",
-"supplement_number":"",
-"url":"https://example.invalid",
-"ao_statement":"Whole statement must stay behind regulatory"}))
-        .is_err()
-    );
+    let header =
+        json!({"pma_number":"P150013", "supplement_number":"", "url":"https://example.invalid"});
+    let mut extended = header.clone();
+    extended["ao_statement"] = json!("Whole statement must stay behind regulatory");
+    assert_eq!(roundtrip::<DiagnosticPmaHeader>(extended), header);
 }
 
 #[test]
@@ -331,7 +330,7 @@ fn physical_companion_tables_keep_exact_headers_whole_cells_and_owned_ids() {
         assert!(serde_json::from_value::<Statement>(row.clone()).is_err());
         let mut invalid = row.clone();
         invalid["cells"]["invented column"] = json!({"text":"invented","links":[]});
-        assert!(serde_json::from_value::<CompanionDiagnosticRelation>(invalid).is_err());
+        assert_eq!(roundtrip::<CompanionDiagnosticRelation>(invalid), row);
         let mut wrong_kind = row;
         wrong_kind["kind"] = json!(if group { "individual" } else { "group" });
         assert!(serde_json::from_value::<CompanionDiagnosticRelation>(wrong_kind).is_err());
@@ -350,9 +349,9 @@ fn conflict_candidates_have_no_selected_name_or_card() {
     // This pre-registry synthetic source is not a GTR provider observation.
     assert_eq!(roundtrip::<DiagnosticCandidate>(value.clone()), value);
     assert!(serde_json::from_value::<DiagnosticCard>(value.clone()).is_err());
-    let mut invalid = value;
+    let mut invalid = value.clone();
     invalid["name"] = json!("Silent winner");
-    assert!(serde_json::from_value::<DiagnosticCandidate>(invalid).is_err());
+    assert_eq!(roundtrip::<DiagnosticCandidate>(invalid), value);
 }
 
 #[test]
@@ -425,7 +424,11 @@ where
     let schema = serde_json::to_value(schemars::schema_for!(Envelope<T>)).unwrap();
     let validator = jsonschema::draft202012::new(&schema).unwrap();
     assert!(validator.is_valid(&value), "{value}");
-    assert_eq!(value.get("schema").and_then(Value::as_str), Some(T::SCHEMA));
+    assert_eq!(
+        value.get("schema").and_then(Value::as_str),
+        Some(T::SCHEMA),
+        "Diagnostic replies must retain their versioned envelope contract"
+    );
 }
 
 #[cfg(feature = "schema")]
@@ -435,7 +438,7 @@ fn all_eight_consumer_schemas_accept_their_source_owned_views() {
     let get = json!({"source":"gtr","id":"GTR000006692.3"});
     envelope::<DiagnosticPage>(search, json!({"items":[]}));
     let mut card = who();
-    card["kind"] = json!("who_ivd_product");
+    card["kind"] = json!("who-ivd-product");
     envelope::<DiagnosticCard>(json!({"source":"who-ivd","id":"0466-046-00"}), card);
     envelope::<DiagnosticGenes>(get.clone(), json!({"items":[gene()]}));
     envelope::<DiagnosticConditions>(get.clone(), json!({"items":[condition()]}));
@@ -456,4 +459,16 @@ fn all_eight_consumer_schemas_accept_their_source_owned_views() {
         json!({"items":[companion(false),companion(true)]}),
     );
     assert!(serde_json::from_value::<DiagnosticGenes>(json!({"items":[condition()]})).is_err());
+}
+
+#[test]
+fn recall_reply_ignores_new_card_and_header_fields() {
+    let value = json!({
+        "header": {"recall_number": "Z-1234-2025", "future_header": true},
+        "future_card": true
+    });
+    assert_eq!(
+        roundtrip::<DeviceRecallCard>(value),
+        json!({"header": {"recall_number": "Z-1234-2025"}})
+    );
 }

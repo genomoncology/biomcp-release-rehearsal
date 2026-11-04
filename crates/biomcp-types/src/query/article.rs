@@ -31,7 +31,7 @@ impl PartialOrd for ArticleSource {
 }
 /// Article ordering supported by this command.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature="schema", schemars(with="str",extend("enum"=["rank", "date", "citations"])))]
 pub enum ArticleSort {
@@ -44,17 +44,17 @@ pub enum ArticleSort {
 }
 /// Publication-type selectors sent to the named sources.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature="schema",
  schemars(with="str",
 extend("enum"=["trial",
  "randomized",
  "review",
- "systematic_review",
- "meta_analysis",
+ "systematic-review",
+ "meta-analysis",
  "guideline",
- "case_report"])))]
+ "case-report"])))]
 pub enum ArticleType {
     /// Clinical trials, including narrower phases.
     Trial,

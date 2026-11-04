@@ -2,16 +2,6 @@
   "$id": "biomcp.drug-section/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Explicit drug disclosures; identity cards never expand into these sections.",
-  "enum": [
-    "xrefs",
-    "targets",
-    "indications",
-    "civic",
-    "label",
-    "approvals",
-    "regulatory",
-    "interactions"
-  ],
   "title": "DrugSection",
   "type": "string",
   "x-enum-descriptions": [
@@ -23,5 +13,15 @@
     " Native application and product history rows.",
     " Source-scoped regulator events.",
     " Native DDInter partner rows and levels; five rows per default page, with explicit section limits preserved."
+  ],
+  "x-extensible-enum": [
+    "xrefs",
+    "targets",
+    "indications",
+    "civic",
+    "label",
+    "approvals",
+    "regulatory",
+    "interactions"
   ]
 }

@@ -1,0 +1,45 @@
+{
+  "source": "https://open.fda.gov/fields/druglabel.yaml",
+  "originals": [
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=CAVHANZA&limit=1&sort=effective_time%3Adesc",
+      "sha256": "aaa3eae5ff884c03d534c348e52491ee2b0d0fc161e5da7cce4f653497f54e8f",
+      "retained_fields": [
+        "id",
+        "set_id",
+        "version",
+        "effective_time",
+        "openfda",
+        "spl_product_data_elements",
+        "package_label_principal_display_panel"
+      ]
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.application_number%3A%22NDA220089%22&limit=1&sort=effective_time%3Adesc",
+      "sha256": "111a7f344baf66e5080bb7b219262bcf26910517de8a9a327a651495a0aba37c",
+      "retained_fields": [
+        "id",
+        "set_id",
+        "version",
+        "effective_time",
+        "openfda",
+        "spl_product_data_elements",
+        "package_label_principal_display_panel"
+      ]
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.application_number%3A%22BLA761445%22&limit=1&sort=effective_time%3Adesc",
+      "sha256": "6fb10b2f42601ea8847c801c3c6aef4c1ab6ea526bd873462f33a5c05ecefc5d",
+      "retained_fields": [
+        "id",
+        "set_id",
+        "version",
+        "effective_time",
+        "openfda",
+        "spl_product_data_elements",
+        "package_label_principal_display_panel"
+      ]
+    }
+  ],
+  "local_reply_contract": "All recording envelopes are local request stubs. Positive bodies retain native identity and primary product fields from the originals below. The quoted free-text and native set_id stubs reuse the CAVHANZA body. Name-index and harmonized-set absences are synthetic. The longer-brand, incidental-warning and mismatched-application controls are synthetic. The 00000000-0000-4000-8000-000000000608 native and harmonized SPL-set NOT_FOUND replies are synthetic missing-record controls."
+}

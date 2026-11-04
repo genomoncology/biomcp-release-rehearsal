@@ -1,21 +1,12 @@
 {
+  "live_check": "public",
   "feature": "article-recommendations",
   "story": "multi",
-  "verified": "Actual keyless command capture; preserve native order and whole bibliographic metadata.",
+  "verified": "Actual keyless command capture; preserve native order and whole bibliographic metadata. The existing verification records the actual keyless command capture; the nightly run executes the public recommendation requests.",
   "replay": "article/recommendations/multi",
   "steps": [
     {
       "run": [
-        "article",
-        "recommendations",
-        "34096690",
-        "32955176",
-        "--negative",
-        "33433946",
-        "--limit",
-        "5"
-      ],
-      "mcp": [
         "article",
         "recommendations",
         "34096690",
@@ -33,23 +24,6 @@
         "/result/scope": "Semantic Scholar recommends from its pool of recent papers"
       },
       "max_bytes": 5200
-    },
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "34096690",
-        "32955176",
-        "--negative",
-        "33433946",
-        "--limit",
-        "5"
-      ],
-      "offline": true,
-      "expect": {
-        "/page/total": 5,
-        "/result/items/0/pmid": "42745055"
-      }
     }
   ]
 }

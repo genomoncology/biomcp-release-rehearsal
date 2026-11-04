@@ -1,5 +1,8 @@
 //! Publish whole RPC captures with ordered safe binary siblings.
-use super::*;
+use super::{
+    Body, Deserialize, Exchange, MAX_EXCHANGES, MAX_FILE_BYTES, MAX_METADATA_BYTES, Path,
+    RecordError, Recording, Recordings, Serialize, fs, path, publish, sidecar,
+};
 use crate::grpc::spool::Spool;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -48,7 +51,10 @@ impl Recordings {
         {
             return Err(RecordError::Limit);
         }
-        let mut sequences = capture.sequences.lock().map_err(|_| RecordError::Io)?;
+        let mut sequences = capture
+            .sequences
+            .lock()
+            .map_err(|_| RecordError::Io(std::io::ErrorKind::Other))?;
         let recording = sequences
             .entry((source, *key))
             .or_insert_with(|| Recording {
@@ -70,7 +76,7 @@ impl Recordings {
             owner.with_file_name(format!("{stem}-grpc-{}.json", recording.exchanges.len()));
         rpc.messages = publish_messages(&binary_owner, spool)?;
         recording.exchanges.push(Exchange {
-            fetched: crate::cache::now(),
+            fetched: crate::cache::timestamp(),
             status: 200,
             content_type: "application/grpc".into(),
             content_range: None,
@@ -126,9 +132,11 @@ fn publish_messages(owner: &Path, spool: &mut Spool) -> Result<Vec<Message>, Rec
     Ok(messages)
 }
 fn rollback(owner: &Path, messages: &[Message]) -> Result<(), RecordError> {
-    let parent = owner.parent().ok_or(RecordError::Io)?;
+    let parent = owner
+        .parent()
+        .ok_or(RecordError::Io(std::io::ErrorKind::InvalidInput))?;
     for message in messages {
-        fs::remove_file(parent.join(&message.sidecar)).map_err(|_| RecordError::Io)?;
+        fs::remove_file(parent.join(&message.sidecar)).map_err(RecordError::from)?;
     }
     Ok(())
 }

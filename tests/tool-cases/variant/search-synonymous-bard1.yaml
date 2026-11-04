@@ -1,0 +1,420 @@
+{
+  "feature": "variant-search",
+  "live_check": "public",
+  "replay": "variant/search/synonymous-bard1",
+  "story": "Synonymous protein notation retains every native ClinVar candidate and its stable get step",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "complete",
+        "/query/protein": "p.Ala613=",
+        "/result/source_query": "BARD1[GENE] AND \"p.Ala613=\"[VRNM]",
+        "/sources/0/source": "clinvar",
+        "/page/total": 6,
+        "/result/items": {
+          "count": 6
+        },
+        "/next": {
+          "count": 6
+        },
+        "/result/items/0/identity/ids/0": "clinvar:2907832",
+        "/next/0/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:2907832"
+          ]
+        },
+        "/result/items/1/identity/ids/0": "clinvar:2905096",
+        "/next/1/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:2905096"
+          ]
+        },
+        "/result/items/2/identity/ids/0": "clinvar:1781066",
+        "/next/2/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1781066"
+          ]
+        },
+        "/result/items/3/identity/ids/0": "clinvar:1781064",
+        "/next/3/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1781064"
+          ]
+        },
+        "/result/items/4/identity/ids/0": "clinvar:1500039",
+        "/next/4/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1500039"
+          ]
+        },
+        "/result/items/5/identity/ids/0": "clinvar:481379",
+        "/next/5/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:481379"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.A613=",
+        "--limit",
+        "50"
+      ],
+      "expect": {
+        "/schema": "biomcp.variant-page/16",
+        "/status": "complete",
+        "/query/protein": "p.Ala613=",
+        "/result/source_query": "BARD1[GENE] AND \"p.Ala613=\"[VRNM]",
+        "/sources/0/source": "clinvar",
+        "/page/total": 6,
+        "/result/items": {
+          "count": 6
+        },
+        "/next": {
+          "count": 6
+        },
+        "/result/items/0/identity/ids/0": "clinvar:2907832",
+        "/next/0/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:2907832"
+          ]
+        },
+        "/result/items/1/identity/ids/0": "clinvar:2905096",
+        "/next/1/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:2905096"
+          ]
+        },
+        "/result/items/2/identity/ids/0": "clinvar:1781066",
+        "/next/2/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1781066"
+          ]
+        },
+        "/result/items/3/identity/ids/0": "clinvar:1781064",
+        "/next/3/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1781064"
+          ]
+        },
+        "/result/items/4/identity/ids/0": "clinvar:1500039",
+        "/next/4/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:1500039"
+          ]
+        },
+        "/result/items/5/identity/ids/0": "clinvar:481379",
+        "/next/5/args": {
+          "equals": [
+            "get",
+            "variant",
+            "clinvar:481379"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--build",
+        "GRCh38"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--build",
+        "GRCh38"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--source",
+        "myvariant"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--source",
+        "myvariant"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--review-status",
+        "reviewed by expert panel"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--review-status",
+        "reviewed by expert panel"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--condition",
+        "Synthetic condition"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--condition",
+        "Synthetic condition"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--has",
+        "clinvar"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--has",
+        "clinvar"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--coding",
+        "c.333G>T"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=",
+        "--coding",
+        "c.333G>T"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.="
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.="
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=="
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=="
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=/Val"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.Ala613=/Val"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.(Ala613=)"
+      ],
+      "mcp": [
+        "search",
+        "variant",
+        "--gene",
+        "BARD1",
+        "--protein",
+        "p.(Ala613=)"
+      ],
+      "exit": 2,
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.brand_name.exact%3A%22Synthetic%20Primary%22%20OR%20openfda.generic_name.exact%3A%22Synthetic%20Primary%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 0
+            }
+          },
+          "results": []
+        }
+      }
+    }
+  ]
+}

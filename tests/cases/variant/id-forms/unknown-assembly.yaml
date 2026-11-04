@@ -1,0 +1,46 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic metadata omission over an existing public ID",
+  "replay": "variant/id-unknown",
+  "story": "A ClinVar fallback preserves unknown source assembly and an unavailable CA join names its accepted form and converting command.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "clinvar:13961"
+      ],
+      "expect": {
+        "/result/resolution": "resolved",
+        "/result/candidates/0/identity/representations/0": {
+          "omits": [
+            "build"
+          ]
+        },
+        "/problems/*/field": {
+          "includes_all_of": [
+            "assembly: no GRCh38 allele; retried GRCh37 source index; allele assembly unknown"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "clinvar:13961",
+        "--source",
+        "erepo"
+      ],
+      "exit": 4,
+      "expect": {
+        "/problems/*/field": {
+          "includes_all_of": [
+            "assembly: no GRCh38 allele; retried GRCh37 source index; allele assembly unknown",
+            "input: requires one CAid; convert with get variant <ID> and select an exact candidate"
+          ]
+        }
+      }
+    }
+  ]
+}

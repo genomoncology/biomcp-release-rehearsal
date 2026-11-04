@@ -33,13 +33,23 @@
     "AdverseEventSerious": {
       "description": "Report-level seriousness filter, independent of reaction outcome.",
       "enum": [
+        "any",
         "death",
-        "hospitalization"
+        "hospitalization",
+        "lifethreatening",
+        "disabling",
+        "congenital-anomaly",
+        "other"
       ],
       "type": "string",
       "x-enum-descriptions": [
+        " Native report seriousness flag.",
         " Native report death flag.",
-        " Native report hospitalization flag."
+        " Native report hospitalization flag.",
+        " Native report life-threatening flag.",
+        " Native report disabling flag.",
+        " Native report congenital anomaly flag.",
+        " Native report other serious flag."
       ]
     },
     "AdverseEventSource": {
@@ -58,7 +68,7 @@
     },
     "ArticleInput": {
       "description": "A validated canonical ArticleInput string.",
-      "pattern": "^(?:[1-9][0-9]*|PMC[1-9][0-9]*|PPR[0-9]*[1-9][0-9]*|(?:https?://doi\\.org/)?10\\.[0-9]+/[^\\s\\x00-\\x1f\\x7f]+)$",
+      "pattern": "(^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|^PMC(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|(?=PPR)^(?=.{1,64}$)[A-Z]{1,8}[0-9]*[1-9][0-9]*$|^(?:https?://doi\\.org/)?10\\.[0-9]+/[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]+$)",
       "type": "string"
     },
     "ArticleSectionWord": {
@@ -112,10 +122,10 @@
         "trial",
         "randomized",
         "review",
-        "systematic_review",
-        "meta_analysis",
+        "systematic-review",
+        "meta-analysis",
         "guideline",
-        "case_report"
+        "case-report"
       ],
       "type": "string"
     },
@@ -128,8 +138,8 @@
       "type": "string"
     },
     "AuthorId": {
-      "description": "One provider record; this enum establishes no relationship between its variants.",
-      "pattern": "^((semantic-scholar|semanticscholar):[1-9][0-9]*|orcid:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
+      "description": "One provider record. Semantic Scholar emits semantic-scholar:ID. ORCID checksums are checked. Variants imply no relationship.",
+      "pattern": "^(semantic-scholar:[1-9][0-9]*|orcid:[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X])$",
       "type": "string"
     },
     "AuthorPaperSection": {
@@ -147,6 +157,13 @@
       "enum": [
         "semantic-scholar",
         "semanticscholar"
+      ],
+      "type": "string"
+    },
+    "BiomarkerSource": {
+      "description": "Biomarker concept publisher.",
+      "enum": [
+        "nci"
       ],
       "type": "string"
     },
@@ -205,9 +222,34 @@
       ],
       "type": "string"
     },
+    "CivicEvidenceLevel": {
+      "description": "Native CIViC evidence level.",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "type": "string"
+    },
+    "CivicEvidenceStatus": {
+      "description": "Native CIViC evidence review status.",
+      "enum": [
+        "accepted",
+        "submitted",
+        "rejected"
+      ],
+      "type": "string"
+    },
     "ClinPgxAccession": {
       "description": "A ClinPGx object accession, distinct from the protein allele namespace PaId.",
       "pattern": "^PA[1-9][0-9]*$",
+      "type": "string"
+    },
+    "CodingChange": {
+      "description": "HGVS 21.1 coding edit syntax without a reference. The parser additionally requires increasing range endpoints, different substitution bases and insertion adjacency where literal positions establish it. It does not check transcript sequence or exon boundaries.",
+      "pattern": "^c\\.(?:[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?[ACGTNRYSWKMBDHV]>[ACGTNRYSWKMBDHV]|[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?(?:_[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?)?(?:del|dup|delins(?=[ACGTNRYSWKMBDHV])[ACGTNRYSWKMBDHV]*)|[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?_[-*]?[1-9][0-9]*(?:[+-][1-9][0-9]*)?ins(?=[ACGTNRYSWKMBDHV])[ACGTNRYSWKMBDHV]*)$",
       "type": "string"
     },
     "ComplexPortalId": {
@@ -217,7 +259,7 @@
     },
     "Curie": {
       "description": "Checked prefix:local ontology identifier.",
-      "pattern": "^[A-Za-z0-9_.-]+:[^\\s\\x00-\\x1f\\x7f-\\x9f]+$",
+      "pattern": "^[A-Za-z0-9_.-]+:[^:/\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f][^:\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]*$",
       "type": "string"
     },
     "Cytoband": {
@@ -243,7 +285,8 @@
         "gtr",
         "who-ivd",
         "fda-pma",
-        "fda-510k"
+        "fda-510k",
+        "fda-device-recall"
       ],
       "type": "string"
     },
@@ -252,7 +295,10 @@
       "enum": [
         "gtr",
         "fda-cdx",
-        "who-ivd"
+        "fda-pma",
+        "fda-510k",
+        "who-ivd",
+        "fda-device-recall"
       ],
       "type": "string"
     },
@@ -262,6 +308,7 @@
         "genes",
         "conditions",
         "methods",
+        "summary",
         "regulatory",
         "supplements"
       ],
@@ -270,6 +317,7 @@
         "GTR native gene rows; five per page.",
         "GTR native condition rows; five per page.",
         "GTR native method entries; five per page.",
+        "FDA SSED PDF text: 25 MiB, 100 pages and 6144 escaped bytes per fragment; scans without text are explicit.",
         "Selected PMA submission statement; one fragment per page.",
         "PMA base application supplement headers; five per page."
       ]
@@ -332,6 +380,20 @@
         " Match an explicit native synonym exactly, ignoring case."
       ]
     },
+    "DrugRecallClassification": {
+      "description": "FDA's native recall classification, with no local ranking.",
+      "enum": [
+        "Class I",
+        "Class II",
+        "Class III"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        " Native Class I.",
+        " Native Class II.",
+        " Native Class III."
+      ]
+    },
     "DrugSection": {
       "description": "Explicit drug disclosures; identity cards never expand into these sections.",
       "enum": [
@@ -360,6 +422,7 @@
       "description": "A supported drug data source.",
       "enum": [
         "who-pq",
+        "fda-drug-recall",
         "mychem",
         "chembl",
         "opentargets",
@@ -386,7 +449,7 @@
     },
     "GeneInput": {
       "description": "An input classified before source resolution; aliases remain free text.",
-      "pattern": "\\S",
+      "pattern": "^[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*(?:HGNC:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})|ENSG[0-9]{11}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})|(?!(?:[Hh][Gg][Nn][Cc]:|[Ee][Nn][Ss][Gg]))(?![0-9]+[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$)[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000](?:[\\s\\S]*[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000])?)[\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$",
       "type": "string"
     },
     "GeneSectionWord": {
@@ -431,7 +494,7 @@
     },
     "GwasAssociationId": {
       "description": "A positive Catalog association ID qualified by resource kind.",
-      "pattern": "^association:[1-9][0-9]*$",
+      "pattern": "^association:(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$",
       "type": "string"
     },
     "GwasAssociationSection": {
@@ -456,7 +519,7 @@
     },
     "GwasStudyId": {
       "description": "Exact Catalog study accession; case and leading zeros survive.",
-      "pattern": "^GCST[0-9]{6,}$",
+      "pattern": "^GCST(?=[0-9]{6,}$)[0-9]*[1-9][0-9]*$",
       "type": "string"
     },
     "GwasStudySection": {
@@ -500,13 +563,26 @@
       ]
     },
     "MyVariantQuery": {
-      "description": "A validated canonical MyVariantQuery string.",
-      "pattern": "\\S",
+      "description": "Explicit MyVariant query text. The schema limits Unicode character count; the parser additionally limits UTF-8 byte count to the same maximum.",
+      "pattern": "^(?![\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*$)[^\\x00-\\x1f\\x7f-\\x9f]{1,4102}$",
       "type": "string"
     },
     "NcbiGeneId": {
       "description": "A positive NCBI Gene identifier in canonical decimal text.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
+      "type": "string"
+    },
+    "NciBiomarkerUse": {
+      "description": "NCI's native biomarker eligibility criterion, without clinical interpretation.",
+      "enum": [
+        "inclusion",
+        "exclusion"
+      ],
+      "type": "string"
+    },
+    "NcitId": {
+      "description": "A native NCI Thesaurus concept code.",
+      "pattern": "^C[0-9]+$",
       "type": "string"
     },
     "NctId": {
@@ -524,9 +600,16 @@
       ],
       "type": "string"
     },
+    "OrganizationSource": {
+      "description": "Organization discovery source.",
+      "enum": [
+        "nci"
+      ],
+      "type": "string"
+    },
     "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
     "PathwaySection": {
@@ -569,7 +652,7 @@
     },
     "PgxDiplotypeExpression": {
       "description": "Unchanged declared source diplotype expression; no allele sorting, phase or score calculation.",
-      "pattern": "\\S",
+      "pattern": "[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]",
       "type": "string"
     },
     "PgxSection": {
@@ -599,20 +682,6 @@
         " CPIC source-native records.",
         " ClinPGx annotation records."
       ]
-    },
-    "PhaseFilter": {
-      "description": "Explicit source phase selection, including the registry's combined phases.",
-      "enum": [
-        "early-1",
-        "1",
-        "2",
-        "3",
-        "4",
-        "not-applicable",
-        "1/2",
-        "2/3"
-      ],
-      "type": "string"
     },
     "PhenotypeSection": {
       "description": "A named source term section.",
@@ -651,17 +720,19 @@
     },
     "Pmid": {
       "description": "Positive PubMed identifier.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
     "ProteinInput": {
       "description": "Exact source accession or a checked display gene symbol needing later resolution.\nThe schema describes the string surface; deserialization checks either identity grammar.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
     "ProteinQuery": {
       "description": "A validated canonical ProteinQuery string.",
-      "pattern": "^(p\\.)?(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter)[1-9][0-9]*(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter)$",
+      "pattern": "^(p\\.)?(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter)(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter|=)$",
       "type": "string"
     },
     "ProteinSection": {
@@ -710,12 +781,12 @@
     },
     "RsId": {
       "description": " A dbSNP site identifier, never an allele join key.",
-      "pattern": "^rs[1-9][0-9]*$",
+      "pattern": "^rs(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$",
       "type": "string"
     },
     "SheetRows": {
-      "description": "A validated canonical SheetRows string.",
-      "pattern": "^[1-9][0-9]*-[1-9][0-9]*$",
+      "description": "Inclusive original one-based row range. The parser additionally requires the end to be at least the start and fewer than 200 rows after it.",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})-(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
     "SponsorType": {
@@ -733,11 +804,18 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
       "type": "string"
     },
+    "StudyProfileId": {
+      "description": "Exact cBioPortal molecular profile identity.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
+      "type": "string"
+    },
     "StudySection": {
       "description": "Supported bounded study metadata sections; gene counts are deferred.",
       "enum": [
         "profiles",
         "sample-lists",
+        "mutations",
+        "samples",
         "files",
         "all"
       ],
@@ -745,8 +823,10 @@
       "x-enum-descriptions": [
         " Five exact native molecular profile references.",
         " Five sample-list metadata records, without member sample IDs.",
+        " Source mutation rows for the required gene and selected mutation profile.",
+        " Source sample identities and types only.",
         " Five repository file references; no automatic download.",
-        " Each named section's bounded first page; never a gene aggregate request."
+        " Bounded first pages; mutations are included only when gene is supplied."
       ]
     },
     "StudyType": {
@@ -759,8 +839,31 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
+      "type": "string"
+    },
+    "TrialPhaseFilter": {
+      "enum": [
+        "early-1",
+        "1",
+        "2",
+        "3",
+        "4",
+        "not-applicable",
+        "1/2",
+        "2/3",
+        "NA",
+        "0",
+        "I",
+        "I_II",
+        "II",
+        "II_III",
+        "III",
+        "IV"
+      ],
       "type": "string"
     },
     "TrialSection": {
@@ -768,6 +871,7 @@
       "enum": [
         "eligibility",
         "outcomes",
+        "results",
         "arms",
         "locations",
         "contacts",
@@ -781,6 +885,7 @@
       "x-enum-descriptions": [
         " Intact criteria and structured age/sex fields.",
         " Primary, secondary and other outcome records.",
+        " Posted outcome values, analyses and adverse-event tables (ClinicalTrials.gov).",
         " Arms and interventions with original relationships.",
         " Whole source sites with their attached contacts.",
         " Central contacts and overall officials in their original roles.",
@@ -808,8 +913,7 @@
       ],
       "type": "string"
     },
-    "TrialStatus": {
-      "description": "Source-native registry value.",
+    "TrialStatusFilter": {
       "enum": [
         "ACTIVE_NOT_RECRUITING",
         "COMPLETED",
@@ -821,9 +925,21 @@
         "WITHDRAWN",
         "AVAILABLE",
         "NO_LONGER_AVAILABLE",
+        "TEMPORARILY_NOT_AVAILABLE",
         "APPROVED_FOR_MARKETING",
         "WITHHELD",
-        "UNKNOWN"
+        "UNKNOWN",
+        "Active",
+        "Administratively Complete",
+        "Approved",
+        "Closed to Accrual",
+        "Closed to Accrual and Intervention",
+        "Complete",
+        "INACTIVE",
+        "Enrolling by Invitation",
+        "Temporarily Closed to Accrual",
+        "Temporarily Closed to Accrual and Intervention",
+        "Withdrawn"
       ],
       "type": "string"
     },
@@ -847,13 +963,13 @@
       ]
     },
     "VariantInput": {
-      "description": "A validated canonical VariantInput string.",
-      "pattern": "(^(rs[1-9][0-9]*|CA[0-9]{6,}|PA[1-9][0-9]*|VCV[0-9]{9}(\\.[1-9][0-9]*)?|clinvar:[1-9][0-9]*|COS[VMN][1-9][0-9]*|ga4gh:VA\\.[A-Za-z0-9_-]{32})$|^((N[CGMPRTW]|X[MPR])_([0-9]{6}|[0-9]{9})\\.[0-9]+|ENS[GTP][0-9]{11}\\.[0-9]+|LRG_[0-9]+([tp][0-9]+)?)(\\(([A-Za-z][A-Za-z0-9._/@-]*|[A-Za-z0-9_.]+)\\))?:[gcnrpmo]\\.[\\x20-\\x7e]+$|^[1-9][0-9]*$|^chr([1-9][0-9]*|X|Y|M|MT):g\\.[\\x21-\\x7e]+$)",
+      "description": "Accepted forms: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS, chromosome genomic HGVS, or VCF-style chromosome-position-reference-alternate coordinates (SNVs, deletions, insertions and delins), defaulting to GRCh38. Reference bases are validated by the source.",
+      "pattern": "^(?=[\\x21-\\x7e]{1,2048}$)((^rs(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^CA(?=[0-9]{6,}(?:[^0-9]|$))(?:(?=[0-9]{6}(?:[^0-9]|$))0*(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})|(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0}))$|^PA(?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^VCV(?!000000000)[0-9]{9}(\\.(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))?$|^[cC][lL][iI][nN][vV][aA][rR]:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|^COS[VMN](?:18446744073709551615|[1-9][0-9]{0,18}|1[0-7][0-9]{18}|18[0-3][0-9]{17}|184[0-3][0-9]{16}|1844[0-5][0-9]{15}|18446[0-6][0-9]{14}|184467[0-3][0-9]{13}|1844674[0-3][0-9]{12}|184467440[0-6][0-9]{10}|1844674407[0-2][0-9]{9}|18446744073[0-6][0-9]{8}|1844674407370[0-8][0-9]{6}|18446744073709[0-4][0-9]{5}|184467440737095[0-4][0-9]{4}|1844674407370955[0-0][0-9]{3}|18446744073709551[0-5][0-9]{2}|184467440737095516[0-0][0-9]{1}|1844674407370955161[0-4][0-9]{0})$|^ga4gh:VA\\.[A-Za-z0-9_-]{32}$)|^(?!(?:[NX]P_[0-9]{6}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|[NX]P_(?!000)[0-9]{9}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENSP[0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))p0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))(?:\\([^)]*\\))?:[gcnrmo]\\.)(?![^:()]+\\((?:[NX]P_[0-9]{6}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|[NX]P_(?!000)[0-9]{9}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENSP[0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))p0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))\\):[gcnrmo]\\.)(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)(?:\\((?:(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)|[A-Za-z][A-Za-z0-9._/@-]{0,254})\\))?:(?:[gcnrpmo]\\.[\\x21-\\x7e]*[0-9][\\x21-\\x7e]*|[pr]\\.(?:\\?|\\(\\?\\)|=|\\(=\\))|r\\.(?:spl\\??|\\(spl\\?\\)))$|^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$|^chr([1-9]|1[0-9]|2[0-2]|X|Y|M|MT):g\\.[\\x21-\\x7e]*[0-9][\\x21-\\x7e]*$|^(chr)?([1-9]|1[0-9]|2[0-2]|X|Y|M|MT)-[1-9][0-9]*-[ACGT]+-[ACGT]+$)",
       "type": "string"
     },
     "VariantRegion": {
-      "description": "A validated canonical VariantRegion string.",
-      "pattern": "^chr([1-9]|1[0-9]|2[0-2]|X|Y|MT):[1-9][0-9]*-[1-9][0-9]*$",
+      "description": "Primary-chromosome region. The parser additionally requires the end to be at least the start.",
+      "pattern": "^chr([1-9]|1[0-9]|2[0-2]|X|Y|MT):(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})-(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
     "VariantResolver": {
@@ -912,16 +1028,171 @@
       ]
     }
   },
-  "$id": "biodata.request/27",
+  "$id": "biomcp.request/32",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "One checked query. Housekeeping actions are separate.",
   "oneOf": [
     {
       "additionalProperties": false,
+      "description": "Find native NCI biomarker concepts.",
+      "properties": {
+        "command": {
+          "const": "search-biomarker",
+          "type": "string"
+        },
+        "limit": {
+          "default": 5,
+          "description": "Maximum headers per local page.",
+          "format": "uint32",
+          "maximum": 50,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "name": {
+          "$ref": "#/$defs/Text",
+          "description": "Native partial name or synonym search."
+        },
+        "offset": {
+          "default": 0,
+          "description": "Offset within the complete retained observation.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pool": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Snapshot identity retained by continuation commands."
+        },
+        "source": {
+          "$ref": "#/$defs/BiomarkerSource",
+          "description": "Explicit keyed NCI source."
+        }
+      },
+      "required": [
+        "command",
+        "source"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "description": "Search native NCI biomarker rows by exact NCIt code.",
+      "properties": {
+        "command": {
+          "const": "get-biomarker",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/NcitId",
+          "description": "Exact NCIt code, such as C96022.",
+          "x-positional": 0
+        },
+        "source": {
+          "$ref": "#/$defs/BiomarkerSource",
+          "default": "nci",
+          "description": "NCI is the biomarker concept source."
+        }
+      },
+      "required": [
+        "command",
+        "id"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "description": "Find NCI organization names without assigning an identity.",
+      "properties": {
+        "city": {
+          "$ref": "#/$defs/Text",
+          "description": "Native organization city."
+        },
+        "command": {
+          "const": "search-organization",
+          "type": "string"
+        },
+        "country": {
+          "$ref": "#/$defs/Text",
+          "description": "Native organization country."
+        },
+        "distance": {
+          "$ref": "#/$defs/Text",
+          "description": "Positive radius with explicit mi or km units."
+        },
+        "family": {
+          "$ref": "#/$defs/Text",
+          "description": "Native organization family."
+        },
+        "lat": {
+          "$ref": "#/$defs/Text",
+          "description": "Radius center latitude in degrees; requires lon and distance."
+        },
+        "limit": {
+          "default": 5,
+          "description": "Five headers by default, at most fifty.",
+          "format": "uint32",
+          "maximum": 50,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "lon": {
+          "$ref": "#/$defs/Text",
+          "description": "Radius center longitude in degrees; requires lat and distance."
+        },
+        "name": {
+          "$ref": "#/$defs/Text",
+          "description": "NCI partial organization name; names are not unique."
+        },
+        "offset": {
+          "default": 0,
+          "description": "Offset within the complete retained organization snapshot.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pool": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Snapshot identity retained by continuation commands."
+        },
+        "postal_code": {
+          "$ref": "#/$defs/Text",
+          "description": "Native postal code."
+        },
+        "source": {
+          "$ref": "#/$defs/OrganizationSource",
+          "description": "Explicit keyed NCI source."
+        },
+        "state": {
+          "$ref": "#/$defs/Text",
+          "description": "Native state or province."
+        }
+      },
+      "required": [
+        "command",
+        "source"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
       "description": "Discover native author candidates without identity reconciliation.",
       "properties": {
         "command": {
-          "const": "search_author",
+          "const": "search-author",
           "type": "string"
         },
         "limit": {
@@ -944,7 +1215,7 @@
           "description": "Retained page identity."
         },
         "query": {
-          "description": "Literal query from the positional argument or --query.",
+          "description": "Literal query from the positional argument.",
           "minLength": 1,
           "type": "string",
           "x-positional": 0
@@ -966,7 +1237,7 @@
       "description": "Page one exact provider record’s native papers.",
       "properties": {
         "command": {
-          "const": "author_papers",
+          "const": "author-papers",
           "type": "string"
         },
         "full": {
@@ -1014,7 +1285,7 @@
       "description": "Read exact provider author cards in input order.",
       "properties": {
         "command": {
-          "const": "get_author",
+          "const": "get-author",
           "type": "string"
         },
         "ids": {
@@ -1039,7 +1310,7 @@
       "description": "Read the native assay total for one exact ChEMBL cell.",
       "properties": {
         "command": {
-          "const": "cell_line_assay_count",
+          "const": "cell-line-assay-count",
           "type": "string"
         },
         "id": {
@@ -1056,11 +1327,32 @@
     },
     {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "query"
+          ]
+        },
+        {
+          "required": [
+            "species"
+          ]
+        },
+        {
+          "required": [
+            "disease"
+          ]
+        }
+      ],
       "description": "Discover unchanged literal Cellosaurus candidates.",
       "properties": {
         "command": {
-          "const": "search_cell_line",
+          "const": "search-cell-line",
           "type": "string"
+        },
+        "disease": {
+          "$ref": "#/$defs/Text",
+          "description": "Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224)."
         },
         "limit": {
           "default": 5,
@@ -1079,13 +1371,16 @@
         },
         "query": {
           "$ref": "#/$defs/Text",
-          "description": "Literal source query; positional spelling and --query use the same field.",
+          "description": "Literal source query from the positional argument.",
           "x-positional": 0
+        },
+        "species": {
+          "$ref": "#/$defs/Text",
+          "description": "Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606)."
         }
       },
       "required": [
-        "command",
-        "query"
+        "command"
       ],
       "type": "object"
     },
@@ -1094,7 +1389,7 @@
       "description": "Read an exact accession or verified qualified source identity.",
       "properties": {
         "command": {
-          "const": "get_cell_line",
+          "const": "get-cell-line",
           "type": "string"
         },
         "id": {
@@ -1133,7 +1428,7 @@
       "description": "Search one native GWAS Catalog association page.",
       "properties": {
         "command": {
-          "const": "search_gwas",
+          "const": "search-gwas",
           "type": "string"
         },
         "extended_geneset": {
@@ -1182,6 +1477,10 @@
           "$ref": "#/$defs/Pmid",
           "description": "Exact source publication identity."
         },
+        "studies": {
+          "description": "Return study records for the selected publication instead of associations.",
+          "type": "boolean"
+        },
         "study": {
           "$ref": "#/$defs/GwasStudyId",
           "description": "Exact source study accession."
@@ -1209,7 +1508,7 @@
       "description": "Read one exact association and its native loci.",
       "properties": {
         "command": {
-          "const": "get_gwas_association",
+          "const": "get-gwas-association",
           "type": "string"
         },
         "id": {
@@ -1258,7 +1557,7 @@
       "description": "Read one exact study and its native relations.",
       "properties": {
         "command": {
-          "const": "get_gwas_study",
+          "const": "get-gwas-study",
           "type": "string"
         },
         "id": {
@@ -1312,7 +1611,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "protein_domains",
+          "const": "protein-domains",
           "type": "string"
         },
         "limit": {
@@ -1355,7 +1654,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "protein_complexes",
+          "const": "protein-complexes",
           "type": "string"
         },
         "limit": {
@@ -1394,7 +1693,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "protein_complex_members",
+          "const": "protein-complex-members",
           "type": "string"
         },
         "complex": {
@@ -1438,7 +1737,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "protein_features",
+          "const": "protein-features",
           "type": "string"
         },
         "limit": {
@@ -1488,7 +1787,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "protein_isoforms",
+          "const": "protein-isoforms",
           "type": "string"
         },
         "limit": {
@@ -1527,7 +1826,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "protein_structures",
+          "const": "protein-structures",
           "type": "string"
         },
         "limit": {
@@ -1561,7 +1860,7 @@
       "description": "Read one exact source sequence without alias repair.",
       "properties": {
         "command": {
-          "const": "protein_sequence",
+          "const": "protein-sequence",
           "type": "string"
         },
         "isoform": {
@@ -1593,7 +1892,7 @@
       "description": "Discover reviewed human UniProt candidates without selecting one.",
       "properties": {
         "command": {
-          "const": "search_protein",
+          "const": "search-protein",
           "type": "string"
         },
         "gene": {
@@ -1640,7 +1939,7 @@
       "description": "Read exact protein cards or all HGNC-listed protein candidates.",
       "properties": {
         "command": {
-          "const": "get_protein",
+          "const": "get-protein",
           "type": "string"
         },
         "input": {
@@ -1681,7 +1980,7 @@
       "description": "Discover literal HP term candidates in publisher order.",
       "properties": {
         "command": {
-          "const": "search_phenotype",
+          "const": "search-phenotype",
           "type": "string"
         },
         "limit": {
@@ -1722,7 +2021,7 @@
       "description": "Read one independent exact HPO or Monarch term card.",
       "properties": {
         "command": {
-          "const": "get_phenotype",
+          "const": "get-phenotype",
           "type": "string"
         },
         "id": {
@@ -1769,7 +2068,7 @@
       "description": "Discover source-native human pathway headers.",
       "properties": {
         "command": {
-          "const": "search_pathway",
+          "const": "search-pathway",
           "type": "string"
         },
         "fresh": {
@@ -1832,7 +2131,7 @@
       "description": "Read an exact human pathway card or summary.",
       "properties": {
         "command": {
-          "const": "get_pathway",
+          "const": "get-pathway",
           "type": "string"
         },
         "fresh": {
@@ -1881,7 +2180,7 @@
       "description": "Page retained exact source membership references.",
       "properties": {
         "command": {
-          "const": "pathway_genes",
+          "const": "pathway-genes",
           "type": "string"
         },
         "details": {
@@ -1926,7 +2225,7 @@
       "description": "Page retained source-contained event references.",
       "properties": {
         "command": {
-          "const": "pathway_events",
+          "const": "pathway-events",
           "type": "string"
         },
         "id": {
@@ -1982,7 +2281,7 @@
           "description": "Exact cBioPortal cancer-type code; no OncoTree conversion."
         },
         "command": {
-          "const": "search_study",
+          "const": "search-study",
           "type": "string"
         },
         "limit": {
@@ -2027,13 +2326,35 @@
       "description": "Read exact study metadata.",
       "properties": {
         "command": {
-          "const": "get_study",
+          "const": "get-study",
           "type": "string"
+        },
+        "gene": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact cBioPortal HUGO gene symbol or Entrez ID; required for mutations."
         },
         "id": {
           "$ref": "#/$defs/StudyId",
           "description": "Exact source study ID; no default or repair.",
           "x-positional": 0
+        },
+        "molecular_profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StudyProfileId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact mutation profile ID; omitted selects the study's first mutation profile."
         },
         "section": {
           "anyOf": [
@@ -2074,7 +2395,7 @@
       "description": "Discover source-native CPIC gene pairs.",
       "properties": {
         "command": {
-          "const": "search_pgx",
+          "const": "search-pgx",
           "type": "string"
         },
         "cpic_level": {
@@ -2127,7 +2448,7 @@
       "description": "Read an explicit CPIC gene card or source section.",
       "properties": {
         "command": {
-          "const": "get_pgx",
+          "const": "get-pgx",
           "type": "string"
         },
         "diplotype": {
@@ -2221,7 +2542,7 @@
       "description": "Read one exact ClinPGx clinical annotation accession.",
       "properties": {
         "command": {
-          "const": "get_pgx_annotation",
+          "const": "get-pgx-annotation",
           "type": "string"
         },
         "id": {
@@ -2267,7 +2588,7 @@
           "description": "Immutable stored bundle revision retained by a continuation."
         },
         "command": {
-          "const": "search_diagnostic",
+          "const": "search-diagnostic",
           "type": "string"
         },
         "condition_id": {
@@ -2280,6 +2601,28 @@
             }
           ],
           "description": "Exact MedGen:CUI identifier only."
+        },
+        "decision_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
+        },
+        "decision_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
         },
         "device_id": {
           "anyOf": [
@@ -2325,6 +2668,28 @@
           ],
           "description": "Exact source GeneID, exclusive with gene symbol."
         },
+        "initiated_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive initiation date, YYYY-MM-DD; FDA device recalls only."
+        },
+        "initiated_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive initiation date, YYYY-MM-DD; FDA device recalls only."
+        },
         "limit": {
           "default": 5,
           "description": "Five results by default; at most fifty source rows or product headers.",
@@ -2342,7 +2707,7 @@
               "type": "null"
             }
           ],
-          "description": "Literal whole-word phrase in WHO's Manufacturer name cell."
+          "description": "WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."
         },
         "marker": {
           "anyOf": [
@@ -2355,6 +2720,17 @@
           ],
           "description": "Literal whole-word phrase in WHO's Pathogen/Disease/Marker cell."
         },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native trade_name (PMA) or device_name (510(k)) phrase."
+        },
         "offset": {
           "default": 0,
           "description": "Zero-based source result offset.",
@@ -2362,9 +2738,20 @@
           "minimum": 0,
           "type": "integer"
         },
+        "product_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact native FDA device recall product code."
+        },
         "source": {
           "$ref": "#/$defs/DiagnosticSearchSource",
-          "description": "Explicit native GTR, WHO IVD or FDA companion discovery."
+          "description": "Explicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery."
         },
         "type": {
           "anyOf": [
@@ -2400,7 +2787,7 @@
           "description": "Immutable stored bundle revision retained by a continuation."
         },
         "command": {
-          "const": "get_diagnostic",
+          "const": "get-diagnostic",
           "type": "string"
         },
         "id": {
@@ -2417,7 +2804,7 @@
               "type": "null"
             }
           ],
-          "description": "gtr: genes, conditions, methods. fda-pma: regulatory, supplements. WHO and 510(k) have no sections; omit for the card.",
+          "description": "GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.\nWHO, 510(k) and device recalls have no sections; omit for the card.",
           "x-positional": 1
         },
         "section_limit": {
@@ -2436,7 +2823,7 @@
         },
         "source": {
           "$ref": "#/$defs/DiagnosticGetSource",
-          "description": "Explicit source; gtr needs accession/version, who-ivd a known Product ID, fda-pma a P number, fda-510k a K number."
+          "description": "Explicit source: GTR accession/version, WHO Product ID, PMA P number,\n510(k) K number or device recall Z-NNNN-YYYY."
         },
         "supplement": {
           "anyOf": [
@@ -2462,8 +2849,15 @@
       "description": "Search source-native adverse event reports.",
       "properties": {
         "command": {
-          "const": "search_adverse_event",
+          "const": "search-adverse-event",
           "type": "string"
+        },
+        "drug": {
+          "description": "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
+          "items": {
+            "$ref": "#/$defs/Text"
+          },
+          "type": "array"
         },
         "limit": {
           "default": 5,
@@ -2473,12 +2867,41 @@
           "minimum": 1,
           "type": "integer"
         },
+        "manufacturer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
+        },
         "offset": {
           "default": 0,
           "description": "Native row offset. VAERS continuation requires its retained snapshot.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
+        },
+        "problem": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "MAUDE phrase on native product_problems."
+        },
+        "product_code": {
+          "description": "MAUDE exact native device.device_report_product_code; repeated codes join with OR.",
+          "items": {
+            "$ref": "#/$defs/Text"
+          },
+          "type": "array"
         },
         "reaction": {
           "anyOf": [
@@ -2500,7 +2923,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive first FDA receipt lower bound, YYYY-MM-DD.",
+          "description": "Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
           "format": "date"
         },
         "received_to": {
@@ -2512,7 +2935,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive first FDA receipt upper bound, YYYY-MM-DD.",
+          "description": "Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
           "format": "date"
         },
         "section": {
@@ -2536,7 +2959,7 @@
               "type": "null"
             }
           ],
-          "description": "FAERS report flag: death or hospitalization; never a reaction outcome."
+          "description": "FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
         },
         "snapshot": {
           "anyOf": [
@@ -2561,8 +2984,7 @@
         }
       },
       "required": [
-        "command",
-        "text"
+        "command"
       ],
       "type": "object"
     },
@@ -2571,7 +2993,7 @@
       "description": "Read one exact source report, without source probing.",
       "properties": {
         "command": {
-          "const": "get_adverse_event",
+          "const": "get-adverse-event",
           "type": "string"
         },
         "drug_index": {
@@ -2647,7 +3069,7 @@
       "description": "Discover one source-native disease candidate page.",
       "properties": {
         "command": {
-          "const": "search_disease",
+          "const": "search-disease",
           "type": "string"
         },
         "limit": {
@@ -2706,7 +3128,7 @@
           "description": "Native age-range code."
         },
         "command": {
-          "const": "get_disease",
+          "const": "get-disease",
           "type": "string"
         },
         "dataset": {
@@ -2816,9 +3238,53 @@
       "additionalProperties": false,
       "description": "Discover literal native drug candidates.",
       "properties": {
+        "classification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrugRecallClassification"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native FDA classification; drug recalls only."
+        },
         "command": {
-          "const": "search_drug",
+          "const": "search-drug",
           "type": "string"
+        },
+        "firm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Literal published recalling firm phrase; drug recalls only."
+        },
+        "initiated_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only."
+        },
+        "initiated_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only."
         },
         "limit": {
           "default": 10,
@@ -2839,20 +3305,63 @@
           "minimum": 0,
           "type": "integer"
         },
+        "prequalified_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only."
+        },
+        "prequalified_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only."
+        },
         "query": {
           "$ref": "#/$defs/Text",
-          "description": "Literal source name selector, unchanged by the consumer.",
+          "description": "Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,\nexact names before word matches. openFDA labels search exact then word brand/generic names,\nthen label text (including indications) when no names match; source matches need not be exact names.\nHarmonized recall names match but never become display names.",
           "x-positional": 0
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Phrase in the published recall reason; drug recalls only."
         },
         "source": {
           "$ref": "#/$defs/DrugSource",
           "default": "mychem",
           "description": "Exactly one source; default MyChem never fans out."
+        },
+        "status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Literal native recall status; drug recalls only."
         }
       },
       "required": [
-        "command",
-        "query"
+        "command"
       ],
       "type": "object"
     },
@@ -2893,13 +3402,40 @@
           ]
         },
         "command": {
-          "const": "get_drug",
+          "const": "get-drug",
           "type": "string"
         },
+        "document_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+        },
+        "evidence_level": {
+          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "items": {
+            "$ref": "#/$defs/CivicEvidenceLevel"
+          },
+          "type": "array"
+        },
+        "evidence_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CivicEvidenceStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+        },
         "input": {
-          "$ref": "#/$defs/DrugId",
-          "description": "Published source-native identifier, never SOURCE:ID or a selected name.",
-          "x-positional": 0
+          "$ref": "#/$defs/DrugId"
         },
         "label_section": {
           "anyOf": [
@@ -2910,7 +3446,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact native label heading, required only for the label section."
+          "description": "Exact published openFDA SPL section field, including table fields; required for the label section."
         },
         "product_number": {
           "anyOf": [
@@ -2951,8 +3487,7 @@
           ]
         },
         "source": {
-          "$ref": "#/$defs/DrugSource",
-          "description": "Required source; there is no default exact-ID resolver."
+          "$ref": "#/$defs/DrugSource"
         }
       },
       "required": [
@@ -2967,7 +3502,7 @@
       "description": "Read native WHO prequalification rows by exact reference.",
       "properties": {
         "command": {
-          "const": "get_who_medicine",
+          "const": "get-who-medicine",
           "type": "string"
         },
         "input": {
@@ -3002,13 +3537,24 @@
           ],
           "description": "Native assertion accession or document ID."
         },
+        "build": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Build"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Identity lookup assembly; omitted uses the shared GRCh38 default."
+        },
         "command": {
-          "const": "variant_assertions",
+          "const": "variant-assertions",
           "type": "string"
         },
         "input": {
           "$ref": "#/$defs/VariantInput",
-          "description": "Checked Variation ID for ClinVar, or CAid for ERepo.",
+          "description": "Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.",
           "x-positional": 0
         },
         "limit": {
@@ -3027,7 +3573,7 @@
         },
         "source": {
           "$ref": "#/$defs/AssertionSource",
-          "description": "One native source; no fallback or text search."
+          "description": "One native assertion source; shared identity conversion precedes source access when needed."
         },
         "version": {
           "anyOf": [
@@ -3064,7 +3610,7 @@
           "description": "Explicit source assembly when required by identity input."
         },
         "command": {
-          "const": "variant_population",
+          "const": "variant-population",
           "type": "string"
         },
         "detail": {
@@ -3107,8 +3653,19 @@
       "additionalProperties": false,
       "description": "Observe an exact allele in an explicitly selected cohort.",
       "properties": {
+        "build": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Build"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Identity lookup assembly; omitted uses the shared GRCh38 default."
+        },
         "command": {
-          "const": "variant_recurrence",
+          "const": "variant-recurrence",
           "type": "string"
         },
         "gene": {
@@ -3179,12 +3736,12 @@
           "description": "Caller assembly; required when VariantValidator is selected."
         },
         "command": {
-          "const": "variant_normalize",
+          "const": "variant-normalize",
           "type": "string"
         },
         "hgvs": {
-          "description": "Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.",
-          "pattern": "(^((N[CGMPRTW]|X[MPR])_([0-9]{6}|[0-9]{9})\\.[0-9]+|ENS[GTP][0-9]{11}\\.[0-9]+|LRG_[0-9]+([tp][0-9]+)?)(\\(([A-Za-z][A-Za-z0-9._/@-]*|[A-Za-z0-9_.]+)\\))?:[gcnrpmo]\\.[\\x20-\\x7e]+$|^chr([1-9][0-9]*|X|Y|M|MT):g\\.[\\x21-\\x7e]+$)",
+          "description": "Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.\nChecked for reference and syntax only; no full HGVS parser.",
+          "pattern": "(^(?!(?:[NX]P_[0-9]{6}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|[NX]P_(?!000)[0-9]{9}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENSP[0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))p0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))(?:\\([^)]*\\))?:[gcnrmo]\\.)(?![^:()]+\\((?:[NX]P_[0-9]{6}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|[NX]P_(?!000)[0-9]{9}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENSP[0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))p0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))\\):[gcnrmo]\\.)(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)(?:\\((?:(?:(?:N[CGMPRTW]|X[MPR])_(?:[0-9]{6}|(?!000)[0-9]{9})\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|ENS[GTP][0-9]{11}\\.(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})|LRG_0*(?:0|(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0}))(?:[tp]0*(?:0|(?:65535|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]{1}|6553[0-4][0-9]{0})))?)|[A-Za-z][A-Za-z0-9._/@-]{0,254})\\))?:(?:[gcnrpmo]\\.[\\x21-\\x7e]*[0-9][\\x21-\\x7e]*|[pr]\\.(?:\\?|\\(\\?\\)|=|\\(=\\))|r\\.(?:spl\\??|\\(spl\\?\\)))$|^chr([1-9]|1[0-9]|2[0-2]|X|Y|M|MT):g\\.[\\x21-\\x7e]*[0-9][\\x21-\\x7e]*$)",
           "type": "string"
         },
         "limit": {
@@ -3227,7 +3784,7 @@
               "type": "null"
             }
           ],
-          "description": "Required for chromosome notation; no assembly is guessed."
+          "description": "MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
         },
         "civic_cursor": {
           "anyOf": [
@@ -3262,12 +3819,30 @@
           ]
         },
         "command": {
-          "const": "get_variant",
+          "const": "get-variant",
           "type": "string"
+        },
+        "evidence_level": {
+          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "items": {
+            "$ref": "#/$defs/CivicEvidenceLevel"
+          },
+          "type": "array"
+        },
+        "evidence_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CivicEvidenceStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/VariantInput",
-          "description": "Published rsID, CAid, ClinVar Variation ID or reference-qualified HGVS.",
+          "description": "rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.",
           "x-positional": 0
         },
         "limit": {
@@ -3328,7 +3903,10 @@
         "command",
         "input"
       ],
-      "type": "object"
+      "type": "object",
+      "x-reply-query-titles": [
+        "VariantGetQuery"
+      ]
     },
     {
       "additionalProperties": false,
@@ -3337,6 +3915,12 @@
           "required": [
             "gene",
             "protein"
+          ]
+        },
+        {
+          "required": [
+            "gene",
+            "coding"
           ]
         },
         {
@@ -3358,8 +3942,12 @@
           "$ref": "#/$defs/Build",
           "description": "Optional caller assembly sent to MyVariant; regions require it explicitly."
         },
+        "coding": {
+          "$ref": "#/$defs/CodingChange",
+          "description": "Coding HGVS change searched literally in ClinVar with --gene, without choosing a transcript."
+        },
         "command": {
-          "const": "search_variant",
+          "const": "search-variant",
           "type": "string"
         },
         "condition": {
@@ -3368,7 +3956,7 @@
         },
         "gene": {
           "$ref": "#/$defs/GeneSymbol",
-          "description": "Exact checked gene symbol for the fixed dbNSFP gene/protein field query; obeys component terms switches."
+          "description": "Checked gene symbol for the dbNSFP substitution or ClinVar coding/synonymous selector."
         },
         "has": {
           "$ref": "#/$defs/VariantSearchField",
@@ -3392,7 +3980,7 @@
         },
         "protein": {
           "$ref": "#/$defs/ProteinQuery",
-          "description": "Explicit substitution using checked one-letter or three-letter amino-acid codes."
+          "description": "Explicit substitution or synonymous change using checked amino-acid codes."
         },
         "query": {
           "$ref": "#/$defs/MyVariantQuery",
@@ -3421,7 +4009,7 @@
       "description": "Save an exact registry document to an explicit destination.",
       "properties": {
         "command": {
-          "const": "trial_document",
+          "const": "trial-document",
           "type": "string"
         },
         "file": {
@@ -3456,7 +4044,7 @@
       "description": "Retrieve exact trial cards and source protocol sections.",
       "properties": {
         "command": {
-          "const": "get_trial",
+          "const": "get-trial",
           "type": "string"
         },
         "input": {
@@ -3517,13 +4105,25 @@
           "minimum": 0,
           "type": "integer"
         },
+        "biomarker_code": {
+          "$ref": "#/$defs/NcitId",
+          "description": "Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
+        },
+        "biomarker_use": {
+          "$ref": "#/$defs/NciBiomarkerUse",
+          "description": "Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
+        },
         "command": {
-          "const": "search_trial",
+          "const": "search-trial",
           "type": "string"
         },
         "condition": {
-          "$ref": "#/$defs/Text",
-          "description": "Registry condition text, or an NCIt code for NCI; use --keyword for NCI free text."
+          "description": "Condition alternatives joined with OR; NCI requires NCIt codes.",
+          "items": {
+            "$ref": "#/$defs/Text"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "condition_id": {
           "$ref": "#/$defs/Curie",
@@ -3532,6 +4132,242 @@
         "count_only": {
           "description": "Source total only; no returned study rows.",
           "type": "boolean"
+        },
+        "country": {
+          "description": "Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+          "items": {
+            "enum": [
+              "Afghanistan",
+              "Aland Islands",
+              "Albania",
+              "Algeria",
+              "American Samoa",
+              "Andorra",
+              "Angola",
+              "Anguilla",
+              "Antarctica",
+              "Antigua and Barbuda",
+              "Argentina",
+              "Armenia",
+              "Aruba",
+              "Australia",
+              "Austria",
+              "Azerbaijan",
+              "Bahrain",
+              "Bangladesh",
+              "Barbados",
+              "Belarus",
+              "Belgium",
+              "Belize",
+              "Benin",
+              "Bermuda",
+              "Bhutan",
+              "Bolivia",
+              "Bonaire, Saint Eustatius and Saba ",
+              "Bosnia and Herzegovina",
+              "Botswana",
+              "Brazil",
+              "Brunei",
+              "Bulgaria",
+              "Burkina Faso",
+              "Burma",
+              "Burundi",
+              "Cabo Verde",
+              "Cambodia",
+              "Cameroon",
+              "Canada",
+              "Cayman Islands",
+              "Central African Republic",
+              "Chad",
+              "Chile",
+              "China",
+              "Christmas Island",
+              "Colombia",
+              "Comoros",
+              "Costa Rica",
+              "Croatia",
+              "Cuba",
+              "Curacao",
+              "Cyprus",
+              "Czechia",
+              "Côte d’Ivoire",
+              "Democratic Republic of the Congo",
+              "Denmark",
+              "Djibouti",
+              "Dominica",
+              "Dominican Republic",
+              "Ecuador",
+              "Egypt",
+              "El Salvador",
+              "Equatorial Guinea",
+              "Eritrea",
+              "Estonia",
+              "Eswatini",
+              "Ethiopia",
+              "Faroe Islands",
+              "Federal Republic of Yugoslavia",
+              "Fiji",
+              "Finland",
+              "France",
+              "French Guiana",
+              "French Polynesia",
+              "French Southern and Antarctic Lands",
+              "Gabon",
+              "Georgia",
+              "Germany",
+              "Ghana",
+              "Gibraltar",
+              "Greece",
+              "Greenland",
+              "Grenada",
+              "Guadeloupe",
+              "Guam",
+              "Guatemala",
+              "Guinea",
+              "Guinea-Bissau",
+              "Guyana",
+              "Haiti",
+              "Holy See",
+              "Honduras",
+              "Hong Kong",
+              "Hungary",
+              "Iceland",
+              "India",
+              "Indonesia",
+              "Iran",
+              "Iraq",
+              "Ireland",
+              "Israel",
+              "Italy",
+              "Jamaica",
+              "Japan",
+              "Jersey",
+              "Jordan",
+              "Kazakhstan",
+              "Kenya",
+              "Kiribati",
+              "Kosovo",
+              "Kuwait",
+              "Kyrgyzstan",
+              "Laos",
+              "Latvia",
+              "Lebanon",
+              "Lesotho",
+              "Liberia",
+              "Libya",
+              "Liechtenstein",
+              "Lithuania",
+              "Luxembourg",
+              "Macau",
+              "Madagascar",
+              "Malawi",
+              "Malaysia",
+              "Maldives",
+              "Mali",
+              "Malta",
+              "Martinique",
+              "Mauritania",
+              "Mauritius",
+              "Mayotte",
+              "Mexico",
+              "Micronesia",
+              "Moldova",
+              "Monaco",
+              "Mongolia",
+              "Montenegro",
+              "Montserrat",
+              "Morocco",
+              "Mozambique",
+              "Namibia",
+              "Nepal",
+              "Netherlands",
+              "Netherlands Antilles",
+              "New Caledonia",
+              "New Zealand",
+              "Nicaragua",
+              "Niger",
+              "Nigeria",
+              "Niue",
+              "North Korea",
+              "North Macedonia",
+              "Northern Mariana Islands",
+              "Norway",
+              "Oman",
+              "Pakistan",
+              "Palestinian Territories",
+              "Panama",
+              "Papua New Guinea",
+              "Paraguay",
+              "Peru",
+              "Philippines",
+              "Poland",
+              "Portugal",
+              "Puerto Rico",
+              "Qatar",
+              "Republic of the Congo",
+              "Reunion",
+              "Romania",
+              "Russia",
+              "Rwanda",
+              "Saint Kitts and Nevis",
+              "Saint Lucia",
+              "Saint Martin",
+              "Saint Vincent and the Grenadines",
+              "Samoa",
+              "San Marino",
+              "Saudi Arabia",
+              "Senegal",
+              "Serbia",
+              "Serbia and Montenegro",
+              "Seychelles",
+              "Sierra Leone",
+              "Singapore",
+              "Slovakia",
+              "Slovenia",
+              "Solomon Islands",
+              "Somalia",
+              "South Africa",
+              "South Korea",
+              "South Sudan",
+              "Spain",
+              "Sri Lanka",
+              "Sudan",
+              "Suriname",
+              "Sweden",
+              "Switzerland",
+              "Syria",
+              "Taiwan",
+              "Tajikistan",
+              "Tanzania",
+              "Thailand",
+              "The Bahamas",
+              "The Gambia",
+              "Timor-Leste",
+              "Togo",
+              "Trinidad and Tobago",
+              "Tunisia",
+              "Turkey (Türkiye)",
+              "Turkmenistan",
+              "Uganda",
+              "Ukraine",
+              "United Arab Emirates",
+              "United Kingdom",
+              "United States",
+              "United States Minor Outlying Islands",
+              "Uruguay",
+              "Uzbekistan",
+              "Vanuatu",
+              "Venezuela",
+              "Vietnam",
+              "Virgin Islands",
+              "Yemen",
+              "Zambia",
+              "Zimbabwe"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "criteria": {
           "$ref": "#/$defs/Text",
@@ -3547,7 +4383,7 @@
         },
         "facility": {
           "$ref": "#/$defs/Text",
-          "description": "Exact registry facility field; cannot combine with radius."
+          "description": "Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
         },
         "gene": {
           "$ref": "#/$defs/GeneInput",
@@ -3562,12 +4398,20 @@
           "description": "Exact NCT identity in a conjunction with other filters."
         },
         "intervention": {
-          "$ref": "#/$defs/Text",
-          "description": "Literal source intervention text."
+          "description": "Intervention alternatives joined with OR; supported by ClinicalTrials.gov.",
+          "items": {
+            "$ref": "#/$defs/Text"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "keyword": {
-          "$ref": "#/$defs/Text",
-          "description": "NCI free text; explicit keyword mode never substitutes for a disease identity."
+          "description": "Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
+          "items": {
+            "$ref": "#/$defs/Text"
+          },
+          "maxItems": 5,
+          "type": "array"
         },
         "lat": {
           "$ref": "#/$defs/Text",
@@ -3589,9 +4433,16 @@
           "$ref": "#/$defs/Text",
           "description": "Opaque registry continuation; keep filters unchanged."
         },
+        "offset": {
+          "default": 0,
+          "description": "Zero-based offset of the first row in this continuation page.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
         "phase": {
-          "$ref": "#/$defs/PhaseFilter",
-          "description": "Registry phase: 1, 2, 3, 4, early-1, not-applicable, 1/2 or 2/3."
+          "$ref": "#/$defs/TrialPhaseFilter",
+          "description": "Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
         },
         "query": {
           "$ref": "#/$defs/Text",
@@ -3608,15 +4459,15 @@
         },
         "sponsor": {
           "$ref": "#/$defs/Text",
-          "description": "Exact lead sponsor field."
+          "description": "Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
         },
         "sponsor_type": {
           "$ref": "#/$defs/SponsorType",
-          "description": "Registry sponsor funding facet."
+          "description": "Registry sponsor funding category; use --sponsor for a sponsor name."
         },
         "status": {
-          "$ref": "#/$defs/TrialStatus",
-          "description": "Exact registry overall status."
+          "$ref": "#/$defs/TrialStatusFilter",
+          "description": "Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
         },
         "study_type": {
           "$ref": "#/$defs/StudyType",
@@ -3645,7 +4496,7 @@
       "description": "Save a publisher PDF to an explicit destination.",
       "properties": {
         "command": {
-          "const": "article_pdf",
+          "const": "article-pdf",
           "type": "string"
         },
         "input": {
@@ -3684,7 +4535,7 @@
           "x-positional": 0
         },
         "command": {
-          "const": "article_evidence",
+          "const": "article-evidence",
           "type": "string"
         },
         "fulltext": {
@@ -3722,7 +4573,7 @@
       "description": "Source-native paper recommendations.",
       "properties": {
         "command": {
-          "const": "article_recommend",
+          "const": "article-recommend",
           "type": "string"
         },
         "limit": {
@@ -3774,7 +4625,7 @@
       "description": "Read a licensed supplementary file.",
       "properties": {
         "command": {
-          "const": "article_supplement",
+          "const": "article-supplement",
           "type": "string"
         },
         "file": {
@@ -3853,7 +4704,7 @@
       "description": "Read licensed PMC body text.",
       "properties": {
         "command": {
-          "const": "article_text",
+          "const": "article-text",
           "type": "string"
         },
         "find": {
@@ -3902,7 +4753,7 @@
       "description": "Papers citing one PMID.",
       "properties": {
         "command": {
-          "const": "article_citations",
+          "const": "article-citations",
           "type": "string"
         },
         "limit": {
@@ -3946,7 +4797,7 @@
       "description": "Papers referenced by one PMID.",
       "properties": {
         "command": {
-          "const": "article_references",
+          "const": "article-references",
           "type": "string"
         },
         "limit": {
@@ -3990,7 +4841,7 @@
       "description": "Retrieve PubMed article cards.",
       "properties": {
         "command": {
-          "const": "get_article",
+          "const": "get-article",
           "type": "string"
         },
         "input": {
@@ -4079,7 +4930,7 @@
           "description": "Author words sent to PubMed's author field."
         },
         "command": {
-          "const": "search_article",
+          "const": "search-article",
           "type": "string"
         },
         "disease": {
@@ -4182,7 +5033,7 @@
       "description": "Get gene identities and annotations.",
       "properties": {
         "command": {
-          "const": "get_gene",
+          "const": "get-gene",
           "type": "string"
         },
         "input": {
@@ -4231,7 +5082,7 @@
           "description": "A cytoband prefix."
         },
         "command": {
-          "const": "search_gene",
+          "const": "search-gene",
           "type": "string"
         },
         "limit": {

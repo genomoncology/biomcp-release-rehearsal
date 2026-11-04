@@ -4,6 +4,10 @@
     clippy::panic,
     reason = "Fixture setup, child processes and failed source assertions must abort the contract test"
 )]
+use biomcp_fetch::Input;
+
+use biomcp_test_support::evidence;
+
 use super::{Server, config, spec, support::Answer};
 use biomcp_fetch::{Arg, Fetch, Freshness, KeyUse, SourceSpec};
 use rusqlite::Connection;
@@ -54,49 +58,53 @@ impl Worker {
                 Err(error)
                     if error.kind() == std::io::ErrorKind::WouldBlock && Instant::now() < end =>
                 {
-                    if let Some(status) = process.try_wait().unwrap() {
-                        panic!("child exited before connecting: {status}");
+                    match process.try_wait() {
+                        Ok(Some(_)) => failure(&mut process, "child exited before connecting"),
+                        Ok(None) => thread::park_timeout(Duration::from_millis(1)),
+                        Err(error) => failure(&mut process, &format!("child status: {error}")),
                     }
-                    thread::park_timeout(Duration::from_millis(1));
                 }
                 Err(error) => {
-                    let _ = process.kill();
-                    let _ = process.wait();
-                    panic!("control connection failed: {error}");
+                    failure(&mut process, &format!("control connection failed: {error}"));
                 }
             }
         };
-        control.set_nonblocking(false).unwrap();
-        control
-            .set_read_timeout(Some(Duration::from_secs(15)))
-            .unwrap();
-        control
-            .set_write_timeout(Some(Duration::from_secs(15)))
-            .unwrap();
+        if let Err(error) = control
+            .set_nonblocking(false)
+            .and_then(|()| control.set_read_timeout(Some(Duration::from_secs(15))))
+            .and_then(|()| control.set_write_timeout(Some(Duration::from_secs(15))))
+        {
+            failure(&mut process, &format!("control settings: {error}"));
+        }
         Self { process, control }
     }
     fn send(&mut self, event: u8) {
-        self.control.write_all(&[event]).unwrap();
+        if let Err(error) = self.control.write_all(&[event]) {
+            failure(&mut self.process, &format!("send event {event}: {error}"));
+        }
     }
     fn event(&mut self, expected: u8) {
-        event(&mut self.control, expected);
+        let mut received = [0];
+        if let Err(error) = self.control.read_exact(&mut received) {
+            failure(
+                &mut self.process,
+                &format!("read event {expected}: {error}"),
+            );
+        }
+        if received != [expected] {
+            failure(
+                &mut self.process,
+                &format!("expected event {expected}, received {received:?}"),
+            );
+        }
     }
     fn finish(mut self) {
         self.send(b'E');
-        let status = self.process.wait().unwrap();
-        let mut output = String::new();
-        self.process
-            .stdout
-            .take()
-            .unwrap()
-            .read_to_string(&mut output)
-            .unwrap();
-        self.process
-            .stderr
-            .take()
-            .unwrap()
-            .read_to_string(&mut output)
-            .unwrap();
+        let status = match self.process.wait() {
+            Ok(status) => status,
+            Err(error) => failure(&mut self.process, &format!("child wait: {error}")),
+        };
+        let output = output(&mut self.process);
         assert!(status.success(), "cache child failed: {output}");
     }
 }
@@ -106,16 +114,50 @@ impl Drop for Worker {
         let _ = self.process.wait();
     }
 }
+fn output(process: &mut Child) -> String {
+    let mut output = String::new();
+    if let Some(mut stdout) = process.stdout.take() {
+        stdout.read_to_string(&mut output).unwrap();
+    }
+    if let Some(mut stderr) = process.stderr.take() {
+        stderr.read_to_string(&mut output).unwrap();
+    }
+    output
+}
+fn failure(process: &mut Child, context: &str) -> ! {
+    let observed = process.try_wait();
+    if !matches!(observed, Ok(Some(_))) {
+        let _ = process.kill();
+    }
+    let status = process.wait();
+    let output = output(process);
+    panic!("{context}; child status {observed:?}; final status {status:?}: {output}");
+}
+
 fn event(control: &mut TcpStream, expected: u8) {
     let mut received = [0];
     control.read_exact(&mut received).unwrap();
-    assert_eq!(received, [expected]);
+    assert_eq!(
+        received,
+        [expected],
+        "The cache process must publish its synchronization event"
+    );
 }
 
 #[test]
 fn concurrent_first_opens_and_distinct_writes_survive_into_a_new_process() {
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("shared.sqlite");
+    let directory = tempfile::Builder::new()
+        .prefix("cache-process-")
+        .tempdir_in(evidence::directory().unwrap())
+        .unwrap()
+        .keep();
+    writeln!(
+        std::io::stderr().lock(),
+        "cache process test data: {}",
+        directory.display()
+    )
+    .unwrap();
+    let path = directory.join("shared.sqlite");
     let server = Server::new();
     let lock = Connection::open(&path).unwrap();
     // Both child first opens encounter an active writer, then proceed together.
@@ -160,6 +202,8 @@ fn concurrent_first_opens_and_distinct_writes_survive_into_a_new_process() {
             .unwrap(),
         2
     );
+    drop(lock);
+    std::fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]
@@ -195,7 +239,12 @@ fn child() {
         assert!(
             fetch
                 .leg(spec, fetch.deadline(Duration::from_secs(10)))
-                .json::<Answer>(&endpoint, &[("key", Arg::Text(key))])
+                .call(
+                    &endpoint,
+                    Input::Params(&[("key", Arg::Text(key))]),
+                    biomcp_fetch::Read::<Answer>::json()
+                )
+                .map(|received| received.value)
                 .unwrap()
                 .answer
         );

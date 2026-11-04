@@ -1,61 +1,27 @@
 //! Feature protein-domains-complexes: source facts and exact membership.
 use super::{configuration::invoke, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
-mod bad_values;
-mod card_failures;
-mod cards;
+
 mod complexes;
-mod composite;
-mod failures;
-mod identities;
-mod native;
+
 mod paging;
-mod policy;
-mod retirements;
+
 pub(super) fn trials() -> Vec<Trial> {
-    let root = super::launch::fixtures().join("protein-domain-native");
-    let absent = !root.is_dir();
-    let mut trials = card_failures::trials();
-    trials.extend(bad_values::trials());
-    trials.extend(retirements::trials());
-    trials.extend(identities::trials());
-    trials.push(Trial::test(
-        "protein-domains-complexes/P24-no-analysis-tool-discovery",
-        || policy::run().map_err(Into::into),
-    ));
-    trials.push(Trial::test(
-        "protein-domains-complexes/synthetic-all-first-pages-and-disabled",
-        || composite::run().map_err(Into::into),
-    ));
-    trials.extend(vec![
-        Trial::test(
-            "protein-domains-complexes/card-sections-and-source-policy",
-            || cards::run().map_err(Into::into),
-        ),
-        Trial::test("protein-domains-complexes/source-failures", || {
-            failures::run().map_err(Into::into)
+    // The peers verify source request counts and runtime pool ownership while native pages and members are reconstructed.
+    vec![
+        transcript_trial(crate::runner::pool_contract::DOMAIN_PAGES.0, || {
+            paging::run().map_err(Into::into)
         }),
-        Trial::test(
-            "protein-domains-complexes/native-pointer-retained-walk",
-            || paging::run().map_err(Into::into),
-        ),
-        Trial::test(
-            "protein-domains-complexes/retained-native-facts-and-costs",
-            move || native::run(&root).map_err(Into::into),
-        )
-        .with_ignored_flag(absent),
-        Trial::test(
-            "protein-domains-complexes/exact-members-and-retained-pages",
-            || complexes::run().map_err(Into::into),
-        ),
-        Trial::test(
-            "protein-domains-complexes/native-types-and-fragments",
-            || domains().map_err(Into::into),
-        ),
-    ]);
-    trials
+        transcript_trial(crate::runner::pool_contract::MEMBERS.0, || {
+            complexes::run().map_err(Into::into)
+        }),
+        transcript_trial(crate::runner::pool_contract::DOMAIN_TYPE.0, || {
+            domains().map_err(Into::into)
+        }),
+    ]
 }
 fn domains() -> Result<(), String> {
     let stub = Stub::for_source("www.ebi.ac.uk", "application/json", |_| {
@@ -144,7 +110,7 @@ fn admission(env: &Environment) -> Result<(), String> {
     for _ in 0..2 {
         let rejected = call(env, &["protein", "domains", "P15056"], 4)?;
         super::protein_budgets::check(&rejected, "synthetic-domains/wrong-anchor", "cli")?;
-        if rejected.pointer("/sources/0/reason") != Some(&json!("bad_reply"))
+        if rejected.pointer("/sources/0/reason") != Some(&json!("bad-reply"))
             || rejected.get("result").is_some()
         {
             return Err("a live response for another protein was admitted".into());
@@ -162,7 +128,7 @@ fn call(env: &Environment, args: &[&str], exit: i32) -> Result<Value, String> {
 fn setup(stub: &Stub) -> Result<Environment, String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("source-ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
         .map_err(|e| e.to_string())?;

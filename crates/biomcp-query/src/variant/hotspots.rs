@@ -16,6 +16,7 @@ pub(super) fn section(
     Vec<SourceOutcome>,
     Vec<Problem>,
     Option<RequestError>,
+    bool,
 ) {
     let leg = cx
         .fetch
@@ -37,6 +38,7 @@ pub(super) fn section(
             genes
         });
     let mut rows = Vec::new();
+    let mut dropped = false;
     let mut problems = Vec::new();
     let disabled = cx.fetch.disabled(Source::CancerHotspots);
     let mut error = disabled.then_some(failure(Reason::Disabled));
@@ -46,6 +48,7 @@ pub(super) fn section(
         }
         match biomcp_adapters::hotspots::gene(&leg, gene) {
             Ok(mapped) => {
+                dropped |= mapped.refusals == biomcp_adapters::Refusal::Refused;
                 rows.extend(mapped.value);
                 status::append(&mut problems, mapped.problems);
             }
@@ -58,12 +61,18 @@ pub(super) fn section(
     if genes.is_empty() && !disabled {
         error = Some(failure(Reason::NoJoinId));
     }
-    if rows.is_empty() && !problems.is_empty() && error.is_none() {
+    if rows.is_empty() && dropped && error.is_none() {
         error = Some(failure(Reason::BadReply));
     }
     let source = status::source(Source::CancerHotspots, leg.finish(), error);
     let value = disclose(query, rows, error, &mut problems);
-    (value, vec![source], problems, error.and_then(status::local))
+    (
+        value,
+        vec![source],
+        problems,
+        error.and_then(status::local),
+        dropped,
+    )
 }
 
 fn disclose(
@@ -124,6 +133,7 @@ fn failure(reason: Reason) -> RequestError {
         source: Source::CancerHotspots,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

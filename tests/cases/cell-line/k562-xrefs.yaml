@@ -1,18 +1,12 @@
 {
-  "feature": "cell-line-sections",
+  "verified": "The cross-reference generator in crates/biomcp/tests/runner/cell_line/examples.rs records the native K-562 body from the Cellosaurus fixtures. The nightly run retrieves the public record and follows its local section pages.",
+  "live_check": "public",
+  "feature": "cell-line-identity",
   "story": "A caller walks all 1,398 K-562 source cross-references in native order without gaps or duplicate identities.",
   "replay": "cell-line/k562-xrefs",
   "steps": [
     {
       "run": [
-        "get",
-        "cell-line",
-        "CVCL_0004",
-        "xrefs",
-        "--section-limit",
-        "25"
-      ],
-      "mcp": [
         "get",
         "cell-line",
         "CVCL_0004",
@@ -31,10 +25,10 @@
           "count": 1398,
           "unique": true
         },
-        "/result/items/items/*/database": {
+        "/result/items/items/*/namespace": {
           "equals_file": "k562-xref-databases.json"
         },
-        "/result/items/items/*/accession": {
+        "/result/items/items/*/id": {
           "equals_file": "k562-xref-accessions.json"
         }
       },

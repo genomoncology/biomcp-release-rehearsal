@@ -23,7 +23,7 @@ pub(super) struct Rows {
     pub(super) bytes: usize,
 }
 pub(super) struct Group {
-    pub(super) title: String,
+    pub(super) title: Option<String>,
     pub(super) path: Vec<Text>,
     pub(super) kind: TextPartKind,
     pub(super) context: Option<String>,
@@ -40,7 +40,7 @@ impl Group {
     }
     pub(super) fn section(path: Vec<Text>) -> Self {
         Self {
-            title: path.last().map_or("Body", Text::as_str).to_owned(),
+            title: Some(path.last().map_or("Body", Text::as_str).to_owned()),
             path,
             kind: TextPartKind::Section,
             context: None,
@@ -49,14 +49,25 @@ impl Group {
         }
     }
 }
-pub(super) fn section(node: Element<'_>, ancestors: &[Text]) -> Result<Vec<Group>, BadReply> {
+pub(super) fn section(
+    node: Element<'_>,
+    ancestors: &[Text],
+    problems: &mut crate::mapped::Problems,
+) -> Result<Vec<Group>, BadReply> {
     let mut path = ancestors.to_vec();
     let title = node.value(&["title"])?;
-    if let Some(title) = &title {
-        path.push(Text::new(title).map_err(|_| BadReply)?);
+    let checked_title = title
+        .as_ref()
+        .and_then(|title| problems.text("parts.title", Some(title)));
+    let invalid_title = title.is_some() && checked_title.is_none();
+    if let Some(title) = checked_title {
+        path.push(title);
     }
     let mut group = Group::section(path.clone());
-    if let Some(title) = node.child("title")? {
+    if invalid_title {
+        group.title = None;
+    }
+    if let Some(title) = node.child("title")?.filter(|_| !invalid_title) {
         group.rows.push(BodyRow {
             paragraphs: Vec::new(),
             plain: title.text()?,
@@ -82,8 +93,11 @@ pub(super) fn section(node: Element<'_>, ancestors: &[Text]) -> Result<Vec<Group
                 if !group.rows.is_empty() {
                     out.push(group);
                 }
-                out.extend(section(child, &path)?);
+                out.extend(section(child, &path, problems)?);
                 group = Group::section(path.clone());
+                if invalid_title {
+                    group.title = None;
+                }
             }
             "fig" => {
                 if let Some(row) = figure(child)? {
@@ -130,13 +144,22 @@ pub(super) fn figure(fig: Element<'_>) -> Result<Option<BodyRow>, BadReply> {
         references: super::references::ids(caption.0)?,
     }))
 }
-pub(super) fn append(parts: &mut Vec<Part>, group: Group, rows: &mut Rows) -> Result<(), BadReply> {
-    super::parts::append(parts, group, rows)
+pub(super) fn append(
+    parts: &mut Vec<Part>,
+    group: Group,
+    rows: &mut Rows,
+    problems: &mut crate::mapped::Problems,
+) -> Result<(), BadReply> {
+    super::parts::append(parts, group, rows, problems)
 }
 
-pub(super) fn groups(name: &str, node: Element<'_>) -> Result<Vec<Group>, BadReply> {
+pub(super) fn groups(
+    name: &str,
+    node: Element<'_>,
+    problems: &mut crate::mapped::Problems,
+) -> Result<Vec<Group>, BadReply> {
     if name == "sec" {
-        return section(node, &[]);
+        return section(node, &[], problems);
     }
     let mut group = Group::section(Vec::new());
     group.table_refs = super::references::table_ids(node.0)?.into_vec();

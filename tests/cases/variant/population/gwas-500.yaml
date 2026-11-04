@@ -11,35 +11,20 @@
         "rs113488022",
         "gwas"
       ],
-      "mcp": [
-        "get",
-        "variant",
-        "rs113488022",
-        "gwas"
-      ],
       "exit": 4,
       "is_error": true,
       "expect": {
         "/status": "failed",
-        "/result/candidates/0/sections/gwas/state": "unavailable",
-        "/result/candidates/0/sections/gwas/reason": "unavailable"
+        "": {
+          "omits": [
+            "result"
+          ]
+        },
+        "/sources/0/source": "gwas",
+        "/sources/0/state": "failed",
+        "/sources/0/reason": "unavailable"
       },
       "max_bytes": 563
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "rs113488022",
-        "gwas"
-      ],
-      "offline": true,
-      "exit": 4,
-      "expect": {
-        "/status": "failed",
-        "/result/candidates/0/sections/gwas/reason": "offline"
-      },
-      "max_bytes": 554
     }
   ]
 }

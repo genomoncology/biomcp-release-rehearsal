@@ -1,7 +1,7 @@
 //! Author migration guidance preserves literal queries and exact source identities.
 use biomcp_types::ErrorMessage;
 use std::ffi::OsString;
-pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
+pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMessage> {
     let mut positional = Vec::new();
     let mut args = args.iter();
     while let Some(word) = args.next() {
@@ -38,22 +38,21 @@ pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
                 }
                 continue;
             }
-            if flag.strip_prefix("-q").is_some_and(|v| !v.is_empty())
-                || flag
-                    .strip_prefix("-l")
-                    .is_some_and(|v| !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit()))
+            if flag
+                .strip_prefix("-l")
+                .is_some_and(|v| !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit()))
             {
                 continue;
             }
-            // Short query and limit flags retain their ordinary value boundaries.
-            if matches!(flag, "-q" | "--query" | "-l") {
+            // The short limit flag retains its ordinary value boundary.
+            if flag == "-l" {
                 if inline.is_none() {
                     args.next();
                 }
                 continue;
             }
         }
-        if inline.is_none() && super::takes_value(flag, &positional)? {
+        if inline.is_none() && super::takes_value(root, flag, &positional)? {
             args.next();
         }
     }

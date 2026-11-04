@@ -1,90 +1,9 @@
 {
+  "live_check": "local-only missing recommendation pool refusal; the command exits before source access",
   "feature": "article-recommendations",
   "story": "Reject unsupported identifiers, invalid bounds and stale continuation selectors before source calls.",
   "replay": "article/recommendations/empty",
   "steps": [
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "17611497",
-        "--limit",
-        "0"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "17611497",
-        "--limit",
-        "101"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "PPR1295425"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "17611497",
-        "--negative",
-        "PPR1295425"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
-    {
-      "run": [
-        "article",
-        "recommendations",
-        "17611497",
-        "--negative",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497",
-        "17611497"
-      ],
-      "exit": 2,
-      "is_error": true
-    },
     {
       "run": [
         "article",

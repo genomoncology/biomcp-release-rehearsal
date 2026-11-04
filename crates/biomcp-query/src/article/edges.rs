@@ -1,19 +1,22 @@
 use super::{empty, order, page};
-use crate::{Action, Ctx, Outcome, store::Store};
+use crate::{Ctx, Outcome, store::Store};
 use biodata::Text;
 use biomcp_fetch::{CacheError, Deadline, RequestError};
-use biomcp_types::{ArticleEdges, ArticleItem, ArticleKey, QueryBody, Request, Status, StepKind};
+use biomcp_types::ReplyBody;
+use biomcp_types::{ArticleEdges, ArticleItem, ArticleKey, ReplyData, Request, StepKind};
 use sha2::{Digest, Sha256};
 pub(super) fn run(cx: &Ctx<'_>, query: &ArticleEdges, references: bool) -> Outcome {
-    let mut out = empty();
-    out.body = QueryBody::ArticleEdges(biomcp_types::ArticleEdgePage {
-        items: Box::default(),
-    });
+    let mut out = empty(
+        (biomcp_types::ArticleEdgePage {
+            items: Box::default(),
+        })
+        .with_query(query.clone()),
+    );
     let command = cx.fetch.command_deadline(cx.budget);
     let mut deadline = command.deadline();
     if let Err(error) = execute(cx, query, references, &mut deadline, &mut out) {
         out.local = crate::status::local(error);
-        out.status = Status::Failed;
+        crate::status::item(&mut out, false, true, false);
     }
     command.finish(deadline.remaining());
     out
@@ -26,16 +29,15 @@ fn request(query: ArticleEdges, references: bool) -> Request {
     }
 }
 fn restart(query: &ArticleEdges, references: bool, out: &mut Outcome, fresh: bool) {
-    out.next.push((
+    out.next.push(crate::next::Step::run(
         if fresh {
             StepKind::Fresh
         } else {
             StepKind::Restart
         },
-        Action::Run {
-            request: request(query.page(0, None), references),
-            fresh,
-        },
+        &[super::next::edge_source(query)],
+        request(query.page(0, None), references),
+        fresh,
     ));
 }
 fn execute<'a>(
@@ -47,7 +49,7 @@ fn execute<'a>(
 ) -> Result<(), RequestError> {
     let mut store = Store::open(cx.fetch.cache_access()?, *deadline)?;
     let identity = serde_json::to_vec(&request(query.identity(), references))
-        .map_err(|_| CacheError::Database)?;
+        .map_err(|_| CacheError::Encoding)?;
     let key = Sha256::digest([b"biomcp.article_edges/2\0".as_slice(), &identity].concat());
     let explicit = query.pool().map(Text::as_str);
     let pool = if cx.fresh && explicit.is_none() {
@@ -57,13 +59,13 @@ fn execute<'a>(
     };
     let pool = match pool {
         Some(pool) if pool.key != key.as_slice() => {
-            out.body = QueryBody::PoolError { mismatch: true };
+            out.body = ReplyData::PoolError { mismatch: true };
             restart(query, references, out, false);
             return Ok(());
         }
         Some(pool) => pool,
         None if explicit.is_some() => {
-            out.body = QueryBody::PoolError { mismatch: false };
+            out.body = ReplyData::PoolError { mismatch: false };
             restart(query, references, out, false);
             return Ok(());
         }
@@ -72,7 +74,18 @@ fn execute<'a>(
                 return Ok(());
             };
             store.set_deadline(*deadline);
-            store.publish(&key, &items, &out.sources, &out.problems)?
+            match crate::publish::keep(
+                store
+                    .publish(&key, &items, &out.sources, &out.problems, out.dropped)
+                    .map_err(Into::into),
+                out,
+            )? {
+                Some(pool) => pool,
+                None => {
+                    page::fetched(page::Cursor::Edges(query, references), items, out);
+                    return Ok(());
+                }
+            }
         }
     };
     out.sources = pool.sources.clone();
@@ -100,13 +113,18 @@ fn create<'a>(
     let Some(pmid) = query.pmid() else {
         return Ok(None);
     };
-    let parent = order::fetch(cx, deadline, &[pmid]);
+    let parent = if references {
+        order::fetch_references(cx, deadline, &[pmid])
+    } else {
+        order::fetch(cx, deadline, &[pmid])
+    };
+    crate::status::append(&mut out.problems, parent.problems);
     out.sources.push(parent.source);
     if let Some(error) = parent.local {
         return Err(error);
     }
     if parent.error.is_some() {
-        out.status = Status::Failed;
+        crate::status::item(out, false, true, false);
         restart(query, references, out, true);
         return Ok(None);
     }
@@ -122,7 +140,7 @@ fn create<'a>(
             }
         });
     let Some(ids) = ids else {
-        out.status = Status::Failed;
+        crate::status::item(out, false, true, false);
         if let Some(source) = out.sources.last_mut() {
             source.state = biomcp_types::SourceState::Failed;
             source.reason = Some(biomcp_types::Reason::BadReply);

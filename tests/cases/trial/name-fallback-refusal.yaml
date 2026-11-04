@@ -1,0 +1,69 @@
+{
+  "live_check": "synthetic HTTP 403 and 400 refusals plus local malformed continuation validation",
+  "feature": "trial-search",
+  "story": "A refused exact request never becomes a broader name search; owned malformed continuation markers are invalid input.",
+  "replay": "trial/name-fallback",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT05273554",
+        "--sponsor",
+        "synthetic rejected request"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0": {
+          "omits": [
+            "notices",
+            "count",
+            "retrieved_count"
+          ]
+        }
+      },
+      "max_bytes": 2000
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--id",
+        "NCT05273554",
+        "--sponsor",
+        "synthetic broader refusal"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/sources/0/notices/0/message": "ClinicalTrials.gov exact phrase request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT05273554 AND AREA[LeadSponsorName]\\\"synthetic broader refusal\\\"\", \"pageSize\": \"10\"} returned zero trials. BioMCP tried the registry's broader name request {\"countTotal\": \"true\", \"fields\": \"NCTId,BriefTitle,OverallStatus,Phase,Condition,InterventionName,LastUpdatePostDate,HasResults\", \"filter.advanced\": \"AREA[NCTId]NCT05273554\", \"pageSize\": \"10\", \"query.spons\": \"synthetic broader refusal\"} once.",
+        "/sources/0": {
+          "omits": [
+            "count",
+            "retrieved_count"
+          ]
+        }
+      },
+      "max_bytes": 4000
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--sponsor",
+        "MD Anderson",
+        "--next-page",
+        "biomcp:ctgov-names:v2:opaque"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--next-page"
+      },
+      "max_bytes": 2000
+    }
+  ]
+}

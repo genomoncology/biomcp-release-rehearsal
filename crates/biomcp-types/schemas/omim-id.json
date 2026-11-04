@@ -2,7 +2,7 @@
   "$id": "biodata.omim-id/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": " A six-digit OMIM identifier, preserving all six digits.",
-  "pattern": "^[0-9]{6}$",
+  "pattern": "^[1-6][0-9]{5}$",
   "title": "OmimId",
   "type": "string"
 }

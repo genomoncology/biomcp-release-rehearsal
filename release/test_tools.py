@@ -54,6 +54,13 @@ class DesktopTools(unittest.TestCase):
                 shutil.copyfile(ROOT / name, target)
             result = self.check(root)
             self.assertEqual(result.returncode, 0, result.stderr)
+            protocol = root / "crates/biomcp/src/mcp/protocol.rs"
+            original_protocol = protocol.read_text()
+            protocol.write_text(original_protocol.replace("research::tools(root)?", "research::tools()?"))
+            result = self.check(root)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("unrecognized server tool assembly", result.stderr)
+            protocol.write_text(original_protocol)
             source = root / "crates/biomcp/src/mcp/research.rs"
             original = source.read_text()
             planted = re.sub(r'\[\s*\(\s*"search"\s*,',

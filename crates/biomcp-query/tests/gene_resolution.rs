@@ -4,6 +4,7 @@
     reason = "Fixture setup must fail on invalid checked inputs"
 )]
 use biomcp_fetch::{Fetch, FetchConfig, Mode};
+use biomcp_test_support::recordings as recording_support;
 use std::{path::PathBuf, time::Duration};
 fn replay(dir: PathBuf) -> Fetch {
     Fetch::open(FetchConfig {
@@ -17,15 +18,19 @@ fn replay(dir: PathBuf) -> Fetch {
 fn stale_identity_and_annotation_sources_make_only_their_answers_partial() {
     use biomcp_fetch::ReplayCache;
     use biomcp_query::{Ctx, run};
-    use biomcp_types::{GeneGet, GeneSearch, QueryBody, Request, Source, SourceState, Status};
+    use biomcp_types::{GeneGet, GeneSearch, ReplyData, Request, Source, SourceState, Status};
     let directory = tempfile::tempdir().unwrap();
     let case_path = directory.path().join("case");
-    let cache = ReplayCache::create_case(&case_path).unwrap();
+    let cache = ReplayCache::create_case_with_owners(&case_path, &[]).unwrap();
+    let recordings = directory.path().join("recordings");
+    let original = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/replies/gene/main");
+    recording_support::copy_capture(&original, &recordings, |_, record| {
+        recording_support::cache_acquisition(record, 42);
+    })
+    .unwrap();
     let query = Request::GetGene(GeneGet::new(vec!["BRAF".parse().unwrap()].into()).unwrap());
     let fetch = Fetch::open(FetchConfig {
-        mode: Mode::Replay {
-            dir: PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/replies/gene/main"),
-        },
+        mode: Mode::Replay { dir: recordings },
         replay_cache: Some(cache.clone()),
         ..Default::default()
     })
@@ -40,7 +45,7 @@ fn stale_identity_and_annotation_sources_make_only_their_answers_partial() {
             },
             &query
         )
-        .status,
+        .status(),
         Status::Complete
     );
     drop(fetch);
@@ -61,17 +66,20 @@ fn stale_identity_and_annotation_sources_make_only_their_answers_partial() {
         fresh: false,
     };
     let outcome = run(&cx, &query);
-    assert_eq!(outcome.status, Status::Partial);
+    assert_eq!(outcome.status(), Status::Partial);
     assert_eq!(outcome.sources[0].source, Source::Hgnc);
     assert_eq!(outcome.sources[0].state, SourceState::Stale);
     assert_eq!(outcome.sources[1].state, SourceState::Ok);
-    let QueryBody::GeneCards(cards) = outcome.body else {
+    let ReplyData::GeneCards {
+        body: Some(cards), ..
+    } = outcome.body
+    else {
         panic!("gene cards");
     };
     assert_eq!(cards.items[0].status, Status::Partial);
     let search =
         Request::SearchGene(GeneSearch::new(None, Some("9p21.3".parse().unwrap()), 10, 0).unwrap());
-    assert_eq!(run(&cx, &search).status, Status::Partial);
+    assert_eq!(run(&cx, &search).status(), Status::Partial);
     database
         .execute("UPDATE bundle SET fresh_until=9223372036854775807", [])
         .unwrap();
@@ -79,7 +87,7 @@ fn stale_identity_and_annotation_sources_make_only_their_answers_partial() {
         .execute("UPDATE reply SET fresh_until=0", [])
         .unwrap();
     let outcome = run(&cx, &query);
-    assert_eq!(outcome.status, Status::Partial);
+    assert_eq!(outcome.status(), Status::Partial);
     assert_eq!(outcome.sources[0].state, SourceState::Ok);
     assert_eq!(outcome.sources[1].source, Source::MyGene);
     assert_eq!(outcome.sources[1].state, SourceState::Stale);
@@ -195,7 +203,7 @@ fn concurrent_replay_annotations_and_bundle_publication_keep_checked_sections() 
             &query,
         );
         assert_eq!(
-            outcome.status,
+            outcome.status(),
             Status::Complete,
             "concurrent replay attempt {attempt}: local={:?}; sources={:?}",
             outcome.local,

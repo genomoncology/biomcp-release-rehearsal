@@ -1,6 +1,6 @@
 {
   "live_check": "synthetic response case",
-  "feature": "article-annotations",
+  "feature": "article-sections",
   "story": "An annotation 500 failure preserves the article card and the later offline result.",
   "replay": "article/annotations/synthetic-500",
   "steps": [

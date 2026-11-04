@@ -18,8 +18,13 @@ pub static SPEC: SourceSpec = SourceSpec {
     deadline: Duration::from_secs(15),
 };
 
+mod annotation_raw;
+mod detail_raw;
 mod read;
 pub use read::{annotation, clinical, references};
 
 /// Native clinical annotation collection shared by reads and the bounded health probe.
 pub(crate) const CLINICAL_PATH: &str = "/data/clinicalAnnotation";
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

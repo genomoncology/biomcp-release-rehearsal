@@ -4,8 +4,9 @@
     clippy::disallowed_methods,
     reason = "Fixture failures fail the contract"
 )]
-#[path = "support/environment.rs"]
-mod child_environment;
+use biomcp_fetch::Input;
+
+use biomcp_test_support::environment as child_environment;
 mod support;
 use biomcp_fetch::{
     Bundle, Fetch, FetchConfig, Find, Freshness, KeyKind, KeyUse, Keys, Quota, Rate, Row,
@@ -397,7 +398,12 @@ fn release_large_bundle_capture_round_trips() {
     assert!(matches!(
         ordinary
             .leg(b.spec, ordinary.deadline(Duration::from_secs(5)))
-            .json::<support::Answer>(&b.spec.get(b.path), &[]),
+            .call(
+                &b.spec.get(b.path),
+                Input::Params(&[]),
+                biomcp_fetch::Read::<support::Answer>::json()
+            )
+            .map(|received| received.value),
         Err(biomcp_fetch::RequestError::Recording(
             biomcp_fetch::RecordError::Limit
         ))
@@ -432,3 +438,6 @@ mod rows;
 
 #[path = "bundle/native.rs"]
 mod native;
+
+#[path = "bundle/rejections.rs"]
+mod rejections;

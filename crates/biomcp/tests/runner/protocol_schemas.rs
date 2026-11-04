@@ -15,10 +15,11 @@ pub(super) fn check(tools: &[Value], reply: &Value) -> Result<(), String> {
         let validator = jsonschema::validator_for(schema).map_err(|error| error.to_string())?;
         for invalid in [
             json!({"unrelated":true}),
-            json!({"$id":"biomcp.health/3", "$schema":"unsupported"}),
+            json!({"$id":"biomcp.health/6", "$schema":"unsupported"}),
+            json!({"$id":"unknown.health/6", "$schema":"https://json-schema.org/draft/2020-12/schema"}),
             json!({"schema":"unknown/1", "status":"complete", "query":null, "result":{}}),
             json!({"schema":"unknown/1", "status":"usage", "error":{}}),
-            json!({"schema":"biomcp.health/3", "status":"complete", "query":null, "result":[]}),
+            json!({"schema":"biomcp.health/6", "status":"complete", "query":null, "result":[]}),
         ] {
             if validator.is_valid(&invalid) {
                 return Err(
@@ -33,15 +34,12 @@ pub(super) fn check(tools: &[Value], reply: &Value) -> Result<(), String> {
         .find(|tool| tool.get("name") == Some(&json!("biomcp")))
         .and_then(|tool| tool.get("outputSchema"))
         .ok_or("missing main output schema")?;
-    let ids = super::super::schema_proof::reply_ids(main);
+    let main_validator = jsonschema::validator_for(main).map_err(|error| error.to_string())?;
     for (id, text) in super::super::schema::ARTIFACTS {
         let canonical: Value = serde_json::from_str(text).map_err(|e| e.to_string())?;
-        if canonical.pointer("/properties/schema").is_some()
-            && canonical.pointer("/properties/status").is_some()
-            && !ids.contains(id)
-        {
-            return Err(format!("main tool omits a canonical reply schema ID: {id}"));
-        }
+        main_validator.validate(&canonical).map_err(|error| {
+            format!("main tool rejects canonical schema artifact {id}: {error}")
+        })?;
     }
     for args in [
         json!(["help"]),
@@ -56,11 +54,16 @@ pub(super) fn check(tools: &[Value], reply: &Value) -> Result<(), String> {
         )?;
     }
     let env = Environment::new().map_err(|e| e.to_string())?;
-    let health = super::super::research::call(&env, "biomcp", json!({"args":["health"]}), &[])?;
+    let health = super::super::research::call(
+        &env,
+        "biomcp",
+        json!({"args":["health"]}),
+        &["--offline".into()],
+    )?;
     let complete = super::super::research::call(
         &env,
         "biomcp",
-        json!({"args":["schema", "biomcp.health/3"]}),
+        json!({"args":["schema", "biomcp.health/6"]}),
         &[],
     )?;
     local_references(&complete, &complete)?;

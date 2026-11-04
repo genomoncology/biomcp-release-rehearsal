@@ -1,1 +1,0 @@
-{"method":"GET","source":"reactome","url":"https://reactome.org/ContentService/search/query?query=MAPK%20signaling&rows=5&Start%20row=0&species=Homo%20sapiens&types=Pathway&types=TopLevelPathway&Force%20filters=true","exchanges":[{"status":404,"content_type":"application/json","delay_ms":0,"retry_after_ms":null,"body":{"kind":"json","value":{"error":"unknown route"}}}]}

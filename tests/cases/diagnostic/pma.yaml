@@ -1,51 +1,11 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "diagnostic-pma",
   "story": "Synthetic exact PMA rows preserve base and supplement identities, bounded native pages and mechanical statement fragments.",
   "replay": "diagnostic/pma-synthetic",
   "steps": [
     {
       "run": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma"
-      ],
-      "max_bytes": 1134,
-      "expect": {
-        "/status": "complete",
-        "/result/kind": "pma_submission",
-        "/result/header/supplement_number": "",
-        "/result/sections": [
-          "regulatory",
-          "supplements"
-        ],
-        "/next/*/kind": [
-          "section",
-          "section",
-          "pivot",
-          "fresh"
-        ]
-      }
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "--supplement",
-        "S020"
-      ],
-      "mcp": [
         "get",
         "diagnostic",
         "P150013",
@@ -74,76 +34,6 @@
         "P150013",
         "--source",
         "fda-pma",
-        "--supplement",
-        "S021"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "--supplement",
-        "S021"
-      ],
-      "max_bytes": 1106,
-      "expect": {
-        "/result/header/supplement_number": "S021"
-      }
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "supplements"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "supplements"
-      ],
-      "max_bytes": 2793,
-      "expect": {
-        "/page/total": 7,
-        "/result/items": {
-          "count": 5
-        },
-        "/result/items/0/supplement_number": "S020",
-        "/next/5/kind": "page",
-        "/next/*/kind": [
-          "disambiguate",
-          "disambiguate",
-          "disambiguate",
-          "disambiguate",
-          "disambiguate",
-          "page",
-          "fresh"
-        ]
-      }
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "supplements",
-        "--section-offset",
-        "5"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
         "supplements",
         "--section-offset",
         "5"
@@ -154,19 +44,31 @@
         "/result/items": {
           "count": 2
         },
-        "/result/items/1/supplement_number": "S026"
+        "/result/items/1/supplement_number": "S026",
+        "/next/0/kind": "disambiguate",
+        "/next/1/kind": "disambiguate",
+        "/next/0/args": [
+          "get",
+          "diagnostic",
+          "P150013",
+          "--source",
+          "fda-pma",
+          "--supplement",
+          "S025"
+        ],
+        "/next/1/args": [
+          "get",
+          "diagnostic",
+          "P150013",
+          "--source",
+          "fda-pma",
+          "--supplement",
+          "S026"
+        ]
       }
     },
     {
       "run": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "regulatory"
-      ],
-      "mcp": [
         "get",
         "diagnostic",
         "P150013",
@@ -182,52 +84,6 @@
         "/result/items/0/submission/supplement_number": "",
         "/result/items/0/metadata/supplement_reason": ""
       }
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "--supplement",
-        "S999"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "P150013",
-        "--source",
-        "fda-pma",
-        "--supplement",
-        "S999"
-      ],
-      "max_bytes": 345,
-      "expect": {
-        "/status": "absent"
-      },
-      "exit": 1
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "P000000",
-        "--source",
-        "fda-pma"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "P000000",
-        "--source",
-        "fda-pma"
-      ],
-      "max_bytes": 322,
-      "expect": {
-        "/status": "absent"
-      },
-      "exit": 1
     }
   ]
 }

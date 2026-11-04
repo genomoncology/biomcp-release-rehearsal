@@ -3,7 +3,6 @@ use biodata::{Attribution, Curie, DiseaseRelation};
 use serde::{Deserialize, Serialize};
 /// Exact condition identity used for one trial request, without eligibility inference.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TrialConditionResolution {
     /// Caller-selected CURIE, never a source-name search.

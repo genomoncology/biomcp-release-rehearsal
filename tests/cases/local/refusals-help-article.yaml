@@ -1,0 +1,67 @@
+live_check: "local-only command help, validation or stored-state behavior; no recorded source replies"
+feature: query-validation
+story: Each public command refuses an unsupported argument before it reads a source.
+steps:
+- run:
+  - help
+  - article
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - citation-evidence
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - citations
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - pdf
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - recommendations
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - references
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - supplement
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments
+- run:
+  - help
+  - article
+  - text
+  - --unrecognized-argument
+  exit: 2
+  expect:
+    /error/code: usage.arguments

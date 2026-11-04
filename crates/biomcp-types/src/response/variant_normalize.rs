@@ -2,7 +2,6 @@ use crate::{Source, VariantNormalize, VariantResolution};
 use serde::{Deserialize, Serialize};
 /// Independent service results without local correction or transcript selection.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantNormalization {
     /// Service results in declared order.
@@ -10,12 +9,11 @@ pub struct VariantNormalization {
     pub results: Box<[NormalizationResult]>,
 }
 impl super::ResponseBody for VariantNormalization {
-    const SCHEMA: &'static str = "biomcp.variant-normalization/4";
+    const SCHEMA: &'static str = "biomcp.variant-normalization/8";
     type Query = VariantNormalize;
 }
 /// One provider's own descriptions, messages and version metadata.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NormalizationResult {
     /// Responsible service.
@@ -45,7 +43,6 @@ pub struct NormalizationResult {
 }
 /// A provider field name and its unchanged text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NormalizationField {
     /// Native field path or assembly label.
@@ -55,7 +52,6 @@ pub struct NormalizationField {
 }
 /// Provider warning, error or informational message.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct NormalizationMessage {
     /// Native message category.

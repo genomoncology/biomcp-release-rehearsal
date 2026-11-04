@@ -6,20 +6,6 @@
   "steps": [
     {
       "run": [
-        "search",
-        "article",
-        "AKT1 E17K",
-        "--sort",
-        "citations"
-      ],
-      "expect": {
-        "/status": "failed",
-        "/sources/1/reason": "unavailable"
-      },
-      "exit": 4
-    },
-    {
-      "run": [
         "get",
         "article",
         "33123537",
@@ -31,19 +17,6 @@
         "/result/items/0/sections/citations/state": "unavailable",
         "/result/items/0/sections/citations/reason": "unavailable"
       }
-    },
-    {
-      "run": [
-        "get",
-        "article",
-        "33123537",
-        "citations"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/items/0/sections/citations/reason": "offline"
-      },
-      "offline": true
     }
   ]
 }

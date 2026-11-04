@@ -1,0 +1,97 @@
+{
+  "live_check": "local-only migration guidance or disabled source behavior before provider access",
+  "feature": "study-retirements",
+  "story": "Each retired command returns fixed migration guidance before source access.",
+  "steps": [
+    {
+      "run": [
+        "study",
+        "list"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "download"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "query"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "top-mutated"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "filter"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "cohort"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "survival"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "compare"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "run": [
+        "study",
+        "co-occurrence"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    }
+  ]
+}

@@ -7,7 +7,7 @@ use crate::{Ctx, Outcome, status};
 use biomcp_fetch::Deadline;
 use biomcp_types::{
     ProteinCardItem, ProteinDomainsQuery, ProteinGet, ProteinRelationQuery, ProteinSection,
-    QueryBody, Section, Source, Status,
+    ReplyData, Section, Source, Status,
 };
 pub(super) fn supplement(
     cx: &Ctx<'_>,
@@ -22,8 +22,9 @@ pub(super) fn supplement(
             .iter()
             .copied()
             .filter(|s| match s {
-                ProteinSection::Domains => !cx.fetch.disabled(Source::InterPro),
-                ProteinSection::Complexes => !cx.fetch.disabled(Source::ComplexPortal),
+                ProteinSection::Domains | ProteinSection::Complexes => {
+                    s.source().is_none_or(|source| !cx.fetch.disabled(source))
+                }
                 _ => true,
             })
             .collect();
@@ -49,9 +50,10 @@ pub(super) fn supplement(
 }
 fn apply(item: &mut ProteinCardItem, out: &mut Outcome, result: Outcome) {
     let reason = reason(&result);
+    let result_status = result.status();
     if let Some(sections) = &mut item.sections {
         match result.body {
-            QueryBody::ProteinDomains(data) => {
+            ReplyData::ProteinDomains { body: data, .. } => {
                 sections.domains = Some(match data {
                     Some(data) if data.items.is_empty() => Section::Empty {
                         source: Source::InterPro,
@@ -64,7 +66,7 @@ fn apply(item: &mut ProteinCardItem, out: &mut Outcome, result: Outcome) {
                     None => Section::unavailable(Source::InterPro, reason),
                 })
             }
-            QueryBody::ProteinComplexes(data) => {
+            ReplyData::ProteinComplexes { body: data, .. } => {
                 sections.complexes = Some(match data {
                     Some(data) if data.items.is_empty() => Section::Empty {
                         source: Source::ComplexPortal,
@@ -86,7 +88,7 @@ fn apply(item: &mut ProteinCardItem, out: &mut Outcome, result: Outcome) {
         result.sources,
         result.next,
         result.problems,
-        result.status,
+        result_status,
     );
 }
 
@@ -107,7 +109,7 @@ fn merge(
     item: &mut ProteinCardItem,
     out: &mut Outcome,
     sources: Vec<biomcp_types::SourceOutcome>,
-    steps: Vec<(biomcp_types::StepKind, crate::Action)>,
+    steps: Vec<crate::next::Step>,
     problems: Vec<biomcp_types::Problem>,
     state: Status,
 ) {
@@ -115,6 +117,6 @@ fn merge(
     out.next.extend(steps);
     out.problems.extend(problems);
     if state != Status::Complete {
-        item.status = Status::Partial;
+        item.status = crate::status::item_status(true, false, true);
     }
 }

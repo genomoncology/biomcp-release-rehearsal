@@ -1,0 +1,77 @@
+{
+  "feature": "drug-recall",
+  "live_check": "public",
+  "story": "Existing literal FDA selectors retain native recall identifiers and source-reported totals.",
+  "verified": "Native openFDA captures2026-10-30. Source https://open.fda.gov/license/ and https://open.fda.gov/terms/. Git projection retains only source identifiers, government classification/status/date facts and native counts; manufacturer/product/reason/distribution prose and third-party content omitted. Original bodies/headers/requests/hashes retained in native-fda-trial archive outside Git. No rows or values invented.",
+  "replay": "drug/native-recall-selectors",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "fda-drug-recall",
+        "--firm",
+        "Apotex",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/items/0/recall_number": "D-0877-2026",
+        "/page/total": 79
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "fda-drug-recall",
+        "--status",
+        "Ongoing",
+        "--classification",
+        "Class II",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/items/0/recall_number": "D-0042-2027",
+        "/page/total": 2399
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "fda-drug-recall",
+        "--reason",
+        "Lack of Sterility Assurance",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/items/0/recall_number": "D-0672-2026",
+        "/page/total": 972
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "fda-drug-recall",
+        "--initiated-from",
+        "2024-01-01",
+        "--initiated-to",
+        "2024-12-31",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/items/0/recall_number": "D-0188-2025",
+        "/page/total": 557
+      }
+    }
+  ]
+}

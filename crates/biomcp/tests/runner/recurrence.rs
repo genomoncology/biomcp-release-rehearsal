@@ -1,13 +1,20 @@
 //! Explicit cohort bounds cross the executable and TLS; no clinical interpretation.
+mod admission;
 use super::{launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test(
+    let mut trials = vec![transcript_trial(
         "variant-recurrence/exact-page-wire-and-warm-cache",
         || wire().map_err(Into::into),
-    )]
+    )];
+    trials.push(transcript_trial(
+        "variant-recurrence/mutations-cache-admission",
+        || admission::check().map_err(Into::into),
+    ));
+    trials
 }
 pub(super) fn args() -> Vec<String> {
     [
@@ -33,7 +40,7 @@ pub(super) fn args() -> Vec<String> {
 }
 pub(super) fn config(env: &Environment, stub: &Stub) -> Result<(), String> {
     let ca = env.root().join("synthetic.pem");
-    stub.retain(env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
         .map_err(|e| e.to_string())

@@ -1,0 +1,109 @@
+{
+  "feature": "variant-search",
+  "live_check": "synthetic",
+  "story": "Coding notation and selector combinations are checked before any source lookup",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333garbage"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/option": "--coding"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333G>T",
+        "--protein",
+        "V600E"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333G>T",
+        "--build",
+        "GRCh38"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333G>T",
+        "--source",
+        "myvariant"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--gene",
+        "PTEN",
+        "--coding",
+        "c.333G>T",
+        "--has",
+        "clinvar"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--coding",
+        "c.333G>T"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

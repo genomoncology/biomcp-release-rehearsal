@@ -1,8 +1,9 @@
 //! Capture-proven native measurements, without score blending or interpretation.
+use biomcp_fetch::Input;
 mod map;
 mod raw;
 use biodata::Build;
-use biomcp_fetch::{Arg, BadReply, Leg, PathSegment, RequestError};
+use biomcp_fetch::{Arg, Leg, PathSegment, RequestError};
 use biomcp_types::VariantPredictors;
 /// Read the proven prediction or conservation component projection for one exact parent.
 pub fn get(
@@ -34,28 +35,30 @@ pub fn get(
     let endpoint = super::VARIANT
         .clone()
         .with_segments(&[PathSegment::new(id)?]);
-    let (record, _) = leg.json_received_checked::<raw::Record>(
-        &endpoint,
-        &[
-            ("fields", Arg::Text(&fields)),
-            (
-                "assembly",
-                Arg::Text(if build == Build::GRCh38 {
-                    "hg38"
-                } else {
-                    "hg19"
-                }),
-            ),
-        ],
-        |record| {
-            if record.id.as_str() == id {
-                Ok(())
-            } else {
-                Err(BadReply)
-            }
-        },
-    )?;
-    let mut mapped = map::project(record, build, conservation, cadd, dbnsfp)?;
+    let record = leg
+        .call(
+            &endpoint,
+            Input::Params(&[
+                ("fields", Arg::Text(&fields)),
+                (
+                    "assembly",
+                    Arg::Text(if build == Build::GRCh38 {
+                        "hg38"
+                    } else {
+                        "hg19"
+                    }),
+                ),
+            ]),
+            biomcp_fetch::Read::<raw::Record>::json().cache_if(&|record| {
+                record
+                    .id
+                    .as_ref()
+                    .and_then(crate::raw::Field::as_ref)
+                    .is_some_and(|given| given.as_str() == id)
+            }),
+        )?
+        .value;
+    let mut mapped = map::project(record, id, build, conservation, cadd, dbnsfp)?;
     let selected = [
         (cadd, super::components::CADD),
         (dbnsfp, super::components::DBNSFP),
@@ -64,7 +67,9 @@ pub fn get(
     .filter_map(|(enabled, component)| enabled.then_some(component))
     .collect::<Vec<_>>();
     if !mapped.value.scores.is_empty() || !mapped.value.context.is_empty() {
-        mapped.value.components = super::metadata::components(leg, &selected)?.into();
+        let metadata = super::metadata::components(leg, &selected)?;
+        mapped.problems.extend(metadata.problems);
+        mapped.value.components = metadata.value.into();
     }
     for score in &mut mapped.value.scores {
         if let Some(component) = mapped.value.components.iter().find(|component| {

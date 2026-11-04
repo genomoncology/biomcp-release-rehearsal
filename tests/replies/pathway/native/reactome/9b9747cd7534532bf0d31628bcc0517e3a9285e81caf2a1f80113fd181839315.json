@@ -1,1 +1,1 @@
-{"method":"GET","source":"reactome","url":"https://reactome.org/ContentService/data/database/version","exchanges":[{"status":200,"content_type":"application/json;charset=UTF-8","delay_ms":0,"retry_after_ms":null,"body":{"kind":"json","value":97}}]}
+{"method":"GET","source":"reactome","url":"https://reactome.org/ContentService/data/database/version","exchanges":[{"status":200,"content_type":"text/plain;charset=UTF-8","delay_ms":0,"retry_after_ms":null,"body":{"kind":"json","value":98}}]}

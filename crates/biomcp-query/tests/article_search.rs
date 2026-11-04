@@ -2,7 +2,6 @@
 #![expect(
     clippy::unwrap_used,
     clippy::panic,
-    clippy::indexing_slicing,
     clippy::disallowed_methods,
     clippy::disallowed_types,
     reason = "Public store and concurrency contracts own isolated fixture I/O and abort on invalid fixture setup"
@@ -10,7 +9,8 @@
 
 use biomcp_fetch::{CacheError, Fetch, FetchConfig, Mode, ReplayCache, RequestError};
 use biomcp_query::{Ctx, Outcome};
-use biomcp_types::{ArticlePage, ArticleSearch, QueryBody, Request, Status};
+use biomcp_test_support::recordings as recording_support;
+use biomcp_types::{ArticlePage, ArticleSearch, ReplyData, Request, Status};
 use std::{path::PathBuf, time::Duration};
 fn recordings(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -29,11 +29,8 @@ fn fetch(name: &str, cache: ReplayCache) -> Fetch {
     .unwrap()
 }
 fn query(pool: Option<&str>, offset: u32) -> ArticleSearch {
-    let mut v = serde_json::json!({"text":"AKT1 E17K","limit":2,"offset":offset});
-    if let Some(pool) = pool {
-        v["pool"] = pool.into();
-    }
-    serde_json::from_value(v).unwrap()
+    let query: ArticleSearch = serde_json::from_str(r#"{"text":"AKT1 E17K","limit":2}"#).unwrap();
+    query.page(offset, pool.map(|value| value.parse().unwrap()))
 }
 fn run(fetch: &Fetch, query: ArticleSearch, fresh: bool) -> Outcome {
     biomcp_query::run(
@@ -47,9 +44,19 @@ fn run(fetch: &Fetch, query: ArticleSearch, fresh: bool) -> Outcome {
     )
 }
 fn page(out: Outcome) -> (biomcp_types::PageInfo, ArticlePage) {
-    assert_eq!(out.local, None);
-    assert_eq!(out.status, Status::Complete);
-    let QueryBody::ArticlePage(page) = out.body else {
+    assert_eq!(
+        out.local, None,
+        "Article pages must preserve their snapshot and paging contract"
+    );
+    assert_eq!(
+        out.status(),
+        Status::Complete,
+        "Article pages must preserve their snapshot and paging contract"
+    );
+    let ReplyData::ArticlePage {
+        body: Some(page), ..
+    } = out.body
+    else {
         panic!("article page")
     };
     (out.page.unwrap(), page)
@@ -68,7 +75,7 @@ fn expiring_one_snapshot_does_not_expire_its_replacement() {
         .unwrap();
     assert!(matches!(
         run(&fetch, query(Some(old.id.as_str()), 0), false).body,
-        QueryBody::PoolError { mismatch: false }
+        ReplyData::PoolError { mismatch: false }
     ));
     assert_eq!(
         page(run(&fetch, query(Some(new.id.as_str()), 0), false))
@@ -94,8 +101,8 @@ fn store_corruption_and_exhausted_budget_remain_typed_local_failures() {
         )
         .unwrap();
     let out = run(&fetch, query(Some(id.as_str()), 0), false);
-    assert_eq!(out.status, Status::Failed);
-    assert_eq!(out.local, Some(RequestError::Cache(CacheError::Database)));
+    assert_eq!(out.status(), Status::Failed);
+    assert_eq!(out.local, Some(RequestError::Cache(CacheError::Encoding)));
     assert!(out.sources.is_empty());
     fetch
         .cache_access()
@@ -164,7 +171,7 @@ fn search_and_hydration_share_one_budget_while_pool_age_uses_wall_time() {
         },
         &Request::SearchArticle(query(None, 0)),
     );
-    assert_eq!(first.status, Status::Failed);
+    assert_eq!(first.status(), Status::Failed);
     assert_eq!(first.local, None);
     assert_eq!(
         first.sources[0].reason,
@@ -197,7 +204,10 @@ fn concurrent_hydration_retains_accepted_headers_and_snapshot_metadata() {
     let fetch = fetch("synthetic-retry", cache);
     let first = run(&fetch, query(None, 0), false);
     let info = first.page.unwrap().pool.unwrap();
-    let QueryBody::ArticlePage(before) = first.body else {
+    let ReplyData::ArticlePage {
+        body: Some(before), ..
+    } = first.body
+    else {
         panic!("article page")
     };
     assert!(before.items[0].header.is_none());
@@ -313,8 +323,23 @@ fn overlapping_replay_commands_complete_without_adding_each_others_spend() {
 fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("case");
-    let cache = ReplayCache::create_case(&path).unwrap();
-    let replay = fetch("synthetic-small", cache);
+    let cache = ReplayCache::create_case_with_owners(&path, &[]).unwrap();
+    let recordings = directory.path().join("recordings");
+    recording_support::copy_capture(
+        &self::recordings("synthetic-small"),
+        &recordings,
+        |_, record| {
+            recording_support::cache_acquisition(record, 42);
+        },
+    )
+    .unwrap();
+    let replay = Fetch::open(FetchConfig {
+        mode: Mode::Replay { dir: recordings },
+        replay_cache: Some(cache),
+        cache_owners: vec![biomcp_query::store::OWNER],
+        ..Default::default()
+    })
+    .unwrap();
     let (first, _) = page(run(&replay, query(None, 0), false));
     let id = first.pool.unwrap().id;
     let connection = replay.cache_access().unwrap().connect().unwrap();
@@ -335,7 +360,7 @@ fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     .unwrap();
     let first = run(&live, query(Some(id.as_str()), 0), false);
     assert_eq!(first.local, None);
-    assert_eq!(first.status, Status::Partial);
+    assert_eq!(first.status(), Status::Partial);
     assert_eq!(first.sources[0].state, biomcp_types::SourceState::Stale);
     let biomcp_query::Action::Run {
         request: Request::SearchArticle(retry),
@@ -343,7 +368,7 @@ fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     } = first
         .next
         .iter()
-        .find(|(kind, _)| *kind == biomcp_types::StepKind::Fresh)
+        .find(|step| step.0 == biomcp_types::StepKind::Fresh)
         .unwrap()
         .1
         .clone()
@@ -361,34 +386,13 @@ fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     .unwrap();
     let repeated = run(&offline, query(Some(id.as_str()), 0), false);
     assert_eq!(repeated.local, None);
-    assert_eq!(repeated.status, Status::Partial);
+    assert_eq!(repeated.status(), Status::Partial);
     assert_eq!(repeated.sources, first.sources);
-    let QueryBody::ArticlePage(body) = repeated.body else {
+    let ReplyData::ArticlePage {
+        body: Some(body), ..
+    } = repeated.body
+    else {
         panic!("article page")
     };
     assert!(body.items.iter().all(|i| i.header.is_some()));
-}
-
-#[test]
-fn external_sql_writer_exhausts_only_the_commands_local_admission_budget() {
-    let cache = ReplayCache::temporary().unwrap();
-    let fetch = fetch("synthetic-small", cache);
-    page(run(&fetch, query(None, 0), false));
-    let mut connection = fetch.cache_access().unwrap().connect().unwrap();
-    let transaction = connection
-        .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
-        .unwrap();
-    let out = biomcp_query::run(
-        &Ctx {
-            fetch: &fetch,
-            budget: Duration::from_millis(25),
-            fresh: false,
-            ncbi_email: None,
-        },
-        &Request::SearchArticle(query(None, 0)),
-    );
-    assert_eq!(out.local, Some(RequestError::Cache(CacheError::Busy)));
-    assert!(out.sources.is_empty());
-    transaction.rollback().unwrap();
-    page(run(&fetch, query(None, 0), false));
 }

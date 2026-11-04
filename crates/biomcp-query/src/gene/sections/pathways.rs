@@ -4,7 +4,7 @@ use biodata::{Gene, HgncId};
 
 use biomcp_adapters::reactome;
 use biomcp_fetch::Deadline;
-use biomcp_types::{Capped, Section, Source};
+use biomcp_types::{Capped, GeneSection, Section};
 const LIMIT: usize = 25;
 pub(super) fn applicable(gene: &Gene) -> bool {
     !gene.uniprot.is_empty()
@@ -26,7 +26,8 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
     let local = results
         .iter()
         .find_map(|result| result.as_ref().err().copied().and_then(status::local));
-    let source = status::source(Source::Reactome, leg.finish(), error);
+    let source = status::source(GeneSection::Pathways.source(), leg.finish(), error);
+    let mut dropped = false;
     let mut problems = Vec::new();
     let mut values = Vec::new();
     for (id, gene) in genes.iter().filter(|(_, gene)| applicable(gene)) {
@@ -41,6 +42,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
             };
             match result {
                 Ok(mapped) => {
+                    dropped |= mapped.refusals == biomcp_adapters::Refusal::Refused;
                     status::append(&mut problems, mapped.problems.clone());
                     for pathway in &mapped.value {
                         if !pathways
@@ -59,17 +61,17 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
             }
         }
         let section = if let Some(reason) = failure {
-            Section::unavailable(Source::Reactome, reason)
+            Section::unavailable(GeneSection::Pathways.source(), reason)
         } else if pathways.is_empty() {
             Section::Empty {
-                source: Source::Reactome,
+                source: GeneSection::Pathways.source(),
                 record: None,
             }
         } else {
             let total = u64::try_from(pathways.len()).unwrap_or(u64::MAX);
             pathways.truncate(LIMIT);
             Section::Data {
-                source: Source::Reactome,
+                source: GeneSection::Pathways.source(),
                 data: Capped {
                     items: pathways.into(),
                     total,
@@ -79,6 +81,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
         values.push((*id, SectionValue::Pathways(section)));
     }
     SectionResult {
+        dropped,
         values,
         source,
         problems,

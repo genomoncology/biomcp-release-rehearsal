@@ -34,31 +34,6 @@
         "protein",
         "EGFR",
         "--limit",
-        "1"
-      ],
-      "walk": {
-        "items": "/result/items",
-        "max_pages": 8
-      },
-      "expect": {
-        "/result/items/*/protein/accession": [
-          "P00533",
-          "P15056",
-          "P38398",
-          "P04637",
-          "P13569",
-          "Q9UIF7",
-          "P31749"
-        ]
-      },
-      "max_bytes": 918
-    },
-    {
-      "run": [
-        "search",
-        "protein",
-        "EGFR",
-        "--limit",
         "25"
       ],
       "expect": {

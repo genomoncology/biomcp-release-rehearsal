@@ -1,18 +1,11 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "article-supplements",
   "story": "A literal match in a wide row precedes first-row and unrelated cell fragments; original coordinates and continuation preserve all context. A different spelling stays absent.",
   "replay": "article/supplements/synthetic-match-first",
   "steps": [
     {
       "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--find",
-        "F1761I"
-      ],
-      "mcp": [
         "article",
         "supplement",
         "28944238",
@@ -67,20 +60,6 @@
         }
       },
       "max_bytes": 5500
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s002.xlsx",
-        "--find",
-        "Phe1761Ile"
-      ],
-      "expect": {
-        "/result/content/data/search_message": "No row contains the search term."
-      },
-      "max_tokens": 649
     }
   ]
 }

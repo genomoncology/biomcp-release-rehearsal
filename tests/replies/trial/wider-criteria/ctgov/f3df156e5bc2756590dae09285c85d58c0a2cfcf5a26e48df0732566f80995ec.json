@@ -1,0 +1,24 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&pageSize=100&query.cond=%28basal%20cell%20carcinoma%29&query.term=PTCH1",
+  "exchanges": [
+    {
+      "fetched": 1792886268,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 134,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {"totalCount":5,"studies":[
+{"protocolSection":{"identificationModule":{"nctId":"NCT01529450","briefTitle":"Pilot LDE225 in Locally Advanced or Metastatic BCC + Previously Tx Non-LDE225 Smoothened Inhibitors"},"statusModule":{"overallStatus":"COMPLETED","lastUpdatePostDateStruct":{"date":"2017-01-16"}},"conditionsModule":{"conditions":["Basal Cell Carcinoma"]},"designModule":{"phases":["NA"]},"armsInterventionsModule":{"interventions":[{"name":"LDE225"}]}},"hasResults":true},
+{"protocolSection":{"identificationModule":{"nctId":"NCT02303041","briefTitle":"Pilot Study of Sonidegib and Buparlisib in Treating Patients With Advanced or Metastatic Basal Cell Carcinoma"},"statusModule":{"overallStatus":"TERMINATED","lastUpdatePostDateStruct":{"date":"2019-01-29"}},"conditionsModule":{"conditions":["Carcinoma, Basal Cell","Recurrent Skin Cancer","Skin Neoplasms","Basal Cell Nevus Syndrome"]},"designModule":{"phases":["PHASE2"]},"armsInterventionsModule":{"interventions":[{"name":"Buparlisib"},{"name":"Sonidegib"}]}},"hasResults":true},
+{"protocolSection":{"identificationModule":{"nctId":"NCT02002689","briefTitle":"LDE225 for Patients With PTCH1 or SMO Mutated Tumors"},"statusModule":{"overallStatus":"TERMINATED","lastUpdatePostDateStruct":{"date":"2016-05-02"}},"conditionsModule":{"conditions":["PTCH1 or SMO Activated Solid and Hematologic Tumors"]},"designModule":{"phases":["PHASE2"]},"armsInterventionsModule":{"interventions":[{"name":"LDE225"}]}},"hasResults":true},
+{"protocolSection":{"identificationModule":{"nctId":"NCT06357988","briefTitle":"Testing GDC-0449 (Vismodegib) as Potentially Targeted Treatment in Cancers With Smoothened or Patched 1 Mutant Tumors (MATCH - Subprotocol T)"},"statusModule":{"overallStatus":"ACTIVE_NOT_RECRUITING","lastUpdatePostDateStruct":{"date":"2026-10-16"}},"conditionsModule":{"conditions":["Advanced Lymphoma","Advanced Malignant Solid Neoplasm","Hematopoietic and Lymphatic System Neoplasm","Refractory Lymphoma","Refractory Malignant Solid Neoplasm","Refractory Multiple Myeloma"]},"designModule":{"phases":["PHASE2"]},"armsInterventionsModule":{"interventions":[{"name":"Biopsy Procedure"},{"name":"Biospecimen Collection"},{"name":"Echocardiography Test"},{"name":"Radionuclide Imaging"},{"name":"Vismodegib"}]}},"hasResults":true},
+{"protocolSection":{"identificationModule":{"nctId":"NCT01358045","briefTitle":"Topical Vitamin D3, Diclofenac or a Combination of Both to Treat Basal Cell Carcinoma"},"statusModule":{"overallStatus":"COMPLETED","lastUpdatePostDateStruct":{"date":"2015-01-13"}},"conditionsModule":{"conditions":["Basal Cell Carcinoma"]},"designModule":{"phases":["PHASE2"]},"armsInterventionsModule":{"interventions":[{"name":"Diclofenac"},{"name":"Diclofenac + Calcitriol"},{"name":"Calcitriol"}]}},"hasResults":false}
+]}
+      }
+    }
+  ]
+}

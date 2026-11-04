@@ -1,41 +1,55 @@
 //! MCP HTTP through the actual process and isolated local sockets.
 use super::launch::Environment;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{
     io::{Read, Write},
     net::{SocketAddr, TcpStream},
-    process::{Child, Stdio},
+    process::Child,
     time::Duration,
 };
+#[path = "http_start.rs"]
+mod start;
 type Check = Result<(), String>;
-
 pub(super) fn trials() -> Vec<Trial> {
     vec![
-        Trial::test("mcp-http/local-health-and-discovery", || {
+        transcript_trial(crate::runner::pool_contract::HTTP_CAPACITY.0, || {
+            super::http_capacity::check().map_err(Into::into)
+        }),
+        #[cfg(unix)]
+        transcript_trial("mcp-http/ignored-interrupt-keeps-serving", || {
+            start::ignored_interrupt().map_err(Into::into)
+        }),
+        transcript_trial("mcp-http/local-health-and-discovery", || {
             lifecycle().map_err(Into::into)
         }),
-        Trial::test(
+        transcript_trial(
             "mcp-http/revisions-parity-and-concurrent-identities",
             || protocols().map_err(Into::into),
         ),
-        Trial::test(
-            "mcp-http/host-origin-method-and-metadata-boundaries",
-            || admission().map_err(Into::into),
-        ),
-        Trial::test("mcp-http/framing-resource-deadlines-and-shutdown", || {
+        transcript_trial(crate::runner::pool_contract::HTTP_HOST.0, || {
+            admission().map_err(Into::into)
+        }),
+        transcript_trial("mcp-http/framing-resource-deadlines-and-shutdown", || {
             super::http_limits::check().map_err(Into::into)
         }),
-        Trial::test("mcp-http/storage-refusal-and-nonlocal-bind", || {
+        transcript_trial("mcp-http/storage-refusal-and-nonlocal-bind", || {
             storage().map_err(Into::into)
         }),
     ]
 }
 
+#[expect(
+    clippy::disallowed_types,
+    reason = "Serialize diagnostic observations while HTTP callers share the server"
+)]
 pub(super) struct Server {
     pub(super) child: Child,
     pub(super) address: SocketAddr,
     _environment: Environment,
+    pub(super) diagnostics: std::sync::Mutex<std::sync::mpsc::Receiver<String>>,
+    diagnostic_reader: Option<std::thread::JoinHandle<()>>,
 }
 impl Drop for Server {
     fn drop(&mut self) {
@@ -43,10 +57,16 @@ impl Drop for Server {
             let _ = self.child.kill();
             let _ = self.child.wait();
         }
+        if let Some(reader) = self.diagnostic_reader.take() {
+            let _ = reader.join();
+        }
     }
 }
 impl Server {
     pub(super) fn stop(&mut self) -> Check {
+        self.shutdown(false)
+    }
+    fn shutdown(&mut self, _terminate: bool) -> Check {
         if self.child.try_wait().map_err(|e| e.to_string())?.is_some() {
             return Ok(());
         }
@@ -55,8 +75,15 @@ impl Server {
             let pid = nix::unistd::Pid::from_raw(
                 self.child.id().try_into().map_err(|_| "HTTP process ID")?,
             );
-            nix::sys::signal::kill(pid, nix::sys::signal::Signal::SIGINT)
-                .map_err(|e| e.to_string())?;
+            nix::sys::signal::kill(
+                pid,
+                if _terminate {
+                    nix::sys::signal::Signal::SIGTERM
+                } else {
+                    nix::sys::signal::Signal::SIGINT
+                },
+            )
+            .map_err(|e| e.to_string())?;
         }
         // Native Windows console Ctrl-C is exercised by the platform rehearsal.
         #[cfg(windows)]
@@ -82,7 +109,7 @@ impl Server {
         &self._environment
     }
     pub(super) fn keys(config: Value, key: Option<(&str, &str)>) -> Result<Self, String> {
-        Self::configured_key("127.0.0.1:0", Some(config), None, key)
+        Self::configured_key("127.0.0.1:0", Some(config), None, key, None)
     }
     fn configured(bind: &str, config: Option<Value>, replay: bool) -> Result<Self, String> {
         Self::configured_key(
@@ -90,72 +117,11 @@ impl Server {
             config,
             replay.then(|| super::launch::fixtures().join("replies/gene/main")),
             None,
+            None,
         )
     }
     pub(super) fn start_replay(path: std::path::PathBuf) -> Result<Self, String> {
-        Self::configured_key("127.0.0.1:0", None, Some(path), None)
-    }
-    fn configured_key(
-        bind: &str,
-        config: Option<Value>,
-        replay: Option<std::path::PathBuf>,
-        key: Option<(&str, &str)>,
-    ) -> Result<Self, String> {
-        let environment = Environment::new().map_err(|e| e.to_string())?;
-        if let Some(config) = config {
-            environment.config(&config).map_err(|e| e.to_string())?;
-        }
-        let address: SocketAddr = bind.parse().map_err(|_| "local address")?;
-        let mut args = vec!["serve".into(), "--http".into(), address.to_string()];
-        if let Some(path) = replay {
-            args.extend(environment.globals(Some(&path), false));
-        }
-        let mut command = environment.command(env!("CARGO_BIN_EXE_biomcp"), &args);
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            // Installed services must also start without a console window.
-            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-            command.creation_flags(CREATE_NO_WINDOW);
-        }
-        if let Some((name, key)) = key {
-            command.env(name, key);
-        }
-        let child = command
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| e.to_string())?;
-        let mut server = Self {
-            child,
-            address,
-            _environment: environment,
-        };
-        let stderr = server.child.stderr.take().ok_or("HTTP stderr missing")?;
-        let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-        let reader = std::thread::spawn(move || {
-            use std::io::BufRead;
-            let mut line = String::new();
-            let result = std::io::BufReader::new(stderr)
-                .read_line(&mut line)
-                .map(|_| line);
-            let _ = sender.send(result);
-        });
-        let event = receiver
-            .recv_timeout(Duration::from_secs(5))
-            .map_err(|_| "HTTP readiness event timed out")?
-            .map_err(|e| e.to_string())?;
-        reader.join().map_err(|_| "HTTP readiness reader stopped")?;
-        let event: Value =
-            serde_json::from_str(&event).map_err(|e| format!("HTTP readiness: {e}"))?;
-        server.address = event
-            .get("listening")
-            .and_then(Value::as_str)
-            .ok_or("missing listening address")?
-            .parse()
-            .map_err(|_| "invalid listening address")?;
-        Ok(server)
+        Self::configured_key("127.0.0.1:0", None, Some(path), None, None)
     }
 
     pub(super) fn request(
@@ -185,7 +151,7 @@ impl Server {
             self.raw(method, path, &self.address.to_string(), &headers, body)?;
         Ok((status, body.unwrap_or(Value::Null)))
     }
-    fn raw(
+    pub(super) fn raw(
         &self,
         method: &str,
         path: &str,
@@ -205,14 +171,28 @@ impl Server {
             .write_all(wire.as_bytes())
             .map_err(|e| e.to_string())?;
         let mut bytes = Vec::new();
-        socket
-            .take(1024 * 1024)
-            .read_to_end(&mut bytes)
-            .map_err(|e| e.to_string())?;
+        // A refusal closes without reading caller bytes, which can end with TCP reset.
+        if let Err(error) = socket.take(1024 * 1024).read_to_end(&mut bytes)
+            && error.kind() != std::io::ErrorKind::ConnectionReset
+        {
+            return Err(error.to_string());
+        }
         let response = String::from_utf8(bytes).map_err(|e| e.to_string())?;
         let (headers, body) = response
             .split_once("\r\n\r\n")
             .ok_or("missing HTTP headers")?;
+        let length = headers
+            .lines()
+            .find_map(|line| {
+                let (name, value) = line.split_once(':')?;
+                name.eq_ignore_ascii_case("content-length")
+                    .then(|| value.trim().parse::<usize>().ok())
+                    .flatten()
+            })
+            .ok_or("missing response length")?;
+        if body.len() != length {
+            return Err("incomplete HTTP response body".into());
+        }
         let status = headers
             .split_whitespace()
             .nth(1)
@@ -238,7 +218,7 @@ pub(super) fn lifecycle() -> Check {
     }
     let schema = super::schema::ARTIFACTS
         .iter()
-        .find(|(id, _)| *id == "biomcp.http-health/1")
+        .find(|(id, _)| *id == "biomcp.http-health/2")
         .ok_or("HTTP health schema missing")?
         .1;
     let schema: Value = serde_json::from_str(schema).map_err(|e| e.to_string())?;
@@ -409,7 +389,10 @@ fn concurrent(server: &Server, globals: &[String]) -> Check {
 }
 
 fn admission() -> Check {
-    let server = Server::start()?;
+    let server = Server::configured_key("127.0.0.1:0", None, None, None, Some("clinic.example"))?;
+    if server.raw("GET", "/health", "clinic.example", "", "")?.0 != 200 {
+        return Err("explicit allowed Host was rejected".into());
+    }
     metadata_cases(&server)?;
     let host = server.address.to_string();
     for (authority, headers) in [

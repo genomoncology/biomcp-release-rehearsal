@@ -1,16 +1,18 @@
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{OrcidId, OrcidWorkGroup};
 use biomcp_adapters::orcid;
 use biomcp_fetch::{CacheError, Deadline, RequestError, SourceError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    AuthorPapersQuery, OrcidWorks, OrcidWorksScope, PageInfo, QueryBody, Reason, Request, Source,
-    SourceOutcome, SourceState, Status, StepKind,
+    AuthorPapersQuery, OrcidWorks, OrcidWorksScope, PageInfo, Reason, ReplyData, Request, Source,
+    SourceOutcome, SourceState, StepKind,
 };
 /// Read one whole source reply and retain local group pages.
 pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery, id: &OrcidId) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
-    let mut out = super::empty(QueryBody::OrcidWorks(None));
+    let mut out = super::empty(biomcp_types::OrcidWorks::into_reply(q.clone(), None));
     if let Err(error) = execute(cx, q, id, deadline, &mut out) {
         out.local = status::local(error);
         if out.sources.is_empty() {
@@ -21,7 +23,7 @@ pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery, id: &OrcidId) -> Outco
             ));
         }
         if matches!(error, RequestError::Source(e) if e.reason == Reason::NotFound) {
-            out.status = Status::Absent;
+            crate::status::item(&mut out, false, false, false);
         }
     }
     super::retry(&mut out, Request::AuthorPapers(q.restart()));
@@ -29,20 +31,15 @@ pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery, id: &OrcidId) -> Outco
     out
 }
 fn restart(q: &AuthorPapersQuery, out: &mut Outcome, mismatch: bool) {
-    out.body = QueryBody::PoolError { mismatch };
-    out.next.push((
+    out.body = ReplyData::PoolError { mismatch };
+    out.next.push(crate::next::Step::new(
         StepKind::Restart,
+        &[biomcp_types::Source::Orcid],
         super::run(Request::AuthorPapers(q.restart())),
     ));
 }
 fn key(q: &AuthorPapersQuery) -> Result<Vec<u8>, RequestError> {
-    serde_json::to_vec(&(
-        "biomcp.orcid_works_snapshot/2",
-        q.id(),
-        q.section(),
-        q.limit(),
-    ))
-    .map_err(|_| CacheError::Database.into())
+    source_snapshot::key("orcid-works", &(q.id(), q.section(), q.limit()))
 }
 fn execute(
     cx: &Ctx<'_>,
@@ -57,37 +54,24 @@ fn execute(
             SourceState::Skipped,
             Some(Reason::Disabled),
         ));
-        return Err(SourceError {
-            source: Source::Orcid,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        }
-        .into());
+        return Err(SourceError::disabled(Source::Orcid).into());
     }
     let expected = key(q)?;
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let saved = if cx.fresh {
-        None
+    type Saved = (
+        Box<[OrcidWorkGroup]>,
+        SourceOutcome,
+        Vec<biomcp_types::Problem>,
+        bool,
+    );
+    let (saved, mismatch) = if cx.fresh {
+        (None, false)
     } else {
-        store.find(&expected, q.pool().map(biodata::Text::as_str))?
+        source_snapshot::find::<Saved>(cx, &expected, q.pool(), deadline)?
     };
-    let mismatch = saved.as_ref().is_some_and(|p| p.key != expected);
-    let (groups, source, pool) = if let Some(pool) = saved.filter(|_| !mismatch) {
-        let payload = store.source_snapshot(pool.info.id.as_str(), &expected, |source| {
-            cx.fetch.disabled(source)
-        })?;
-        let Some(payload) = payload else {
-            restart(q, out, false);
-            return Ok(());
-        };
-        let (groups, source, problems): (
-            Box<[OrcidWorkGroup]>,
-            SourceOutcome,
-            Vec<biomcp_types::Problem>,
-        ) = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+    let (groups, source, pool) = if let Some(((groups, source, problems, dropped), pool)) = saved {
         out.problems.extend(problems);
-        (groups, source, pool)
+        out.dropped = dropped;
+        (groups, source, Some(pool))
     } else {
         if q.pool().is_some() {
             restart(q, out, mismatch);
@@ -103,12 +87,21 @@ fn execute(
         out.sources.push(source.clone());
         let mapped = reply?;
         let groups = mapped.value;
+        out.include_refusals(mapped.refusals);
         out.problems.extend(mapped.problems);
-        let payload = serde_json::to_string(&(&groups, &source, &out.problems))
-            .map_err(|_| CacheError::Database)?;
-        let size = u32::try_from(groups.len()).map_err(|_| CacheError::Database)?;
-        let pool =
-            store.publish_source_pool(&expected, &payload, size, std::slice::from_ref(&source))?;
+        let size = u32::try_from(groups.len()).map_err(|_| CacheError::Limit)?;
+        let pool = crate::publish::keep(
+            source_snapshot::publish(
+                cx,
+                &expected,
+                &(&groups, &source, &out.problems, out.dropped),
+                size,
+                std::slice::from_ref(&source),
+                None,
+                deadline,
+            ),
+            out,
+        )?;
         (groups, source, pool)
     };
     present(q, id, out, groups, source, pool);
@@ -120,7 +113,7 @@ fn present(
     out: &mut Outcome,
     groups: Box<[OrcidWorkGroup]>,
     source: SourceOutcome,
-    pool: crate::store::Pool,
+    pool: Option<crate::store::Pool>,
 ) {
     let total = groups.len() as u64;
     let rows: Box<[_]> = groups
@@ -130,9 +123,13 @@ fn present(
         .collect();
     let returned = rows.len() as u32;
     let offset = q.offset().saturating_add(returned);
-    if u64::from(offset) < total && returned > 0 {
-        out.next.push((
+    if let Some(pool) = pool
+        .as_ref()
+        .filter(|_| u64::from(offset) < total && returned > 0)
+    {
+        out.next.push(crate::next::Step::new(
             StepKind::Page,
+            &[biomcp_types::Source::Orcid],
             super::run(Request::AuthorPapers(
                 q.at_offset(offset).with_pool(pool.info.id.clone()),
             )),
@@ -143,21 +140,21 @@ fn present(
         offset: q.offset(),
         returned,
         total,
-        pool: Some(pool.info),
+        pool: pool.map(|p| p.info),
         truncated: None,
     });
-    out.status = if source.state == SourceState::Stale {
-        Status::Partial
-    } else {
-        Status::Complete
+    {
+        let unavailable = source.state == SourceState::Stale;
+        crate::status::item(out, true, false, unavailable);
     };
     out.sources = vec![source];
-    out.body = QueryBody::OrcidWorks(Some(OrcidWorks {
+    out.body = (OrcidWorks {
         collection_scope: OrcidWorksScope::WholePublicWorksReply,
         author: id.clone(),
         groups: rows,
         observed_groups: total,
-    }));
+    })
+    .with_query(q.clone());
 }
 fn pivots(out: &mut Outcome, rows: &[OrcidWorkGroup]) {
     for id in rows
@@ -168,25 +165,33 @@ fn pivots(out: &mut Outcome, rows: &[OrcidWorkGroup]) {
         if id.relationship.as_ref().map(biodata::Text::as_str) != Some("self") {
             continue;
         }
-        let input = match id.kind.as_str() {
-            "pmid" => id
-                .value
-                .as_str()
-                .parse()
-                .ok()
-                .map(biomcp_types::ArticleInput::Pmid),
-            "doi" => id
-                .value
-                .as_str()
-                .parse()
-                .ok()
-                .map(biomcp_types::ArticleInput::Doi),
+        let input = match id.namespace.as_deref() {
+            Some("pmid") => crate::next::checked(
+                id.id.as_str().parse(),
+                biomcp_types::Source::Orcid,
+                &mut out.problems,
+            )
+            .map(biomcp_types::ArticleInput::Pmid),
+            Some("doi") => crate::next::checked(
+                id.id.as_str().parse(),
+                biomcp_types::Source::Orcid,
+                &mut out.problems,
+            )
+            .map(biomcp_types::ArticleInput::Doi),
             _ => None,
         };
         if let Some(input) = input
-            && let Ok(q) = biomcp_types::ArticleGet::new(vec![input].into())
+            && let Some(q) = crate::next::checked(
+                biomcp_types::ArticleGet::new(vec![input].into()),
+                biomcp_types::Source::Orcid,
+                &mut out.problems,
+            )
         {
-            let step = (StepKind::Pivot, super::run(Request::GetArticle(q)));
+            let step = crate::next::Step::new(
+                StepKind::Pivot,
+                &super::super::article::next::get_sources(&q),
+                super::run(Request::GetArticle(q)),
+            );
             if out.next.len() < 5 && !out.next.contains(&step) {
                 out.next.push(step);
             }

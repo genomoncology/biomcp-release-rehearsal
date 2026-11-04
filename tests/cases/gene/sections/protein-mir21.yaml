@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-sections",
+  "feature": "gene-protein",
   "story": "MIR21 rules out protein and constraint without either source",
   "replay": "gene/constraint",
   "steps": [
@@ -15,21 +15,14 @@
       "expect": {
         "/status": "complete",
         "/result/items/0/answer/gene/locus_group": "non_coding_rna",
-        "/result/items/0/sections/constraint/state": "not_applicable",
+        "/result/items/0/sections/constraint/state": "not-applicable",
         "/sources/*/source": {
           "includes": "mygene",
           "excludes": "uniprot"
         },
-        "/result/items/0/sections/protein/state": "not_applicable"
+        "/result/items/0/sections/protein/state": "not-applicable"
       },
-      "max_bytes": 3100,
-      "mcp": [
-        "get",
-        "gene",
-        "MIR21",
-        "constraint",
-        "protein"
-      ]
+      "max_bytes": 3100
     }
   ]
 }

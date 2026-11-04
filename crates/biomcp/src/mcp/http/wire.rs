@@ -14,14 +14,29 @@ pub(super) struct Request {
     pub(super) body: Vec<u8>,
 }
 impl Request {
-    pub(super) fn one(&self, name: &str) -> Result<Option<&str>, ()> {
+    pub(super) fn declared_use(&self) -> io::Result<crate::command::DeclaredUse> {
+        crate::command::DeclaredUse::parse(self.one("x-biomcp-use")?).ok_or_else(malformed)
+    }
+    pub(super) fn source_keys(&self) -> io::Result<biomcp_fetch::Secrets> {
+        let mut secrets = biomcp_fetch::Secrets::default();
+        for name in biomcp_query::sources::keys() {
+            if let Some(value) = self.one(&name.header())? {
+                if value.is_empty() || value.len() > 8192 || value.chars().any(char::is_control) {
+                    return Err(malformed());
+                }
+                secrets.insert(name, biomcp_fetch::Secret::new(value));
+            }
+        }
+        Ok(secrets)
+    }
+    pub(super) fn one(&self, name: &str) -> io::Result<Option<&str>> {
         let mut values = self
             .headers
             .iter()
             .filter(|(key, _)| key.eq_ignore_ascii_case(name));
         let first = values.next().map(|(_, value)| value.as_str());
         if values.next().is_some() {
-            return Err(());
+            return Err(malformed());
         }
         Ok(first)
     }
@@ -129,6 +144,17 @@ fn timeout(stream: &TcpStream, end: Instant) -> io::Result<()> {
 }
 pub(super) fn malformed() -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, "Invalid HTTP request")
+}
+// Send the fixed refusal together before closing unread caller bytes.
+pub(super) fn unavailable(stream: &mut TcpStream) -> io::Result<()> {
+    const BODY: &str = r#"{"error":"Service unavailable"}"#;
+    let response = format!(
+        "HTTP/1.1 503 Response\r\nContent-Type: application/json\r\nConnection: close\r\n\
+         Cache-Control: no-store\r\nContent-Length: {}\r\n\r\n{BODY}",
+        BODY.len()
+    );
+    stream.set_nonblocking(true)?;
+    stream.write_all(response.as_bytes())
 }
 pub(super) fn write(
     stream: &mut TcpStream,

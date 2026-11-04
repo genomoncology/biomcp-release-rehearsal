@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 /// Fixed lifetime and size of a stored search snapshot.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PoolInfo {
     /// Opaque snapshot identifier.
@@ -15,7 +14,6 @@ pub struct PoolInfo {
 }
 /// Search counts after filtering and deduplication.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PageInfo {
     /// Skipped results.

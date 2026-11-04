@@ -1,0 +1,33 @@
+{
+  "method": "GET",
+  "source": "erepo",
+  "url": "https://erepo.clinicalgenome.org/evrepo/api/summary/classification/8d32df42-16ac-41f2-9bf1-e2b9ce206190/doc/sepio/version/1.0.0",
+  "exchanges": [
+    {
+      "fetched": 1792876427,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "uuid": "8d32df42-16ac-41f2-9bf1-e2b9ce206190",
+            "id": "synthetic-historical-document",
+            "type": "VariantPathogenicityInterpretation",
+            "metadata": {
+              "version": "1.0.0"
+            },
+            "variant": {
+              "id": "CAR:CA000434"
+            },
+            "statementOutcome": {
+              "label": "Benign"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

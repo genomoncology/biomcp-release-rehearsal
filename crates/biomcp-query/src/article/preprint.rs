@@ -5,10 +5,13 @@ use biomcp_adapters::europepmc;
 use biomcp_fetch::Deadline;
 use biomcp_types::ArticleInput;
 use biomcp_types::{
-    ArticleMatch, ArticleResolution, QueryBody, Section, Source, SourceState, Status,
+    ArticleMatch, ArticleResolution, ReplyData, Section, Source, SourceState, Status,
 };
 pub(super) fn cards<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Outcome) {
-    let QueryBody::ArticleCards(cards) = &mut out.body else {
+    let ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    else {
         return;
     };
     let leg = cx.fetch.leg(&europepmc::SPEC, *deadline).fresh(cx.fresh);
@@ -22,19 +25,20 @@ pub(super) fn cards<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Out
         used = true;
         match europepmc::core(&leg, id) {
             Ok((card, metadata)) => {
-                item.status = Status::Complete;
+                out.problems.extend(card.problems);
+                item.status = crate::status::item_status(true, false, false);
                 item.answer = Some(ArticleResolution::Resolved {
-                    card: card.card(),
+                    card: card.value.card(),
                     r#match: ArticleMatch {
                         kind: item.input.kind(),
                     },
-                    fetched: u64::try_from(metadata.fetched).unwrap_or_default(),
+                    fetched: metadata.fetched.and_then(|value| u64::try_from(value).ok()),
                 });
             }
             Err(e) => {
                 error.get_or_insert(e);
                 out.local = out.local.or(status::local(e));
-                item.status = Status::Failed;
+                item.status = crate::status::item_status(false, true, false);
                 item.answer = None;
             }
         }
@@ -47,16 +51,20 @@ pub(super) fn cards<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Out
                 if matches!(item.input, ArticleInput::EuropePmc(_))
                     && item.status == Status::Complete
                 {
-                    item.status = Status::Partial;
+                    item.status = crate::status::item_status(true, false, true);
                 }
             }
         }
         out.sources.push(source);
-        out.status = status::status(cards.items.iter().map(|i| i.status));
+        let state = status::status(cards.items.iter().map(|i| i.status));
+        status::get(out, [state].into_iter());
     }
 }
 pub(super) fn fulltext<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Outcome) {
-    let QueryBody::ArticleCards(cards) = &mut out.body else {
+    let ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    else {
         return;
     };
     let leg = cx.fetch.leg(&europepmc::SPEC, *deadline).fresh(cx.fresh);
@@ -74,13 +82,18 @@ pub(super) fn fulltext<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut 
             continue;
         };
         used = true;
-        sections.fulltext = Some(match europepmc::read(&leg, id) {
-            Ok(document) => {
+        let result = europepmc::read(&leg, id).map(|mapped| {
+            out.dropped |= mapped.refusals == biomcp_adapters::Refusal::Refused;
+            out.problems.extend(mapped.problems);
+            mapped.value
+        });
+        sections.fulltext = Some(match result {
+            Ok(Some(document)) => {
                 if !document.body.parts.is_empty() {
-                    super::sections::fulltext::next_input(
+                    super::sections::fulltext::outline_next(
                         ArticleInput::EuropePmc(id.clone()),
-                        1,
                         &mut out.next,
+                        &mut out.problems,
                     );
                 }
                 Section::Data {
@@ -88,10 +101,11 @@ pub(super) fn fulltext<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut 
                     data: super::sections::fulltext::outline(&document),
                 }
             }
+            Ok(None) => Section::unavailable(Source::EuropePmc, biomcp_types::Reason::NotOpen),
             Err(e) => {
                 error.get_or_insert(e);
                 out.local = out.local.or(status::local(e));
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
                 Section::unavailable(
                     Source::EuropePmc,
                     crate::status::reason(e).unwrap_or(biomcp_types::Reason::Unavailable),
@@ -107,7 +121,7 @@ pub(super) fn fulltext<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut 
                 if matches!(item.input, ArticleInput::EuropePmc(_))
                     && item.status == Status::Complete
                 {
-                    item.status = Status::Partial;
+                    item.status = crate::status::item_status(true, false, true);
                 }
             }
         }
@@ -120,6 +134,7 @@ pub(super) fn fulltext<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut 
         } else {
             out.sources.push(source);
         }
-        out.status = status::status(cards.items.iter().map(|i| i.status));
+        let state = status::status(cards.items.iter().map(|i| i.status));
+        status::get(out, [state].into_iter());
     }
 }

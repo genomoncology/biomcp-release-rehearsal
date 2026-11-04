@@ -1,16 +1,18 @@
 //! Bounded body selection under one command budget, including PMID resolution.
-use crate::{Action, Ctx, Outcome, status};
+pub use super::save::Download;
+use crate::{Ctx, Outcome, status};
 use biodata::{Pmcid, Text};
+use biomcp_types::ReplyBody;
 
 use biomcp_adapters::{europepmc, jats, pmc_oa, pubmed};
 use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::ArticleInput;
 use biomcp_types::{
-    ArticleText, ArticleTextResult, PageInfo, QueryBody, Reason, Request, Section, Source, Status,
+    ArticleText, ArticleTextResult, PageInfo, Reason, ReplyData, Request, Section, Source,
     StepKind, TextContent, TextHit,
 };
 /// Read a bounded part or find page through the same transport and command budget.
-pub fn read(cx: &Ctx<'_>, query: &ArticleText) -> Outcome {
+pub(crate) fn read(cx: &Ctx<'_>, query: &ArticleText) -> Outcome {
     download(cx, query, false).out
 }
 /// Obtain the whole document for an explicit binary-owned save.
@@ -18,28 +20,26 @@ pub fn download(cx: &Ctx<'_>, query: &ArticleText, allow: bool) -> super::save::
     let mut save = super::save::State::new(allow);
     let command = cx.fetch.command_deadline(cx.budget);
     let mut deadline = command.deadline();
-    let mut out = Outcome {
-        status: Status::Complete,
-        body: QueryBody::ArticleText(ArticleTextResult {
+    let mut out = crate::status::ready(
+        (ArticleTextResult {
             pmcid: None,
             content: Section::NotApplicable,
-        }),
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    };
+        })
+        .with_query(query.clone()),
+    );
     let Ok(selection) = super::protein_change::Selection::new(query.find(), query.variant()) else {
-        out.body = QueryBody::TextPositionError;
+        out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
         return super::save::Download { out, file: None };
     };
     let result = execute(cx, query, &selection, &mut deadline, &mut out, &mut save);
     command.finish(deadline.remaining());
     if let Err(error) = result {
         out.local = out.local.or(status::local(error));
-        out.status = Status::Failed;
-        if let QueryBody::ArticleText(body) = &mut out.body {
+        crate::status::item(&mut out, false, true, false);
+        if let ReplyData::ArticleTextResult {
+            body: Some(body), ..
+        } = &mut out.body
+        {
             let default_source = if matches!(query.input(), ArticleInput::EuropePmc(_)) {
                 Source::EuropePmc
             } else {
@@ -52,12 +52,11 @@ pub fn download(cx: &Ctx<'_>, query: &ArticleText, allow: bool) -> super::save::
             let reason = crate::status::reason(error).unwrap_or(Reason::Unavailable);
             body.content = Section::unavailable(source, reason);
         }
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request: Request::ArticleText(query.clone()),
-                fresh: true,
-            },
+            &super::next::text_sources(query.input()),
+            Request::ArticleText(query.clone()),
+            true,
         ));
     }
     super::next::text(query, &mut out);
@@ -82,12 +81,13 @@ pub(super) fn resolve<'a>(
             let source =
                 status::source(Source::PubMed, leg.finish(), result.as_ref().err().copied());
             if source.state == biomcp_types::SourceState::Stale {
-                out.status = Status::Partial;
+                crate::status::item(out, true, false, true);
             }
             out.sources.push(source);
             let mapped = result?;
-            if !mapped.problems.is_empty() {
-                out.status = Status::Partial;
+            out.include_refusals(mapped.refusals);
+            if out.dropped {
+                crate::status::item(out, true, false, true);
             }
             status::append(&mut out.problems, mapped.problems);
             let header = mapped
@@ -98,6 +98,7 @@ pub(super) fn resolve<'a>(
                     source: Source::PubMed,
                     reason: Reason::BadReply,
                     status: None,
+                    tls_cause: None,
                     retry_after: None,
                 })?;
             Ok(header.pmcid)
@@ -125,16 +126,22 @@ fn execute<'a>(
         ArticleInput::Pmid(id) => Some(*id),
         _ => None,
     };
-    let result = pmc_oa::read(&leg, id, pmid);
+    let result = pmc_oa::read(&leg, id, pmid).map(|mapped| {
+        out.include_refusals(mapped.refusals);
+        out.problems.extend(mapped.problems);
+        mapped.value
+    });
     *deadline = deadline.after_stage(started.saturating_sub(leg.remaining()));
     let source = status::source(Source::PmcOa, leg.finish(), result.as_ref().err().copied());
     if source.state == biomcp_types::SourceState::Stale {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
     }
     out.sources.push(source);
     let content = match result? {
         None => Section::unavailable(Source::PmcOa, Reason::NotOpen),
         Some(document) => {
+            out.dropped |= document.body.refusals == biomcp_adapters::Refusal::Refused;
+            out.problems.extend(document.problems.clone());
             let Some(content) = select(
                 query,
                 selection,
@@ -143,7 +150,7 @@ fn execute<'a>(
                 out,
                 save,
             ) else {
-                out.body = QueryBody::TextPositionError;
+                out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
                 return Ok(());
             };
             Section::Data {
@@ -152,10 +159,11 @@ fn execute<'a>(
             }
         }
     };
-    out.body = QueryBody::ArticleText(ArticleTextResult {
+    out.body = (ArticleTextResult {
         pmcid: Some(id),
         content,
-    });
+    })
+    .with_query(query.clone());
     Ok(())
 }
 fn select(
@@ -205,7 +213,12 @@ fn select(
         )
         .ok();
         if part.continuation {
-            super::sections::fulltext::next_input(input, number.checked_add(1)?, &mut out.next);
+            super::sections::fulltext::next_input(
+                input,
+                number.checked_add(1)?,
+                &mut out.next,
+                &mut out.problems,
+            );
         }
     } else {
         content.hits = Some(find(query, selection, document, out)?);
@@ -253,12 +266,11 @@ fn find(
     let total = u64::try_from(hits.len()).ok()?;
     let following = query.offset().checked_add(returned)?;
     if returned > 0 && u64::from(following) < total {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::ArticleText(query.page(following)),
-                fresh: false,
-            },
+            &super::next::text_sources(query.input()),
+            Request::ArticleText(query.page(following)),
+            false,
         ));
     }
     out.page = Some(PageInfo {
@@ -331,10 +343,20 @@ fn preprint<'a>(
         result.as_ref().err().copied(),
     );
     if source.state == biomcp_types::SourceState::Stale {
-        out.status = Status::Partial;
+        crate::status::item(out, true, false, true);
     }
     out.sources.push(source);
-    let document = result?;
+    let mapped = result?;
+    out.include_refusals(mapped.refusals);
+    out.problems.extend(mapped.problems);
+    let Some(document) = mapped.value else {
+        out.body = (ArticleTextResult {
+            pmcid: None,
+            content: Section::unavailable(Source::EuropePmc, Reason::NotOpen),
+        })
+        .with_query(query.clone());
+        return Ok(());
+    };
     let Some(content) = select(
         query,
         selection,
@@ -343,15 +365,16 @@ fn preprint<'a>(
         out,
         save,
     ) else {
-        out.body = QueryBody::TextPositionError;
+        out.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
         return Ok(());
     };
-    out.body = QueryBody::ArticleText(ArticleTextResult {
+    out.body = (ArticleTextResult {
         pmcid: None,
         content: Section::Data {
             source: Source::EuropePmc,
             data: content,
         },
-    });
+    })
+    .with_query(query.clone());
     Ok(())
 }

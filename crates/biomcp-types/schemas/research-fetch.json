@@ -1,20 +1,22 @@
 {
   "$defs": {
-    "Markdown": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Markdown": {
+      "description": "Nonempty source Markdown retains LF, CR and tab formatting; unsafe controls use visible escapes. The parser additionally rejects whitespace-only values.",
       "format": "markdown",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "ResearchEnvelope": {
+    "Reply_ResearchEnvelope": {
       "description": "Forward-compatible envelope metadata; entity fields use their CLI schemas.",
       "properties": {
         "schema": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original CLI schema identity; its schema describes all entity fields."
         },
         "status": {
-          "$ref": "#/$defs/Status",
+          "$ref": "#/$defs/Reply_Status",
           "description": "Original command outcome."
         }
       },
@@ -24,11 +26,11 @@
       ],
       "type": "object"
     },
-    "SourceText": {
+    "Reply_SourceText": {
       "description": "Unchanged free source text, including empty values and surrounding whitespace.",
       "type": "string"
     },
-    "Status": {
+    "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
         "complete",
@@ -38,35 +40,36 @@
       ],
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.research-fetch/2",
+  "$id": "biomcp.research-fetch/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "Research fetch response using the existing CLI Markdown view.",
   "properties": {
     "id": {
-      "$ref": "#/$defs/SourceText",
+      "$ref": "#/$defs/Reply_SourceText",
       "description": "Unchanged caller identifier."
     },
     "metadata": {
-      "$ref": "#/$defs/ResearchEnvelope",
+      "$ref": "#/$defs/Reply_ResearchEnvelope",
       "description": "Complete original CLI envelope."
     },
     "text": {
-      "$ref": "#/$defs/Markdown",
+      "$ref": "#/$defs/Reply_Markdown",
       "description": "Complete Markdown view of the bounded CLI record."
     },
     "title": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Original source title, or exact identifier."
     },
     "url": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Nonempty canonical source URL.",
       "format": "uri"
     }

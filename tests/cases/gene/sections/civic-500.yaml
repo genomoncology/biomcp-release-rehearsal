@@ -1,8 +1,9 @@
 {
   "live_check": "synthetic response case",
-  "feature": "gene-sections",
+  "feature": "gene-civic",
   "story": "A synthetic CIViC 500 reply preserves the independent card",
   "replay": "gene/civic/synthetic-500",
+  "cache_acquired": 42,
   "steps": [
     {
       "run": [
@@ -20,15 +21,14 @@
         "/sources/*/source": {
           "includes": "civic",
           "excludes": "gnomad"
-        }
+        },
+        "/result/items/0/status": "partial",
+        "/sources/0/source": "hgnc",
+        "/sources/0/state": "ok",
+        "/sources/2/source": "civic",
+        "/sources/2/state": "failed"
       },
-      "max_bytes": 3200,
-      "mcp": [
-        "get",
-        "gene",
-        "ERBB2",
-        "civic"
-      ]
+      "max_bytes": 3200
     },
     {
       "run": [

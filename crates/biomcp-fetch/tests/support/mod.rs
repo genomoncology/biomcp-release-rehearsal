@@ -153,7 +153,10 @@ impl<T: Default + Send + 'static> Server<T> {
                 "GET and HEAD bodies must stay empty"
             );
         } else {
-            assert!(request.text.starts_with("POST "));
+            assert!(
+                request.text.starts_with("POST "),
+                "The local server must receive the complete declared request"
+            );
         }
         request
     }

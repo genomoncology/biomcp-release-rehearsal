@@ -1,0 +1,1321 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=application_number%3A%22NDA021588%22&limit=1",
+  "exchanges": [
+    {
+      "fetched": 1793814732,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+            "terms": "https://open.fda.gov/terms/",
+            "license": "https://open.fda.gov/license/",
+            "last_updated": "2026-11-02",
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "submissions": [
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "10",
+                  "submission_status": "AP",
+                  "submission_status_date": "20060531",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "37280",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s010lbl.pdf",
+                      "date": "20060601",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "5791",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s008, s010LTR.pdf",
+                      "date": "20060602",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "49",
+                  "submission_status": "AP",
+                  "submission_status_date": "20170424",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "48097",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021588s049lbl.pdf",
+                      "date": "20170425",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "48142",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2017/021588Orig1s049ltr.pdf",
+                      "date": "20170427",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "63",
+                  "submission_status": "AP",
+                  "submission_status_date": "20240301",
+                  "review_priority": "N/A",
+                  "submission_class_code": "MANUF (CMC)",
+                  "submission_class_code_description": "Manufacturing (CMC)",
+                  "application_docs": [
+                    {
+                      "id": "77773",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2024/021588Orig1s063ltr.pdf",
+                      "date": "20240311",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "77776",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2024/021588Orig1s063lbl.pdf",
+                      "date": "20240311",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "47",
+                  "submission_status": "AP",
+                  "submission_status_date": "20160927",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "45425",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2016/021588s047lbl.pdf",
+                      "date": "20160929",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "45472",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2016/021588Orig1s047ltr.pdf",
+                      "date": "20161004",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "39",
+                  "submission_status": "AP",
+                  "submission_status_date": "20131030",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "37292",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021588s039lbl.pdf",
+                      "date": "20131031",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "5803",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2013/021588Orig1s039ltr.pdf",
+                      "date": "20131031",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "53",
+                  "submission_status": "AP",
+                  "submission_status_date": "20180821",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "55270",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2018/021588s053lbl.pdf",
+                      "date": "20180822",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "55319",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2018/021588Orig1s053ltr.pdf",
+                      "date": "20180824",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "45",
+                  "submission_status": "AP",
+                  "submission_status_date": "20160825",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "45063",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2016/021588Orig1s045,s046ltr.pdf",
+                      "date": "20160825",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "45169",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2016/021588s045s046lbl.pdf",
+                      "date": "20160825",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "ORIG",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20030418",
+                  "review_priority": "PRIORITY",
+                  "submission_class_code": "TYPE 3",
+                  "submission_class_code_description": "Type 3 - New Dosage Form",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "42219",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2003/021588s000_GleevecTOC.html",
+                      "date": "20060607",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "44136",
+                      "url": "http://www.fda.gov/Drugs/DrugSafety/PostmarketDrugSafetyInformationforPatientsandProviders/ucm110502.htm",
+                      "date": "20031209",
+                      "type": "Other Important Information from FDA"
+                    },
+                    {
+                      "id": "15827",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2003/021588lbl.pdf",
+                      "date": "20030428",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "28185",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2003/21588ltr.pdf",
+                      "date": "20030529",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "37",
+                  "submission_status": "AP",
+                  "submission_status_date": "20130125",
+                  "review_priority": "PRIORITY",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "37290",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021588s037lbl.pdf",
+                      "date": "20130130",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "5801",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2013/021588Orig1s037ltr.pdf",
+                      "date": "20130130",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "51",
+                  "submission_status": "AP",
+                  "submission_status_date": "20170906",
+                  "review_priority": "901 REQUIRED",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "49680",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021588s051lbl.pdf",
+                      "date": "20170907",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "49698",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2017/021588orig1s051ltr.pdf",
+                      "date": "20170908",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "35",
+                  "submission_status": "AP",
+                  "submission_status_date": "20120131",
+                  "review_priority": "PRIORITY",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "5800",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2012/021588s035ltr_cor.pdf",
+                      "date": "20120203",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15837",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2012/021588s035lbl.pdf",
+                      "date": "20120131",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "8",
+                  "submission_status": "AP",
+                  "submission_status_date": "20051020",
+                  "review_priority": "UNKNOWN",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "5789",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2005/021588s008ltr.pdf",
+                      "date": "20051025",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15831",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2005/021588s008lbl.pdf",
+                      "date": "20051025",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "27",
+                  "submission_status": "AP",
+                  "submission_status_date": "20090210",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "28196",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2009/021588s027ltr.pdf",
+                      "date": "20090213",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37287",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2009/021588s027lbl.pdf",
+                      "date": "20090212",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "6",
+                  "submission_status": "AP",
+                  "submission_status_date": "20050519",
+                  "submission_class_code": "MANUF (CMC)",
+                  "submission_class_code_description": "Manufacturing (CMC)",
+                  "application_docs": [
+                    {
+                      "id": "28188",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2005/021588s006ltr.pdf",
+                      "date": "20050520",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "25",
+                  "submission_status": "AP",
+                  "submission_status_date": "20081219",
+                  "review_priority": "PRIORITY",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "5797",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2008/021588s025ltr.pdf",
+                      "date": "20081229",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "17",
+                  "submission_status": "AP",
+                  "submission_status_date": "20061019",
+                  "review_priority": "UNKNOWN",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "21749",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2006/021588_s017_gleevec.pdf",
+                      "date": "20061019",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "28191",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s011, s012, s013, s014, s017ltr.pdf",
+                      "date": "20061023",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37282",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s011s012s013s014s017lbl.pdf",
+                      "date": "20061023",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "31",
+                  "submission_status": "AP",
+                  "submission_status_date": "20110401",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "5799",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2011/021588s030,s031ltr.pdf",
+                      "date": "20110406",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37289",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2011/021588s030s031lbl.pdf",
+                      "date": "20110401",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "23",
+                  "submission_status": "AP",
+                  "submission_status_date": "20080430",
+                  "review_priority": "N/A",
+                  "submission_class_code": "MANUF (CMC)",
+                  "submission_class_code_description": "Manufacturing (CMC)",
+                  "application_docs": [
+                    {
+                      "id": "5796",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2008/021588s023ltr.pdf",
+                      "date": "20080505",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "2",
+                  "submission_status": "AP",
+                  "submission_status_date": "20031208",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "42221",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2003/21-588s002_Gleevec.html",
+                      "date": "20050408",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "5787",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2003/21588se7-002ltr.pdf",
+                      "date": "20031222",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15829",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2003/021588s002lbl.pdf",
+                      "date": "20031208",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "21",
+                  "submission_status": "AP",
+                  "submission_status_date": "20080926",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "5795",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2008/021588s021ltr.pdf",
+                      "date": "20081001",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37284",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2008/021588s024lbl.pdf",
+                      "date": "20080926",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "13",
+                  "submission_status": "AP",
+                  "submission_status_date": "20061019",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "42223",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2006/021588_s013_gleevic.pdf",
+                      "date": "20061019",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "5793",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s011, s012, s013, s014, s017ltr.pdf",
+                      "date": "20061023",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15833",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s011s012s013s014s017lbl.pdf",
+                      "date": "20061023",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "11",
+                  "submission_status": "AP",
+                  "submission_status_date": "20061019",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "5792",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s011, s012, s013, s014, s017ltr.pdf",
+                      "date": "20061023",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15832",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s011s012s013s014s017lbl.pdf",
+                      "date": "20061023",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "21748",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2006/021588_s011_gleevec.pdf",
+                      "date": "20061019",
+                      "type": "Review"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "56",
+                  "submission_status": "AP",
+                  "submission_status_date": "20200810",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "64254",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2020/021588Orig1s056,s057ltr.pdf",
+                      "date": "20200811",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "64260",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf",
+                      "date": "20200811",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "62",
+                  "submission_status": "AP",
+                  "submission_status_date": "20220819",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "71854",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2022/021588Orig1s062ltr.pdf",
+                      "date": "20220822",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "71855",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2022/021588s062lbl.pdf",
+                      "date": "20220822",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "46",
+                  "submission_status": "AP",
+                  "submission_status_date": "20160825",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "45064",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2016/021588Orig1s045,s046ltr.pdf",
+                      "date": "20160825",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "45170",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2016/021588s045s046lbl.pdf",
+                      "date": "20160825",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "60",
+                  "submission_status": "AP",
+                  "submission_status_date": "20220324",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "70610",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2022/021588s060lbl.pdf",
+                      "date": "20220325",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "38",
+                  "submission_status": "AP",
+                  "submission_status_date": "20130221",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "37291",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021588s038lbl.pdf",
+                      "date": "20130226",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "5802",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2013/021588Orig1s038ltr.pdf",
+                      "date": "20130225",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "52",
+                  "submission_status": "AP",
+                  "submission_status_date": "20170929",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "49920",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021588s052lbl.pdf",
+                      "date": "20171003",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "49930",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2017/021588Orig1s052ltr.pdf",
+                      "date": "20171003",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "9",
+                  "submission_status": "AP",
+                  "submission_status_date": "20061030",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "37279",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s009lbl.pdf",
+                      "date": "20061106",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "5790",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s009ltr.pdf",
+                      "date": "20061106",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "28",
+                  "submission_status": "AP",
+                  "submission_status_date": "20090527",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "5798",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2009/021588s026,021588s028ltr.pdf",
+                      "date": "20090602",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15836",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2009/021588s026s028lbl.pdf",
+                      "date": "20090605",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "42",
+                  "submission_status": "AP",
+                  "submission_status_date": "20150130",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "15838",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2015/021588s042lbl.pdf",
+                      "date": "20150203",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "28198",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2015/021588Orig1s042ltr.pdf",
+                      "date": "20150202",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "7",
+                  "submission_status": "AP",
+                  "submission_status_date": "20050518",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "5788",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2005/021588s007ltr.pdf",
+                      "date": "20050520",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "26",
+                  "submission_status": "AP",
+                  "submission_status_date": "20090527",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "28195",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2009/021588s026,021588s028ltr.pdf",
+                      "date": "20090602",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "40",
+                  "submission_status": "AP",
+                  "submission_status_date": "20140522",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "37293",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2014/021588s040lbledt.pdf",
+                      "date": "20140528",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "5804",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2014/021588Orig1s040ltr.pdf",
+                      "date": "20140522",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "5",
+                  "submission_status": "AP",
+                  "submission_status_date": "20050314",
+                  "review_priority": "UNKNOWN",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "15830",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2005/21588s005lbl.pdf",
+                      "date": "20050318",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "21747",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2005/021588_s005_GLEVAC.pdf",
+                      "date": "20150526",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "28187",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2005/21588s005ltr.pdf",
+                      "date": "20050318",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "24",
+                  "submission_status": "AP",
+                  "submission_status_date": "20080926",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "28194",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2008/021588s024ltr.pdf",
+                      "date": "20081001",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37286",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2008/021588s024lbl.pdf",
+                      "date": "20080926",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "16",
+                  "submission_status": "AP",
+                  "submission_status_date": "20060927",
+                  "review_priority": "PRIORITY",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "51975",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/pediatric/021588s016_imatinib_Gleevec-Med&StatsRev.pdf",
+                      "date": "19000101",
+                      "type": "Pediatric Medical Review"
+                    },
+                    {
+                      "id": "51976",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/pediatric/021588s016_imatinib_Orig_WR.pdf",
+                      "date": "19000101",
+                      "type": "Pediatric Written Request"
+                    },
+                    {
+                      "id": "51977",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/pediatric/021588s016_imatinib_Gleevec-ClinPharmRev.pdf",
+                      "date": "19000101",
+                      "type": "Pediatric Clinical Pharmacology Review"
+                    },
+                    {
+                      "id": "51978",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/pediatric/021588s016_imatinib_Gleevec-Med&StatsRev.pdf",
+                      "date": "19000101",
+                      "type": "Pediatric Statistical Review"
+                    },
+                    {
+                      "id": "15835",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s016lbl.pdf",
+                      "date": "20060928",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "28190",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s016ltr.pdf",
+                      "date": "20061002",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "3",
+                  "submission_status": "AP",
+                  "submission_status_date": "20040623",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "28186",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2004/21588slr003ltr.pdf",
+                      "date": "20040625",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37278",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2004/21588slr003_gleevec_lbl.pdf",
+                      "date": "20040625",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "30",
+                  "submission_status": "AP",
+                  "submission_status_date": "20110401",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "28197",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2011/021588s030,s031ltr.pdf",
+                      "date": "20110406",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37288",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2011/021588s030s031lbl.pdf",
+                      "date": "20110401",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "22",
+                  "submission_status": "AP",
+                  "submission_status_date": "20080926",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "application_docs": [
+                    {
+                      "id": "28193",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2008/021588s022ltr.pdf",
+                      "date": "20081001",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37285",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2008/021588s024lbl.pdf",
+                      "date": "20080926",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "1",
+                  "submission_status": "AP",
+                  "submission_status_date": "20030520",
+                  "review_priority": "PRIORITY",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "42220",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2003/21-335s003_21-588s001_Gleevec.html",
+                      "date": "20040809",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "5786",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2003/21588se5-001ltr.pdf",
+                      "date": "20030608",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15828",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2003/021588s001lbl.pdf",
+                      "date": "20030520",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "14",
+                  "submission_status": "AP",
+                  "submission_status_date": "20061019",
+                  "review_priority": "UNKNOWN",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "42224",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2006/021588_s014_gleevec.pdf",
+                      "date": "20061019",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "5794",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s011, s012, s013, s014, s017ltr.pdf",
+                      "date": "20061023",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "15834",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s011s012s013s014s017lbl.pdf",
+                      "date": "20061023",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "67",
+                  "submission_status": "AP",
+                  "submission_status_date": "20260713",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "86559",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/021588s067lbl.pdf",
+                      "date": "20260715",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "86589",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2026/021588Orig1s067ltr.pdf",
+                      "date": "20260720",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "20",
+                  "submission_status": "AP",
+                  "submission_status_date": "20070913",
+                  "review_priority": "UNKNOWN",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "28192",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2007/021588s020ltr.pdf",
+                      "date": "20070925",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "37283",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2007/021588s020lbl.pdf",
+                      "date": "20070919",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "12",
+                  "submission_status": "AP",
+                  "submission_status_date": "20061019",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "application_docs": [
+                    {
+                      "id": "37281",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2006/021588s011s012s013s014s017lbl.pdf",
+                      "date": "20061023",
+                      "type": "Label"
+                    },
+                    {
+                      "id": "42222",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/nda/2006/021588_s012_gleevic.pdf",
+                      "date": "20061019",
+                      "type": "Review"
+                    },
+                    {
+                      "id": "28189",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2006/021588s011, s012, s013, s014, s017ltr.pdf",
+                      "date": "20061023",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "65",
+                  "submission_status": "AP",
+                  "submission_status_date": "20260114",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "84758",
+                      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2026/021588Orig1s065ltr.pdf",
+                      "date": "20260115",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "84783",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2026/021588s065lbl.pdf",
+                      "date": "20260120",
+                      "type": "Label"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "57",
+                  "submission_status": "AP",
+                  "submission_status_date": "20200810",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "LABELING",
+                  "submission_class_code_description": "Labeling",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "64255",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/appletter/2020/021588Orig1s056,s057ltr.pdf",
+                      "date": "20200811",
+                      "type": "Letter"
+                    },
+                    {
+                      "id": "64261",
+                      "url": "http://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf",
+                      "date": "20200811",
+                      "type": "Label"
+                    }
+                  ]
+                }
+              ],
+              "application_number": "NDA021588",
+              "sponsor_name": "NOVARTIS",
+              "openfda": {
+                "application_number": [
+                  "NDA021588"
+                ],
+                "brand_name": [
+                  "GLEEVEC"
+                ],
+                "generic_name": [
+                  "IMATINIB MESYLATE"
+                ],
+                "manufacturer_name": [
+                  "Novartis Pharmaceuticals Corporation"
+                ],
+                "product_ndc": [
+                  "0078-0401",
+                  "0078-0649",
+                  "0078-1490"
+                ],
+                "product_type": [
+                  "HUMAN PRESCRIPTION DRUG"
+                ],
+                "route": [
+                  "ORAL"
+                ],
+                "substance_name": [
+                  "IMATINIB MESYLATE"
+                ],
+                "rxcui": [
+                  "403878",
+                  "403879",
+                  "404588",
+                  "404589"
+                ],
+                "spl_id": [
+                  "2b30c65b-bf6e-4a30-9754-585d500d59f3"
+                ],
+                "spl_set_id": [
+                  "211ef2da-2868-4a77-8055-1cb2cd78e24b"
+                ],
+                "package_ndc": [
+                  "0078-0401-34",
+                  "0078-0649-30",
+                  "0078-0649-26",
+                  "0078-0649-13",
+                  "0078-1490-26",
+                  "0078-1490-13"
+                ],
+                "unii": [
+                  "8A1O1M485B"
+                ]
+              },
+              "products": [
+                {
+                  "product_number": "001",
+                  "reference_drug": "Yes",
+                  "brand_name": "GLEEVEC",
+                  "active_ingredients": [
+                    {
+                      "name": "IMATINIB MESYLATE",
+                      "strength": "EQ 100MG BASE"
+                    }
+                  ],
+                  "reference_standard": "Yes",
+                  "dosage_form": "TABLET",
+                  "route": "ORAL",
+                  "marketing_status": "Prescription",
+                  "te_code": "AB"
+                },
+                {
+                  "product_number": "002",
+                  "reference_drug": "Yes",
+                  "brand_name": "GLEEVEC",
+                  "active_ingredients": [
+                    {
+                      "name": "IMATINIB MESYLATE",
+                      "strength": "EQ 400MG BASE"
+                    }
+                  ],
+                  "reference_standard": "No",
+                  "dosage_form": "TABLET",
+                  "route": "ORAL",
+                  "marketing_status": "Prescription",
+                  "te_code": "AB"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

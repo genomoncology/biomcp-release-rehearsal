@@ -1,8 +1,7 @@
-use crate::{Source, SourceRecord, Text, Variant, VariantGet};
+use crate::{Source, SourceRecord, Text, Variant};
 use serde::{Deserialize, Serialize};
 /// A compact identity card, including every provider candidate and explicit rejection.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantCard {
     /// Identity outcome, without selecting the first candidate.
@@ -12,18 +11,17 @@ pub struct VariantCard {
     /// All retained source identities.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub candidates: Box<[VariantHeader]>,
-    /// Provider rejection text, when present, separate from unchanged query input.
+    /// Named input rejection from provider validation or a source-stated transcript gene mismatch.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rejection: Option<Text>,
 }
 impl super::ResponseBody for VariantCard {
-    const SCHEMA: &'static str = "biomcp.variant-card/8";
-    type Query = VariantGet;
+    const SCHEMA: &'static str = "biomcp.variant-card/15";
+    type Query = super::VariantGetQuery;
 }
 
 /// Consumer identity header with an exact source selection and compact annotation entity.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantHeader {
     /// Source-qualified variant entity.
@@ -59,7 +57,7 @@ biodata::wire_enum! {
         Candidates => "candidates",
         /// Provider reported no match.
         Absent => "absent",
-        /// Provider rejected the unchanged input.
+        /// Input failed provider validation or disagreed with a source-stated transcript gene.
         Rejected => "rejected",
         /// Provider could not answer.
         Unavailable => "unavailable",
@@ -68,7 +66,6 @@ biodata::wire_enum! {
 
 /// Source-specific sections, absent unless explicitly selected.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantSections {
     /// Native prediction scores.
@@ -107,9 +104,8 @@ pub struct VariantSections {
     pub hotspots: Option<crate::Section<crate::VariantHotspots>>,
 }
 
-/// One native MyVariant candidate page; its total and offset are in the shared envelope.
+/// One native variant candidate page; its total and offset are in the shared envelope.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantPage {
     /// Independent publisher terms for the declared dbNSFP gene/protein selector.
@@ -124,18 +120,37 @@ pub struct VariantPage {
     /// Assembly sent to the source, never inferred from a candidate label.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub build: Option<crate::Build>,
+    /// Fallback candidates excluded because their reference allele was not confirmed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub excluded: Option<VariantSearchExclusions>,
     /// Native source order, preserving every candidate including repeated source identities.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub items: Box<[VariantHeader]>,
 }
+/// Count of candidates withheld from a fallback search, with a stable reason.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct VariantSearchExclusions {
+    /// Native candidate count, independent of pagination's consumed positions.
+    pub count: u32,
+    /// Why these candidates could not be admitted.
+    pub reason: VariantSearchExclusionReason,
+}
+biodata::wire_enum! {
+    /// Fixed fallback exclusion reasons.
+    VariantSearchExclusionReason {
+        /// No allowed same-record annotation or agreeing reference sequence was available.
+        ReferenceUnconfirmed => "reference-unconfirmed",
+    }
+}
+
 impl super::ResponseBody for VariantPage {
-    const SCHEMA: &'static str = "biomcp.variant-page/9";
+    const SCHEMA: &'static str = "biomcp.variant-page/16";
     type Query = crate::VariantSearch;
 }
 
 /// A source-paired transcript annotation, without inferred transcript equivalence.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantTranscript {
     /// Provider carrying this annotation.

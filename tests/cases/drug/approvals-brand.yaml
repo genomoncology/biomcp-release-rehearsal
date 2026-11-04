@@ -1,0 +1,45 @@
+{
+  "feature": "drug-approvals",
+  "story": "A recorded native brand reaches its application and dated approvals; ingredient discovery keeps the same application facts",
+  "replay": "drug/drugsfda-brand",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "max_bytes": 4000,
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "BLA761445",
+        "/result/approvals/data/records/0/event/dates/0/role": "submission_status_date",
+        "/result/approvals/data/records/0/event/dates/0/date": "2026-07-09"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda",
+        "--product-number",
+        "001"
+      ],
+      "max_bytes": 4000,
+      "expect": {
+        "/status": "complete",
+        "/result/identity/id": "BLA761445",
+        "/result/approvals/data/records/0/event/dates/0/role": "submission_status_date",
+        "/result/approvals/data/records/0/event/dates/0/date": "2026-07-09",
+        "/query/product_number": "001"
+      }
+    }
+  ],
+  "live_check": "public"
+}

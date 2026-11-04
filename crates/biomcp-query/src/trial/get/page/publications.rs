@@ -1,5 +1,5 @@
 use super::{Snapshot, advance, continue_records, records, section};
-use crate::{Action, Outcome};
+use crate::Outcome;
 use biodata::Text;
 use biomcp_fetch::RequestError;
 use biomcp_types::ArticleInput;
@@ -34,13 +34,16 @@ pub(super) fn render(
             .map(ArticleInput::Pmid)
             .collect();
         for chunk in inputs.chunks(20) {
-            if let Ok(request) = ArticleGet::new(chunk.into()) {
-                out.next.push((
+            if let Some(request) = crate::next::checked(
+                ArticleGet::new(chunk.into()),
+                biomcp_types::Source::ClinicalTrialsGov,
+                &mut out.problems,
+            ) {
+                out.next.push(crate::next::Step::run(
                     StepKind::Section,
-                    Action::Run {
-                        request: Request::GetArticle(request),
-                        fresh: false,
-                    },
+                    &[biomcp_types::Source::PubMed],
+                    Request::GetArticle(request),
+                    false,
                 ));
             }
         }
@@ -62,6 +65,6 @@ pub(super) fn render(
     }
     // All checked section continuations precede optional discovery actions under the shared next budget.
     out.next
-        .sort_by_key(|(kind, _)| if *kind == StepKind::Page { 0 } else { 1 });
+        .sort_by_key(|step| if step.0 == StepKind::Page { 0 } else { 1 });
     Ok(())
 }

@@ -2,7 +2,8 @@
 use crate::{Ctx, status};
 use biodata::{Build, Chromosome, ExpressionSyntax};
 use biomcp_adapters::allele_registry;
-use biomcp_fetch::{Deadline, RequestError, grpc::alphagenome::ScoreRequest};
+use biomcp_adapters::alphagenome::ScoreRequest;
+use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::{Problem, Source, SourceOutcome, VariantHeader};
 
 #[derive(Debug)]
@@ -39,10 +40,14 @@ pub(super) fn resolve(cx: &Ctx<'_>, row: &VariantHeader, deadline: &mut Deadline
         .sources
         .push(status::source(Source::AlleleRegistry, leg.finish(), error));
     joined.local = error.and_then(status::local);
-    if let Ok(allele_registry::Resolution::Found(row)) = reply {
-        joined.unsupported = mitochondrial(&row.value);
-        joined.request = super::alphagenome::request(&row.value);
-        joined.problems = row.problems;
+    match reply {
+        Ok(allele_registry::Resolution::Found(row)) => {
+            joined.unsupported = mitochondrial(&row.value);
+            joined.request = super::alphagenome::request(&row.value);
+            joined.problems = row.problems;
+        }
+        Ok(allele_registry::Resolution::Refused(problems)) => joined.problems = problems,
+        _ => (),
     }
     joined
 }

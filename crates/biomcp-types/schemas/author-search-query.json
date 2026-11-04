@@ -9,12 +9,14 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.author-search-query/2",
+  "$id": "biomcp.author-search-query/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Literal author name query and native window; positional text maps to query.",
@@ -39,7 +41,7 @@
       "description": "Retained page identity."
     },
     "query": {
-      "description": "Literal query from the positional argument or --query.",
+      "description": "Literal query from the positional argument.",
       "minLength": 1,
       "type": "string",
       "x-positional": 0

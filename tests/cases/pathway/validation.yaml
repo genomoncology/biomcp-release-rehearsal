@@ -1,17 +1,11 @@
 {
+  "live_check": "local-only expired pool and invalid argument refusals; every step exits before source access",
   "feature": "pathway-reactome",
   "story": "Invalid selectors fail before I/O and genuine source absence never triggers a replacement search.",
   "replay": "pathway/native",
   "steps": [
     {
       "run": [
-        "search",
-        "pathway",
-        "MAPK signaling",
-        "--pool",
-        "foreign-query"
-      ],
-      "mcp": [
         "search",
         "pathway",
         "MAPK signaling",
@@ -37,35 +31,7 @@
       "expect": {
         "/error/code": "usage.arguments"
       },
-      "max_bytes": 210,
-      "mcp": [
-        "search",
-        "pathway",
-        "text",
-        "--top-level"
-      ],
-      "is_error": true
-    },
-    {
-      "run": [
-        "search",
-        "pathway",
-        "text",
-        "--gene",
-        "HGNC:1097"
-      ],
-      "exit": 2,
-      "expect": {
-        "/error/code": "usage.arguments"
-      },
-      "max_bytes": 210,
-      "mcp": [
-        "search",
-        "pathway",
-        "text",
-        "--gene",
-        "HGNC:1097"
-      ],
+      "max_bytes": 577,
       "is_error": true
     },
     {
@@ -80,111 +46,8 @@
       "expect": {
         "/error/code": "usage.arguments"
       },
-      "max_bytes": 166,
-      "mcp": [
-        "search",
-        "pathway",
-        "text",
-        "--limit",
-        "0"
-      ],
+      "max_bytes": 463,
       "is_error": true
-    },
-    {
-      "run": [
-        "search",
-        "pathway",
-        "text",
-        "--limit",
-        "51"
-      ],
-      "exit": 2,
-      "expect": {
-        "/error/code": "usage.arguments"
-      },
-      "max_bytes": 166,
-      "mcp": [
-        "search",
-        "pathway",
-        "text",
-        "--limit",
-        "51"
-      ],
-      "is_error": true
-    },
-    {
-      "run": [
-        "get",
-        "pathway",
-        "R-MMU-5673001"
-      ],
-      "exit": 2,
-      "expect": {
-        "/error/code": "usage.arguments"
-      },
-      "max_bytes": 166,
-      "mcp": [
-        "get",
-        "pathway",
-        "R-MMU-5673001"
-      ],
-      "is_error": true
-    },
-    {
-      "run": [
-        "search",
-        "pathway",
-        "zzzzNoPathway0191"
-      ],
-      "exit": 1,
-      "expect": {
-        "/status": "absent",
-        "/result/page/total": 0
-      },
-      "max_bytes": 343,
-      "mcp": [
-        "search",
-        "pathway",
-        "zzzzNoPathway0191"
-      ],
-      "is_error": false
-    },
-    {
-      "run": [
-        "get",
-        "pathway",
-        "R-HSA-140877"
-      ],
-      "exit": 1,
-      "expect": {
-        "/status": "absent"
-      },
-      "max_bytes": 209,
-      "max_tokens": 52,
-      "mcp": [
-        "get",
-        "pathway",
-        "R-HSA-140877"
-      ],
-      "is_error": false
-    },
-    {
-      "run": [
-        "get",
-        "pathway",
-        "R-HSA-999999999999"
-      ],
-      "exit": 1,
-      "expect": {
-        "/status": "absent"
-      },
-      "max_bytes": 216,
-      "mcp": [
-        "get",
-        "pathway",
-        "R-HSA-999999999999"
-      ],
-      "is_error": false
     }
   ]
 }

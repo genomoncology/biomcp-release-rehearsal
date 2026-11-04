@@ -1,0 +1,34 @@
+{
+  "feature": "article-fold",
+  "live_check": "synthetic authored PubMed 500 replies with a retained Europe PMC answer; exclude from live calls",
+  "story": "A failed PubMed search keeps the Europe PMC answer and both actual source outcomes.",
+  "replay": "article/fold/failed-pubmed",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "AKT1",
+        "--author",
+        "Carpten",
+        "--source",
+        "pubmed,europepmc"
+      ],
+      "exit": 0,
+      "full_output_bytes": true,
+      "max_bytes": 1436,
+      "expect": {
+        "/status": "partial",
+        "/sources/0/source": "pubmed",
+        "/sources/0/state": "failed",
+        "/sources/0/reason": "unavailable",
+        "/sources/1/source": "europepmc",
+        "/sources/1/state": "ok",
+        "/result/items/0/key/namespace": "europepmc",
+        "/result/items/0/key/id": "PPR8888",
+        "/result/items/0/header/title": "Synthetic source-local citation"
+      }
+    }
+  ],
+  "verified": "The full CLI reply measures 1248 bytes. The limit adds 15 percent. Three authored 500 exchanges preserve the existing transport retry policy."
+}

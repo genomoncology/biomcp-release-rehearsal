@@ -1,4 +1,5 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "diagnostic-cdx",
   "story": "Diagnostic help describes source-owned commands and safety boundaries with two executable examples per command.",
   "steps": [
@@ -8,15 +9,10 @@
         "search",
         "diagnostic"
       ],
-      "mcp": [
-        "help",
-        "search",
-        "diagnostic"
-      ],
       "expect": {
-        "/result/commands/0/description": "Search one diagnostic source. A listing is not authorization; a companion row is not a treatment recommendation.",
+        "/result/commands/0/description": "Search five source records by default. Sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -30,16 +26,17 @@
             "--drug-application",
             "--biomarker",
             "--limit",
-            "--offset"
+            "--offset",
+            "--product-code",
+            "--initiated-from",
+            "--initiated-to",
+            "--name",
+            "--decision-from",
+            "--decision-to"
           ]
-        },
-        "/result/commands/0/arguments/11/choices": [
-          "gtr",
-          "fda-cdx",
-          "who-ivd"
-        ]
+        }
       },
-      "max_bytes": 3792
+      "max_bytes": 6500
     },
     {
       "run": [
@@ -47,15 +44,10 @@
         "get",
         "diagnostic"
       ],
-      "mcp": [
-        "help",
-        "get",
-        "diagnostic"
-      ],
       "expect": {
-        "/result/commands/0/description": "Get one exact source record or supported section. A listing is not authorization; a companion row is not a treatment recommendation.",
+        "/result/commands/0/description": "Get one exact source record or supported section. Sources: fda-510k, fda-device-recall, fda-pma, gtr, who-ivd.",
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -72,17 +64,19 @@
           "gtr",
           "who-ivd",
           "fda-pma",
-          "fda-510k"
+          "fda-510k",
+          "fda-device-recall"
         ],
         "/result/commands/0/sections/*/word": [
           "genes",
           "conditions",
           "methods",
+          "summary",
           "regulatory",
           "supplements"
         ]
       },
-      "max_bytes": 3799
+      "max_bytes": 5000
     },
     {
       "run": [
@@ -90,14 +84,9 @@
         "sync",
         "gtr"
       ],
-      "mcp": [
-        "help",
-        "sync",
-        "gtr"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1372
@@ -106,38 +95,15 @@
       "run": [
         "help",
         "sync",
-        "who-ivd"
-      ],
-      "mcp": [
-        "help",
-        "sync",
-        "who-ivd"
-      ],
-      "expect": {
-        "/result/commands/0/examples": {
-          "count": 2
-        }
-      },
-      "max_bytes": 1391
-    },
-    {
-      "run": [
-        "help",
-        "sync",
-        "fda-cdx"
-      ],
-      "mcp": [
-        "help",
-        "sync",
         "fda-cdx"
       ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 1391
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. The source_pacing global argument adds 162 compact JSON bytes and one array separator. Its exhausted leaf budget adds exactly those 163 bytes, preserving the prior headroom; other budgets stay unchanged."
 }

@@ -2,7 +2,6 @@ use crate::{Section, Text, TrialDocument};
 use serde::{Deserialize, Serialize};
 /// Receipt for exactly the original source bytes written by the caller.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TrialDocumentSaved {
     /// Absolute caller-owned path.
@@ -16,13 +15,12 @@ pub struct TrialDocumentSaved {
 }
 /// Original trial PDF download, never document text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TrialDocumentResult {
     /// Saved receipt, confirmed absence, or a source failure.
     pub file: Section<TrialDocumentSaved>,
 }
 impl super::ResponseBody for TrialDocumentResult {
-    const SCHEMA: &'static str = "biomcp.trial-document/2";
+    const SCHEMA: &'static str = "biomcp.trial-document/7";
     type Query = crate::TrialDocumentGet;
 }

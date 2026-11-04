@@ -42,10 +42,6 @@ macro_rules! relation {
             pub fn at_page(&self, pool: Text, offset: u32) -> Self {
                 let mut q = self.clone(); q.0.pool = Some(pool); q.0.offset = offset; q
             }
-            /// Restart the same source selection.
-            pub fn restart(&self) -> Self {
-                let mut q = self.clone(); q.0.pool = None; q.0.offset = 0; q
-            }
             /// Exact anchor accession.
             pub fn accession(&self) -> &UniProtIsoform { &self.0.accession }
             /// Bounded page size.
@@ -55,6 +51,12 @@ macro_rules! relation {
             /// Retained collection, if selected.
             pub fn pool(&self) -> Option<&Text> { self.0.pool.as_ref() }
         }
+impl crate::Paged for $name {
+    type Offset = ();
+    fn set_page_offset(&mut self, _offset: Self::Offset) { self.0.offset = 0; }
+    fn clear_page_context(&mut self) { self.0.pool = None; }
+}
+
     };
 }
 relation!(ProteinFeaturesQuery, FeatureFields, "FeatureFields", {

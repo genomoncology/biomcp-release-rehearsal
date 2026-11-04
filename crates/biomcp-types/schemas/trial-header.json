@@ -1,13 +1,12 @@
 {
   "$defs": {
-    "Capped": {
-      "additionalProperties": false,
+    "Reply_Capped_Text": {
       "description": "A bounded list with the total before its cap was applied.",
       "properties": {
         "items": {
           "description": "References in stable source order.",
           "items": {
-            "$ref": "#/$defs/Text"
+            "$ref": "#/$defs/Reply_Text"
           },
           "type": "array"
         },
@@ -23,22 +22,24 @@
       ],
       "type": "object"
     },
-    "NctId": {
+    "Reply_NctId": {
       "description": "Canonical ClinicalTrials.gov identifier.",
       "pattern": "^NCT(?!00000000)[0-9]{8}$",
       "type": "string"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "TrialPhase": {
+    "Reply_TrialPhase": {
       "description": "Source-native registry value.",
       "enum": [
         "EARLY_PHASE1",
@@ -50,8 +51,8 @@
       ],
       "type": "string"
     },
-    "TrialStatus": {
-      "description": "Source-native registry value.",
+    "Reply_TrialStatus": {
+      "description": "Publisher Status enum for OverallStatus from\n<https://clinicaltrials.gov/api/v2/studies/enums>.",
       "enum": [
         "ACTIVE_NOT_RECRUITING",
         "COMPLETED",
@@ -63,6 +64,7 @@
         "WITHDRAWN",
         "AVAILABLE",
         "NO_LONGER_AVAILABLE",
+        "TEMPORARILY_NOT_AVAILABLE",
         "APPROVED_FOR_MARKETING",
         "WITHHELD",
         "UNKNOWN"
@@ -70,55 +72,72 @@
       "type": "string"
     }
   },
-  "$id": "biodata.trial_header/1",
+  "$id": "biomcp.trial-header/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "Small source-attributed trial discovery record.",
   "properties": {
     "conditions": {
-      "$ref": "#/$defs/Capped",
+      "$ref": "#/$defs/Reply_Capped_Text",
       "description": "Source condition names."
     },
     "interventions": {
-      "$ref": "#/$defs/Capped",
+      "$ref": "#/$defs/Reply_Capped_Text",
       "description": "Source intervention names."
     },
     "nct_id": {
-      "$ref": "#/$defs/NctId",
+      "$ref": "#/$defs/Reply_NctId",
       "description": "Exact registry identity."
     },
     "phases": {
       "description": "Source phases; absent phases remain absent.",
       "items": {
-        "$ref": "#/$defs/TrialPhase"
+        "$ref": "#/$defs/Reply_TrialPhase"
       },
       "type": "array"
     },
     "status": {
-      "$ref": "#/$defs/TrialStatus",
-      "description": "Registry's overall status, independent of site status."
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_TrialStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Registry overall status, absent when missing or rejected; independent of site status."
     },
     "title": {
-      "$ref": "#/$defs/Text",
-      "description": "Complete brief title."
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Source brief title, absent when missing or rejected."
     },
     "updated": {
-      "$ref": "#/$defs/PartialDate",
-      "description": "Last posted registry update."
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_PartialDate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Last posted registry update, absent when missing or rejected."
     },
     "url": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Publisher's canonical record URL.",
       "format": "uri"
     }
   },
   "required": [
     "nct_id",
-    "title",
-    "status",
     "conditions",
     "interventions",
-    "updated",
     "url"
   ],
   "title": "TrialHeader",

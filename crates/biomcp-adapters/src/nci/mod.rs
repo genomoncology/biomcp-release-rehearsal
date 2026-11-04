@@ -1,4 +1,16 @@
-//! Explicit keyed NCI trial access, without registry vocabulary translation.
+//! Explicit keyed NCI Clinical Trials Search access, without vocabulary translation.
+use biomcp_fetch::{Input, Read};
+pub mod biomarker;
+mod biomarker_map;
+mod biomarker_raw;
+mod eligibility;
+pub mod organization;
+mod organization_map;
+mod organization_raw;
+mod sites;
+mod trial_biomarker;
+mod trial_map;
+mod trial_raw;
 use biodata::{NctId, Text};
 
 use biomcp_fetch::{
@@ -15,6 +27,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     source: biomcp_types::Source::Nci,
     base: "https://clinicaltrialsapi.cancer.gov/api/v2",
     key: KeyUse::Required(Credential {
+        tier: biomcp_types::KeyTier::Fallback,
         secret: SecretName::NciApiKey,
         place: KeyPlace::Header("X-API-KEY"),
     }),
@@ -23,7 +36,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "NCI Clinical Trials Search publisher terms; user's API key required",
         url: "https://www.cancer.gov/syndication/api",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
 };
 /// Native trial search, also used for one bounded health request.
@@ -37,7 +50,10 @@ pub const SEARCH: Endpoint = SPEC.get("/trials").fresh(Freshness::Days(1));
 const DETAIL: Endpoint = SPEC.get("/trials").fresh(Freshness::Days(1));
 /// Native page, preserving provider counts and order.
 #[derive(Debug, Deserialize)]
+#[serde(from = "trial_map::Page")]
 pub struct Page {
+    /// Actual refused native records in this collection.
+    pub refusals: crate::Refusal,
     /// Publisher total, never a local count.
     pub total: u64,
     /// Checked publisher trial rows.
@@ -53,32 +69,35 @@ impl Reply for Page {
 }
 /// Source-native identity and card fields. Extra source fields remain adapter-owned.
 #[derive(Debug, Deserialize)]
+#[serde(from = "trial_raw::Trial")]
 pub struct Trial {
+    /// Actual refused native child records.
+    pub refusals: crate::Refusal,
     nci_id: Text,
     nct_id: NctId,
-    brief_title: Text,
-    current_trial_status: Text,
+    brief_title: Option<Text>,
+    current_trial_status: Option<Text>,
     phase: Option<biomcp_types::NciTrialPhase>,
     brief_summary: Option<Box<str>>,
-    #[serde(default)]
     diseases: Vec<NciDisease>,
+    biomarkers: Option<crate::raw::Field<Vec<crate::raw::Field<trial_biomarker::Biomarker>>>>,
+    sites: Option<crate::raw::Field<Vec<crate::raw::Field<sites::Site>>>>,
     eligibility: Option<biomcp_types::NciEligibility>,
-    #[serde(default)]
-    arms: Vec<Arm>,
-    #[serde(default)]
-    outcome_measures: Vec<biomcp_types::NciOutcome>,
-}
-#[derive(Debug, Deserialize)]
-struct Arm {
-    name: Option<Box<str>>,
-    description: Option<Box<str>>,
-    r#type: Option<Text>,
-    #[serde(default)]
-    interventions: Vec<biomcp_types::NciIntervention>,
+    arms: Box<[biomcp_types::NciArmRecord]>,
+    outcome_measures: Box<[biomcp_types::NciOutcome]>,
+    problems: Vec<biomcp_types::Problem>,
 }
 /// Native sections and compact card from one validated source record.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Detail {
+    /// Actual refused native child records persisted with the snapshot.
+    #[serde(
+        default = "crate::mapped::refusal_serde::none",
+        with = "crate::mapped::refusal_serde"
+    )]
+    pub refusals: crate::Refusal,
+    /// Rejected optional source fields.
+    pub problems: Vec<biomcp_types::Problem>,
     /// Compact source-native card.
     pub card: NciTrial,
     /// Complete source summary, without trimming or rewriting.
@@ -101,6 +120,10 @@ impl Reply for Trial {
     }
 }
 impl Trial {
+    /// Rejected native fields from this record.
+    pub fn problems(&self) -> &[biomcp_types::Problem] {
+        &self.problems
+    }
     /// Native publisher card, with no clinical interpretation or inferred fields.
     pub fn card(&self, summary: bool) -> NciTrial {
         NciTrial {
@@ -109,6 +132,9 @@ impl Trial {
             brief_title: self.brief_title.clone(),
             current_trial_status: self.current_trial_status.clone(),
             phase: self.phase.clone(),
+            matched_biomarkers: Box::default(),
+            matched_site: None,
+            matching_sites: None,
             brief_summary: if summary {
                 self.brief_summary
                     .as_ref()
@@ -139,34 +165,15 @@ impl Trial {
     }
     fn detail(self) -> Detail {
         let card = self.card(true);
-        let mut arms = Vec::new();
-        for (arm_index, arm) in self.arms.into_iter().enumerate() {
-            arms.push(biomcp_types::NciArmRecord::Arm {
-                arm_index: arm_index as u32,
-                data: biomcp_types::NciArm {
-                    name: arm.name,
-                    description: arm.description,
-                    r#type: arm.r#type,
-                },
-            });
-            arms.extend(
-                arm.interventions
-                    .into_iter()
-                    .enumerate()
-                    .map(|(index, data)| biomcp_types::NciArmRecord::Intervention {
-                        arm_index: arm_index as u32,
-                        index: index as u32,
-                        data,
-                    }),
-            );
-        }
         Detail {
+            refusals: self.refusals,
+            problems: self.problems,
             card,
             summary: self.brief_summary,
             diseases: self.diseases.into(),
             eligibility: self.eligibility,
-            outcomes: self.outcome_measures.into(),
-            arms: arms.into(),
+            outcomes: self.outcome_measures,
+            arms: self.arms,
         }
     }
 }
@@ -179,13 +186,38 @@ pub fn parameters(query: &TrialSearch) -> Vec<(String, String)> {
             query.next_page().map_or("0", Text::as_str).into(),
         ),
     ];
-    for (name, value) in [
-        ("diseases.nci_thesaurus_concept_id", query.condition()),
-        ("keyword", query.keyword()),
-    ] {
-        if let Some(value) = value {
-            params.push((name.into(), value.as_str().into()));
-        }
+    for value in query.condition() {
+        params.push((
+            "diseases.nci_thesaurus_concept_id".into(),
+            value.as_str().into(),
+        ));
+    }
+    for country in query.country() {
+        params.push(("sites.org_country".into(), country.to_string()));
+    }
+    if let Some(value) = query.keyword().first() {
+        params.push(("keyword".into(), value.as_str().into()));
+    }
+    if let Some(name) = query.facility() {
+        params.push(("sites.org_name".into(), name.as_str().into()));
+    }
+    if let Some(code) = query.biomarker_code() {
+        params.push((
+            "biomarkers.nci_thesaurus_concept_id".into(),
+            code.to_string(),
+        ));
+    }
+    if let Some(criterion) = query.biomarker_use() {
+        params.push((
+            "biomarkers.eligibility_criterion".into(),
+            criterion.as_str().to_owned(),
+        ));
+    }
+    if let Some(phase) = query.nci_phase() {
+        params.push(("phase".into(), phase.as_str().into()));
+    }
+    if let Some(status) = query.nci_status() {
+        params.push(("current_trial_status".into(), status.as_str().into()));
     }
     for field in [
         "nci_id",
@@ -196,6 +228,12 @@ pub fn parameters(query: &TrialSearch) -> Vec<(String, String)> {
         "diseases",
     ] {
         params.push(("include".into(), field.into()));
+    }
+    if query.biomarker_code().is_some() {
+        params.push(("include".into(), "biomarkers".into()));
+    }
+    if query.facility().is_some() {
+        params.push(("include".into(), "sites".into()));
     }
     params
 }
@@ -213,13 +251,18 @@ pub fn search(leg: &Leg<'_>, params: &[(String, String)]) -> Result<Page, Reques
                 .flatten()
         })
         .unwrap_or(PAGE_LIMIT as usize);
-    leg.json_received_checked::<Page>(&SEARCH, &args, |page| {
-        if page.data.len() <= limit {
-            Ok(())
-        } else {
-            Err(BadReply)
-        }
-    })
+    leg.call(
+        &SEARCH,
+        Input::Params(&args),
+        Read::<Page>::json().check(&|page| {
+            if page.data.len() <= limit {
+                Ok(())
+            } else {
+                Err(BadReply)
+            }
+        }),
+    )
+    .map(|received| (received.value, received.meta))
     .map(|(page, _)| page)
 }
 /// Exact identity check runs before cache admission and on replay or cache hits.
@@ -228,12 +271,21 @@ pub fn get(
     id: NctId,
 ) -> Result<(Detail, biomcp_fetch::ReplyMetadata), RequestError> {
     let endpoint = DETAIL.clone().with_path(format!("/trials/{id}"))?;
-    let (raw, metadata) = leg.json_received_checked::<Trial>(&endpoint, &[], |r| {
-        if r.nct_id == id {
-            Ok(())
-        } else {
-            Err(BadReply)
-        }
-    })?;
+    let (raw, metadata) = leg
+        .call(
+            &endpoint,
+            Input::Params(&[]),
+            Read::<Trial>::json().check(&|r| {
+                if r.nct_id == id {
+                    Ok(())
+                } else {
+                    Err(BadReply)
+                }
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
     Ok((raw.detail(), metadata))
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

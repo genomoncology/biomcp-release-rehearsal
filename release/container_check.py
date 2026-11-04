@@ -8,7 +8,11 @@ import subprocess
 import sys
 import tempfile
 
-from smoke import mcp_probe, require
+from smoke import SCHEMA_ID, case_suite, mcp_probe, require
+
+RUNNER_SETUP = ('mkdir /tmp/check && '
+                'cp /proof/case-runner /proof/tool-runner /tmp/check/ && '
+                'cp -R /proof/fixtures /tmp/check/fixtures && exec "$@"')
 
 
 def main():
@@ -22,25 +26,35 @@ def main():
                                                     '/usr/share/doc/biomcp/' + name])
         require(contents == (Path(proof) / name).read_bytes(), 'container ' + name + ' differs from candidate')
     checks.append('license-notices')
-    for args, key in [(["schema", "biodata.problem/1"], "$id"), (["help"], "commands")]:
+    for args, key in [(["schema", SCHEMA_ID], "$id"), (["help"], "commands")]:
         result = subprocess.run(common + [image] + args, capture_output=True, text=True, check=True)
         value = json.loads(result.stdout)
         require(not result.stderr, "container command wrote stderr")
-        require(value["result"][key] if key == "commands" else value[key] == "biodata.problem/1", "container command contract differs")
+        require(value["result"][key] if key == "commands" else value[key] == SCHEMA_ID, "container command contract differs")
         checks.append("help" if key == "commands" else "schemas")
     with tempfile.TemporaryDirectory() as root:
         mcp_probe(common + ["-i", image, "serve"], os.environ.copy(), Path(root), version)
     checks.extend(["version", "mcp-all-stdout"])
-    executable = common + ["-v", str(Path(proof).resolve()) + ":/proof:ro", "-e", "BIOMCP_TEST_EXECUTABLE=/usr/local/bin/biomcp", "-e", "BIOMCP_TEST_FIXTURES=/proof/fixtures", "--entrypoint", "/proof/case-runner", image]
-    subprocess.run(executable + ["--cases", "/proof/fixtures/cases", "--test-threads", "1"], check=True)
-    checks.append("replay-cli-mcp")
-    subprocess.run(executable + ["--installed-process-proof"], check=True)
-    checks.append("ordinary-cache-two-process")
-    subprocess.run(executable + ["--installed-http-proof"], check=True)
-    checks.append("mcp-http")
-    subprocess.run(executable + ["--installed-alphagenome-proof"], check=True)
-    checks.append("alphagenome-local-tls")
-    print(json.dumps({"artifact": "docker", "platform": "linux/" + arch, "result": "pass", "checks": checks}))
+    executable = common + ["-v", str(Path(proof).resolve()) + ":/proof:ro", "-e", "BIOMCP_TEST_EXECUTABLE=/usr/local/bin/biomcp", "-e", "BIOMCP_TEST_FIXTURES=/tmp/check/fixtures",
+                           "--entrypoint", "/bin/sh", image, "-ec", RUNNER_SETUP, "installed-runner"]
+    metadata = json.loads(subprocess.check_output(
+        executable + ["/tmp/check/tool-runner", "--proof-metadata"], text=True))
+    exclusions = [row["name"] for row in metadata if row["requires_repository_python"]]
+    require(len(metadata) > len(exclusions), "container selection has no runtime proofs")
+    selection = ["/tmp/check/tool-runner", "--proofs", "--exact"]
+    for name in exclusions:
+        selection.extend(["--skip", name])
+    proofs = case_suite(executable + selection, os.environ.copy(), Path.cwd(),
+                        Path(proof) / "fixtures", expected_filtered=len(exclusions))
+    require(proofs["trials"] == len(metadata) - len(exclusions),
+            "container proof count differs from declared selection")
+    checks.append("runner-proofs")
+    executable += ["/tmp/check/case-runner"]
+    summary = case_suite(executable, os.environ.copy(), Path.cwd(), Path(proof) / "fixtures")
+    checks.append("all-cases-and-trials")
+    print(json.dumps({"artifact": "docker", "platform": "linux/" + arch, "result": "pass", "checks": checks,
+                      "proofs": {"ran": proofs["trials"], "excluded": exclusions,
+                                 "excluded_count": len(exclusions)}, **summary}))
 
 
 if __name__ == "__main__":

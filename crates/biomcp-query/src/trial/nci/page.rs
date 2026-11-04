@@ -1,19 +1,12 @@
 //! Intact native records page by source position within an immutable NCI snapshot.
 use super::get::Snapshot;
-use crate::{Action, Outcome};
+use crate::Outcome;
 use biodata::Text;
 use biomcp_fetch::RequestError;
 use biomcp_types::{
-    NciEligibilityPage, NciTrialItem, NciTrialSections, Request, Section, Source, Status, StepKind,
+    NciEligibilityPage, NciTrialItem, NciTrialSections, Request, Section, Source, StepKind,
     TrialGet, TrialSection, TrialSource,
 };
-const SECTIONS: [TrialSection; 5] = [
-    TrialSection::Eligibility,
-    TrialSection::Outcomes,
-    TrialSection::Arms,
-    TrialSection::Diseases,
-    TrialSection::Summary,
-];
 const SECTION_BYTES: usize = 6000;
 pub(super) fn valid(q: &TrialGet, s: &Snapshot) -> bool {
     let n = match q.sections().first() {
@@ -46,6 +39,7 @@ pub(super) fn render(
         diseases: None,
     };
     let id = s.detail.card.nct_id;
+    out.problems.extend(s.detail.problems.clone());
     if let Some(problem) = super::phase_problem(&s.detail.card) {
         out.problems.push(problem);
     }
@@ -92,25 +86,23 @@ pub(super) fn render(
     let unsupported: Box<[_]> = q
         .sections()
         .iter()
-        .filter(|s| **s != TrialSection::All && !SECTIONS.contains(s))
+        .filter(|s| **s != TrialSection::All && !TrialSource::Nci.sections().contains(s))
         .copied()
         .collect();
-    let state = if !unsupported.is_empty()
+    let incomplete = s.detail.refusals == biomcp_adapters::Refusal::Refused
+        || !unsupported.is_empty()
         || s.sources.iter().any(|s| {
             matches!(
                 s.state,
                 biomcp_types::SourceState::Stale | biomcp_types::SourceState::Failed
             )
-        }) {
-        Status::Partial
-    } else {
-        Status::Complete
-    };
+        });
+    let state = crate::status::item_status(true, false, incomplete);
     Ok(NciTrialItem {
         input: id,
         status: state,
         card: Some(s.detail.card),
-        fetched: Some(s.fetched),
+        fetched: s.fetched,
         sections: (!q.sections().is_empty()).then_some(sections),
         more,
         unsupported_sections: unsupported,
@@ -234,19 +226,20 @@ fn eligibility(
 }
 
 fn omitted(q: &TrialGet, id: biodata::NctId, out: &mut Outcome) -> Box<[TrialSection]> {
-    let more: Box<[_]> = SECTIONS
-        .into_iter()
+    let more: Box<[_]> = biomcp_types::TrialSource::Nci
+        .sections()
+        .iter()
+        .copied()
         .filter(|s| !q.sections().contains(s) && !q.sections().contains(&TrialSection::All))
         .collect();
     for section in &more {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Section,
-            Action::Run {
-                request: Request::GetTrial(
-                    TrialGet::single(id, Some(*section), q.limit()).with_source(TrialSource::Nci),
-                ),
-                fresh: false,
-            },
+            &[biomcp_types::Source::Nci],
+            Request::GetTrial(
+                TrialGet::single(id, Some(*section), q.limit()).with_source(TrialSource::Nci),
+            ),
+            false,
         ));
     }
     more

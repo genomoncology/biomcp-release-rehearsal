@@ -1,0 +1,108 @@
+{
+  "feature": "adverse-event-search",
+  "story": "Literal OR and escaped names stay quoted, other filters constrain the entire name group, and an oversized native query is refused before any request.",
+  "live_check": "Synthetic local headers only; no clinical-positive or provider-count claim.",
+  "verified": "Synthetic query witnesses, not provider replies.",
+  "replay": "adverse-event/faers-several-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "imatinib OR nilotinib",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/source_query": "(patient.drug.openfda.generic_name:\"imatinib OR nilotinib\" OR patient.drug.openfda.brand_name:\"imatinib OR nilotinib\" OR patient.drug.medicinalproduct:\"imatinib OR nilotinib\")",
+        "/query/text": "imatinib OR nilotinib"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "synthetic \"A\"",
+        "--drug",
+        "synthetic\\B",
+        "--reaction",
+        "synthetic reaction",
+        "--serious",
+        "death",
+        "--received-from",
+        "2024-01",
+        "--received-to",
+        "2024-12",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/result/source_query": "((patient.drug.openfda.generic_name:\"synthetic \\\"A\\\"\" OR patient.drug.openfda.brand_name:\"synthetic \\\"A\\\"\" OR patient.drug.medicinalproduct:\"synthetic \\\"A\\\"\") OR (patient.drug.openfda.generic_name:\"synthetic\\\\B\" OR patient.drug.openfda.brand_name:\"synthetic\\\\B\" OR patient.drug.medicinalproduct:\"synthetic\\\\B\")) AND patient.reaction.reactionmeddrapt:\"synthetic reaction\" AND seriousnessdeath:1 AND receivedate:[20240101 TO 20241231]",
+        "/query/text": "synthetic \"A\"",
+        "/query/drug": [
+          "synthetic\\B"
+        ],
+        "/page/total": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx",
+        "--drug",
+        "synthetic-long-name-xxxxxxxxxx"
+      ],
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/message": "FAERS_QUERY_MAX_BYTES is 4096 bytes for the escaped native query including filters; use fewer or shorter --drug names"
+      }
+    }
+  ]
+}

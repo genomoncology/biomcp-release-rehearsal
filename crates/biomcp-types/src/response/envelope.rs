@@ -1,6 +1,6 @@
 use super::{PageInfo, SourceOutcome, Status, Step};
 use crate::Problem;
-use serde::Serialize;
+use serde::{Deserialize, Deserializer, Serialize};
 /// A response body supplies its schema identity and query type.
 pub trait ResponseBody: Serialize {
     /// Versioned schema identity.
@@ -8,9 +8,17 @@ pub trait ResponseBody: Serialize {
     /// Query echoed by this response.
     type Query: Serialize;
 }
+/// Explicit empty query for commands without selectors.
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct EmptyQuery {}
 /// One versioned command response; schema identity comes only from its body type.
-#[derive(Clone, Debug, Serialize)]
-#[serde(bound = "T: ResponseBody", deny_unknown_fields)]
+/// JSON readers ignore unknown fields and unknown growable enum values within a major.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(bound(
+    serialize = "T: ResponseBody",
+    deserialize = "T: ResponseBody + serde::de::DeserializeOwned, T::Query: serde::de::DeserializeOwned"
+))]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
     feature = "schema",
@@ -18,7 +26,8 @@ pub trait ResponseBody: Serialize {
 )]
 pub struct Envelope<T: ResponseBody> {
     #[cfg_attr(feature = "schema", schemars(extend("const" = T::SCHEMA)))]
-    schema: &'static str,
+    #[serde(deserialize_with = "read_schema::<_, T>")]
+    schema: String,
     /// Overall outcome.
     pub status: Status,
     /// Bounded local cache failure, independent of provider outcomes.
@@ -46,7 +55,7 @@ impl<T: ResponseBody> Envelope<T> {
     /// Construct a response with its body's schema identity.
     pub fn new(status: Status, query: T::Query, result: Option<T>) -> Self {
         Self {
-            schema: T::SCHEMA,
+            schema: T::SCHEMA.to_owned(),
             status,
             local_error: None,
             query,
@@ -57,4 +66,17 @@ impl<T: ResponseBody> Envelope<T> {
             next: Vec::new(),
         }
     }
+}
+
+fn read_schema<'de, D: Deserializer<'de>, T: ResponseBody>(
+    deserializer: D,
+) -> Result<String, D::Error> {
+    let schema = String::deserialize(deserializer)?;
+    if schema != T::SCHEMA {
+        return Err(serde::de::Error::custom(format!(
+            "expected schema {}, received {schema}",
+            T::SCHEMA
+        )));
+    }
+    Ok(schema)
 }

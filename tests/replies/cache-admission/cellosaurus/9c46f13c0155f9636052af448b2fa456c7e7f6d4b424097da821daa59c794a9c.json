@@ -1,0 +1,28 @@
+{
+  "source": "cellosaurus",
+  "method": "GET",
+  "url": "https://api.cellosaurus.org/release-info?format=json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "header": {
+              "release": {
+                "nb-cell-lines": "169026",
+                "nb-publications": "29992",
+                "updated": "2026-10-22",
+                "version": "57.0"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

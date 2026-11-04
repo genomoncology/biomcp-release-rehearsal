@@ -1,4 +1,5 @@
 {
+  "live_check": "local-only command help, validation or stored-state behavior; no recorded source replies",
   "feature": "pathway-wikipathways",
   "story": "A missing WikiPathways snapshot requests explicit synchronization without a provider request.",
   "steps": [
@@ -20,13 +21,6 @@
         ]
       },
       "max_bytes": 2000,
-      "mcp": [
-        "search",
-        "pathway",
-        "Apoptosis",
-        "--source",
-        "wikipathways"
-      ],
       "is_error": true
     }
   ]

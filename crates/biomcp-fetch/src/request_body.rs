@@ -9,6 +9,7 @@ impl Leg<'_> {
         status: u16,
         recording: bool,
         limit: u64,
+        overflow_reason: Reason,
     ) -> Result<Vec<u8>, Failure> {
         let mut body = Vec::new();
         if recording || (200..300).contains(&status) {
@@ -34,7 +35,7 @@ impl Leg<'_> {
                 })?;
             if body.len() as u64 > limit {
                 return Err(Failure::Local(
-                    self.failure(Reason::BadReply, Some(status)).into(),
+                    self.failure(overflow_reason, Some(status)).into(),
                 ));
             }
         }

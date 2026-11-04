@@ -1,55 +1,7 @@
-use super::*;
-pub(super) fn identity() -> Result<(), String> {
-    for (args, mut value, key, replacement) in [
-        (
-            vec!["get", "gwas", "association:6114"],
-            card(),
-            "association_id",
-            json!(6063),
-        ),
-        (
-            vec!["get", "gwas", "GCST000035"],
-            study(),
-            "accession_id",
-            json!("GCST000037"),
-        ),
-    ] {
-        let env = Environment::new().map_err(|e| e.to_string())?;
-        *value.get_mut(key).ok_or("identity field")? = replacement;
-        let replay = seed(&env, &args, value.to_string(), 200, 0)?;
-        let failed = call("gwas_get/synthetic/identity/1", &env, &replay, &args, 4)?;
-        if failed.get("result").is_some()
-            || failed.pointer("/sources/0/reason") != Some(&json!("bad_reply"))
-            || failed
-                .get("problems")
-                .and_then(Value::as_array)
-                .is_none_or(Vec::is_empty)
-        {
-            return Err(format!("wrong identity admitted: {failed}"));
-        }
-        let mut offline = env.globals(None, true);
-        offline.extend(args.iter().map(|s| (*s).to_owned()));
-        let value = gwas_budgets::invoke("gwas_get/synthetic/identity/2", &env, offline, 4)?;
-        if value.pointer("/sources/0/reason") != Some(&json!("offline")) {
-            return Err("wrong identity cached".into());
-        }
-    }
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let args = ["get", "gwas", "association:6114"];
-    let replay = seed(&env, &args, card().to_string(), 200, 0)?;
-    let result = call("gwas_get/synthetic/identity/3", &env, &replay, &args, 0)?;
-    let steps = result.get("next").and_then(Value::as_array).ok_or("next")?;
-    if steps.iter().any(|s| {
-        s.pointer("/args/2") == Some(&json!("association:6114"))
-            && s.pointer("/args/3") != Some(&json!("loci"))
-    }) || !steps
-        .iter()
-        .any(|s| s.pointer("/args/2") == Some(&json!("GCST000035")))
-    {
-        return Err(format!("association navigation: {result}"));
-    }
-    Ok(())
-}
+use super::{
+    BASE, Environment, Stub, Value, ancestry_body, call, fs, gwas_budgets, json, seed, source,
+};
+
 pub(super) fn ancestry() -> Result<(), String> {
     let args = [
         "get",
@@ -158,8 +110,8 @@ pub(super) fn contexts() -> Result<(), String> {
     )?;
     let next = super::super::action(&first, "page")?;
     let last = gwas_budgets::invoke("gwas_get/synthetic/contexts/3", &live, next, 0)?;
-    if first.pointer("/result/items/0/id") != Some(&json!(6110))
-        || last.pointer("/result/items/0/id") != Some(&json!(6113))
+    if first.pointer("/result/items/0/id") != Some(&json!("association:6110"))
+        || last.pointer("/result/items/0/id") != Some(&json!("association:6113"))
         || last.pointer("/query/query/id") != Some(&json!("GCST000035"))
         || last.pointer("/page/total") != Some(&json!(6))
     {

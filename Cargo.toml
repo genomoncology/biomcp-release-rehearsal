@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/biomcp-types", "crates/biodata", "crates/biomcp-adapters", "crates/biomcp-fetch", "crates/biomcp-query", "crates/biomcp"]
+members = ["crates/biomcp-test-support", "crates/biomcp-types", "crates/biomcp-adapters", "crates/biomcp-fetch", "crates/biomcp-query", "crates/biomcp"]
 resolver = "3"
 
 [workspace.package]
@@ -21,7 +21,10 @@ debug = "line-tables-only"
 debug = false
 
 [workspace.dependencies]
-biodata = { version = "=1.0.0", path = "crates/biodata" }
+lopdf = { version = "=0.47.0", default-features = false }
+biomcp-test-support = { version = "=1.0.0", path = "crates/biomcp-test-support" }
+# BioData v1.0.0, pinned to the annotated tag's commit.
+biodata = { version = "=1.0.0", git = "https://github.com/genomoncology/biodata", rev = "8bcd2456cab32d04daaac5ea0a17ea4151d4224e", features = ["schema"] }
 biomcp-adapters = { version = "=1.0.0", path = "crates/biomcp-adapters" }
 biomcp-fetch = { version = "=1.0.0", path = "crates/biomcp-fetch" }
 biomcp-query = { version = "=1.0.0", path = "crates/biomcp-query" }
@@ -29,12 +32,15 @@ biomcp-types = { version = "=1.0.0", path = "crates/biomcp-types" }
 shlex = "=2.0.1"
 winnow = { version = "1.0.4", default-features = false, features = ["ascii", "alloc"] }
 url = "2.5.8"
+# Keep publisher hosts ASCII-only without ICU Unicode normalization.
+idna_adapter = "=1.0.0"
 base64 = "0.23.1"
 httparse = "=1.10.1"
 ctrlc = { version = "=3.5.2", features = ["termination"] }
 clap = { version = "4.6.7", default-features = false, features = ["std", "string", "derive"] }
 serde = { version = "1.0.229", default-features = false, features = ["std", "derive"] }
 # Keep finite numeric source values stable across CLI and MCP JSON boundaries.
+serde_ignored = "0.1.14"
 serde_json = { version = "1.0.154", features = ["float_roundtrip", "raw_value"] }
 toml = { version = "1.1.8", default-features = false, features = ["parse", "serde", "std"] }
 tempfile = "3.27.0"
@@ -44,18 +50,25 @@ serde-saphyr = { version = "2.0.0", default-features = false, features = ["deser
 rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
 rustls-platform-verifier = "0.7.1"
 
-ureq = { version = "3.5.0", default-features = false, features = ["rustls", "platform-verifier", "gzip", "json"] }
+ureq = { version = "3.5.0", default-features = false, features = ["rustls-no-provider", "platform-verifier", "gzip", "json"] }
 schemars = { version = "1.2.3", default-features = false, features = ["derive", "std"] }
 jsonschema = { version = "0.46.0", default-features = false }
 
 sha2 = { version = "0.11.1", default-features = false }
 httpdate = "1.0.3"
-calamine = { version = "0.37.0", default-features = false }
+calamine = { version = "0.38.0", default-features = false }
 csv = "1.4.0"
 flate2 = "1.1.10"
 zip = { version = "9.0", default-features = false, features = ["deflate"] }
 quick-xml = { version = "0.42.0", default-features = false, features = ["serialize"] }
 rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
+
+h2 = { version = "0.4", default-features = false }
+tokio = { version = "1", default-features = false, features = ["rt", "net", "time", "sync", "io-util", "macros"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+tonic = { version = "=0.14.7", default-features = false }
+prost = { version = "=0.14.3", default-features = false, features = ["std"] }
+rcgen = { version = "=0.13.2", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -64,6 +77,11 @@ missing_debug_implementations = "deny"
 missing_docs = "deny"
 
 [workspace.lints.clippy]
+allow_attributes = "deny"
+wildcard_imports = "deny"
+missing_assert_message = "deny"
+fn_params_excessive_bools = "deny"
+ref_option = "deny"
 allow_attributes_without_reason = "deny"
 unwrap_used = "deny"
 expect_used = "deny"

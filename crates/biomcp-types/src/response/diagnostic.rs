@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 /// Compact native laboratory context without authorization interpretation.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiagnosticLaboratory {
     /// Native laboratory identifier.
@@ -24,7 +23,6 @@ pub struct DiagnosticLaboratory {
 }
 /// Small resolved GTR candidate; broad gene and condition arrays stay off the header.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GtrHeader {
     /// Complete source accession and version.
@@ -33,20 +31,32 @@ pub struct GtrHeader {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<Text>,
     /// Native laboratory context.
-    pub laboratory: DiagnosticLaboratory,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub laboratory: Option<DiagnosticLaboratory>,
     /// Source record URL.
     #[cfg_attr(feature = "schema", schemars(extend("format" = "uri")))]
     pub url: Text,
 }
 /// A conflict is visible once without a selected name or card.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(
-    tag = "identity_status",
-    rename_all = "snake_case",
-    deny_unknown_fields
-)]
+#[serde(tag = "identity_status", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum DiagnosticCandidate {
+    /// Native PMA submission; supplements retain their own identity.
+    PmaSubmission {
+        /// Exact native submission header.
+        header: DiagnosticPmaHeader,
+    },
+    /// Native 510(k) record.
+    Clearance {
+        /// Native clearance fields.
+        header: DiagnosticClearance,
+    },
+    /// One native product recall record; repeated event numbers remain separate records.
+    DeviceRecall {
+        /// Source-owned compact recall fields.
+        header: super::DeviceRecallHeader,
+    },
     /// One matched WHO product with cells from its first matching native row.
     WhoIvd {
         /// Exact source product identifier.
@@ -83,7 +93,6 @@ pub enum DiagnosticCandidate {
 }
 /// Native flags retain distinct source meanings and exact source codes.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GtrNativeStatus {
     /// Current version flag, not current clinical availability.
@@ -103,17 +112,19 @@ pub struct GtrNativeStatus {
 }
 /// Exact GTR card retains native context but never embeds its broad relation lists.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(inline))]
 pub struct GtrCard {
     /// Source identity header.
     pub header: GtrHeader,
     /// Separate native flags.
     pub native_status: GtrNativeStatus,
     /// Native revision date; not a local retrieval date.
-    pub last_touch_date: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_touch_date: Option<Text>,
     /// Source creation date.
-    pub test_create_date: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub test_create_date: Option<Text>,
     /// Native deletion cell, including empty.
     pub test_deletion_date: Box<str>,
     /// Native manufacturer test name, including empty.
@@ -136,9 +147,11 @@ pub struct GtrCard {
 }
 /// Exactly one source-owned diagnostic card; conflicts have no card variant.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "kind", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum DiagnosticCard {
+    /// Exact native medical device recall with an optional exact enforcement classification.
+    DeviceRecall(Box<super::DeviceRecallCard>),
     /// Exact resolved GTR accession/version.
     GtrTest(Box<GtrCard>),
     /// All native rows under one WHO Product ID.
@@ -149,12 +162,11 @@ pub enum DiagnosticCard {
     Clearance(DiagnosticClearance),
 }
 impl ResponseBody for DiagnosticCard {
-    const SCHEMA: &'static str = "biomcp.diagnostic-card/1";
+    const SCHEMA: &'static str = "biomcp.diagnostic-card/4";
     type Query = DiagnosticGet;
 }
 /// One bounded regulatory fragment from the exact selected native submission.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiagnosticRegulatoryFragment {
     /// Exact selected native record and its dated regulatory metadata.
@@ -179,91 +191,79 @@ biodata::wire_enum! {
 biodata::wire_enum! {
     /// Meaning of the envelope's total for a source-owned diagnostic page.
     DiagnosticCountUnit {
+        /// Native product recall records, without deduplication by event or harm inference.
+        RecallRecords => "recall-records",
+        /// Native PMA submissions or 510(k) clearances.
+        DeviceSubmissions => "device-submissions",
         /// Distinct WHO Product IDs, grouping repeated code rows.
-        ProductIdentities => "product_identities",
+        ProductIdentities => "product-identities",
         /// Distinct exact GTR accession and version identities.
-        TestIdentities => "test_identities",
+        TestIdentities => "test-identities",
         /// Native relation rows, including repeated IDs and label-only rows.
-        NativeRelationRows => "native_relation_rows",
+        NativeRelationRows => "native-relation-rows",
         /// Independent source list entries, without positional pairing.
-        NativeMethodEntries => "native_method_entries"
+        NativeMethodEntries => "native-method-entries"
     }
 }
-macro_rules! page {
-    ($name:ident, $row:ty, $query:ty, $schema:literal, $doc:literal) => {
-        #[doc = $doc]
-        #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-        #[serde(deny_unknown_fields)]
-        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-        pub struct $name {
-            /// Complete source-owned rows in native order; envelope totals count native rows.
-            #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-            pub items: Box<[$row]>,
-            /// Exact meaning of the envelope total; supplied by the owning source command.
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub count_unit: Option<DiagnosticCountUnit>,
-            /// Distinct complete native IDs across the selected relation collection.
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub distinct_id_total: Option<u64>,
-        }
-        impl ResponseBody for $name {
-            const SCHEMA: &'static str = $schema;
-            type Query = $query;
-        }
-    };
-}
+
 page!(
+    diagnostic,
     DiagnosticPage,
     DiagnosticCandidate,
     DiagnosticSearch,
-    "biomcp.diagnostic-page/2",
-    "Source-ordered GTR test candidates or WHO product headers."
+    "biomcp.diagnostic-page/5",
+    "Source-ordered native diagnostic and medical-device submission candidates."
 );
 page!(
+    diagnostic,
     DiagnosticGenes,
     GtrGeneRelation,
     DiagnosticGet,
-    "biomcp.diagnostic-genes/2",
+    "biomcp.diagnostic-genes/5",
     "Native GTR gene relation rows without variant-coverage inference."
 );
 page!(
+    diagnostic,
     DiagnosticConditions,
     GtrConditionRelation,
     DiagnosticGet,
-    "biomcp.diagnostic-conditions/2",
+    "biomcp.diagnostic-conditions/5",
     "Native GTR condition rows without ontology or clinical conversion."
 );
 page!(
+    diagnostic,
     DiagnosticMethods,
     GtrMethod,
     DiagnosticGet,
-    "biomcp.diagnostic-methods/2",
+    "biomcp.diagnostic-methods/4",
     "Independent native method entries without positional pairing."
 );
 page!(
+    diagnostic,
     DiagnosticRegulatory,
     DiagnosticRegulatoryFragment,
     DiagnosticGet,
-    "biomcp.diagnostic-regulatory/1",
+    "biomcp.diagnostic-regulatory/3",
     "Exact selected submission regulatory text fragments."
 );
 page!(
+    diagnostic,
     DiagnosticSupplements,
     DiagnosticPmaHeader,
     DiagnosticGet,
-    "biomcp.diagnostic-supplements/1",
+    "biomcp.diagnostic-supplements/3",
     "Native supplement records retaining exact identity and independent dated decisions."
 );
 page!(
+    diagnostic,
     DiagnosticCompanion,
     CompanionDiagnosticRelation,
     DiagnosticSearch,
-    "biomcp.diagnostic-companion/1",
+    "biomcp.diagnostic-companion/4",
     "Whole distinct physical companion-table rows with cell-owned identifiers."
 );
 /// Compact exact PMA row identity; its native empty base cell is explicit.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiagnosticPmaHeader {
     /// Native application.
@@ -289,8 +289,8 @@ pub struct DiagnosticPmaHeader {
 }
 /// Selected PMA card; statement text stays behind its bounded regulatory page.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(inline))]
 pub struct DiagnosticPmaCard {
     /// Exact selected source header.
     pub header: DiagnosticPmaHeader,
@@ -300,7 +300,6 @@ pub struct DiagnosticPmaCard {
 }
 /// Dated metadata belonging only to the selected submission.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct DiagnosticPmaRegulatory {
     /// Native date_received when supplied, including empty.
@@ -328,8 +327,8 @@ pub struct DiagnosticPmaRegulatory {
 
 /// Native 510(k) fields without harmonized or inferred clinical content.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(inline))]
 pub struct DiagnosticClearance {
     /// Exact native K number.
     pub k_number: biodata::DiagnosticDeviceId,
@@ -354,4 +353,16 @@ pub struct DiagnosticClearance {
     /// Native product_code; missing and empty remain distinct.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub product_code: Option<Box<str>>,
+}
+
+/// FDA-published SSED text for one PMA base application.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct DiagnosticSummary {
+    /// Mechanical document text with explicit extraction state.
+    pub document: super::PdfText,
+}
+impl ResponseBody for DiagnosticSummary {
+    const SCHEMA: &'static str = "biomcp.diagnostic-summary/1";
+    type Query = DiagnosticGet;
 }

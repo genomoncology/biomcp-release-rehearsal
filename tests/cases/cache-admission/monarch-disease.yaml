@@ -1,0 +1,46 @@
+{
+  "feature": "disease-monarch",
+  "live_check": "Authored malformed identity and optional-field replies for local cache admission; no live provider equivalent.",
+  "story": "A repeated call preserves the native count and refused identity problem.",
+  "replay": "cache-admission",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "disease",
+        "MONDO:0000001",
+        "genes",
+        "--source",
+        "monarch",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 1,
+        "/problems/*/field": {
+          "includes": "id"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "MONDO:0000001",
+        "genes",
+        "--source",
+        "monarch",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 1,
+        "/problems/*/field": {
+          "includes": "id"
+        }
+      }
+    }
+  ]
+}

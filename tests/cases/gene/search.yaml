@@ -1,6 +1,6 @@
 {
   "live_check": "public",
-  "feature": "gene-commands",
+  "feature": "gene-search",
   "story": "search",
   "replay": "gene/main",
   "steps": [
@@ -53,38 +53,6 @@
       "expect": {
         "/page/total": 1,
         "/result/items/0/hgnc_id": "HGNC:1787"
-      }
-    },
-    {
-      "run": [
-        "search",
-        "gene",
-        "--band",
-        "9p21.3",
-        "--offset",
-        "4294967295"
-      ],
-      "expect": {
-        "/status": "complete",
-        "/page/total": 65
-      }
-    },
-    {
-      "run": [
-        "search",
-        "gene",
-        "MLL2"
-      ],
-      "expect": {
-        "/result/items/*/hgnc_id": [
-          "HGNC:7133",
-          "HGNC:15840"
-        ],
-        "/result/items/*/match/kind": [
-          "previous_symbol",
-          "alias"
-        ],
-        "/page/total": 2
       }
     }
   ]

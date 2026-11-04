@@ -1,0 +1,106 @@
+{
+  "feature": "maude-reports",
+  "live_check": "synthetic",
+  "story": "Rejected native rows leave physical indexes and page windows intact after snapshot reload.",
+  "replay": "adverse-event/native-positions/maude",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "160",
+        "devices",
+        "--source",
+        "maude",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 4,
+        "/result/devices": {
+          "omits": [
+            "records"
+          ]
+        }
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 1,
+        "/result/devices/records/0/index": 1,
+        "/result/devices/records/0/manufacturer": "Synthetic position one"
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 2,
+        "/page/returned": 0,
+        "/result/devices": {
+          "omits": [
+            "records"
+          ]
+        }
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 3,
+        "/result/devices/records/0/index": 3,
+        "/result/devices/records/0/manufacturer": "Synthetic position three"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "160",
+        "narrative",
+        "--source",
+        "maude",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 4,
+        "/result/narrative": {
+          "omits": [
+            "records"
+          ]
+        }
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 1,
+        "/result/narrative/records/0/index": 1,
+        "/result/narrative/records/0/text": "Synthetic narrative one.\n"
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 2,
+        "/page/returned": 0,
+        "/result/narrative": {
+          "omits": [
+            "records"
+          ]
+        }
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 3,
+        "/result/narrative/records/0/index": 3,
+        "/result/narrative/records/0/text": "Synthetic narrative three."
+      }
+    }
+  ]
+}

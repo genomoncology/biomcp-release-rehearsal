@@ -2,16 +2,6 @@
   "$id": "biodata.match-kind/1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "How a source matched a gene input.",
-  "enum": [
-    "symbol",
-    "previous_symbol",
-    "alias",
-    "ncbi_alias",
-    "hgnc_id",
-    "entrez_id",
-    "ensembl_id",
-    "band"
-  ],
   "title": "MatchKind",
   "type": "string",
   "x-enum-descriptions": [
@@ -23,5 +13,15 @@
     " NCBI Gene identifier.",
     " Ensembl gene identifier.",
     " Cytogenetic band."
+  ],
+  "x-extensible-enum": [
+    "symbol",
+    "previous_symbol",
+    "alias",
+    "ncbi_alias",
+    "hgnc_id",
+    "entrez_id",
+    "ensembl_id",
+    "band"
   ]
 }

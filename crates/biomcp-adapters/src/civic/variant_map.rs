@@ -1,25 +1,43 @@
+pub(super) use super::variant_subject::{member, record, subject};
 use super::{
     variant::{bounds, failure},
     variant_claims, variant_raw as raw,
 };
-use crate::Mapped;
-use biodata::{GeneSymbol, HgvsText, Text, VariantRef};
-
+use crate::{Mapped, mapped::Problems, raw::Field};
+use biodata::{Text, VariantRef};
 use biomcp_fetch::RequestError;
 use biomcp_types::{
     CivicClaimKind, CivicClaimPage, CivicMember, CivicMembership, CivicProfile, CivicStatement,
-    Problem, ProblemCode, Reason, Source, SourceRecord, VariantCivic, VariantGet,
+    Reason, Source, SourceRecord, VariantCivic, VariantGet,
 };
 
+pub(super) fn identity(value: Option<Field<u64>>, field: &str, cx: &mut Problems) -> Option<u64> {
+    let value = cx.required_field(field, value)?;
+    cx.optional(
+        field,
+        Some(if raw::id(value) { Ok(value) } else { Err(()) }),
+    )
+}
 pub(super) fn page(
     raw: raw::Connection<raw::Profile>,
     query: &VariantGet,
     allele: &str,
 ) -> Result<Mapped<VariantCivic>, RequestError> {
-    let mut problems = Vec::new();
+    let consumed = raw.nodes.len();
+    let mut cx = Problems {
+        source: Source::Civic,
+        record: None,
+        list: Vec::new(),
+    };
     let mut profiles = Vec::new();
+    let mut refusals = crate::Refusal::None;
     for profile in raw.nodes {
-        profiles.push(map(profile, query, allele, &mut problems)?);
+        cx.record = None;
+        if let Some(profile) = map(profile, query, allele, &mut cx, &mut refusals)? {
+            profiles.push(profile);
+        } else {
+            refusals = crate::Refusal::Refused;
+        }
     }
     let page = bounds(
         if query.civic_profile().is_some() {
@@ -35,7 +53,7 @@ pub(super) fn page(
             query.at_section_offset(
                 query
                     .section_offset()
-                    .checked_add(profiles.len() as u32)
+                    .checked_add(consumed as u32)
                     .ok_or_else(|| failure(Reason::TooLarge))?,
             ),
         )
@@ -43,88 +61,166 @@ pub(super) fn page(
         None
     };
     Ok(Mapped {
+        refusals,
         value: VariantCivic {
             profiles: profiles.into(),
             page,
             next,
         },
-        problems,
+        problems: cx.list,
     })
 }
 fn map(
     raw: raw::Profile,
     query: &VariantGet,
     allele: &str,
-    problems: &mut Vec<Problem>,
-) -> Result<CivicProfile, RequestError> {
-    let exact = raw.variants.iter().any(|member| {
-        member
-            .allele_registry_id
-            .as_ref()
-            .is_some_and(|id| id.as_str() == allele)
-    }) && query.civic_profile().is_none_or(|id| id == raw.id);
-    let members = raw
-        .variants
-        .iter()
-        .map(member)
-        .collect::<Result<Vec<_>, _>>()?;
-    let record = record(raw.id, &raw.link)?;
-    let subject = if members.iter().any(|member| member.subject.is_none()) {
-        None
-    } else if raw.is_complex || members.len() != 1 {
-        VariantRef::profile(
-            record.id.clone(),
-            raw.name.clone(),
-            members.iter().filter_map(|m| m.subject.clone()).collect(),
-        )
-        .ok()
-    } else {
-        members.first().and_then(|m| m.subject.clone())
+    cx: &mut Problems,
+    refusals: &mut crate::Refusal,
+) -> Result<Option<CivicProfile>, RequestError> {
+    let Some(id) = identity(raw.id, "id", cx) else {
+        return Ok(None);
     };
-    let mut statements = Vec::<CivicStatement>::new();
-    if exact {
-        for row in &raw.evidence_items.nodes {
-            statements.push(variant_claims::evidence(row, subject.as_ref(), problems)?);
-        }
-        for row in &raw.assertions.nodes {
-            statements.push(variant_claims::assertion(row, subject.as_ref(), problems)?);
-        }
-    } else {
-        problems.push(Problem {
-            source: Source::Civic,
-            record: Some(record.id.clone()),
-            field: "molecular_profile.membership".into(),
-            code: ProblemCode::ValueUnknown,
-        });
+    cx.record = crate::mapped::record(id);
+    if query
+        .civic_profile()
+        .is_some_and(|requested| requested != id)
+    {
+        cx.required::<()>("id", None);
+        return Ok(None);
     }
-    Ok(CivicProfile {
+    let start = cx.list.len();
+    let label = cx.source_field("name", raw.name);
+    let compound = cx.field("isComplex", raw.is_complex);
+    let raw_name = cx.field("rawName", raw.raw_name);
+    let native_count = raw.variants.as_ref().and_then(Field::as_ref).map(Vec::len);
+    let native_members = cx.fields("variants", raw.variants);
+    let (members, exact) = checked_members(native_members, allele, cx, refusals);
+    let mut context_bad = cx.list.len() != start;
+    let complete = native_count == Some(members.len()) && !context_bad;
+    let link = cx.field("link", raw.link);
+    let Some(record) = record(id, link.as_ref(), cx) else {
+        return Ok(None);
+    };
+    let before_subject = cx.list.len();
+    let subject = subject(
+        &record,
+        label.as_ref(),
+        raw_name.as_ref(),
+        compound,
+        members.iter().collect(),
+        complete,
+        cx,
+    );
+    context_bad |= cx.list.len() != before_subject;
+    let membership = membership(exact, context_bad, &record, cx);
+    let mut evidence_page = claim_page(
+        &raw.evidence_items,
+        query,
+        id,
+        CivicClaimKind::Evidence,
+        exact,
+    )?;
+    let mut assertion_page = claim_page(
+        &raw.assertions,
+        query,
+        id,
+        CivicClaimKind::Assertions,
+        exact,
+    )?;
+    let mut statements = Vec::new();
+    if exact {
+        let (claims, evidence_returned) = claims(
+            raw.evidence_items.nodes,
+            raw.assertions.nodes,
+            subject.as_ref(),
+            context_bad,
+            &record.id,
+            cx,
+            refusals,
+        );
+        statements = claims;
+        evidence_page.returned = evidence_returned;
+        assertion_page.returned = statements.len() as u32 - evidence_returned;
+    }
+    Ok(Some(CivicProfile {
         record,
-        label: raw.name,
-        compound: raw.is_complex,
-        membership: if exact {
-            CivicMembership::Exact
-        } else {
-            CivicMembership::Candidate
-        },
+        label,
+        raw_name,
+        subject,
+        compound,
+        membership,
         members: members.into(),
         evidence_count: raw.evidence_items.total_count,
         assertion_count: raw.assertions.total_count,
         statements: statements.into(),
-        evidence_page: claim_page(
-            &raw.evidence_items,
-            query,
-            raw.id,
-            CivicClaimKind::Evidence,
-            exact,
-        )?,
-        assertion_page: claim_page(
-            &raw.assertions,
-            query,
-            raw.id,
-            CivicClaimKind::Assertions,
-            exact,
-        )?,
-    })
+        evidence_page,
+        assertion_page,
+    }))
+}
+fn membership(
+    exact: bool,
+    context_bad: bool,
+    record: &SourceRecord,
+    cx: &mut Problems,
+) -> CivicMembership {
+    if exact {
+        return CivicMembership::Exact;
+    }
+    cx.record = Some(record.id.clone());
+    if !context_bad {
+        cx.required::<()>("molecular_profile.membership", None);
+    }
+    CivicMembership::Candidate
+}
+fn claims(
+    evidence: Vec<raw::Evidence>,
+    assertions: Vec<raw::Assertion>,
+    subject: Option<&VariantRef>,
+    context_bad: bool,
+    record: &Text,
+    cx: &mut Problems,
+    refusals: &mut crate::Refusal,
+) -> (Vec<CivicStatement>, u32) {
+    let mut statements = Vec::new();
+    for row in evidence {
+        cx.record = Some(record.clone());
+        if let Some(row) = variant_claims::evidence(row, subject, context_bad, cx) {
+            statements.push(row.claim);
+        } else {
+            *refusals = crate::Refusal::Refused;
+        }
+    }
+    let evidence_returned = statements.len() as u32;
+    for row in assertions {
+        cx.record = Some(record.clone());
+        if let Some(row) = variant_claims::assertion(row, subject, context_bad, cx) {
+            statements.push(row.claim);
+        } else {
+            *refusals = crate::Refusal::Refused;
+        }
+    }
+    (statements, evidence_returned)
+}
+fn checked_members(
+    raw: Box<[raw::Member]>,
+    allele: &str,
+    cx: &mut Problems,
+    refusals: &mut crate::Refusal,
+) -> (Vec<CivicMember>, bool) {
+    let parent = cx.record.clone();
+    let mut members = Vec::new();
+    let mut exact = false;
+    for value in raw.into_vec() {
+        cx.record = parent.clone();
+        if let Some((member, caid)) = member(value, cx) {
+            exact |= caid.as_ref().is_some_and(|id| id.as_str() == allele);
+            members.push(member);
+        } else {
+            *refusals = crate::Refusal::Refused;
+        }
+    }
+    cx.record = parent;
+    (members, exact)
 }
 fn claim_page<T>(
     raw: &raw::Connection<T>,
@@ -147,52 +243,5 @@ fn claim_page<T>(
         returned: if exact { raw.nodes.len() as u32 } else { 0 },
         total: raw.total_count,
         next,
-    })
-}
-pub(super) fn member(raw: &raw::Member) -> Result<CivicMember, RequestError> {
-    let gene = raw
-        .feature
-        .name
-        .as_str()
-        .parse::<GeneSymbol>()
-        .ok()
-        .and_then(|symbol| biodata::GeneRef::try_from(symbol).ok());
-    let proteins = raw
-        .hgvs_descriptions
-        .iter()
-        .flatten()
-        .filter_map(|form| {
-            (form
-                .as_str()
-                .split_once(':')
-                .is_some_and(|(_, body)| body.starts_with("p.")))
-            .then(|| form.as_str().parse::<HgvsText>().ok())
-            .flatten()
-        })
-        .collect::<Vec<_>>();
-    let subject = gene.and_then(|gene| match proteins.as_slice() {
-        [] => None,
-        [protein] => Some(VariantRef::protein_hgvs(
-            gene,
-            protein.clone(),
-            Some(raw.name.clone()),
-        )),
-        _ => Some(VariantRef::protein(gene, raw.name.clone())),
-    });
-    Ok(CivicMember {
-        record: record(raw.id, &raw.link)?,
-        label: raw.name.clone(),
-        feature: raw.feature.name.clone(),
-        hgvs_descriptions: raw.hgvs_descriptions.clone().unwrap_or_default().into(),
-        subject,
-    })
-}
-pub(super) fn record(id: u64, link: &Text) -> Result<SourceRecord, RequestError> {
-    Ok(SourceRecord {
-        id: Text::new(&id.to_string()).map_err(|_| failure(Reason::BadReply))?,
-        url: Some(
-            Text::new(&format!("https://civicdb.org{}", link.as_str()))
-                .map_err(|_| failure(Reason::BadReply))?,
-        ),
     })
 }

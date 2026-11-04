@@ -1,6 +1,6 @@
 # 0297 — Run the whole parity comparison and fill the size and timing rows
 
-Status: COMPLETE.
+Status: COMPLETE. Correctness accepted (114 comparable, 0 regressions) and matched-release measurement j16492 accepted: 29.8 percent smaller output, no general speed claim. Recorded in decisions/2026-10-27-parity-result-accepted.md.
 
 Milestone: 5
 

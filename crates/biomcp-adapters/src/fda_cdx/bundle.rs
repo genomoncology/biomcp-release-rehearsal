@@ -25,16 +25,10 @@ pub(super) fn read(
     leg.stored_set_rows(&SET, find)
 }
 /// Replace the complete validated two-table document atomically.
-pub fn sync(fetch: &Fetch) -> Result<SyncResult, RequestError> {
-    fetch.sync_set(&SET).map(|info| SyncResult {
-        snapshot: None,
-        etag: None,
-        last_modified: None,
-        rows: info.rows,
-        bytes: info.bytes,
-        downloaded_bytes: info.downloaded_bytes,
-        duplicate_identities: None,
-    })
+pub fn sync(fetch: &Fetch) -> Result<crate::Mapped<SyncResult>, RequestError> {
+    fetch
+        .sync_set(&SET)
+        .map(|info| crate::mapped::bundle_sync(SPEC.source, info))
 }
 
 /// Inspect this source's complete local set without synchronizing it.

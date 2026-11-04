@@ -57,6 +57,7 @@ for arch in amd64 arm64; do
   mkdir "$scratch/container-$arch"
   tar -xzf "$scratch/linux-$arch/biomcp-linux-$archive_arch.tar.gz" -C "$scratch/container-$arch"
   cp "$scratch/proof-$arch/case-runner" "$scratch/container-$arch/case-runner"
+  cp "$scratch/proof-$arch/tool-runner" "$scratch/container-$arch/tool-runner"
   cp -R "$scratch/proof-$arch/fixtures" "$scratch/container-$arch/fixtures"
   cp release/Dockerfile "$scratch/container-$arch/Dockerfile"
   docker build --build-arg "runtime_image=$(python3 release/toolchain.py image runtime)" \

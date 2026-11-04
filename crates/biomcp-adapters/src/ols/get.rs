@@ -1,6 +1,7 @@
 use super::{SPEC, map, raw};
 use crate::Mapped;
 use biomcp_fetch::{Arg, BadReply, Freshness, Leg, RequestError};
+use biomcp_fetch::{Input, Read};
 use biomcp_types::{DiseaseCard, DiseaseGet};
 /// The exact card and complete native section rows, sliced by the query layer.
 #[derive(Debug)]
@@ -26,19 +27,21 @@ pub fn get(leg: &Leg<'_>, query: &DiseaseGet) -> Result<Option<Record>, RequestE
         .get("/api/ontologies")
         .with_path(format!("/api/ontologies/{}/terms", ontology.as_str()))?
         .fresh(Freshness::Days(1));
-    let (reply, _) = leg.json_received_checked::<raw::Exact>(
-        &endpoint,
-        &[("obo_id", Arg::Text(query.id().as_str()))],
-        |reply| {
-            if reply.embedded.terms.iter().any(|t| {
-                t.obo_id.to_string() != query.id().as_str()
-                    || t.ontology_name.as_str() != ontology.as_str()
-            }) {
-                return Err(BadReply);
-            }
-            Ok(())
-        },
-    )?;
+    let (reply, _) = leg
+        .call(
+            &endpoint,
+            Input::Params(&[("obo_id", Arg::Text(query.id().as_str()))]),
+            Read::<raw::Exact>::json().check(&|reply| {
+                if reply.embedded.terms.iter().any(|t| {
+                    t.obo_id.to_string() != query.id().as_str()
+                        || t.ontology_name.as_str() != ontology.as_str()
+                }) {
+                    return Err(BadReply);
+                }
+                Ok(())
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
     reply
         .embedded
         .terms

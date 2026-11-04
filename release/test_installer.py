@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import subprocess
 import shutil
+import shlex
 import sys
 import tarfile
 import tempfile
@@ -129,6 +130,34 @@ class Installer(unittest.TestCase):
                 self.assertEqual(binary.read_bytes(), b"#!/bin/sh\necho candidate\n")
                 self.assertTrue(os.access(binary, os.X_OK))
                 binary.unlink()
+
+    def test_fixture_ca_reaches_curl_when_backend_ignores_bundle_environment(self):
+        curl = shutil.which("curl", path=os.defpath)
+        if not curl:
+            self.skipTest("curl is required for the fixture CA forwarding proof")
+        # Schannel ignores CURL_CA_BUNDLE; remove it before the real downloader
+        # so this outside-in proof requires an explicit certificate argument.
+        wrapper = self.bin / "curl"
+        wrapper.write_text("#!/bin/sh\nunset CURL_CA_BUNDLE\nexec " + shlex.quote(curl) + " \"$@\"\n")
+        wrapper.chmod(0o755)
+        self.platform()
+        release = self.root / "download/v1.0.0"
+        release.mkdir(parents=True)
+        candidate(release, "biomcp-linux-x86_64.tar.gz")
+        with https_server(self.root) as (base, ca), https_server(self.root) as (_, other_ca):
+            named_ca = self.root / "fixture CA.pem"
+            shutil.copyfile(ca, named_ca)
+            self.environment.update(BIOMCP_RELEASE_BASE_URL=base, BIOMCP_VERSION="1.0.0")
+            for selected, passes in [(None, False), (other_ca, False), (named_ca, True)]:
+                with self.subTest(ca=selected):
+                    self.environment.pop("CURL_CA_BUNDLE", None)
+                    if selected:
+                        self.environment["CURL_CA_BUNDLE"] = str(selected)
+                    result = self.install()
+                    self.assertEqual(result.returncode == 0, passes, result.stderr)
+                    self.assertEqual((self.destination / "biomcp").exists(), passes)
+                    if passes:
+                        self.assertEqual((self.destination / "biomcp").read_bytes(), b"#!/bin/sh\necho candidate\n")
 
     def test_latest_environment_and_local_tar_share_checksum_boundary(self):
         self.platform()

@@ -1,18 +1,22 @@
-use super::*;
+use super::{CellLineAssayCountQuery, CellLineGet, CellLineInput, CellLineSearch, CellLineSection};
 use crate::{Capped, ItemStatus, ResponseBody, Section};
-use biodata::*;
+use biodata::{
+    CellLineEntryDates, CellLineName, CellLineSex, CellLineVariation, CellLineWarning,
+    CellLineXref, CellosaurusAccession, ChemblCellId, PartialDate, Text,
+};
 use serde::{Deserialize, Serialize};
 /// Compact source identity with independently capped species and diseases.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineHeader {
     /// Exact primary accession.
     pub accession: CellosaurusAccession,
     /// Recommended display name.
-    pub name: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<Text>,
     /// Native category.
-    pub category: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub category: Option<Text>,
     /// Up to three complete species references and their native total.
     pub species: Capped<CellLineXref>,
     /// Up to three complete disease references and their independent total.
@@ -20,7 +24,6 @@ pub struct CellLineHeader {
 }
 /// Source-ordered cell line search headers; totals remain unknown.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLinePage {
     /// Native result order, without reranking or selected identity.
@@ -35,7 +38,6 @@ pub struct CellLinePage {
 }
 /// One requested cell identity with explicit ambiguity and requested section states.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineCard {
     /// Exact original caller identity.
@@ -78,7 +80,6 @@ pub struct CellLineCard {
 }
 /// Requested sections carry explicit states; absent members were not requested.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineSections {
     /// Requested names section state.
@@ -99,7 +100,6 @@ pub struct CellLineSections {
 }
 /// Native display names with collection-local totals and offset.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineNames {
     /// Selected exact primary accession.
@@ -117,7 +117,6 @@ pub struct CellLineNames {
 }
 /// Native source cross-references with collection-local totals and offset.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineXrefs {
     /// Selected exact primary accession.
@@ -135,7 +134,6 @@ pub struct CellLineXrefs {
 }
 /// Whole native variation rows with collection-local totals and offset.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineVariants {
     /// Selected exact primary accession.
@@ -153,7 +151,6 @@ pub struct CellLineVariants {
 }
 /// Species, diseases and warnings page independently; each total belongs to its own collection.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineIdentityPage {
     /// Selected exact primary accession.
@@ -175,13 +172,12 @@ pub struct CellLineIdentityPage {
 }
 /// One exact accession-linked ChEMBL cell identity; no assay request is implied.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineChemblRecord {
     /// Native cell ChEMBL ID, never a compound or target.
     pub id: ChemblCellId,
     /// Independent native integer cell record identity.
-    pub cell_id: u64,
+    pub cell_id: biodata::Identifier<u64>,
     /// Native exact accession; adapter verifies the join.
     pub cellosaurus_id: CellosaurusAccession,
     /// Native display name without name-based joining.
@@ -208,7 +204,6 @@ pub struct CellLineChemblRecord {
 }
 /// Exact accession-linked metadata with its own native collection total.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineChembl {
     /// Independent ChEMBL release, distinct from retrieval time.
@@ -227,7 +222,6 @@ pub struct CellLineChembl {
 }
 /// Native assay total for one source-local cell identity; no activity or sensitivity count.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineAssayCount {
     /// Independent ChEMBL release, distinct from retrieval time.
@@ -243,35 +237,35 @@ pub struct CellLineAssayCount {
     pub assay_count: u64,
 }
 impl ResponseBody for CellLinePage {
-    const SCHEMA: &'static str = "biomcp.cell-line-page/2";
+    const SCHEMA: &'static str = "biomcp.cell-line-page/7";
     type Query = CellLineSearch;
 }
 impl ResponseBody for CellLineCard {
-    const SCHEMA: &'static str = "biomcp.cell-line-card/3";
+    const SCHEMA: &'static str = "biomcp.cell-line-card/8";
     type Query = CellLineGet;
 }
 impl ResponseBody for CellLineNames {
-    const SCHEMA: &'static str = "biomcp.cell-line-names/1";
+    const SCHEMA: &'static str = "biomcp.cell-line-names/5";
     type Query = CellLineGet;
 }
 impl ResponseBody for CellLineIdentityPage {
-    const SCHEMA: &'static str = "biomcp.cell-line-identity/1";
+    const SCHEMA: &'static str = "biomcp.cell-line-identity/6";
     type Query = CellLineGet;
 }
 impl ResponseBody for CellLineXrefs {
-    const SCHEMA: &'static str = "biomcp.cell-line-xrefs/1";
+    const SCHEMA: &'static str = "biomcp.cell-line-xrefs/6";
     type Query = CellLineGet;
 }
 impl ResponseBody for CellLineVariants {
-    const SCHEMA: &'static str = "biomcp.cell-line-variants/2";
+    const SCHEMA: &'static str = "biomcp.cell-line-variants/7";
     type Query = CellLineGet;
 }
 impl ResponseBody for CellLineChembl {
-    const SCHEMA: &'static str = "biomcp.cell-line-chembl/2";
+    const SCHEMA: &'static str = "biomcp.cell-line-chembl/7";
     type Query = CellLineGet;
 }
 impl ResponseBody for CellLineAssayCount {
-    const SCHEMA: &'static str = "biomcp.cell-line-assay-count/2";
+    const SCHEMA: &'static str = "biomcp.cell-line-assay-count/6";
     type Query = CellLineAssayCountQuery;
 }
 
@@ -280,7 +274,19 @@ impl ResponseBody for CellLineAssayCount {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellLineRelease {
     /// Native release version.
-    pub version: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<Text>,
     /// Native release update date.
-    pub updated: PartialDate,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated: Option<PartialDate>,
+}
+
+/// Native filtered cell-line headers; the literal-search reply contract remains unchanged.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct CellLineFilteredPage(pub CellLinePage);
+impl ResponseBody for CellLineFilteredPage {
+    const SCHEMA: &'static str = "biomcp.cell-line-filtered-page/1";
+    type Query = super::CellLineSearchCommand;
 }

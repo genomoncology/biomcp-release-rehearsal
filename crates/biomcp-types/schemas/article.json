@@ -1,13 +1,12 @@
 {
   "$defs": {
-    "AbstractPart": {
-      "additionalProperties": false,
+    "Reply_AbstractPart": {
       "description": "One source-labelled abstract paragraph.",
       "properties": {
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -16,7 +15,7 @@
           "description": "Source label, when supplied."
         },
         "text": {
-          "$ref": "#/$defs/Markdown",
+          "$ref": "#/$defs/Reply_Markdown",
           "description": "Whole paragraph text."
         }
       },
@@ -25,20 +24,19 @@
       ],
       "type": "object"
     },
-    "Correction": {
-      "additionalProperties": false,
+    "Reply_Correction": {
       "description": "One correction relationship supplied by PubMed.",
       "properties": {
         "kind": {
-          "$ref": "#/$defs/CorrectionKind",
+          "$ref": "#/$defs/Reply_CorrectionKind",
           "description": "Correction category."
         },
         "pmid": {
-          "$ref": "#/$defs/Pmid",
+          "$ref": "#/$defs/Reply_Pmid",
           "description": "Related PMID, when supplied."
         },
         "relation": {
-          "$ref": "#/$defs/CorrectionRelation",
+          "$ref": "#/$defs/Reply_CorrectionRelation",
           "description": "Whether the related record is a notice or original."
         }
       },
@@ -48,88 +46,67 @@
       ],
       "type": "object"
     },
-    "CorrectionKind": {
+    "Reply_CorrectionKind": {
       "description": "Source correction relationship kind.",
-      "enum": [
-        "retraction",
-        "erratum",
-        "expression_of_concern"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Retraction relationship.",
         " Erratum relationship.",
         " Expression of concern relationship."
+      ],
+      "x-extensible-enum": [
+        "retraction",
+        "erratum",
+        "expression-of-concern"
       ]
     },
-    "CorrectionRelation": {
+    "Reply_CorrectionRelation": {
       "description": "Direction of a source correction relationship.",
-      "enum": [
-        "notice",
-        "original"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " The related record is the notice.",
         " The related record is the original."
+      ],
+      "x-extensible-enum": [
+        "notice",
+        "original"
       ]
     },
-    "Doi": {
+    "Reply_Doi": {
       "description": "DOI preserving source spelling with ASCII-insensitive equality.",
-      "pattern": "^10\\.[0-9]+/[^\\s\\x00-\\x1f\\x7f]+$",
+      "pattern": "^10\\.[0-9]+/[^\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]+$",
       "type": "string"
     },
-    "EuropePmcId": {
+    "Reply_EuropePmcId": {
       "description": "Europe PMC source prefix followed by its positive numeric local identifier.",
-      "pattern": "^[A-Z]{1,8}[0-9]*[1-9][0-9]*$",
+      "pattern": "^(?=.{1,64}$)[A-Z]{1,8}[0-9]*[1-9][0-9]*$",
       "type": "string"
     },
-    "Markdown": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Markdown": {
+      "description": "Nonempty source Markdown retains LF, CR and tab formatting; unsafe controls use visible escapes. The parser additionally rejects whitespace-only values.",
       "format": "markdown",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Pmcid": {
+    "Reply_Pmcid": {
       "description": "Canonical PMC identifier, with an explicit namespace.",
-      "pattern": "^PMC[1-9][0-9]*$",
+      "pattern": "^PMC(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "Pmid": {
+    "Reply_Pmid": {
       "description": "Positive PubMed identifier.",
-      "pattern": "^[1-9][0-9]*$",
+      "pattern": "^(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
-    "PublicationType": {
+    "Reply_PublicationType": {
       "description": "Clinically meaningful PubMed publication types.",
-      "enum": [
-        "randomized_controlled_trial",
-        "clinical_trial",
-        "clinical_trial_phase_1",
-        "clinical_trial_phase_2",
-        "clinical_trial_phase_3",
-        "clinical_trial_phase_4",
-        "meta_analysis",
-        "systematic_review",
-        "review",
-        "practice_guideline",
-        "guideline",
-        "case_report",
-        "observational_study",
-        "multicenter_study",
-        "letter",
-        "comment",
-        "editorial",
-        "preprint",
-        "retracted_publication",
-        "retraction_notice",
-        "erratum"
-      ],
       "type": "string",
       "x-enum-descriptions": [
         " Randomized controlled trial.",
@@ -153,17 +130,41 @@
         " Retracted publication.",
         " Retraction notice.",
         " Erratum."
+      ],
+      "x-extensible-enum": [
+        "randomized-controlled-trial",
+        "clinical-trial",
+        "clinical-trial-phase-1",
+        "clinical-trial-phase-2",
+        "clinical-trial-phase-3",
+        "clinical-trial-phase-4",
+        "meta-analysis",
+        "systematic-review",
+        "review",
+        "practice-guideline",
+        "guideline",
+        "case-report",
+        "observational-study",
+        "multicenter-study",
+        "letter",
+        "comment",
+        "editorial",
+        "preprint",
+        "retracted-publication",
+        "retraction-notice",
+        "erratum"
       ]
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.article/2",
+  "$id": "biomcp.article/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "anyOf": [
     {
       "required": [
@@ -191,28 +192,28 @@
     "abstract_parts": {
       "description": "Whole abstract, preserving labels and source order.",
       "items": {
-        "$ref": "#/$defs/AbstractPart"
+        "$ref": "#/$defs/Reply_AbstractPart"
       },
       "type": "array"
     },
     "authors": {
       "description": "Authors in source order.",
       "items": {
-        "$ref": "#/$defs/Text"
+        "$ref": "#/$defs/Reply_Text"
       },
       "type": "array"
     },
     "corrections": {
       "description": "Related correction notices or originals.",
       "items": {
-        "$ref": "#/$defs/Correction"
+        "$ref": "#/$defs/Reply_Correction"
       },
       "type": "array"
     },
     "date": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PartialDate"
+          "$ref": "#/$defs/Reply_PartialDate"
         },
         {
           "type": "null"
@@ -221,13 +222,13 @@
       "description": "Publication date at source precision."
     },
     "doi": {
-      "$ref": "#/$defs/Doi",
+      "$ref": "#/$defs/Reply_Doi",
       "description": "DOI assigned to this article."
     },
     "electronic_date": {
       "anyOf": [
         {
-          "$ref": "#/$defs/PartialDate"
+          "$ref": "#/$defs/Reply_PartialDate"
         },
         {
           "type": "null"
@@ -236,13 +237,13 @@
       "description": "Electronic publication date when different from the publication date."
     },
     "europepmc_id": {
-      "$ref": "#/$defs/EuropePmcId",
+      "$ref": "#/$defs/Reply_EuropePmcId",
       "description": "Europe PMC identity when this card comes from its core record."
     },
     "journal": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -251,21 +252,21 @@
       "description": "Journal name."
     },
     "pmcid": {
-      "$ref": "#/$defs/Pmcid",
+      "$ref": "#/$defs/Reply_Pmcid",
       "description": "PMC identity assigned to this article."
     },
     "pmid": {
-      "$ref": "#/$defs/Pmid",
+      "$ref": "#/$defs/Reply_Pmid",
       "description": "PubMed identity."
     },
     "title": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Whole title with inline text preserved."
     },
     "types": {
       "description": "Every clinically meaningful source publication type.",
       "items": {
-        "$ref": "#/$defs/PublicationType"
+        "$ref": "#/$defs/Reply_PublicationType"
       },
       "type": "array"
     }

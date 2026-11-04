@@ -1,0 +1,68 @@
+{
+  "feature": "disease-seer",
+  "live_check": "Authored malformed identity and optional-field replies for local cache admission; no live provider equivalent.",
+  "story": "A repeated call preserves the native count and refused identity problem.",
+  "replay": "cache-admission",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "disease",
+        "55",
+        "survival",
+        "--source",
+        "seer",
+        "--sex",
+        "3",
+        "--race",
+        "1",
+        "--age-range",
+        "1",
+        "--dataset",
+        "4",
+        "--interval",
+        "5",
+        "--section-limit",
+        "5"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 1,
+        "/problems/*/field": {
+          "includes": "year"
+        }
+      },
+      "max_bytes": 2578
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "55",
+        "survival",
+        "--source",
+        "seer",
+        "--sex",
+        "3",
+        "--race",
+        "1",
+        "--age-range",
+        "1",
+        "--dataset",
+        "4",
+        "--interval",
+        "5",
+        "--section-limit",
+        "5"
+      ],
+      "expect": {
+        "/page/returned": 0,
+        "/page/total": 1,
+        "/problems/*/field": {
+          "includes": "year"
+        }
+      },
+      "max_bytes": 2578
+    }
+  ]
+}

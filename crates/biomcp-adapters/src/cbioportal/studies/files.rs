@@ -1,6 +1,7 @@
 //! Exact DataHub directory metadata under the existing restricted source declaration.
 use super::super::SPEC;
 use biodata::{StudyBlobSha, StudyFile, StudyFileKind, StudyId, Text};
+use biomcp_fetch::Input;
 use biomcp_fetch::{BadReply, Freshness, Leg, Reply, RequestError};
 use serde::Deserialize;
 use std::collections::BTreeSet;
@@ -8,11 +9,11 @@ use std::collections::BTreeSet;
 #[derive(Debug)]
 pub struct Directory {
     /// Native ordered references, absent when the exact directory returned 404.
-    pub rows: Option<Vec<StudyFile>>,
+    pub window: Option<crate::NativeWindow<StudyFile>>,
     /// Publisher LICENSE link, discovered across the whole directory.
     pub license_notice: Option<Text>,
     /// Original response acquisition time.
-    pub acquired: u64,
+    pub acquired: Option<u64>,
 }
 #[derive(Deserialize)]
 struct Entry {
@@ -70,7 +71,12 @@ impl Entry {
     }
 }
 /// Read only one exact contents directory. No entry download URL is requested.
-pub fn files(leg: &Leg<'_>, id: &StudyId) -> Result<Directory, RequestError> {
+pub fn files(
+    leg: &Leg<'_>,
+    id: &StudyId,
+    offset: u32,
+    limit: u32,
+) -> Result<Directory, RequestError> {
     let url = format!(
         "{}/repos/cBioPortal/datahub/contents/public/{id}",
         super::super::GITHUB_ORIGIN
@@ -79,22 +85,28 @@ pub fn files(leg: &Leg<'_>, id: &StudyId) -> Result<Directory, RequestError> {
         .download(&url)?
         .fresh(Freshness::Days(1))
         .bytes(100_000);
-    let result = leg.json_received_checked::<Entries>(&endpoint, &[], |r| {
-        if r.0.iter().all(|v| v.matches(id)) {
-            Ok(())
-        } else {
-            Err(BadReply)
-        }
-    });
+    let result = leg
+        .call(
+            &endpoint,
+            Input::Params(&[]),
+            biomcp_fetch::Read::<Entries>::json().check(&|r| {
+                if r.0.iter().all(|v| v.matches(id)) {
+                    Ok(())
+                } else {
+                    Err(BadReply)
+                }
+            }),
+        )
+        .map(|received| (received.value, received.meta));
     let (reply, metadata) = match result {
         Ok(value) => value,
         Err(RequestError::Source(e))
             if e.reason == biomcp_types::Reason::NotFound && e.status == Some(404) =>
         {
             return Ok(Directory {
-                rows: None,
+                window: None,
                 license_notice: None,
-                acquired: 0,
+                acquired: None,
             });
         }
         Err(error) => return Err(error),
@@ -105,17 +117,16 @@ pub fn files(leg: &Leg<'_>, id: &StudyId) -> Result<Directory, RequestError> {
         .find(|r| r.name.as_str() == "LICENSE" && r.kind == StudyFileKind::File)
         .map(|r| r.html_url.clone());
     Ok(Directory {
-        rows: Some(reply.0.into_iter().map(Entry::mapped).collect()),
+        window: Some(crate::NativeWindow::local(
+            reply.0.into_iter().map(|row| Some(row.mapped())).collect(),
+            offset,
+            limit,
+        )),
         license_notice,
-        acquired: u64::try_from(metadata.fetched).map_err(|_| bad())?,
+        acquired: metadata
+            .fetched
+            .map(u64::try_from)
+            .transpose()
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::Cbioportal, None))?,
     })
-}
-fn bad() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: biomcp_types::Source::Cbioportal,
-        reason: biomcp_types::Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
 }

@@ -1,0 +1,13 @@
+{
+  "deadline_seconds": 15,
+  "max_bytes": 2097152,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "registry-enums",
+      "source": "ctgov",
+      "response_format": "json",
+      "url": "https://clinicaltrials.gov/api/v2/studies/enums"
+    }
+  ]
+}

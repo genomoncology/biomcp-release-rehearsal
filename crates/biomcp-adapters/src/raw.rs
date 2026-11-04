@@ -25,6 +25,12 @@ pub(crate) enum Field<T> {
     Invalid(serde::de::IgnoredAny),
 }
 impl<T> Field<T> {
+    pub(crate) fn as_ref(&self) -> Option<&T> {
+        match self {
+            Self::Value(value) => Some(value),
+            Self::Invalid(_) => None,
+        }
+    }
     pub(crate) fn value(self) -> Option<T> {
         match self {
             Self::Value(value) => Some(value),
@@ -40,7 +46,9 @@ pub(crate) struct NumericPmid(pub biodata::Pmid);
 impl TryFrom<u32> for NumericPmid {
     type Error = biodata::Error;
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        biodata::Pmid::new(value).map(Self)
+        biodata::Pmid::new(value)
+            .map(Self)
+            .map_err(|_| biodata::Error::ArticleIdInvalid)
     }
 }
 

@@ -17,7 +17,6 @@ SourceState {
 }
 /// One source's outcome, without provider text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SourceOutcome {
     /// Asked source.
@@ -41,9 +40,9 @@ pub struct SourceOutcome {
     /// Provider matching count.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub count: Option<u64>,
-    /// Retrieved identity depth.
+    /// Number of retrieved identities.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub fetched: Option<u32>,
+    pub retrieved_count: Option<u32>,
     /// Source notices and request recovery guidance.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub notices: Vec<SourceNotice>,
@@ -51,7 +50,7 @@ pub struct SourceOutcome {
 
 /// A source notice or request recovery step.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+#[serde(tag = "kind", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum SourceNotice {
     /// Local request limits and source-specific recovery guidance.
@@ -103,8 +102,18 @@ biodata::wire_enum! {
 CacheProblem {
     /// The cache connection or file was busy.
     Busy => "busy",
-    /// The cache could not store or remove a reply.
+    /// A SQLite operation failed.
     Database => "database",
+    /// Cache JSON could not be encoded or decoded.
+    Encoding => "encoding",
+    /// A cache filesystem operation failed.
+    Filesystem => "filesystem",
+    /// Cache state or synchronization was inconsistent.
+    Internal => "internal",
+    /// Cache content exceeded a supported bound or failed validation.
+    Limit => "limit",
+    /// A stored snapshot could not be encoded or decoded.
+    Snapshot => "snapshot",
     /// Cache ownership or schema validation failed.
     Version => "version",
 }

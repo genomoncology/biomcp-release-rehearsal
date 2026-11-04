@@ -2,7 +2,6 @@ use crate::{NcbiGeneId, Text, Variant, VariantRecurrenceQuery};
 use serde::{Deserialize, Serialize};
 /// Exact-allele observations confined to one explicitly bounded source page.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct VariantRecurrence {
     /// Source-qualified resolved identity; omitted when resolution failed.
@@ -33,16 +32,16 @@ pub struct VariantRecurrence {
     pub terms: RecurrenceTerms,
 }
 impl super::ResponseBody for VariantRecurrence {
-    const SCHEMA: &'static str = "biomcp.variant-recurrence/5";
+    const SCHEMA: &'static str = "biomcp.variant-recurrence/11";
     type Query = VariantRecurrenceQuery;
 }
 /// Source-native descriptive metadata, without treating access groups as licenses.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct RecurrenceStudy {
     /// Source study title.
-    pub name: Text,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<Text>,
     /// Complete source description, including any literal reuse notice.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<Text>,
@@ -52,7 +51,6 @@ pub struct RecurrenceStudy {
 }
 /// Public access grants no study-specific commercial reuse permission.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct RecurrenceTerms {
     /// Study-specific rights remain unverified.
@@ -70,6 +68,6 @@ biodata::wire_enum! {
     RecurrenceGranularity {
         /// Source build, chromosome, genomic bounds, reference and alternate all agree.
         #[default]
-        ExactGenomicAllele => "exact_genomic_allele",
+        ExactGenomicAllele => "exact-genomic-allele",
     }
 }

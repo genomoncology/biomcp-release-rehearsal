@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "study-catalog",
   "story": "Synthetic catalog examples run through CLI and MCP without provider requests.",
   "replay": "study/synthetic-examples",
@@ -8,10 +9,6 @@
         "sync",
         "cbioportal-studies"
       ],
-      "mcp": [
-        "sync",
-        "cbioportal-studies"
-      ],
       "expect": {
         "/status": "complete",
         "": {
@@ -26,11 +23,6 @@
         "cbioportal-studies",
         "--fresh"
       ],
-      "mcp": [
-        "sync",
-        "cbioportal-studies",
-        "--fresh"
-      ],
       "expect": {
         "/status": "complete",
         "": {
@@ -41,11 +33,6 @@
     },
     {
       "run": [
-        "search",
-        "study",
-        "Atlas"
-      ],
-      "mcp": [
         "search",
         "study",
         "Atlas"
@@ -67,14 +54,6 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "search",
-        "study",
-        "--cancer-type",
-        "mixed",
-        "--limit",
-        "1"
-      ],
       "expect": {
         "/status": "complete",
         "": {
@@ -89,11 +68,6 @@
         "study",
         "synthetic_0"
       ],
-      "mcp": [
-        "get",
-        "study",
-        "synthetic_0"
-      ],
       "expect": {
         "/status": "complete",
         "": {
@@ -104,11 +78,6 @@
     },
     {
       "run": [
-        "get",
-        "study",
-        "synthetic_1"
-      ],
-      "mcp": [
         "get",
         "study",
         "synthetic_1"

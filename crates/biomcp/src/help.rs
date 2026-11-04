@@ -1,6 +1,9 @@
 //! Schema-fed command help shared with MCP discovery.
 
+#[path = "../coverage.rs"]
+mod coverage;
 mod discovery;
+pub(crate) const FRONT_MAP: &str = include_str!(concat!(env!("OUT_DIR"), "/front-map.txt"));
 mod schema_fields;
 use schema_fields::{resolve, value_type};
 mod public_grammar;
@@ -10,7 +13,19 @@ use biomcp_types::{Help, HelpArgument, HelpCommand, HelpWord};
 use serde_json::Value;
 use std::{collections::BTreeMap, io};
 
-pub(crate) fn dispatch(path: &[String]) -> io::Result<Help> {
+pub(crate) fn dispatch(root: &crate::grammar::Root, path: &[String]) -> io::Result<Help> {
+    if path == ["get", "clingen"] {
+        let mut help = dispatch(root, &["get".into(), "gene".into()])?;
+        if let Some(command) = help.commands.first_mut() {
+            command
+                .description
+                .insert_str(0, "ClinGen: get gene ID clingen. ");
+            if let Some(example) = command.examples.first_mut() {
+                example.push("clingen".into());
+            }
+        }
+        return Ok(help);
+    }
     if let [topic] = path
         && matches!(topic.as_str(), "sources" | "config")
     {
@@ -26,10 +41,11 @@ pub(crate) fn dispatch(path: &[String]) -> io::Result<Help> {
     {
         return Ok(network(setting));
     }
-    let mut commands: Vec<_> = commands()?
+    let mut commands: Vec<_> = commands(root)?
         .into_iter()
         .filter(|c| {
             path.is_empty()
+                || (path == ["help"] && c.command.is_empty())
                 || c.command.starts_with(path)
                 || (path.len() == 1
                     && path.first().is_some_and(|word| word == "skill")
@@ -40,16 +56,61 @@ pub(crate) fn dispatch(path: &[String]) -> io::Result<Help> {
                     && c.command.first() == path.first())
         })
         .collect();
-    if !path.is_empty() {
-        public_grammar::scoped_globals(&mut commands);
+    if !public_grammar::overview(root, &mut commands, path)? {
+        compact(&mut commands);
+    }
+    if path.is_empty() {
+        let mut map = topic("map", FRONT_MAP.into());
+        map.command.clear();
+        commands.insert(0, map);
     }
     Ok(Help { commands })
 }
-fn commands() -> io::Result<Vec<HelpCommand>> {
+// Large catalogs remain available through the command's complete query schema.
+const INLINE_CHOICE_LIMIT: usize = 24;
+fn compact(commands: &mut [HelpCommand]) {
+    for command in commands {
+        command.reply_schemas.clear();
+        command.examples.truncate(1);
+        for argument in &mut command.arguments {
+            let accepted_form = argument
+                .description
+                .split(". ")
+                .next()
+                .unwrap_or_default()
+                .to_owned();
+            if argument.position.is_none() {
+                argument.description.clear();
+            }
+            if !matches!(
+                argument.name.as_str(),
+                "--source" | "--sources" | "section" | "--section"
+            ) && argument.choices.len() > INLINE_CHOICE_LIMIT
+                && let Some((_, _, schema)) = crate::grammar::command_paths()
+                    .iter()
+                    .find(|(verb, entity, _)| command.command == [*verb, *entity])
+            {
+                argument.description = format!(
+                    "{} allowed values; {accepted_form}. Full list: biomcp schema {schema}.",
+                    argument.choices.len()
+                );
+                argument.choices.clear();
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+pub(crate) fn reference(root: &crate::grammar::Root) -> io::Result<Help> {
+    let mut commands = commands(root)?;
+    public_grammar::canonical(root, &mut commands)?;
+    Ok(Help { commands })
+}
+pub(crate) fn commands(root: &crate::grammar::Root) -> io::Result<Vec<HelpCommand>> {
     let examples: BTreeMap<String, Vec<Vec<String>>> =
         serde_json::from_str(include_str!(concat!(env!("OUT_DIR"), "/examples.json")))?;
     let mut commands = Vec::new();
-    for &(verb, entity, id) in crate::grammar::QUERIES {
+    for &(verb, entity, id) in crate::grammar::command_paths().iter() {
         let schema: Value = serde_json::from_str(
             crate::schema::find(id).ok_or_else(|| io::Error::other("missing query schema"))?,
         )?;
@@ -79,13 +140,13 @@ fn commands() -> io::Result<Vec<HelpCommand>> {
                 .unwrap_or_default(),
         });
     }
-    commands.extend(crate::housekeeping::help());
+    commands.extend_from_slice(root.housekeeping());
     extra_commands(&mut commands, &examples);
     commands.extend(network("ca_bundle").commands);
     commands.extend(network("proxy").commands);
     commands.push(topic("exit", crate::exit::reference()));
 
-    public_grammar::augment(&mut commands)?;
+    public_grammar::augment(root, &mut commands)?;
     discovery::complete(&mut commands);
     for command in &mut commands {
         if command.reply_schemas.is_empty() {
@@ -95,37 +156,18 @@ fn commands() -> io::Result<Vec<HelpCommand>> {
     source_settings::timing(&mut commands);
     Ok(commands)
 }
-const AUTHOR_BOUNDARY: &str = " Author IDs identify source records, not resolved people. Counts cover that source record. \
-    Missing metadata is unavailable. Topic-wide author ranking and cross-source merging are \
-    unavailable. Semantic Scholar and ORCID are noncommercial; commercial users disable both with \
-    --disable-sources noncommercial or config disable_sources. Optional keys: biomcp key set \
-    semantic-scholar or S2_API_KEY; biomcp key set orcid or ORCID_ACCESS_TOKEN. IDs use \
-    semantic-scholar:ID (alias semanticscholar:ID) or orcid:ID. Search supports --source \
-    semantic-scholar (alias semanticscholar), --query/-q and --limit/-l; papers supports --limit/-l \
-    and Semantic Scholar details/--full.";
-const CELL_LINE_BOUNDARY: &str = "An assay count is not an activity or sensitivity count. No treatment response is inferred; no bioinformatics tool runs.";
-
 fn command_description(verb: &str, entity: &str, schema: &Value) -> String {
-    let mut description = text(schema, "description");
-    if entity == "author" || verb == "author" {
-        let boundary = if verb == "search" {
-            AUTHOR_BOUNDARY
-                .split("; papers supports")
-                .next()
-                .unwrap_or(AUTHOR_BOUNDARY)
-        } else {
-            AUTHOR_BOUNDARY
-        };
-        description.push_str(boundary);
-    }
-    if verb == "article" && entity == "references" {
-        description = "Page the PubMed papers referenced by one checked article identifier.".into();
-    }
-    if entity == "cell-line" || verb == "cell-line" {
-        description.push(' ');
-        description.push_str(CELL_LINE_BOUNDARY);
-    }
-    description
+    let sources = coverage::command_sources(verb, entity, schema)
+        .into_iter()
+        .collect::<Vec<_>>()
+        .join(", ");
+    let description = text(schema, "description");
+    let first = description
+        .split(". ")
+        .next()
+        .unwrap_or_default()
+        .trim_end_matches('.');
+    format!("{first}. Sources: {sources}.")
 }
 
 fn extra_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, Vec<Vec<String>>>) {
@@ -147,10 +189,7 @@ fn extra_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, V
             vec!["help", "[COMMAND...]"],
             "Print generated command help.",
         ),
-        (
-            vec!["key", "list"],
-            "List supported credential names and their origin without values.",
-        ),
+        (vec!["key", "list"], crate::keys::LIST_HELP),
         (
             vec!["key", "set", "<source>", "[--replace]"],
             "Register one credential from a no-echo prompt or one standard-input line. Use --config PATH to choose the configuration file.",
@@ -163,7 +202,9 @@ fn extra_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, V
             vec!["serve"],
             "Serve MCP over stdio or --http [ADDR]. Non-loopback binds require --allow-host HOST or \
                 http.allowed_hosts; neither authenticates callers. HTTP refuses sync, store clean and --fresh. \
-                Stdio saves refuse --replace. MCP revisions: 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26. \
+                Stdio saves refuse --replace. --hosted refuses file saves, health details, sync, store clean, \
+                --fresh and key commands on every transport with a usage.mcp_unavailable error. MCP revisions: 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26. \
+                --rate-share scales only keyed hosted source rates. Hosted HTTP calls have bounded work and one whole-call deadline. \
                 Send MCP-Protocol-Version on HTTP requests. Without it, initialize uses its requested legacy revision; \
                 other requests default to 2025-03-26. Unsupported headers return HTTP 400.",
         ),
@@ -180,11 +221,15 @@ fn extra_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, V
     }
     bundle_commands(commands, examples);
     commands.extend(
-        biomcp_fetch::SecretName::ALL
+        biomcp_query::sources::keys()
             .iter()
             .map(|name| HelpCommand {
                 reply_schemas: Vec::new(),
-                command: vec!["help".into(), "key".into(), name.source().into()],
+                command: vec![
+                    "help".into(),
+                    "key".into(),
+                    biomcp_query::sources::key_name(*name).into(),
+                ],
                 description: "Show credential registration and environment fallback names.".into(),
                 arguments: Vec::new(),
                 sections: Vec::new(),
@@ -194,24 +239,19 @@ fn extra_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, V
     );
 }
 fn bundle_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, Vec<Vec<String>>>) {
-    for &bundle in crate::grammar::BUNDLE_HELP {
+    for declaration in biomcp_query::sources::bundles() {
+        let bundle = declaration.name();
         commands.push(HelpCommand {
             reply_schemas: Vec::new(),
             command: vec!["sync".into(), bundle.into()],
-            description: if matches!(bundle, "hgnc" | "clingen") {
-                "Synchronize a local source bundle."
-            } else if bundle == "wikipathways" {
-                "Replace WikiPathways search/get metadata catalogs atomically; reads never sync. Membership names a \
-                    source and release; it implies no therapy, response or actionability. No enrichment is calculated."
-            } else {
-                "Replace the complete validated local bundle atomically. Reads use stored data and never \
-                    synchronize. Failed replacement preserves the last usable bundle."
-            }
-            .into(),
+            description: declaration.help().into(),
             arguments: Vec::new(),
             sections: Vec::new(),
             section_rule: None,
-            examples: examples.get(&format!("sync {bundle}")).cloned().unwrap_or_default(),
+            examples: examples
+                .get(&format!("sync {bundle}"))
+                .cloned()
+                .unwrap_or_default(),
         });
     }
 }
@@ -272,243 +312,6 @@ fn argument(name: &str, node: &Value, root: &Value) -> HelpArgument {
 fn text(node: &Value, key: &str) -> String {
     node[key].as_str().unwrap_or_default().into()
 }
-pub(crate) fn tree() -> String {
-    let Ok(commands) = commands() else {
-        return "BioMCP command help unavailable".into();
-    };
-    let mut lines = tree_intro();
-    for command in commands {
-        if command.command.first().is_none_or(|verb| {
-            !matches!(
-                verb.as_str(),
-                "search"
-                    | "get"
-                    | "article"
-                    | "trial"
-                    | "variant"
-                    | "sync"
-                    | "pathway"
-                    | "cell-line"
-                    | "author"
-            )
-        }) {
-            continue;
-        }
-        if command.command == ["sync", "[hgnc|clingen|gencc]"] {
-            continue;
-        }
-        let mut line = command.command.join(" ");
-        // Detailed options belong to help COMMAND; retain search facets
-        // required for discovering checked gene and disease searches.
-        if command.command == ["search", "gene"] || command.command == ["search", "disease"] {
-            for argument in command
-                .arguments
-                .iter()
-                .filter(|arg| discovery_argument(arg))
-            {
-                line.push_str(&format!(" {}", argument.name));
-            }
-        }
-        if command.command.iter().any(|word| word == "adverse-event") {
-            for argument in command.arguments.iter().filter(|arg| {
-                arg.position.is_none() && arg.name != "--snapshot" && discovery_argument(arg)
-            }) {
-                line.push_str(&format!(" {}", argument.name));
-                if !argument.choices.is_empty() {
-                    line.push_str(&format!(" {}", argument.choices.join("|")));
-                }
-            }
-        }
-        if command.command == ["search", "protein"] {
-            line.push_str(" --gene --reviewed");
-        }
-        author_selectors(&command, &mut line);
-        cell_line_selectors(&command, &mut line);
-        pgx_selectors(&command, &mut line);
-        gwas_selectors(&command, &mut line);
-        pathway_selectors(&command, &mut line);
-        diagnostic_selectors(&command, &mut line);
-        study_selectors(&command, &mut line);
-        phenotype_selectors(&command, &mut line);
-        if !command.sections.is_empty() {
-            line.push_str(" :");
-            line.push_str(
-                &command
-                    .sections
-                    .iter()
-                    .map(|s| s.word.as_str())
-                    .collect::<Vec<_>>()
-                    .join("|"),
-            );
-        }
-        lines.push(line);
-    }
-    lines.join("\n")
-}
-
-fn tree_intro() -> Vec<String> {
-    vec![
-        "help CMD;schema ID".into(),
-        CELL_LINE_BOUNDARY.into(),
-        "Author IDs name source records;no ranking/merge. Both sources noncommercial;--disable-sources \
-            noncommercial. Optional keys: biomcp key set semantic-scholar (S2_API_KEY);biomcp key set orcid \
-            (ORCID_ACCESS_TOKEN)"
-            .into(),
-        "protein features --position --type;domains --type;isoforms;complexes;complex-members --complex;structures;sequence".into(),
-        "Human source facts;no variant effect/structure/interaction/clinical inference;no bioinformatics tool runs".into(),
-        "Pages --limit --offset --pool; sections --section-limit --section-offset".into(),
-        "Pathway membership names source/release; no therapy, response, actionability or enrichment".into(),
-        "GWAS source associations; no personal risk, causal variant/gene or clinical statistic \
-            interpretation; --p-value requires default p-value-ascending"
-            .into(),
-    ]
-}
-
-fn author_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command == ["get", "author"] {
-        line.push_str(" semantic-scholar:ID|orcid:ID (semanticscholar:ID alias)");
-    }
-    if command.command == ["author", "papers"] {
-        line.push_str(" details|--full --limit/-l --offset --pool");
-    }
-    if command.command == ["search", "author"] {
-        line.push_str(
-            " --source semantic-scholar|semanticscholar --query/-q --limit/-l --offset --pool",
-        );
-    }
-}
-
-fn cell_line_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command == ["search", "cell-line"] {
-        line.push_str(" query --query/-q --limit/-l --offset");
-    }
-    if command.command == ["get", "cell-line"] {
-        line.push_str(" CVCL_ID|SOURCE:ID --section-limit --section-offset");
-    }
-}
-
-fn phenotype_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command.get(1).is_some_and(|v| v == "phenotype") {
-        for argument in command.arguments.iter().filter(|a| a.position.is_none()) {
-            line.push_str(&format!(" {}", argument.name));
-            if argument.name == "--source" {
-                line.push(' ');
-                line.push_str(&argument.choices.join("|"));
-            }
-        }
-        if command.command.first().is_some_and(|verb| verb == "get") {
-            line.push_str(
-                "; terms are terminology, associations publisher assertions; neither diagnoses",
-            );
-        }
-    }
-}
-
-fn pathway_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command.iter().any(|word| word == "pathway") {
-        for argument in command
-            .arguments
-            .iter()
-            .filter(|arg| discovery_argument(arg))
-        {
-            line.push_str(&format!(" {}", argument.name));
-            if argument.name == "--source" {
-                line.push_str(&format!(" {}", argument.choices.join("|")));
-            }
-        }
-        match command.command.as_slice() {
-            [verb, _] if verb == "get" => line.push_str("; R-HSA|WP"),
-            [verb, relation] if verb == "pathway" && relation == "genes" => {
-                line.push_str("; Reactome|WikiPathways GPML")
-            }
-            [verb, relation] if verb == "pathway" && relation == "events" => {
-                line.push_str("; Reactome")
-            }
-            _ => {}
-        }
-    }
-}
-
-fn pgx_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command.iter().any(|word| word == "pgx") {
-        for argument in command.arguments.iter().filter(|arg| {
-            discovery_argument(arg)
-                && matches!(
-                    arg.name.as_str(),
-                    "--source"
-                        | "--diplotype"
-                        | "--kind"
-                        | "--cpic-level"
-                        | "--limit"
-                        | "--offset"
-                        | "--section-limit"
-                        | "--section-offset"
-                )
-        }) {
-            line.push_str(&format!(" {}", argument.name));
-            if argument.name == "--source" {
-                line.push_str(&format!(" {}", argument.choices.join("|")));
-            }
-        }
-    }
-}
-
-fn discovery_argument(argument: &HelpArgument) -> bool {
-    !matches!(
-        argument.name.as_str(),
-        "--limit" | "--offset" | "--section-limit" | "--section-offset"
-    )
-}
-
-fn gwas_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command.iter().any(|word| word == "gwas") {
-        for argument in command
-            .arguments
-            .iter()
-            .filter(|arg| discovery_argument(arg))
-        {
-            line.push_str(&format!(" {}", argument.name));
-        }
-    }
-}
-
-fn study_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command.iter().any(|word| word == "study") {
-        for argument in command
-            .arguments
-            .iter()
-            .filter(|arg| arg.position.is_none() && discovery_argument(arg))
-        {
-            line.push_str(&format!(" {}", argument.name));
-        }
-    }
-}
-
-fn diagnostic_selectors(command: &HelpCommand, line: &mut String) {
-    if command.command.iter().any(|word| word == "diagnostic")
-        && let Some(source) = command.arguments.iter().find(|a| a.name == "--source")
-    {
-        line.push_str(&format!(" --source {}", source.choices.join("|")));
-        for argument in command.arguments.iter().filter(|argument| {
-            matches!(
-                argument.name.as_str(),
-                "--gene"
-                    | "--gene-id"
-                    | "--condition-id"
-                    | "--type"
-                    | "--device-id"
-                    | "--drug-application"
-                    | "--biomarker"
-                    | "--marker"
-                    | "--manufacturer"
-                    | "--supplement"
-            )
-        }) {
-            line.push_str(&format!(" {}", argument.name));
-        }
-    }
-}
-
 fn field<'a>(node: &'a Value, key: &str) -> &'a Value {
     node.get(key).unwrap_or(&Value::Null)
 }

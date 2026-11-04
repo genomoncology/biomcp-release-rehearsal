@@ -2,7 +2,8 @@
 use super::SPEC;
 use biodata::Pmid;
 use biomcp_fetch::{Arg, BadReply, Endpoint, Freshness, Leg, Reply, RequestError};
-use biomcp_types::{Reason, Source};
+use biomcp_fetch::{Input, Read};
+use biomcp_types::Source;
 use serde::Deserialize;
 const SEARCH: Endpoint = SPEC.get("/search/").fresh(Freshness::Days(1));
 const LIMIT: usize = 100;
@@ -25,10 +26,13 @@ pub fn search(leg: &Leg<'_>, term: &str) -> Result<Search, RequestError> {
     };
     let mut previous = Vec::new();
     for page in 1..=LIMIT as u64 {
-        let reply = leg.json::<Page>(
-            &SEARCH,
-            &[("text", Arg::Text(term)), ("page", Arg::Num(page))],
-        );
+        let reply = leg
+            .call(
+                &SEARCH,
+                Input::Params(&[("text", Arg::Text(term)), ("page", Arg::Num(page))]),
+                Read::<Page>::json(),
+            )
+            .map(|received| received.value);
         let reply = match reply {
             Ok(reply) => reply,
             Err(error) if page == 1 => return Err(error),
@@ -45,7 +49,7 @@ pub fn search(leg: &Leg<'_>, term: &str) -> Result<Search, RequestError> {
             || !ids.is_empty() && ids == previous
             || reply.count != result.count
         {
-            result.error = Some(bad_reply());
+            result.error = Some(biomcp_fetch::bad_reply(Source::PubTator, None));
             break;
         }
         let terminal = ids.is_empty() || page >= reply.total_pages;
@@ -59,20 +63,12 @@ pub fn search(leg: &Leg<'_>, term: &str) -> Result<Search, RequestError> {
             break;
         }
         if page == LIMIT as u64 {
-            result.error = Some(bad_reply());
+            result.error = Some(biomcp_fetch::bad_reply(Source::PubTator, None));
         }
     }
     Ok(result)
 }
-fn bad_reply() -> RequestError {
-    biomcp_fetch::SourceError {
-        source: Source::PubTator,
-        reason: Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
-}
+
 #[derive(Deserialize)]
 struct Page {
     results: Vec<Row>,
@@ -97,4 +93,18 @@ impl Reply for Page {
         }
         Ok(())
     }
+}
+
+/// Compose the native term for checked gene and literal article selectors.
+pub fn query_term(
+    query: &biomcp_types::ArticleSearch,
+    entrez: Option<biodata::NcbiGeneId>,
+) -> String {
+    entrez
+        .map(|id| format!("@GENE_{id}"))
+        .into_iter()
+        .chain([query.words()])
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join(" AND ")
 }

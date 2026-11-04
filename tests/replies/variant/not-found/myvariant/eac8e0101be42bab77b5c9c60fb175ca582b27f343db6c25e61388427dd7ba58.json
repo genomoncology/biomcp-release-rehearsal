@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/query?q=rs113488022&size=1000&from=0&fields=_id%2Cdbsnp.rsid%2Cdbsnp.gene.symbol&assembly=hg19",
+  "exchanges": [
+    {
+      "fetched": 1792872656,
+      "status": 404,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "Synthetic source failure."
+      }
+    }
+  ]
+}

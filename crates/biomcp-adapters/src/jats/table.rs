@@ -82,7 +82,7 @@ pub(super) fn group(table: Element<'_>, path: &[Text]) -> Result<Group, BadReply
     }
     rows.extend(rendered);
     Ok(Group {
-        title: label,
+        title: Some(label),
         path: path.to_vec(),
         kind: TextPartKind::Table,
         context: Some(context),

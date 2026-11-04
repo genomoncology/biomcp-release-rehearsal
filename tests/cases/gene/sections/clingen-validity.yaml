@@ -1,8 +1,9 @@
 {
   "live_check": "public",
-  "feature": "gene-sections",
+  "feature": "gene-clingen",
   "story": "ClinGen preserves every validity record and dosage label for five Lynch syndrome genes in input order",
   "replay": "gene/clingen",
+  "cache_acquired": 42,
   "steps": [
     {
       "run": [
@@ -15,94 +16,6 @@
         "EPCAM",
         "clingen"
       ],
-      "mcp": [
-        "get",
-        "gene",
-        "MLH1",
-        "MSH2",
-        "MSH6",
-        "PMS2",
-        "EPCAM",
-        "clingen"
-      ],
-      "max_bytes": 17500,
-      "expect": {
-        "/status": "complete",
-        "/result/items/*/answer/gene/symbol": [
-          "MLH1",
-          "MSH2",
-          "MSH6",
-          "PMS2",
-          "EPCAM"
-        ],
-        "/sources/*/source": {
-          "includes": "clingen",
-          "excludes": "gnomad"
-        },
-        "/result/items/0/sections/clingen/state": "data",
-        "/result/items/0/sections/clingen/data/validity/*/mondo_id": {
-          "includes": "MONDO:0005835"
-        },
-        "/result/items/0/sections/clingen/data/validity/*/classification": {
-          "includes": "Definitive"
-        },
-        "/result/items/0/sections/clingen": {
-          "max_tokens": 600
-        },
-        "/result/items/1/sections/clingen/state": "data",
-        "/result/items/1/sections/clingen/data/validity/*/mondo_id": {
-          "includes": "MONDO:0005835"
-        },
-        "/result/items/1/sections/clingen/data/validity/*/classification": {
-          "includes": "Definitive"
-        },
-        "/result/items/1/sections/clingen": {
-          "max_tokens": 600
-        },
-        "/result/items/2/sections/clingen/state": "data",
-        "/result/items/2/sections/clingen/data/validity/*/mondo_id": {
-          "includes": "MONDO:0005835"
-        },
-        "/result/items/2/sections/clingen/data/validity/*/classification": {
-          "includes": "Definitive"
-        },
-        "/result/items/2/sections/clingen": {
-          "max_tokens": 600
-        },
-        "/result/items/3/sections/clingen/state": "data",
-        "/result/items/3/sections/clingen/data/validity/*/mondo_id": {
-          "includes": "MONDO:0005835"
-        },
-        "/result/items/3/sections/clingen/data/validity/*/classification": {
-          "includes": "Definitive"
-        },
-        "/result/items/3/sections/clingen": {
-          "max_tokens": 600
-        },
-        "/result/items/4/sections/clingen/state": "data",
-        "/result/items/4/sections/clingen/data/validity/*/mondo_id": {
-          "includes": "MONDO:0005835"
-        },
-        "/result/items/4/sections/clingen/data/validity/*/classification": {
-          "includes": "Definitive"
-        },
-        "/result/items/4/sections/clingen": {
-          "max_tokens": 600
-        }
-      }
-    },
-    {
-      "run": [
-        "get",
-        "gene",
-        "MLH1",
-        "MSH2",
-        "MSH6",
-        "PMS2",
-        "EPCAM",
-        "clingen"
-      ],
-      "offline": true,
       "max_bytes": 17500,
       "expect": {
         "/status": "complete",

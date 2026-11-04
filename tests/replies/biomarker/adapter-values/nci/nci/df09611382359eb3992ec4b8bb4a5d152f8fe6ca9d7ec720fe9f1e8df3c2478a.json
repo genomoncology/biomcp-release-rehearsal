@@ -1,0 +1,1511 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/biomarkers?name=PD-L1",
+  "exchanges": [
+    {
+      "fetched": 1793223566,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": [
+            {
+              "name": "CD274 Gene",
+              "codes": [
+                "C96022"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C20103",
+                "C21295"
+              ],
+              "type": [
+                "reference_gene"
+              ],
+              "parent_ids": [
+                "C20103"
+              ],
+              "synonyms": [
+                "CD274",
+                "CD274 Molecule Gene",
+                "PD-L1",
+                "PDL1"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": "synthetic-invalid-count"
+            },
+            {
+              "name": "CD274 Gene Amplification",
+              "codes": [
+                "C174141"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C20103",
+                "C21295",
+                "C36327",
+                "C36391",
+                "C3910",
+                "C45581",
+                "C96022",
+                "C97926"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C45581",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7-H Gene Amplification",
+                "B7H1 Gene Amplification",
+                "CD274 Amplification",
+                "CD274 Antigen Gene Amplification",
+                "CD274 Copy Number Gain",
+                "CD274 Molecule Gene Amplification",
+                "PD-L1 Copy Number Gain",
+                "PD-L1 Gene Amplification",
+                "PDCD1L1 Gene Amplification",
+                "PDCD1LG1 Gene Amplification",
+                "PDL1 Copy Number Gain",
+                "PDL1 Gene Amplification",
+                "Programmed Cell Death 1 Ligand 1 Gene Amplification"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "CD274 Gene Mutation",
+              "codes": [
+                "C148440"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C20103",
+                "C21295",
+                "C36391",
+                "C3910",
+                "C96022",
+                "C97926",
+                "C97927"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C96022",
+                "C97927"
+              ],
+              "synonyms": [
+                "B7-H Gene Mutation",
+                "B7H1 Gene Mutation",
+                "CD274 Antigen Gene Mutation",
+                "CD274 Molecule Gene Mutation",
+                "PD-L1 Gene Mutation",
+                "PDCD1L1 Gene Mutation",
+                "PDCD1LG1 Gene Mutation",
+                "PDL1 Gene Mutation",
+                "Programmed Cell Death 1 Ligand 1 Gene Mutation"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "FIP1L1-PDGFRalpha Fusion Protein Expression",
+              "codes": [
+                "C37217"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C20103",
+                "C20194",
+                "C20719",
+                "C21281",
+                "C212859",
+                "C21295",
+                "C24666",
+                "C24667",
+                "C25870",
+                "C25871",
+                "C25872",
+                "C28510",
+                "C36327",
+                "C36336",
+                "C36345",
+                "C36346",
+                "C36391",
+                "C3910",
+                "C97454",
+                "C97926",
+                "C99743"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C24666",
+                "C36346",
+                "C97454",
+                "C99743"
+              ],
+              "synonyms": [
+                "FIP1L1-PDGFRA Fusion Protein Expression",
+                "FIP1L1-PDGFRalpha Fusion Protein Positive",
+                "FIP1L1/PDGFRA Fusion Protein Expression",
+                "FIP1L1/PDGFRA Fusion Protein Positive",
+                "FIP1L1/PDGFRalpha Fusion Protein Expression",
+                "Pre-mRNA 3'-End-Processing Factor FIP1/Alpha-Type Platelet-Derived Growth Factor Receptor Fusion Protein Expression"
+              ],
+              "eligibility_criterion": [
+                "exclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "FIP1L1/PDGFRA Fusion Gene",
+              "codes": [
+                "C99743"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C20103",
+                "C20194",
+                "C20719",
+                "C21281",
+                "C212859",
+                "C21295",
+                "C24666",
+                "C24667",
+                "C25870",
+                "C25871",
+                "C25872",
+                "C28510",
+                "C97454"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C212859",
+                "C24666",
+                "C97454"
+              ],
+              "synonyms": [
+                "FIP1L1-PDGFRA Fusion Gene",
+                "FIP1L1::PDGFRA Fusion Gene",
+                "PDGFRA/FIP1L1 Fusion Gene"
+              ],
+              "eligibility_criterion": [
+                "exclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "Immunohistochemical Status of PD-L1",
+              "codes": [
+                "C122807"
+              ],
+              "ancestor_ids": [
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C40998",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 Immunohistochemistry",
+                "CD274 Status by Immunohistochemistry",
+                "Immunohistochemical Status of CD274",
+                "PD-L1 IHC Status",
+                "PD-L1 Immunohistochemistry",
+                "PD-L1 Immunohistochemistry Status",
+                "PD-L1 Status by Immunohistochemistry"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": 315
+            },
+            {
+              "name": "Lack of Expression of PD-L1",
+              "codes": [
+                "C122809"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Negative",
+                "B7-H Negative",
+                "B7H1 Negative",
+                "CD274 Antigen Negative",
+                "CD274 Molecule Negative",
+                "CD274 Negative",
+                "Negative",
+                "PD-L1 Negative",
+                "PDCD1L1 Negative",
+                "PDCD1LG1 Negative",
+                "PDL1 Negative",
+                "Programmed Cell Death 1 Ligand 1 Negative"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": 16
+            },
+            {
+              "name": "PD-L1",
+              "codes": [
+                "C96024"
+              ],
+              "ancestor_ids": [
+                "C16612",
+                "C17021",
+                "C17728",
+                "C18106",
+                "C20027",
+                "C20103",
+                "C21295",
+                "C26548",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C18106",
+                "C20103",
+                "C21295",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1",
+                "B7-H1",
+                "CD Antigen CD274",
+                "CD274",
+                "CD274 Antigen",
+                "PDL1",
+                "Pdcd1 Ligand 1",
+                "Programmed Cell Death 1 Ligand 1",
+                "Programmed Death Ligand 1"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 8
+            },
+            {
+              "name": "PD-L1 Combined Positive Score",
+              "codes": [
+                "C176582"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS",
+                "CPS",
+                "Cells.programmed cell death ligand 1/100 viable tumor cells in Tissue by Immune stain",
+                "Combined Positive Score",
+                "PD-L1 CPS",
+                "PDL1 CPS"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": 66
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Greater than 40",
+              "codes": [
+                "C227684"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Greater than 40",
+                "CPS > 40",
+                "PD-L1 CPS > 40",
+                "PD-L1 CPS Greater than 40",
+                "PDL1 CPS Greater than 40"
+              ],
+              "eligibility_criterion": [
+                "exclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Greater than or Equal to 1",
+              "codes": [
+                "C200212"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Greater than or Equal to 1",
+                "PD-L1 CPS Greater than or Equal to 1",
+                "PDL1 CPS Greater than or Equal to 1"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 47
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Greater than or Equal to 10",
+              "codes": [
+                "C205622"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Greater than or Equal to 10",
+                "PD-L1 CPS Greater than or Equal to 10",
+                "PDL1 CPS Greater than or Equal to 10"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": 5
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Greater than or Equal to 20",
+              "codes": [
+                "C203902"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Greater than or Equal to 20",
+                "PD-L1 CPS >= 20",
+                "PD-L1 CPS Greater than or Equal to 20",
+                "PDL1 CPS Greater than or Equal to 20"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 3
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Greater than or Equal to 5",
+              "codes": [
+                "C200203"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Greater than or Equal to 5",
+                "PD-L1 CPS >= 5",
+                "PD-L1 CPS Greater than or Equal to 5",
+                "PDL1 CPS Greater than or Equal to 5"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Greater than or Equal to 50",
+              "codes": [
+                "C227890"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Greater than or Equal to 50",
+                "PD-L1 CPS >= 50",
+                "PD-L1 CPS Greater than or Equal to 50",
+                "PD-L1 Combined Positive Score Greater than or Equal to 50%",
+                "PDL1 CPS Greater than or Equal to 50"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Less than 1",
+              "codes": [
+                "C221399"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Less than 1",
+                "PD-L1 CPS <1",
+                "PD-L1 CPS Less than 1",
+                "PDL1 CPS Less than 1"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "PD-L1 Combined Positive Score Less than 20",
+              "codes": [
+                "C200449"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C176582",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C176582",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 CPS Less than 20",
+                "PD-L1 CPS <20",
+                "PD-L1 CPS Less than 20",
+                "PDL1 CPS Less than 20"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Expression 1-49 Percent",
+              "codes": [
+                "C198579"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression 1-49 Percent",
+                "B7-H1 Expression 1-49 Percent",
+                "B7H1 Expression 1-49 Percent",
+                "CD274 Antigen Expression 1-49 Percent",
+                "CD274 Expression 1-49 Percent",
+                "CD274 Molecule Expression 1-49 Percent",
+                "PD-L1 1-49 Percent",
+                "PD-L1 Expression 1-49%",
+                "PD-L1 Expression Greater than or Equal to 1 Percent and Less than or Equal to 49 Percent",
+                "PDCD1 Ligand 1 Expression 1-49 Percent",
+                "PDCD1L1 Expression 1-49 Percent",
+                "PDCD1LG1 Expression 1-49 Percent",
+                "PDL1 Expression 1-49 Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression 1-49 Percent",
+                "Programmed Death Ligand 1 Expression 1-49 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "PD-L1 Expression Greater than 50 Percent",
+              "codes": [
+                "C205452"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression Greater than 50 Percent",
+                "B7-H1 Expression Greater than 50 Percent",
+                "B7H1 Expression Greater than 50 Percent",
+                "CD274 Antigen Expression Greater than 50 Percent",
+                "CD274 Expression Greater than 50 Percent",
+                "CD274 Molecule Expression Greater than Percent",
+                "PD-L1 Expression Greater than 50%",
+                "PDCD1 Ligand 1 Expression Greater than 50 Percent",
+                "PDCD1L1 Expression Greater than 50 Percent",
+                "PDCD1LG1 Expression Greater than or Equal to 50 Percent",
+                "PDL1 Expression Greater than Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression Greater than 50 Percent",
+                "Programmed Death Ligand 1 Expression Greater than 50 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Expression Greater than or Equal to 1 Percent",
+              "codes": [
+                "C188768"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression Greater than or Equal to 1 Percent",
+                "B7-H1 Expression Greater than or Equal to 1 Percent",
+                "B7H1 Expression Greater than or Equal to 1 Percent",
+                "CD274 Antigen Expression Greater than or Equal to 1 Percent",
+                "CD274 Expression Greater than or Equal to 1 Percent",
+                "CD274 Greater than or Equal to 1 Percent",
+                "CD274 Molecule Expression Greater than or Equal to 1 Percent",
+                "PD-L1 Greater than or Equal to 1 Percent",
+                "PDCD1 Ligand 1 Expression Greater than or Equal to 1 Percent",
+                "PDCD1L1 Expression Greater than or Equal to 1 Percent",
+                "PDCD1LG1 Expression Greater than or Equal to 1 Percent",
+                "PDL1 Expression Greater than or Equal to 1 Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression Greater than or Equal to 1 Percent",
+                "Programmed Death Ligand 1 Expression Greater than or Equal to 1 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 23
+            },
+            {
+              "name": "PD-L1 Expression Greater than or Equal to 50 Percent",
+              "codes": [
+                "C190846"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression Greater than or Equal to 50 Percent",
+                "B7-H1 Expression Greater than or Equal to 50 Percent",
+                "B7H1 Expression Greater than or Equal to 50 Percent",
+                "CD274 Antigen Expression Greater than or Equal to 50 Percent",
+                "CD274 Expression Greater than or Equal to 50 Percent",
+                "CD274 Greater than or Equal to 50 Percent",
+                "CD274 Molecule Expression Greater than or Equal to 50 Percent",
+                "PD-L1 Greater than or Equal to 50 Percent",
+                "PDCD1 Ligand 1 Expression Greater than or Equal to 50 Percent",
+                "PDCD1L1 Expression Greater than or Equal to 50 Percent",
+                "PDCD1LG1 Expression Greater than or Equal to 50 Percent",
+                "PDL1 Expression Greater than or Equal to 50 Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression Greater than or Equal to 50 Percent",
+                "Programmed Death Ligand 1 Expression Greater than or Equal to 50 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 21
+            },
+            {
+              "name": "PD-L1 Expression Less than 1 Percent",
+              "codes": [
+                "C185382"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression Less than 1 Percent",
+                "B7-H1 Expression Less than 1 Percent",
+                "B7H1 Expression Less than 1 Percent",
+                "CD274 Antigen Expression Less than 1 Percent",
+                "CD274 Expression Less than 1 Percent",
+                "CD274 Less than 1 Percent",
+                "CD274 Molecule Expression Less than 1 Percent",
+                "PD-L1 Less than 1 Percent",
+                "PDCD1 Ligand 1 Expression Less than 1 Percent",
+                "PDCD1L1 Expression Less than 1 Percent",
+                "PDCD1LG1 Expression Less than 1 Percent",
+                "PDL1 Expression Less than 1 Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression Less than 1 Percent",
+                "Programmed Death Ligand 1 Expression Less than 1 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": 6
+            },
+            {
+              "name": "PD-L1 Expression Less than 50 Percent",
+              "codes": [
+                "C192132"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression Less than 50 Percent",
+                "B7-H1 Expression Less than 50 Percent",
+                "B7H1 Expression Less than 50 Percent",
+                "CD274 Antigen Expression Less than 50 Percent",
+                "CD274 Expression Less than 50 Percent",
+                "CD274 Less than 50 Percent",
+                "CD274 Molecule Expression Less than 50 Percent",
+                "PD-L1 Less than 50 Percent",
+                "PDCD1 Ligand 1 Expression Less than 50 Percent",
+                "PDCD1L1 Expression Less than 50 Percent",
+                "PDCD1LG1 Expression Less than 50 Percent",
+                "PDL1 Expression Less than 50 Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression Less than 50 Percent",
+                "Programmed Death Ligand 1 Expression Less than 50 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "PD-L1 Expression Less than or Equal to 50 Percent",
+              "codes": [
+                "C187379"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Expression Less than or Equal to 50 Percent",
+                "B7-H1 Expression Less than or Equal to 50 Percent",
+                "B7H1 Expression Less than or Equal to 50 Percent",
+                "CD274 50 Percent or Less",
+                "CD274 Antigen Expression Less than or Equal to 50 Percent",
+                "CD274 Expression Less than or Equal to 50 Percent",
+                "CD274 Less than or Equal to 50 Percent",
+                "CD274 Molecule Expression Less than or Equal to 50 Percent",
+                "PD-L1 50 Percent or Less",
+                "PD-L1 Less than or Equal to 50 Percent",
+                "PDCD1 Ligand 1 Expression Less than or Equal to 50 Percent",
+                "PDCD1L1 Expression Less than or Equal to 50 Percent",
+                "PDCD1LG1 Expression Less than or Equal to 50 Percent",
+                "PDL1 Expression Less than or Equal to 50 Percent",
+                "Programmed Cell Death 1 Ligand 1 Expression Less than or Equal to 50 Percent",
+                "Programmed Death Ligand 1 Expression Less than or Equal to 50 Percent"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "PD-L1 Expression Positive in Tumor Cells",
+              "codes": [
+                "C190047"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C128554",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD247 Positive Tumor Cells",
+                "PD-L1 Expression in Tumor Cells",
+                "PD-L1 Positive Tumor Cells",
+                "PDL1 Positive Tumor Cells",
+                "Programmed Cell Death 1 Ligand 1 Positive Tumor Cells"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 31
+            },
+            {
+              "name": "PD-L1 Overexpression",
+              "codes": [
+                "C122808"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C177693",
+                "C20103",
+                "C21295",
+                "C26683",
+                "C3367",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C81326",
+                "C82547",
+                "C83490",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C177693",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 Overexpression",
+                "PD-L1 Positive"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 5
+            },
+            {
+              "name": "PD-L1 Positive",
+              "codes": [
+                "C128554"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C122807",
+                "C177692",
+                "C94299",
+                "C96022"
+              ],
+              "synonyms": [
+                "B7 Homolog 1 Positive",
+                "B7-H Positive",
+                "B7H1 Positive",
+                "CD274 Antigen Positive",
+                "CD274 Molecule Positive",
+                "CD274 Positive",
+                "Expression of PD-L1",
+                "PD-L1+",
+                "PDCD1L1 Positive",
+                "PDCD1LG1 Positive",
+                "PDL1 Positive",
+                "Positive",
+                "Programmed Cell Death 1 Ligand 1 Positive"
+              ],
+              "eligibility_criterion": [
+                "inclusion",
+                "exclusion"
+              ],
+              "count": 197
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score",
+              "codes": [
+                "C184941"
+              ],
+              "ancestor_ids": [
+                "C154810",
+                "C16203",
+                "C16612",
+                "C20103",
+                "C21295",
+                "C25218",
+                "C25294",
+                "C43431",
+                "C48938",
+                "C74944",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C154810",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 Tumor Proportion Score",
+                "PD-L1 TPS",
+                "PDL1 Tumor Proportion Score"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score 1-49",
+              "codes": [
+                "C201861"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS 1-49",
+                "PD-L1 TPS 1-49",
+                "PD-L1 TPS 1-49%",
+                "PD-L1 Tumor Proportion Score 1 to 49",
+                "PD-L1 Tumor Proportion Score 1-49 Percent",
+                "PDL1 TPS 1-49"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 3
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Equal to 1",
+              "codes": [
+                "C217104"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Equal to 1",
+                "PD-L1 TPS =1%",
+                "PD-L1 TPS Equal to 1",
+                "PD-L1 Tumor Proportion Score =1%",
+                "PD-L1 Tumor Proportion Score Equal to 1 Percent",
+                "PDL1 TPS Equal to 1"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Greater than 1",
+              "codes": [
+                "C206106"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Greater than 1",
+                "PD-L1 TPS > 1%",
+                "PD-L1 TPS Greater than 1",
+                "PD-L1 Tumor Proportion Score Greater than 1 Percent",
+                "PDL1 TPS Greater than 1"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Greater than or Equal to 1",
+              "codes": [
+                "C200204"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Greater than or Equal to 1",
+                "PD-L1 TPS Greater than or Equal to 1",
+                "PD-L1 Tumor Proportion Score Greater than or Equal to 1 Percent",
+                "PDL1 TPS Greater than or Equal to 1"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 10
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Greater than or Equal to 5",
+              "codes": [
+                "C201223"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Greater than or Equal to 5",
+                "PD-L1 TPS Greater than or Equal to 5",
+                "PD-L1 Tumor Proportion Score Greater than or Equal to 5 Percent",
+                "PDL1 TPS Greater than or Equal to 5"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Greater than or Equal to 50",
+              "codes": [
+                "C205128"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Greater than or Equal to 50",
+                "PD-L1 TPS Greater than or Equal to 50",
+                "PD-L1 Tumor Proportion Score Greater than or Equal to 50 Percent",
+                "PDL1 TPS Greater than or Equal to 50",
+                "TPS score greater than or equal to 50%"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 12
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Less than 1",
+              "codes": [
+                "C205126"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Less than 1",
+                "PD-L1 TPS <1%",
+                "PD-L1 TPS Less than 1",
+                "PD-L1 Tumor Proportion Score <1%",
+                "PD-L1 Tumor Proportion Score Less than 1 Percent",
+                "PDL1 TPS Less than 1",
+                "TPS score less than 1%"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Less than 49",
+              "codes": [
+                "C210426"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Less than 49",
+                "PD-L1 TPS <49%",
+                "PD-L1 TPS Less than 49",
+                "PD-L1 Tumor Proportion Score Less than 49 Percent",
+                "PDL1 TPS Less than 49"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 1
+            },
+            {
+              "name": "PD-L1 Tumor Proportion Score Less than 50",
+              "codes": [
+                "C216952"
+              ],
+              "ancestor_ids": [
+                "C122807",
+                "C125581",
+                "C128554",
+                "C16612",
+                "C175007",
+                "C177692",
+                "C190047",
+                "C20103",
+                "C21295",
+                "C3367",
+                "C35682",
+                "C36292",
+                "C40998",
+                "C77140",
+                "C83490",
+                "C94299",
+                "C96022"
+              ],
+              "type": [],
+              "parent_ids": [
+                "C190047",
+                "C96022"
+              ],
+              "synonyms": [
+                "CD274 TPS Less than 50",
+                "PD-L1 TPS <50%",
+                "PD-L1 TPS Less than 50",
+                "PD-L1 Tumor Proportion Score Less than 50 Percent",
+                "PDL1 TPS Less than 50"
+              ],
+              "eligibility_criterion": [
+                "inclusion"
+              ],
+              "count": 2
+            }
+          ],
+          "total": 37
+        }
+      }
+    }
+  ]
+}

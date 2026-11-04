@@ -1,31 +1,8 @@
-use crate::{Action, Outcome};
-use biomcp_types::{DiseaseGet, PageInfo, QueryBody, Request, Status};
-pub(super) fn empty(body: QueryBody) -> Outcome {
-    Outcome {
-        status: Status::Failed,
-        body,
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    }
-}
-pub(super) fn run(request: Request) -> Action {
-    Action::Run {
-        request,
-        fresh: false,
-    }
-}
-pub(super) fn page_info(offset: u32, returned: u32, total: u64) -> PageInfo {
-    PageInfo {
-        offset,
-        returned,
-        total,
-        pool: None,
-        truncated: None,
-    }
-}
+use crate::Outcome;
+pub(super) use crate::next::run;
+pub(super) use crate::status::empty;
+pub(super) use crate::status::page_info;
+use biomcp_types::DiseaseGet;
 pub(super) fn slice<T>(rows: Vec<T>, query: &DiseaseGet) -> (Vec<T>, u64) {
     let total = rows.len() as u64;
     (
@@ -36,21 +13,6 @@ pub(super) fn slice<T>(rows: Vec<T>, query: &DiseaseGet) -> (Vec<T>, u64) {
         total,
     )
 }
-pub(super) fn overall(out: &Outcome, absent: bool) -> Status {
-    if !out.problems.is_empty()
-        || out
-            .sources
-            .iter()
-            .any(|s| s.state == biomcp_types::SourceState::Stale)
-    {
-        Status::Partial
-    } else if absent {
-        Status::Absent
-    } else {
-        Status::Complete
-    }
-}
-
 /// Every rejected disease get keeps its source reason and records the rejected identity.
 pub(super) fn record_problem(out: &mut Outcome, query: &DiseaseGet, source: biomcp_types::Source) {
     if out.sources.iter().any(|outcome| {
@@ -58,7 +20,7 @@ pub(super) fn record_problem(out: &mut Outcome, query: &DiseaseGet, source: biom
     }) {
         out.problems.push(biomcp_types::Problem {
             source,
-            record: Some(query.id().clone()),
+            record: Some(query.record().clone()),
             field: "record".into(),
             code: biomcp_types::ProblemCode::ValueUnknown,
         });

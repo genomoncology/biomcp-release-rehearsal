@@ -55,6 +55,10 @@ impl Process {
     }
 }
 
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The shared subprocess watchdog drains both pipes concurrently"
+)]
 fn reader(mut input: impl Read + Send + 'static) -> thread::JoinHandle<io::Result<Vec<u8>>> {
     thread::spawn(move || {
         let mut bytes = Vec::new();
@@ -68,4 +72,39 @@ fn joined(handle: thread::JoinHandle<io::Result<Vec<u8>>>) -> Result<Vec<u8>, St
         .join()
         .map_err(|_| "pipe reader panicked")?
         .map_err(|e| e.to_string())
+}
+
+// Shared finite request batches use the same pipe draining and watchdog as all MCP trials.
+pub(super) fn exchange(
+    child: Child,
+    frames: &[serde_json::Value],
+) -> Result<(ExitStatus, Vec<u8>, Vec<u8>), String> {
+    use std::io::Write;
+    let mut process = Process::new(child)?;
+    let mut stdin = process.child.stdin.take().ok_or("stdin missing")?;
+    for frame in frames {
+        serde_json::to_writer(&mut stdin, frame).map_err(|e| e.to_string())?;
+        stdin.write_all(b"\n").map_err(|e| e.to_string())?;
+    }
+    drop(stdin);
+    process.finish()
+}
+
+pub(super) fn messages(
+    status: ExitStatus,
+    stdout: &[u8],
+    stderr: &[u8],
+) -> Result<Vec<serde_json::Value>, String> {
+    if !status.success() || !stderr.is_empty() {
+        return Err(format!(
+            "MCP process: {:?}; {}",
+            status.code(),
+            String::from_utf8_lossy(stderr)
+        ));
+    }
+    stdout
+        .split(|b| *b == b'\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| serde_json::from_slice(line).map_err(|e| e.to_string()))
+        .collect()
 }

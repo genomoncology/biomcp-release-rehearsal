@@ -1,5 +1,5 @@
 {
-  "feature": "disease-ols",
+  "feature": "disease-seer",
   "live_check": "Synthetic local replay; no provider requests.",
   "story": "Generated disease examples select publisher sites and explicit native statistic selectors.",
   "replay": "disease/seer-synthetic",
@@ -13,16 +13,8 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "search",
-        "disease",
-        "--source",
-        "seer",
-        "--limit",
-        "1"
-      ],
       "expect": {
-        "/status": "partial"
+        "/status": "complete"
       },
       "max_bytes": 638
     },
@@ -37,18 +29,8 @@
         "--offset",
         "1"
       ],
-      "mcp": [
-        "search",
-        "disease",
-        "--source",
-        "seer",
-        "--limit",
-        "1",
-        "--offset",
-        "1"
-      ],
       "expect": {
-        "/status": "partial"
+        "/status": "complete"
       },
       "max_bytes": 525
     },
@@ -67,22 +49,8 @@
         "--section-limit",
         "1"
       ],
-      "mcp": [
-        "get",
-        "disease",
-        "47",
-        "incidence",
-        "--source",
-        "seer",
-        "--dataset",
-        "4",
-        "--period",
-        "5",
-        "--section-limit",
-        "1"
-      ],
       "expect": {
-        "/status": "partial"
+        "/status": "complete"
       },
       "max_bytes": 1882
     },
@@ -107,28 +75,8 @@
         "--section-limit",
         "5"
       ],
-      "mcp": [
-        "get",
-        "disease",
-        "55",
-        "survival",
-        "--source",
-        "seer",
-        "--sex",
-        "3",
-        "--race",
-        "1",
-        "--age-range",
-        "1",
-        "--dataset",
-        "4",
-        "--interval",
-        "5",
-        "--section-limit",
-        "5"
-      ],
       "expect": {
-        "/status": "partial"
+        "/status": "complete"
       },
       "max_bytes": 2578
     }

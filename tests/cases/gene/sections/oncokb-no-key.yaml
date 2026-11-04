@@ -1,6 +1,6 @@
 {
   "live_check": "synthetic response case",
-  "feature": "gene-sections",
+  "feature": "gene-oncokb",
   "story": "A missing user key skips OncoKB without changing gene status",
   "replay": "gene/oncokb-synthetic/no-key",
   "steps": [
@@ -11,22 +11,16 @@
         "NOTCH1",
         "oncokb"
       ],
-      "mcp": [
-        "get",
-        "gene",
-        "NOTCH1",
-        "oncokb"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items/0/sections/oncokb/state": "skipped",
-        "/result/items/0/sections/oncokb/reason": "no_key",
+        "/result/items/0/sections/oncokb/reason": "no-key",
         "/sources": {
           "includes": {
             "source": "oncokb",
             "state": "skipped",
-            "reason": "no_key",
-            "use": "restricted",
+            "reason": "no-key",
+            "use": "licensed",
             "terms": "OncoKB license",
             "terms_url": "https://faq.oncokb.org/licensing"
           }
@@ -40,11 +34,6 @@
     },
     {
       "run": [
-        "help",
-        "key",
-        "oncokb"
-      ],
-      "mcp": [
         "help",
         "key",
         "oncokb"

@@ -6,6 +6,17 @@ use ureq::unversioned::{
     transport::NextTimeout,
 };
 
+/// Validate a copied HTTP(S) annotation without applying download destination policy.
+/// The caller retains the original spelling; fragments and IP hosts remain valid annotations.
+pub fn check_annotation_url(raw: &str) -> Result<(), crate::InputError> {
+    let parsed = url::Url::parse(raw).map_err(|_| crate::InputError::Path)?;
+    if matches!(parsed.scheme(), "http" | "https") && parsed.host().is_some() {
+        Ok(())
+    } else {
+        Err(crate::InputError::Path)
+    }
+}
+
 pub(crate) fn checked(raw: &str) -> Result<String, crate::InputError> {
     let url = url::Url::parse(raw).map_err(|_| crate::InputError::Path)?;
     if !matches!(url.scheme(), "http" | "https")

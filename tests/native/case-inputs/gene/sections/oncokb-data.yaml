@@ -1,0 +1,43 @@
+{
+  "live_check": "synthetic response case",
+  "feature": "gene-oncokb",
+  "story": "Synthetic keyed OncoKB data preserves checked identity",
+  "replay": "gene/oncokb-synthetic/data",
+  "config": {
+    "keys": {
+      "oncokb_api_key": "synthetic-placeholder"
+    }
+  },
+  "steps": [
+    {
+      "run": [
+        "get",
+        "gene",
+        "TP53",
+        "oncokb"
+      ],
+      "expect": {
+        "/result/items/0/answer/gene/symbol": "TP53",
+        "/status": "complete",
+        "/result/items/0/sections/oncokb/state": "data",
+        "/result/items/0/sections/oncokb/data/summary": "Synthetic summary.",
+        "/result/items/0/oncokb/version": "synthetic-1",
+        "/result/items/0/oncokb/highest_resistance_level": "SYNTHETIC_R",
+        "/result/items/0/sections/oncokb/data/background": "Synthetic background.",
+        "/result/items/0/sections/oncokb/data/grch37/refseq": "NM_000546.6",
+        "/result/items/0/sections/oncokb/data/grch38/isoform": "ENST00000269305",
+        "/result/items/0/sections/oncokb": {
+          "max_tokens": 700
+        }
+      },
+      "exit": 0,
+      "max_bytes": 5000,
+      "mcp": [
+        "get",
+        "gene",
+        "TP53",
+        "oncokb"
+      ]
+    }
+  ]
+}

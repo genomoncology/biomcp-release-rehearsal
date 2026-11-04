@@ -10,33 +10,33 @@ biodata::canonical_enum! {
     /// Clinically meaningful PubMed publication types.
     PublicationType, SourceUnknown {
         /// Randomized controlled trial.
-        RandomizedControlledTrial => "randomized_controlled_trial",
+        RandomizedControlledTrial => "randomized-controlled-trial",
         /// Clinical trial.
-        ClinicalTrial => "clinical_trial",
+        ClinicalTrial => "clinical-trial",
         /// Phase one trial.
-        ClinicalTrialPhase1 => "clinical_trial_phase_1",
+        ClinicalTrialPhase1 => "clinical-trial-phase-1",
         /// Phase two trial.
-        ClinicalTrialPhase2 => "clinical_trial_phase_2",
+        ClinicalTrialPhase2 => "clinical-trial-phase-2",
         /// Phase three trial.
-        ClinicalTrialPhase3 => "clinical_trial_phase_3",
+        ClinicalTrialPhase3 => "clinical-trial-phase-3",
         /// Phase four trial.
-        ClinicalTrialPhase4 => "clinical_trial_phase_4",
+        ClinicalTrialPhase4 => "clinical-trial-phase-4",
         /// Meta-analysis.
-        MetaAnalysis => "meta_analysis",
+        MetaAnalysis => "meta-analysis",
         /// Systematic review.
-        SystematicReview => "systematic_review",
+        SystematicReview => "systematic-review",
         /// Review.
         Review => "review",
         /// Practice guideline.
-        PracticeGuideline => "practice_guideline",
+        PracticeGuideline => "practice-guideline",
         /// Guideline.
         Guideline => "guideline",
         /// Case report.
-        CaseReport => "case_report",
+        CaseReport => "case-report",
         /// Observational study.
-        ObservationalStudy => "observational_study",
+        ObservationalStudy => "observational-study",
         /// Multicenter study.
-        MulticenterStudy => "multicenter_study",
+        MulticenterStudy => "multicenter-study",
         /// Letter.
         Letter => "letter",
         /// Comment.
@@ -46,16 +46,15 @@ biodata::canonical_enum! {
         /// Preprint.
         Preprint => "preprint",
         /// Retracted publication.
-        RetractedPublication => "retracted_publication",
+        RetractedPublication => "retracted-publication",
         /// Retraction notice.
-        RetractionNotice => "retraction_notice",
+        RetractionNotice => "retraction-notice",
         /// Erratum.
         Erratum => "erratum",
     }
 }
 /// Citation metadata from PubMed or Europe PMC.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleHeader {
     /// Checked PubMed identity.

@@ -6,8 +6,10 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     },
     "TrialSection": {
@@ -15,6 +17,7 @@
       "enum": [
         "eligibility",
         "outcomes",
+        "results",
         "arms",
         "locations",
         "contacts",
@@ -28,6 +31,7 @@
       "x-enum-descriptions": [
         " Intact criteria and structured age/sex fields.",
         " Primary, secondary and other outcome records.",
+        " Posted outcome values, analyses and adverse-event tables (ClinicalTrials.gov).",
         " Arms and interventions with original relationships.",
         " Whole source sites with their attached contacts.",
         " Central contacts and overall officials in their original roles.",
@@ -47,7 +51,7 @@
       "type": "string"
     }
   },
-  "$id": "biodata.trial-get/1",
+  "$id": "biomcp.trial-get/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Retrieve exact trial cards in input order; request bounded intact source sections with independent continuations.",

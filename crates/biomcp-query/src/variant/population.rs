@@ -22,15 +22,20 @@ pub(super) fn section(
             Vec::new(),
             Vec::new(),
             None,
+            false,
         );
     }
     let Some(id) = join(candidates) else {
         return missing();
     };
     let leg = cx.fetch.leg(&gnomad::SPEC, deadline).fresh(cx.fresh);
+    let mut dropped = false;
     let mut problems = Vec::new();
     let result = gnomad::variant::population(&leg, &id).and_then(|raw| {
-        raw.map(|raw| summary(&raw, candidates, &mut problems))
+        dropped |= raw.refusals == biomcp_adapters::Refusal::Refused;
+        problems.extend(raw.problems);
+        raw.value
+            .map(|raw| summary(&raw, candidates, &mut problems))
             .transpose()
     });
     let error = result.as_ref().err().copied();
@@ -42,16 +47,24 @@ pub(super) fn section(
         },
         Ok(None) => Section::Empty {
             source: Source::Gnomad,
-            record: Text::new(&id)
-                .ok()
-                .map(|id| biomcp_types::SourceRecord { id, url: None }),
+            record: Text::new(&id).ok().map(|id| biomcp_types::SourceRecord {
+                namespace: biodata::IdentifierNamespace::Unknown,
+                id,
+                url: None,
+            }),
         },
         Err(e) => Section::unavailable(
             Source::Gnomad,
             crate::status::reason(e).unwrap_or(biomcp_types::Reason::Unavailable),
         ),
     };
-    (value, vec![source], problems, error.and_then(status::local))
+    (
+        value,
+        vec![source],
+        problems,
+        error.and_then(status::local),
+        dropped,
+    )
 }
 /// Keep only source-qualified SNVs; indels need an explicit padded source representation.
 pub(super) fn join(candidates: &[VariantHeader]) -> Option<String> {
@@ -118,27 +131,52 @@ pub(super) fn summary(
         );
         Box::new(native)
     };
+    let exome = raw.exome.as_ref().map(|s| {
+        project(
+            s,
+            PopulationDataType::Exomes,
+            raw.va.as_ref().and_then(|v| v.exome.as_ref()),
+            "exome",
+        )
+    });
+    let genome = raw.genome.as_ref().map(|s| {
+        project(
+            s,
+            PopulationDataType::Genomes,
+            raw.va.as_ref().and_then(|v| v.genome.as_ref()),
+            "genome",
+        )
+    });
+    let dataset_version = super::population_release::shared_release(
+        raw,
+        exome.as_deref(),
+        genome.as_deref(),
+        problems,
+    );
     Ok(VariantPopulation {
         variant: raw.variant_id.clone(),
         dataset: text(gnomad::variant::DATASET)?,
         build: Build::GRCh38,
-        exome: raw.exome.as_ref().map(|s| {
-            project(
-                s,
-                PopulationDataType::Exomes,
-                raw.va.as_ref().and_then(|v| v.exome.as_ref()),
-                "exome",
-            )
-        }),
-        genome: raw.genome.as_ref().map(|s| {
-            project(
-                s,
-                PopulationDataType::Genomes,
-                raw.va.as_ref().and_then(|v| v.genome.as_ref()),
-                "genome",
-            )
-        }),
+        dataset_version,
+        exome,
+        genome,
+        joint: joint(raw, problems),
     })
+}
+fn joint(raw: &gnomad::variant::Variant, problems: &[Problem]) -> Section<Box<GnomadCounts>> {
+    match &raw.joint {
+        Some(subset) => Section::Data {
+            source: Source::Gnomad,
+            data: Box::new(counts(subset, PopulationDataType::Joint, None)),
+        },
+        None if problems.iter().any(|p| p.field.as_ref() == "joint") => {
+            Section::unavailable(Source::Gnomad, Reason::BadReply)
+        }
+        None => Section::Empty {
+            source: Source::Gnomad,
+            record: None,
+        },
+    }
 }
 pub(super) fn counts(
     raw: &gnomad::variant::Subset,
@@ -154,7 +192,12 @@ pub(super) fn counts(
         sex,
         ac: group.map_or(raw.ac, |g| g.ac),
         an: group.map_or(raw.an, |g| g.an),
-        filters: raw.filters.clone().into(),
+        homozygote_count: if group.is_none() {
+            raw.homozygote_count
+        } else {
+            None
+        },
+        filters: raw.filters.clone().map(Into::into),
     }
 }
 fn stratum(id: &Text) -> (Option<Text>, Option<PopulationSex>) {
@@ -209,6 +252,7 @@ fn missing() -> (
     Vec<SourceOutcome>,
     Vec<Problem>,
     Option<RequestError>,
+    bool,
 ) {
     (
         Section::Unavailable {
@@ -223,6 +267,7 @@ fn missing() -> (
             code: ProblemCode::ValueUnknown,
         }],
         None,
+        false,
     )
 }
 fn text(value: &str) -> Result<Text, RequestError> {
@@ -231,6 +276,7 @@ fn text(value: &str) -> Result<Text, RequestError> {
             source: Source::Gnomad,
             reason: Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into()

@@ -1,0 +1,43 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/organizations?name=Dana-Farber&org_city=Boston&org_state_or_province=MA&org_country=United%20States&org_postal_code=02215&org_family=Dana-Farber%2FHarvard%20Cancer%20Center&org_coordinates_lat=42.3469&org_coordinates_lon=-71.1025&org_coordinates_dist=10mi",
+  "exchanges": [
+    {
+      "fetched": 1793192400,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 1,
+          "data": [
+            {
+              "name": "Dana-Farber Cancer Institute",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-442-3324",
+              "contact_email": "",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 3376
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

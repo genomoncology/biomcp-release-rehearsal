@@ -1,0 +1,7 @@
+{
+  "$id": "biodata.gene-location/1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "HGNC location text with a parsed interpretation when its syntax is known.",
+  "title": "GeneLocation",
+  "type": "string"
+}

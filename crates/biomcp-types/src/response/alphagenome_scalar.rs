@@ -6,14 +6,14 @@ biodata::wire_enum! {
         /// Native not-a-number value.
         Nan => "nan",
         /// Native positive infinity.
-        PositiveInfinity => "positive_infinity",
+        PositiveInfinity => "positive-infinity",
         /// Native negative infinity.
-        NegativeInfinity => "negative_infinity",
+        NegativeInfinity => "negative-infinity",
     }
 }
 /// One native scalar; finite values remain JSON numbers and nonfinite values stay explicit.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(untagged, deny_unknown_fields)]
+#[serde(untagged)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum AlphaGenomeScalar {
     /// A finite JSON number.
@@ -26,7 +26,7 @@ pub enum AlphaGenomeScalar {
 }
 impl AlphaGenomeScalar {
     /// Preserve a native FLOAT32 scalar without converting nonfinite values to null.
-    pub fn from_float32(value: f32) -> Result<Self, biodata::FiniteNumberError> {
+    pub fn from_float32(value: f32) -> Result<Self, biodata::Error> {
         let kind = if value.is_nan() {
             Some(AlphaGenomeNonfiniteKind::Nan)
         } else if value == f32::INFINITY {
@@ -38,7 +38,10 @@ impl AlphaGenomeScalar {
         };
         match kind {
             Some(kind) => Ok(Self::Nonfinite { kind }),
-            None => f64::from(value).try_into().map(Self::Finite),
+            None => f64::from(value)
+                .try_into()
+                .map(Self::Finite)
+                .map_err(|_| biodata::Error::NumberNonFinite),
         }
     }
 }

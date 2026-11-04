@@ -1,12 +1,13 @@
 //! Separate source legs take turns without title joins or score blending.
 use super::{empty, run};
-use crate::{Ctx, Outcome, status, store::Store};
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::{reactome, wikipathways};
 use biomcp_fetch::{CacheError, Deadline, RequestError};
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
     PathwayGet, PathwayHeader, PathwayPage, PathwayPageInfo, PathwaySearch, PathwaySource,
-    PathwayTotalKind, Problem, QueryBody, Request, Source, SourceOutcome, SourceState, Status,
-    StepKind,
+    PathwayTotalKind, Problem, ReplyData, Request, Source, SourceOutcome, SourceState, StepKind,
 };
 // Queued whole rows, next native position, source total and catalog content revision.
 type LegState = (Vec<PathwayHeader>, Option<u32>, u64, Option<biodata::Text>);
@@ -16,9 +17,10 @@ type Saved = (
     usize,
     Vec<SourceOutcome>,
     Vec<Problem>,
+    bool,
 );
 fn key(q: &PathwaySearch) -> Result<Vec<u8>, RequestError> {
-    serde_json::to_vec(&("pathway-union/1", q.restart())).map_err(|_| CacheError::Database.into())
+    source_snapshot::key("pathway-union", &q.restart())
 }
 fn page(q: &PathwaySearch) -> PathwayPage {
     PathwayPage {
@@ -34,7 +36,7 @@ fn page(q: &PathwaySearch) -> PathwayPage {
     }
 }
 pub(super) fn search(cx: &Ctx<'_>, q: &PathwaySearch) -> Outcome {
-    let mut out = empty(QueryBody::PathwayPage(page(q)));
+    let mut out = empty((page(q)).with_query(q.clone()));
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     if let Err(error) = execute(cx, q, deadline, &mut out) {
@@ -56,10 +58,9 @@ fn execute(
         expired(q, out);
         return Ok(());
     }
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     let identity = key(q)?;
-    let loaded = load(cx, q, &store, &identity, out)?;
-    if matches!(out.body, QueryBody::PoolError { .. }) {
+    let loaded = load(cx, q, deadline, &identity, out)?;
+    if matches!(out.body, ReplyData::PoolError { .. }) {
         return Ok(());
     }
     let replay = loaded
@@ -76,11 +77,13 @@ fn execute(
     if !replay {
         advance(cx, q, deadline, &mut saved, out);
     }
-    let payload = serde_json::to_string(&saved).map_err(|_| CacheError::Database)?;
     let pool = if replay {
-        q.pool().cloned().ok_or(CacheError::Database)?
+        Some(q.pool().cloned().ok_or(CacheError::Internal)?)
     } else {
-        store.save_source_snapshot(&identity, &payload, &saved.3)?
+        crate::publish::keep(
+            source_snapshot::write(cx, &identity, &saved, &saved.3, deadline),
+            out,
+        )?
     };
     present(q, saved, pool, out);
     Ok(())
@@ -88,61 +91,54 @@ fn execute(
 fn load(
     cx: &Ctx<'_>,
     q: &PathwaySearch,
-    store: &Store<'_>,
+    deadline: Deadline<'_>,
     identity: &[u8],
     out: &mut Outcome,
 ) -> Result<Option<Saved>, RequestError> {
     let Some(pool) = q.pool().filter(|_| !(cx.fresh || q.fresh())) else {
         return Ok(None);
     };
-    let payload = store.source_snapshot(pool.as_str(), identity, |s| cx.fetch.disabled(s))?;
-    let Some(payload) = payload else {
+    let saved: Option<Saved> = source_snapshot::read(cx, identity, pool.as_str(), deadline)?;
+    let Some(saved) = saved else {
         expired(q, out);
         return Ok(None);
     };
-    let saved: Saved = serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
     if saved.1.len() != q.sources().len() {
-        return Err(CacheError::Database.into());
+        return Err(CacheError::Internal.into());
     }
     Ok(Some(saved))
 }
-fn present(q: &PathwaySearch, saved: Saved, pool: biodata::Text, out: &mut Outcome) {
+fn present(q: &PathwaySearch, saved: Saved, pool: Option<biodata::Text>, out: &mut Outcome) {
     out.sources = saved.3;
     out.problems = saved.4;
     for row in &saved.0.items {
-        out.next.push((
+        out.next.push(crate::next::Step::new(
             StepKind::Disambiguate,
+            &[super::next::identity(&row.id)],
             run(Request::GetPathway(PathwayGet::new(row.id.clone()))),
         ));
     }
-    if let Some(offset) = saved.0.page.next_offset {
-        out.next.push((
+    if let (Some(offset), Some(pool)) = (saved.0.page.next_offset, pool) {
+        out.next.push(crate::next::Step::new(
             StepKind::Page,
+            &super::next::search(q),
             run(Request::SearchPathway(q.at_offset(offset).with_pool(pool))),
         ));
     }
-    let usable = out
-        .sources
-        .iter()
-        .any(|s| matches!(s.state, SourceState::Ok | SourceState::Stale));
-    out.status = if !usable {
-        Status::Failed
-    } else if out.sources.iter().any(|s| s.state != SourceState::Ok) || !out.problems.is_empty() {
-        Status::Partial
-    } else if saved.0.page.total == 0 {
-        Status::Absent
-    } else {
-        Status::Complete
-    };
-    out.body = QueryBody::PathwayPage(saved.0);
+    out.dropped = saved.5;
+    status::search(out);
+    out.body = (saved.0).with_query(q.clone());
 }
 fn expired(q: &PathwaySearch, out: &mut Outcome) {
-    out.body = QueryBody::PoolError { mismatch: false };
-    out.next
-        .push((StepKind::Restart, run(Request::SearchPathway(q.restart()))));
+    out.body = ReplyData::PoolError { mismatch: false };
+    out.next.push(crate::next::Step::new(
+        StepKind::Restart,
+        &super::next::search(q),
+        run(Request::SearchPathway(q.restart())),
+    ));
 }
 fn initial(cx: &Ctx<'_>, q: &PathwaySearch, deadline: Deadline<'_>, out: &mut Outcome) -> Saved {
-    let mut saved = (page(q), vec![], 0, vec![], vec![]);
+    let mut saved = (page(q), vec![], 0, vec![], vec![], false);
     for source in q.sources() {
         let leg = cx.fetch.leg(
             if *source == PathwaySource::Reactome {
@@ -161,9 +157,11 @@ fn initial(cx: &Ctx<'_>, q: &PathwaySearch, deadline: Deadline<'_>, out: &mut Ou
                 .push(status::source(Source::WikiPathways, leg.finish(), error));
             let state = match reply {
                 Ok((rows, info)) => {
-                    let total = rows.len() as u64;
+                    saved.5 |= rows.refusals == biomcp_adapters::Refusal::Refused;
+                    let total = rows.value.len() as u64;
+                    saved.4.extend(rows.problems);
                     (
-                        rows,
+                        rows.value,
                         None,
                         total,
                         info.content_revision.and_then(|s| s.parse().ok()),
@@ -211,6 +209,7 @@ fn refill(
         }
         match reply {
             Ok(reply) => {
+                saved.5 |= reply.rows.refusals == biomcp_adapters::Refusal::Refused;
                 let next = offset.saturating_add(reply.consumed);
                 state.0 = reply.rows.value;
                 state.1 = (reply.consumed > 0 && u64::from(next) < reply.total).then_some(next);

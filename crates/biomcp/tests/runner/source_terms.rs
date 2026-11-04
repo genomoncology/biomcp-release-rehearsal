@@ -1,33 +1,30 @@
 //! Required publisher provenance is measured separately from unchanged payload caps.
-#[path = "../../src/view/escape.rs"]
-pub(super) mod text;
-use libtest_mimic::Trial;
-use serde_json::{Value, json};
-
-pub(super) fn trials() -> Vec<Trial> {
-    vec![
-        Trial::test(
-            "source-controls/stored-outcomes-use-current-registry-terms",
-            || stored_terms().map_err(Into::into),
-        ),
-        Trial::test("source-controls/outcomes-retain-registry-terms", || {
-            envelopes().map_err(Into::into)
-        }),
-        Trial::test(
-            "runner/markdown-terms-subtraction-keeps-payload-ceilings",
-            || markdown_subtraction().map_err(Into::into),
-        ),
-        Trial::test("runner/terms-subtraction-keeps-payload-ceilings", || {
-            subtraction().map_err(Into::into)
-        }),
-    ]
+// Test-owned Markdown contract for data cells. Product rendering is checked by callers.
+pub(super) mod text {
+    pub(crate) fn source_link(value: &str) -> String {
+        format!("<{value}>")
+    }
+    pub(crate) fn escape(value: &str) -> String {
+        value.chars().map(|ch| match ch {
+            '&' => "&amp;".into(), '<' => "&lt;".into(), '>' => "&gt;".into(),
+            ':' => "&#58;".into(), '.' => "&#46;".into(), '@' => "&#64;".into(),
+            '\n' => "&#10;".into(), '\r' => "&#13;".into(),
+            ch if ch.is_control()
+                || matches!(ch, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}') => {
+                format!("\\u{{{:04x}}}", u32::from(ch))
+            },
+            ch if "\\*_`|[]#!~".contains(ch) => format!("\\{ch}"),
+            ch => ch.to_string(),
+        }).collect()
+    }
 }
+use serde_json::{Value, json};
 
 fn strip_row(row: &mut Value) -> Result<(), String> {
     let outcome: biomcp_types::SourceOutcome =
         serde_json::from_value(row.clone()).map_err(|e| e.to_string())?;
     let source = outcome.source;
-    let terms = biomcp_adapters::registry::terms(source).ok_or("unregistered outcome source")?;
+    let terms = biomcp_query::sources::terms(source).ok_or("unregistered outcome source")?;
     let object = row
         .as_object_mut()
         .ok_or("source outcome is not an object")?;
@@ -69,108 +66,6 @@ pub(super) fn size(value: &Value, pointer: &str) -> Result<usize, String> {
     serde_json::to_vec(&comparable(value, pointer)?)
         .map(|b| b.len())
         .map_err(|e| e.to_string())
-}
-
-pub(super) fn raw_size(bytes: &[u8]) -> Result<usize, String> {
-    let Ok(value) = serde_json::from_slice::<Value>(bytes) else {
-        return Ok(bytes.len());
-    };
-    let compact = serde_json::to_vec(&value).map_err(|e| e.to_string())?.len();
-    Ok(bytes.len() - (compact - size(&value, "")?))
-}
-
-fn envelopes() -> Result<(), String> {
-    let registry = super::schema::Registry::embedded()?;
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/cases");
-    for case in [
-        "gene/braf.yaml",
-        "article/get/card.yaml",
-        "trial/condition.yaml",
-        "gene/failure-500.yaml",
-    ] {
-        let value = super::run_case(&root.join(case), &registry)?;
-        let rows = value
-            .get("sources")
-            .and_then(Value::as_array)
-            .ok_or("missing source outcomes")?;
-        if rows.is_empty() {
-            return Err("no source outcomes tested".into());
-        }
-        let full = serde_json::to_vec(&value).map_err(|e| e.to_string())?.len();
-        let payload = size(&value, "")?;
-        use std::io::Write;
-        writeln!(
-            std::io::stdout(),
-            "{case}: actual={full}, new_terms={}, comparable={payload}",
-            full - payload
-        )
-        .map_err(|e| e.to_string())?;
-    }
-    let schema: Value =
-        serde_json::from_str(include_str!("../../../biomcp-types/schemas/source.json"))
-            .map_err(|e| e.to_string())?;
-    for name in schema
-        .get("enum")
-        .and_then(Value::as_array)
-        .ok_or("missing source enum")?
-    {
-        let source = serde_json::from_value(name.clone()).map_err(|e| e.to_string())?;
-        let outcome =
-            biomcp_adapters::registry::outcome(source, biomcp_types::SourceState::Ok, None);
-        let mut value = serde_json::to_value(outcome).map_err(|e| e.to_string())?;
-        strip_row(&mut value)?;
-    }
-    Ok(())
-}
-
-fn subtraction() -> Result<(), String> {
-    let outcome = biomcp_adapters::registry::outcome(
-        biomcp_types::Source::Hgnc,
-        biomcp_types::SourceState::Ok,
-        None,
-    );
-    let mut envelope = json!({"sources":[outcome], "result":{"value":1}});
-    let cap = size(&envelope, "")?;
-    let stdout = serde_json::to_vec(&envelope).map_err(|e| e.to_string())?;
-    for (limit, amount) in [("max_bytes", cap), ("max_tokens", cap.div_ceil(4))] {
-        for full in [false, true] {
-            let step: super::Step = serde_json::from_value(json!({
-                "run": [], "full_output_bytes": full, limit: amount,
-            }))
-            .map_err(|e| e.to_string())?;
-            let result = super::assertions::check(&stdout, &step, &Vec::new());
-            if result.is_err() != full {
-                return Err(format!(
-                    "{limit}: complete-output basis did not count policy fields"
-                ));
-            }
-        }
-    }
-    envelope
-        .get_mut("result")
-        .and_then(Value::as_object_mut)
-        .ok_or("missing result")?
-        .insert("added".into(), json!("ordinary payload"));
-    if size(&envelope, "")? <= cap {
-        return Err("ordinary payload earned a terms deduction".into());
-    }
-    envelope
-        .pointer_mut("/sources/0")
-        .and_then(Value::as_object_mut)
-        .ok_or("missing source")?
-        .insert("terms".into(), json!("wrong terms"));
-    if size(&envelope, "").is_ok() {
-        return Err("malformed terms earned a deduction".into());
-    }
-    envelope
-        .pointer_mut("/sources/0")
-        .and_then(Value::as_object_mut)
-        .ok_or("missing row")?
-        .remove("terms");
-    if size(&envelope, "").is_ok() {
-        return Err("missing terms earned a deduction".into());
-    }
-    Ok(())
 }
 
 /// Measure only new publisher columns in the source table of the paired JSON view.
@@ -251,6 +146,7 @@ pub(super) fn markdown_bytes(text: &str, value: &Value) -> Result<usize, String>
     }
     Ok(bytes)
 }
+
 fn markdown_object_bytes(table: &str, rows: &[Value]) -> Result<usize, String> {
     let mut rest = table;
     let mut bytes = 0;
@@ -278,8 +174,62 @@ fn markdown_object_bytes(table: &str, rows: &[Value]) -> Result<usize, String> {
     }
     Ok(bytes)
 }
+
+tool_only! {
+fn subtraction() -> Result<(), String> {
+    let outcome = biomcp_query::sources::outcome(
+        biomcp_types::Source::Hgnc,
+        biomcp_types::SourceState::Ok,
+        None,
+    );
+    let mut envelope = json!({"sources":[outcome], "result":{"value":1}});
+    let cap = size(&envelope, "")?;
+    let stdout = serde_json::to_vec(&envelope).map_err(|e| e.to_string())?;
+    for (limit, amount) in [("max_bytes", cap), ("max_tokens", cap.div_ceil(4))] {
+        for full in [false, true] {
+            let step: super::Step = serde_json::from_value(json!({
+                "run": [], "full_output_bytes": full, limit: amount,
+            }))
+            .map_err(|e| e.to_string())?;
+            let result = super::assertions::check(&stdout, &step, &Vec::new());
+            if result.is_err() != full {
+                return Err(format!(
+                    "{limit}: complete-output basis did not count policy fields"
+                ));
+            }
+        }
+    }
+    envelope
+        .get_mut("result")
+        .and_then(Value::as_object_mut)
+        .ok_or("missing result")?
+        .insert("added".into(), json!("ordinary payload"));
+    if size(&envelope, "")? <= cap {
+        return Err("ordinary payload earned a terms deduction".into());
+    }
+    envelope
+        .pointer_mut("/sources/0")
+        .and_then(Value::as_object_mut)
+        .ok_or("missing source")?
+        .insert("terms".into(), json!("wrong terms"));
+    if size(&envelope, "").is_ok() {
+        return Err("malformed terms earned a deduction".into());
+    }
+    envelope
+        .pointer_mut("/sources/0")
+        .and_then(Value::as_object_mut)
+        .ok_or("missing row")?
+        .remove("terms");
+    if size(&envelope, "").is_ok() {
+        return Err("missing terms earned a deduction".into());
+    }
+    Ok(())
+}
+}
+
+tool_only! {
 fn markdown_subtraction() -> Result<(), String> {
-    let outcome = biomcp_adapters::registry::outcome(
+    let outcome = biomcp_query::sources::outcome(
         biomcp_types::Source::Hgnc,
         biomcp_types::SourceState::Ok,
         None,
@@ -308,43 +258,14 @@ fn markdown_subtraction() -> Result<(), String> {
     }
     Ok(())
 }
+}
 
-fn stored_terms() -> Result<(), String> {
-    use super::{
-        configuration::{cached, invoke},
-        launch::{Environment, fixtures},
-    };
-    let env = Environment::new().map_err(|e| e.to_string())?;
-    let case = env.root().join("stored-terms");
-    let fixture = fixtures().join("replies/article/search/synthetic-small");
-    let args = ["search", "article", "AKT1 E17K", "--limit", "2"];
-    let first = invoke(&env, cached(&args, &case, Some(&fixture)), 0)?;
-    let connection =
-        rusqlite::Connection::open(case.join("replay.sqlite")).map_err(|e| e.to_string())?;
-    let saved: String = connection
-        .query_row("SELECT outcomes FROM pool LIMIT 1", [], |r| r.get(0))
-        .map_err(|e| e.to_string())?;
-    let mut stale: Value = serde_json::from_str(&saved).map_err(|e| e.to_string())?;
-    for row in stale.as_array_mut().ok_or("missing saved outcomes")? {
-        let row = row.as_object_mut().ok_or("invalid saved outcome")?;
-        row.insert("use".into(), json!("noncommercial"));
-        row.insert("terms".into(), json!("obsolete source terms"));
-        row.insert(
-            "terms_url".into(),
-            json!("https://invalid.example/obsolete"),
-        );
-    }
-    connection
-        .execute(
-            "UPDATE pool SET outcomes=?1",
-            [serde_json::to_string(&stale).map_err(|e| e.to_string())?],
-        )
-        .map_err(|e| e.to_string())?;
-    drop(connection);
-    let warm = invoke(&env, cached(&args, &case, None), 0)?;
-    if first.pointer("/page/pool/id") != warm.pointer("/page/pool/id") {
-        return Err("stored source pool was not reused".into());
-    }
-    comparable(&warm, "")?;
-    Ok(())
+tool_only! {
+pub(super) fn trials() -> Vec<libtest_mimic::Trial> {
+    // These call the runner's accounting directly; product output cannot prove the checker rejects bad budgets.
+    vec![
+        super::transcript::trial("schema-discovery/terms-subtraction-keeps-payload-ceilings", || subtraction().map_err(Into::into)),
+        super::transcript::trial("schema-discovery/markdown-terms-subtraction-keeps-payload-ceilings", || markdown_subtraction().map_err(Into::into)),
+    ]
+}
 }

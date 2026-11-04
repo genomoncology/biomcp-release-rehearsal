@@ -1,0 +1,421 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/organizations?org_city=Boston&org_state_or_province=MA",
+  "exchanges": [
+    {
+      "fetched": 1793192400,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": [
+            {
+              "name": "Beth Israel Deaconess Medical Center",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-667-9925",
+              "contact_email": "jrosenb1@bidmc.harvard.edu",
+              "org_address_line_1": "330 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 955
+            },
+            {
+              "name": "Boston Children's Hospital",
+              "org_address_line_1": "300 Longwood Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 206
+            },
+            {
+              "name": "Boston Medical Center",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-638-8265",
+              "contact_email": "",
+              "org_address_line_1": "One Medical Center Place",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02118",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.33799996320158,
+                "lon": -71.07180001214147
+              },
+              "count": 148
+            },
+            {
+              "name": "Boston University School Of Public Health",
+              "org_address_line_1": "715 Albany Street",
+              "org_address_line_2": "Talbot Building, C202",
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": "asksph@bu.edu",
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02118",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.33799996320158,
+                "lon": -71.07180001214147
+              },
+              "count": 1
+            },
+            {
+              "name": "Boston University School of Medicine",
+              "org_address_line_1": "80 East Concord Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02118",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.33799996320158,
+                "lon": -71.07180001214147
+              },
+              "count": 6
+            },
+            {
+              "name": "Brigham and Women's Faulkner Hospital",
+              "org_address_line_1": "1153 Centre Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02130",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.30759997386485,
+                "lon": -71.11310007981956
+              },
+              "count": 30
+            },
+            {
+              "name": "Brigham and Women's Hospital",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-724-5200",
+              "contact_email": "",
+              "org_address_line_1": "75 Francis Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 2146
+            },
+            {
+              "name": "Dana-Farber - Harvard Cancer Center LAO",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 1
+            },
+            {
+              "name": "Dana-Farber Cancer Institute",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-442-3324",
+              "contact_email": "",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 3376
+            },
+            {
+              "name": "Dana-Farber Harvard Cancer Center",
+              "org_address_line_1": "450 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": "qcc@partners.org",
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 3
+            },
+            {
+              "name": "Eastern Cooperative Oncology Group",
+              "org_address_line_1": "900 Commonwealth Avenue",
+              "org_address_line_2": "Frontier Science",
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 1
+            },
+            {
+              "name": "Harvard School of Public Health (HSPH)",
+              "org_address_line_1": "677 Huntington Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02115",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.340999972075224,
+                "lon": -71.0948000382632
+              },
+              "count": 5
+            },
+            {
+              "name": "Harvard Vanguard Medical Associates Inc",
+              "org_address_line_1": "133 Brookline Avenue",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 1
+            },
+            {
+              "name": "Massachusetts General Hospital",
+              "org_address_line_1": "55 Fruit Street",
+              "org_address_line_2": "Radiation Physics Division Cox 302",
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02114",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.362099988386035,
+                "lon": -71.06800007633865
+              },
+              "count": 2
+            },
+            {
+              "name": "Massachusetts General Hospital Cancer Center",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "877-726-5130",
+              "contact_email": "",
+              "org_address_line_1": "55 Fruit Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02114",
+              "org_family": "Dana-Farber/Harvard Cancer Center",
+              "org_coordinates": {
+                "lat": 42.362099988386035,
+                "lon": -71.06800007633865
+              },
+              "count": 2144
+            },
+            {
+              "name": "Massachusetts League of Community Health Centers",
+              "org_address_line_1": "40 Court Street",
+              "org_address_line_2": "10th Floor",
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": "massleague@massleague.org",
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02108",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.35809997655451,
+                "lon": -71.06470003724098
+              },
+              "count": 1
+            },
+            {
+              "name": "Partners HealthCare",
+              "org_address_line_1": "800 Boylston Street",
+              "org_address_line_2": "Prudential Center 11th Floor",
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02199",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.34819998499006,
+                "lon": -71.08250001445413
+              },
+              "count": 1
+            },
+            {
+              "name": "The Fenway Institute",
+              "org_address_line_1": "1340 Boylston Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02215",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.34689999371767,
+                "lon": -71.10250007361174
+              },
+              "count": 2
+            },
+            {
+              "name": "Tufts Children's Hospital",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-636-5535",
+              "contact_email": "ContactUsCancerCenter@TuftsMedicalCenter.org",
+              "org_address_line_1": "755 Washington Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": null,
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02111",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.3511999938637,
+                "lon": -71.06140008196235
+              },
+              "count": 37
+            },
+            {
+              "name": "Tufts Medical Center",
+              "contact_name": "Site Public Contact",
+              "contact_phone": "617-636-5000",
+              "contact_email": "ContactUsCancerCenter@TuftsMedicalCenter.org",
+              "org_address_line_1": "800 Washington Street",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": "ContactUsCancerCenter@TuftsMedicalCenter.org",
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02111",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.3511999938637,
+                "lon": -71.06140008196235
+              },
+              "count": 109
+            },
+            {
+              "name": "University of Massachusetts Boston",
+              "org_address_line_1": "100 Morrissey Boulevard",
+              "org_address_line_2": null,
+              "org_city": "Boston",
+              "org_country": "United States",
+              "org_email": "ORSP@umb.edu",
+              "org_fax": null,
+              "org_state_or_province": "MA",
+              "org_va": false,
+              "org_postal_code": "02125-3393",
+              "org_family": null,
+              "org_coordinates": {
+                "lat": 42.316499962471426,
+                "lon": -71.0576000623405
+              },
+              "count": 5
+            }
+          ],
+          "total": 21
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "fda-510k",
+  "url": "https://api.fda.gov/device/510k.json?limit=5&skip=0&sort=decision_date%3Adesc&search=device_name%3A%22FreeStyle%20Libre%203%22",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "3d2b6761aa8cdd658549b575f61d6405e336abf924d2afc8963a5fb6a5cc6820-0.bin"
+      }
+    }
+  ]
+}

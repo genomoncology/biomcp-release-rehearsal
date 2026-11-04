@@ -1,16 +1,11 @@
 {
+  "live_check": "public",
   "feature": "article-supplements",
   "story": "file-list",
   "replay": "article/supplements/live",
   "steps": [
     {
       "run": [
-        "get",
-        "article",
-        "28944238",
-        "supplements"
-      ],
-      "mcp": [
         "get",
         "article",
         "28944238",
@@ -24,32 +19,7 @@
         ]
       },
       "max_bytes": 3800
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "MGG3-5-553-s001.pdf"
-      ],
-      "expect": {
-        "/result/content/data/reason": "unsupported",
-        "/result/content/data/url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC5606870.1/MGG3-5-553-s001.pdf?md5=13e1b3cada043c863b28fc7c4e9cb103"
-      },
-      "max_bytes": 523
-    },
-    {
-      "run": [
-        "article",
-        "supplement",
-        "28944238",
-        "not-listed.xlsx"
-      ],
-      "exit": 2,
-      "expect": {
-        "/error/code": "usage.arguments"
-      }
     }
   ],
-  "verified": "Measured 454 bytes through the captured public command; no equivalent 0.9 output includes this license and confined URL. The 523-byte ceiling adds 15 percent."
+  "verified": "Measured 454 bytes through the captured public command; no equivalent 0.9 output includes this license and confined URL. The 523-byte ceiling adds 15 percent. tests/replies/article/supplements/README.md identifies the actual CC BY supplement capture and unchanged source workbook; the nightly run executes the public supplement request."
 }

@@ -1,5 +1,6 @@
 //! MCP transport authority is checked before provider requests or filesystem changes.
 use super::{http::Server, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
@@ -7,17 +8,20 @@ type Check = Result<(), Box<dyn std::error::Error>>;
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
-        Trial::test("mcp-stdio/command-refusal-reasons", || {
+        transcript_trial("article-saves/stdio-refuse-hidden-components", || {
+            hidden().map_err(|e| e.to_string().into())
+        }),
+        transcript_trial("mcp-parity/stdio-command-refusal-reasons", || {
             command_reasons(false).map_err(|e| e.to_string().into())
         }),
-        Trial::test("mcp-http/command-refusal-reasons", || {
+        transcript_trial("mcp-http/http-command-refusal-reasons", || {
             command_reasons(true).map_err(|e| e.to_string().into())
         }),
-        Trial::test(
+        transcript_trial(
             "mcp-http/refuse-maintenance-and-fresh-before-effects",
             || http().map_err(|e| e.to_string().into()),
         ),
-        Trial::test(
+        transcript_trial(
             "article-saves/stdio-refuse-replacement-before-effects",
             || stdio().map_err(|e| e.to_string().into()),
         ),
@@ -62,7 +66,10 @@ fn http() -> Check {
             json!({"name":"biomcp","arguments":{"args":args}}),
         );
         let (status, reply) = server.request("POST", "/mcp", &frame.to_string())?;
-        assert_eq!(status, 200);
+        assert_eq!(
+            status, 200,
+            "HTTP tool calls must preserve the server admission policy"
+        );
         assert_eq!(
             reply.pointer("/result/isError"),
             Some(&json!(true)),
@@ -78,8 +85,16 @@ fn http() -> Check {
                 "usage.mcp_unavailable"
             },
         )?;
-        assert_eq!(fs::read(&old)?, before);
-        assert_eq!(fs::read_dir(&directory)?.count(), entries);
+        assert_eq!(
+            fs::read(&old)?,
+            before,
+            "HTTP tool calls must preserve the server admission policy"
+        );
+        assert_eq!(
+            fs::read_dir(&directory)?.count(),
+            entries,
+            "HTTP tool calls must preserve the server admission policy"
+        );
     }
     assert!(
         source.finish()?.is_empty(),
@@ -109,7 +124,11 @@ fn stdio() -> Check {
         ]);
         let value = super::mcp::call_with_globals(&env, &args, true, &[])?;
         refusal(&value, "usage.arguments")?;
-        assert_eq!(fs::read(&path)?, b"caller content");
+        assert_eq!(
+            fs::read(&path)?,
+            b"caller content",
+            "Stdio tool calls must preserve the server admission policy"
+        );
     }
     assert!(
         source.finish()?.is_empty(),
@@ -142,8 +161,15 @@ fn command_reasons(http: bool) -> Check {
                 json!({"name":"biomcp","arguments":{"args":args}}),
             );
             let (status, reply) = server.request("POST", "/mcp", &frame.to_string())?;
-            assert_eq!(status, 200);
-            assert_eq!(reply.pointer("/result/isError"), Some(&json!(true)));
+            assert_eq!(
+                status, 200,
+                "Tool refusals must retain the command-specific reason"
+            );
+            assert_eq!(
+                reply.pointer("/result/isError"),
+                Some(&json!(true)),
+                "Tool refusals must retain the command-specific reason"
+            );
             let value = reply
                 .pointer("/result/structuredContent")
                 .ok_or("missing result")?;
@@ -151,7 +177,11 @@ fn command_reasons(http: bool) -> Check {
                 .pointer("/result/content/0/text")
                 .and_then(Value::as_str)
                 .ok_or("missing text")?;
-            assert_eq!(serde_json::from_str::<Value>(text)?, *value);
+            assert_eq!(
+                serde_json::from_str::<Value>(text)?,
+                *value,
+                "Tool refusals must retain the command-specific reason"
+            );
             value.clone()
         } else {
             super::mcp::call_with_globals(&env, &args, true, &[])?
@@ -166,5 +196,75 @@ fn command_reasons(http: bool) -> Check {
             "{value}"
         );
     }
+    Ok(())
+}
+
+fn hidden() -> Check {
+    let env = Environment::new()?;
+    for relative in [
+        ".zshenv",
+        ".ssh/authorized_keys",
+        "visible/.secret/file.txt",
+    ] {
+        let path = env.root().join(relative);
+        fs::create_dir_all(path.parent().ok_or("missing parent")?)?;
+        hidden_destination(&env, &path)?;
+    }
+    #[cfg(unix)]
+    {
+        let hidden = env.root().join(".target");
+        fs::create_dir(&hidden)?;
+        let link = env.root().join("link");
+        std::os::unix::fs::symlink(&hidden, &link)?;
+        hidden_destination(&env, &link.join("out.txt"))?;
+    }
+    hidden_cwd(&env)
+}
+fn hidden_destination(env: &Environment, path: &std::path::Path) -> Check {
+    for mut args in [
+        vec!["article", "text", "PPR1295425"],
+        vec!["article", "supplement", "28944238", "MGG3-5-553-s002.xlsx"],
+        vec!["article", "pdf", "28944238"],
+        vec!["trial", "document", "NCT04303780", "SAP_001.pdf"],
+    ]
+    .map(|args| args.into_iter().map(str::to_owned).collect::<Vec<_>>())
+    {
+        args.extend(["--save".into(), path.to_string_lossy().into_owned()]);
+        let value = super::mcp::call_with_globals(env, &args, true, &[])?;
+        refusal(&value, "usage.arguments")?;
+        assert!(!path.exists(), "MCP created a hidden destination");
+    }
+    Ok(())
+}
+fn hidden_cwd(env: &Environment) -> Check {
+    let cwd = env.root().join(".cwd");
+    fs::create_dir(&cwd)?;
+    let mut command = env.command(
+        env!("CARGO_BIN_EXE_biomcp"),
+        &["serve".into(), "--offline".into()],
+    );
+    let child = command
+        .current_dir(&cwd)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()?;
+    let request = super::mcp::request(
+        json!(1),
+        "tools/call",
+        json!({"name":"biomcp","arguments":{"args":["article","text","PPR1295425","--save","out.txt"]}}),
+    );
+    let (status, stdout, stderr) = super::process::exchange(child, &[request])?;
+    command.record(status, &stdout, "mcp")?;
+    let replies = super::process::messages(status, &stdout, &stderr)?;
+    let value = replies
+        .first()
+        .and_then(|reply| reply.pointer("/result/structuredContent"))
+        .ok_or("missing hidden-cwd response")?;
+    refusal(value, "usage.arguments")?;
+    assert!(
+        !cwd.join("out.txt").exists(),
+        "MCP created a file under hidden cwd"
+    );
     Ok(())
 }

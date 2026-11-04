@@ -1,7 +1,14 @@
 //! Checked Europe PMC core records and their JATS document boundary.
 use super::SPEC;
+use crate::native_text::NativeText;
+use crate::{
+    Mapped,
+    mapped::{Problems, record as provenance},
+    raw::Field,
+};
 use crate::{jats, pmc_oa};
 use biodata::{Doi, EuropePmcId, PartialDate, Pmid, Text};
+use biomcp_fetch::Input;
 
 use biomcp_fetch::{Arg, BadReply, Endpoint, Freshness, Leg, Reply, ReplyMetadata, RequestError};
 use biomcp_types::{AbstractPart, Article};
@@ -17,133 +24,196 @@ struct Raw {
 struct Record {
     id: EuropePmcId,
     source: String,
-    pmid: Option<Pmid>,
-    doi: Option<Doi>,
-    title: Text,
-    first_publication_date: Option<PartialDate>,
-    author_list: Authors,
-    abstract_text: Option<String>,
-    pub_type_list: Types,
-    license: Option<String>,
-    book_or_report_details: Option<Publisher>,
+    pmid: Option<Field<Pmid>>,
+    doi: Option<Field<Doi>>,
+    title: Option<Field<NativeText>>,
+    first_publication_date: Option<Field<PartialDate>>,
+    author_list: Option<Field<Authors>>,
+    abstract_text: Option<Field<String>>,
+    pub_type_list: Option<Field<Types>>,
+    license: Option<Field<String>>,
+    book_or_report_details: Option<Field<Publisher>>,
 }
 #[derive(Deserialize)]
 struct Authors {
-    author: Vec<Author>,
+    author: Vec<Field<Author>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Author {
-    full_name: Text,
+    full_name: Option<Field<NativeText>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Types {
-    pub_type: Vec<String>,
+    pub_type: Vec<Field<String>>,
 }
 #[derive(Deserialize)]
 struct Publisher {
-    publisher: Option<Text>,
+    publisher: Option<Field<NativeText>>,
 }
 impl Reply for Raw {
     fn check(&self) -> Result<(), BadReply> {
         if self.result.source != "PPR" || !self.result.id.to_string().starts_with("PPR") {
             return Err(BadReply);
         }
-        if let Some(xml) = &self.result.abstract_text {
-            jats::markdown(&fragment(xml)?)?;
-        }
         Ok(())
     }
 }
-fn bad(_: impl std::fmt::Debug) -> RequestError {
-    biomcp_fetch::SourceError {
-        source: biomcp_types::Source::EuropePmc,
-        reason: biomcp_types::Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
-}
+
 fn record(leg: &Leg<'_>, id: &EuropePmcId) -> Result<(Record, ReplyMetadata), RequestError> {
     let endpoint = CORE
         .clone()
         .with_path(format!("/article/PPR/{id}"))
-        .map_err(bad)?;
-    let (raw, meta) = leg.json_received::<Raw>(
-        &endpoint,
-        &[
-            ("format", Arg::Text("json")),
-            ("resultType", Arg::Text("core")),
-        ],
-    )?;
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::EuropePmc, None))?;
+    let (raw, meta) = leg
+        .call(
+            &endpoint,
+            Input::Params(&[
+                ("format", Arg::Text("json")),
+                ("resultType", Arg::Text("core")),
+            ]),
+            biomcp_fetch::Read::<Raw>::json(),
+        )
+        .map(|received| (received.value, received.meta))?;
     if raw.result.id != *id {
-        return Err(bad(BadReply));
+        return Err(biomcp_fetch::bad_reply(
+            biomcp_types::Source::EuropePmc,
+            None,
+        ));
     }
     Ok((raw.result, meta))
 }
 /// Resolve a preprint directly from its checked core metadata record.
-pub fn core(leg: &Leg<'_>, id: &EuropePmcId) -> Result<(Article, ReplyMetadata), RequestError> {
+pub fn core(
+    leg: &Leg<'_>,
+    id: &EuropePmcId,
+) -> Result<(Mapped<Article>, ReplyMetadata), RequestError> {
     let (raw, meta) = record(leg, id)?;
-    let abstract_parts = raw
-        .abstract_text
-        .as_ref()
+    let mut p = Problems {
+        source: biomcp_types::Source::EuropePmc,
+        record: provenance(id),
+        list: Vec::new(),
+    };
+    let abstract_parts = p
+        .field("abstract_parts", raw.abstract_text)
         .filter(|s| !s.trim().is_empty())
-        .map(|xml| {
-            fragment(xml)
-                .and_then(|xml| jats::markdown(&xml))
-                .map(|text| AbstractPart { label: None, text })
+        .and_then(|xml| {
+            p.optional(
+                "abstract_parts",
+                Some(fragment(&xml).and_then(|xml| jats::markdown(&xml))),
+            )
         })
-        .transpose()
-        .map_err(bad)?
+        .map(|text| AbstractPart { label: None, text })
         .into_iter()
         .collect();
+    let authors = p
+        .field("authors", raw.author_list)
+        .map(|a| a.author)
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|a| {
+            let a = p.field("authors", Some(a))?;
+            p.source_field("authors", a.full_name)
+        })
+        .collect();
+    let types = p
+        .field("types", raw.pub_type_list)
+        .map(|t| t.pub_type)
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|t| p.field("types", Some(t)))
+        .filter_map(|t| crate::pubmed::publication_type(&t))
+        .collect();
+    let publisher = p
+        .field("journal", raw.book_or_report_details)
+        .and_then(|r| p.source_field("journal", r.publisher));
+    let value = Article {
+        europepmc_id: Some(raw.id),
+        pmid: p.field("pmid", raw.pmid),
+        doi: p.field("doi", raw.doi),
+        pmcid: None,
+        title: p.source_field("title", raw.title),
+        journal: publisher,
+        date: p.field("date", raw.first_publication_date),
+        electronic_date: None,
+        types,
+        authors,
+        abstract_parts,
+        corrections: Box::default(),
+    };
     Ok((
-        Article {
-            europepmc_id: Some(raw.id),
-            pmid: raw.pmid,
-            doi: raw.doi,
-            pmcid: None,
-            title: Some(raw.title),
-            journal: raw.book_or_report_details.and_then(|p| p.publisher),
-            date: raw.first_publication_date,
-            electronic_date: None,
-            types: raw
-                .pub_type_list
-                .pub_type
-                .iter()
-                .filter_map(|s| crate::pubmed::publication_type(s))
-                .collect(),
-            authors: raw
-                .author_list
-                .author
-                .into_iter()
-                .map(|a| a.full_name)
-                .collect(),
-            abstract_parts,
-            corrections: Box::default(),
+        Mapped {
+            refusals: crate::Refusal::None,
+            value,
+            problems: p.list,
         },
         meta,
     ))
 }
 /// Read JATS with the license owned by its core record, rather than inferring license XML.
-pub fn read(leg: &Leg<'_>, id: &EuropePmcId) -> Result<pmc_oa::Document, RequestError> {
+pub fn read(
+    leg: &Leg<'_>,
+    id: &EuropePmcId,
+) -> Result<Mapped<Option<pmc_oa::Document>>, RequestError> {
     let (raw, _) = record(leg, id)?;
+    let mut p = Problems {
+        source: biomcp_types::Source::EuropePmc,
+        record: provenance(id),
+        list: Vec::new(),
+    };
+    let malformed_license = matches!(raw.license, Some(Field::Invalid(_)));
+    let license = p.field("license", raw.license);
+    if malformed_license {
+        return Ok(Mapped {
+            refusals: crate::Refusal::Refused,
+            value: None,
+            problems: p.list,
+        });
+    }
+    pmc_oa::permitted(
+        leg,
+        biomcp_types::Source::EuropePmc,
+        pmc_oa::license(license.as_deref().unwrap_or("")),
+    )?;
     let endpoint = FULLTEXT
         .clone()
         .with_path(format!("/{id}/fullTextXML"))
-        .map_err(bad)?;
-    let mut body = leg.xml::<jats::Body>(&endpoint, &[])?;
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::EuropePmc, None))?;
+    let mut body = leg
+        .call(
+            &endpoint,
+            Input::Params(&[]),
+            biomcp_fetch::Read::<jats::Body>::xml(),
+        )?
+        .value;
     if body.title.is_none() {
-        body.title = Some(raw.title);
+        body.title = p.source_field("title", raw.title);
     }
-    Ok(pmc_oa::Document {
-        url: Text::new(&format!("{}/{id}/fullTextXML", SPEC.base)).map_err(bad)?,
-        license: pmc_oa::license(raw.license.as_deref().unwrap_or("")),
+    let value = pmc_oa::Document {
+        url: Text::new(&format!("{}/{id}/fullTextXML", SPEC.base))
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::EuropePmc, None))?,
+        license: pmc_oa::license(license.as_deref().unwrap_or("")),
         version: None,
         manuscript: None,
         supplements: Default::default(),
+        problems: body
+            .problems
+            .iter()
+            .cloned()
+            .map(|mut p| {
+                p.source = biomcp_types::Source::EuropePmc;
+                p.record = provenance(id);
+                p
+            })
+            .collect(),
         body,
+    };
+    p.list.extend(value.problems.clone());
+    Ok(Mapped {
+        refusals: crate::Refusal::None,
+        value: Some(value),
+        problems: p.list,
     })
 }
 

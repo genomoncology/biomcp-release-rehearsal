@@ -1,5 +1,6 @@
 //! pgx-types: checked public requests and neutral records, with no I/O.
 use biodata::ClinPgxAccession;
+use biomcp_types::Paged;
 use biomcp_types::{PgxGet, PgxSearch};
 use serde_json::json;
 #[test]
@@ -80,7 +81,7 @@ fn roundtrip<T: serde::Serialize + serde::de::DeserializeOwned>(
 }
 fn recommendation() -> serde_json::Value {
     json!(
-        {"recommendationid":42,"lookupkey":{"TPMT":"synthetic first","NUDT15":"synthetic second"},"drugname":"synthetic drug",
+        {"recommendationid":{"namespace":"CPIC","id":42},"lookupkey":{"TPMT":"synthetic first","NUDT15":"synthetic second"},"drugname":"synthetic drug",
         "guidelinename":"synthetic guide","guidelineurl":"https://example.invalid/guide","implications":{"TPMT":"synthetic implication"},
         "drugrecommendation":"  Synthetic source text.\n","classification":"synthetic classification",
         "phenotypes":{"TPMT":"synthetic phenotype"},"activityscore":{"TPMT":"n/a","NUDT15":"0.5"},"population":"synthetic population",
@@ -97,8 +98,10 @@ fn diplotype() -> serde_json::Value {
 }
 fn annotation() -> serde_json::Value {
     json!(
-        {"id":42,"accessionId":"PA1234","levelOfEvidence":{"id":3,"resource":"synthetic","term":"synthetic evidence",
-        "termId":"synthetic-term"},"location":{"id":7,"copyNumber":"synthetic","diplotypes":[{"id":99}],"displayName":"synthetic location",
+        {"id":{"namespace":"ClinPGx","id":42},"accessionId":"PA1234","levelOfEvidence":{"id":{"namespace":"ClinPGx",
+        "id":3},"resource":"synthetic","term":"synthetic evidence",
+        "termId":"synthetic-term"},"location":{"id":{"namespace":"ClinPGx","id":7},"copyNumber":"synthetic",
+        "diplotypes":[{"id":{"namespace":"ClinPGx","id":99}}],"displayName":"synthetic location",
         "genes":[{"objCls":"Gene","id":"PA1","symbol":"TPMT","name":"synthetic"}],"gpPosition":-1,"haplotypes":[{"objCls":"Haplotype",
         "id":"PA2","symbol":"*3A","name":"synthetic"}],"linkedObjects":[{"objCls":"Haplotype","id":"PA2","symbol":"*3A",
         "name":"synthetic"}],"refSeqPosition":-1,"tagGene":false,"type":"synthetic"},"name":"synthetic annotation",
@@ -116,7 +119,14 @@ fn native_records_keep_joint_context_source_text_and_literal_not_applicable()
         v["comments"] = json!("  Synthetic comments.\n");
         v
     }] {
-        assert_eq!(roundtrip::<PgxRecommendation>(value.clone())?, value);
+        let mut expected = value.clone();
+        if expected
+            .get("comments")
+            .is_some_and(serde_json::Value::is_null)
+        {
+            expected.as_object_mut().ok_or("object")?.remove("comments");
+        }
+        assert_eq!(roundtrip::<PgxRecommendation>(value.clone())?, expected);
         assert!(serde_json::from_value::<Statement>(value).is_err());
     }
     let d = diplotype();
@@ -133,17 +143,22 @@ fn native_records_keep_joint_context_source_text_and_literal_not_applicable()
         object.remove(key);
     }
     object.extend(serde_json::from_value::<serde_json::Map<String, serde_json::Value>>(json!(
-        {"comments":"synthetic comments","id":91,"guidelineid":3,"drugid":"RxNorm:10324","allelestatus":{},"version":4,
+        {"comments":"synthetic comments","id":{"namespace":"CPIC","id":91},"guidelineid":{"namespace":"CPIC",
+        "id":3},"drugid":"RxNorm:10324","allelestatus":{},"version":4,
         "dosinginformation":true,"alternatedrugavailable":false,"otherprescribingguidance":false}
     ))?);
     assert_eq!(roundtrip::<PgxDrugRecommendation>(table.clone())?, table);
     assert!(serde_json::from_value::<PgxRecommendation>(table).is_err());
     let pair = json!(
-        {"pairid":3,"drugid":"RxNorm:10324","drugname":"synthetic","genesymbol":"TPMT","guidelinename":null,"guidelineurl":null,
+        {"pairid":{"namespace":"CPIC","id":3},"drugid":"RxNorm:10324","drugname":"synthetic","genesymbol":"TPMT","guidelinename":null,"guidelineurl":null,
         "cpiclevel":"B/C","clinpgxlevel":"synthetic distinct level","pgxtesting":null,"pmids":null,"usedforrecommendation":"No",
         "provisional":false}
     );
-    assert_eq!(roundtrip::<PgxPair>(pair.clone())?, pair);
+    let mut expected = pair.clone();
+    for name in ["guidelinename", "guidelineurl", "pgxtesting", "pmids"] {
+        expected.as_object_mut().ok_or("object")?.remove(name);
+    }
+    assert_eq!(roundtrip::<PgxPair>(pair)?, expected);
     let guide = json!(
         {"guideline_name":"synthetic","guideline_url":"https://example.invalid/guide","drugs":["second","first","second"],
         "genes":[{"url":"https://example.invalid/gene","symbol":"TPMT"}]}
@@ -160,14 +175,16 @@ fn annotation_tiers_preserve_native_arrays_missing_locations_and_base_history()
     let mut detail = header.clone();
     let object = detail.as_object_mut().ok_or("object")?;
     object.extend(serde_json::from_value::<serde_json::Map<String, serde_json::Value>>(json!(
-        {"allelePhenotypes":[{"id":1,"allele":"synthetic allele","limitedEvidence":false,"phenotype":"  Synthetic text.\n"}],
-        "conflictingVariantAnnotationIds":[12,13],"history":[{"id":1,"date":"2026-01-01","type":"synthetic","version":3},{"id":2,
+        {"allelePhenotypes":[{"id":{"namespace":"ClinPGx","id":1},"allele":"synthetic allele","limitedEvidence":false,"phenotype":"  Synthetic text.\n"}],
+        "conflictingVariantAnnotationIds":[{"namespace":"ClinPGx","id":12},{"namespace":"ClinPGx",
+        "id":13}],"history":[{"id":{"namespace":"ClinPGx","id":1},"date":"2026-01-01","type":"synthetic",
+        "version":3},{"id":{"namespace":"ClinPGx","id":2},
         "date":"2026-02-01","type":"synthetic","version":4,"description":"synthetic change"}],"objCls":"ClinicalAnnotation",
         "overrideLevel":false,"pediatric":false,"relatedAlleles":[{"objCls":"Haplotype","id":"PA2","name":"synthetic","symbol":"*1"}],
         "score":1.5,"scoreDetails":"synthetic details"}
     ))?);
     assert_eq!(roundtrip::<PgxAnnotationDetail>(detail.clone())?, detail);
-    assert!(serde_json::from_value::<PgxAnnotationHeader>(detail).is_err());
+    assert_eq!(roundtrip::<PgxAnnotationHeader>(detail)?, header);
     let reference = json!({"objCls":"GuidelineAnnotation","id":"PA5","name":"synthetic",});
     assert_eq!(
         roundtrip::<PgxAnnotationReference>(reference.clone())?,
@@ -247,7 +264,8 @@ where
     assert!(validator.is_valid(&value), "{value}");
     assert_eq!(
         value.get("schema").and_then(serde_json::Value::as_str),
-        Some(T::SCHEMA)
+        Some(T::SCHEMA),
+        "PGx replies must retain their versioned envelope contract"
     );
     Ok(())
 }
@@ -305,7 +323,7 @@ fn all_consumer_envelopes_validate_with_independent_source_or_observed_totals()
         envelope::<PgxAnnotations>(
             json!({"gene":"TPMT","source":"clinpgx","section":"annotations","kind":kind}),
             json!(
-                {"annotationkind":kind,"header":{"gene":"TPMT","source":"clinpgx"},"items":items,"page":{"offset":0,"returned":1,"total":1,
+                {"annotation_kind":kind,"header":{"gene":"TPMT","source":"clinpgx"},"items":items,"page":{"offset":0,"returned":1,"total":1,
                 "total_kind":"observed"}}
             ),
         )?;

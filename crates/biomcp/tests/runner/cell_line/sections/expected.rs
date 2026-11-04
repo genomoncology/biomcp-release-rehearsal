@@ -1,5 +1,5 @@
 //! Expected native facts come from unchanged publisher fixtures.
-use super::*;
+use super::{Value, json, path};
 fn rows(value: &Value, key: &str) -> Vec<Value> {
     value
         .get(key)
@@ -28,11 +28,9 @@ fn variation(value: &Value) -> Result<Value, String> {
     }
     let mut genes = Vec::new();
     let mut references = Vec::new();
-    for reference in rows(value, "xref-list") {
-        if reference.get("database") == Some(&json!("HGNC")) {
-            genes.push(
-                json!({"reference":reference.clone(), "hgnc":field(&reference, "accession")?}),
-            );
+    for reference in rows(value, "xref-list").into_iter().map(identifier) {
+        if reference.get("namespace") == Some(&json!("HGNC")) {
+            genes.push(json!({"reference":reference.clone(), "hgnc":field(&reference, "id")?}));
         } else {
             references.push(reference.clone());
         }
@@ -51,6 +49,9 @@ fn variation(value: &Value) -> Result<Value, String> {
                     {
                         object.insert("resource_internal_ref".into(), value);
                     }
+                    if let Some(xref) = source.get_mut("xref") {
+                        *xref = identifier(xref.clone());
+                    }
                     source
                 })
                 .collect::<Vec<_>>()
@@ -68,7 +69,13 @@ pub(in crate::runner::cell_line) fn page(
     path(value, "/result/offset", json!(offset))?;
     if section == "identity" {
         for (native, field) in [("species-list", "species"), ("disease-list", "diseases")] {
-            collection(value, field, rows(source, native), offset, limit)?;
+            collection(
+                value,
+                field,
+                rows(source, native).into_iter().map(identifier).collect(),
+                offset,
+                limit,
+            )?;
         }
         let warnings = rows(source, "comment-list")
             .into_iter()
@@ -87,7 +94,10 @@ pub(in crate::runner::cell_line) fn page(
             .into_iter()
             .map(|r| Ok(json!({"kind":field(&r, "type")?,"value":field(&r, "value")?})))
             .collect::<Result<Vec<_>, String>>()?,
-        "xrefs" => rows(source, "xref-list"),
+        "xrefs" => rows(source, "xref-list")
+            .into_iter()
+            .map(identifier)
+            .collect(),
         "variants" => rows(source, "sequence-variation-list")
             .iter()
             .map(variation)
@@ -114,4 +124,15 @@ fn collection(
                 .collect::<Vec<_>>()
         ),
     )
+}
+
+fn identifier(mut reference: Value) -> Value {
+    if let Some(object) = reference.as_object_mut() {
+        for (old, new) in [("database", "namespace"), ("accession", "id")] {
+            if let Some(value) = object.remove(old) {
+                object.insert(new.into(), value);
+            }
+        }
+    }
+    reference
 }

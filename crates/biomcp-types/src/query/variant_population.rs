@@ -77,10 +77,10 @@ impl VariantPopulationQuery {
     pub fn offset(&self) -> u32 {
         self.0.offset
     }
-    /// Select the next native page without changing identity.
-    pub fn at_offset(&self, offset: u32) -> Self {
-        let mut q = self.clone();
-        q.0.offset = offset;
-        q
+}
+impl crate::Paged for VariantPopulationQuery {
+    type Offset = u32;
+    fn set_page_offset(&mut self, offset: Self::Offset) {
+        self.0.offset = offset;
     }
 }

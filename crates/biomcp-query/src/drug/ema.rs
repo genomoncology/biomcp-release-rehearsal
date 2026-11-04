@@ -1,25 +1,33 @@
 use super::{empty, searched, unsupported};
 use crate::{Action, Bundle, Ctx, Outcome, status};
 use biomcp_adapters::ema;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    DrugGet, DrugPage, DrugSearch, DrugSection, PageInfo, QueryBody, Request, Section, Source,
-    SourceState, Status, StepKind,
+    DrugGet, DrugPage, DrugSearch, DrugSection, PageInfo, Request, Section, Source, SourceState,
+    StepKind,
 };
 
 pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
-    let mut out = empty(QueryBody::DrugPage(DrugPage {
-        items: Box::default(),
-        total: None,
-    }));
+    let mut out = empty(
+        (DrugPage {
+            items: Box::default(),
+            total: None,
+        })
+        .with_query(query.clone()),
+    );
+    let Some(name) = query.query() else {
+        return super::unsupported(query.source(), out);
+    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&ema::SPEC, deadline).fresh(cx.fresh);
-    let result = ema::search(&leg, query.query().as_str());
+    let result = ema::search(&leg, name.as_str());
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
     out.sources
         .push(status::source(Source::Ema, leg.finish(), error));
     if let Ok(rows) = result {
+        out.include_refusals(rows.refusals);
         out.problems.extend(rows.problems);
         let rows = rows.value;
         let total = rows.len() as u64;
@@ -41,42 +49,53 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
 pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     let regulatory = query.sections() == [DrugSection::Regulatory];
     let mut out = empty(if regulatory {
-        QueryBody::DrugRegulatory(None)
+        biomcp_types::DrugRegulatory::into_reply(query.clone(), None)
     } else {
-        QueryBody::DrugCard(None)
+        biomcp_types::DrugCard::into_reply(query.clone(), None)
     });
-    if !matches!(query.sections(), [] | [DrugSection::Regulatory]) {
+    if !query.supports_sections() {
         return unsupported(query.source(), out);
     }
+    let id = match query.native_input() {
+        Ok(id) => id,
+        Err(_) => return super::rejected_input(query.source(), "input", out),
+    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&ema::SPEC, deadline).fresh(cx.fresh);
     let result = if regulatory {
-        ema::regulatory(&leg, query.input()).map(|body| {
+        ema::regulatory(&leg, &id).map(|body| {
+            out.include_refusals(body.refusals);
             out.problems.extend(body.problems);
             let body = body.value;
             let found = body.is_some();
-            out.body =
-                QueryBody::DrugRegulatory(body.map(|body| regulatory_page(query, body, &mut out)));
+            out.body = biomcp_types::DrugRegulatory::into_reply(
+                query.clone(),
+                body.map(|body| regulatory_page(query, body, &mut out)),
+            );
             found
         })
     } else {
-        ema::card(&leg, query.input()).map(|card| {
+        ema::card(&leg, &id).map(|card| {
+            out.include_refusals(card.refusals);
             out.problems.extend(card.problems);
             let card = card.value;
             if card.is_some()
-                && let Ok(get) = query.for_section(DrugSection::Regulatory)
+                && let Some(get) = crate::next::checked(
+                    query.for_section(DrugSection::Regulatory),
+                    biomcp_types::Source::Ema,
+                    &mut out.problems,
+                )
             {
-                out.next.push((
+                out.next.push(crate::next::Step::run(
                     StepKind::Section,
-                    Action::Run {
-                        request: Request::GetDrug(get),
-                        fresh: cx.fresh,
-                    },
+                    &[biomcp_types::Source::Ema],
+                    Request::GetDrug(get),
+                    cx.fresh,
                 ));
             }
             let found = card.is_some();
-            out.body = QueryBody::DrugCard(card);
+            out.body = biomcp_types::DrugCard::into_reply(query.clone(), card);
             found
         })
     };
@@ -85,12 +104,15 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     out.sources
         .push(status::source(Source::Ema, leg.finish(), error));
     if let Ok(found) = result {
-        out.status = if !found {
-            Status::Absent
-        } else if out.sources.iter().any(|s| s.state == SourceState::Stale) {
-            Status::Partial
-        } else {
-            Status::Complete
+        {
+            let (found, identity_failed, unavailable) = if !found {
+                (false, false, false)
+            } else if out.sources.iter().any(|s| s.state == SourceState::Stale) {
+                (true, false, true)
+            } else {
+                (true, false, false)
+            };
+            crate::status::item(&mut out, found, identity_failed, unavailable);
         };
     }
     sync_step(&mut out);
@@ -130,10 +152,11 @@ fn sync_step(out: &mut Outcome) {
         .iter()
         .any(|s| matches!(s.state, SourceState::Syncing | SourceState::Stale))
     {
-        out.next.push((
+        out.next.push(crate::next::Step::new(
             StepKind::Sync,
+            &[biomcp_types::Source::Ema],
             Action::Sync {
-                bundle: Bundle::Ema,
+                bundle: Bundle::EMA,
             },
         ));
     }

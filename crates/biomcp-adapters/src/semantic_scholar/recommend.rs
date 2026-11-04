@@ -1,5 +1,7 @@
 //! Recent-pool recommendations under the shared source key and quota.
 use super::{Paper, SPEC};
+use crate::{mapped::Problems, raw::Field};
+use biomcp_fetch::Read;
 use biomcp_fetch::{
     Arg, BadReply, Endpoint, Freshness, Leg, PathSegment, Reply, RequestError, SourceSpec,
 };
@@ -10,7 +12,7 @@ pub static RECOMMEND_SPEC: SourceSpec = SourceSpec {
     destinations: biomcp_fetch::Destinations::Primary,
     user_agent: None,
     base: "https://api.semanticscholar.org/recommendations/v1",
-    source: SPEC.source,
+    source: biomcp_types::Source::SemanticScholar,
     terms: biomcp_fetch::Terms {
         name: SPEC.terms.name,
         url: SPEC.terms.url,
@@ -29,14 +31,57 @@ const POST: Endpoint = RECOMMEND_SPEC
     .fresh(Freshness::Days(1));
 /// Provider-ordered papers, including a successful empty answer.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(from = "RawRecommendations")]
 pub struct Recommendations {
+    /// Actual refused native records, independent of optional fields.
+    pub refusals: crate::Refusal,
     /// Native recommendation order.
     pub recommended_papers: Vec<Paper>,
+    /// Rejected independent paper identities.
+    pub problems: Vec<biomcp_types::Problem>,
+    received: usize,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RawRecommendations {
+    recommended_papers: Vec<Field<Paper>>,
+}
+impl From<RawRecommendations> for Recommendations {
+    fn from(raw: RawRecommendations) -> Self {
+        let mut refusals = crate::Refusal::None;
+        let received = raw.recommended_papers.len();
+        let mut p = Problems {
+            source: SPEC.source,
+            record: None,
+            list: Vec::new(),
+        };
+        let recommended_papers = raw
+            .recommended_papers
+            .into_iter()
+            .filter_map(|v| {
+                let row = p.record("paper_id", v, &mut refusals)?;
+                refusals.include(row.refusals);
+                Some(row)
+            })
+            .collect();
+        Self {
+            refusals,
+            recommended_papers,
+            problems: p.list,
+            received,
+        }
+    }
 }
 impl Reply for Recommendations {
+    fn discoveries(&self) -> Option<Vec<biomcp_fetch::Identities>> {
+        if self.refusals != crate::Refusal::None {
+            return None;
+        }
+        super::search::paper_discoveries(self.recommended_papers.iter())
+    }
+
     fn check(&self) -> Result<(), BadReply> {
-        if self.recommended_papers.len() > 100 {
+        if self.received > 100 {
             Err(BadReply)
         } else {
             Ok(())
@@ -68,7 +113,13 @@ pub fn recommendations(
     {
         let id = paper_id(seed)?;
         let segment = PathSegment::new(&id).map_err(RequestError::Input)?;
-        return leg.json(&GET.clone().with_segments(&[segment]), &args);
+        return leg
+            .call(
+                &GET.clone().with_segments(&[segment]),
+                biomcp_fetch::Input::Params(&args),
+                Read::json(),
+            )
+            .map(|received| received.value);
     }
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -80,5 +131,6 @@ pub fn recommendations(
         positive_paper_ids: seeds.iter().map(paper_id).collect::<Result<_, _>>()?,
         negative_paper_ids: negative.iter().map(paper_id).collect::<Result<_, _>>()?,
     };
-    leg.post_json_with_args(&POST, &args, &body)
+    leg.call(&POST, biomcp_fetch::Input::json(&args, &body), Read::json())
+        .map(|received| received.value)
 }

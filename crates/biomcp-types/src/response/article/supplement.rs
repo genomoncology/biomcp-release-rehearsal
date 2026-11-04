@@ -25,7 +25,6 @@ impl FileKind {
 }
 /// A JATS supplement confirmed by the same processing record.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SupplementFile {
     /// Exact source filename.
@@ -41,7 +40,6 @@ pub struct SupplementFile {
 }
 /// Available supplements with their owning article license.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Supplements {
     /// Article license from the record.
@@ -52,7 +50,6 @@ pub struct Supplements {
 }
 /// One original sparse row with its numbered first source row.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SheetRow {
     /// Original sheet name.
@@ -70,7 +67,6 @@ pub struct SheetRow {
 }
 /// The first original row without interpreting its cells as column headings.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct FirstSheetRow {
     /// Original one-based row number.
@@ -81,7 +77,6 @@ pub struct FirstSheetRow {
 }
 /// A bounded portion of one original first-row or selected-row cell.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CellFragment {
     /// Whether the cell belongs to the first source row.
@@ -95,7 +90,6 @@ pub struct CellFragment {
 }
 /// Source sheet with its maximum original row number.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SheetInfo {
     /// Sheet name.
@@ -105,7 +99,6 @@ pub struct SheetInfo {
 }
 /// Downloaded bounded file contents or an unsupported format's original URL.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SupplementContent {
     /// Explicit original-byte save receipt.
@@ -138,7 +131,6 @@ pub struct SupplementContent {
 }
 /// One supplement reader answer.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleSupplementResult {
     /// Resolved PMC identity.
@@ -148,6 +140,6 @@ pub struct ArticleSupplementResult {
     pub content: Section<SupplementContent>,
 }
 impl super::super::ResponseBody for ArticleSupplementResult {
-    const SCHEMA: &'static str = "biomcp.article-supplement/3";
+    const SCHEMA: &'static str = "biomcp.article-supplement/7";
     type Query = crate::ArticleSupplement;
 }

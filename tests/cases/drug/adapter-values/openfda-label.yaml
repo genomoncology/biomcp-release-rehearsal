@@ -1,0 +1,28 @@
+{
+  "feature": "drug-label",
+  "live_check": "synthetic",
+  "story": "One synthetic malformed version retains the exact SPL identity and names its omitted field.",
+  "replay": "drug/adapter-values/openfda-label",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "--source",
+        "openfda-label"
+      ],
+      "expect": {
+        "/result/header/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
+        "/result/header": {
+          "omits": [
+            "version"
+          ]
+        },
+        "/problems/*/field": [
+          "version"
+        ]
+      }
+    }
+  ]
+}

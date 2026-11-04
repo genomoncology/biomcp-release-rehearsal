@@ -1,4 +1,4 @@
-"""Check collection isolation through the coverage command with a fake Cargo tool."""
+"""Exercise binary object and child profile selection through the coverage command."""
 import os
 from pathlib import Path
 import shutil
@@ -6,91 +6,102 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-CARGO = r'''#!/usr/bin/env python3
-import json, os
+TOOLS = r'''#!/usr/bin/env python3
+import os
 from pathlib import Path
+import shutil
 import sys
 args = sys.argv[1:]
 profiles = Path(os.environ['PROOF_PROFILES'])
-if args[:2] == ['llvm-cov', 'show-env']:
+name = Path(sys.argv[0]).name
+with Path(os.environ['PROOF_CALLS']).open('a') as calls:
+    calls.write(name + ' ' + ' '.join(args) + '\n')
+if name == 'rustc':
+    print(os.environ['PROOF_LLVM'] + '/lib')
+elif name == 'llvm-profdata':
+    names = sys.stdin.read().splitlines()
+    assert names and all(Path(n).name.startswith('bin-') for n in names), names
+    Path(args[args.index('-o')+1]).write_text('\n'.join(names))
+elif name == 'llvm-cov':
+    assert '--object' in args and args[args.index('--object')+1].endswith('/debug/biomcp'), args
+    assert '--ignore-filename-regex' in args and 'generated' in args[args.index('--ignore-filename-regex')+1], args
+    assert '--sources' in args and all('/crates/' in p and '/src/' in p for p in args[args.index('--sources')+1:]), args
+    merged = Path(args[args.index('--instr-profile')+1]).read_text()
+    assert 'harness-' not in merged and 'stale-' not in merged, merged
+    value = os.environ.get('PROOF_COVERAGE', '60')
+    print('TOTAL 100 0 100% 100 0 100% 100 40', value + '%')
+elif args[:2] == ['llvm-cov', 'show-env']:
     print('export LLVM_PROFILE_FILE="' + str(profiles / 'default-%m-%p.profraw') + '"')
+    print('export CARGO_LLVM_COV_TARGET_DIR="' + str(profiles / 'target') + '"')
 elif args[:2] == ['llvm-cov', 'clean']:
+    if profiles.exists(): shutil.rmtree(profiles)
     profiles.mkdir()
     (profiles / 'unrelated.keep').write_text('keep')
-    for index in range(64):
-        (profiles / f'stale-{index}.profraw').write_text('stale')
-elif args[:2] == ['llvm-cov', 'report']:
-    names = [p.name for p in profiles.glob('*.profraw')]
-    missing = 100
-    if any('cases-' in n for n in names): missing = 40
-    if any('contracts-' in n for n in names): missing -= 35
-    if any('library-' in n for n in names): missing = 0
-    print('TOTAL 100 0 100% 100 0 100% 100', missing, str(100-missing)+'%')
-    if '--fail-under-lines' in args:
-        raise SystemExit(int(100-missing < float(args[args.index('--fail-under-lines')+1])))
-elif args[0] == 'metadata':
-    print(json.dumps({'packages':[{'name':'biomcp-types', 'targets':[
-        {'name':'drug_contracts','kind':['test']},
-        {'name':'unlisted_contract','kind':['test']}]},
-        {'name':'biomcp-fetch', 'targets':[{'name':'tensors','kind':['test']}]}]}))
 elif args[0] == 'test' and '--no-run' not in args:
-    with Path(os.environ['PROOF_CALLS']).open('a') as calls:
-        calls.write(' '.join(args) + '\n')
+    if 'ratchets' in args and os.environ.get('PROOF_REJECT_RATCHETS'):
+        raise SystemExit(1)
     profile = os.environ['LLVM_PROFILE_FILE'].replace('%m','fake').replace('%p','1')
-    Path(profile).write_text('profile')
-    if 'library-' in profile:
-        for index in range(64):
-            Path(profile + f'-{index}.profraw').write_text('profile')
+    Path(profile).write_text('harness execution including library calls')
+    if 'cases' in args and not os.environ.get('PROOF_NO_CHILDREN'):
+        (profiles / 'bin-fake-2.profraw').write_text('product child')
 '''
+
+
+def invoke(root, env, *args, **extra):
+    return subprocess.run(['sh', 'scripts/coverage.sh', *args], cwd=root,
+                          env=dict(env, **extra), capture_output=True, text=True)
 
 
 def main():
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
-        for name in ("scripts/coverage.sh", "scripts/contract_targets.py", "coverage.floor", "sdlc/features.md"):
+        for name in ('scripts/coverage.sh', 'sdlc/features.md'):
             target = root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
-        shutil.copytree(ROOT / "crates/biomcp-types", root / "crates/biomcp-types")
-        shutil.copytree(ROOT / "crates/biomcp-fetch", root / "crates/biomcp-fetch")
-        shutil.copytree(ROOT / "crates/biomcp-adapters", root / "crates/biomcp-adapters")
-        subprocess.run(["git", "init", "-q", str(root)], check=True)
-        tools = root / "fake-tools"
-        tools.mkdir()
-        cargo = tools / "cargo"
-        cargo.write_text(CARGO)
-        cargo.chmod(0o755)
-        # Reproduce the operating system's argument ceiling with a small bound.
-        remove = tools / "rm"
-        remove.write_text("#!/usr/bin/env python3\nimport subprocess, sys\n"
-                          "if len(sys.argv) > 32: raise SystemExit('Argument list too long')\n"
-                          "raise SystemExit(subprocess.call(['/bin/rm', *sys.argv[1:]]))\n")
-        remove.chmod(0o755)
-        env = dict(os.environ, PATH=str(tools) + os.pathsep + os.environ["PATH"],
-                   PROOF_PROFILES=str(root / "profiles"), PROOF_CALLS=str(root / "calls"),
-                   RUST_TEST_THREADS="3")
-        result = subprocess.run(["sh", "scripts/coverage.sh"], cwd=root, env=env,
-                                capture_output=True, text=True, check=False)
+        (root / 'coverage.floor').write_text('60\n')
+        source = root / 'crates/product/src/main.rs'
+        source.parent.mkdir(parents=True)
+        source.write_text('fn main() {}\n')
+        skill = root / 'skills/biomcp/SKILL.md'
+        skill.parent.mkdir(parents=True)
+        skill.write_text('Use biomcp to retrieve evidence.\n')
+        subprocess.run(['git', 'init', '-q', str(root)], check=True)
+        tools = root / 'fake-tools/bin'
+        tools.mkdir(parents=True)
+        (tools.parent / 'lib').mkdir()
+        for name in ('cargo', 'rustc', 'llvm-profdata', 'llvm-cov'):
+            tool = tools / name
+            tool.write_text(TOOLS)
+            tool.chmod(0o755)
+        env = dict(os.environ, PATH=str(tools) + os.pathsep + os.environ['PATH'],
+                   PROOF_PROFILES=str(root / 'profiles'), PROOF_CALLS=str(root / 'calls'),
+                   PROOF_LLVM=str(tools.parent), RUST_TEST_THREADS='3')
+        result = invoke(root, env)
         assert result.returncode == 0, result.stdout + result.stderr
-        output = result.stdout
-        assert "command cases only; historical comparison; product source): TOTAL 100 0 100% 100 0 100% 100 40 60%" in output, output
-        assert "command cases plus reviewed public contracts; product source): TOTAL 100 0 100% 100 0 100% 100 5 95%" in output, output
-        assert "unlisted contracts and library tests; excluded from floor; product source): TOTAL 100 0 100% 100 0 100% 100 0 100%" in output, output
-        assert (root / "calls").read_text().count("--test drug_contracts") == 1
-        assert "--test unlisted_contract" in (root / "calls").read_text()
-        calls = (root / "calls").read_text().splitlines()
-        cases_calls = [call for call in calls if "--test cases" in call]
-        assert len(cases_calls) == 1 and cases_calls[0].endswith("-- --test-threads 3"), cases_calls
-        tensor_calls = [call for call in calls if "--test tensors" in call]
-        assert len(tensor_calls) == 1 and "--features" not in tensor_calls[0], tensor_calls
-        assert not list((root / "profiles").glob("library-*.profraw"))
-        assert not list((root / "profiles").glob("stale-*.profraw"))
-        assert (root / "profiles/unrelated.keep").read_text() == "keep"
-        report = subprocess.run(["sh", "scripts/coverage.sh", "report"], cwd=root, env=env,
-                                capture_output=True, text=True, check=False)
-        assert report.returncode == 0 and "100 5 95%" in report.stdout, report
-    print("Coverage counts listed caller contracts and excludes library and unlisted profiles")
+        assert 'cases; product binary source' in result.stdout, result.stdout
+        calls = (root / 'calls').read_text().splitlines()
+        ratchets = 'cargo test --locked -p biomcp --test ratchets'
+        cases = 'cargo test --locked -p biomcp --test cases -- --test-threads 3'
+        assert calls.index(ratchets) < calls.index(cases), calls
+        assert not any('contracts' in call or '--lib' in call for call in calls), calls
+        assert list((root / 'profiles').glob('harness-*.profraw'))
+        report = invoke(root, env, 'report')
+        assert report.returncode == 0, report.stdout + report.stderr
+        unreached = invoke(root, env, 'unreached')
+        assert unreached.returncode == 0, unreached.stdout + unreached.stderr
+        below = invoke(root, env, 'report', PROOF_COVERAGE='59.7')
+        assert below.returncode != 0 and 'below floor' in below.stderr, below
+        skill.write_text('Use biomcp to retrieve updated evidence.\n')
+        changed = invoke(root, env, 'report')
+        assert changed.returncode != 0 and 'inputs changed since collection' in changed.stderr, changed
+        rejected = invoke(root, env, PROOF_REJECT_RATCHETS='1')
+        assert rejected.returncode != 0 and 'ratchets failed' in rejected.stderr, rejected
+        assert not (root / 'profiles/coverage-complete').exists()
+        missing = invoke(root, env, PROOF_NO_CHILDREN='1')
+        assert missing.returncode != 0 and 'no product binary profiles' in missing.stderr, missing
+    print('Coverage selects product children and binary object; refuses incomplete collections and low coverage')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

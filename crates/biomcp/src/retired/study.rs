@@ -1,7 +1,7 @@
 //! Study migration guidance respects argument boundaries and never reads local data.
 use biomcp_types::ErrorMessage;
 use std::ffi::OsString;
-pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
+pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMessage> {
     let mut positional = Vec::new();
     let mut chart = false;
     let mut literal = false;
@@ -22,7 +22,7 @@ pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
         chart |= CHARTS.contains(&flag);
         if inline.is_none()
             && (VALUE_FLAGS.contains(&flag)
-                || super::takes_value(flag, &positional).unwrap_or(false))
+                || super::takes_value(root, flag, &positional).unwrap_or(false))
         {
             args.next();
         }

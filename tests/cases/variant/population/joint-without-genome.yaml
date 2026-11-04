@@ -1,0 +1,35 @@
+{
+  "feature": "variant-population",
+  "replay": "variant-population/joint-without-genome",
+  "live_check": "recorded public source response",
+  "story": "Published joint counts remain independent when genome is null, and source zero homozygotes remain zero.",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "population",
+        "CA123643"
+      ],
+      "expect": {
+        "/result/population/data/exome/ac": 2,
+        "/result/population/data/exome/an": 1460618,
+        "/result/population/data/exome/homozygote_count": 0,
+        "/result/population/data/exome/frequency/dataset_version": "4.1.0",
+        "/result/population/data": {
+          "omits": [
+            "genome",
+            "dataset_version"
+          ]
+        },
+        "/problems/*/field": {
+          "includes_all_of": [
+            "joint.dataset_version"
+          ]
+        },
+        "/result/population/data/joint/data/ac": 2,
+        "/result/population/data/joint/data/an": 1612922,
+        "/result/population/data/joint/data/homozygote_count": 0
+      }
+    }
+  ]
+}

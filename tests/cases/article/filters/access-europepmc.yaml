@@ -1,21 +1,11 @@
 {
   "live_check": "synthetic response case",
-  "feature": "article-search",
+  "feature": "article-filters",
   "story": "Native source access parameters use the recorded request identity with an explicitly synthetic empty response",
   "replay": "article/filters/synthetic-europepmc",
   "steps": [
     {
       "run": [
-        "search",
-        "article",
-        "AKT1 E17K",
-        "--source",
-        "europepmc",
-        "--open-access",
-        "--no-preprints",
-        "--exclude-retracted"
-      ],
-      "mcp": [
         "search",
         "article",
         "AKT1 E17K",

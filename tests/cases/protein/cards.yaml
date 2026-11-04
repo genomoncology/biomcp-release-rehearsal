@@ -3,6 +3,7 @@
   "feature": "protein-search",
   "story": "Exact protein cards preserve request order and isoform identity without disclosing sequence",
   "replay": "protein/synthetic",
+  "cache_acquired": 42,
   "steps": [
     {
       "run": [
@@ -26,27 +27,7 @@
         ],
         "/result/items/0/audit/sequence_version": 2
       },
-      "mcp": [
-        "get",
-        "protein",
-        "P00533",
-        "Q9UIF7",
-        "P38398-2"
-      ],
       "max_bytes": 2001
-    },
-    {
-      "run": [
-        "get",
-        "protein",
-        "P00533"
-      ],
-      "offline": true,
-      "expect": {
-        "/status": "complete",
-        "/result/items/0/header/protein/accession": "P00533"
-      },
-      "max_bytes": 1041
     },
     {
       "run": [

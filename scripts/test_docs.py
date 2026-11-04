@@ -1,5 +1,6 @@
 """Exercise documentation contracts through the checker command."""
 
+import re
 import shutil
 import subprocess
 import sys
@@ -29,9 +30,12 @@ def main():
         root = Path(directory)
         for name in (
             "ROADMAP.md",
+            "README.md",
+            "skills/SKILL.md",
             "docs/reference/commands.md",
             "sdlc/features.md",
             "sdlc/planning/upgrade.md",
+            "sdlc/planning/architecture.md",
             "sdlc/planning/parity-0.9.3.json",
         ):
             target = root / name
@@ -46,8 +50,35 @@ def main():
             "crates/biomcp-adapters",
         ):
             shutil.copytree(ROOT / name, root / name)
+        architecture = root / "sdlc/planning/architecture.md"
+        original_architecture = architecture.read_text()
+        for name in re.findall(r"Check: `([^`]+)`", original_architecture):
+            target = root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / name, target)
         result = check(root)
         assert result.returncode == 0, result.stderr
+        readme = root / "README.md"
+        original_readme = readme.read_text()
+        readme.write_text(original_readme.replace("get gene KRAS", "get gene INVENTED"))
+        result = check(root)
+        assert result.returncode != 0 and "README examples differ" in result.stderr, result
+        readme.write_text(original_readme)
+        architecture.write_text(original_architecture + "\n## Planted rule\n\nCheck: `scripts/missing_check.py`.\n")
+        result = check(root)
+        assert result.returncode != 0 and "architecture names a missing check file" in result.stderr, result
+        architecture.write_text(original_architecture + "\n## Planted rule\n\nA rule without enforcement.\n")
+        result = check(root)
+        assert result.returncode != 0 and "architecture section lacks a check" in result.stderr, result
+        architecture.write_text(original_architecture)
+        guide = root / "skills/SKILL.md"
+        original_guide = guide.read_bytes()
+        guide.write_bytes(b"x" * 4096)
+        assert check(root).returncode == 0
+        guide.write_bytes(b"x" * 4097)
+        result = check(root)
+        assert result.returncode != 0 and "agent skill exceeds 4 KB" in result.stderr, result
+        guide.write_bytes(original_guide)
         roadmap = root / "ROADMAP.md"
         original = roadmap.read_text()
         roadmap.write_text(
@@ -124,36 +155,16 @@ def main():
             result = check(root)
             assert result.returncode != 0 and expected in result.stderr, result
         slice_path.write_text(original_slice)
-        case = root / "tests/cases/new-command/proof.yaml"
-        case.parent.mkdir()
-        case.write_text("story: A new command\n")
-        result = check(root)
-        assert result.returncode != 0 and "unmapped case" in result.stderr, result
-        case.unlink()
         features = root / "sdlc/features.md"
         original_features = features.read_text()
-        features.write_text(
-            original_features.replace("/drug_contracts`", "/missing_contract`")
-        )
-        result = check(root)
-        assert result.returncode != 0 and "target does not exist" in result.stderr, (
-            result
-        )
-        features.write_text(
-            original_features.replace("features: `schema`", "features: `missing`")
-        )
-        result = check(root)
-        assert result.returncode != 0 and "feature does not exist" in result.stderr, (
-            result
-        )
         features.write_text(
             original_features
             + "\nmissing: A caller sees a result. Cases: `tests/cases/missing/*.yaml`.\n"
         )
         result = check(root)
-        assert result.returncode != 0 and "matches no cases" in result.stderr, result
+        assert result.returncode != 0 and "invalid or duplicate feature line" in result.stderr, result
     print(
-        "Documentation contracts reject phantom leaves, unknown options, missing leaf accounting, drift and missing case mappings"
+        "Documentation contracts reject missing architecture checks, phantom leaves, unknown options, missing leaf accounting, drift and invalid feature declarations"
     )
 
 

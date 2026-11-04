@@ -1,0 +1,169 @@
+{
+  "feature": "adverse-event-get",
+  "live_check": "synthetic",
+  "story": "Malformed identifier members leave their valid native siblings and empty-string values readable.",
+  "replay": "adverse-event/member-values/faers",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "drugs"
+      ],
+      "expect": {
+        "/result/drugs/records/0/identity_counts": {
+          "equals": {
+            "unii": 2,
+            "rxcui": 2,
+            "product_ndc": 2,
+            "package_ndc": 2,
+            "spl_id": 2,
+            "spl_set_id": 2,
+            "application_number": 2
+          }
+        },
+        "/result/drugs/records/1/identity_counts/unii": 0,
+        "/result/drugs/records/1/identity_counts": {
+          "omits": [
+            "rxcui"
+          ]
+        },
+        "/result/drugs/records/2/identity_counts/unii": 0
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "unii",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/unii/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "unii"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "rxcui",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/rxcui/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "rxcui"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "product-ndc",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/product_ndc/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "product_ndc"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "package-ndc",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/package_ndc/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "package_ndc"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "spl-id",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/spl_id/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "spl_id"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "spl-set-id",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/spl_set_id/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "spl_set_id"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "application-number",
+        "--drug-index",
+        "0"
+      ],
+      "expect": {
+        "/result/application_number/records": [
+          "Synthetic retained member",
+          ""
+        ],
+        "/problems/*/field": {
+          "includes": "application_number"
+        }
+      }
+    }
+  ]
+}

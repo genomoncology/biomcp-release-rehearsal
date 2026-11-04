@@ -1,0 +1,46 @@
+{
+  "feature": "cell-line-chembl",
+  "live_check": "Authored malformed identity and optional-field replies for local cache admission; no live provider equivalent.",
+  "story": "A repeated call preserves the native count and refused identity problem.",
+  "replay": "cache-admission",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "cell-line",
+        "CVCL_0004",
+        "chembl"
+      ],
+      "expect": {
+        "/result/items/total": 1,
+        "/problems/*/field": {
+          "includes": "cell_chembl_id"
+        },
+        "/result/items": {
+          "omits": [
+            "items"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "cell-line",
+        "CVCL_0004",
+        "chembl"
+      ],
+      "expect": {
+        "/result/items/total": 1,
+        "/problems/*/field": {
+          "includes": "cell_chembl_id"
+        },
+        "/result/items": {
+          "omits": [
+            "items"
+          ]
+        }
+      }
+    }
+  ]
+}

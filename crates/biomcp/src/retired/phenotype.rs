@@ -1,8 +1,8 @@
 //! Retired phenotype forms never rewrite text or choose a candidate.
 use biomcp_types::ErrorMessage;
 use std::ffi::OsString;
-pub(super) fn message(args: &[OsString]) -> Option<ErrorMessage> {
-    let words = super::words(args)?;
+pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMessage> {
+    let words = super::words(root, args)?;
     match words.positional.as_slice() {
         ["list", "phenotype", ..] => Some(ErrorMessage::PhenotypeHelp),
         ["search", "phenotype", text @ ..] => {

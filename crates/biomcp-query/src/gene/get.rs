@@ -3,8 +3,9 @@ use crate::{Ctx, Outcome, status};
 use biodata::Text;
 use biomcp_adapters::{hgnc, mygene};
 use biomcp_types::GeneResolution;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    GeneCards, GeneGet, GeneItem, Problem, ProblemCode, QueryBody, Source, SourceState, Status,
+    GeneCards, GeneGet, GeneItem, Problem, ProblemCode, Source, SourceState, Status,
 };
 
 pub(crate) fn get(cx: &Ctx<'_>, query: &GeneGet) -> Outcome {
@@ -22,7 +23,7 @@ pub(crate) fn get(cx: &Ctx<'_>, query: &GeneGet) -> Outcome {
     if hgnc.state == SourceState::Stale {
         for item in &mut items {
             if item.status == Status::Complete {
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
             }
         }
     }
@@ -63,18 +64,22 @@ pub(crate) fn get(cx: &Ctx<'_>, query: &GeneGet) -> Outcome {
     }
     sections::offer_oncokb(query, &mut items, &sources);
     let state = status::status(items.iter().map(|item| item.status));
-    let next = next::get(query, &items, &sources);
-    Outcome {
-        status: state,
-        body: QueryBody::GeneCards(GeneCards {
-            items: items.into(),
-        }),
-        page: None,
-        sources,
-        problems,
-        next,
-        local,
-    }
+    let next = next::get(query, &items, &sources, &mut problems);
+    crate::status::finish(
+        [state],
+        crate::status::Parts {
+            dropped: false,
+            body: (GeneCards {
+                items: items.into(),
+            })
+            .with_query(query.clone()),
+            page: None,
+            sources,
+            problems,
+            next,
+            local,
+        },
+    )
 }
 fn join(
     item: &mut GeneItem,
@@ -97,11 +102,11 @@ fn join(
     {
         gene.summary = extra.value.summary.clone();
         gene.spans = extra.value.spans.clone();
-        if !extra.problems.is_empty() {
-            item.status = Status::Partial;
+        if extra.refusals == biomcp_adapters::Refusal::Refused {
+            item.status = crate::status::item_status(true, false, true);
         }
     } else {
-        item.status = Status::Partial;
+        item.status = crate::status::item_status(true, false, true);
         status::append(
             problems,
             [Problem {
@@ -125,16 +130,20 @@ fn resolve_item(
         Ok(mapped) => {
             status::append(problems, mapped.problems);
             let state = if matches!(mapped.value, GeneResolution::NotFound {}) {
-                Status::Absent
+                crate::status::item_status(false, false, false)
             } else {
-                Status::Complete
+                crate::status::item_status(
+                    true,
+                    false,
+                    mapped.refusals == biomcp_adapters::Refusal::Refused,
+                )
             };
             (Some(mapped.value), state)
         }
         Err(failure) => {
             *error = Some(failure);
             *local = local.or(status::local(failure));
-            (None, Status::Failed)
+            (None, crate::status::item_status(false, true, false))
         }
     };
     GeneItem {
@@ -174,7 +183,7 @@ fn mygene_join(
                 for item in &mut *items {
                     if matches!(&item.answer, Some(GeneResolution::Resolved { gene, .. }) if gene.entrez_id.is_some_and(|id| batch.ids.contains(&id)))
                     {
-                        item.status = Status::Partial;
+                        item.status = crate::status::item_status(true, false, true);
                     }
                 }
             }
@@ -185,7 +194,7 @@ fn mygene_join(
         for item in items {
             if matches!(&item.answer, Some(GeneResolution::Resolved { gene, .. }) if gene.entrez_id.is_some())
             {
-                item.status = Status::Partial;
+                item.status = crate::status::item_status(true, false, true);
             }
         }
     }

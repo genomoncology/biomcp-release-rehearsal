@@ -1,0 +1,289 @@
+{
+  "live_check": "public",
+  "feature": "drug-who-medicines",
+  "story": "WHO date-only ranges include every 2020 product newest first; names and inclusive year, month and day bounds filter the same local bundle, retaining native date cells.",
+  "replay": "drug/who-dates",
+  "steps": [
+    {
+      "run": [
+        "sync",
+        "who-pq"
+      ],
+      "expect": {
+        "/result/rows": 657
+      },
+      "max_bytes": 500
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq",
+        "--prequalified-from",
+        "2020",
+        "--prequalified-to",
+        "2020",
+        "--limit",
+        "50",
+        "--offset",
+        "0"
+      ],
+      "expect": {
+        "/page/total": 51,
+        "/page/returned": 50,
+        "/result/items/*/reference": [
+          "BT-ON016",
+          "HP027",
+          "HP028",
+          "MA157",
+          "TB386",
+          "CV004",
+          "HA734",
+          "HA694",
+          "HP025",
+          "HP026",
+          "RH066",
+          "RH067",
+          "BT-ON006",
+          "BT-ON007",
+          "MA151",
+          "NT009",
+          "TB361",
+          "TB362",
+          "HA708",
+          "RH087",
+          "BT-ON009",
+          "BT-ON010",
+          "BT-ON011",
+          "BT-ON012",
+          "RH054",
+          "BT-ON002",
+          "BT-ON003",
+          "IN018",
+          "IN019",
+          "IN020",
+          "HA709",
+          "HA710",
+          "HA711",
+          "HA727",
+          "HA729",
+          "BT-ON008",
+          "BT-ON004",
+          "BT-ON005",
+          "DI011",
+          "HA713",
+          "HA726",
+          "RH070",
+          "RH071",
+          "HA732",
+          "RH086",
+          "TB348",
+          "TB365",
+          "HA701",
+          "TB384",
+          "HA715"
+        ],
+        "/result/items/*/date_of_prequalification": [
+          "21  Dec,  2020",
+          "18  Dec,  2020",
+          "18  Dec,  2020",
+          "25  Nov,  2020",
+          "25  Nov,  2020",
+          "5  Nov,  2020",
+          "5  Nov,  2020",
+          "2  Nov,  2020",
+          "27  Oct,  2020",
+          "27  Oct,  2020",
+          "27  Oct,  2020",
+          "27  Oct,  2020",
+          "17  Sep,  2020",
+          "17  Sep,  2020",
+          "16  Sep,  2020",
+          "16  Sep,  2020",
+          "16  Sep,  2020",
+          "16  Sep,  2020",
+          "18  Aug,  2020",
+          "18  Aug,  2020",
+          "31  Jul,  2020",
+          "31  Jul,  2020",
+          "31  Jul,  2020",
+          "31  Jul,  2020",
+          "30  Jul,  2020",
+          "14  Jul,  2020",
+          "14  Jul,  2020",
+          "14  Jul,  2020",
+          "14  Jul,  2020",
+          "14  Jul,  2020",
+          "12  Jun,  2020",
+          "12  Jun,  2020",
+          "12  Jun,  2020",
+          "12  Jun,  2020",
+          "12  Jun,  2020",
+          "11  Jun,  2020",
+          "25  May,  2020",
+          "25  May,  2020",
+          "25  May,  2020",
+          "21  May,  2020",
+          "21  Apr,  2020",
+          "21  Apr,  2020",
+          "21  Apr,  2020",
+          "16  Mar,  2020",
+          "16  Mar,  2020",
+          "16  Mar,  2020",
+          "16  Mar,  2020",
+          "3  Mar,  2020",
+          "3  Mar,  2020",
+          "5  Feb,  2020"
+        ]
+      },
+      "max_bytes": 40000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq",
+        "--prequalified-from",
+        "2020",
+        "--prequalified-to",
+        "2020",
+        "--limit",
+        "50",
+        "--offset",
+        "50"
+      ],
+      "expect": {
+        "/page/total": 51,
+        "/page/returned": 1,
+        "/result/items/*/reference": [
+          "RH084"
+        ],
+        "/result/items/*/date_of_prequalification": [
+          "5  Feb,  2020"
+        ]
+      },
+      "max_bytes": 40000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq",
+        "Trastuzumab",
+        "--prequalified-from",
+        "2020",
+        "--prequalified-to",
+        "2020"
+      ],
+      "expect": {
+        "/page/total": 6,
+        "/result/items/*/reference": [
+          "BT-ON002",
+          "BT-ON003",
+          "BT-ON008",
+          "BT-ON009",
+          "BT-ON010",
+          "BT-ON016"
+        ],
+        "/result/items/*/date_of_prequalification": [
+          "14  Jul,  2020",
+          "14  Jul,  2020",
+          "11  Jun,  2020",
+          "31  Jul,  2020",
+          "31  Jul,  2020",
+          "21  Dec,  2020"
+        ]
+      },
+      "max_bytes": 40000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq",
+        "Trastuzumab",
+        "--prequalified-from",
+        "2020-07",
+        "--prequalified-to",
+        "2020-07"
+      ],
+      "expect": {
+        "/page/total": 4,
+        "/result/items/*/reference": [
+          "BT-ON002",
+          "BT-ON003",
+          "BT-ON009",
+          "BT-ON010"
+        ],
+        "/result/items/*/date_of_prequalification": [
+          "14  Jul,  2020",
+          "14  Jul,  2020",
+          "31  Jul,  2020",
+          "31  Jul,  2020"
+        ]
+      },
+      "max_bytes": 40000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq",
+        "Trastuzumab",
+        "--prequalified-from",
+        "2020-07-14",
+        "--prequalified-to",
+        "2020-07-14"
+      ],
+      "expect": {
+        "/page/total": 2,
+        "/result/items/*/reference": [
+          "BT-ON002",
+          "BT-ON003"
+        ],
+        "/result/items/*/date_of_prequalification": [
+          "14  Jul,  2020",
+          "14  Jul,  2020"
+        ]
+      },
+      "max_bytes": 40000
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq"
+      ],
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/message": "WHO PQ search requires a name or --prequalified-from/--prequalified-to date range"
+      },
+      "max_bytes": 40000,
+      "exit": 2
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--source",
+        "who-pq",
+        "--prequalified-from",
+        "2021",
+        "--prequalified-to",
+        "2020"
+      ],
+      "expect": {
+        "/error/code": "usage.arguments"
+      },
+      "max_bytes": 40000,
+      "exit": 2
+    }
+  ],
+  "verified": "Complete unedited finished-product CSV captured from https://extranet.who.int/prequal/medicines/prequalified/finished-pharmaceutical-products/export?page&_format=csv on 2026-11-04; expected 2020 products and native date cells projected from that capture."
+}

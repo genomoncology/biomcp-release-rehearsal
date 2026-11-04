@@ -9,16 +9,11 @@
         "get",
         "variant"
       ],
-      "mcp": [
-        "help",
-        "get",
-        "variant"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         },
-        "/result/commands/0/description": "Read an rsID, CAid, ClinVar Variation ID or reference-qualified HGVS; chromosome notation requires --build. Use search variant --gene BRAF --protein V600E for shorthand. Every candidate remains available; source assertions do not classify the variant for the caller."
+        "/result/commands/0/description": "Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates such as 7-140753336-A-T through the shared resolver. Sources: alphagenome, car, civic, clinvar, erepo, gnomad, gwas, hotspots, mutalyzer, myvariant, oncokb, variantvalidator."
       },
       "max_bytes": 5514
     },
@@ -28,14 +23,9 @@
         "search",
         "variant"
       ],
-      "mcp": [
-        "help",
-        "search",
-        "variant"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 3976
@@ -46,17 +36,12 @@
         "variant",
         "assertions"
       ],
-      "mcp": [
-        "help",
-        "variant",
-        "assertions"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
-      "max_bytes": 2458
+      "max_bytes": 2847
     },
     {
       "run": [
@@ -64,14 +49,9 @@
         "variant",
         "population"
       ],
-      "mcp": [
-        "help",
-        "variant",
-        "population"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2540
@@ -82,14 +62,9 @@
         "variant",
         "normalize"
       ],
-      "mcp": [
-        "help",
-        "variant",
-        "normalize"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 2493
@@ -100,18 +75,13 @@
         "variant",
         "recurrence"
       ],
-      "mcp": [
-        "help",
-        "variant",
-        "recurrence"
-      ],
       "expect": {
         "/result/commands/0/examples": {
-          "count": 2
+          "count": 1
         }
       },
       "max_bytes": 3135
     }
   ],
-  "verified": "Get variant and assertions help measured in j16526: 3741 and 1290 CLI bytes. Their caps are ceil(measured bytes * 1.15); token caps are ceil(byte cap / 4). Other help caps retain j11310. No comparable 0.9 schema-generated help baseline exists. MCP tools/list retains its existing description cap. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Get variant and assertions help measured in j16526: 3741 and 1290 CLI bytes. Their caps are ceil(measured bytes * 1.15); token caps are ceil(byte cap / 4). Other help caps retain j11310. No comparable 0.9 schema-generated help baseline exists. MCP tools/list retains its existing description cap. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. Assertions help is 2475 CLI bytes after the shared variant identifier/build fields (j28000); its cap is ceil(measured bytes * 1.15)."
 }

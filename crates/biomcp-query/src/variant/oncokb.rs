@@ -34,51 +34,42 @@ pub(super) fn section(
     let reply = oncokb::variant::annotation(&leg, &hgvsg, build, tumor.as_str());
     let error = reply.as_ref().err().copied();
     let source = status::source(Source::Oncokb, leg.finish(), error);
+    let mut dropped = false;
     let mut problems = Vec::new();
     let section = match reply {
         Ok(row) => {
-            let mapped = oncokb::variant_map::records(&row);
+            let mapped = oncokb::variant_map::records(row, tumor.clone());
+            dropped |= mapped.refusals == biomcp_adapters::Refusal::Refused;
             problems = mapped.problems;
-            let total = mapped.value.len() as u64;
-            let rows = mapped
-                .value
+            let mut data = mapped.value;
+            let total = data.page.total;
+            data.records = std::mem::take(&mut data.records)
+                .into_vec()
                 .into_iter()
                 .skip(query.section_offset() as usize)
                 .take(query.section_limit() as usize)
-                .collect::<Vec<_>>();
-            let returned = rows.len() as u32;
+                .collect();
+            let returned = data.records.len() as u32;
             let next_offset = u64::from(query.section_offset()) + u64::from(returned);
+            data.page = PageInfo {
+                offset: query.section_offset(),
+                returned,
+                total,
+                pool: None,
+                truncated: None,
+            };
+            data.next = if next_offset < total {
+                Some(
+                    query
+                        .at_section_offset(next_offset as u32)
+                        .with_sections(vec![VariantSection::Oncokb].into()),
+                )
+            } else {
+                None
+            };
             Section::Data {
                 source: Source::Oncokb,
-                data: VariantOncokb {
-                    hgvsg: row.query.hgvs,
-                    build,
-                    tumor_type: tumor.clone(),
-                    data_version: row.data_version.and_then(|s| s.parse().ok()),
-                    last_update: row.last_update.and_then(|s| s.parse().ok()),
-                    variant_exist: row.variant_exist,
-                    gene_exist: row.gene_exist,
-                    vus: row.vus,
-                    hotspot: row.hotspot,
-                    allele_exist: row.allele_exist,
-                    records: rows.into(),
-                    page: PageInfo {
-                        offset: query.section_offset(),
-                        returned,
-                        total,
-                        pool: None,
-                        truncated: None,
-                    },
-                    next: if next_offset < total {
-                        Some(
-                            query
-                                .at_section_offset(next_offset as u32)
-                                .with_sections(vec![VariantSection::Oncokb].into()),
-                        )
-                    } else {
-                        None
-                    },
-                },
+                data,
             }
         }
         Err(error) => Section::unavailable(
@@ -91,6 +82,7 @@ pub(super) fn section(
         vec![source],
         problems,
         error.and_then(status::local),
+        dropped,
     )
 }
 fn genomic(row: &VariantHeader, build: Build) -> Option<String> {
@@ -120,6 +112,7 @@ fn skipped(reason: Reason) -> super::sections::Result<VariantOncokb> {
         vec![source(SourceState::Skipped, reason)],
         Vec::new(),
         None,
+        false,
     )
 }
 fn unavailable(reason: Reason) -> super::sections::Result<VariantOncokb> {
@@ -128,6 +121,7 @@ fn unavailable(reason: Reason) -> super::sections::Result<VariantOncokb> {
         vec![source(SourceState::Failed, reason)],
         Vec::new(),
         None,
+        false,
     )
 }
 fn source(state: SourceState, reason: Reason) -> SourceOutcome {
@@ -152,25 +146,24 @@ pub(super) fn input_genomic(query: &VariantGet, build: Build) -> Option<String> 
 }
 
 /// Offer setup only for the missing caller context; never supply a default.
-pub(super) fn next(
-    query: &VariantGet,
-    sources: &[SourceOutcome],
-) -> Vec<(biomcp_types::StepKind, crate::Action)> {
+pub(super) fn next(query: &VariantGet, sources: &[SourceOutcome]) -> Vec<crate::next::Step> {
     if sources
         .iter()
         .any(|s| s.source == Source::Oncokb && s.reason == Some(Reason::NoKey))
     {
-        vec![(
+        vec![crate::next::Step::new(
             biomcp_types::StepKind::Key,
-            crate::Action::KeyHelp(Source::Oncokb),
+            &[biomcp_types::Source::Oncokb],
+            crate::Action::KeyHelp(biomcp_fetch::SecretName::OncokbApiKey),
         )]
     } else if (query.build().is_none() || query.tumor_type().is_none())
         && sources
             .iter()
             .any(|s| s.source == Source::Oncokb && s.reason == Some(Reason::NoJoinId))
     {
-        vec![(
+        vec![crate::next::Step::new(
             biomcp_types::StepKind::Configure,
+            &[],
             crate::Action::QueryHelp(biomcp_types::Request::GetVariant(query.clone())),
         )]
     } else {

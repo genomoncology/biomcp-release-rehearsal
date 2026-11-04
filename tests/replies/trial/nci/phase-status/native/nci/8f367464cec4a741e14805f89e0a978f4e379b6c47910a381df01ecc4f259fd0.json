@@ -1,0 +1,475 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/trials?size=1&from=0&phase=II&current_trial_status=Active&include=nci_id&include=nct_id&include=brief_title&include=current_trial_status&include=phase&include=diseases",
+  "exchanges": [
+    {
+      "fetched": 1793258088,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 1656,
+          "data": [
+            {
+              "phase": "II",
+              "current_trial_status": "Active",
+              "nct_id": "NCT02523014",
+              "brief_title": "Vismodegib, FAK Inhibitor GSK2256098, Capivasertib, and Abemaciclib in Treating Patients with Progressive Meningiomas",
+              "diseases": [
+                {
+                  "inclusion_indicator": "TRIAL",
+                  "is_lead_disease": false,
+                  "synonyms": [],
+                  "nci_thesaurus_concept_id": "C4656",
+                  "name": "Intracranial Meningioma",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C7051",
+                    "C4953"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TRIAL",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Relapsed Meningioma"
+                  ],
+                  "nci_thesaurus_concept_id": "C5312",
+                  "name": "Recurrent Meningioma",
+                  "type": [
+                    "stage"
+                  ],
+                  "parents": [
+                    "C3230",
+                    "C71700"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Meningeal Neoplasms",
+                    "Meningeal Tumor",
+                    "Meninges Neoplasm",
+                    "Meninges Tumor",
+                    "Neoplasm of Meninges",
+                    "Neoplasm of the Meninges",
+                    "Neoplasm of uncertain behavior of meninges, unspecified",
+                    "Tumor of Meninges",
+                    "Tumor of the Meninges"
+                  ],
+                  "nci_thesaurus_concept_id": "C3229",
+                  "name": "Meningeal Neoplasm",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C9293"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [],
+                  "nci_thesaurus_concept_id": "C7062",
+                  "name": "Neoplasm by Special Category",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C3262"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Disorder of Nervous System",
+                    "Neurologic Disorder",
+                    "Neurological Disorder",
+                    "Unspecified Nervous System Problem"
+                  ],
+                  "nci_thesaurus_concept_id": "C26835",
+                  "name": "Nervous System Disorder",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C27551"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [],
+                  "nci_thesaurus_concept_id": "C3263",
+                  "name": "Neoplasm by Site",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C3262"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Central Nervous System Neoplasm",
+                    "Central Nervous System Tumor",
+                    "CNS Neoplasm",
+                    "CNS Tumor",
+                    "Neoplasm of Central Nervous System",
+                    "Neoplasm of CNS",
+                    "Neoplasm of the Central Nervous System",
+                    "Neoplasm of uncertain behavior of central nervous system, unspecified",
+                    "Tumor of Central Nervous System",
+                    "Tumor of CNS",
+                    "Tumor of the Central Nervous System",
+                    "Tumor of the CNS"
+                  ],
+                  "nci_thesaurus_concept_id": "C9293",
+                  "name": "Brain/Spinal Cord Tumor",
+                  "type": [
+                    "maintype",
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C2934",
+                    "C3268"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Neoplasm Recurrence",
+                    "Recurrence",
+                    "Recurrent",
+                    "Recurrent Tumor"
+                  ],
+                  "nci_thesaurus_concept_id": "C4798",
+                  "name": "Recurrent Neoplasm",
+                  "type": [
+                    "stage"
+                  ],
+                  "parents": [
+                    "C7062"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Disease by Site"
+                  ],
+                  "nci_thesaurus_concept_id": "C27551",
+                  "name": "Disorder by Site",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C2991"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Central Nervous System Disease",
+                    "Disorder of Central Nervous System"
+                  ],
+                  "nci_thesaurus_concept_id": "C2934",
+                  "name": "Central Nervous System Disorder",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C26835"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Neoplasm of Nervous System",
+                    "Neoplasm of the Nervous System",
+                    "Nervous System Neoplasm",
+                    "Nervous System Neoplasms",
+                    "Nervous System Tumour",
+                    "Tumor of Nervous System",
+                    "Tumor of the Nervous System"
+                  ],
+                  "nci_thesaurus_concept_id": "C3268",
+                  "name": "Nervous System Tumor",
+                  "type": [
+                    "maintype"
+                  ],
+                  "parents": [
+                    "C3263",
+                    "C26835"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [],
+                  "nci_thesaurus_concept_id": "C182030",
+                  "name": "Recurrent Nervous System Neoplasm",
+                  "type": [
+                    "stage"
+                  ],
+                  "parents": [
+                    "C4798",
+                    "C3268"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Mesenchymal Cell Tumor",
+                    "Mesenchymal Neoplasm",
+                    "Mesenchymal Tumor"
+                  ],
+                  "nci_thesaurus_concept_id": "C7059",
+                  "name": "Mesenchymal Cell Neoplasm",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C3810",
+                    "C4741"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Condition",
+                    "Diagnosis",
+                    "Disease",
+                    "Disease or Disorder",
+                    "Disease or Disorder, Non-Neoplastic",
+                    "disease term",
+                    "disease type",
+                    "disease_term",
+                    "disease_type",
+                    "Diseases",
+                    "Diseases and Disorders",
+                    "Disorder",
+                    "Disorders"
+                  ],
+                  "nci_thesaurus_concept_id": "C2991",
+                  "name": "Other Disease",
+                  "type": [
+                    "maintype"
+                  ],
+                  "parents": []
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Tumor Morphology",
+                    "Tumor_Morphology"
+                  ],
+                  "nci_thesaurus_concept_id": "C4741",
+                  "name": "Neoplasm by Morphology",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C3262"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Recurrent Primary Central Nervous System Tumor"
+                  ],
+                  "nci_thesaurus_concept_id": "C71700",
+                  "name": "Recurrent Primary Central Nervous System Neoplasm",
+                  "type": [
+                    "stage"
+                  ],
+                  "parents": [
+                    "C182030",
+                    "C102871"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Connective and Soft Tissue Tumor",
+                    "Musculoskeletal and Soft Tissue Neoplasm",
+                    "Musculoskeletal and Soft Tissue Tumor",
+                    "Neoplasm of Skeletal and Soft Tissue",
+                    "Neoplasm of Soft Tissue and Bone",
+                    "Neoplasm of Soft Tissue and Skeleton",
+                    "Skeletal and Soft Tissue Neoplasm",
+                    "Skeletal and Soft Tissue Tumor",
+                    "Soft Tissue and Bone Neoplasm",
+                    "Soft Tissue and Bone Tumor",
+                    "Tumor of Skeletal and Soft Tissue",
+                    "Tumor of Soft Tissue and Bone",
+                    "Tumor of Soft Tissue and Skeleton"
+                  ],
+                  "nci_thesaurus_concept_id": "C3810",
+                  "name": "Connective and Soft Tissue Neoplasm",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C27574",
+                    "C3263"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "CNS primary tumor, NOS"
+                  ],
+                  "nci_thesaurus_concept_id": "C102871",
+                  "name": "Primary Central Nervous System Neoplasm",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C9293"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Meningothelial Cell Tumor",
+                    "Primary Meningeal Neoplasm",
+                    "Primary Meningeal Tumor",
+                    "Tumor of Meningothelial Cells"
+                  ],
+                  "nci_thesaurus_concept_id": "C6971",
+                  "name": "Meningothelial Cell Neoplasm",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C7059"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Connective and Soft Tissue Disease",
+                    "Connective and Soft Tissue Diseases"
+                  ],
+                  "nci_thesaurus_concept_id": "C27574",
+                  "name": "Connective and Soft Tissue Disorder",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C27551"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [],
+                  "nci_thesaurus_concept_id": "C7057",
+                  "name": "Disease, Disorder or Finding",
+                  "type": [
+                    "finding"
+                  ],
+                  "parents": []
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Neoplasia",
+                    "Neoplasm",
+                    "Neoplasm, NOS",
+                    "Neoplasms, NOS",
+                    "Neoplastic Disease",
+                    "Neoplastic Growth",
+                    "tumor",
+                    "Tumor, NOS"
+                  ],
+                  "nci_thesaurus_concept_id": "C3262",
+                  "name": "Other Neoplasm",
+                  "type": [
+                    "maintype"
+                  ],
+                  "parents": [
+                    "C2991"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": true,
+                  "synonyms": [
+                    "Meningioma, NOS",
+                    "Meningiomas"
+                  ],
+                  "nci_thesaurus_concept_id": "C3230",
+                  "name": "Meningioma",
+                  "type": [
+                    "maintype",
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C102871",
+                    "C3229",
+                    "C6971"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": false,
+                  "synonyms": [],
+                  "nci_thesaurus_concept_id": "C7051",
+                  "name": "Meningioma by Site",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C3230"
+                  ]
+                },
+                {
+                  "inclusion_indicator": "TREE",
+                  "is_lead_disease": false,
+                  "synonyms": [
+                    "Intracranial Central Nervous System Neoplasm",
+                    "Intracranial Central Nervous System Tumor",
+                    "Intracranial Tumor"
+                  ],
+                  "nci_thesaurus_concept_id": "C4953",
+                  "name": "Intracranial Neoplasm",
+                  "type": [
+                    "subtype"
+                  ],
+                  "parents": [
+                    "C9293"
+                  ]
+                }
+              ],
+              "nci_id": "NCI-2015-00546"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

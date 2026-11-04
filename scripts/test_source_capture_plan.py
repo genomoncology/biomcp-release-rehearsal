@@ -93,7 +93,8 @@ class CapturePlanTests(unittest.TestCase):
                               capture_output=True, text=True)
 
     def test_full_run_retains_and_verifies_archive_before_cleanup(self):
-        out = self.base / 'capture'
+        out = self.base / 'missing' / 'parents' / 'capture'
+        self.assertFalse(out.parent.exists())
         result = self.run_capture(self.plan(['/one', '/two']), out)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.server.calls, ['/one', '/two'])
@@ -178,9 +179,15 @@ class CapturePlanTests(unittest.TestCase):
                 out = self.base / name
                 if name == 'existing':
                     out.mkdir()
+                    (out / 'retained.body').write_bytes(b'existing capture')
                 result = self.run_capture(plan, out, env=env)
                 self.assertEqual(result.returncode, 1)
                 self.assertEqual(self.server.calls, [])
+                if name == 'existing':
+                    self.assertIn('output directory and archive must not exist', result.stderr)
+                    self.assertEqual(list(out.iterdir()), [out / 'retained.body'])
+                    self.assertEqual((out / 'retained.body').read_bytes(), b'existing capture')
+                    self.assertFalse(out.with_suffix('.tar.gz').exists())
                 if name == 'missing':
                     self.assertIn('missing required OS variable: TMPDIR', result.stderr)
 

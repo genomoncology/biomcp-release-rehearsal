@@ -1,0 +1,21 @@
+{
+  "feature": "adverse-event-failures",
+  "story": "An unavailable report source stays distinct from a healthy absent report.",
+  "live_check": "authored synthetic report outage",
+  "replay": "adverse-event/faers-unavailable",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "unavailable",
+        "/sources/0/source": "faers"
+      }
+    }
+  ]
+}

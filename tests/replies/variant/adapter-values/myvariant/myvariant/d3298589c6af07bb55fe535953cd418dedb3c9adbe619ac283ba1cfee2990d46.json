@@ -1,0 +1,162 @@
+{
+  "method": "GET",
+  "source": "myvariant",
+  "url": "https://myvariant.info/v1/variant/chr5%3Ag.118860951A%3EG?fields=_id%2Cdbsnp.rsid%2Cdbsnp.gene.symbol%2Cclinvar.variant_id%2Csnpeff.ann&assembly=hg19",
+  "exchanges": [
+    {
+      "fetched": 1793139451,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "_id": "chr5:g.118860951A>G",
+          "_version": 2,
+          "clinvar": {
+            "_license": "http://bit.ly/2SQdcI0",
+            "variant_id": 974782
+          },
+          "dbsnp": {
+            "_license": "http://bit.ly/2AqoLOc",
+            "gene": {
+              "symbol": "HSD17B4"
+            },
+            "rsid": "rs1753477498"
+          },
+          "snpeff": {
+            "_license": "http://bit.ly/2suyRKt",
+            "ann": [
+              {
+                "cdna": {
+                  "length": "2884",
+                  "position": "1876"
+                },
+                "cds": {
+                  "length": "2286",
+                  "position": "1619"
+                },
+                "effect": "missense_variant",
+                "feature_id": "NM_001199291.2",
+                "feature_type": "transcript",
+                "gene_id": "HSD17B4",
+                "genename": "",
+                "hgvs_c": "c.1619A>G",
+                "hgvs_p": "p.His540Arg",
+                "protein": {
+                  "length": "761",
+                  "position": "540"
+                },
+                "putative_impact": "MODERATE",
+                "rank": "19",
+                "total": "25",
+                "transcript_biotype": "protein_coding"
+              },
+              {
+                "cdna": {
+                  "length": "2685",
+                  "position": "1677"
+                },
+                "cds": {
+                  "length": "2211",
+                  "position": "1544"
+                },
+                "effect": "missense_variant",
+                "feature_id": "NM_000414.3",
+                "feature_type": "transcript",
+                "gene_id": "HSD17B4",
+                "genename": "HSD17B4",
+                "hgvs_c": "c.1544A>G",
+                "hgvs_p": "p.His515Arg",
+                "protein": {
+                  "length": "736",
+                  "position": "515"
+                },
+                "putative_impact": "MODERATE",
+                "rank": "18",
+                "total": "24",
+                "transcript_biotype": "protein_coding"
+              },
+              {
+                "cdna": {
+                  "length": "2631",
+                  "position": "1623"
+                },
+                "cds": {
+                  "length": "2157",
+                  "position": "1490"
+                },
+                "effect": "missense_variant",
+                "feature_id": "NM_001199292.1",
+                "feature_type": "transcript",
+                "gene_id": "HSD17B4",
+                "genename": "HSD17B4",
+                "hgvs_c": "c.1490A>G",
+                "hgvs_p": "p.His497Arg",
+                "protein": {
+                  "length": "718",
+                  "position": "497"
+                },
+                "putative_impact": "MODERATE",
+                "rank": "17",
+                "total": "23",
+                "transcript_biotype": "protein_coding"
+              },
+              {
+                "cdna": {
+                  "length": "2750",
+                  "position": "1742"
+                },
+                "cds": {
+                  "length": "2139",
+                  "position": "1472"
+                },
+                "effect": "missense_variant",
+                "feature_id": "NM_001292027.1",
+                "feature_type": "transcript",
+                "gene_id": "HSD17B4",
+                "genename": "HSD17B4",
+                "hgvs_c": "c.1472A>G",
+                "hgvs_p": "p.His491Arg",
+                "protein": {
+                  "length": "712",
+                  "position": "491"
+                },
+                "putative_impact": "MODERATE",
+                "rank": "19",
+                "total": "25",
+                "transcript_biotype": "protein_coding"
+              },
+              {
+                "cdna": {
+                  "length": "2810",
+                  "position": "1802"
+                },
+                "cds": {
+                  "length": "1791",
+                  "position": "1124"
+                },
+                "effect": "missense_variant",
+                "feature_id": "NM_001292028.1",
+                "feature_type": "transcript",
+                "gene_id": "HSD17B4",
+                "genename": "HSD17B4",
+                "hgvs_c": "c.1124A>G",
+                "hgvs_p": "p.His375Arg",
+                "protein": {
+                  "length": "596",
+                  "position": "375"
+                },
+                "putative_impact": "MODERATE",
+                "rank": "18",
+                "total": "24",
+                "transcript_biotype": "protein_coding"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

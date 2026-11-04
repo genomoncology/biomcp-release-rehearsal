@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "fda-pma",
+  "url": "https://www.accessdata.fda.gov/cdrh_docs/pdf17/P170019B.pdf",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/pdf",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "sidecar",
+        "value": "9762e68a924cd0b28b30c11f543a29b7e1b680a40e64f7b2e0760e45e4e7851d-0.bin"
+      }
+    }
+  ]
+}

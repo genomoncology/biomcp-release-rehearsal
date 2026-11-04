@@ -1,23 +1,17 @@
 use super::{Selection, restart};
-use crate::{Ctx, Outcome, status, store::Store};
-use biodata::Text;
+use crate::{Ctx, Outcome, source_snapshot, status};
 use biomcp_adapters::uniprot::{self, Entry};
-use biomcp_fetch::{CacheError, Deadline, RequestError, SourceError};
-use biomcp_types::{PoolInfo, Reason, Source};
+use biomcp_fetch::{Deadline, RequestError, SourceError};
+use biomcp_types::{PoolInfo, Source};
 pub(super) fn load(
     cx: &Ctx<'_>,
     q: &Selection,
     deadline: Deadline<'_>,
     out: &mut Outcome,
-) -> Result<Option<(Entry, PoolInfo)>, RequestError> {
+) -> Result<Option<(Entry, Option<PoolInfo>)>, RequestError> {
     let leg = cx.fetch.leg(&uniprot::SPEC, deadline).fresh(cx.fresh);
     if cx.fetch.disabled(Source::UniProt) {
-        let e = RequestError::Source(SourceError {
-            source: Source::UniProt,
-            reason: Reason::Disabled,
-            status: None,
-            retry_after: None,
-        });
+        let e = RequestError::Source(SourceError::disabled(Source::UniProt));
         out.sources
             .push(status::source(Source::UniProt, leg.finish(), Some(e)));
         return Err(e);
@@ -28,31 +22,20 @@ pub(super) fn load(
         return Ok(None);
     }
     let key = q.key()?;
-    let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let pool = if cx.fresh {
-        None
+    type Saved = (Entry, Vec<biomcp_types::Problem>, bool);
+    let (saved, mismatch) = if cx.fresh {
+        (None, false)
     } else {
-        store.find(&key, selected.map(Text::as_str))?
+        source_snapshot::find::<Saved>(cx, &key, selected, deadline)?
     };
-    if let Some(pool) = pool {
-        if pool.key != key {
-            restart(q, out, true);
-            return Ok(None);
-        }
-        let Some(payload) =
-            store.source_snapshot(pool.info.id.as_str(), &key, |s| cx.fetch.disabled(s))?
-        else {
-            restart(q, out, false);
-            return Ok(None);
-        };
-        let (entry, problems): (Entry, Vec<biomcp_types::Problem>) =
-            serde_json::from_str(&payload).map_err(|_| CacheError::Database)?;
+    if let Some(((entry, problems, dropped), pool)) = saved {
         out.sources = pool.sources;
         out.problems = problems;
-        return Ok(Some((entry, pool.info)));
+        out.dropped = dropped;
+        return Ok(Some((entry, Some(pool.info))));
     }
     if selected.is_some() {
-        restart(q, out, false);
+        restart(q, out, mismatch);
         return Ok(None);
     }
     let result = uniprot::entry(&leg, q.accession());
@@ -60,16 +43,26 @@ pub(super) fn load(
     out.sources
         .push(status::source(Source::UniProt, leg.finish(), error));
     let mapped = result?;
+    out.include_refusals(mapped.refusals);
     out.problems = mapped.problems;
     let Some(entry) = mapped.value else {
-        if out.problems.is_empty() {
-            out.status = biomcp_types::Status::Absent;
+        if !out.dropped {
+            crate::status::item(out, false, false, false);
         }
         return Ok(None);
     };
     let size = q.total(&entry) as u32;
-    let payload =
-        serde_json::to_string(&(&entry, &out.problems)).map_err(|_| CacheError::Database)?;
-    let pool = store.publish_source_pool(&key, &payload, size, &out.sources)?;
-    Ok(Some((entry, pool.info)))
+    let pool = crate::publish::keep(
+        source_snapshot::publish(
+            cx,
+            &key,
+            &(&entry, &out.problems, out.dropped),
+            size,
+            &out.sources,
+            None,
+            deadline,
+        ),
+        out,
+    )?;
+    Ok(Some((entry, pool.map(|p| p.info))))
 }

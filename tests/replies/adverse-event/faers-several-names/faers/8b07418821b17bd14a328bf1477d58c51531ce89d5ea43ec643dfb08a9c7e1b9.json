@@ -1,0 +1,38 @@
+{
+  "method": "GET",
+  "source": "faers",
+  "url": "https://api.fda.gov/drug/event.json?search=%28%28patient.drug.openfda.generic_name%3A%22imatinib%22%20OR%20patient.drug.openfda.brand_name%3A%22imatinib%22%20OR%20patient.drug.medicinalproduct%3A%22imatinib%22%29%20OR%20%28patient.drug.openfda.generic_name%3A%22nilotinib%22%20OR%20patient.drug.openfda.brand_name%3A%22nilotinib%22%20OR%20patient.drug.medicinalproduct%3A%22nilotinib%22%29%29&limit=1&skip=0&sort=receivedate%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1793793600,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+            "terms": "https://open.fda.gov/terms/",
+            "license": "https://open.fda.gov/license/",
+            "last_updated": "2026-10-28",
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 72577
+            }
+          },
+          "results": [
+            {
+              "safetyreportversion": "1",
+              "safetyreportid": "27325179",
+              "serious": "1",
+              "receivedate": "20260930"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

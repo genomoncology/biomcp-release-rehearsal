@@ -1,6 +1,6 @@
 # 0293 — Rehearse the final release candidate on every platform
 
-Status: OPEN.
+Status: OPEN. Reopened: 0336 adds 0334 and 0335 to the candidate; the final rehearsal must qualify the refreshed release head (m9956).
 
 Milestone: 5
 
@@ -16,6 +16,8 @@ The final release candidate's artifacts install and run on every promised platfo
 - Proof: one report per platform with exact commands, versions and exits, reviewed by a fresh reviewer.
 - Changes: none expected beyond fixes the rehearsal finds, each its own ticket.
 - Defers: publication, which needs Ian.
+
+- Release review (2026-11-01): the rehearsal also runs the published 0.9 installer script against the 1.0 archives, and resolves or classifies the amd64 Docker containerd ENOENT fault before it passes. The evidence below is history from earlier candidates and proves nothing about the final one.
 
 ## Evidence
 

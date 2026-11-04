@@ -40,3 +40,23 @@ biodata::wire_enum! { described
         Observed => "observed",
     }
 }
+
+impl PgxSource {
+    /// Source identity for this explicit native selector.
+    pub const fn source(self) -> crate::Source {
+        match self {
+            Self::Cpic => crate::Source::Cpic,
+            Self::Clinpgx => crate::Source::ClinPgx,
+        }
+    }
+}
+
+impl PgxSection {
+    /// Publisher owning this independent named disclosure.
+    pub const fn source(self) -> crate::Source {
+        match self {
+            Self::Annotations => crate::Source::ClinPgx,
+            Self::Recommendations | Self::Guidelines | Self::Diplotype => crate::Source::Cpic,
+        }
+    }
+}

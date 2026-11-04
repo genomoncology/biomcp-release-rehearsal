@@ -1,14 +1,15 @@
 {
   "$defs": {
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.drug-who-row/1",
+  "$id": "biomcp.drug-who-row/2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "Every published cell of one WHO finished-product record, including empty cells.",
   "properties": {
     "applicant": {
@@ -36,7 +37,7 @@
       "type": "string"
     },
     "reference": {
-      "$ref": "#/$defs/Text",
+      "$ref": "#/$defs/Reply_Text",
       "description": "Exact native WHO Reference Number, including spaces and punctuation."
     },
     "therapeutic_area": {

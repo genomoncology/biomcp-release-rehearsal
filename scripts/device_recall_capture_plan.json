@@ -1,0 +1,49 @@
+{
+  "deadline_seconds": 25,
+  "max_bytes": 1048576,
+  "spacing_seconds": 1,
+  "requests": [
+    {
+      "id": "product-code",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/recall.json?search=product_code%3A%22PFF%22&limit=1&skip=0&sort=event_date_initiated%3Adesc",
+      "response_format": "json"
+    },
+    {
+      "id": "initiated-range",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/recall.json?search=recalling_firm%3A%22Illumina%22%20AND%20event_date_initiated%3A%5B2023-01-01%20TO%202023-12-31%5D&limit=1&skip=0&sort=event_date_initiated%3Adesc",
+      "response_format": "json"
+    },
+    {
+      "id": "exact-recall",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/recall.json?search=product_res_number.exact%3A%22Z-1976-2023%22&limit=1&skip=0",
+      "response_format": "json"
+    },
+    {
+      "id": "enforcement-z-0884-2026",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/enforcement.json?search=recall_number.exact%3A%22Z-0884-2026%22&limit=1&skip=0",
+      "response_format": "json"
+    },
+    {
+      "id": "enforcement-z-0068-2027",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/enforcement.json?search=recall_number.exact%3A%22Z-0068-2027%22&limit=1&skip=0",
+      "response_format": "json"
+    },
+    {
+      "id": "enforcement-z-1976-2023",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/enforcement.json?search=recall_number.exact%3A%22Z-1976-2023%22&limit=1&skip=0",
+      "response_format": "json"
+    },
+    {
+      "id": "native-submission-fields",
+      "source": "fda-device-recall",
+      "url": "https://api.fda.gov/device/recall.json?search=product_code%3A%22FOZ%22&limit=1&skip=0&sort=event_date_initiated%3Adesc",
+      "response_format": "json"
+    }
+  ]
+}

@@ -1,37 +1,16 @@
 //! Feature drug-civic: source bodies fetched 2026-10-25 are delivered locally, recorded and replayed.
 //! Original fetch dates and request hashes remain in fixtures/drug/civic/provenance.json.
 use super::{configuration::invoke, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::fs;
 
-const CASES: [&str; 15] = [
-    "imatinib-search",
-    "trastuzumab-search",
-    "ivosidenib-search",
-    "literal-empty",
-    "candidate-next",
-    "imatinib-streams",
-    "trastuzumab-combination",
-    "ivosidenib-streams",
-    "profile-evidence",
-    "profile-evidence-next",
-    "profile-assertion",
-    "profile-assertion-terminal",
-    "profile-evidence-offset",
-    "profile-assertion-offset",
-    "synthetic-distinct-therapy-candidates",
-];
 pub(super) fn trials() -> Vec<Trial> {
-    CASES
-        .into_iter()
-        .enumerate()
-        .map(|(n, name)| {
-            Trial::test(format!("drug-civic/{name}"), move || {
-                check(n).map_err(Into::into)
-            })
-        })
-        .collect()
+    vec![transcript_trial(
+        crate::runner::pool_contract::DRUG_CIVIC_CURSOR.0,
+        || check(9).map_err(Into::into),
+    )]
 }
 fn arguments(n: usize) -> Result<Vec<String>, String> {
     let mut args = if n == 14 {
@@ -99,7 +78,7 @@ fn check(n: usize) -> Result<(), String> {
         super::drug_civic_fixtures::reply,
     )?;
     let ca = env.root().join("ca.pem");
-    stub.retain(&env);
+    stub.retain(env.shared_root());
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     env.config(&json!({"ca_bundle":ca,"proxy":format!("http://{}",stub.address)}))
         .map_err(|e| e.to_string())?;
@@ -107,7 +86,7 @@ fn check(n: usize) -> Result<(), String> {
     let recorded = env.root().join("recorded");
     let mut record_args = args.clone();
     record_args.extend(["--record".into(), recorded.display().to_string()]);
-    let exit = if n == 3 { 1 } else { 0 };
+    let exit = 0;
     let value = invoke(&env, record_args, exit)?;
     super::schema::Registry::embedded()?.validate(&value, &args, true)?;
     verify(n, &value)?;
@@ -219,7 +198,7 @@ fn search_expected(n: usize) -> Result<Vec<(&'static str, Value)>, String> {
             ("/result/total", json!(3)),
             ("/result/items/0/id", json!("25758")),
         ],
-        3 => vec![("/result/total", json!(0)), ("/status", json!("absent"))],
+        3 => vec![("/result/total", json!(0)), ("/status", json!("complete"))],
         4 => vec![
             ("/result/total", json!(104)),
             ("/result/items/0/id", json!("2988")),

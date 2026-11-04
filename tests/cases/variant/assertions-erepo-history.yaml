@@ -1,0 +1,43 @@
+{
+  "feature": "variant-identity",
+  "live_check": "synthetic historical SEPIO body with the existing summary routing identities; no historical source conclusion is asserted as real",
+  "story": "An explicitly selected older eRepo version returns its own document facts instead of borrowing the current summary.",
+  "replay": "variant/assertions/erepo-history",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "CA000434",
+        "--source",
+        "erepo",
+        "--assertion",
+        "PCER000001171",
+        "--version",
+        "1.0.0"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/assertions": {
+          "count": 1
+        },
+        "/result/assertions/0/statement/attribution/record": "PCER000001171",
+        "/result/assertions/0/statement/attribution/version": "1.0.0",
+        "/result/assertions/0/statement/classification/label": "Benign",
+        "/result/assertions/0/statement/attribution": {
+          "omits": [
+            "submitter",
+            "evaluated"
+          ]
+        },
+        "/result/assertions/0/detail/document/native_id": "synthetic-historical-document",
+        "/result/assertions/0/detail": {
+          "omits": [
+            "published",
+            "approved"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -22,7 +22,7 @@ pub(super) fn drift(before: &Shape, after: &Shape) -> Vec<String> {
     for key in before
         .fields
         .keys()
-        .filter(|key| !after.fields.contains_key(*key))
+        .filter(|key| !after.incomplete && !after.fields.contains_key(*key))
     {
         changes.push(format!("field removed: {key}"));
     }
@@ -45,26 +45,38 @@ pub(crate) fn run(list: bool, details: bool) -> Result<Value, String> {
     if paths.len() > MAX_CASES {
         return Err("live case discovery limit exceeded".into());
     }
+    // Review the whole inventory before any eligible case can contact a source.
+    let cases = paths
+        .into_iter()
+        .map(|path| {
+            let case = super::read_case(&path)?;
+            if case
+                ._live_check
+                .as_deref()
+                .is_none_or(|value| value.trim().is_empty())
+            {
+                return Err(format!(
+                    "{}: missing live_check provenance declaration",
+                    path.display()
+                ));
+            }
+            Ok((path, case))
+        })
+        .collect::<Result<Vec<_>, String>>()?;
     let registry = schema::Registry::embedded()?;
     let started = Instant::now();
     let mut results = Vec::new();
     let mut sources = BTreeMap::<String, Value>::new();
-    for path in paths {
-        let name = path
-            .strip_prefix(&root)
-            .map_err(|e| e.to_string())?
-            .display()
-            .to_string();
-        let case: Case =
-            serde_saphyr::from_str(&fs::read_to_string(&path).map_err(|e| e.to_string())?)
-                .map_err(|e| e.to_string())?;
+    for (path, case) in cases {
+        let name = super::case_name(&path, &root)?;
         let skip = eligibility(&case);
         if let Some(reason) = skip {
             results.push(json!({"case": name, "skipped": reason}));
             continue;
         }
         if started.elapsed() >= RUN_BUDGET {
-            results.push(json!({"case": name, "skipped": "run budget exhausted"}));
+            results
+                .push(json!({"case": name, "eligible": true, "skipped": "run budget exhausted"}));
             continue;
         }
         if list {
@@ -81,7 +93,11 @@ pub(crate) fn run(list: bool, details: bool) -> Result<Value, String> {
         results.push(result);
     }
     if list {
-        return Ok(json!({"mode": "live-check-plan", "cases": results}));
+        let eligible = results
+            .iter()
+            .filter(|row| row.get("eligible") == Some(&json!(true)))
+            .count();
+        return Ok(json!({"mode": "live-check-plan", "eligible": eligible, "cases": results}));
     }
     Ok(summary(
         results,
@@ -107,14 +123,29 @@ pub(super) fn summary(
         .iter()
         .filter(|r| r.get("skipped").is_none())
         .collect();
+    let eligible = checked.len()
+        + results
+            .iter()
+            .filter(|row| row.get("eligible") == Some(&json!(true)))
+            .count();
     let drift_cases = checked.iter().filter(|r| has_drift(r)).count();
     let error_cases = checked.iter().filter(|r| r.get("error").is_some()).count();
+    let retained = if details {
+        MAX_CASES
+    } else {
+        CASE_SAMPLE.max(
+            checked
+                .iter()
+                .filter(|row| has_drift(row) || row.get("error").is_some())
+                .count(),
+        )
+    };
     checked.sort_by_key(|r| !(has_drift(r) || r.get("error").is_some()));
     json!(
         {"mode": "live-check","drift_cases": drift_cases,"error_cases": error_cases,"elapsed_ms": elapsed_ms,"sources": sources,
-        "discovered": results.len(),"checked": checked.len(),"skipped": skipped,
-        "case_sample": checked.iter().take(if details { MAX_CASES } else { CASE_SAMPLE }).collect::<Vec<_>>(),
-        "omitted": checked.len().saturating_sub(if details { MAX_CASES } else { CASE_SAMPLE })}
+        "discovered": results.len(),"eligible": eligible,"checked": checked.len(),"skipped": skipped,
+        "case_sample": checked.iter().take(retained).collect::<Vec<_>>(),
+        "omitted": checked.len().saturating_sub(retained)}
     )
 }
 fn has_drift(result: &Value) -> bool {
@@ -124,7 +155,7 @@ fn has_drift(result: &Value) -> bool {
         .is_some_and(|drift| !drift.is_empty())
 }
 fn eligibility(case: &Case) -> Option<&str> {
-    match case.live_check.as_deref() {
+    match case._live_check.as_deref() {
         Some("public") if case.replay.is_some() && case.config.is_none() => {
             let skips = step_skips(case);
             if skips.iter().any(Option::is_none) {
@@ -146,7 +177,7 @@ fn step_skips(case: &Case) -> Vec<Option<&'static str>> {
         .iter()
         .map(|step| {
             let reason = if !eligible_step(step) {
-                Some("local validation or offline step")
+                Some("local validation, presentation or offline step")
             } else if step.follow.is_some() && !predecessor {
                 Some("follow predecessor is ineligible")
             } else {
@@ -161,13 +192,15 @@ fn eligible_step(step: &Step) -> bool {
     if step.offline || step.exit > 1 {
         return false;
     }
-    step.follow.is_some()
-        || step
-            .run
-            .as_ref()
-            .or(step.mcp.as_ref())
-            .and_then(|args| args.first())
-            .is_some_and(|verb| matches!(verb.as_str(), "get" | "search" | "sync" | "article"))
+    if step.run.as_ref().or(step.mcp.as_ref()).is_some_and(|args| {
+        args.windows(2).any(|pair| pair == ["--format", "md"])
+            || args.iter().any(|arg| arg == "--format=md")
+    }) {
+        return false;
+    }
+    // The reviewed case declares its source operations. Do not maintain another
+    // command list that silently drops entity actions or named MCP tools.
+    step.follow.is_some() || step.run.is_some() || step.mcp.is_some() || step.mcp_call.is_some()
 }
 fn check(
     case: &Case,
@@ -215,10 +248,11 @@ fn check(
                 &replay,
                 ordinal,
                 captures,
+                step.mcp_call.as_ref(),
             )?;
             pace(&before, &reply, started);
             let (actual, after) = reply?;
-            if registry.validate(&actual, &args.1, true).is_err() {
+            if step.mcp_call.is_none() && registry.validate(&actual, &args.1, true).is_err() {
                 changes.push("output schema failure".into());
             }
             commands.push(command_report(
@@ -276,6 +310,9 @@ fn pace(
     );
 }
 fn arguments(step: &Step, previous: Option<&Value>) -> Result<Vec<String>, String> {
+    if step.mcp_call.is_some() {
+        return Ok(Vec::new());
+    }
     match &step.follow {
         Some(kind) => action(previous.ok_or("follow lacks predecessor")?, kind),
         None => step
@@ -291,6 +328,7 @@ fn invoke(
     args: &[String],
     replay: Option<&Path>,
     ordinal: usize,
+    call: Option<&super::case_data::McpCall>,
 ) -> Result<(Value, Vec<Observation>), String> {
     let path = environment
         .root()
@@ -298,6 +336,12 @@ fn invoke(
     let mut args = args.to_vec();
     let mut globals = environment.globals(replay, false);
     globals.extend(["--observe".into(), path.display().to_string()]);
+    if let Some(call) = call {
+        // The existing MCP helper validates the named tool's output schema.
+        let value =
+            super::research::call(environment, &call.name, call.arguments.clone(), &globals)?;
+        return Ok((value, observations(environment, ordinal)?));
+    }
     let position = args
         .iter()
         .position(|arg| arg == "--")

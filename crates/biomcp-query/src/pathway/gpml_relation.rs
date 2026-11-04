@@ -1,5 +1,5 @@
 //! A complete GPML relation is checked once and retained before any page is selected.
-use super::{relation::Selection, relation_snapshot::Saved};
+use super::{relation::Saved, relation::Selection};
 use crate::{Ctx, Outcome, status};
 use biodata::{PathwayId, PathwaySpecies};
 use biomcp_adapters::wikipathways;
@@ -27,11 +27,12 @@ pub(super) fn fetch(
     let reply = (|| {
         // The stored human catalog admits the identity; its date is never a GPML revision.
         let card = wikipathways::card(&leg, id, false)?;
-        if card.is_none() {
+        if card.value.is_none() {
             return Err(SourceError {
                 source: Source::WikiPathways,
                 reason: Reason::NotFound,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }
             .into());
@@ -40,6 +41,8 @@ pub(super) fn fetch(
         let rows = mapped.value;
         let count = rows.items.len();
         Ok::<_, RequestError>(Saved {
+            dropped: card.refusals == biomcp_adapters::Refusal::Refused
+                || mapped.refusals == biomcp_adapters::Refusal::Refused,
             genes: Some(PathwayGenes {
                 header: PathwayHeader {
                     id: q.id.clone(),
@@ -62,7 +65,7 @@ pub(super) fn fetch(
             }),
             events: None,
             sources: Vec::new(),
-            problems: mapped.problems,
+            problems: card.problems.into_iter().chain(mapped.problems).collect(),
         })
     })();
     out.sources.push(status::source(

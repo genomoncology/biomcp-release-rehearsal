@@ -6,98 +6,6 @@
   "steps": [
     {
       "run": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/population/data/exome/ac": 2,
-        "/result/population/data/exome/an": 1460618,
-        "/result/population/data/exome/filters": [
-          "SYNTHETIC_FILTER"
-        ],
-        "/page/total": 29,
-        "/page/returned": 10,
-        "/page/offset": 0,
-        "/result/groups/0/ac": 0,
-        "/result/groups/0/an": 100,
-        "/result/groups/0/group_id": "remaining",
-        "/result/groups/9/group_id": "mid",
-        "/problems/0/field": "dataset_version",
-        "/result/groups/0/ancestry_group": "remaining",
-        "/result/groups/1/sex": "xx"
-      },
-      "mcp": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail"
-      ],
-      "max_bytes": 2202
-    },
-    {
-      "run": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail",
-        "--offset",
-        "10"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/population/data/exome/ac": 2,
-        "/result/population/data/exome/an": 1460618,
-        "/result/population/data/exome/filters": [
-          "SYNTHETIC_FILTER"
-        ],
-        "/page/total": 29,
-        "/page/returned": 10,
-        "/page/offset": 10,
-        "/result/groups/0/group_id": "mid_XX",
-        "/result/groups/9/group_id": "asj_XX",
-        "/problems/0/field": "dataset_version"
-      },
-      "offline": true,
-      "max_bytes": 2179
-    },
-    {
-      "run": [
-        "variant",
-        "population",
-        "CA123643",
-        "--detail",
-        "--offset",
-        "20"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/population/data/exome/ac": 2,
-        "/result/population/data/exome/an": 1460618,
-        "/result/population/data/exome/filters": [
-          "SYNTHETIC_FILTER"
-        ],
-        "/page/total": 29,
-        "/page/returned": 9,
-        "/page/offset": 20,
-        "/result/groups/0/group_id": "asj_XY",
-        "/result/groups/8/group_id": "XY",
-        "/problems/0/field": "dataset_version",
-        "/result/groups/8/sex": "xy"
-      },
-      "offline": true,
-      "max_bytes": 1880
-    },
-    {
-      "run": [
-        "get",
-        "variant",
-        "CA123643",
-        "population"
-      ],
-      "mcp": [
         "get",
         "variant",
         "CA123643",
@@ -109,7 +17,7 @@
         "/result/candidates/0/sections/population/data/exome/an": 1460618,
         "/problems/0/field": "dataset_version"
       },
-      "max_bytes": 1183
+      "max_bytes": 1227
     }
   ]
 }

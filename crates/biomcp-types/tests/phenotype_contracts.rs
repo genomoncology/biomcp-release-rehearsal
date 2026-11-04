@@ -1,5 +1,6 @@
 //! Feature: phenotype-types. Public checked request and neutral record contracts.
 use biodata::HpId;
+use biomcp_types::Paged;
 use biomcp_types::{PhenotypeGet, PhenotypeSearch, PhenotypeSource};
 use serde_json::json;
 
@@ -124,12 +125,15 @@ fn native_cards_keep_empty_values_independent_sources_and_count_scopes() {
             .unwrap(),
         monarch
     );
-    let mut merged = hpo;
+    let mut merged = hpo.clone();
     merged
         .as_object_mut()
         .unwrap()
         .insert("deprecated".into(), json!(false));
-    assert!(serde_json::from_value::<PhenotypeCard>(merged).is_err());
+    assert_eq!(
+        serde_json::to_value(serde_json::from_value::<PhenotypeCard>(merged).unwrap()).unwrap(),
+        hpo
+    );
     for relationship in [
         None,
         Some("exact"),
@@ -201,7 +205,8 @@ where
     ))?;
     assert_eq!(
         value.get("schema").and_then(serde_json::Value::as_str),
-        Some(T::SCHEMA)
+        Some(T::SCHEMA),
+        "Phenotype replies must retain their versioned envelope contract"
     );
     let schema = schemars::schema_for!(biomcp_types::Envelope<T>);
     let schema = serde_json::to_value(schema)?;

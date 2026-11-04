@@ -1,0 +1,27 @@
+{
+  "feature": "adverse-event-search",
+  "live_check": "public",
+  "story": "A caller discovers the recorded pembrolizumab report and retains its exact source identity and total.",
+  "verified": "Original bodies and receipts retained outside Git. Search SHA256 1de03b614bc5d9b518380087f5b824e36153fcfb5b0548aba8d6f4a27d19ea25; get SHA256 c441dfe1c0e4a78ab0644a209fd9151eb0b4f03b6f4df524abf9c5c342350c10. The Git search identity projection omits MedDRA reaction fields, patient summary prose and drug detail fields other than medicinalproduct, drugcharacterization and openfda. Remaining source values and array order are unchanged. openFDA terms and license apply; no third-party terminology body is included. The native openFDA request body hashes and identity projection are recorded in this case; the nightly run executes the same search command against the public endpoint.",
+  "replay": "adverse-event/native-search",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "pembrolizumab",
+        "--source",
+        "faers",
+        "--limit",
+        "1",
+        "--offset",
+        "0"
+      ],
+      "expect": {
+        "/result/items/0/id": "26940567",
+        "/page/returned": 1,
+        "/page/total": 105020
+      }
+    }
+  ]
+}

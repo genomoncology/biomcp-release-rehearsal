@@ -1,4 +1,6 @@
 {
+  "verified": "tests/replies/pathway/sections/README.md identifies the complete native CC0 Reactome relations and HGNC source rows; ordinary public pathway section commands check these replies nightly.",
+  "live_check": "public",
   "feature": "pathway-reactome",
   "story": "Published relation examples retain exact source references and bounded source-ordered event rows.",
   "replay": "pathway/sections",
@@ -9,14 +11,9 @@
         "genes",
         "R-HSA-5673001"
       ],
-      "mcp": [
-        "pathway",
-        "genes",
-        "R-HSA-5673001"
-      ],
       "expect": {
         "/status": "complete",
-        "/result/items/0/reference/value": "P15056"
+        "/result/items/0/reference/id": "P15056"
       },
       "max_bytes": 2555
     },
@@ -27,25 +24,14 @@
         "R-HSA-5673001",
         "details"
       ],
-      "mcp": [
-        "pathway",
-        "genes",
-        "R-HSA-5673001",
-        "details"
-      ],
       "expect": {
         "/status": "complete",
         "/result/items/0/physical_context_count": 29
       },
-      "max_bytes": 12156
+      "max_bytes": 14626
     },
     {
       "run": [
-        "pathway",
-        "events",
-        "R-HSA-5673001"
-      ],
-      "mcp": [
         "pathway",
         "events",
         "R-HSA-5673001"
@@ -68,13 +54,6 @@
         "--limit",
         "50"
       ],
-      "mcp": [
-        "pathway",
-        "events",
-        "R-HSA-5673001",
-        "--limit",
-        "50"
-      ],
       "expect": {
         "/status": "complete",
         "/result/page/returned": 50,
@@ -83,7 +62,7 @@
         },
         "/result/page/next_offset": 50
       },
-      "max_bytes": 11203
+      "max_bytes": 12931
     }
   ]
 }

@@ -15,7 +15,6 @@ canonical_enum! {
 
 /// A field that could not be accepted from a source record.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Problem {
     /// The source that supplied the record.

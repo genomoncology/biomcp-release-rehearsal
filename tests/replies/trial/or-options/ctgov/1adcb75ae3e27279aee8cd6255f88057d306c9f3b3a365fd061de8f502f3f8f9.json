@@ -1,0 +1,21 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&pageSize=1&query.cond=%28melanoma%29%20OR%20%28lung%20cancer%29&query.intr=%28pembrolizumab%29%20OR%20%28nivolumab%29&query.term=%28survival%29%20OR%20%28quality%20of%20life%29",
+  "exchanges": [
+    {
+      "fetched": 1793203200,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 0,
+          "studies": []
+        }
+      }
+    }
+  ]
+}

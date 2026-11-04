@@ -91,3 +91,18 @@ biodata::canonical_enum! {
         Pdf => "pdf",
     }
 }
+
+impl ArticleSection {
+    /// Publishers that can supply this section, depending on the input identity.
+    pub const fn sources(self) -> &'static [crate::Source] {
+        use crate::Source;
+        match self {
+            Self::Annotations => &[Source::PubTator],
+            Self::Fulltext => &[Source::PmcOa, Source::EuropePmc],
+            Self::Supplements => &[Source::PmcOa],
+            Self::Tldr | Self::Pdf => &[Source::SemanticScholar],
+            Self::Citations => &[Source::Icite],
+            Self::Indexing => &[Source::PubMed],
+        }
+    }
+}

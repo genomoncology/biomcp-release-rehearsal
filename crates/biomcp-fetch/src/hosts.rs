@@ -12,33 +12,6 @@ pub enum Destinations {
     PublisherPdf,
 }
 impl SourceSpec {
-    /// List declared request hosts without including terms or displayed record links.
-    /// A publisher PDF policy has no enumerated hosts.
-    pub fn request_hosts(&self) -> Result<Vec<String>, InputError> {
-        let mut hosts = Vec::new();
-        if !self.base.is_empty() {
-            hosts.push(
-                host(self.base)?
-                    .host_str()
-                    .ok_or(InputError::Host)?
-                    .to_owned(),
-            );
-        }
-        if let Destinations::Additional(origins) = self.destinations {
-            for origin in origins {
-                hosts.push(
-                    secondary(origin)?
-                        .host_str()
-                        .ok_or(InputError::Host)?
-                        .to_owned(),
-                );
-            }
-        }
-        hosts.sort();
-        hosts.dedup();
-        Ok(hosts)
-    }
-
     pub(crate) fn admit(&self, raw: &str, download: bool) -> Result<(), InputError> {
         let request = host(raw)?;
         if download && matches!(self.destinations, Destinations::PublisherPdf) {
@@ -78,3 +51,7 @@ fn secondary(raw: &str) -> Result<url::Url, InputError> {
     }
     Ok(parsed)
 }
+
+#[cfg(test)]
+#[path = "hosts_tests.rs"]
+mod tests;

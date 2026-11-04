@@ -1,0 +1,26 @@
+{
+  "source": "chembl",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/status.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "activities": 24527044,
+          "chembl_db_version": "ChEMBL_37",
+          "chembl_release_date": "2026-05-01",
+          "compound_records": 3824604,
+          "disinct_compounds": 2921148,
+          "publications": 101100,
+          "status": "UP",
+          "targets": 18552
+        }
+      }
+    }
+  ]
+}

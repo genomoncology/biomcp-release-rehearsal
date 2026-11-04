@@ -1,9 +1,11 @@
-use crate::{Action, Outcome};
+use crate::Outcome;
 use biodata::{FaersReport, Text};
+use biomcp_adapters::{NativePositions, faers::Positions};
 use biomcp_fetch::RequestError;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    AdverseEventGet, AdverseEventHeader, AdverseEventSection as S, AdverseEventSource, QueryBody,
-    Request, StepKind,
+    AdverseEventGet, AdverseEventHeader, AdverseEventSection as S, AdverseEventSource, Request,
+    StepKind,
 };
 mod identifiers;
 mod rows;
@@ -11,10 +13,13 @@ pub(super) fn render(
     q: &AdverseEventGet,
     r: FaersReport,
     url: Text,
-    snapshot: Text,
+    snapshot: Option<Text>,
+    positions: Positions,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    let q = q.with_snapshot(snapshot.clone());
+    let navigation = snapshot
+        .clone()
+        .map_or_else(|| q.clone(), |t| q.with_snapshot(t));
     let header = AdverseEventHeader {
         id: r.safetyreportid.clone(),
         source: AdverseEventSource::Faers,
@@ -33,94 +38,134 @@ pub(super) fn render(
     };
     match q.section() {
         None => {
-            card(r, url, header, snapshot, out)?;
+            card(q, r, url, header, snapshot, &positions, out)?;
             for section in [S::Drugs, S::Reactions] {
-                section_step(&q, section, None, out);
+                section_step(&navigation, section, None, out);
             }
         }
-        Some(S::Drugs) => {
-            let total = r.drugs.len() as u64;
-            let records = rows::drugs(&q, &r.drugs);
-            page(&q, records.len(), total, out);
-            out.body = QueryBody::AdverseEventDrugs(Some(biomcp_types::AdverseEventDrugs {
+        Some(S::Drugs) => drugs(q, &r, &positions, header, snapshot, components, out),
+        Some(S::Reactions) => {
+            let total = positions
+                .reactions
+                .as_ref()
+                .map_or(r.reactions.len() as u64, |p| u64::from(p.total));
+            let records = rows::reactions(q, &r.reactions, positions.reactions.as_ref());
+            page(
+                &navigation,
+                q.section_offset()
+                    .saturating_add(q.section_limit())
+                    .min(total as u32),
+                total,
+                out,
+            );
+            out.body = (biomcp_types::AdverseEventReactions {
                 header,
                 snapshot,
-                drugs: biomcp_types::AdverseEventRecords {
+                reactions: biomcp_types::AdverseEventRecords {
                     records,
                     offset: q.section_offset(),
                     total,
                 },
                 components,
-            }));
-            let initial = out.next.len();
-            for (index, drug) in r
-                .drugs
-                .iter()
-                .enumerate()
-                .skip(q.section_offset() as usize)
-                .take(q.section_limit() as usize)
-            {
-                if let Some(ids) = &drug.openfda {
-                    for section in identifiers::available(ids) {
-                        if out.next.len() < initial + 3 {
-                            section_step(&q, section, Some(index as u32), out);
-                        }
-                    }
-                }
-            }
+            })
+            .with_query(q.clone());
         }
-        Some(S::Reactions) => {
-            let total = r.reactions.len() as u64;
-            let records = rows::reactions(&q, &r.reactions);
-            page(&q, records.len(), total, out);
-            out.body =
-                QueryBody::AdverseEventReactions(Some(biomcp_types::AdverseEventReactions {
-                    header,
-                    snapshot,
-                    reactions: biomcp_types::AdverseEventRecords {
-                        records,
-                        offset: q.section_offset(),
-                        total,
-                    },
-                    components,
-                }));
+        Some(section) => {
+            let drug = NativePositions::enumerate(&r.drugs, positions.drugs.as_ref())
+                .find(|(index, _)| Some(*index) == q.drug_index())
+                .map(|(_, row)| row);
+            identifiers::render(q, drug, section, header, snapshot, components, out)?;
         }
-        Some(section) => identifiers::render(&q, &r, section, header, snapshot, components, out)?,
     }
     Ok(())
 }
+fn drugs(
+    q: &AdverseEventGet,
+    r: &FaersReport,
+    positions: &Positions,
+    header: AdverseEventHeader,
+    snapshot: Option<Text>,
+    components: Box<[biomcp_types::ComponentLabel]>,
+    out: &mut Outcome,
+) {
+    let navigation = snapshot
+        .clone()
+        .map_or_else(|| q.clone(), |t| q.with_snapshot(t));
+    let total = positions
+        .drugs
+        .as_ref()
+        .map_or(r.drugs.len() as u64, |p| u64::from(p.total));
+    let records = rows::drugs(q, &r.drugs, positions.drugs.as_ref());
+    page(
+        &navigation,
+        q.section_offset()
+            .saturating_add(q.section_limit())
+            .min(total as u32),
+        total,
+        out,
+    );
+    out.body = (biomcp_types::AdverseEventDrugs {
+        header,
+        snapshot,
+        drugs: biomcp_types::AdverseEventRecords {
+            records,
+            offset: q.section_offset(),
+            total,
+        },
+        components,
+    })
+    .with_query(q.clone());
+    let initial = out.next.len();
+    for (index, drug) in
+        NativePositions::enumerate(&r.drugs, positions.drugs.as_ref()).filter(|(index, _)| {
+            *index >= q.section_offset()
+                && *index < q.section_offset().saturating_add(q.section_limit())
+        })
+    {
+        if let Some(ids) = &drug.openfda {
+            for section in identifiers::available(ids) {
+                if out.next.len() < initial + 3 {
+                    section_step(&navigation, section, Some(index), out);
+                }
+            }
+        }
+    }
+}
 fn section_step(q: &AdverseEventGet, s: S, index: Option<u32>, out: &mut Outcome) {
-    if let Ok(q) = q.with_section(s, index) {
-        out.next.push((
+    if let Some(q) = crate::next::checked(
+        q.with_section(s, index),
+        biomcp_types::Source::Faers,
+        &mut out.problems,
+    ) {
+        out.next.push(crate::next::Step::run(
             StepKind::Section,
-            Action::Run {
-                request: Request::GetAdverseEvent(q),
-                fresh: false,
-            },
+            &[biomcp_types::Source::Faers],
+            Request::GetAdverseEvent(q),
+            false,
         ));
     }
 }
-fn page(q: &AdverseEventGet, len: usize, total: u64, out: &mut Outcome) {
-    let offset = q.section_offset().saturating_add(len as u32);
-    if len > 0 && u64::from(offset) < total {
-        out.next.push((
+fn page(q: &AdverseEventGet, offset: u32, total: u64, out: &mut Outcome) {
+    if offset > q.section_offset() && u64::from(offset) < total {
+        out.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::GetAdverseEvent(q.at_section_offset(offset)),
-                fresh: false,
-            },
+            &[biomcp_types::Source::Faers],
+            Request::GetAdverseEvent(q.at_section_offset(offset)),
+            false,
         ));
     }
 }
 
 fn card(
+    q: &AdverseEventGet,
     r: FaersReport,
     url: Text,
     header: AdverseEventHeader,
-    snapshot: Text,
+    snapshot: Option<Text>,
+    positions: &Positions,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    out.body = QueryBody::AdverseEventFaersCard(Some(biomcp_types::AdverseEventFaersCard {
+    out.body = (biomcp_types::AdverseEventFaersCard {
         header,
         snapshot,
         latest_received: r.receiptdate,
@@ -131,13 +176,20 @@ fn card(
         seriousness: r.seriousness,
         patient: r.patient,
         reporter: r.reporter,
-        drug_count: r.drugs.len() as u32,
-        reaction_count: r.reactions.len() as u32,
+        drug_count: positions
+            .drugs
+            .as_ref()
+            .map_or(r.drugs.len() as u32, |p| p.total),
+        reaction_count: positions
+            .reactions
+            .as_ref()
+            .map_or(r.reactions.len() as u32, |p| p.total),
         source_url: Text::new("https://open.fda.gov/apis/drug/event/")
             .map_err(|_| biomcp_fetch::InputError::Serialization)?,
         report_url: url,
         available_sections: vec![S::Drugs, S::Reactions].into(),
         components: Box::default(),
-    }));
+    })
+    .with_query(q.clone());
     Ok(())
 }

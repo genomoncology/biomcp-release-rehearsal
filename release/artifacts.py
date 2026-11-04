@@ -17,11 +17,15 @@ import tarfile
 import zipfile
 
 if __package__:
+    from .vendor import environment as vendor_environment
+    from .readme import description
     from .tools import candidate, check
     from .source_revision import revision as source_revision
     from .notices import generate, payloads, metadata as check_metadata
     from .license_check import zip_payload
 else:
+    from vendor import environment as vendor_environment
+    from readme import description
     from tools import candidate, check
     from source_revision import revision as source_revision
     from notices import generate, payloads, metadata as check_metadata
@@ -33,20 +37,22 @@ def digest(data):
 
 
 def run(args):
-    return subprocess.check_output(args, text=True)
+    return subprocess.check_output(args, text=True,
+                                   env=vendor_environment() if args[:1] == ["cargo"] else None)
 
 
 def cargo(profile, tests=False, revision=None):
     args = ["cargo", "test" if tests else "build", "--locked", "-p", "biomcp", "--profile", profile, "--message-format=json"]
-    args += ["--test", "cases", "--no-run"] if tests else ["--bin", "biomcp"]
-    environment = {**os.environ, **({"BIOMCP_BUILD_REVISION": revision} if revision else {})}
+    target = tests if isinstance(tests, str) else "cases"
+    args += ["--test", target, "--no-run"] if tests else ["--bin", "biomcp"]
+    environment = {**vendor_environment(), **({"BIOMCP_BUILD_REVISION": revision} if revision else {})}
     process = subprocess.Popen(args, stdout=subprocess.PIPE, text=True, env=environment)
     found = None
     for line in process.stdout:
         message = json.loads(line)
         if message.get("reason") == "compiler-message" and message["message"].get("rendered"):
             print(message["message"]["rendered"], file=sys.stderr, end="")
-        if message.get("reason") == "compiler-artifact" and message.get("executable") and message["target"]["name"] == ("cases" if tests else "biomcp"):
+        if message.get("reason") == "compiler-artifact" and message.get("executable") and message["target"]["name"] == (target if tests else "biomcp"):
             found = message
     if process.wait() or not found:
         raise ValueError("Cargo did not produce the requested executable")
@@ -83,7 +89,7 @@ def wheel(output, binary, provenance):
     files = {
         stem + ".data/scripts/biomcp" + suffix: binary.read_bytes(),
         stem + ".data/scripts/" + provenance["distribution"] + suffix: binary.read_bytes(),
-        metadata + "/METADATA": ("Metadata-Version: 2.1\nName: " + provenance["distribution"] + "\nVersion: " + version + "\nSummary: BioMCP CLI and MCP server\nRequires-Python: >=3.9\nLicense: MIT\nProject-URL: Homepage, https://biomcp.org\nProject-URL: Repository, https://github.com/genomoncology/biomcp\nProject-URL: Documentation, https://biomcp.org\nDescription-Content-Type: text/markdown\n\nBioMCP CLI and MCP server\n\nmcp-name: io.github.genomoncology/biomcp\n").encode(),
+        metadata + "/METADATA": ("Metadata-Version: 2.1\nName: " + provenance["distribution"] + "\nVersion: " + version + "\nSummary: BioMCP CLI and MCP server\nRequires-Python: >=3.9\nLicense: MIT\nProject-URL: Homepage, https://biomcp.org\nProject-URL: Repository, https://github.com/genomoncology/biomcp\nProject-URL: Documentation, https://biomcp.org\nDescription-Content-Type: text/markdown\n\n" + description() + "\n\nmcp-name: io.github.genomoncology/biomcp\n").encode(),
         metadata + "/WHEEL": ("Wheel-Version: 1.0\nGenerator: biomcp-local-producer\nRoot-Is-Purelib: false\nTag: py3-none-" + tag + "\n").encode(),
         metadata + "/release.json": json.dumps(provenance, sort_keys=True).encode(),
     }

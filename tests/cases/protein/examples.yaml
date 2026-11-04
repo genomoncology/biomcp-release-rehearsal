@@ -10,11 +10,6 @@
         "features",
         "P00533"
       ],
-      "mcp": [
-        "protein",
-        "features",
-        "P00533"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -22,13 +17,6 @@
     },
     {
       "run": [
-        "protein",
-        "features",
-        "P00533",
-        "--limit",
-        "1"
-      ],
-      "mcp": [
         "protein",
         "features",
         "P00533",
@@ -46,11 +34,6 @@
         "domains",
         "P00533"
       ],
-      "mcp": [
-        "protein",
-        "domains",
-        "P00533"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -58,13 +41,6 @@
     },
     {
       "run": [
-        "protein",
-        "domains",
-        "P00533",
-        "--limit",
-        "1"
-      ],
-      "mcp": [
         "protein",
         "domains",
         "P00533",
@@ -82,11 +58,6 @@
         "isoforms",
         "P00533"
       ],
-      "mcp": [
-        "protein",
-        "isoforms",
-        "P00533"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -94,13 +65,6 @@
     },
     {
       "run": [
-        "protein",
-        "isoforms",
-        "P00533",
-        "--limit",
-        "1"
-      ],
-      "mcp": [
         "protein",
         "isoforms",
         "P00533",
@@ -118,11 +82,6 @@
         "complexes",
         "P00533"
       ],
-      "mcp": [
-        "protein",
-        "complexes",
-        "P00533"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -136,13 +95,6 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "protein",
-        "complexes",
-        "P00533",
-        "--limit",
-        "1"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -150,13 +102,6 @@
     },
     {
       "run": [
-        "protein",
-        "complex-members",
-        "P00533",
-        "--complex",
-        "CPX-715"
-      ],
-      "mcp": [
         "protein",
         "complex-members",
         "P00533",
@@ -178,15 +123,6 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "protein",
-        "complex-members",
-        "P00533",
-        "--complex",
-        "CPX-715",
-        "--limit",
-        "1"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -198,11 +134,6 @@
         "structures",
         "P00533"
       ],
-      "mcp": [
-        "protein",
-        "structures",
-        "P00533"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -216,13 +147,6 @@
         "--limit",
         "1"
       ],
-      "mcp": [
-        "protein",
-        "structures",
-        "P00533",
-        "--limit",
-        "1"
-      ],
       "expect": {
         "/status": "complete"
       },
@@ -230,11 +154,6 @@
     },
     {
       "run": [
-        "protein",
-        "sequence",
-        "P00533"
-      ],
-      "mcp": [
         "protein",
         "sequence",
         "P00533"
@@ -246,12 +165,6 @@
     },
     {
       "run": [
-        "protein",
-        "sequence",
-        "P00533",
-        "--fresh"
-      ],
-      "mcp": [
         "protein",
         "sequence",
         "P00533",

@@ -1,0 +1,77 @@
+{
+  "method": "POST",
+  "source": "civic",
+  "url": "https://civicdb.org/api/graphql",
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "573702594549892bda5a9a609338fa654faedc9433f09d9d87459e8d63eaf1ea"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "molecularProfiles": {
+              "totalCount": 1,
+              "nodes": [
+                {
+                  "id": 12,
+                  "name": "BRAF V600E",
+                  "rawName": "#VID12",
+                  "link": "/molecular-profiles/12",
+                  "isComplex": false,
+                  "variants": [
+                    {
+                      "id": 12,
+                      "name": "V600E",
+                      "link": "/variants/12",
+                      "feature": {
+                        "id": 5,
+                        "name": "BRAF"
+                      },
+                      "alleleRegistryId": "CA123643",
+                      "hgvsDescriptions": [
+                        "NM_004333.4:c.1799T>A",
+                        "NP_004324.2:p.Val600Glu",
+                        "NC_000007.13:g.140453136A>T",
+                        "ENST00000288602.6:c.1799T>A",
+                        "NC_000007.14:g.140753336A>T",
+                        "ENSP00000493543.1:p.Val600Glu",
+                        "ENSP00000496776.1:p.Val640Glu"
+                      ]
+                    }
+                  ],
+                  "evidenceItems": {
+                    "totalCount": 218,
+                    "nodes": [],
+                    "pageInfo": {
+                      "hasNextPage": true,
+                      "endCursor": "initial-zero"
+                    }
+                  },
+                  "assertions": {
+                    "totalCount": 11,
+                    "nodes": [],
+                    "pageInfo": {
+                      "hasNextPage": true,
+                      "endCursor": "assertions-zero"
+                    }
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false,
+                "endCursor": null
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -18,25 +18,6 @@
       }
     },
     {
-      "follow": "page",
-      "expect": {
-        "/result/items/0/pmid": "2222",
-        "/page/offset": 1
-      }
-    },
-    {
-      "run": [
-        "article",
-        "references",
-        "1111"
-      ],
-      "expect": {
-        "/page/total": 1,
-        "/result/items/0/pmid": "4444",
-        "/result/items/0/cited_by": 0
-      }
-    },
-    {
       "run": [
         "article",
         "references",

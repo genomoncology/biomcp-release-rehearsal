@@ -2,19 +2,23 @@
 use super::empty;
 use crate::{Action, Bundle, Ctx, Outcome, status};
 use biomcp_adapters::who_pq;
+use biomcp_types::Paged;
+use biomcp_types::ReplyBody;
 use biomcp_types::{
-    DrugSearch, DrugWhoGet, DrugWhoPage, PageInfo, QueryBody, Request, Source, SourceState, Status,
-    StepKind,
+    DrugSearch, DrugWhoGet, DrugWhoPage, PageInfo, Request, Source, SourceState, StepKind,
 };
 pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
-    let mut out = empty(QueryBody::DrugWhoPage(DrugWhoPage {
-        items: Box::default(),
-        total: 0,
-    }));
+    let mut out = empty(
+        (DrugWhoPage {
+            items: Box::default(),
+            total: 0,
+        })
+        .with_query(query.clone()),
+    );
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&who_pq::SPEC, deadline).fresh(cx.fresh);
-    let result = who_pq::search(&leg, query.query().as_str());
+    let result = who_pq::search(&leg, query);
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
     out.sources
@@ -27,7 +31,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
             .take(query.limit() as usize)
             .collect();
         let returned = items.len() as u32;
-        out.status = found(!items.is_empty(), &out);
+        crate::status::item(&mut out, !items.is_empty(), false, false);
         out.page = Some(PageInfo {
             offset: query.offset(),
             returned,
@@ -37,15 +41,14 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         });
         for source in &mut out.sources {
             source.count = Some(total);
-            source.fetched = Some(returned);
+            source.retrieved_count = Some(returned);
         }
         for row in &items {
-            out.next.push((
+            out.next.push(crate::next::Step::run(
                 StepKind::Disambiguate,
-                Action::Run {
-                    request: Request::GetWhoMedicine(DrugWhoGet::new(row.reference.clone())),
-                    fresh: cx.fresh,
-                },
+                &[biomcp_types::Source::WhoPq],
+                Request::GetWhoMedicine(DrugWhoGet::new(row.reference.clone())),
+                cx.fresh,
             ));
         }
         if let Some(offset) = query
@@ -53,22 +56,22 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
             .checked_add(returned)
             .filter(|next| returned > 0 && u64::from(*next) < total)
         {
-            out.next.push((
+            out.next.push(crate::next::Step::run(
                 StepKind::Page,
-                Action::Run {
-                    request: Request::SearchDrug(query.at_offset(offset)),
-                    fresh: cx.fresh,
-                },
+                &[biomcp_types::Source::WhoPq],
+                Request::SearchDrug(query.at_offset(offset)),
+                cx.fresh,
             ));
         }
-        out.body = QueryBody::DrugWhoPage(DrugWhoPage { items, total });
+        out.body = (DrugWhoPage { items, total }).with_query(query.clone());
     }
     sync_step(&mut out);
+    status::search(&mut out);
     command.finish(deadline.remaining());
     out
 }
 pub(crate) fn get(cx: &Ctx<'_>, query: &DrugWhoGet) -> Outcome {
-    let mut out = empty(QueryBody::DrugWhoCard(None));
+    let mut out = empty(biomcp_types::DrugWhoCard::into_reply(query.clone(), None));
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&who_pq::SPEC, deadline).fresh(cx.fresh);
@@ -78,32 +81,25 @@ pub(crate) fn get(cx: &Ctx<'_>, query: &DrugWhoGet) -> Outcome {
     out.sources
         .push(status::source(Source::WhoPq, leg.finish(), error));
     if let Ok((card, _)) = result {
-        out.status = found(card.is_some(), &out);
-        out.body = QueryBody::DrugWhoCard(card);
+        crate::status::item(&mut out, card.is_some(), false, false);
+        out.body = biomcp_types::DrugWhoCard::into_reply(query.clone(), card);
     }
     sync_step(&mut out);
     command.finish(deadline.remaining());
     out
 }
-fn found(found: bool, out: &Outcome) -> Status {
-    if !found {
-        Status::Absent
-    } else if out.sources.iter().any(|s| s.state == SourceState::Stale) {
-        Status::Partial
-    } else {
-        Status::Complete
-    }
-}
+
 fn sync_step(out: &mut Outcome) {
     if out
         .sources
         .iter()
         .any(|s| matches!(s.state, SourceState::Syncing | SourceState::Stale))
     {
-        out.next.push((
+        out.next.push(crate::next::Step::new(
             StepKind::Sync,
+            &[biomcp_types::Source::WhoPq],
             Action::Sync {
-                bundle: Bundle::WhoPq,
+                bundle: Bundle::WHO_PQ,
             },
         ));
     }

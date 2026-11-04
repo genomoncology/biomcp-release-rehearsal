@@ -1,0 +1,17 @@
+{
+  "source": "gwas",
+  "method": "GET",
+  "url": "https://www.ebi.ac.uk/gwas/rest/api/v2/associations?page=4&pubmed_id=17554300&size=10",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 3000,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"_embedded\": {\"associations\": [{\"association_id\": 10049, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 49\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 7e-18, \"pvalue_mantissa\": 7, \"pvalue_exponent\": -18}, {\"association_id\": 10048, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 48\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 7e-18, \"pvalue_mantissa\": 7, \"pvalue_exponent\": -18}, {\"association_id\": 10047, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 47\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 6.0000000000000004e-18, \"pvalue_mantissa\": 6, \"pvalue_exponent\": -18}, {\"association_id\": 10046, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 46\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 6.0000000000000004e-18, \"pvalue_mantissa\": 6, \"pvalue_exponent\": -18}, {\"association_id\": 10045, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 45\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 5e-18, \"pvalue_mantissa\": 5, \"pvalue_exponent\": -18}, {\"association_id\": 10044, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 44\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 5e-18, \"pvalue_mantissa\": 5, \"pvalue_exponent\": -18}, {\"association_id\": 10043, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 43\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 4e-18, \"pvalue_mantissa\": 4, \"pvalue_exponent\": -18}, {\"association_id\": 10042, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 42\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 4e-18, \"pvalue_mantissa\": 4, \"pvalue_exponent\": -18}, {\"association_id\": 10041, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 41\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 3.0000000000000002e-18, \"pvalue_mantissa\": 3, \"pvalue_exponent\": -18}, {\"association_id\": 10040, \"accession_id\": \"GCST000040\", \"pubmed_id\": \"17554300\", \"reported_trait\": [\"Synthetic association 40\"], \"snp_allele\": [], \"efo_traits\": [], \"p_value\": 3.0000000000000002e-18, \"pvalue_mantissa\": 3, \"pvalue_exponent\": -18}]}, \"_links\": {\"self\": {\"href\": \"https://www.ebi.ac.uk/gwas/rest/api/v2/associations?page=4&pubmed_id=17554300&size=10\"}}, \"page\": {\"size\": 10, \"number\": 4, \"totalElements\": 50, \"totalPages\": 5}}"
+      }
+    }
+  ]
+}

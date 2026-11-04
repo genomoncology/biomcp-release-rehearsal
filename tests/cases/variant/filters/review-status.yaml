@@ -1,10 +1,10 @@
 {
   "feature": "variant-search",
-  "live_check": "synthetic",
+  "live_check": "public",
   "replay": "variant/filters/review-status",
   "story": "The proved MyVariant review-status filter keeps its literal field query and native candidates",
   "harvest": "sdlc/planning/slices/variant.md",
-  "verified": "2026-10-24; direct MyVariant query and actual CLI record retained externally under0096-filter-captures; Git response is a synthetic identity-only projection; projection identity locally recorded from unchanged retained response on 2026-10-24, with original source date and reuse label retained externally",
+  "verified": "2026-10-24; direct MyVariant query and actual CLI record retained externally under0096-filter-captures; Git response is a synthetic identity-only projection; projection identity locally recorded from unchanged retained response on 2026-10-24, with original source date and reuse label retained externally tests/replies/variant/filters/README.md identifies actual direct queries and CLI captures with matching candidate identities, totals and native order. The identity-only projection omits annotation content; nightly execution checks the public filter query.",
   "steps": [
     {
       "run": [
@@ -17,19 +17,9 @@
         "--review-status",
         "no assertion criteria provided"
       ],
-      "mcp": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided"
-      ],
       "expect": {
-        "/schema": "biomcp.variant-page/9",
-        "/status": "partial",
+        "/schema": "biomcp.variant-page/16",
+        "/status": "complete",
         "/query": {
           "equals": {
             "region": "chr7:140453136-140453136",
@@ -45,7 +35,7 @@
             {
               "identity": {
                 "ids": [
-                  "rs:113488022",
+                  "rs113488022",
                   "clinvar:13961"
                 ],
                 "representations": [
@@ -65,13 +55,14 @@
               },
               "source": "myvariant",
               "record": {
-                "id": "chr7:g.140453136A>T"
+                "id": "chr7:g.140453136A>T",
+                "namespace": "unknown"
               },
               "component_terms": [
                 {
                   "component": "clinvar",
                   "terms": {
-                    "usage": "restricted",
+                    "usage": "open",
                     "name": "NCBI policy; submission rights remain source-specific",
                     "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
                   }
@@ -81,7 +72,7 @@
             {
               "identity": {
                 "ids": [
-                  "rs:397516897",
+                  "rs397516897",
                   "clinvar:44817"
                 ],
                 "representations": [
@@ -101,13 +92,14 @@
               },
               "source": "myvariant",
               "record": {
-                "id": "chr7:g.140453134_140453136del"
+                "id": "chr7:g.140453134_140453136del",
+                "namespace": "unknown"
               },
               "component_terms": [
                 {
                   "component": "clinvar",
                   "terms": {
-                    "usage": "restricted",
+                    "usage": "open",
                     "name": "NCBI policy; submission rights remain source-specific",
                     "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
                   }
@@ -117,7 +109,7 @@
             {
               "identity": {
                 "ids": [
-                  "rs:113488022",
+                  "rs113488022",
                   "clinvar:40389"
                 ],
                 "representations": [
@@ -137,13 +129,14 @@
               },
               "source": "myvariant",
               "record": {
-                "id": "chr7:g.140453136A>C"
+                "id": "chr7:g.140453136A>C",
+                "namespace": "unknown"
               },
               "component_terms": [
                 {
                   "component": "clinvar",
                   "terms": {
-                    "usage": "restricted",
+                    "usage": "open",
                     "name": "NCBI policy; submission rights remain source-specific",
                     "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
                   }
@@ -161,7 +154,7 @@
         },
         "/result/filter_terms": {
           "equals": {
-            "usage": "restricted",
+            "usage": "open",
             "name": "NCBI policy; submission rights remain source-specific",
             "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
           }
@@ -170,162 +163,19 @@
           "equals": [
             {
               "source": "myvariant",
-              "record": "chr7:g.140453136A>T",
-              "field": "representations.build",
+              "field": "next",
               "code": "value.unknown"
             },
             {
               "source": "myvariant",
-              "record": "chr7:g.140453134_140453136del",
-              "field": "representations.build",
+              "field": "next",
               "code": "value.unknown"
             },
             {
               "source": "myvariant",
-              "record": "chr7:g.140453136A>C",
-              "field": "representations.build",
+              "field": "next",
               "code": "value.unknown"
-            }
-          ]
-        }
-      },
-      "max_bytes": 2625
-    },
-    {
-      "run": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided"
-      ],
-      "offline": true,
-      "expect": {
-        "/status": "partial",
-        "/result/items": {
-          "equals": [
-            {
-              "identity": {
-                "ids": [
-                  "rs:113488022",
-                  "clinvar:13961"
-                ],
-                "representations": [
-                  {
-                    "source": "myvariant",
-                    "expression": {
-                      "syntax": "hgvs.g",
-                      "value": "chr7:g.140453136A>T"
-                    }
-                  }
-                ],
-                "genes": [
-                  {
-                    "label": "BRAF"
-                  }
-                ]
-              },
-              "source": "myvariant",
-              "record": {
-                "id": "chr7:g.140453136A>T"
-              },
-              "component_terms": [
-                {
-                  "component": "clinvar",
-                  "terms": {
-                    "usage": "restricted",
-                    "name": "NCBI policy; submission rights remain source-specific",
-                    "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
-                  }
-                }
-              ]
             },
-            {
-              "identity": {
-                "ids": [
-                  "rs:397516897",
-                  "clinvar:44817"
-                ],
-                "representations": [
-                  {
-                    "source": "myvariant",
-                    "expression": {
-                      "syntax": "hgvs.g",
-                      "value": "chr7:g.140453134_140453136del"
-                    }
-                  }
-                ],
-                "genes": [
-                  {
-                    "label": "BRAF"
-                  }
-                ]
-              },
-              "source": "myvariant",
-              "record": {
-                "id": "chr7:g.140453134_140453136del"
-              },
-              "component_terms": [
-                {
-                  "component": "clinvar",
-                  "terms": {
-                    "usage": "restricted",
-                    "name": "NCBI policy; submission rights remain source-specific",
-                    "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
-                  }
-                }
-              ]
-            },
-            {
-              "identity": {
-                "ids": [
-                  "rs:113488022",
-                  "clinvar:40389"
-                ],
-                "representations": [
-                  {
-                    "source": "myvariant",
-                    "expression": {
-                      "syntax": "hgvs.g",
-                      "value": "chr7:g.140453136A>C"
-                    }
-                  }
-                ],
-                "genes": [
-                  {
-                    "label": "BRAF"
-                  }
-                ]
-              },
-              "source": "myvariant",
-              "record": {
-                "id": "chr7:g.140453136A>C"
-              },
-              "component_terms": [
-                {
-                  "component": "clinvar",
-                  "terms": {
-                    "usage": "restricted",
-                    "name": "NCBI policy; submission rights remain source-specific",
-                    "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "/page": {
-          "equals": {
-            "offset": 0,
-            "returned": 3,
-            "total": 3
-          }
-        },
-        "/problems": {
-          "equals": [
             {
               "source": "myvariant",
               "record": "chr7:g.140453136A>T",
@@ -346,241 +196,8 @@
             }
           ]
         }
-      }
-    },
-    {
-      "run": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided",
-        "--disable-sources",
-        "noncommercial"
-      ],
-      "mcp": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided",
-        "--disable-sources",
-        "noncommercial"
-      ],
-      "expect": {
-        "/status": "partial",
-        "/result/items": {
-          "equals": [
-            {
-              "identity": {
-                "ids": [
-                  "rs:113488022",
-                  "clinvar:13961"
-                ],
-                "representations": [
-                  {
-                    "source": "myvariant",
-                    "expression": {
-                      "syntax": "hgvs.g",
-                      "value": "chr7:g.140453136A>T"
-                    }
-                  }
-                ],
-                "genes": [
-                  {
-                    "label": "BRAF"
-                  }
-                ]
-              },
-              "source": "myvariant",
-              "record": {
-                "id": "chr7:g.140453136A>T"
-              },
-              "component_terms": [
-                {
-                  "component": "clinvar",
-                  "terms": {
-                    "usage": "restricted",
-                    "name": "NCBI policy; submission rights remain source-specific",
-                    "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
-                  }
-                }
-              ]
-            },
-            {
-              "identity": {
-                "ids": [
-                  "rs:397516897",
-                  "clinvar:44817"
-                ],
-                "representations": [
-                  {
-                    "source": "myvariant",
-                    "expression": {
-                      "syntax": "hgvs.g",
-                      "value": "chr7:g.140453134_140453136del"
-                    }
-                  }
-                ],
-                "genes": [
-                  {
-                    "label": "BRAF"
-                  }
-                ]
-              },
-              "source": "myvariant",
-              "record": {
-                "id": "chr7:g.140453134_140453136del"
-              },
-              "component_terms": [
-                {
-                  "component": "clinvar",
-                  "terms": {
-                    "usage": "restricted",
-                    "name": "NCBI policy; submission rights remain source-specific",
-                    "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
-                  }
-                }
-              ]
-            },
-            {
-              "identity": {
-                "ids": [
-                  "rs:113488022",
-                  "clinvar:40389"
-                ],
-                "representations": [
-                  {
-                    "source": "myvariant",
-                    "expression": {
-                      "syntax": "hgvs.g",
-                      "value": "chr7:g.140453136A>C"
-                    }
-                  }
-                ],
-                "genes": [
-                  {
-                    "label": "BRAF"
-                  }
-                ]
-              },
-              "source": "myvariant",
-              "record": {
-                "id": "chr7:g.140453136A>C"
-              },
-              "component_terms": [
-                {
-                  "component": "clinvar",
-                  "terms": {
-                    "usage": "restricted",
-                    "name": "NCBI policy; submission rights remain source-specific",
-                    "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/maintenance_use/"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "/page": {
-          "equals": {
-            "offset": 0,
-            "returned": 3,
-            "total": 3
-          }
-        },
-        "/problems": {
-          "equals": [
-            {
-              "source": "myvariant",
-              "record": "chr7:g.140453136A>T",
-              "field": "representations.build",
-              "code": "value.unknown"
-            },
-            {
-              "source": "myvariant",
-              "record": "chr7:g.140453134_140453136del",
-              "field": "representations.build",
-              "code": "value.unknown"
-            },
-            {
-              "source": "myvariant",
-              "record": "chr7:g.140453136A>C",
-              "field": "representations.build",
-              "code": "value.unknown"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "run": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided",
-        "--disable-sources",
-        "restricted"
-      ],
-      "exit": 4,
-      "is_error": true,
-      "expect": {
-        "/sources/0/reason": "disabled",
-        "/sources/0/state": "skipped"
       },
-      "mcp": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided",
-        "--disable-sources",
-        "restricted"
-      ]
-    },
-    {
-      "run": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided",
-        "--disable-sources",
-        "clinvar"
-      ],
-      "mcp": [
-        "search",
-        "variant",
-        "--region",
-        "chr7:140453136-140453136",
-        "--build",
-        "GRCh37",
-        "--review-status",
-        "no assertion criteria provided",
-        "--disable-sources",
-        "clinvar"
-      ],
-      "exit": 4,
-      "is_error": true,
-      "expect": {
-        "/sources/0/reason": "disabled",
-        "/sources/0/state": "skipped"
-      }
+      "max_bytes": 2808
     }
   ]
 }

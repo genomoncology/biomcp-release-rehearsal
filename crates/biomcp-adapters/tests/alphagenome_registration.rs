@@ -7,12 +7,13 @@ fn restricted_source_requires_its_own_key_before_any_provider_request()
 -> Result<(), Box<dyn std::error::Error>> {
     let source = Source::AlphaGenome;
     let terms = registry::terms(source).ok_or("missing terms")?;
-    assert_eq!(terms.usage, Use::Restricted);
+    assert_eq!(terms.usage, Use::Licensed);
     assert_eq!(terms.url, "https://alphagenome.google/terms");
     assert_eq!(SPEC.base, "https://gdmscience.googleapis.com:443");
     assert!(matches!(
         SPEC.key,
         KeyUse::Required(Credential {
+            tier: biomcp_types::KeyTier::NoFallback,
             secret: SecretName::AlphaGenomeApiKey,
             place: KeyPlace::Header("x-goog-api-key")
         })
@@ -22,7 +23,7 @@ fn restricted_source_requires_its_own_key_before_any_provider_request()
         mode: biomcp_fetch::Mode::Offline,
         ..Default::default()
     })?;
-    let request = biomcp_fetch::grpc::alphagenome::DnaseRequest::human_lung_all_folds(
+    let request = biomcp_adapters::alphagenome::DnaseRequest::human_lung_all_folds(
         biodata::Build::GRCh38,
         "chr7",
         140745143..140761527,

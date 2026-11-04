@@ -31,17 +31,12 @@ fn retained_gene_rows_preserve_identity_taxon_and_row_publications() -> Result<(
             return Err(format!("{case} native page changed"));
         }
         for (index, row) in page.items.into_iter().enumerate() {
-            let requested = row.object.clone();
+            let requested = row.object.clone().ok_or("missing object")?;
             let mapped = map::row(row, &requested)
                 .map_err(|e| format!("map: {e:?}"))?
+                .value
                 .association;
-            if mapped
-                .subject
-                .id
-                .as_ref()
-                .map(ToString::to_string)
-                .as_deref()
-                != Some(subject)
+            if mapped.subject.id.to_string() != subject
                 || mapped
                     .original_subject
                     .as_ref()

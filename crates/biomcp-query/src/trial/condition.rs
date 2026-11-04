@@ -3,7 +3,7 @@ use crate::{Ctx, Outcome, status};
 use biodata::{Curie, Text};
 use biomcp_adapters::mydisease;
 use biomcp_fetch::Deadline;
-use biomcp_types::{QueryBody, Source, TrialConditionResolution, TrialSearch, TrialSource};
+use biomcp_types::{ReplyData, Source, TrialConditionResolution, TrialSearch, TrialSource};
 
 pub(super) fn resolve<'a>(
     cx: &Ctx<'a>,
@@ -52,6 +52,7 @@ pub(super) fn resolve<'a>(
     out.local = error.and_then(status::local);
     let value = match reply {
         Ok(mapped) => {
+            out.include_refusals(mapped.refusals);
             out.problems.extend(mapped.problems);
             resolved(query.source(), mapped.value, &mut resolution)
         }
@@ -112,8 +113,12 @@ fn ncit_code(id: &Curie) -> Option<String> {
 }
 fn assign(out: &mut Outcome, resolution: TrialConditionResolution) {
     match &mut out.body {
-        QueryBody::TrialPage(page) => page.condition_resolution = Some(resolution),
-        QueryBody::NciTrialPage(page) => page.condition_resolution = Some(resolution),
+        ReplyData::TrialPage {
+            body: Some(page), ..
+        } => page.condition_resolution = Some(resolution),
+        ReplyData::NciTrialPage {
+            body: Some(page), ..
+        } => page.condition_resolution = Some(resolution),
         _ => (),
     }
 }
@@ -133,8 +138,9 @@ pub(super) fn word_notice(
         ).into(),
     });
     if let Some(query) = query.exact_condition_search() {
-        outcome.next.push((
+        outcome.next.push(crate::next::Step::new(
             biomcp_types::StepKind::Disambiguate,
+            &[query.source().source()],
             super::Action::Run {
                 request: biomcp_types::Request::SearchTrial(query),
                 fresh,

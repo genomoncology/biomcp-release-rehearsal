@@ -39,21 +39,30 @@ struct Server {
     active: BTreeMap<String, Call>,
     legacy: bool,
     globals: crate::grammar::Globals,
+    root: std::sync::Arc<crate::grammar::Root>,
+    settings: std::sync::Arc<crate::config::Settings>,
     fetch: Result<std::sync::Arc<biomcp_fetch::Fetch>, crate::config::StartupError>,
+    recovery: Option<std::sync::Arc<Recovery>>,
 }
 
 pub(crate) fn serve(
     globals: crate::grammar::Globals,
     fetch: Result<biomcp_fetch::Fetch, crate::config::StartupError>,
+    root: std::sync::Arc<crate::grammar::Root>,
+    settings: std::sync::Arc<crate::config::Settings>,
 ) -> io::Result<()> {
     let (sender, receiver) = mpsc::sync_channel(MAX_RETAINED_EVENTS);
     start_input(sender.clone())?;
+    let recovery = fetch.is_err().then(|| std::sync::Arc::new(Recovery::new()));
     let mut server = Server {
         sender,
         active: BTreeMap::new(),
         legacy: false,
         globals,
-        fetch: fetch.map(std::sync::Arc::new),
+        root,
+        settings,
+        fetch: fetch.map(|fetch| std::sync::Arc::new(fetch.with_background_refresh())),
+        recovery,
     };
     let mut output = io::stdout().lock();
     let mut eof = false;
@@ -110,7 +119,7 @@ fn start_input(sender: mpsc::SyncSender<Event>) -> io::Result<()> {
 
 impl Server {
     fn message(&mut self, frame: &[u8]) -> io::Result<Option<Value>> {
-        match rpc::message(frame, &mut self.legacy) {
+        match rpc::message(frame, &mut self.legacy, self.globals.hosted, &self.root) {
             rpc::Message::Reply(reply) => Ok(Some(reply)),
             rpc::Message::Tool { id, params, modern } => self.admit(id, &params, modern),
             rpc::Message::Notification { method, params } => {
@@ -140,6 +149,9 @@ impl Server {
             return Ok(Some(protocol::error(id, -31000, "Tool capacity exceeded")));
         }
         let globals = self.globals.clone();
+        let root = self.root.clone();
+        let settings = self.settings.clone();
+        let recovery = self.recovery.clone();
         let (fetch, cancellation) = match &self.fetch {
             Ok(fetch) => {
                 let Ok((fetch, cancellation)) = fetch.cancellable() else {
@@ -147,10 +159,19 @@ impl Server {
                 };
                 (Ok(std::sync::Arc::new(fetch)), Some(cancellation))
             }
-            Err(error) => (Err(error.clone()), None),
+            Err(error) => (
+                Err(error.clone()),
+                Some(biomcp_fetch::Cancellation::with_budget(
+                    crate::config::budget(&settings),
+                )),
+            ),
         };
+        let scope = recovery.as_ref().and(cancellation.clone());
         self.start_call(key, id, modern, cancellation, move || {
-            research::execute(&call, &globals, &fetch, false)
+            let mut context = crate::command::Context::new(&globals, &fetch, &root, &settings);
+            context.recovery = recovery.as_deref();
+            context.scope = scope.as_ref();
+            research::execute(&call, context, false)
         })?;
         Ok(None)
     }
@@ -203,8 +224,50 @@ impl Server {
             return Ok(None);
         }
         Ok(Some(match outcome {
-            Ok(outcome) => protocol::result(call.id, protocol::outcome(&outcome), call.modern),
+            Ok(outcome) => protocol::tool_result(
+                call.id,
+                &outcome,
+                call.modern,
+                crate::config::mcp_reply_form(&self.settings),
+            ),
             Err(_) => protocol::error(call.id, -32603, "Internal error"),
         }))
+    }
+}
+
+/// A failed startup may publish exactly one successful static transport snapshot.
+#[derive(Clone)]
+pub(crate) struct Snapshot {
+    pub(crate) fetch: std::sync::Arc<biomcp_fetch::Fetch>,
+    pub(crate) settings: std::sync::Arc<crate::config::Settings>,
+}
+#[expect(
+    clippy::disallowed_types,
+    reason = "Serialize failed startup retries until one shared transport snapshot succeeds"
+)]
+pub(crate) struct Recovery(std::sync::Mutex<Option<Snapshot>>);
+impl Recovery {
+    #[expect(
+        clippy::disallowed_types,
+        reason = "The MCP setup owner alone publishes the first successful static snapshot"
+    )]
+    pub(crate) fn new() -> Self {
+        Self(std::sync::Mutex::new(None))
+    }
+    pub(crate) fn snapshot(
+        &self,
+        globals: &crate::grammar::Globals,
+    ) -> Result<(Snapshot, bool), crate::config::StartupError> {
+        let mut stored = self.0.lock().unwrap_or_else(|error| error.into_inner());
+        if let Some(snapshot) = stored.as_ref() {
+            return Ok((snapshot.clone(), false));
+        }
+        let settings = std::sync::Arc::new(crate::config::file::read_file(globals.config.as_ref()));
+        let fetch = std::sync::Arc::new(
+            crate::config::fetch(globals, &settings)?.with_background_refresh(),
+        );
+        let snapshot = Snapshot { fetch, settings };
+        *stored = Some(snapshot.clone());
+        Ok((snapshot, true))
     }
 }

@@ -1,0 +1,48 @@
+{
+  "method": "GET",
+  "source": "nci",
+  "url": "https://clinicaltrialsapi.cancer.gov/api/v2/biomarkers?codes=C96022",
+  "exchanges": [
+    {
+      "fetched": 1793223567,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": [
+            {
+              "name": "CD274 Gene",
+              "codes": [
+                "C96022"
+              ],
+              "ancestor_ids": [
+                false,
+                "C20103"
+              ],
+              "type": [
+                "reference_gene"
+              ],
+              "parent_ids": [
+                false,
+                "C20103"
+              ],
+              "synonyms": [
+                false,
+                "Synthetic retained synonym"
+              ],
+              "eligibility_criterion": [
+                false,
+                "Synthetic retained criterion"
+              ],
+              "count": 326
+            }
+          ],
+          "total": 1
+        }
+      }
+    }
+  ]
+}

@@ -1,8 +1,18 @@
 //! NCI STRAP glossary, Study Design > Design > Phase, publishes this complete LOV.
 // https://clinicaltrialsapi.cancer.gov/glossary
-biodata::native_enum! {
-    /// Exact NCI phase labels; registry phase values belong to TrialPhase.
-    NciTrialPhase {
+macro_rules! phases {
+    ($($values:tt)*) => {
+        biodata::native_enum! {
+            /// Exact NCI response phases, retaining future publisher values.
+            NciTrialPhase { $($values)* }
+        }
+        biodata::wire_enum! {
+            /// Published NCI phase filters; future values require explicit support.
+            NciPhaseFilter { $($values)* }
+        }
+    };
+}
+phases! {
         /// Publisher NA label.
         NotApplicable => "NA",
         /// Publisher phase 0 label.
@@ -19,5 +29,4 @@ biodata::native_enum! {
         Phase3 => "III",
         /// Publisher phase IV label.
         Phase4 => "IV",
-    }
 }

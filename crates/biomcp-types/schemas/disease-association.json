@@ -1,13 +1,23 @@
 {
   "$defs": {
-    "Attribution": {
-      "additionalProperties": false,
+    "Reply_Attribution": {
       "description": "Provenance for one source record.",
       "properties": {
+        "approved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source approval date."
+        },
         "evaluated": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PartialDate"
+              "$ref": "#/$defs/Reply_PartialDate"
             },
             {
               "type": "null"
@@ -15,10 +25,21 @@
           ],
           "description": "Source evaluation date."
         },
+        "published": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_PartialDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source publication date."
+        },
         "record": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -29,7 +50,7 @@
         "release": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -38,13 +59,13 @@
           "description": "Dataset release."
         },
         "source": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Source responsible for the claim."
         },
         "submitter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -55,7 +76,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -67,7 +88,7 @@
         "version": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -81,52 +102,26 @@
       ],
       "type": "object"
     },
-    "Concept": {
-      "additionalProperties": false,
-      "description": "One source concept with its optional ontology identifier.",
-      "properties": {
-        "id": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Curie"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Source-stated concept identifier."
-        },
-        "label": {
-          "$ref": "#/$defs/Text",
-          "description": "Original concept label."
-        }
-      },
-      "required": [
-        "label"
-      ],
-      "type": "object"
-    },
-    "Curie": {
+    "Reply_Curie": {
       "description": "Checked prefix:local ontology identifier.",
-      "pattern": "^[A-Za-z0-9_.-]+:[^\\s\\x00-\\x1f\\x7f-\\x9f]+$",
+      "pattern": "^[A-Za-z0-9_.-]+:[^:/\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f][^:\\x09-\\x0d\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\x00-\\x1f\\x7f-\\x9f]*$",
       "type": "string"
     },
-    "DiseaseAssociationQualifier": {
-      "additionalProperties": false,
+    "Reply_DiseaseAssociationQualifier": {
       "description": "A named native qualifier without an inferred role.",
       "properties": {
         "field": {
-          "$ref": "#/$defs/Text",
+          "$ref": "#/$defs/Reply_Text",
           "description": "Original native qualifier field."
         },
         "id": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Native qualifier identity."
         },
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -141,18 +136,17 @@
       ],
       "type": "object"
     },
-    "DiseaseAssociationReference": {
-      "additionalProperties": false,
+    "Reply_DiseaseAssociationReference": {
       "description": "One native association reference, with no invented display label or link.",
       "properties": {
         "id": {
-          "$ref": "#/$defs/Curie",
+          "$ref": "#/$defs/Reply_Curie",
           "description": "Native evidence or publication identity."
         },
         "label": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -163,7 +157,7 @@
         "url": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Text"
+              "$ref": "#/$defs/Reply_Text"
             },
             {
               "type": "null"
@@ -178,31 +172,56 @@
       ],
       "type": "object"
     },
-    "FiniteNumber": {
+    "Reply_DiseaseEndpoint": {
+      "description": "One native endpoint with an identifier and an optional source label.\nNative associations use this reference because a source may omit a display label.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Reply_Curie",
+          "description": "Exact source identifier."
+        },
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Source label when supplied."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "type": "object"
+    },
+    "Reply_FiniteNumber": {
       "description": "A finite decimal that JSON can represent without losing its value to null.",
       "format": "double",
       "type": "number"
     },
-    "PartialDate": {
-      "description": "A Gregorian date preserving year, month or day precision.",
-      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+    "Reply_PartialDate": {
+      "description": "A Gregorian date preserving year, month or day precision. The parser additionally validates the calendar day, including leap years.",
+      "pattern": "^(?!0000)[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?$",
       "type": "string"
     },
-    "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+    "Reply_Text": {
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biodata.disease-association/4",
+  "$id": "biodata.disease-association/7",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
   "description": "A native source association without clinical interpretation.",
   "properties": {
     "agent_type": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -213,7 +232,7 @@
     "aggregator_knowledge_source": {
       "description": "Native aggregator knowledge sources; missing, null and lists remain distinct.",
       "items": {
-        "$ref": "#/$defs/Curie"
+        "$ref": "#/$defs/Reply_Curie"
       },
       "type": [
         "array",
@@ -221,13 +240,13 @@
       ]
     },
     "attribution": {
-      "$ref": "#/$defs/Attribution",
+      "$ref": "#/$defs/Reply_Attribution",
       "description": "Native row provenance and version."
     },
     "category": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Curie"
+          "$ref": "#/$defs/Reply_Curie"
         },
         {
           "type": "null"
@@ -238,7 +257,7 @@
     "evidence": {
       "description": "Source evidence terms; unavailable evidence stays absent.",
       "items": {
-        "$ref": "#/$defs/DiseaseAssociationReference"
+        "$ref": "#/$defs/Reply_DiseaseAssociationReference"
       },
       "type": [
         "array",
@@ -266,7 +285,7 @@
     "has_percentage": {
       "anyOf": [
         {
-          "$ref": "#/$defs/FiniteNumber"
+          "$ref": "#/$defs/Reply_FiniteNumber"
         },
         {
           "type": "null"
@@ -277,7 +296,7 @@
     "has_quotient": {
       "anyOf": [
         {
-          "$ref": "#/$defs/FiniteNumber"
+          "$ref": "#/$defs/Reply_FiniteNumber"
         },
         {
           "type": "null"
@@ -297,7 +316,7 @@
     "knowledge_level": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -313,20 +332,20 @@
       ]
     },
     "object": {
-      "$ref": "#/$defs/Concept",
+      "$ref": "#/$defs/Reply_DiseaseEndpoint",
       "description": "Native returned object."
     },
     "object_closure": {
       "description": "Native object closure.",
       "items": {
-        "$ref": "#/$defs/Curie"
+        "$ref": "#/$defs/Reply_Curie"
       },
       "type": "array"
     },
     "original_object": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Curie"
+          "$ref": "#/$defs/Reply_Curie"
         },
         {
           "type": "null"
@@ -337,7 +356,7 @@
     "original_predicate": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -348,7 +367,7 @@
     "original_subject": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Curie"
+          "$ref": "#/$defs/Reply_Curie"
         },
         {
           "type": "null"
@@ -357,13 +376,13 @@
       "description": "Original source subject before source normalization."
     },
     "predicate": {
-      "$ref": "#/$defs/Curie",
+      "$ref": "#/$defs/Reply_Curie",
       "description": "Native source predicate."
     },
     "primary_knowledge_source": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Curie"
+          "$ref": "#/$defs/Reply_Curie"
         },
         {
           "type": "null"
@@ -374,7 +393,7 @@
     "provided_by": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Text"
+          "$ref": "#/$defs/Reply_Text"
         },
         {
           "type": "null"
@@ -385,36 +404,36 @@
     "publications": {
       "description": "Native publication references, without inferred links or labels.",
       "items": {
-        "$ref": "#/$defs/DiseaseAssociationReference"
+        "$ref": "#/$defs/Reply_DiseaseAssociationReference"
       },
       "type": "array"
     },
     "qualifiers": {
       "description": "Native qualifiers, including frequency or onset if supplied.",
       "items": {
-        "$ref": "#/$defs/DiseaseAssociationQualifier"
+        "$ref": "#/$defs/Reply_DiseaseAssociationQualifier"
       },
       "type": "array"
     },
     "requested_id": {
-      "$ref": "#/$defs/Curie",
+      "$ref": "#/$defs/Reply_Curie",
       "description": "The exact requested concept, including a queried parent."
     },
     "subject": {
-      "$ref": "#/$defs/Concept",
+      "$ref": "#/$defs/Reply_DiseaseEndpoint",
       "description": "Native returned subject."
     },
     "subject_closure": {
       "description": "Native subject closure.",
       "items": {
-        "$ref": "#/$defs/Curie"
+        "$ref": "#/$defs/Reply_Curie"
       },
       "type": "array"
     },
     "subject_taxon": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Curie"
+          "$ref": "#/$defs/Reply_Curie"
         },
         {
           "type": "null"

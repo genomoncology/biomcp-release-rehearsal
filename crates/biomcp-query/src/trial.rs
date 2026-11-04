@@ -1,4 +1,5 @@
 //! Trial discovery delegates filters, totals and ranking to the named registry.
+use biomcp_types::ReplyBody;
 mod condition;
 pub mod document;
 pub(crate) mod get;
@@ -8,23 +9,14 @@ use crate::{Action, Ctx, Outcome, status};
 use biomcp_adapters::{ctgov, hgnc};
 use biomcp_types::GeneResolution;
 use biomcp_types::{
-    QueryBody, Request, Source, SourceState, Status, StepKind, TrialPage, TrialSearch,
+    ReplyData, Request, Source, SourceState, Status, StepKind, TrialPage, TrialSearch,
 };
 /// Execute a checked native search without locally screening returned studies.
 pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     if query.source() == biomcp_types::TrialSource::Nci {
         return nci::search(cx, query);
     }
-    if let Some(option) = query.unsupported() {
-        let mut out = empty();
-        out.body = QueryBody::UnsupportedTrialFilter {
-            source: Source::ClinicalTrialsGov,
-            option,
-        };
-        return out;
-    }
-
-    let mut outcome = empty();
+    let mut outcome = empty(query);
     let command = cx.fetch.command_deadline(cx.budget);
     let mut deadline = command.deadline();
     let Some(condition) = condition::resolve(cx, query, &mut outcome, &mut deadline) else {
@@ -37,15 +29,11 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     };
     let leg = cx.fetch.leg(&ctgov::SPEC, deadline).fresh(cx.fresh);
     let started = leg.remaining();
-    let mut params = ctgov::parameters(query, gene.as_deref());
-    if let Some(condition) = condition {
-        params.insert("query.cond".into(), condition.to_string());
-    }
-    let result = ctgov::search(&leg, &params);
-    let rejected = matches!(
-        &result,
-        Err(biomcp_fetch::RequestError::Source(error)) if error.status == Some(400)
-    );
+    let conditions = condition
+        .as_ref()
+        .map_or(query.condition(), std::slice::from_ref);
+    let (result, name_notice) = ctgov::search_query(&leg, query, gene.as_deref(), conditions);
+    let rejected = name_notice.is_none() && request_rejected(result.as_ref().err());
     let version = match &result {
         Ok(_) => ctgov::version(&leg),
         Err(error) => Err(*error),
@@ -58,39 +46,54 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
         .or_else(|| result.as_ref().ok().and_then(|page| page.count_error));
     deadline = deadline.after_stage(started.saturating_sub(leg.remaining()));
     let mut source = status::source(Source::ClinicalTrialsGov, leg.finish(), error);
-    outcome.status = if result.is_err() {
-        Status::Failed
-    } else if version.is_err()
-        || error.is_some()
-        || source.state == SourceState::Stale
-        || outcome
-            .sources
-            .iter()
-            .any(|source| source.state != SourceState::Ok)
+    source.notices.extend(name_notice);
     {
-        Status::Partial
-    } else {
-        Status::Complete
+        let (found, identity_failed, unavailable) = if result.is_err() {
+            (false, true, false)
+        } else if version.is_err()
+            || error.is_some()
+            || source.state == SourceState::Stale
+            || outcome
+                .sources
+                .iter()
+                .any(|source| source.state != SourceState::Ok)
+        {
+            (true, false, true)
+        } else {
+            (true, false, false)
+        };
+        crate::status::item(&mut outcome, found, identity_failed, unavailable);
     };
     if let Ok(page) = result {
         if page.condition_word_mismatch {
             condition::word_notice(query, cx.fresh, &mut source, &mut outcome);
         }
         source.count = page.total;
-        source.fetched = Some(page.items.len() as u32);
+        source.retrieved_count = Some(page.items.len() as u32);
         apply_page(query, cx.fresh, gene.as_deref(), &mut outcome, page);
     }
-    if let QueryBody::TrialPage(body) = &mut outcome.body {
-        body.source_updated = version.ok().map(Into::into);
+    if let Ok(version) = version {
+        outcome.problems.extend(version.problems);
+        if let ReplyData::TrialPage {
+            body: Some(body), ..
+        } = &mut outcome.body
+        {
+            body.source_updated = version.value.map(Into::into);
+        }
     }
     if rejected {
-        outcome.body = QueryBody::TextPositionError;
+        outcome.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
     }
     outcome.local = error.and_then(status::local);
     outcome.sources.push(source);
+    status::search_for(&mut outcome, &[Source::ClinicalTrialsGov]);
     command.finish(deadline.remaining());
     outcome
 }
+fn request_rejected(error: Option<&biomcp_fetch::RequestError>) -> bool {
+    matches!(error, Some(biomcp_fetch::RequestError::Source(error)) if error.status == Some(400))
+}
+
 fn apply_page(
     query: &TrialSearch,
     fresh: bool,
@@ -98,6 +101,11 @@ fn apply_page(
     outcome: &mut Outcome,
     mut page: ctgov::SearchPage,
 ) {
+    outcome.dropped = page.refusals == biomcp_adapters::Refusal::Refused;
+    if outcome.dropped {
+        crate::status::item(outcome, true, false, false);
+    }
+    outcome.problems.append(&mut page.problems);
     let short = page.items.len() < query.limit() as usize
         && page
             .total
@@ -105,59 +113,67 @@ fn apply_page(
     if query.count_only() {
         page.items.clear();
     }
-    if short && outcome.status == Status::Complete {
+    if short && outcome.status() == Status::Complete {
         outcome.next.extend(
             query
                 .wider_searches(symbol.and_then(|value| biodata::Text::new(value).ok()))
                 .into_iter()
                 .map(|query| {
-                    (
+                    crate::next::Step::run(
                         StepKind::Disambiguate,
-                        Action::Run {
-                            request: Request::SearchTrial(query),
-                            fresh,
-                        },
+                        &[query.source().source()],
+                        Request::SearchTrial(query),
+                        fresh,
                     )
                 }),
         );
     }
     outcome.page = page.total.map(|total| biomcp_types::PageInfo {
-        offset: 0,
+        offset: query.offset(),
         returned: page.items.len() as u32,
         total,
         pool: None,
         truncated: None,
     });
     if let Some(token) = page.next.filter(|_| !query.count_only()) {
-        outcome.next.push((
+        outcome.next.push(crate::next::Step::run(
             StepKind::Page,
-            Action::Run {
-                request: Request::SearchTrial(query.at_page(token)),
-                fresh,
-            },
+            &[query.source().source()],
+            Request::SearchTrial(query.at_page(
+                token,
+                query.offset().saturating_add(page.items.len() as u32),
+            )),
+            fresh,
         ));
     }
-    if let QueryBody::TrialPage(body) = &mut outcome.body {
+    if let ReplyData::TrialPage {
+        body: Some(body), ..
+    } = &mut outcome.body
+    {
         body.items = page.items.into();
     }
 }
-fn empty() -> Outcome {
-    Outcome {
-        status: Status::Failed,
-        body: QueryBody::TrialPage(TrialPage {
-            items: Box::default(),
-            source_updated: None,
-            attribution: "ClinicalTrials.gov; source-native discovery, no eligibility assessment"
-                .into(),
-            gene_resolution: None,
-            condition_resolution: None,
-        }),
-        page: None,
-        sources: Vec::new(),
-        problems: Vec::new(),
-        next: Vec::new(),
-        local: None,
-    }
+fn empty(query: &TrialSearch) -> Outcome {
+    crate::status::finish(
+        [crate::status::item_status(false, true, false)],
+        crate::status::Parts {
+            dropped: false,
+            body: (TrialPage {
+                items: Box::default(),
+                source_updated: None,
+                attribution:
+                    "ClinicalTrials.gov; source-native discovery, no eligibility assessment".into(),
+                gene_resolution: None,
+                condition_resolution: None,
+            })
+            .with_query(query.clone()),
+            page: None,
+            sources: Vec::new(),
+            problems: Vec::new(),
+            next: Vec::new(),
+            local: None,
+        },
+    )
 }
 fn gene<'a>(
     cx: &Ctx<'a>,
@@ -182,8 +198,11 @@ fn gene<'a>(
             match mapped.value {
                 GeneResolution::Resolved { gene, .. } => Some(Some(gene.symbol.to_string())),
                 resolution => {
-                    outcome.status = Status::Partial;
-                    if let QueryBody::TrialPage(body) = &mut outcome.body {
+                    crate::status::item(outcome, true, false, true);
+                    if let ReplyData::TrialPage {
+                        body: Some(body), ..
+                    } = &mut outcome.body
+                    {
                         body.gene_resolution = Some(resolution);
                     }
                     None

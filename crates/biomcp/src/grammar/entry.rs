@@ -88,7 +88,7 @@ pub(super) fn arguments(args: &[OsString], root: &Command) -> Vec<OsString> {
     args.to_vec()
 }
 
-fn argument<'a>(command: &'a Command, word: &str) -> Option<(&'a clap::Arg, bool)> {
+pub(super) fn argument<'a>(command: &'a Command, word: &str) -> Option<(&'a clap::Arg, bool)> {
     let (name, inline) = word
         .split_once('=')
         .map_or((word, false), |(name, _)| (name, true));
@@ -108,17 +108,18 @@ fn takes_value(
     argument: &clap::Arg,
     words: &mut std::iter::Peekable<std::slice::Iter<'_, OsString>>,
 ) -> bool {
-    argument.get_action().takes_values()
-        && !(argument
-            .get_num_args()
-            .is_some_and(|range| range.min_values() == 0)
-            && words
-                .peek()
-                .is_some_and(|word| word.to_str().is_some_and(|word| word.starts_with('-'))))
+    super::arguments::boolean_value(argument, words.peek().copied())
+        || argument.get_action().takes_values()
+            && !(argument
+                .get_num_args()
+                .is_some_and(|range| range.min_values() == 0)
+                && words
+                    .peek()
+                    .is_some_and(|word| word.to_str().is_some_and(|word| word.starts_with('-'))))
 }
 
 pub(super) fn unknown_command(args: &[OsString], root: &Command) -> Option<Vec<String>> {
-    if super::command_words(args).next() == Some("schema") {
+    if super::command_words(root, args).next() == Some("schema") {
         return None;
     }
     let mut command = root;
@@ -178,7 +179,10 @@ fn distance(input: &str, known: &str) -> usize {
     result
 }
 
-pub(super) fn help_path(verb: &str, matches: &clap::ArgMatches) -> Result<Option<Vec<String>>, ()> {
+pub(super) fn help_path(
+    verb: &str,
+    matches: &clap::ArgMatches,
+) -> Result<Option<Vec<String>>, super::ParseInvalid> {
     Ok(if verb == "help" {
         match matches.subcommand() {
             Some(("key", matches)) if matches.get_one::<String>("source").is_some() => None,
@@ -188,6 +192,17 @@ pub(super) fn help_path(verb: &str, matches: &clap::ArgMatches) -> Result<Option
             Some(("author", matches)) if matches.subcommand().is_none() => {
                 Some(vec!["author".into()])
             }
+            Some(("help", matches)) => Some(
+                std::iter::once("help".into())
+                    .chain(
+                        matches
+                            .get_many::<String>("command")
+                            .into_iter()
+                            .flatten()
+                            .cloned(),
+                    )
+                    .collect(),
+            ),
             Some(("network", matches)) => Some(
                 std::iter::once("network".into())
                     .chain(matches.get_one::<String>("setting").cloned())

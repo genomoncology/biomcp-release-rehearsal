@@ -164,7 +164,7 @@ def initialize(out, plan, previous):
         receipts = state['receipts']
         if [row['index'] for row in receipts] != list(range(len(receipts))):
             raise ValueError('continuation receipts are not a delivered prefix')
-    out.mkdir()
+    out.mkdir(parents=True)
     if previous:
         for path in previous.iterdir():
             shutil.copyfile(path, out / path.name)

@@ -29,6 +29,8 @@ fn requested(query: &Selection) -> Result<Box<[StatisticSelector]>, BadReply> {
 }
 fn attribution(key: &str) -> Result<Attribution, BadReply> {
     Ok(Attribution {
+        approved: None,
+        published: None,
         source: "seer".parse().map_err(|_| BadReply)?,
         record: Some(key.parse().map_err(|_| BadReply)?),
         version: None,
@@ -42,7 +44,11 @@ fn attribution(key: &str) -> Result<Attribution, BadReply> {
         ),
     })
 }
-fn cell<'a>(fields: &[String], row: &'a [Option<raw::Cell>], name: &str) -> Option<&'a raw::Cell> {
+fn cell<'a>(
+    fields: &[String],
+    row: &'a [Option<crate::raw::Field<raw::Cell>>],
+    name: &str,
+) -> Option<&'a crate::raw::Field<raw::Cell>> {
     fields
         .iter()
         .position(|f| f == name)
@@ -51,24 +57,41 @@ fn cell<'a>(fields: &[String], row: &'a [Option<raw::Cell>], name: &str) -> Opti
 }
 fn number(
     fields: &[String],
-    row: &[Option<raw::Cell>],
+    row: &[Option<crate::raw::Field<raw::Cell>>],
     name: &str,
-) -> Result<Option<FiniteNumber>, BadReply> {
-    cell(fields, row, name).map(raw::Cell::number).transpose()
+    problems: &mut crate::mapped::Problems,
+) -> Result<Option<biodata::WithUnit<FiniteNumber>>, BadReply> {
+    let unit = match name {
+        "rate" | "rate_se" | "rate_lower_ci" | "rate_upper_ci" => "per 100,000 people",
+        _ => "%",
+    }
+    .parse()
+    .map_err(|_| BadReply)?;
+    Ok(problems.optional(
+        name,
+        cell(fields, row, name).map(|cell| {
+            Ok::<_, BadReply>(biodata::WithUnit {
+                value: cell.as_ref().ok_or(BadReply)?.number()?,
+                unit: Some(unit),
+            })
+        }),
+    ))
 }
 fn observed(
     fields: &[String],
-    row: &[Option<raw::Cell>],
+    row: &[Option<crate::raw::Field<raw::Cell>>],
     measure: &str,
+    problems: &mut crate::mapped::Problems,
 ) -> Result<Option<StatisticEstimate>, BadReply> {
     let estimate = StatisticEstimate {
-        value: number(fields, row, measure)?,
-        standard_error: number(fields, row, &format!("{measure}_se"))?,
-        lower_ci: number(fields, row, &format!("{measure}_lower_ci"))?,
-        upper_ci: number(fields, row, &format!("{measure}_upper_ci"))?,
-        count: cell(fields, row, "count")
-            .map(raw::Cell::integer)
-            .transpose()?,
+        value: number(fields, row, measure, problems)?,
+        standard_error: number(fields, row, &format!("{measure}_se"), problems)?,
+        lower_ci: number(fields, row, &format!("{measure}_lower_ci"), problems)?,
+        upper_ci: number(fields, row, &format!("{measure}_upper_ci"), problems)?,
+        count: problems.optional(
+            "count",
+            cell(fields, row, "count").map(|v| v.as_ref().ok_or(BadReply)?.integer()),
+        ),
     };
     Ok(
         if estimate.value.is_none()
@@ -86,7 +109,7 @@ fn observed(
 pub(super) fn rows(
     document: raw::Document,
     query: &Selection,
-) -> Result<(Vec<DiseaseStatistic>, Vec<Problem>), BadReply> {
+) -> Result<(Vec<Option<DiseaseStatistic>>, Vec<Problem>), BadReply> {
     let requested = requested(query)?;
     let mut problems = vec![
         problem(Source::Seer, None, "dataset_membership"),
@@ -116,28 +139,48 @@ pub(super) fn rows(
         returned.push(selector("year_range", &series.year_range.to_string())?);
         mismatches(&requested, &returned, &mut problems);
         for row in series.data_series {
-            let modeled = number(&document.info.fields, &row, "modeled_rel_rate")?.map(|value| {
-                StatisticEstimate {
+            let mut fields = crate::mapped::Problems {
+                source: Source::Seer,
+                record: crate::mapped::record(&key),
+                list: Vec::new(),
+            };
+            let modeled = number(&document.info.fields, &row, "modeled_rel_rate", &mut fields)?
+                .map(|value| StatisticEstimate {
                     value: Some(value),
                     standard_error: None,
                     lower_ci: None,
                     upper_ci: None,
                     count: None,
+                });
+            let year = if document.info.fields.iter().any(|v| v == "year") {
+                let year = fields.required("year", cell(&document.info.fields, &row, "year"));
+                let year =
+                    fields.optional("year", year.map(|v| v.as_ref().ok_or(BadReply)?.year()));
+                if year.is_none() {
+                    rows.push(None);
+                    problems.extend(fields.list);
+                    continue;
                 }
-            });
-            let year = cell(&document.info.fields, &row, "year")
-                .map(|c| u32::try_from(c.integer()?).map_err(|_| BadReply))
-                .transpose()?;
-            rows.push(DiseaseStatistic {
+                year
+            } else {
+                None
+            };
+            rows.push(Some(DiseaseStatistic {
                 requested_site: query.site.clone(),
                 requested_selectors: requested.clone(),
                 returned_selectors: returned.clone().into(),
                 year,
                 measure: document.info.measure.parse().map_err(|_| BadReply)?,
-                observed: observed(&document.info.fields, &row, &document.info.measure)?,
+                observed: observed(
+                    &document.info.fields,
+                    &row,
+                    &document.info.measure,
+                    &mut fields,
+                )?,
                 modeled,
                 attribution: attribution(&key)?,
-            });
+            }));
+            problems.extend(fields.list);
         }
     }
     Ok((rows, problems))
@@ -160,4 +203,27 @@ fn mismatches(
             }
         }
     }
+}
+
+pub(super) fn identities_admitted(document: &raw::Document) -> bool {
+    let mut received = 0;
+    let mut accepted = 0;
+    let mut refusals = crate::Refusal::None;
+    for row in document
+        .data
+        .iter()
+        .flat_map(|(_, series)| &series.data_series)
+    {
+        received += 1;
+        if !document.info.fields.iter().any(|field| field == "year")
+            || cell(&document.info.fields, row, "year")
+                .and_then(crate::raw::Field::as_ref)
+                .is_some_and(|value| value.year().is_ok())
+        {
+            accepted += 1;
+        } else {
+            refusals = crate::Refusal::Refused;
+        }
+    }
+    refusals.identities_admitted(accepted, received)
 }

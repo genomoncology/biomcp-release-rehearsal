@@ -2,27 +2,24 @@ use crate::{FiniteNumber, Text};
 use serde::{Deserialize, Serialize};
 /// HPA tissue RNA abundance in normalized transcripts per million.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct TissueNtpm {
     /// Exact source tissue name.
     pub tissue: Text,
     /// Finite nonnegative nTPM.
-    pub ntpm: RnaAbundance,
+    pub ntpm: biodata::WithUnit<RnaAbundance, RnaUnit>,
 }
 /// HPA cancer RNA abundance in protein-coding transcripts per million.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CancerPtpm {
     /// Exact source cancer tissue name.
     pub tissue: Text,
     /// Finite nonnegative pTPM.
-    pub ptpm: RnaAbundance,
+    pub ptpm: biodata::WithUnit<RnaAbundance, RnaUnit>,
 }
 /// Gene-level HPA expression and subcellular annotations.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct GeneExpression {
     /// Source RNA tissue specificity.
@@ -55,16 +52,28 @@ pub struct GeneExpression {
 #[cfg_attr(feature = "schema", schemars(with = "f64", extend("minimum" = 0)))]
 pub struct RnaAbundance(FiniteNumber);
 impl TryFrom<f64> for RnaAbundance {
-    type Error = crate::FiniteNumberError;
+    type Error = biodata::Error;
     fn try_from(value: f64) -> Result<Self, Self::Error> {
         if value < 0.0 {
-            return Err(crate::FiniteNumberError);
+            return Err(biodata::Error::NumberNonFinite);
         }
-        FiniteNumber::try_from(value).map(Self)
+        FiniteNumber::try_from(value)
+            .map(Self)
+            .map_err(|_| biodata::Error::NumberNonFinite)
     }
 }
 impl From<RnaAbundance> for f64 {
     fn from(value: RnaAbundance) -> Self {
         value.0.into()
     }
+}
+
+biodata::wire_enum! {
+/// Publisher RNA abundance units.
+RnaUnit {
+    /// Normalized transcripts per million.
+    Ntpm => "nTPM",
+    /// Protein-coding transcripts per million.
+    Ptpm => "pTPM",
+}
 }

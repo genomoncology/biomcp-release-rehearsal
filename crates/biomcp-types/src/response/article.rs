@@ -10,8 +10,9 @@ pub use supplement::{
 };
 /// Stable identity independent of whether citation metadata was accepted.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "namespace", content = "id", rename_all = "snake_case")]
+#[serde(tag = "namespace", content = "id", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(extend("x-identifier" = true)))]
 pub enum ArticleKey {
     /// PubMed identity.
     Pubmed(Pmid),
@@ -26,7 +27,6 @@ pub enum ArticleKey {
 }
 /// One original pool position, including a summary hole.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleItem {
     /// Stable checked paper identity when the provider supplies one.
@@ -61,7 +61,6 @@ pub struct ArticleItem {
 }
 /// A slice of the stored article source order.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticlePage {
     /// Original ordered items.
@@ -72,13 +71,12 @@ pub struct ArticlePage {
     pub candidates: Vec<LitVarCandidate>,
 }
 impl super::ResponseBody for ArticlePage {
-    const SCHEMA: &'static str = "biomcp.article-page/4";
+    const SCHEMA: &'static str = "biomcp.article-page/9";
     type Query = ArticleSearch;
 }
 
 /// A page of citing or referenced papers in citation order.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleEdgePage {
     /// Papers in the fixed edge pool.
@@ -86,7 +84,7 @@ pub struct ArticleEdgePage {
     pub items: Box<[ArticleEdgeItem]>,
 }
 impl super::ResponseBody for ArticleEdgePage {
-    const SCHEMA: &'static str = "biomcp.article-edges/5";
+    const SCHEMA: &'static str = "biomcp.article-edges/10";
     type Query = crate::ArticleEdges;
 }
 
@@ -107,7 +105,6 @@ biodata::canonical_enum! {
 
 /// Public LitVar2 autocomplete candidate, without a clinical ranking claim.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct LitVarCandidate {
     /// Source rsID, when the source associates one with this variant.
@@ -117,10 +114,12 @@ pub struct LitVarCandidate {
     /// Source gene symbols.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub gene: Vec<crate::Text>,
-    /// Source variant name.
-    pub name: crate::Text,
-    /// Number of associated publications reported by LitVar2.
-    pub count: u64,
+    /// Source variant name, when independently admitted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<crate::Text>,
+    /// Number of associated publications reported by LitVar2, without inferred totals.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub count: Option<u64>,
 }
 
 mod evidence;
@@ -130,12 +129,12 @@ pub use evidence::{
 };
 /// Source-provided sentence resemblance, without a claim of clinical relevance.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleSentence {
     /// Source section, when present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub section: Option<crate::Text>,
     /// Source sentence text.
-    pub text: crate::Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<crate::Text>,
 }

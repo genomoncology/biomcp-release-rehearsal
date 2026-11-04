@@ -4,6 +4,8 @@
     clippy::disallowed_methods,
     reason = "Local HTTP fixtures and scoped callers exercise public transport modes"
 )]
+use biomcp_fetch::{Input, Read};
+
 mod support;
 use biomcp_fetch::{
     Arg, Fetch, FetchConfig, KeyUse, Mode, Quota, Rate, RecordError, RequestError, SourceKey,
@@ -33,7 +35,8 @@ fn fetch(mode: Mode) -> Fetch {
 fn get(fetch: &Fetch, spec: &'static SourceSpec) -> Result<Answer, RequestError> {
     fetch
         .leg(spec, fetch.deadline(Duration::from_secs(10)))
-        .json(&spec.get("/answer"), &[])
+        .call(&spec.get("/answer"), Input::Params(&[]), Read::json())
+        .map(|received| received.value)
 }
 fn file(dir: &Path) -> std::path::PathBuf {
     std::fs::read_dir(dir.join("pubmed"))
@@ -67,7 +70,7 @@ fn repeated_key_consumes_ordered_replies_and_never_opens_replay_http() {
     let restricted = replay.restrict_sources([biomcp_types::Source::Oncokb].into());
     assert!(
         matches!(restricted.leg(spec, replay.deadline(Duration::from_secs(10)))
-            .json::<Answer>(&spec.get("/answer"), &[]),
+            .call(&spec.get("/answer"), Input::Params(&[]), Read::<Answer>::json()).map(|received| received.value),
             Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::BadReply)
     );
     assert_eq!(
@@ -77,7 +80,11 @@ fn repeated_key_consumes_ordered_replies_and_never_opens_replay_http() {
     assert!(server.requests.try_recv().is_err());
     let error = replay
         .leg(spec, replay.deadline(Duration::from_secs(10)))
-        .json::<Answer>(&spec.get("/answer"), &[("other", Arg::Num(1))])
+        .call(
+            &spec.get("/answer"),
+            Input::Params(&[("other", Arg::Num(1))]),
+            Read::<Answer>::json(),
+        )
         .unwrap_err();
     assert_eq!(error, RequestError::Recording(RecordError::Missing));
 }
@@ -163,9 +170,14 @@ fn replay_advances_long_response_and_retry_delays_and_enforces_each_leg_budget()
     let clock = replay.deadline(Duration::from_secs(1000));
     let leg = replay.leg(original, clock);
     assert!(
-        leg.json::<Answer>(&original.get("/answer"), &[])
-            .unwrap()
-            .answer
+        leg.call(
+            &original.get("/answer"),
+            Input::Params(&[]),
+            Read::<Answer>::json()
+        )
+        .map(|received| received.value)
+        .unwrap()
+        .answer
     );
     assert_eq!(leg.remaining(), Duration::from_secs(640));
     assert!(server.requests.try_recv().is_err());
@@ -174,9 +186,12 @@ fn replay_advances_long_response_and_retry_delays_and_enforces_each_leg_budget()
     });
     let clock = replay.deadline(Duration::from_secs(1000));
     let leg = replay.leg(original, clock);
-    assert!(
-        matches!(leg.json::<Answer>(&original.get("/answer"), &[]), Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::DeadlineExceeded)
-    );
+    assert!(matches!(leg
+.call(&original.get("/answer"),
+Input::Params(&[]),
+Read::<Answer>::json())
+.map(|received| received.value),
+Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::DeadlineExceeded));
     assert_eq!(leg.remaining(), Duration::ZERO);
     assert!(get(&replay, original).unwrap().answer);
 }
@@ -199,7 +214,12 @@ fn capture_numbers(server: &Server, spec: &'static SourceSpec, dir: &Path) {
                 scope.spawn(|| {
                     recording
                         .leg(spec, recording.deadline(Duration::from_secs(10)))
-                        .json::<Number>(&spec.get("/answer"), &[])
+                        .call(
+                            &spec.get("/answer"),
+                            Input::Params(&[]),
+                            Read::<Number>::json(),
+                        )
+                        .map(|received| received.value)
                         .unwrap()
                         .value
                 })
@@ -215,7 +235,11 @@ fn capture_numbers(server: &Server, spec: &'static SourceSpec, dir: &Path) {
             .map(|worker| worker.join().unwrap())
             .collect();
         numbers.sort();
-        assert_eq!(numbers, (0..8).collect::<Vec<_>>());
+        assert_eq!(
+            numbers,
+            (0..8).collect::<Vec<_>>(),
+            "Capture must preserve finite numeric request values"
+        );
     });
     drop(recording);
 }
@@ -241,7 +265,15 @@ fn concurrent_same_key_reserves_each_exchange_once_and_shares_virtual_quota() {
             .map(|_| {
                 scope.spawn(|| {
                     let leg = replay.leg(slow, clock);
-                    let value = leg.json::<Number>(&slow.get("/answer"), &[]).unwrap().value;
+                    let value = leg
+                        .call(
+                            &slow.get("/answer"),
+                            Input::Params(&[]),
+                            Read::<Number>::json(),
+                        )
+                        .map(|received| received.value)
+                        .unwrap()
+                        .value;
                     (value, leg.remaining())
                 })
             })
@@ -325,6 +357,7 @@ fn capture_keeps_retry_status_headers_and_rejected_json_without_credentials() {
     let dir = tempfile::tempdir().unwrap();
     let server = Server::new();
     let credential = biomcp_fetch::Credential {
+        tier: biomcp_types::KeyTier::Fallback,
         secret: biomcp_fetch::SecretName::NcbiApiKey,
         place: biomcp_fetch::KeyPlace::Query("api_key"),
     };
@@ -421,14 +454,24 @@ fn independent_virtual_leg_budgets_reject_foreign_clock_domains_before_recording
     let second = replay.leg(other, budget);
     assert!(
         first
-            .json::<Answer>(&spec.get("/answer"), &[])
+            .call(
+                &spec.get("/answer"),
+                Input::Params(&[]),
+                Read::<Answer>::json()
+            )
+            .map(|received| received.value)
             .unwrap()
             .answer
     );
     assert_eq!(first.remaining(), Duration::from_secs(4));
     assert!(
         second
-            .json::<Answer>(&other.get("/answer"), &[])
+            .call(
+                &other.get("/answer"),
+                Input::Params(&[]),
+                Read::<Answer>::json()
+            )
+            .map(|received| received.value)
             .unwrap()
             .answer
     );
@@ -443,13 +486,15 @@ fn independent_virtual_leg_budgets_reject_foreign_clock_domains_before_recording
         foreign.deadline(Duration::from_secs(10)),
     ] {
         assert!(matches!(replay.leg(spec,
-wrong).json::<Answer>(&spec.get("/answer"),
- &[]),
+wrong).call(&spec.get("/answer"), Input::Params(&[]), Read::<Answer>::json()).map(|received| received.value),
  Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::Rejected));
     }
-    assert!(
-        matches!(live.leg(spec,budget).json::<Answer>(&spec.get("/answer"), &[]), Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::Rejected)
-    );
+    assert!(matches!(live.leg(spec,budget)
+.call(&spec.get("/answer"),
+Input::Params(&[]),
+Read::<Answer>::json())
+.map(|received| received.value),
+Err(RequestError::Source(e)) if e.reason == biomcp_types::Reason::Rejected));
     assert!(server.requests.try_recv().is_err());
 }
 
@@ -467,6 +512,11 @@ fn cut_binary_body_never_returns_partial_bytes() {
 }
 
 #[test]
+fn bounded_json_overflow_preserves_existing_reader_errors() {
+    bytes::only_bounded_json_reports_typed_overflow();
+}
+
+#[test]
 fn head_metadata_capture_never_reads_the_object_or_collides_with_get() {
     let dir = tempfile::tempdir().unwrap();
     let server = Server::new();
@@ -477,7 +527,8 @@ fn head_metadata_capture_never_reads_the_object_or_collides_with_get() {
     thread::scope(|scope| {
         let worker = scope.spawn(|| {
             let leg = capture.leg(spec, capture.deadline(Duration::from_secs(10)));
-            leg.probe(&spec.head("/answer"), &[]).unwrap();
+            leg.probe(&spec.head("/answer"), biomcp_fetch::Input::Params(&[]))
+                .unwrap();
             get(&capture, spec).unwrap();
         });
         let request = server.next();
@@ -494,7 +545,7 @@ fn head_metadata_capture_never_reads_the_object_or_collides_with_get() {
     assert!(get(&replay, spec).unwrap().answer);
     replay
         .leg(spec, replay.deadline(Duration::from_secs(10)))
-        .probe(&spec.head("/answer"), &[])
+        .probe(&spec.head("/answer"), biomcp_fetch::Input::Params(&[]))
         .unwrap();
     assert!(server.requests.try_recv().is_err());
     let path = std::fs::read_dir(dir.path().join("pubmed"))
@@ -522,9 +573,15 @@ fn head_metadata_capture_never_reads_the_object_or_collides_with_get() {
         assert_eq!(
             replay
                 .leg(spec, replay.deadline(Duration::from_secs(10)))
-                .probe(&spec.head("/answer"), &[])
+                .probe(&spec.head("/answer"), biomcp_fetch::Input::Params(&[]))
                 .unwrap_err(),
             RequestError::Recording(RecordError::Malformed)
         );
     }
 }
+
+#[path = "record/metadata.rs"]
+mod metadata;
+
+#[path = "record/errors.rs"]
+mod errors;

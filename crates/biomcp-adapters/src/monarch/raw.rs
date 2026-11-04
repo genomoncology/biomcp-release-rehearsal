@@ -1,3 +1,4 @@
+use crate::native_text::NativeText;
 use biodata::{Curie, FiniteNumber, Text};
 use biomcp_fetch::{BadReply, Reply};
 use serde::Deserialize;
@@ -7,6 +8,21 @@ pub(super) struct Page {
     pub offset: u32,
     pub total: u64,
     pub items: Vec<Row>,
+}
+impl Page {
+    pub(super) fn identities_admitted(&self) -> bool {
+        let accepted = self
+            .items
+            .iter()
+            .filter(|row| row.identity_admitted())
+            .count();
+        let refusals = if accepted < self.items.len() {
+            crate::Refusal::Refused
+        } else {
+            crate::Refusal::None
+        };
+        refusals.identities_admitted(accepted, self.items.len())
+    }
 }
 impl Reply for Page {
     fn check(&self) -> Result<(), BadReply> {
@@ -20,18 +36,19 @@ impl Reply for Page {
     }
 }
 #[derive(Debug, Deserialize)]
+#[serde(from = "super::receive::ReceivedRow")]
 pub(super) struct Row {
-    pub id: Text,
-    pub subject: Curie,
+    pub problems: Vec<biomcp_types::Problem>,
+    pub id: Option<Text>,
+    pub subject: Option<Curie>,
     pub subject_taxon: Option<Curie>,
-    pub subject_label: Text,
-    pub predicate: Curie,
-    pub object: Curie,
-    pub object_label: Text,
+    pub subject_label: Option<biodata::Text>,
+    pub predicate: Option<Curie>,
+    pub object: Option<Curie>,
+    pub object_label: Option<biodata::Text>,
     pub original_subject: Option<Curie>,
     pub original_object: Option<Curie>,
     pub primary_knowledge_source: Option<Curie>,
-    #[serde(flatten)]
     pub aggregators: super::presence::Aggregators,
     pub provided_by: Option<Text>,
     pub provided_by_link: Option<Link>,
@@ -46,17 +63,17 @@ pub(super) struct Row {
     pub evidence_count: Option<u64>,
     pub qualifiers: Option<Box<[Curie]>>,
     pub frequency_qualifier: Option<Curie>,
-    pub frequency_qualifier_label: Option<Text>,
+    pub frequency_qualifier_label: Option<NativeText>,
     pub onset_qualifier: Option<Curie>,
-    pub onset_qualifier_label: Option<Text>,
+    pub onset_qualifier_label: Option<NativeText>,
     pub sex_qualifier: Option<Curie>,
-    pub sex_qualifier_label: Option<Text>,
+    pub sex_qualifier_label: Option<NativeText>,
     pub disease_context_qualifier: Option<Curie>,
-    pub disease_context_qualifier_label: Option<Text>,
+    pub disease_context_qualifier_label: Option<NativeText>,
     pub species_context_qualifier: Option<Curie>,
-    pub species_context_qualifier_label: Option<Text>,
+    pub species_context_qualifier_label: Option<NativeText>,
     pub stage_qualifier: Option<Curie>,
-    pub stage_qualifier_label: Option<Text>,
+    pub stage_qualifier_label: Option<NativeText>,
     pub negated: Option<bool>,
     pub has_count: Option<u64>,
     pub has_total: Option<u64>,
@@ -65,13 +82,21 @@ pub(super) struct Row {
     pub subject_closure: Option<Box<[Curie]>>,
     pub object_closure: Option<Box<[Curie]>>,
 }
+impl Row {
+    pub(super) fn identity_admitted(&self) -> bool {
+        self.id.is_some()
+            && self.subject.is_some()
+            && self.object.is_some()
+            && self.predicate.is_some()
+    }
+}
 #[derive(Debug, Deserialize)]
 pub(super) struct Link {
-    pub url: Text,
+    pub url: Option<crate::raw::Field<Text>>,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Reference {
     pub id: Curie,
-    pub label: Option<Text>,
-    pub url: Option<Text>,
+    pub label: Option<crate::raw::Field<NativeText>>,
+    pub url: Option<crate::raw::Field<Text>>,
 }

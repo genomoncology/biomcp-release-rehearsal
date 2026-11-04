@@ -8,7 +8,12 @@ type Rows = (
     Option<Box<[PhenotypeXref]>>,
     Option<Box<[PhenotypeHierarchyLink]>>,
 );
-pub(super) fn rows(node: &raw::Node, attribution: &Attribution) -> Rows {
+pub(super) fn rows(
+    node: &mut raw::Node,
+    attribution: &Attribution,
+    problems: &mut crate::mapped::Problems,
+    refusals: &mut crate::Refusal,
+) -> Rows {
     let mut synonyms = Vec::new();
     let mut available = false;
     for (rows, relationship) in [
@@ -36,23 +41,31 @@ pub(super) fn rows(node: &raw::Node, attribution: &Attribution) -> Rows {
             })
             .collect()
     });
-    let hierarchy = node.node_hierarchy.as_ref().and_then(|hierarchy| {
+    let hierarchy = node.node_hierarchy.take().and_then(|hierarchy| {
         if hierarchy.super_classes.is_none() && hierarchy.sub_classes.is_none() {
             return None;
         }
         let mut links = Vec::new();
-        for (rows, relation) in [
-            (&hierarchy.super_classes, PhenotypeHierarchyRelation::Parent),
-            (&hierarchy.sub_classes, PhenotypeHierarchyRelation::Child),
+        for (field, rows, relation) in [
+            (
+                "node_hierarchy.super_classes",
+                hierarchy.super_classes,
+                PhenotypeHierarchyRelation::Parent,
+            ),
+            (
+                "node_hierarchy.sub_classes",
+                hierarchy.sub_classes,
+                PhenotypeHierarchyRelation::Child,
+            ),
         ] {
-            links.extend(rows.as_deref().unwrap_or_default().iter().map(|row| {
-                PhenotypeHierarchyLink {
-                    id: row.id.clone(),
-                    label: row.name.clone(),
+            for row in problems.records(field, rows, refusals) {
+                links.push(PhenotypeHierarchyLink {
+                    id: row.id,
+                    label: problems.required_field(&format!("{field}.name"), row.name),
                     relation,
                     attribution: attribution.clone(),
-                }
-            }));
+                });
+            }
         }
         Some(links.into())
     });

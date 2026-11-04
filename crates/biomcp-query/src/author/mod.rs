@@ -1,35 +1,17 @@
 //! Provider-record author search and independent exact cards.
 mod get;
+mod next;
 mod orcid;
 mod papers;
-pub use papers::papers;
-mod papers_snapshot;
+pub(crate) use papers::papers;
 mod search;
 mod semantic_scholar;
-mod snapshot;
+use crate::next::run;
+pub(super) use crate::status::empty;
 use crate::{Action, Outcome};
-use biomcp_types::{
-    Problem, ProblemCode, QueryBody, Reason, Request, Source, SourceState, Status, StepKind,
-};
-pub use get::get;
-pub use search::search;
-fn empty(body: QueryBody) -> Outcome {
-    Outcome {
-        status: Status::Failed,
-        body,
-        page: None,
-        sources: vec![],
-        problems: vec![],
-        next: vec![],
-        local: None,
-    }
-}
-fn run(request: Request) -> Action {
-    Action::Run {
-        request,
-        fresh: false,
-    }
-}
+use biomcp_types::{Problem, ProblemCode, Reason, Request, Source, SourceState, StepKind};
+pub(crate) use get::get;
+pub(crate) use search::search;
 fn recovery(cx: &crate::Ctx<'_>, out: &mut Outcome, request: Request) {
     retry(out, request);
     key_recovery(cx, out);
@@ -50,12 +32,14 @@ fn retry(out: &mut Outcome, request: Request) {
         .iter()
         .any(|s| matches!(s.state, SourceState::Failed | SourceState::Stale))
     {
-        out.next.push((
+        out.next.push(crate::next::Step::run(
             StepKind::Fresh,
-            Action::Run {
-                request,
-                fresh: true,
-            },
+            &out.sources
+                .iter()
+                .map(|source| source.source)
+                .collect::<Vec<_>>(),
+            request,
+            true,
         ));
     }
 }
@@ -72,12 +56,22 @@ fn key_recovery(cx: &crate::Ctx<'_>, out: &mut Outcome) {
     }
 }
 fn key_step(out: &mut Outcome) {
-    if !out.next.iter().any(|(kind, _)| *kind == StepKind::Key) {
-        out.next
-            .push((StepKind::Key, Action::KeyHelp(Source::SemanticScholar)));
+    if !out.next.iter().any(|step| step.0 == StepKind::Key) {
+        out.next.push(crate::next::Step::new(
+            StepKind::Key,
+            &[Source::SemanticScholar],
+            Action::KeyHelp(biomcp_fetch::SecretName::SemanticScholarApiKey),
+        ));
     }
 }
 
 fn source_error(error: Option<biomcp_fetch::RequestError>) -> Option<biomcp_fetch::RequestError> {
     error.filter(|error| !matches!(error, biomcp_fetch::RequestError::Source(error) if error.reason == Reason::NotFound))
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct NativePages<P> {
+    pages: Vec<P>,
+    source: biomcp_types::SourceOutcome,
+    key_needed: bool,
 }

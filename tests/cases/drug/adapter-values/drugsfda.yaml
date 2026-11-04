@@ -1,0 +1,29 @@
+{
+  "feature": "drug-approvals",
+  "live_check": "synthetic",
+  "story": "One mechanically poisoned nonidentity value retains the native record and names the omitted field.",
+  "replay": "drugsfda/adapter-values",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "BLA761445",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/result/identity/id": "BLA761445",
+        "/result/approvals/data/records/0/event/attribution": {
+          "omits": [
+            "submitter"
+          ]
+        },
+        "/problems/*/field": [
+          "sponsor_name"
+        ]
+      }
+    }
+  ]
+}

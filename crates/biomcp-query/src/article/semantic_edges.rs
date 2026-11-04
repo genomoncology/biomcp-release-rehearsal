@@ -2,8 +2,8 @@
 use crate::{Action, Ctx, Outcome, status};
 
 use biomcp_adapters::semantic_scholar;
-use biomcp_fetch::{Deadline, RequestError, SourceError};
-use biomcp_types::{ArticleEdges, ArticleItem, Reason, Source, Status, StepKind};
+use biomcp_fetch::{Deadline, RequestError};
+use biomcp_types::{ArticleEdges, ArticleItem, Reason, Source, StepKind};
 pub(super) fn create<'a>(
     cx: &Ctx<'a>,
     query: &ArticleEdges,
@@ -19,7 +19,13 @@ pub(super) fn create<'a>(
         .leg(&semantic_scholar::SPEC, *deadline)
         .fresh(cx.fresh);
     let started = leg.remaining();
-    let result = collect(&leg, &input, references);
+    let result = collect(
+        &leg,
+        &input,
+        references,
+        &mut out.problems,
+        &mut out.dropped,
+    );
     *deadline = super::consume(*deadline, started, leg.remaining());
     let error = result.as_ref().err().copied();
     let mut source = status::source(Source::SemanticScholar, leg.finish(), error);
@@ -32,7 +38,7 @@ pub(super) fn create<'a>(
         Ok(value) => value,
         Err(error) => {
             out.sources.push(source);
-            out.status = Status::Failed;
+            crate::status::item(out, false, true, false);
             failure(query, references, out);
             return if status::local(error).is_some() {
                 Err(error)
@@ -42,7 +48,7 @@ pub(super) fn create<'a>(
         }
     };
     source.count = (!truncated).then_some(count);
-    source.fetched = Some(count as u32);
+    source.retrieved_count = Some(count as u32);
     if truncated {
         source
             .notices
@@ -53,7 +59,7 @@ pub(super) fn create<'a>(
                     "article citations <PMID> --source icite"
                 }
                 .parse()
-                .map_err(|_| biomcp_fetch::CacheError::Database)?,
+                .map_err(|_| biomcp_fetch::CacheError::Internal)?,
             });
     }
     out.sources.push(source);
@@ -90,6 +96,8 @@ fn collect(
     leg: &biomcp_fetch::Leg<'_>,
     input: &biomcp_types::ArticleInput,
     references: bool,
+    problems: &mut Vec<biomcp_types::Problem>,
+    dropped: &mut bool,
 ) -> Result<Window, RequestError> {
     let mut offset = None;
     let mut items = Vec::new();
@@ -97,6 +105,8 @@ fn collect(
     let mut count = 0;
     for _ in 0..5 {
         let reply = semantic_scholar::edges(leg, input, references, offset)?;
+        *dropped |= reply.refusals == biomcp_adapters::Refusal::Refused;
+        problems.extend(reply.problems);
         count += reply.data.len() as u64;
         for edge in reply.data {
             let paper = if references {
@@ -110,7 +120,9 @@ fn collect(
                     .and_then(|paper| paper.external_ids.as_ref())
                     .and_then(|ids| ids.doi.clone()),
             );
-            let item = edge.item(references).map_err(|_| bad_reply())?;
+            let item = edge
+                .item(references, problems)
+                .map_err(|_| biomcp_fetch::bad_reply(Source::SemanticScholar, None))?;
             items.push(item);
         }
         match reply.next {
@@ -123,7 +135,7 @@ fn collect(
                 });
             }
             Some(next) if next > offset.unwrap_or(0) => offset = Some(next),
-            Some(_) => return Err(bad_reply()),
+            Some(_) => return Err(biomcp_fetch::bad_reply(Source::SemanticScholar, None)),
         }
     }
     Ok(Window {
@@ -133,34 +145,28 @@ fn collect(
         dois,
     })
 }
-fn bad_reply() -> RequestError {
-    SourceError {
-        source: Source::SemanticScholar,
-        reason: Reason::BadReply,
-        status: None,
-        retry_after: None,
-    }
-    .into()
-}
+
 fn failure(query: &ArticleEdges, references: bool, out: &mut Outcome) {
     if out
         .sources
         .iter()
         .any(|s| s.source == Source::SemanticScholar && s.reason == Some(Reason::RateLimited))
     {
-        out.next
-            .push((StepKind::Key, Action::KeyHelp(Source::SemanticScholar)));
+        out.next.push(crate::next::Step::new(
+            StepKind::Key,
+            &[biomcp_types::Source::SemanticScholar],
+            Action::KeyHelp(biomcp_fetch::SecretName::SemanticScholarApiKey),
+        ));
     }
-    out.next.push((
+    out.next.push(crate::next::Step::run(
         StepKind::Fresh,
-        Action::Run {
-            request: if references {
-                biomcp_types::Request::ArticleReferences(query.page(0, None))
-            } else {
-                biomcp_types::Request::ArticleCitations(query.page(0, None))
-            },
-            fresh: true,
+        &[biomcp_types::Source::SemanticScholar],
+        if references {
+            biomcp_types::Request::ArticleReferences(query.page(0, None))
+        } else {
+            biomcp_types::Request::ArticleCitations(query.page(0, None))
         },
+        true,
     ));
 }
 
@@ -199,7 +205,7 @@ fn resolve_input<'a>(
     };
     out.sources.push(source);
     if input.is_none() {
-        out.status = Status::Failed;
+        crate::status::item(out, false, true, false);
         failure(query, references, out);
     }
     Ok(input)

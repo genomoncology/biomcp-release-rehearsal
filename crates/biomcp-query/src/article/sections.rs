@@ -108,7 +108,10 @@ pub(super) fn run<'a>(
     if selected(query, ArticleSectionWord::Pdf) {
         pdf::run(cx, deadline, out);
     }
-    let biomcp_types::QueryBody::ArticleCards(cards) = &mut out.body else {
+    let biomcp_types::ReplyData::ArticleCards {
+        body: Some(cards), ..
+    } = &mut out.body
+    else {
         return;
     };
     let ids = annotations::ids(&cards.items);
@@ -119,7 +122,8 @@ pub(super) fn run<'a>(
         let result = annotations::run(cx, deadline, &ids);
         annotations::join(&mut cards.items, &result);
         out.local = out.local.or(result.local);
-        out.status = status::status(cards.items.iter().map(|i| i.status));
+        let state = status::status(cards.items.iter().map(|i| i.status));
+        status::get(out, [state].into_iter());
         status::append(&mut out.problems, result.problems);
         out.sources.push(result.source);
     }

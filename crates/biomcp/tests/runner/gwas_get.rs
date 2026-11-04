@@ -1,38 +1,25 @@
 //! Feature gwas-get: exact records and retained independent context pages.
+use super::required_contract;
 use super::{configuration::invoke, gwas_budgets, launch::Environment, network_stub::Stub};
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
-mod failures;
-mod native;
-mod state;
+
 mod synthetic;
 pub(super) fn trials() -> Vec<Trial> {
-    let mut trials = vec![
-        Trial::test("gwas-get/exact-identities-and-no-cache-admission", || {
-            synthetic::identity().map_err(Into::into)
-        }),
-        Trial::test("gwas-get/ancestry-walk-ownership-and-source-policy", || {
+    // The test removes replay input before ancestry continuations and counts real loci/study peer requests.
+    vec![
+        transcript_trial(required_contract::GWAS_ANCESTRY.0, || {
             synthetic::ancestry().map_err(Into::into)
         }),
-        Trial::test("gwas-get/loci-and-native-study-page-actions", || {
+        transcript_trial(required_contract::GWAS_ASSOCIATIONS.0, || {
             synthetic::contexts().map_err(Into::into)
         }),
-        Trial::test("gwas-get/retained-native-records-and-costs", || {
-            native::run().map_err(Into::into)
-        })
-        .with_ignored_flag(
-            !super::launch::fixtures()
-                .join("gwas-get-native/input.json")
-                .is_file(),
-        ),
-    ];
-    trials.extend(failures::trials());
-    trials.extend(state::trials());
-    trials
+    ]
 }
 const BASE: &str = "https://www.ebi.ac.uk/gwas/rest/api/v2";
 fn card() -> Value {
@@ -124,9 +111,14 @@ fn seed(
         let mut recording: Value =
             serde_json::from_slice(&fs::read(entry.path()).map_err(|e| e.to_string())?)
                 .map_err(|e| e.to_string())?;
+        let acquired = recording
+            .pointer("/exchanges/0/fetched")
+            .and_then(Value::as_i64)
+            .ok_or("recording acquisition")?;
         let exchange = json!({"status":status,"content_type":"application/json","delay_ms":delay,"retry_after_ms":null,"body":{"kind":"text","value":body}});
         *recording.get_mut("exchanges").ok_or("exchanges")? =
             json!([exchange.clone(), exchange.clone(), exchange]);
+        super::response_cases::cache_acquisition(&mut recording, acquired);
         fs::write(directory.join(entry.file_name()), recording.to_string())
             .map_err(|e| e.to_string())?;
     }

@@ -2,6 +2,7 @@
 use super::{GENES, variant_map as map, variant_raw as raw};
 use crate::Mapped;
 use biodata::{Text, VariantId};
+use biomcp_fetch::Input;
 
 use biomcp_fetch::{Leg, RequestError};
 use biomcp_types::{
@@ -46,12 +47,17 @@ pub fn variant(
     let mut partial = false;
     loop {
         let body = request(query, &allele, after.as_ref());
-        let reply: raw::Profiles =
-            leg.post_json_checked_cache(&GENES, &body, |page: &raw::Profiles| {
-                !page.has_errors()
-                    && page.matches(&allele, query.civic_profile())
-                    && page.progresses(query, after.as_ref())
-            })?;
+        let reply: raw::Profiles = leg
+            .call(
+                &GENES,
+                Input::json(&[], &body),
+                biomcp_fetch::Read::json().cache_if(&|page: &raw::Profiles| {
+                    !page.has_errors()
+                        && page.matches(&allele, query.civic_profile())
+                        && page.progresses(query, after.as_ref())
+                }),
+            )?
+            .value;
         if !reply.progresses(query, after.as_ref()) {
             return Err(failure(Reason::BadReply));
         }
@@ -61,6 +67,10 @@ pub fn variant(
             || offset >= query.section_offset()
             || !connection.page_info.has_next_page
         {
+            let mut connection = connection;
+            if !query.evidence_filter().is_empty() {
+                super::variant_filter::apply(leg, query, &mut connection)?;
+            }
             let mut mapped = map::page(connection, query, &allele)?;
             if partial {
                 mapped.problems.push(biomcp_types::Problem {
@@ -86,6 +96,11 @@ fn request<'a>(query: &'a VariantGet, allele: &'a str, after: Option<&'a Text>) 
         Some(CivicClaimKind::Assertions) => (0, limit),
         None => (limit.min(2), 1),
     };
+    let evidence = if query.evidence_filter().is_empty() {
+        evidence
+    } else {
+        0
+    };
     let (ids_variable, ids_argument) = if query.civic_profile().is_some() {
         (",$ids:[Int!]", ",ids:$ids")
     } else {
@@ -93,22 +108,24 @@ fn request<'a>(query: &'a VariantGet, allele: &'a str, after: Option<&'a Text>) 
     };
     Query {
         query: format!(
-            "query($allele:String!,$after:String{ids_variable},$evidence_after:String,$assertion_after:String){{m\
-                olecularProfiles(alleleRegistryId:$allele{ids_argument},first:1,after:$after){{totalCount \
-                pageInfo{{hasNextPage endCursor}} nodes{{id name link isComplex variants{{id name link \
-                feature{{name}} ... on GeneVariant{{alleleRegistryId hgvsDescriptions}}}} \
+            "query($allele:String!,$after:String{ids_variable},$evidence_after:String,\
+                    $assertion_after:String){{molecularProfiles(alleleRegistryId:$allele{ids_argument},first:1,after:$after){{totalCount \
+                pageInfo{{hasNextPage endCursor}} nodes{{id name rawName link isComplex variants{{id name link \
+                feature{{id name}} ... on GeneVariant{{alleleRegistryId hgvsDescriptions}}}} \
                 evidenceItems(first:{evidence},after:$evidence_after,includeRejected:false){{totalCount \
                 pageInfo{{hasNextPage endCursor}} nodes{{id status evidenceType evidenceLevel evidenceDirection \
-                significance disease{{name doid}} therapies{{name}} source{{citationId sourceType}}}}}} \
+                significance disease{{name doid}} therapies{{name}} therapyInteractionType source{{citationId sourceType}}}}}} \
                 assertions(first:{assertions},after:$assertion_after,includeRejected:false){{totalCount \
                 pageInfo{{hasNextPage endCursor}} nodes{{id status assertionType assertionDirection significance \
-                ampLevel disease{{name doid}} therapies{{name}} variantOrigin}}}}}}}}}}"
+                ampLevel disease{{name doid}} therapies{{name}} therapyInteractionType variantOrigin}}}}}}}}}}"
         ),
         variables: Variables {
             allele,
             after,
             ids: query.civic_profile().map(|id| [id]),
-            evidence_after: if query.civic_kind() == Some(CivicClaimKind::Evidence) {
+            evidence_after: if query.evidence_filter().is_empty()
+                && query.civic_kind() == Some(CivicClaimKind::Evidence)
+            {
                 query.civic_cursor()
             } else {
                 None
@@ -135,6 +152,7 @@ pub(super) fn failure(reason: Reason) -> RequestError {
         source: Source::Civic,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

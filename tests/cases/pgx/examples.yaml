@@ -13,14 +13,6 @@
         "--source",
         "cpic"
       ],
-      "mcp": [
-        "search",
-        "pgx",
-        "--gene",
-        "DPYD",
-        "--source",
-        "cpic"
-      ],
       "expect": {
         "/status": "complete",
         "/query/gene": "DPYD",
@@ -31,18 +23,6 @@
     },
     {
       "run": [
-        "search",
-        "pgx",
-        "--gene",
-        "DPYD",
-        "--source",
-        "cpic",
-        "--limit",
-        "1",
-        "--cpic-level",
-        "B/C"
-      ],
-      "mcp": [
         "search",
         "pgx",
         "--gene",
@@ -70,14 +50,6 @@
         "--source",
         "cpic"
       ],
-      "mcp": [
-        "get",
-        "pgx",
-        "--gene",
-        "DPYD",
-        "--source",
-        "cpic"
-      ],
       "expect": {
         "/status": "complete",
         "/query/gene": "DPYD",
@@ -97,23 +69,40 @@
         "--diplotype",
         "*1/*2A"
       ],
-      "mcp": [
-        "get",
-        "pgx",
-        "--gene",
-        "DPYD",
-        "--source",
-        "cpic",
-        "diplotype",
-        "--diplotype",
-        "*1/*2A"
-      ],
       "expect": {
         "/status": "complete",
         "/query/gene": "DPYD",
         "/query/source": "cpic"
       },
       "max_bytes": 907
+    },
+    {
+      "run": [
+        "--disable-sources",
+        "clinpgx",
+        "get",
+        "pgx",
+        "--gene",
+        "DPYD",
+        "--source",
+        "cpic"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources": {
+          "count": 1
+        },
+        "/sources/0/source": "cpic",
+        "/next": {
+          "count": 2
+        },
+        "/next/0/args": {
+          "includes": "recommendations"
+        },
+        "/next/1/args": {
+          "includes": "guidelines"
+        }
+      }
     }
   ]
 }

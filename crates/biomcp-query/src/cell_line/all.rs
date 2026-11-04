@@ -1,8 +1,13 @@
 //! Compose bounded first pages under the identity command's original deadline.
-use super::*;
+use super::{CellLineGet, Ctx, Outcome, Source, Status, StepKind, empty};
+use biomcp_types::ReplyBody;
+use biomcp_types::ReplyData;
 use biomcp_types::{CellLineCard, CellLineSection, Reason, Section};
 pub(super) fn attach(cx: &Ctx<'_>, deadline: biomcp_fetch::Deadline<'_>, out: &mut Outcome) {
-    let QueryBody::CellLineCard(card) = &out.body else {
+    let ReplyData::CellLineCard {
+        body: Some(card), ..
+    } = &out.body
+    else {
         return;
     };
     let Some(header) = &card.header else { return };
@@ -10,7 +15,9 @@ pub(super) fn attach(cx: &Ctx<'_>, deadline: biomcp_fetch::Deadline<'_>, out: &m
         CellLineGet::accession(header.accession.clone()).with_section(CellLineSection::Chembl);
     let metadata = super::chembl::get_at(cx, &selected, &header.accession, deadline);
     let section = match &metadata.body {
-        QueryBody::CellLineChembl(data) if metadata.status != Status::Failed => {
+        ReplyData::CellLineChembl {
+            body: Some(data), ..
+        } if metadata.status() != Status::Failed => {
             if data.items.total == 0 {
                 Section::Empty {
                     source: Source::Chembl,
@@ -32,24 +39,31 @@ pub(super) fn attach(cx: &Ctx<'_>, deadline: biomcp_fetch::Deadline<'_>, out: &m
                 .unwrap_or(Reason::BadReply),
         ),
     };
-    if metadata.status != Status::Complete && metadata.status != Status::Absent {
-        out.status = Status::Partial;
+    if metadata.status() != Status::Complete && metadata.status() != Status::Absent {
+        crate::status::item(out, true, false, true);
     }
     out.next.extend(
         metadata
             .next
             .iter()
-            .filter(|(kind, _)| *kind == StepKind::Page)
+            .filter(|step| step.0 == StepKind::Page)
             .cloned(),
     );
     out.sources.extend(metadata.sources);
     out.problems.extend(metadata.problems);
     out.local = out.local.or(metadata.local);
-    if let QueryBody::CellLineCard(card) = &mut out.body {
-        card.status = out.status;
+    let state = out.status();
+    if let ReplyData::CellLineCard {
+        body: Some(card), ..
+    } = &mut out.body
+    {
+        card.status = state;
         card.sections.chembl = Some(section);
     }
-    let QueryBody::CellLineCard(card) = &out.body else {
+    let ReplyData::CellLineCard {
+        body: Some(card), ..
+    } = &out.body
+    else {
         return;
     };
     let card = card.clone();
@@ -64,12 +78,12 @@ fn actions(card: &CellLineCard, out: &mut Outcome) {
         CellLineSection::Variants,
     ] {
         let query = CellLineGet::accession(header.accession.clone()).with_section(section);
-        let mut page = empty(QueryBody::CellLineCard(card.clone()));
+        let mut page = empty((card.clone()).with_query(query.clone()));
         super::sections::actions(&query, card, &mut page);
         out.next.extend(
             page.next
                 .into_iter()
-                .filter(|(kind, _)| *kind == StepKind::Page)
+                .filter(|step| step.0 == StepKind::Page)
                 .take(4usize.saturating_sub(out.next.len())),
         );
     }

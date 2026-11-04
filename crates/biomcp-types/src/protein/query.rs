@@ -104,13 +104,6 @@ impl TryFrom<SearchFields> for ProteinSearch {
     }
 }
 impl ProteinSearch {
-    /// Restart the same literal source search without a retained pool.
-    pub fn restart(&self) -> Self {
-        let mut q = self.clone();
-        q.0.pool = None;
-        q.0.offset = 0;
-        q
-    }
     /// Walk one retained search without exposing a provider cursor.
     pub fn at_page(&self, pool: Text, offset: u32) -> Self {
         let mut q = self.clone();
@@ -144,6 +137,16 @@ impl ProteinSearch {
         self.0.pool.as_ref()
     }
 }
+impl crate::Paged for ProteinSearch {
+    type Offset = ();
+    fn set_page_offset(&mut self, _offset: Self::Offset) {
+        self.0.offset = 0;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.pool = None;
+    }
+}
+
 /// Read source protein cards; a symbol returns candidates without choosing a protein.
 /// Sections disclose native facts with independent row bounds; function keeps all paragraphs.
 /// No variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs.
@@ -214,3 +217,20 @@ impl ProteinGet {
 }
 mod relation;
 pub use relation::*;
+
+impl ProteinSection {
+    /// Publisher owning a named section; all expands across publishers.
+    pub const fn source(self) -> Option<crate::Source> {
+        use crate::Source;
+        match self {
+            Self::Domains => Some(Source::InterPro),
+            Self::Complexes => Some(Source::ComplexPortal),
+            Self::Features
+            | Self::Isoforms
+            | Self::Structures
+            | Self::Function
+            | Self::Sequence => Some(Source::UniProt),
+            Self::All => None,
+        }
+    }
+}

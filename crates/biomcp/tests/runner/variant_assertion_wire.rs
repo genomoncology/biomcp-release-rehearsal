@@ -1,10 +1,13 @@
 use super::network_stub::Stub;
+use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 pub(super) fn trials() -> Vec<Trial> {
-    vec![Trial::test("variant/assertions-source-wire", || {
-        assertions_wire().map_err(Into::into)
-    })]
+    // The XML peer checks the exact native assertion request and refuses extra requests.
+    vec![transcript_trial(
+        crate::runner::required_contract::CLINVAR_ASSERTION.0,
+        || assertions_wire().map_err(Into::into),
+    )]
 }
 fn assertions_wire() -> Result<(), String> {
     let stub = Stub::for_source("eutils.ncbi.nlm.nih.gov", "application/xml", clinvar_body)?;
@@ -30,8 +33,14 @@ fn assertions_wire() -> Result<(), String> {
     let value: Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
     if value.pointer("/result/assertions/0/statement/attribution/record")
         != Some(&json!("SCV000611258"))
-        || value.pointer("/result/assertions/0/statement/classification/coding/code")
+        || value.pointer("/result/assertions/0/statement/classification/codings/0/code")
             != Some(&json!("pathogenic"))
+        || value.pointer("/result/assertions/0/statement/strength/codings/0")
+            != Some(
+                &json!({"system":"clinvar_review_status","code":"criteria_provided_single_submitter"}),
+            )
+        || value.pointer("/result/assertions/0/statement/allele_origin/codings/0")
+            != Some(&json!({"system":"clinvar_allele_origin","code":"unknown"}))
     {
         return Err(format!("native assertion lost: {value}"));
     }
@@ -40,8 +49,7 @@ fn assertions_wire() -> Result<(), String> {
         || !requests.first().is_some_and(|(_, request)| {
             request.starts_with(
                 "GET \
-        /entrez/eutils/efetch.fcgi?db=clinvar&id=128042&rettype=vcv&is_variationid=true&retmode=xml&tool=bio\
-        mcp HTTP/1.1",
+        /entrez/eutils/efetch.fcgi?db=clinvar&id=128042&rettype=vcv&is_variationid=true&retmode=xml&tool=biomcp HTTP/1.1",
             )
         })
     {
@@ -54,8 +62,8 @@ pub(super) fn clinvar_body(_: &str) -> Result<String, String> {
     // Explicit synthetic XML uses clinically reviewed public fixture facts; this is not a source capture.
     Ok("<ClinVarResult-Set><VariationArchive VariationID=\"128042\" Accession=\"VCV000128042\" \
         Version=\"175\"><ClassifiedRecord><Classifications><GermlineClassification><Description>Pathogenic</\
-        Description></GermlineClassification></Classifications><ClinicalAssertionList><ClinicalAssertion><Cl\
-        inVarAccession Accession=\"SCV000611258\" Version=\"1\" SubmitterName=\"Fulgent Genetics, Fulgent \
+        Description></GermlineClassification></Classifications><ClinicalAssertionList><ClinicalAssertion><ClinVarAccession \
+                    Accession=\"SCV000611258\" Version=\"1\" SubmitterName=\"Fulgent Genetics, Fulgent \
         Genetics\"/><Classification DateLastEvaluated=\"2017-05-18\"><ReviewStatus>criteria provided, \
         single \
         submitter</ReviewStatus><GermlineClassification>Pathogenic</GermlineClassification></Classification>\
@@ -64,7 +72,6 @@ pub(super) fn clinvar_body(_: &str) -> Result<String, String> {
         >unknown</Origin></Sample></ObservedIn></ObservedInList><TraitSet><Trait><XRef DB=\"OMIM\" \
         ID=\"114480\"/></Trait><Trait><XRef DB=\"OMIM\" ID=\"176807\"/></Trait><Trait><XRef DB=\"OMIM\" \
         ID=\"259500\"/></Trait><Trait><XRef DB=\"OMIM\" \
-        ID=\"609265\"/></Trait></TraitSet></ClinicalAssertion></ClinicalAssertionList></ClassifiedRecord></V\
-        ariationArchive></ClinVarResult-Set>"
+        ID=\"609265\"/></Trait></TraitSet></ClinicalAssertion></ClinicalAssertionList></ClassifiedRecord></VariationArchive></ClinVarResult-Set>"
         .into())
 }

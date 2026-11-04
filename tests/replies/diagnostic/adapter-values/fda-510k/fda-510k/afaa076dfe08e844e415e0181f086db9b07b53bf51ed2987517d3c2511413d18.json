@@ -1,0 +1,32 @@
+{
+  "method": "GET",
+  "source": "fda-510k",
+  "url": "https://api.fda.gov/device/510k.json?search=k_number%3A%22K999994%22&limit=1&skip=0",
+  "exchanges": [
+    {
+      "fetched": 1792921798,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "k_number": "K999994",
+              "device_name": 17
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

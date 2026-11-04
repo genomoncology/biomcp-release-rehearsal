@@ -8,6 +8,26 @@
       ],
       "type": "string"
     },
+    "CivicEvidenceLevel": {
+      "description": "Native CIViC evidence level.",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "type": "string"
+    },
+    "CivicEvidenceStatus": {
+      "description": "Native CIViC evidence review status.",
+      "enum": [
+        "accepted",
+        "submitted",
+        "rejected"
+      ],
+      "type": "string"
+    },
     "DrugId": {
       "description": "A published native drug record identifier, without a consumer source prefix.",
       "pattern": "^(?:[A-Z][A-Z0-9_.-]*:)?[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9_.-]+)*$",
@@ -41,6 +61,7 @@
       "description": "A supported drug data source.",
       "enum": [
         "who-pq",
+        "fda-drug-recall",
         "mychem",
         "chembl",
         "opentargets",
@@ -53,15 +74,17 @@
       "type": "string"
     },
     "Text": {
-      "description": "Nonempty text with surrounding Unicode whitespace removed.",
+      "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
+      "maxLength": 1048576,
       "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
     }
   },
-  "$id": "biomcp.drug-get/2",
+  "$id": "biomcp.drug-get/3",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Exact native ID retrieval with an explicitly selected source.",
+  "description": "A source-selected drug request echoed with a native ID after name resolution.",
   "properties": {
     "civic_cursor": {
       "anyOf": [
@@ -95,10 +118,37 @@
         "null"
       ]
     },
+    "document_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+    },
+    "evidence_level": {
+      "description": "Native CIViC evidence levels; repeat to include several levels.",
+      "items": {
+        "$ref": "#/$defs/CivicEvidenceLevel"
+      },
+      "type": "array"
+    },
+    "evidence_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CivicEvidenceStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+    },
     "input": {
-      "$ref": "#/$defs/DrugId",
-      "description": "Published source-native identifier, never SOURCE:ID or a selected name.",
-      "x-positional": 0
+      "$ref": "#/$defs/DrugId"
     },
     "label_section": {
       "anyOf": [
@@ -109,7 +159,7 @@
           "type": "null"
         }
       ],
-      "description": "Exact native label heading, required only for the label section."
+      "description": "Exact published openFDA SPL section field, including table fields; required for the label section."
     },
     "product_number": {
       "anyOf": [
@@ -150,8 +200,7 @@
       ]
     },
     "source": {
-      "$ref": "#/$defs/DrugSource",
-      "description": "Required source; there is no default exact-ID resolver."
+      "$ref": "#/$defs/DrugSource"
     }
   },
   "required": [

@@ -1,0 +1,111 @@
+{
+  "feature": "adverse-event-get",
+  "live_check": "synthetic",
+  "story": "Rejected native rows leave physical indexes and page windows intact after snapshot reload.",
+  "replay": "adverse-event/native-positions/faers",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "drugs",
+        "--source",
+        "faers",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/result/drugs": {
+          "omits": [
+            "records"
+          ]
+        },
+        "/result/drugs/total": 4
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/result/drugs/records/0/index": 1,
+        "/result/drugs/records/0/medicinalproduct": "Synthetic position one",
+        "/result/drugs/offset": 1
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/result/drugs": {
+          "omits": [
+            "records"
+          ]
+        },
+        "/result/drugs/offset": 2
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/result/drugs/records/0/index": 3,
+        "/result/drugs/records/0/medicinalproduct": "Synthetic position three",
+        "/result/drugs/offset": 3
+      }
+    },
+    {
+      "follow": "section",
+      "expect": {
+        "/result/unii/drug_index": 3,
+        "/result/unii/records": [
+          "Synthetic indexed identifier"
+        ]
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "reactions",
+        "--source",
+        "faers",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/result/reactions": {
+          "omits": [
+            "records"
+          ]
+        },
+        "/result/reactions/total": 4
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/result/reactions/records/0/index": 1,
+        "/result/reactions/records/0/term/label": "Synthetic reaction one",
+        "/result/reactions/offset": 1
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/result/reactions": {
+          "omits": [
+            "records"
+          ]
+        },
+        "/result/reactions/offset": 2
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/result/reactions/records/0/index": 3,
+        "/result/reactions/records/0/term/label": "Synthetic reaction three",
+        "/result/reactions/offset": 3
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "feature": "pathway-failures",
+  "story": "An unavailable pathway source remains a failure and cannot become an empty pathway.",
+  "live_check": "authored synthetic pathway outage",
+  "replay": "pathway/unavailable",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "pathway",
+        "R-HSA-6802952"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/source": "reactome",
+        "/sources/0/reason": "unavailable"
+      }
+    }
+  ]
+}

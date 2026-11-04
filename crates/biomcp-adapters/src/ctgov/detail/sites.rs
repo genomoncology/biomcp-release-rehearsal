@@ -1,41 +1,42 @@
 //! Provider contacts and sites mapped once into source-preserving values.
 use biodata::{TrialContact, TrialCoordinates, TrialLocation, TrialOfficial};
 
+use crate::{mapped::Problems, raw::Field};
 use serde::Deserialize;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct ContactsLocations {
-    central_contacts: Option<Box<[Contact]>>,
-    overall_officials: Option<Box<[Official]>>,
-    locations: Option<Box<[Location]>>,
+    central_contacts: Option<Field<Vec<Field<Contact>>>>,
+    overall_officials: Option<Field<Vec<Field<Official>>>>,
+    locations: Option<Field<Vec<Field<Location>>>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Contact {
-    name: Option<Box<str>>,
-    role: Option<biodata::TrialContactRole>,
-    phone: Option<Box<str>>,
-    phone_ext: Option<Box<str>>,
-    email: Option<Box<str>>,
+    name: Option<Field<Box<str>>>,
+    role: Option<Field<biodata::TrialContactRole>>,
+    phone: Option<Field<Box<str>>>,
+    phone_ext: Option<Field<Box<str>>>,
+    email: Option<Field<Box<str>>>,
 }
 #[derive(Deserialize)]
 struct Official {
-    name: Option<Box<str>>,
-    affiliation: Option<Box<str>>,
-    role: Option<biodata::TrialOfficialRole>,
+    name: Option<Field<Box<str>>>,
+    affiliation: Option<Field<Box<str>>>,
+    role: Option<Field<biodata::TrialOfficialRole>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Location {
-    facility: Option<Box<str>>,
-    city: Option<Box<str>>,
-    state: Option<Box<str>>,
-    zip: Option<Box<str>>,
-    country: Option<Box<str>>,
-    status: Option<biodata::TrialSiteStatus>,
+    facility: Option<Field<Box<str>>>,
+    city: Option<Field<Box<str>>>,
+    state: Option<Field<Box<str>>>,
+    zip: Option<Field<Box<str>>>,
+    country: Option<Field<Box<str>>>,
+    status: Option<Field<biodata::TrialSiteStatus>>,
     // Coordinate aliases belong to this provider's shape, not the shared domain value.
-    geo_point: Option<Point>,
-    contacts: Option<Box<[Contact]>>,
+    geo_point: Option<Field<Point>>,
+    contacts: Option<Field<Vec<Field<Contact>>>>,
 }
 type SiteRows = (
     Box<[TrialLocation]>,
@@ -43,63 +44,72 @@ type SiteRows = (
     Box<[TrialOfficial]>,
 );
 impl ContactsLocations {
-    pub(super) fn rows(self) -> SiteRows {
-        let locations = self
-            .locations
-            .unwrap_or_default()
-            .into_vec()
-            .into_iter()
-            .map(Location::mapped)
-            .collect();
-        (
-            locations,
-            self.central_contacts
-                .unwrap_or_default()
+    pub(super) fn rows(self, problems: &mut Problems, refusals: &mut crate::Refusal) -> SiteRows {
+        let locations =
+            super::super::refusals::records(problems, refusals, "locations", self.locations)
                 .into_vec()
                 .into_iter()
-                .map(Contact::mapped)
-                .collect(),
-            self.overall_officials
-                .unwrap_or_default()
-                .into_vec()
-                .into_iter()
-                .map(|v| TrialOfficial {
-                    name: v.name,
-                    affiliation: v.affiliation,
-                    role: v.role,
-                })
-                .collect(),
+                .map(|v| v.mapped(problems, refusals))
+                .collect();
+        let contacts = super::super::refusals::records(
+            problems,
+            refusals,
+            "centralContacts",
+            self.central_contacts,
         )
+        .into_vec()
+        .into_iter()
+        .map(|v| v.mapped(problems))
+        .collect();
+        let officials = super::super::refusals::records(
+            problems,
+            refusals,
+            "overallOfficials",
+            self.overall_officials,
+        )
+        .into_vec()
+        .into_iter()
+        .map(|v| TrialOfficial {
+            name: problems.native_text("overallOfficials.name", v.name),
+            affiliation: problems.native_text("overallOfficials.affiliation", v.affiliation),
+            role: problems.field("overallOfficials.role", v.role),
+        })
+        .collect();
+        (locations, contacts, officials)
     }
 }
+
 impl Contact {
-    fn mapped(self) -> TrialContact {
+    fn mapped(self, problems: &mut Problems) -> TrialContact {
         TrialContact {
-            name: self.name,
-            role: self.role,
-            phone: self.phone,
-            phone_ext: self.phone_ext,
-            email: self.email,
+            name: problems.native_text("name", self.name),
+            role: problems.field("role", self.role),
+            phone: problems.checked_native_text("phone", self.phone),
+            phone_ext: problems.checked_native_text("phoneExt", self.phone_ext),
+            email: problems.checked_native_text("email", self.email),
         }
     }
 }
 impl Location {
-    fn mapped(self) -> TrialLocation {
+    fn mapped(self, problems: &mut Problems, refusals: &mut crate::Refusal) -> TrialLocation {
         TrialLocation {
-            facility: self.facility,
-            city: self.city,
-            state: self.state,
-            zip: self.zip,
-            country: self.country,
-            status: self.status,
-            coordinates: self.geo_point.map(|v| v.0),
-            contacts: self
-                .contacts
-                .unwrap_or_default()
-                .into_vec()
-                .into_iter()
-                .map(Contact::mapped)
-                .collect(),
+            facility: problems.native_text("facility", self.facility),
+            city: problems.native_text("city", self.city),
+            state: problems.native_text("state", self.state),
+            zip: problems.checked_native_text("zip", self.zip),
+            country: problems.native_text("country", self.country),
+            status: problems.field("locations.status", self.status),
+            coordinates: problems.field("geoPoint", self.geo_point).map(|v| v.0),
+            contacts: super::super::refusals::records(
+                problems,
+                refusals,
+                "locations.contacts",
+                self.contacts,
+            )
+            .into_vec()
+            .into_iter()
+            .map(|v| v.mapped(problems))
+            .collect(),
         }
     }
 }
@@ -113,7 +123,7 @@ struct RawPoint {
     lon: biodata::FiniteNumber,
 }
 impl TryFrom<RawPoint> for Point {
-    type Error = &'static str;
+    type Error = biodata::Error;
     fn try_from(v: RawPoint) -> Result<Self, Self::Error> {
         TrialCoordinates::new(v.lat, v.lon).map(Self)
     }

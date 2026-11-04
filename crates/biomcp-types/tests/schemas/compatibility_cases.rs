@@ -1,4 +1,7 @@
-use super::compatibility::check;
+use super::{
+    compatibility::{check, check_reviewed},
+    policy::{ContractKind, Reviews},
+};
 use serde_json::{Value, json};
 
 fn contract(properties: Value) -> Value {
@@ -175,6 +178,15 @@ fn selector_unions_accept_only_required_lists_and_detect_narrowing() {
     narrow["anyOf"] = json!([{"required":["query"]}]);
     assert!(check(&base, &narrow).is_err());
     assert!(check(&narrow, &base).is_ok());
+    // Required query inputs already satisfy an added query-or-filter selector.
+    let mut required = base.clone();
+    required.as_object_mut().unwrap().remove("anyOf");
+    required["required"] = json!(["query"]);
+    assert!(check(&required, &base).is_ok());
+    let mut unrelated = base.clone();
+    unrelated["anyOf"] = json!([{"required":["band"]}]);
+    assert!(check(&required, &unrelated).is_err());
+    assert!(check_reviewed(&required, &base, ContractKind::Reply, &Reviews::default()).is_err());
     let referenced = |contract: &Value| json!({"$id":"biodata.example/1", "$defs":{"Search":contract}, "$ref":"#/$defs/Search"});
     assert!(check(&referenced(&base), &referenced(&narrow)).is_err());
     for branches in [
@@ -201,7 +213,7 @@ fn compatibility_checks_consumed_decimal_bounds_and_section_annotation() {
         new["maximum"] = json!(maximum);
         assert_eq!(check(&old, &new).is_ok(), expected);
     }
-    for name in ["x-trailing-section", "x-comma-separated"] {
+    for name in ["x-trailing-section", "x-comma-separated", "x-identifier"] {
         let mut annotation =
             json!({"$id":"biodata.example/1","type":"array","items":{"type":"string"}});
         annotation[name] = json!(true);
@@ -387,4 +399,178 @@ fn compatibility_preserves_each_disjoint_scalar_branch() {
         new["anyOf"] = unsupported;
         assert!(check(&new, &new).is_err());
     }
+}
+
+#[test]
+fn compatibility_keeps_source_date_and_timestamp_object_constraints() {
+    let old = json!({"$id":"biodata.example/1", "anyOf":[
+        {"type":"string","pattern":"^[0-9]{4}$"},
+        {"type":"object","properties":{"value":{"type":"string","format":"date-time"}},
+            "required":["value"]}]});
+    assert!(check(&old, &old).is_ok());
+    let mut reordered = old.clone();
+    reordered["anyOf"].as_array_mut().unwrap().reverse();
+    assert!(check(&old, &reordered).is_ok());
+    for index in [0, 1] {
+        let mut removed = old["anyOf"][index].clone();
+        removed["$id"] = json!("biodata.example/1");
+        assert!(check(&old, &removed).is_err(), "union branch disappeared");
+    }
+    let mut narrowed = old.clone();
+    narrowed["anyOf"][0]["pattern"] = json!("^2024$");
+    assert!(
+        check(&old, &narrowed).is_err(),
+        "date branch narrowed within a major"
+    );
+    narrowed = old.clone();
+    narrowed["anyOf"][1]["properties"]["value"]["minLength"] = json!(30);
+    assert!(
+        check(&old, &narrowed).is_err(),
+        "timestamp object branch narrowed within a major"
+    );
+    narrowed["$id"] = json!("biodata.example/2");
+    assert!(
+        check(&old, &narrowed).is_ok(),
+        "valid successor was rejected"
+    );
+}
+
+#[test]
+fn required_reply_names_cannot_disappear_within_a_major() {
+    let old = json!({"$id":"biodata.example/1","type":"object","properties":{
+        "name":{"type":"string"}},"required":["name"]});
+    let mut new = old.clone();
+    new["required"] = json!([]);
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &Reviews::default()).is_err());
+    assert!(check_reviewed(&old, &new, ContractKind::Query, &Reviews::default()).is_ok());
+    assert!(check_reviewed(&new, &old, ContractKind::Reply, &Reviews::default()).is_ok());
+    assert!(check_reviewed(&new, &old, ContractKind::Query, &Reviews::default()).is_err());
+    new["$id"] = json!("biodata.example/2");
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &Reviews::default()).is_ok());
+}
+
+#[test]
+fn pattern_widening_requires_an_exact_reviewed_transition() {
+    let old = json!({"$id":"biodata.example/1","type":"string","pattern":"^a$"});
+    let mut new = old.clone();
+    new["pattern"] = json!("^[ab]$");
+    let reviews: Reviews = serde_json::from_value(json!({"pattern_widenings":[{
+        "schema":"biodata.example/1", "path":"", "from":"^a$", "to":"^[ab]$",
+        "review":"Accept the additional canonical spelling"
+    }]}))
+    .unwrap();
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &Reviews::default()).is_err());
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &reviews).is_ok());
+    new["pattern"] = json!("^b$");
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &reviews).is_err());
+}
+
+#[test]
+fn successor_identity_requires_a_review_and_a_new_major() {
+    let old = json!({"$id":"biodata.example/1","type":"string"});
+    let mut new = json!({"$id":"biodata.renamed/2","type":"string"});
+    let reviews: Reviews = serde_json::from_value(json!({"successors":[{
+        "from":"biodata.example/1", "to":"biodata.renamed/2", "review":"Rename the contract"
+    }]}))
+    .unwrap();
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &Reviews::default()).is_err());
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &reviews).is_ok());
+    new["$id"] = json!("biodata.renamed/1");
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &reviews).is_err());
+}
+
+#[test]
+fn growable_enum_contracts_keep_known_values_and_accept_future_names() {
+    let old = json!({"$id":"biodata.example/1", "type":"string",
+        "x-extensible-enum":["first","second"]});
+    let mut new = old.clone();
+    new["x-extensible-enum"] = json!(["first", "second", "third"]);
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &Reviews::default()).is_ok());
+    new["x-extensible-enum"] = json!(["first"]);
+    assert!(check_reviewed(&old, &new, ContractKind::Reply, &Reviews::default()).is_err());
+    let mut narrowed = old.clone();
+    narrowed["enum"] = json!(["first", "second"]);
+    assert!(check_reviewed(&old, &narrowed, ContractKind::Reply, &Reviews::default()).is_err());
+    let closed = json!({"$id":"biodata.example/1", "type":"string", "enum":["first","second"]});
+    assert!(check_reviewed(&old, &closed, ContractKind::Reply, &Reviews::default()).is_err());
+}
+
+#[test]
+fn extensible_annotations_cannot_hide_enum_or_const_assertions_through_references() {
+    for assertion in [json!({"enum":["first"]}), json!({"const":"first"})] {
+        let mut value =
+            json!({"$id":"biodata.example/1", "type":"string", "x-extensible-enum":["first"]});
+        value
+            .as_object_mut()
+            .unwrap()
+            .extend(assertion.as_object().unwrap().clone());
+        assert!(check_reviewed(&value, &value, ContractKind::Reply, &Reviews::default()).is_err());
+        let mut referenced = json!({"$id":"biodata.example/1", "$ref":"#/$defs/E", "x-extensible-enum":["first"],
+            "$defs":{"E":{"type":"string"}}});
+        referenced["$defs"]["E"]
+            .as_object_mut()
+            .unwrap()
+            .extend(assertion.as_object().unwrap().clone());
+        assert!(
+            check_reviewed(
+                &referenced,
+                &referenced,
+                ContractKind::Reply,
+                &Reviews::default()
+            )
+            .is_err()
+        );
+    }
+    let optional = json!({"$id":"biodata.example/1", "anyOf":[{"$ref":"#/$defs/E"},{"type":"null"}],
+        "$defs":{"E":{"type":"string","x-extensible-enum":["first"]}}});
+    assert!(
+        check_reviewed(
+            &optional,
+            &optional,
+            ContractKind::Reply,
+            &Reviews::default()
+        )
+        .is_ok()
+    );
+    let optional = json!({"$id":"biodata.example/1", "anyOf":[
+        {"type":"string","x-extensible-enum":["first"]},{"type":"null"}]});
+    assert!(
+        check_reviewed(
+            &optional,
+            &optional,
+            ContractKind::Reply,
+            &Reviews::default()
+        )
+        .is_ok()
+    );
+}
+
+#[test]
+fn compatibility_checks_string_length_caps() {
+    let uncapped = json!({"$id":"biodata.example/1", "type":"string"});
+    let mut capped = uncapped.clone();
+    capped["maxLength"] = json!(100);
+    assert!(
+        check(&uncapped, &capped).is_err(),
+        "a new cap narrows admission"
+    );
+    for (limit, expected) in [(99, false), (100, true), (101, true)] {
+        let mut new = capped.clone();
+        new["maxLength"] = json!(limit);
+        assert_eq!(check(&capped, &new).is_ok(), expected, "maxLength {limit}");
+    }
+    assert!(
+        check(&capped, &uncapped).is_ok(),
+        "removing a cap widens admission"
+    );
+    capped["$id"] = json!("biodata.example/2");
+    assert!(
+        check(&uncapped, &capped).is_ok(),
+        "a new major permits narrowing"
+    );
+    capped["maxLength"] = json!(-1);
+    assert!(
+        check(&uncapped, &capped).is_err(),
+        "negative caps are malformed"
+    );
 }

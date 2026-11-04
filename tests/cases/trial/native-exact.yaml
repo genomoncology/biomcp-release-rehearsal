@@ -1,0 +1,26 @@
+{
+  "feature": "trial-search",
+  "live_check": "public",
+  "story": "The existing exact Snyder-Robinson condition returns the retained native zero result without broadening its words.",
+  "verified": "ClinicalTrials.gov public US government registry response captured2026-10-30, original body SHA256 b54968c05ff881a1ef7ce604b6a340248f8e2aee8637bef06da0f5693f520df8. Source-native totalCount0 and studies[] retained unchanged. Registry version reuses an existing original native capture. Original request/headers/body preserved outside Git in native-fda-trial archive.",
+  "replay": "trial/native-exact",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "Snyder-Robinson syndrome",
+        "--exact-condition",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/query/exact_condition": true,
+        "/page/total": 0,
+        "/sources/0/source": "ctgov",
+        "/sources/0/state": "ok"
+      }
+    }
+  ]
+}

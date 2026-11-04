@@ -10,8 +10,8 @@ CARGO = r'''#!/usr/bin/env python3
 import json, os, sys
 print(json.dumps({"args": sys.argv[1:], "jobs": os.environ.get("CARGO_BUILD_JOBS"),
                   "threads": os.environ.get("RUST_TEST_THREADS")}))
-# Stop docs-check after recording its two Cargo commands.
-if os.environ.get("RECORD_DOCS") and "cases" in sys.argv:
+# Stop docs-check after recording its Cargo command.
+if os.environ.get("RECORD_DOCS") and "grammar::reference::reference_matches_grammar" in sys.argv:
     sys.exit(3)
 '''
 
@@ -38,12 +38,15 @@ def main():
         ]
         targets = {
             "test": [["test", "--workspace", "--locked"]],
-            "ratchets": [["test", "--locked", "-p", "biomcp", "--test", "ratchets"]],
+            "plain-cli-build": [["build", "--locked", "-p", "biomcp", "--bin", "biomcp", "--timings"]],
+            "ratchets": [
+                ["build", "--locked", "-p", "biomcp", "--bin", "biomcp", "--timings"],
+                ["test", "--locked", "-p", "biomcp", "--test", "ratchets"],
+            ],
             "docs-check": [
+                ["test", "--locked", "-p", "biomcp", "--test", "cases", "readme/"],
                 ["test", "--locked", "-p", "biomcp", "--bin", "biomcp",
                  "grammar::reference::reference_matches_grammar"],
-                ["test", "--locked", "-p", "biomcp", "--test", "cases",
-                 "article-help/executable-examples"],
             ],
             "docs-generate": [["test", "--locked", "-p", "biomcp", "--bin", "biomcp",
                                "grammar::reference::write_reference"]],
@@ -61,7 +64,8 @@ def main():
                     actual = [json.loads(line) for line in result.stdout.splitlines()]
                     expected = []
                     for command in commands:
-                        arguments = command + (["--", "--test-threads", expected_threads] if expected_threads else [])
+                        arguments = command + (["--", "--test-threads", expected_threads]
+                                               if command[0] == "test" and expected_threads else [])
                         if target == "docs-generate":
                             arguments += ["--ignored"] if expected_threads else ["--", "--ignored"]
                         expected.append({"args": arguments, "jobs": expected_jobs, "threads": expected_threads})

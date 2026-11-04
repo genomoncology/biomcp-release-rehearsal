@@ -15,22 +15,28 @@ pub(super) fn capped<T>(rows: Vec<T>, limit: usize) -> Capped<T> {
 // collection therefore means source omission, unlike unrequested xrefs or variations.
 pub(super) fn header(row: raw::Record) -> Result<CellLineHeader, RequestError> {
     Ok(CellLineHeader {
-        accession: row.accession().map_err(super::bad)?.clone(),
-        name: row.name().map_err(super::bad)?.clone(),
+        accession: row
+            .accession()
+            .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::Cellosaurus, None))?
+            .clone(),
+        name: row.name().cloned(),
         category: row.category,
-        species: capped(row.species_list.unwrap_or_default().into_vec(), 3),
-        diseases: capped(row.disease_list.unwrap_or_default().into_vec(), 3),
+        species: capped(row.species_list.unwrap_or_default().0.into_vec(), 3),
+        diseases: capped(row.disease_list.unwrap_or_default().0.into_vec(), 3),
     })
 }
 pub(super) fn card(row: raw::Record) -> Result<CellLineCard, RequestError> {
-    let accession = row.accession().map_err(super::bad)?.clone();
-    let name = row.name().map_err(super::bad)?.clone();
+    let accession = row
+        .accession()
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::Cellosaurus, None))?
+        .clone();
+    let name = row.name().cloned();
     let warnings = warnings(row.comment_list.as_deref().unwrap_or_default());
     let version = row
         .entry_version
         .map(|v| v.as_str().parse().map_err(|_| BadReply))
         .transpose()
-        .map_err(super::bad)?;
+        .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::Cellosaurus, None))?;
     Ok(CellLineCard {
         input: CellLineInput::Accession(accession.clone()),
         status: Status::Complete,
@@ -38,8 +44,8 @@ pub(super) fn card(row: raw::Record) -> Result<CellLineCard, RequestError> {
             accession: accession.clone(),
             name,
             category: row.category,
-            species: capped(row.species_list.unwrap_or_default().into_vec(), 3),
-            diseases: capped(row.disease_list.unwrap_or_default().into_vec(), 3),
+            species: capped(row.species_list.unwrap_or_default().0.into_vec(), 3),
+            diseases: capped(row.disease_list.unwrap_or_default().0.into_vec(), 3),
         }),
         candidates: Box::default(),
         dates: Some(CellLineEntryDates {

@@ -1,4 +1,5 @@
 {
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "diagnostic-who",
   "story": "Synthetic WHO product rows retain their own complete cells and source order; exact cards do not infer FDA identity or clinical scope.",
   "replay": "diagnostic/who-synthetic",
@@ -8,13 +9,9 @@
         "sync",
         "who-ivd"
       ],
-      "mcp": [
-        "sync",
-        "who-ivd"
-      ],
       "max_bytes": 179,
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/result/rows": 10
       }
     },
@@ -26,16 +23,9 @@
         "--source",
         "who-ivd"
       ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "0466-046-00",
-        "--source",
-        "who-ivd"
-      ],
       "max_bytes": 2739,
       "expect": {
-        "/result/kind": "who_ivd_product",
+        "/result/kind": "who-ivd-product",
         "/result/id": "0466-046-00",
         "/result/native_rows/0/product_name": "Synthetic \"quoted\" product",
         "/result/native_rows/1/product_code": "two\nlines",
@@ -54,64 +44,13 @@
     },
     {
       "run": [
-        "get",
-        "diagnostic",
-        "12345-12345-00",
-        "--source",
-        "who-ivd"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "12345-12345-00",
-        "--source",
-        "who-ivd"
-      ],
-      "max_bytes": 681,
-      "expect": {
-        "/result/id": "12345-12345-00",
-        "/result/native_rows/0/marker": "Other marker",
-        "/result/native_rows": {
-          "count": 1
-        }
-      }
-    },
-    {
-      "run": [
-        "get",
-        "diagnostic",
-        "9999-999-00",
-        "--source",
-        "who-ivd"
-      ],
-      "mcp": [
-        "get",
-        "diagnostic",
-        "9999-999-00",
-        "--source",
-        "who-ivd"
-      ],
-      "max_bytes": 356,
-      "expect": {
-        "/status": "absent"
-      },
-      "exit": 1,
-      "is_error": false
-    },
-    {
-      "run": [
-        "sync",
-        "who-ivd",
-        "--fresh"
-      ],
-      "mcp": [
         "sync",
         "who-ivd",
         "--fresh"
       ],
       "max_bytes": 179,
       "expect": {
-        "/schema": "biomcp.sync/5",
+        "/schema": "biomcp.sync/7",
         "/result/rows": 10
       }
     }

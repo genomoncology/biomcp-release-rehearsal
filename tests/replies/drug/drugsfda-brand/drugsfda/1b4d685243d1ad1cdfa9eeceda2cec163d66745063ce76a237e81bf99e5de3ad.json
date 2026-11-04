@@ -1,0 +1,23 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=products.active_ingredients.name%3A%22SARCLISA%20ESCENA%22&limit=1",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 404,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "No matches found!"
+          }
+        }
+      }
+    }
+  ]
+}

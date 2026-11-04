@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele?hgvs=NC_000001.11%3Ag.1delAinsTA&fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793811791,
+      "status": 400,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "actualAllele": "N",
+          "description": "Given allele from reference sequence is incorrect. It does not match actual sequence at given position.",
+          "errorType": "IncorrectReferenceAllele",
+          "givenAllele": "A",
+          "message": "Reference allele does not match for NC_000001.11[0-0,1+0), given=A, found=N.",
+          "referenceSequence": "NC_000001.11",
+          "region": "[0-0,1+0)"
+        }
+      }
+    }
+  ]
+}

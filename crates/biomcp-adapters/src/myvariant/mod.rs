@@ -1,6 +1,8 @@
 //! MyVariant exact source identities and compact component-attributed facts.
+use biomcp_fetch::{Input, Read};
 /// Independent terms for carried components.
 pub mod components;
+mod corroboration;
 /// MyVariant-carried historical COSMIC fragments.
 pub mod cosmic;
 mod map;
@@ -25,7 +27,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     terms: biomcp_fetch::Terms {
         name: "MyVariant.info terms and component data licenses",
         url: "https://myvariant.info/terms",
-        usage: biomcp_types::Use::Restricted,
+        usage: biomcp_types::Use::Open,
     },
     source: Source::MyVariant,
     base: "https://myvariant.info/v1",
@@ -72,6 +74,7 @@ fn lookup_with(
             source: Source::MyVariant,
             reason: biomcp_types::Reason::Disabled,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into());
@@ -80,17 +83,25 @@ fn lookup_with(
     let mut offset = 0;
     let mut hits = Vec::new();
     loop {
-        let page = leg.json_checked_cache::<raw::Page>(
-            &QUERY,
-            &[
-                ("q", Arg::Text(query)),
-                ("size", Arg::Num(1000)),
-                ("from", Arg::Num(offset)),
-                ("fields", Arg::Text(&fields)),
-                ("assembly", Arg::Text(assembly)),
-            ],
-            |page| page.hits.iter().all(|hit| hit.matches(query)),
-        )?;
+        let page = leg
+            .call(
+                &QUERY,
+                Input::Params(&[
+                    ("q", Arg::Text(query)),
+                    ("size", Arg::Num(1000)),
+                    ("from", Arg::Num(offset)),
+                    ("fields", Arg::Text(&fields)),
+                    ("assembly", Arg::Text(assembly)),
+                ]),
+                Read::<raw::Page>::json().cache_if(&|page| {
+                    page.hits.iter().all(|hit| {
+                        hit.as_ref().is_some_and(|hit| {
+                            biomcp_fetch::Reply::check(hit).is_ok() && hit.matches(query)
+                        })
+                    })
+                }),
+            )?
+            .value;
         let count = page.hits.len() as u64;
         hits.extend(page.hits);
         offset += count;
@@ -108,6 +119,7 @@ fn leg_bad() -> RequestError {
         source: Source::MyVariant,
         reason: biomcp_types::Reason::BadReply,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()
@@ -132,21 +144,22 @@ fn annotation(
     };
     let endpoint = VARIANT.clone().with_segments(&[PathSegment::new(id)?]);
     let fields = projection(leg, population);
-    let (hit, _) = leg.json_received_checked::<raw::Hit>(
-        &endpoint,
-        &[
-            ("fields", Arg::Text(&fields)),
-            ("assembly", Arg::Text(assembly)),
-        ],
-        |hit| {
-            if hit.matches(id) {
-                Ok(())
-            } else {
-                Err(biomcp_fetch::BadReply)
-            }
-        },
-    )?;
-    Ok(mapped(leg, vec![hit], id, build, population))
+    let annotation = leg
+        .call(
+            &endpoint,
+            Input::Params(&[
+                ("fields", Arg::Text(&fields)),
+                ("assembly", Arg::Text(assembly)),
+            ]),
+            Read::<raw::Annotation>::json().cache_if(&|annotation| {
+                annotation
+                    .hit
+                    .as_ref()
+                    .is_some_and(|hit| biomcp_fetch::Reply::check(hit).is_ok() && hit.matches(id))
+            }),
+        )?
+        .value;
+    Ok(mapped(leg, vec![annotation.hit], id, build, population))
 }
 
 /// Filter independently disabled carried components before creating a request identity.
@@ -175,7 +188,7 @@ fn projection(leg: &Leg<'_>, population: bool) -> String {
 }
 fn mapped(
     leg: &Leg<'_>,
-    hits: Vec<raw::Hit>,
+    hits: Vec<crate::raw::Field<raw::Hit>>,
     query: &str,
     build: biodata::Build,
     population: bool,
@@ -192,3 +205,6 @@ fn mapped(
         )
     }
 }
+
+/// Complete source policy and command declaration.
+pub(crate) mod decl;

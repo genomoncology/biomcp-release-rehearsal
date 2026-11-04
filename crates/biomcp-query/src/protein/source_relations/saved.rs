@@ -1,10 +1,13 @@
-use super::*;
+use super::{Outcome, Request, RequestError, Selection, StepKind, complex_portal, interpro};
+use biomcp_types::ReplyBody;
 use biomcp_types::{ProteinComplexMembers, ProteinComplexes, ProteinDomains};
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(super) enum Saved {
     Domains(
         Vec<biodata::ProteinDomainMatch>,
         u64,
         Vec<biomcp_types::Problem>,
+        bool,
     ),
     Complexes(complex_portal::Collection),
     Members(Option<complex_portal::Complex>),
@@ -17,7 +20,7 @@ impl Saved {
                 let mut cursors = std::collections::BTreeSet::new();
                 while let Some(cursor) = page.cursor.take() {
                     if !cursors.insert(cursor.to_string()) {
-                        return Err(bad(q.source()));
+                        return Err(biomcp_fetch::bad_reply(q.source(), Some(200)));
                     }
                     let next = interpro::page(leg, q.accession(), Some(&cursor), 25)?;
                     if next.total != page.total
@@ -27,14 +30,15 @@ impl Saved {
                             .iter()
                             .any(|r| page.items.iter().any(|old| old.id == r.id))
                     {
-                        return Err(bad(q.source()));
+                        return Err(biomcp_fetch::bad_reply(q.source(), Some(200)));
                     }
+                    page.refusals.include(next.refusals);
                     page.items.extend(next.items);
                     page.problems.extend(next.problems);
                     page.cursor = next.cursor;
                 }
                 if page.items.len() as u64 != page.total {
-                    return Err(bad(q.source()));
+                    return Err(biomcp_fetch::bad_reply(q.source(), Some(200)));
                 }
                 let total = page.total;
                 page.items.retain(|r| {
@@ -42,7 +46,12 @@ impl Saved {
                         .entry_type()
                         .is_none_or(|kind| r.entry_type.as_ref() == Some(kind))
                 });
-                Ok(Self::Domains(page.items, total, page.problems))
+                Ok(Self::Domains(
+                    page.items,
+                    total,
+                    page.problems,
+                    page.refusals == biomcp_adapters::Refusal::Refused,
+                ))
             }
             Selection::Complexes(_) => {
                 complex_portal::search(leg, q.accession()).map(Self::Complexes)
@@ -54,36 +63,18 @@ impl Saved {
     }
     pub(super) fn total(&self) -> u64 {
         match self {
-            Self::Domains(items, _, _) => items.len() as u64,
+            Self::Domains(items, _, _, _) => items.len() as u64,
             Self::Complexes(c) => c.items.len() as u64,
             Self::Members(c) => c.as_ref().map_or(0, |c| c.members.len() as u64),
         }
-    }
-    pub(super) fn encode(&self) -> Result<String, CacheError> {
-        match self {
-            Self::Domains(items, total, problems) => {
-                serde_json::to_string(&(items, total, problems))
-            }
-            Self::Complexes(c) => serde_json::to_string(c),
-            Self::Members(c) => serde_json::to_string(c),
-        }
-        .map_err(|_| CacheError::Database)
-    }
-    pub(super) fn decode(q: &Selection, text: &str) -> Result<Self, CacheError> {
-        match q {
-            Selection::Domains(_) => serde_json::from_str(text)
-                .map(|(rows, total, problems)| Self::Domains(rows, total, problems)),
-            Selection::Complexes(_) => serde_json::from_str(text).map(Self::Complexes),
-            Selection::Members(_) => serde_json::from_str(text).map(Self::Members),
-        }
-        .map_err(|_| CacheError::Database)
     }
     pub(super) fn member_steps(
         &self,
         q: &Selection,
         offset: u32,
         limit: u32,
-        store: &mut Store<'_>,
+        cx: &crate::Ctx<'_>,
+        deadline: biomcp_fetch::Deadline<'_>,
         out: &mut Outcome,
     ) -> Result<(), RequestError> {
         let Self::Complexes(collection) = self else {
@@ -101,38 +92,26 @@ impl Saved {
             );
             let selection = Selection::Members(query.clone());
             let key = selection.key()?;
-            let payload = Self::Members(Some(complex.clone())).encode()?;
-            let existing = store.find(&key, None)?;
-            let pool = if let Some(pool) = existing {
-                if store
-                    .source_snapshot(pool.info.id.as_str(), &key, |_| false)?
-                    .as_deref()
-                    == Some(payload.as_str())
-                {
-                    pool
-                } else {
-                    store.publish_source_pool(
-                        &key,
-                        &payload,
-                        complex.members.len() as u32,
-                        &out.sources,
-                    )?
-                }
-            } else {
-                store.publish_source_pool(
+            let saved = Self::Members(Some(complex.clone()));
+            let pool = crate::publish::keep(
+                crate::source_snapshot::intern(
+                    cx,
                     &key,
-                    &payload,
+                    &saved,
                     complex.members.len() as u32,
                     &out.sources,
-                )?
-            };
-            out.next.push((
-                StepKind::Section,
-                Action::Run {
-                    request: Request::ProteinComplexMembers(query.at_page(pool.info.id, 0)),
-                    fresh: false,
-                },
-            ));
+                    deadline,
+                ),
+                out,
+            )?;
+            if let Some(pool) = pool {
+                out.next.push(crate::next::Step::run(
+                    StepKind::Section,
+                    &[biomcp_types::Source::ComplexPortal],
+                    Request::ProteinComplexMembers(query.at_page(pool.info.id, 0)),
+                    false,
+                ));
+            }
         }
         Ok(())
     }
@@ -145,17 +124,23 @@ impl Saved {
     ) -> Result<(), RequestError> {
         let offset = offset as usize;
         let limit = limit as usize;
-        match self {
-            Self::Domains(items, native_total, problems) => {
+        match (self, q) {
+            (Self::Domains(items, native_total, problems, dropped), Selection::Domains(query)) => {
+                out.dropped |= dropped;
                 out.problems.extend(problems);
-                out.body = QueryBody::ProteinDomains(Some(ProteinDomains {
+                out.body = (ProteinDomains {
                     items: items.into_iter().skip(offset).take(limit).collect(),
                     native_total,
-                }))
+                })
+                .with_query(query.clone())
             }
-            Self::Complexes(c) => {
-                out.problems
-                    .extend(c.items.iter().flat_map(|c| c.problems.clone()));
+            (Self::Complexes(c), Selection::Complexes(query)) => {
+                out.include_refusals(c.refusals);
+                out.problems.extend(
+                    c.items
+                        .iter()
+                        .flat_map(|c| c.problems.clone().into_iter().flatten()),
+                );
                 let items: Vec<_> = c
                     .items
                     .into_iter()
@@ -163,44 +148,38 @@ impl Saved {
                     .take(limit)
                     .map(|c| c.header)
                     .collect();
-                out.body = QueryBody::ProteinComplexes(Some(ProteinComplexes {
+                out.body = (ProteinComplexes {
                     items: items.into(),
                     native_total: c.native_total,
-                }));
+                })
+                .with_query(query.clone());
             }
-            Self::Members(Some(c)) => {
-                out.problems.extend(c.problems);
+            (Self::Members(Some(c)), Selection::Members(query)) => {
+                out.include_refusals(c.refusals);
+                out.problems.extend(c.problems.into_iter().flatten());
                 let items: Vec<_> = c.members.into_iter().skip(offset).take(limit).collect();
                 for member in &items {
                     if let Some(id) = &member.protein {
                         let q = biomcp_types::ProteinGet::new(
                             vec![biomcp_types::ProteinInput::Accession(id.clone())].into(),
                         )
-                        .map_err(|_| bad(q.source()))?;
-                        out.next.push((
+                        .map_err(|_| biomcp_fetch::bad_reply(q.source(), Some(200)))?;
+                        out.next.push(crate::next::Step::run(
                             StepKind::Pivot,
-                            Action::Run {
-                                request: Request::GetProtein(q),
-                                fresh: false,
-                            },
+                            &[biomcp_types::Source::UniProt],
+                            Request::GetProtein(q),
+                            false,
                         ));
                     }
                 }
-                out.body = QueryBody::ProteinComplexMembers(Some(ProteinComplexMembers {
+                out.body = (ProteinComplexMembers {
                     items: items.into(),
-                }));
+                })
+                .with_query(query.clone());
             }
-            Self::Members(None) => {}
+            (Self::Members(None), Selection::Members(_)) => {}
+            _ => return Err(biomcp_fetch::bad_reply(q.source(), Some(200))),
         }
         Ok(())
     }
-}
-fn bad(source: Source) -> RequestError {
-    SourceError {
-        source,
-        reason: biomcp_types::Reason::BadReply,
-        status: Some(200),
-        retry_after: None,
-    }
-    .into()
 }

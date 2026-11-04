@@ -42,18 +42,21 @@ mod help;
 mod key;
 pub use gene::{Oncokb, OncokbCard, OncokbGeneType, OncokbTranscript};
 pub use help::{Help, HelpArgument, HelpCommand, HelpQuery, HelpWord};
-pub use key::{KeyHelp, KeyState, RegisteredKey, RegisteredKeys};
+pub use key::{KeyHelp, KeyState, KeyTier, RegisteredKey, RegisteredKeys};
 mod page;
 mod section;
 mod source;
 mod source_timestamp;
-pub use source_timestamp::{SourceTimestamp, SourceTimestampTimezone};
+pub use source_timestamp::{
+    SourceDateTime, SourceDateTimeValue, SourceLocalTimestampValue, SourceTimestamp,
+    SourceTimestampTimezone, SourceTimestampValue, SourceUpdated,
+};
 mod status;
 mod store;
 pub use store::{BundleSize, StoreClean, StoreSize};
 mod step;
-pub use envelope::{Envelope, ResponseBody};
-pub use gene::{GeneCards, GeneItem, GenePage, QueryBody};
+pub use envelope::{EmptyQuery, Envelope, ResponseBody};
+pub use gene::{GeneCards, GeneItem, GenePage};
 pub use page::{PageInfo, PoolInfo};
 pub use section::{Section, SourceRecord};
 pub use source::{CacheProblem, SourceNotice, SourceOutcome, SourceState};
@@ -66,7 +69,7 @@ pub use gene::{Constraint, GeneSections, Protein};
 
 pub use gene::{
     CancerPtpm, Capped, CivicGene, ClinGenGene, ClinGenValidity, GenccGene, GenccSubmission,
-    GeneExpression, PathwayRef, ReactomeId, ReactomeIdInvalid, RnaAbundance, TissueNtpm,
+    GeneExpression, PathwayRef, ReactomeId, RnaAbundance, RnaUnit, TissueNtpm,
 };
 
 mod article_sections;
@@ -89,9 +92,12 @@ pub use article::{
 mod recurrence;
 pub use recurrence::{RecurrenceGranularity, RecurrenceStudy, RecurrenceTerms, VariantRecurrence};
 mod variant;
+mod variant_query;
+pub use variant_query::VariantGetQuery;
 mod variant_normalize;
 pub use variant::{
-    VariantCard, VariantHeader, VariantPage, VariantResolution, VariantSections, VariantTranscript,
+    VariantCard, VariantHeader, VariantPage, VariantResolution, VariantSearchExclusionReason,
+    VariantSearchExclusions, VariantSections, VariantTranscript,
 };
 pub use variant_normalize::{
     NormalizationField, NormalizationMessage, NormalizationResult, VariantNormalization,
@@ -109,7 +115,8 @@ pub use trial_get::{
 
 mod nci_trial;
 pub use nci_trial::{
-    NciDisease, NciDiseaseRef, NciTrial, NciTrialCards, NciTrialItem, NciTrialPage,
+    NciDisease, NciDiseaseRef, NciMatchedSite, NciTrial, NciTrialBiomarker, NciTrialCards,
+    NciTrialItem, NciTrialPage,
 };
 
 mod nci_detail;
@@ -128,14 +135,14 @@ pub use variant_assertions::{
 };
 mod variant_civic;
 pub use variant_civic::{
-    CivicClaimPage, CivicMember, CivicMembership, CivicNativeClaim, CivicProfile, CivicStatement,
-    VariantCivic,
+    CivicClaimPage, CivicCondition, CivicMember, CivicMembership, CivicNativeClaim, CivicProfile,
+    CivicStatement, CivicTherapy, VariantCivic,
 };
 mod variant_hotspots;
 pub use variant_hotspots::{HotspotAlternate, HotspotMembership, HotspotRecord, VariantHotspots};
 
 mod variant_oncokb;
-pub use variant_oncokb::{OncokbCitation, OncokbVariantRecord, VariantOncokb};
+pub use variant_oncokb::{OncokbCitation, OncokbConcept, OncokbVariantRecord, VariantOncokb};
 
 mod variant_population;
 pub use variant_population::{
@@ -168,4 +175,32 @@ mod civic_vocabulary;
 pub use civic_vocabulary::{CivicKind, CivicSignificance, CivicStatus};
 
 mod nci_phase;
-pub use nci_phase::NciTrialPhase;
+pub use nci_phase::{NciPhaseFilter, NciTrialPhase};
+
+mod device_recall;
+pub use device_recall::{DeviceRecallCard, DeviceRecallHeader};
+
+mod organization;
+pub use organization::{Organization, OrganizationCoordinates, OrganizationPage};
+
+mod biomarker;
+mod registry;
+pub use biomarker::{BiomarkerCard, BiomarkerHeader, BiomarkerPage, BiomarkerResult};
+
+mod usage;
+pub use usage::{UsageArguments, UsageError};
+
+mod packet;
+mod reply;
+pub use packet::ReplyData;
+pub use reply::{Reply, ReplyBody};
+
+mod pdf;
+pub use pdf::{PdfText, PdfTextState};
+mod trial_results;
+pub use trial_results::{
+    TrialAdverseEvents, TrialEvent, TrialEventGroup, TrialEventStats, TrialPostedCard,
+    TrialPostedOutcome, TrialResultAnalysis, TrialResultCategory, TrialResultClass,
+    TrialResultCount, TrialResultDenominator, TrialResultGroup, TrialResultMeasurement,
+    TrialResultRecord,
+};

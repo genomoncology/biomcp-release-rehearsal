@@ -1,15 +1,12 @@
 {
+  "verified": "The example generator in crates/biomcp/tests/runner/cell_line/examples.rs records unchanged native bodies from tests/fixtures/cell-line/native/requests.json. The nightly run executes the public Cellosaurus search and get commands.",
+  "live_check": "public",
   "feature": "cell-line-identity",
   "story": "Executable cell line help examples preserve exact retained native requests and identities.",
   "replay": "cell-line/examples",
   "steps": [
     {
       "run": [
-        "search",
-        "cell-line",
-        "MOLM13"
-      ],
-      "mcp": [
         "search",
         "cell-line",
         "MOLM13"
@@ -25,13 +22,6 @@
       "run": [
         "search",
         "cell-line",
-        "--query",
-        "MV4;11"
-      ],
-      "mcp": [
-        "search",
-        "cell-line",
-        "--query",
         "MV4;11"
       ],
       "expect": {
@@ -47,11 +37,6 @@
         "cell-line",
         "CVCL_2119"
       ],
-      "mcp": [
-        "get",
-        "cell-line",
-        "CVCL_2119"
-      ],
       "expect": {
         "/status": "complete",
         "/result/header/accession": "CVCL_2119"
@@ -61,11 +46,6 @@
     },
     {
       "run": [
-        "get",
-        "cell-line",
-        "CVCL_0004"
-      ],
-      "mcp": [
         "get",
         "cell-line",
         "CVCL_0004"
