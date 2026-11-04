@@ -311,6 +311,45 @@ class NightlyCommand(unittest.TestCase):
         row['result']['commands'].append({'ordinal': 2})
         self.classified(row, 'failure', 1)
 
+    def test_throttle_explains_later_cache_miss_only_with_root_dependencies(self):
+        import copy
+        for change in ('cache-miss', 'failed', 'source', 'baseline', 'unrelated',
+                       'missing-inputs', 'no-earlier-throttle', 'later-throttle', 'schema'):
+            with self.subTest(change=change):
+                row = classification_case('429-output')
+                later = copy.deepcopy(classification_case('discovery')['witness'][0])
+                later['ordinal'] = 2
+                later['baseline']['requests'] = []
+                root, dependent = later['live']['requests']
+                dependent['source'] = 'icite'
+                if change == 'failed':
+                    dependent['status'] = 503
+                elif change == 'source':
+                    root['source'] = 'unrelated'
+                elif change == 'baseline':
+                    later['baseline']['requests'] = [
+                        {'identity': 'baseline-only', 'source': 'pubmed', 'status': 200}]
+                elif change == 'unrelated':
+                    dependent['provenance']['inputs']['ids'] = ['unrelated']
+                elif change == 'missing-inputs':
+                    dependent.pop('provenance')
+                elif change == 'no-earlier-throttle':
+                    row = classification_case('order')
+                row['witness'].append(later)
+                row['result']['commands'].append({'ordinal': 2})
+                row['result']['drift'].extend(['search: request-plan-added',
+                                               'new-id: request-plan-added'])
+                if change == 'later-throttle':
+                    row['witness'].reverse()
+                    for ordinal, command in enumerate(row['witness'], 1):
+                        command['ordinal'] = ordinal
+                    row['result']['drift'] = ['search: request-plan-added']
+                elif change == 'schema':
+                    row['result']['drift'].append('output schema failure')
+                expected = ('throttled' if change == 'cache-miss' else
+                            'failure' if change in ('failed', 'schema') else 'uncertain')
+                self.classified(row, expected, int(expected != 'throttled'))
+
     def test_recovery_keeps_schema_and_invariant_failures(self):
         for change, expected in [('recovery', 'recovered'), ('shape', 'failure')]:
             row = classification_case('429-output')

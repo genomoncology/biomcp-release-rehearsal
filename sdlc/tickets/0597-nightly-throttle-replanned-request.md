@@ -1,6 +1,7 @@
 # Nightly counts cache-order effects of a throttled command as throttled
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 2e6d77240346ff0d306d4d4f225363dde631b543
 Milestone: 5
 
 ## Outcome

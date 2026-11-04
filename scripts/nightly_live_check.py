@@ -255,6 +255,29 @@ def command_causes(command):
     return {'throttled': throttled, 'outage': outage, 'recovered': recovered}
 
 
+def cache_order_throttle(command, earlier_throttled):
+    if command['baseline']['requests']:
+        return False
+    added = list(terminal(command['live']['requests']).values())
+    if not added or any(request.get('status') != 200 for request in added):
+        return False
+    roots = [request for request in added
+             if not (request.get('provenance') or {}).get('inputs')]
+    if len(roots) != 1 or roots[0]['source'] not in earlier_throttled:
+        return False
+    discoveries = discovery_sequences(roots[0])
+    for request in added:
+        if request is roots[0]:
+            continue
+        provenance = request.get('provenance') or {}
+        inputs = provenance.get('inputs')
+        if (not isinstance(inputs, dict) or not provenance.get('input_context')
+                or not valid_ids(inputs.get('ids')) or not inputs['ids']
+                or not set(inputs['ids']) <= set(discoveries.get(inputs.get('namespace'), []))):
+            return False
+    return True
+
+
 def command_classification(capture, discoveries, peers, complete=False, comparison=None):
     before = terminal(capture['baseline']['requests'])
     after = terminal(capture['live']['requests'])
@@ -362,6 +385,7 @@ def classify_case(row):
                             for request in command[side]['requests']])
                   for side in ('baseline', 'live'))
     outcomes = []
+    earlier_throttled = set()
     output_changes = {item for item in drift if ': output status changed:' in item}
     for command, comparison in zip(witness, result['commands']):
         before = terminal(command['baseline']['requests'])
@@ -375,7 +399,11 @@ def classify_case(row):
             current[:] = [change for change in current if change['request'] not in replaced]
             current.extend(changes)
         complete = comparison.get('before_status') == comparison.get('after_status') == 'complete'
-        outcomes.append(command_classification(command, discoveries, peers, complete, comparison))
+        outcome = command_classification(command, discoveries, peers, complete, comparison)
+        if outcome == 'uncertain' and cache_order_throttle(command, earlier_throttled):
+            outcome = 'throttled'
+        outcomes.append(outcome)
+        earlier_throttled.update(command_causes(command)['throttled'])
         matched = {item for item in output_changes
                    if item.startswith('command ' + str(command['ordinal'])
                                       + ': output status changed:')}
