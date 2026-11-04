@@ -1,0 +1,166 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele?hgvs=NC_000017.11%3Ag.43057065delGinsGG&fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793808996,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA003404",
+          "communityStandardTitle": [
+            "NM_007294.4(BRCA1):c.5266dup (p.Gln1756ProfsTer?)"
+          ],
+          "externalRecords": {
+            "ClinVarVariations": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/clinvar/variation/17677",
+                "RCV": [
+                  "RCV000019246",
+                  "RCV000019247",
+                  "RCV000131328",
+                  "RCV000119097",
+                  "RCV000056287",
+                  "RCV000258962",
+                  "RCV000415060",
+                  "RCV000412924",
+                  "RCV000495973",
+                  "RCV000735471",
+                  "RCV001353680",
+                  "RCV002504809",
+                  "RCV003128129",
+                  "RCV004554607"
+                ],
+                "variationId": 17677
+              }
+            ],
+            "dbSNP": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/snp/80357906",
+                "rs": 80357906
+              }
+            ]
+          },
+          "genomicAlleles": [
+            {
+              "chromosome": "17",
+              "coordinates": [
+                {
+                  "allele": "G",
+                  "end": 43057065,
+                  "referenceAllele": "",
+                  "start": 43057065
+                }
+              ],
+              "hgvs": [
+                "NC_000017.11:g.43057065dup",
+                "CM000679.2:g.43057065dup"
+              ],
+              "referenceGenome": "GRCh38",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000065"
+            },
+            {
+              "chromosome": "17",
+              "coordinates": [
+                {
+                  "allele": "G",
+                  "end": 41209082,
+                  "referenceAllele": "",
+                  "start": 41209082
+                }
+              ],
+              "hgvs": [
+                "NC_000017.10:g.41209082dup",
+                "CM000679.1:g.41209082dup"
+              ],
+              "referenceGenome": "GRCh37",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000041"
+            },
+            {
+              "chromosome": "17",
+              "coordinates": [
+                {
+                  "allele": "G",
+                  "end": 38462608,
+                  "referenceAllele": "",
+                  "start": 38462608
+                }
+              ],
+              "hgvs": [
+                "NC_000017.9:g.38462608dup"
+              ],
+              "referenceGenome": "NCBI36",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000017"
+            },
+            {
+              "coordinates": [
+                {
+                  "allele": "C",
+                  "end": 160921,
+                  "referenceAllele": "",
+                  "start": 160921
+                }
+              ],
+              "hgvs": [
+                "NG_005905.2:g.160921dup",
+                "LRG_292:g.160921dup"
+              ],
+              "referenceSequence": "http://reg.genome.network/refseq/RS000438"
+            }
+          ],
+          "transcriptAlleles": [
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000357654.9:c.5266dup"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_007294.4:c.5266dup"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000350283.3:p.Gln1756ProfsTer?"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_009225.1:p.Gln1756ProfsTer?"
+                  }
+                }
+              }
+            },
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000357654.9:c.5266dup"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_007294.4:c.5266dup"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000350283.3:p.Gln1756ProfsTer?"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_009225.1:p.Gln1756ProfsTer?"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

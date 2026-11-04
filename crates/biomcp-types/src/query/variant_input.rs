@@ -1,9 +1,7 @@
 use crate::{Error, text_value};
 use std::{borrow::Cow, fmt, str::FromStr};
 /// Published rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS,
-/// chromosome genomic HGVS, or single-base chromosome-position-reference-alternate coordinates.
-/// Multi-base coordinates are unsupported: use reference-qualified HGVS and
-/// variant normalize --source car --hgvs <HGVS> to validate source forms.
+/// chromosome genomic HGVS, or VCF-style chromosome-position-reference-alternate coordinates.
 /// Ambiguous candidates remain separate.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VariantInput {
@@ -35,7 +33,7 @@ pub enum VariantNamespace {
 }
 impl VariantInput {
     pub(crate) const COORDINATE_PATTERN: &'static str =
-        r"^(chr)?([1-9]|1[0-9]|2[0-2]|X|Y|M|MT)-[1-9][0-9]*-[ACGT]-[ACGT]$";
+        r"^(chr)?([1-9]|1[0-9]|2[0-2]|X|Y|M|MT)-[1-9][0-9]*-[ACGT]+-[ACGT]+$";
     pub(crate) const CHROMOSOME_PATTERN: &'static str =
         r"^chr([1-9]|1[0-9]|2[0-2]|X|Y|M|MT):g\.[\x21-\x7e]*[0-9][\x21-\x7e]*$";
 
@@ -83,6 +81,34 @@ impl VariantInput {
     /// Coordinates use GRCh38 unless the caller supplies another assembly.
     pub fn coordinate_form(&self) -> bool {
         matches!(self.kind, InputKind::Coordinates(_))
+    }
+    /// Full VCF REF/ALT for source validation, before shared padding is removed.
+    pub fn coordinate_validation(&self, build: crate::Build) -> Option<String> {
+        if !self.coordinate_form() {
+            return None;
+        }
+        let parts: Vec<_> = self.as_str().split('-').collect();
+        let [chromosome, position, reference, alternate] = parts.as_slice() else {
+            return None;
+        };
+        if reference.len() == 1 && alternate.len() == 1 {
+            return None;
+        }
+        let chromosome = chromosome.strip_prefix("chr").unwrap_or(chromosome);
+        let chromosome: biodata::Chromosome = (if chromosome == "M" { "MT" } else { chromosome })
+            .parse()
+            .ok()?;
+        let start: u64 = position.parse().ok()?;
+        let end = start.checked_add(reference.len() as u64 - 1)?;
+        let range = if start == end {
+            start.to_string()
+        } else {
+            format!("{start}_{end}")
+        };
+        Some(format!(
+            "{}:g.{range}del{reference}ins{alternate}",
+            chromosome.accession(build)
+        ))
     }
     /// Source lookup identity; VCV archive versions do not change the Variation ID.
     pub fn source_id(&self) -> Cow<'_, str> {
@@ -171,14 +197,15 @@ fn coordinates(value: &str) -> Option<String> {
         .strip_prefix("chr")
         .unwrap_or(value.split('-').next()?);
     let chromosome = if chromosome == "M" { "MT" } else { chromosome };
+    let _: biodata::Chromosome = chromosome.parse().ok()?;
     let position = parts.next()?;
     let reference = parts.next()?;
     let alternate = parts.next()?;
     if parts.next().is_some()
         || position.starts_with('0')
         || position.parse::<u64>().ok()? == 0
-        || reference.len() != 1
-        || alternate.len() != 1
+        || reference.is_empty()
+        || alternate.is_empty()
         || !reference
             .bytes()
             .chain(alternate.bytes())
@@ -186,8 +213,8 @@ fn coordinates(value: &str) -> Option<String> {
     {
         return None;
     }
-    // Coordinate spelling is converted to the same checked genomic expression used elsewhere.
-    let expression = format!("chr{chromosome}:g.{position}{reference}>{alternate}");
+    let change = coordinate_change(position.parse().ok()?, reference, alternate)?;
+    let expression = format!("chr{chromosome}:g.{change}");
     crate::Expression::new(
         crate::ExpressionSyntax::HgvsG,
         crate::Text::new(&expression).ok()?,
@@ -195,6 +222,58 @@ fn coordinates(value: &str) -> Option<String> {
     )
     .ok()?;
     Some(expression)
+}
+// VCF 4.4 REF/ALT padding and HGVS DNA deletion/insertion/delins grammar.
+// Source validation retains the original REF, including shared bases.
+fn coordinate_change(position: u64, reference: &str, alternate: &str) -> Option<String> {
+    if reference.len() == 1 && alternate.len() == 1 {
+        return Some(format!("{position}{reference}>{alternate}"));
+    }
+    let original_reference = reference;
+    let original_alternate = alternate;
+    let mut start = position;
+    let mut reference = reference;
+    let mut alternate = alternate;
+    while !reference.is_empty()
+        && !alternate.is_empty()
+        && reference.as_bytes().first() == alternate.as_bytes().first()
+    {
+        reference = &reference[1..];
+        alternate = &alternate[1..];
+        start = start.checked_add(1)?;
+    }
+    while !reference.is_empty()
+        && !alternate.is_empty()
+        && reference.as_bytes().last() == alternate.as_bytes().last()
+    {
+        reference = &reference[..reference.len() - 1];
+        alternate = &alternate[..alternate.len() - 1];
+    }
+    let end = start.checked_add(reference.len().saturating_sub(1) as u64)?;
+    let range = if start == end {
+        start.to_string()
+    } else {
+        format!("{start}_{end}")
+    };
+    Some(match (reference.is_empty(), alternate.is_empty()) {
+        (true, true) => return None,
+        // HGVS has no position zero: keep right padding at the contig start.
+        (true, false) if start == 1 => {
+            let end = original_reference.len();
+            let range = if end == 1 {
+                "1".to_owned()
+            } else {
+                format!("1_{end}")
+            };
+            format!("{range}delins{original_alternate}")
+        }
+        (true, false) => format!("{}_{}ins{alternate}", start.checked_sub(1)?, start),
+        (false, true) => format!("{range}del"),
+        (false, false) if reference.len() == 1 && alternate.len() == 1 => {
+            format!("{start}{reference}>{alternate}")
+        }
+        _ => format!("{range}delins{alternate}"),
+    })
 }
 fn input_text(value: &str) -> Result<crate::Text, Error> {
     if value.is_empty()
@@ -232,6 +311,6 @@ text_value!(
         Self::COORDINATE_PATTERN
     ),
     "Accepted forms: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS, chromosome genomic HGVS, \
-    or single-base chromosome-position-reference-alternate coordinates. Multi-base coordinates are unsupported; \
-    use reference-qualified HGVS and variant normalize --source car --hgvs <HGVS> to validate source forms."
+    or VCF-style chromosome-position-reference-alternate coordinates (SNVs, deletions, insertions and delins), \
+    defaulting to GRCh38. Reference bases are validated by the source."
 );

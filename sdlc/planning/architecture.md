@@ -177,6 +177,7 @@ The runner tool proof `schema-discovery/capture-retains-replay-owner` drops the 
 | `crates/biomcp-types/tests/protein_contracts.rs` | Exercise neutral protein records and checked standalone consumer contracts through the public library API before adapters exist. |
 | `crates/biomcp-types/tests/study_contracts.rs` | Exercise exact study identities, neutral source metadata and bounded standalone consumer contracts through the public library API before adapters exist. |
 | `crates/biomcp-types/tests/diagnostic_contracts.rs` | Exercise neutral diagnostic records, native identities and checked standalone consumer contracts through the public library API before adapters exist. |
+| `crates/biomcp-types/tests/variant_coordinates.rs` | Exercise VCF coordinate parser boundaries and assembly-qualified full-reference validation strings through the public library API. |
 | `crates/biomcp-types/tests/variant_values.rs` | Exercise copied common variant values and constructor boundaries through the public library API. |
 | `crates/biomcp-types/tests/article_ids.rs` | Exercise checked values and schema contracts through the public library API. |
 | `crates/biomcp-types/tests/disease_contracts.rs` | Exercise neutral disease records and standalone consumer contracts through the public library API before adapters exist. |

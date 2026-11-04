@@ -84,6 +84,10 @@ const ALLOWED: &[(&str, &str)] = &[
             through the public library API before adapters exist.",
     ),
     (
+        "crates/biomcp-types/tests/variant_coordinates.rs",
+        "Exercise VCF coordinate parser boundaries and assembly-qualified full-reference validation strings through the public library API.",
+    ),
+    (
         "crates/biomcp-types/tests/variant_values.rs",
         "Exercise copied common variant values and constructor boundaries through the public library API.",
     ),

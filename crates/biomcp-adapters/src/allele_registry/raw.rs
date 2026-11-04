@@ -11,6 +11,8 @@ pub(super) struct Allele {
     pub id: Option<Field<Text>>,
     #[serde(rename = "errorType")]
     pub error_type: Option<Text>,
+    #[serde(rename = "actualAllele")]
+    pub actual_allele: Option<Field<Text>>,
     #[serde(rename = "description")]
     pub error_description: Option<Field<biodata::SourceText>>,
     pub message: Option<Field<biodata::SourceText>>,

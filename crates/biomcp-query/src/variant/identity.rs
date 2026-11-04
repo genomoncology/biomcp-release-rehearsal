@@ -77,6 +77,19 @@ pub(super) fn read(cx: &Ctx<'_>, query: &VariantGet, deadline: Deadline<'_>) -> 
                     source.reason = Some(Reason::Rejected);
                 }
             }
+            if let Some(rejection) = &rejection
+                && query
+                    .input()
+                    .coordinate_validation(query.myvariant_build())
+                    .is_some()
+            {
+                found.problems.push(Problem {
+                    source: spec.source,
+                    record: None,
+                    field: format!("input: {rejection}").into(),
+                    code: biomcp_types::ProblemCode::ValueUnknown,
+                });
+            }
             found.rejection = rejection;
         }
         // The source error and its outcome were retained above.

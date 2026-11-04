@@ -1,7 +1,7 @@
 use crate::{Build, VariantInput, VariantNamespace};
 use serde::{Deserialize, Serialize};
 #[doc = " Read an rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or \
-    single-base genomic coordinates such as 7-140753336-A-T through the shared resolver. \
+    VCF-style genomic coordinates such as 7-140753336-A-T through the shared resolver. \
     MyVariant identity lookups default to GRCh38; --build overrides it. \
     Chromosome genomic HGVS requires --build. Use search variant --gene BRAF --protein V600E \
     or search variant --gene PTEN --coding c.333G>T for gene shorthand. \
@@ -18,7 +18,7 @@ pub struct VariantGet(Fields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    /// rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or single-base genomic coordinates.
+    /// rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     input: VariantInput,
     /// Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.

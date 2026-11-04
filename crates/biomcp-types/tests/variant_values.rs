@@ -560,22 +560,3 @@ fn typed_candidate_assertions_preserve_source_identity_and_page() -> Check {
     assert!(VariantAssertionsGet::from_identity("rs113488022".parse()?, 2, 3).is_err());
     Ok(())
 }
-
-#[test]
-fn coordinate_inputs_refuse_unsupported_reference_forms_and_keep_source_aliases() -> Check {
-    // Synthetic REF mutations at the existing public case coordinate must not
-    // become a different allele's source key. The installed case owns refusal before I/O.
-    for input in ["7-140753336-AA-T", "7-140753336-AC-T", "7-140753336-A-TT"] {
-        assert!(
-            VariantInput::new(input).is_err(),
-            "unsupported coordinate allele: {input}"
-        );
-    }
-    // Alias of the mitochondrial reference already used in core.rs; no source call.
-    assert_eq!(VariantInput::new("M-1-A-T")?.source_id(), "chrMT:g.1A>T");
-    assert_eq!(
-        VariantInput::new("chrM:g.1A>T")?.source_id(),
-        "chrMT:g.1A>T"
-    );
-    Ok(())
-}

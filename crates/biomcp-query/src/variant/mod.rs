@@ -161,6 +161,10 @@ pub(crate) fn resolve(
     problems: &mut Vec<biomcp_types::Problem>,
     dropped: &mut bool,
 ) -> Result<(Vec<VariantHeader>, Option<Text>), RequestError> {
+    if let Some(validation) = query.input().coordinate_validation(query.myvariant_build()) {
+        let result = allele_registry::hgvs(leg, &validation)?;
+        return car(result, problems, dropped);
+    }
     let native = query.input().native_hgvs();
     let input = native.as_ref();
     match query.input().namespace() {
@@ -246,6 +250,13 @@ fn join_for_build(row: &VariantHeader, build: biodata::Build) -> Option<String> 
     })
 }
 pub(crate) fn source(query: &VariantGet) -> &'static biomcp_fetch::SourceSpec {
+    if query
+        .input()
+        .coordinate_validation(query.myvariant_build())
+        .is_some()
+    {
+        return &allele_registry::SPEC;
+    }
     let direct = matches!(
         query.input().namespace(),
         VariantNamespace::Rs | VariantNamespace::ClinVar | VariantNamespace::Chromosome

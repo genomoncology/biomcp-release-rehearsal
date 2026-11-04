@@ -9,7 +9,7 @@ use biodata::{Allele, Build, Expression, Representation, SequenceLocation, Span0
 use biomcp_types::{Problem, Source, SourceRecord, VariantHeader};
 pub(super) fn allele(raw: RawAllele, expected: Option<&str>) -> Resolution {
     if let Some(error) = &raw.error_type {
-        return Resolution::Rejected(error.clone());
+        return rejection(&raw, error);
     }
     let mut fields = crate::mapped::Problems {
         source: Source::AlleleRegistry,
@@ -53,6 +53,26 @@ pub(super) fn allele(raw: RawAllele, expected: Option<&str>) -> Resolution {
         problems,
     }))
 }
+// Do not silently drop a source mismatch when its explanatory text cannot fit.
+fn rejection(raw: &RawAllele, error: &Text) -> Resolution {
+    let actual = raw
+        .actual_allele
+        .as_ref()
+        .and_then(crate::raw::Field::as_ref)
+        .filter(|actual| {
+            error.as_str() == "IncorrectReferenceAllele"
+                && !actual.as_str().is_empty()
+                && actual.as_str().bytes().all(|base| b"ACGTN".contains(&base))
+        });
+    let Some(actual) = actual else {
+        return Resolution::Rejected(error.clone());
+    };
+    match Text::new(&format!("{error}: expected reference {actual}")) {
+        Ok(rejection) => Resolution::Rejected(rejection),
+        Err(_) => Resolution::Refused(vec![problem(Source::AlleleRegistry, None, "actualAllele")]),
+    }
+}
+
 fn genomic(g: Genomic, record: &Text, out: &mut Vec<Representation>, problems: &mut Vec<Problem>) {
     let mut fields = crate::mapped::Problems {
         source: Source::AlleleRegistry,

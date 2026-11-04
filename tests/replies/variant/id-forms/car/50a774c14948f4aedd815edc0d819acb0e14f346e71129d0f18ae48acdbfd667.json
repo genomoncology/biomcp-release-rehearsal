@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele?hgvs=NC_000007.14%3Ag.117559590_117559593delGTCTinsG&fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793808996,
+      "status": 400,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "actualAllele": "ATCT",
+          "description": "Given allele from reference sequence is incorrect. It does not match actual sequence at given position.",
+          "errorType": "IncorrectReferenceAllele",
+          "givenAllele": "GTCT",
+          "message": "Reference allele does not match for NC_000007.14[117559589-0,117559593+0), given=GTCT, found=ATCT.",
+          "referenceSequence": "NC_000007.14",
+          "region": "[117559589-0,117559593+0)"
+        }
+      }
+    }
+  ]
+}

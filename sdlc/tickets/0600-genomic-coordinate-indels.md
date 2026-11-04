@@ -1,6 +1,7 @@
 # Genomic coordinates accept insertions and deletions
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7cfabaf7ea50306b740dad4725cdaed3d968bdea
 Milestone: 5
 
 ## Outcome

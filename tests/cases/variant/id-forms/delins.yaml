@@ -1,0 +1,101 @@
+{
+  "feature": "variant-identity",
+  "replay": "variant/id-forms",
+  "live_check": "recorded",
+  "story": "delins VCF coordinates retain their complete reference for CAR validation and reach each variant command or its named-forms refusal.",
+  "steps": [
+    {
+      "run": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "7-55174774-AATTAAGAGAAGCAACATC-T"
+      ],
+      "expect": {
+        "/result/resolution": "resolved",
+        "/result/candidates/0/identity/ids/0": "CA180574"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "7-55174774-AATTAAGAGAAGCAACATC-T"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/problems/*/field": {
+          "includes_all_of": [
+            "input: requires one source-qualified GRCh38 SNV (CAid or reference-qualified genomic HGVS); indels need a padded source representation; convert with get variant <ID> and select an exact candidate"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "recurrence",
+        "7-55174774-AATTAAGAGAAGCAACATC-T",
+        "--source",
+        "cbioportal",
+        "--gene",
+        "BRAF",
+        "--study",
+        "msk_impact_2017",
+        "--profile",
+        "msk_impact_2017_mutations",
+        "--sample-set",
+        "msk_impact_2017_all",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/examined_rows": 3,
+        "/result/observed_sample_count": 0
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "normalize",
+        "--source",
+        "mutalyzer",
+        "--hgvs",
+        "7-55174774-AATTAAGAGAAGCAACATC-T"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/message": "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "assertions",
+        "7-55174774-AATTAAGAGAAGCAACATC-T",
+        "--source",
+        "erepo"
+      ],
+      "expect": {
+        "/status": "absent"
+      },
+      "exit": 1
+    },
+    {
+      "run": [
+        "search",
+        "variant",
+        "--query",
+        "7-55174774-AATTAAGAGAAGCAACATC-T",
+        "--source",
+        "myvariant"
+      ],
+      "expect": {
+        "/result/source_query": "7-55174774-AATTAAGAGAAGCAACATC-T",
+        "/page/total": 0
+      }
+    }
+  ]
+}
