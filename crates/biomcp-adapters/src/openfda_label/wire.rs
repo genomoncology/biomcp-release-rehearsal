@@ -13,12 +13,8 @@ pub(super) struct Record {
     /// Native YYYYMMDD revision date.
     pub effective_time: Option<Field<String>>,
     pub(super) openfda: Option<Field<Names>>,
-    pub(super) spl_product_data_elements: Option<Field<Vec<Field<NativeText>>>>,
-    pub(super) boxed_warning: Option<Field<Vec<Field<String>>>>,
-    pub(super) dosage_and_administration: Option<Field<Vec<Field<String>>>>,
-    pub(super) drug_interactions: Option<Field<Vec<Field<String>>>>,
-    pub(super) indications_and_usage: Option<Field<Vec<Field<String>>>>,
-    pub(super) warnings_and_cautions: Option<Field<Vec<Field<String>>>>,
+    #[serde(flatten)]
+    pub(super) sections: std::collections::BTreeMap<String, Field<Vec<Field<String>>>>,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Names {

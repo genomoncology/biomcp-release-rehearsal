@@ -180,7 +180,7 @@ struct GetFields {
     /// Named section continuation, refused on an identity-only card.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     section_offset: Option<u32>,
-    /// Exact native label heading, required only for the label section.
+    /// Exact published openFDA SPL section field, including table fields; required for the label section.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     label_section: Option<Text>,
     /// Explicit native application product number, only for approvals.

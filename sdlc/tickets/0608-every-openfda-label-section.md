@@ -1,6 +1,7 @@
 # Drug labels serve every openFDA section
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 84be20504fbf122263b43352aef60f4461d182ad
 Milestone: 5
 
 ## Outcome

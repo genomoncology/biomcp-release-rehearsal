@@ -5,8 +5,8 @@ use biomcp_fetch::RequestError;
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
-    DrugGet, DrugLabel, DrugPage, DrugSearch, DrugSection, DrugSource, PageInfo, Reason, Request,
-    Section, Source, StepKind,
+    DrugGet, DrugLabel, DrugPage, DrugSearch, DrugSection, DrugSource, PageInfo, Request, Section,
+    Source, StepKind,
 };
 const SOURCE: Source = Source::OpenfdaLabel;
 pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
@@ -111,12 +111,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     } else {
         biomcp_types::DrugCard::into_reply(query.clone(), None)
     });
-    if !query.supports_sections()
-        || label
-            && !query
-                .label_section()
-                .is_some_and(|h| source::HEADINGS.contains(&h.as_str()))
-    {
+    if !query.supports_sections() {
         return super::unsupported(DrugSource::OpenfdaLabel, out);
     }
     let id = match query.native_input() {
@@ -185,6 +180,10 @@ fn select(
         return Ok(());
     }
     let heading = query.label_section().map_or("", |h| h.as_str());
+    if !source::HEADINGS.contains(&heading) {
+        out.body = biomcp_types::ReplyData::Usage(invalid_heading(record)?);
+        return Ok(());
+    }
     let offset = query.section_offset().unwrap_or(0);
     let label = match record.label(heading, offset, query.section_limit().unwrap_or(1))? {
         Some(mut data) => {
@@ -213,10 +212,10 @@ fn select(
                 data,
             }
         }
-        None => {
-            crate::status::item(out, true, false, true);
-            Section::unavailable(SOURCE, Reason::NotFound)
-        }
+        None => Section::Empty {
+            source: SOURCE,
+            record: None,
+        },
     };
     out.body = (DrugLabel {
         identity: record.header()?,
@@ -234,4 +233,22 @@ fn page(offset: u32, returned: u32, total: u64) -> PageInfo {
         pool: None,
         truncated: None,
     }
+}
+
+fn invalid_heading(record: &source::Record) -> Result<biomcp_types::UsageError, RequestError> {
+    Ok(biomcp_types::UsageError::SourceSelector {
+        source: SOURCE,
+        option: "--label-section".into(),
+        valid_values: source::HEADINGS
+            .iter()
+            .filter(|h| record.has_heading(h))
+            .map(|h| h.parse())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| biomcp_fetch::bad_reply(SOURCE, Some(200)))?
+            .into(),
+        next: vec![biomcp_types::Step {
+            kind: StepKind::Configure,
+            args: ["help", "get", "drug"].map(Into::into).into(),
+        }],
+    })
 }

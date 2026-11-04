@@ -2,7 +2,7 @@
   "verified": "tests/replies/drug/label-discovery/provenance.json records the native openFDA identity and product fields and original body hashes. Local request wrappers and synthetic absences are declared there. Nightly execution checks the public label discovery and section requests.",
   "live_check": "Synthetic label controls and authored warning-section absence; recorded only.",
   "feature": "drug-label",
-  "story": "Exact application discovery rejects mismatched applications and absent label headings remain unavailable.",
+  "story": "Exact application discovery rejects mismatches; missing sections are empty while missing SPL records remain absent.",
   "replay": "drug/label-discovery",
   "steps": [
     {
@@ -45,13 +45,32 @@
         "warnings_and_cautions"
       ],
       "expect": {
-        "/status": "partial",
+        "/status": "complete",
         "/result/identity/id": "98b197ea-bca4-427e-8737-97f70a3262bc",
-        "/result/label/state": "unavailable",
-        "/result/label/reason": "not-found",
-        "/sources/0/source": "openfda-label"
+        "/result/label/state": "empty",
+        "/sources/0/source": "openfda-label",
+        "/sources/0/state": "ok"
       },
       "max_bytes": 2000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "00000000-0000-4000-8000-000000000608",
+        "label",
+        "--source",
+        "openfda-label",
+        "--label-section",
+        "adverse_reactions"
+      ],
+      "expect": {
+        "/status": "absent",
+        "/sources/0/source": "openfda-label",
+        "/sources/0/state": "ok"
+      },
+      "max_bytes": 2000,
+      "exit": 1
     }
   ]
 }

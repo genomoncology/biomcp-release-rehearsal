@@ -2653,7 +2653,7 @@ Options:
           Read configuration from this file.
 
       --label-section <label_section>
-          Exact native label heading, required only for the label section.
+          Exact published openFDA SPL section field, including table fields; required for the label section.
 
       --product-number <product_number>
           Explicit native application product number, only for approvals.
@@ -2687,7 +2687,7 @@ Retrieve a drug by source ID, brand or generic name, with explicit source-scoped
 - `--civic-kind`: Independent source evidence or assertion collection within the selected profile.
 - `--civic-profile`: Selected source CIViC molecular profile for a drug-scoped claim stream.
 - `input`: Source-source ID or complete brand or generic name; WHO references retain source spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
-- `--label-section`: Exact source label heading, required only for the label section.
+- `--label-section`: Exact published openFDA SPL section field, including table fields; required for the label section.
 - `--product-number`: Explicit source application product number, only for approvals.
 - `section`: Explicit named disclosures; empty means identity only.
 - `--section-limit`: Named section page size, refused on an identity-only card.

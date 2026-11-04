@@ -41,5 +41,5 @@
       ]
     }
   ],
-  "local_reply_contract": "All recording envelopes are local request stubs. Positive bodies retain native identity and primary product fields from the originals below. The quoted free-text and native set_id stubs reuse the CAVHANZA body. Name-index and harmonized-set absences are synthetic. The longer-brand, incidental-warning and mismatched-application controls are synthetic."
+  "local_reply_contract": "All recording envelopes are local request stubs. Positive bodies retain native identity and primary product fields from the originals below. The quoted free-text and native set_id stubs reuse the CAVHANZA body. Name-index and harmonized-set absences are synthetic. The longer-brand, incidental-warning and mismatched-application controls are synthetic. The 00000000-0000-4000-8000-000000000608 native and harmonized SPL-set NOT_FOUND replies are synthetic missing-record controls."
 }

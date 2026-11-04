@@ -15,6 +15,7 @@ impl RawRecord {
     pub(super) fn header(&self) -> Result<DrugHeader, RequestError> {
         self.check()
             .map_err(|_| biomcp_fetch::bad_reply(biomcp_types::Source::OpenfdaLabel, Some(200)))?;
+        let (product_name, _) = self.product_name();
         Ok(DrugHeader {
             name_resolution: None,
             matched_name: None,
@@ -30,9 +31,9 @@ impl RawRecord {
                     .flatten()
                     .next()
                     .or_else(|| self.openfda.generic_name.iter().flatten().next())
-                    .or_else(|| self.spl_product_data_elements.iter().flatten().next())
                     .cloned()
                     .map(Into::into)
+                    .or(product_name)
                     .unwrap_or(self.set_id.to_string().parse().map_err(|_| {
                         biomcp_fetch::bad_reply(biomcp_types::Source::OpenfdaLabel, Some(200))
                     })?),

@@ -112,7 +112,7 @@
           "type": "null"
         }
       ],
-      "description": "Exact native label heading, required only for the label section."
+      "description": "Exact published openFDA SPL section field, including table fields; required for the label section."
     },
     "product_number": {
       "anyOf": [

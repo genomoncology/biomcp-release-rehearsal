@@ -157,18 +157,7 @@ fn drug_selector(action: &Action) -> Result<(), UsageError> {
     else {
         return Ok(());
     };
-    let (option, values) = if query
-        .label_section()
-        .is_some_and(|heading| !biomcp_types::OPENFDA_LABEL_HEADINGS.contains(&heading.as_str()))
-    {
-        (
-            "--label-section",
-            biomcp_types::OPENFDA_LABEL_HEADINGS
-                .iter()
-                .map(|heading| heading.parse())
-                .collect::<Result<Vec<biodata::Text>, _>>(),
-        )
-    } else if !query.supports_sections() {
+    let (option, values) = if !query.supports_sections() {
         (
             "section",
             query
