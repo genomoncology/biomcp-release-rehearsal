@@ -35,6 +35,7 @@ mod prepared;
 mod privacy;
 mod tls;
 pub use network::{Certificates, Network};
+pub use tls::TlsCause;
 mod quota;
 mod read;
 mod record;

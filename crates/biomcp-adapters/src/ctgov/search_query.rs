@@ -64,6 +64,7 @@ fn wrap_page(mut page: ctgov::SearchPage) -> Result<ctgov::SearchPage, RequestEr
                 source: ctgov::SPEC.source,
                 reason: biomcp_types::Reason::BadReply,
                 status: Some(200),
+                tls_cause: None,
                 retry_after: None,
             })
         })?;

@@ -156,6 +156,7 @@ fn exact<T: DeserializeOwned + Identity + crate::openfda::Item>(
                 source: Source::FdaDeviceRecall,
                 reason: biomcp_types::Reason::BadReply,
                 status: Some(200),
+                tls_cause: None,
                 retry_after: None,
             }
             .into(),

@@ -199,6 +199,7 @@ fn rejected(source: Source, reason: Reason) -> RequestError {
         source,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

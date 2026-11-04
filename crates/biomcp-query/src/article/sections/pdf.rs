@@ -141,6 +141,7 @@ pub(in crate::article) fn pdf_error(reason: Reason) -> RequestError {
         source: Source::SemanticScholar,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

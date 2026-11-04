@@ -172,6 +172,7 @@ fn extend(
                     source: Source::UniProt,
                     reason: biomcp_types::Reason::BadReply,
                     status: Some(200),
+                    tls_cause: None,
                     retry_after: None,
                 }
                 .into(),

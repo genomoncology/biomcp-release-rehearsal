@@ -1,6 +1,7 @@
 # TLS failures name a short, safe cause
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 27c4cd8ce0eba5b592e6bfdce62892579c8e9179
 Milestone: 5
 
 ## Outcome

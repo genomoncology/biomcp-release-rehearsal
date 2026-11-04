@@ -24,6 +24,7 @@ pub fn sequence(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<ProteinSequence, R
         source: biomcp_types::Source::UniProt,
         reason: Reason::BadReply,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }))
 }

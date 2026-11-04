@@ -276,6 +276,7 @@ fn fetch(
                     source: Source::Reactome,
                     reason: Reason::NotFound,
                     status: Some(404),
+                    tls_cause: None,
                     retry_after: None,
                 })?;
                 PathwayHeader {

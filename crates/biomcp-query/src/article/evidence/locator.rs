@@ -55,6 +55,7 @@ fn no_join() -> RequestError {
         source: Source::PubMed,
         reason: Reason::NoJoinId,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

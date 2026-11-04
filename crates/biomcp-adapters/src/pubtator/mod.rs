@@ -44,6 +44,7 @@ pub fn annotations(leg: &Leg<'_>, ids: &[Pmid]) -> Result<Vec<ArticleAnnotations
             source: Source::PubTator,
             reason: biomcp_types::Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into());

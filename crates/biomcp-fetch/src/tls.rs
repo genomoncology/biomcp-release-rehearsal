@@ -88,14 +88,97 @@ impl<In: Transport> Connector<In> for TlsConnector {
         })))
     }
 }
+/// A fixed safe description without certificate, host or library text.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum TlsCause {
+    /// The issuer is not trusted.
+    #[serde(rename = "unknown issuer")]
+    UnknownIssuer,
+    /// A CA certificate was supplied as the server identity.
+    #[serde(rename = "CA used as end entity")]
+    CaUsedAsEndEntity,
+    /// The certificate does not match the requested name.
+    #[serde(rename = "name mismatch")]
+    NameMismatch,
+    /// The certificate has expired.
+    #[serde(rename = "expired")]
+    Expired,
+    /// The certificate validity period has not started.
+    #[serde(rename = "not yet valid")]
+    NotYetValid,
+    /// The certificate has been revoked.
+    #[serde(rename = "revoked")]
+    Revoked,
+    /// Another certificate or handshake check failed.
+    #[serde(rename = "other")]
+    Other,
+}
+impl TlsCause {
+    fn message(self) -> &'static str {
+        match self {
+            Self::UnknownIssuer => "unknown issuer",
+            Self::CaUsedAsEndEntity => "CA used as end entity",
+            Self::NameMismatch => "name mismatch",
+            Self::Expired => "expired",
+            Self::NotYetValid => "not yet valid",
+            Self::Revoked => "revoked",
+            Self::Other => "other",
+        }
+    }
+    fn certificate(error: &rustls::CertificateError) -> Self {
+        use rustls::CertificateError as C;
+        match error {
+            C::UnknownIssuer => Self::UnknownIssuer,
+            C::NotValidForName | C::NotValidForNameContext { .. } => Self::NameMismatch,
+            C::Expired | C::ExpiredContext { .. } => Self::Expired,
+            C::NotValidYet | C::NotValidYetContext { .. } => Self::NotYetValid,
+            C::Revoked => Self::Revoked,
+            C::Other(error)
+                if matches!(
+                    error.0.downcast_ref::<webpki::Error>(),
+                    Some(webpki::Error::CaUsedAsEndEntity)
+                ) =>
+            {
+                Self::CaUsedAsEndEntity
+            }
+            _ => Self::Other,
+        }
+    }
+    fn rustls(error: &rustls::Error) -> Self {
+        match error {
+            rustls::Error::InvalidCertificate(error) => Self::certificate(error),
+            _ => Self::Other,
+        }
+    }
+}
+impl std::fmt::Display for TlsCause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.message())
+    }
+}
 fn tls_io(error: std::io::Error) -> Error {
-    if error
+    if let Some(error) = error
         .get_ref()
-        .is_some_and(|inner| inner.is::<rustls::Error>())
+        .and_then(|inner| inner.downcast_ref::<rustls::Error>())
     {
-        Error::Tls("certificate or handshake verification failed")
+        Error::Tls(TlsCause::rustls(error).message())
     } else {
         error.into()
+    }
+}
+pub(crate) fn cause(error: &Error) -> Option<TlsCause> {
+    match error {
+        Error::Rustls(error) => Some(TlsCause::rustls(error)),
+        Error::Tls(message) => Some(match *message {
+            "unknown issuer" => TlsCause::UnknownIssuer,
+            "CA used as end entity" => TlsCause::CaUsedAsEndEntity,
+            "name mismatch" => TlsCause::NameMismatch,
+            "expired" => TlsCause::Expired,
+            "not yet valid" => TlsCause::NotYetValid,
+            "revoked" => TlsCause::Revoked,
+            _ => TlsCause::Other,
+        }),
+        _ => None,
     }
 }
 pub(crate) struct TlsTransport {

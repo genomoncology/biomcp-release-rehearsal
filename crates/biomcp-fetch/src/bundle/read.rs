@@ -82,7 +82,7 @@ impl Leg<'_> {
                 0,
                 crate::Shape::default(),
                 std::time::Duration::ZERO,
-                ("bundle", true, &url, crate::Provenance::default()),
+                ("bundle", true, &url, crate::Provenance::default(), None),
             );
         }
         if offline && !fresh {
@@ -151,7 +151,13 @@ impl Leg<'_> {
                 0,
                 crate::Shape::default(),
                 std::time::Duration::ZERO,
-                ("bundle-wait", false, &url, crate::Provenance::default()),
+                (
+                    "bundle-wait",
+                    false,
+                    &url,
+                    crate::Provenance::default(),
+                    None,
+                ),
             );
         }
         if crate::retry::wait(std::time::Duration::from_millis(10), self.budget()) {

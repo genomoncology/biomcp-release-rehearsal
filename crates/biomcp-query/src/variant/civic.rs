@@ -27,6 +27,7 @@ pub(super) fn section(
                 source: Source::Civic,
                 reason: Reason::NoJoinId,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }
             .into())

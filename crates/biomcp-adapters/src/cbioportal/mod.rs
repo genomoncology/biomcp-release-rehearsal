@@ -244,6 +244,7 @@ fn sample_count(
         source: Source::Cbioportal,
         reason: biomcp_types::Reason::Unavailable,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into())

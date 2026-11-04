@@ -74,6 +74,7 @@ fn lookup_with(
             source: Source::MyVariant,
             reason: biomcp_types::Reason::Disabled,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into());
@@ -118,6 +119,7 @@ fn leg_bad() -> RequestError {
         source: Source::MyVariant,
         reason: biomcp_types::Reason::BadReply,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

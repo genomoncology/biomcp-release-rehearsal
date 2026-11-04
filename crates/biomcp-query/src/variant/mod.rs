@@ -191,6 +191,7 @@ pub(crate) fn resolve(
                         source: Source::VariantValidator,
                         reason: Reason::Rejected,
                         status: None,
+                        tls_cause: None,
                         retry_after: None,
                     })?,
                 )?;

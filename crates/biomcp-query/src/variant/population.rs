@@ -246,6 +246,7 @@ fn text(value: &str) -> Result<Text, RequestError> {
             source: Source::Gnomad,
             reason: Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into()

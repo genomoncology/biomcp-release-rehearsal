@@ -98,6 +98,7 @@ pub(super) fn resolve<'a>(
                     source: Source::PubMed,
                     reason: Reason::BadReply,
                     status: None,
+                    tls_cause: None,
                     retry_after: None,
                 })?;
             Ok(header.pmcid)

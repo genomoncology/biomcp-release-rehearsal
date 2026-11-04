@@ -80,6 +80,7 @@ impl Leg<'_> {
             source: self.spec.source,
             reason,
             status,
+            tls_cause: None,
             retry_after: None,
         }
     }
@@ -212,7 +213,9 @@ impl Leg<'_> {
                 Err(Failure::Transport(error)) => {
                     let retryable = crate::retry::retry_error(&error);
                     let reason = crate::tls::reason(&error);
-                    (self.failure(reason, None), retryable, None)
+                    let mut failure = self.failure(reason, None);
+                    failure.tls_cause = crate::tls::cause(&error);
+                    (failure, retryable, None)
                 }
             };
             drop(permit);
@@ -267,6 +270,11 @@ impl Leg<'_> {
                     false,
                     &prepared.url,
                     codec.provenance(prepared, body, status),
+                    match exchange {
+                        Err(Failure::Transport(error)) => crate::tls::cause(error),
+                        Err(Failure::Local(RequestError::Source(error))) => error.tls_cause,
+                        _ => None,
+                    },
                 ),
             );
         }

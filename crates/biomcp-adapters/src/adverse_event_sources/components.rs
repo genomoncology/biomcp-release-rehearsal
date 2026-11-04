@@ -29,6 +29,7 @@ fn admit(leg: &Leg<'_>, component: Source, owner: Source) -> Result<(), RequestE
             source: owner,
             reason: Reason::Disabled,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into())

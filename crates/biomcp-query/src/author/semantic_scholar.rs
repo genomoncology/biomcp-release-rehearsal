@@ -124,6 +124,7 @@ fn present(
             source: Source::SemanticScholar,
             reason: Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         })?;
     for row in &items {

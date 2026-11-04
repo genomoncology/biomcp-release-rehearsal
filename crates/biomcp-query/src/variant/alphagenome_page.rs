@@ -23,6 +23,7 @@ pub(super) fn page(
                 source: Source::AlphaGenome,
                 reason: Reason::BadReply,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }
             .into()

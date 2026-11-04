@@ -254,6 +254,7 @@ pub fn edges(
         source: biomcp_types::Source::SemanticScholar,
         reason: biomcp_types::Reason::Unavailable,
         status: Some(200),
+        tls_cause: None,
         retry_after: None,
     })?;
     let mut p = Problems {

@@ -52,6 +52,7 @@ pub(super) fn pubtator<'a>(
                 source: Source::PubTator,
                 reason: Reason::NoJoinId,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }
             .into())

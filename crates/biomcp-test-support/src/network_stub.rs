@@ -129,6 +129,29 @@ impl Stub {
     pub fn with_headers(
         hosts: &[&str],
         content_type: impl Fn(&str) -> &'static str + Send + 'static,
+        reply: impl FnMut(&str) -> Result<String, String> + Send + 'static,
+        length: fn(&str, usize) -> usize,
+        status: impl FnMut(&str) -> u16 + Send + 'static,
+        range: impl FnMut(&str) -> String + Send + 'static,
+    ) -> Result<Self, String> {
+        Self::with_certificate_names(hosts, hosts, content_type, reply, length, status, range)
+    }
+    /// Serve a synthetic HGNC publisher with a certificate for another name.
+    pub fn mismatched_name() -> Result<Self, String> {
+        Self::with_certificate_names(
+            &["storage.googleapis.com"],
+            &["wrong-name.invalid"],
+            |_| "text/tab-separated-values",
+            |request| body(request.contains("withdrawn.txt")),
+            |_, bytes| bytes,
+            |_| 200,
+            |_| String::new(),
+        )
+    }
+    fn with_certificate_names(
+        hosts: &[&str],
+        certificate_names: &[&str],
+        content_type: impl Fn(&str) -> &'static str + Send + 'static,
         mut reply: impl FnMut(&str) -> Result<String, String> + Send + 'static,
         length: fn(&str, usize) -> usize,
         mut status: impl FnMut(&str) -> u16 + Send + 'static,
@@ -138,7 +161,7 @@ impl Stub {
         let address = listener.local_addr().map_err(|e| e.to_string())?;
         let (stop, stopping) = mpsc::channel();
         let (handshake, handshakes) = mpsc::channel();
-        let (certificate, config) = identity(hosts)?;
+        let (certificate, config) = identity(certificate_names)?;
         let evidence = evidence::Evidence::new(address, hosts);
         let observed = Arc::clone(&evidence);
         let hosts = hosts.iter().map(|s| s.to_string()).collect::<Vec<_>>();

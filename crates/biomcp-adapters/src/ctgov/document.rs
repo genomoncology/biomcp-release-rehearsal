@@ -28,6 +28,7 @@ fn document_error(reason: Reason) -> RequestError {
         source: biomcp_types::Source::ClinicalTrialsGov,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

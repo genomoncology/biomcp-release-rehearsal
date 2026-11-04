@@ -184,25 +184,23 @@ impl Leg<'_> {
                     super::replay::retry(self, &prepared.identity, status, wait, attempt)?;
                 }
                 Err(error) => {
-                    self.observe(
+                    self.observe_tls_failure(
                         (&prepared.identity, &prepared.url),
-                        None,
-                        &[],
-                        b.format.media(),
                         t.started.elapsed(),
+                        &error,
                     );
                     drop(permit);
                     if !crate::retry::retry_error(&error) || attempt + 1 == crate::retry::ATTEMPTS {
-                        return Err(self
-                            .failure(
-                                if self.budget().expired() {
-                                    Reason::Syncing
-                                } else {
-                                    crate::tls::reason(&error)
-                                },
-                                None,
-                            )
-                            .into());
+                        let mut failure = self.failure(
+                            if self.budget().expired() {
+                                Reason::Syncing
+                            } else {
+                                crate::tls::reason(&error)
+                            },
+                            None,
+                        );
+                        failure.tls_cause = crate::tls::cause(&error);
+                        return Err(failure.into());
                     }
                     if !crate::retry::wait(
                         crate::retry::backoff(&prepared.identity, attempt),

@@ -65,6 +65,7 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
     );
     if let Some(error) = source_error {
         source_outcome.notices = biomcp_query::sources::notices(source, reason, error.retry_after);
+        source_outcome.notices.extend(error.tls_notice());
         rate_limit_stderr(error, encoding)?;
     }
     envelope.sources.push(source_outcome);

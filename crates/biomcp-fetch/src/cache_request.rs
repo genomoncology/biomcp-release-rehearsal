@@ -239,6 +239,7 @@ impl Leg<'_> {
                         true,
                         &prepared.url,
                         codec.provenance(prepared, &entry.body, Some(entry.status)),
+                        None,
                     ),
                 );
             }
@@ -272,6 +273,7 @@ impl Leg<'_> {
                     true,
                     &prepared.url,
                     codec.provenance(prepared, &entry.body, Some(entry.status)),
+                    None,
                 ),
             );
         }

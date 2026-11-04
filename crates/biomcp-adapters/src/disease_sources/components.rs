@@ -54,6 +54,7 @@ fn disabled(source: Source) -> RequestError {
         source,
         reason: Reason::Disabled,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

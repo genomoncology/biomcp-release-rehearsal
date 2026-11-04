@@ -32,6 +32,7 @@ pub(super) fn fetch(
                 source: Source::WikiPathways,
                 reason: Reason::NotFound,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }
             .into());

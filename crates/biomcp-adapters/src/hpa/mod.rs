@@ -41,6 +41,7 @@ pub fn expression(
                 source: Source::Hpa,
                 reason: Reason::BadReply,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }
             .into());

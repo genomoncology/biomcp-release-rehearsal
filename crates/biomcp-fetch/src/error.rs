@@ -20,17 +20,29 @@ pub struct SourceError {
     pub reason: Reason,
     /// HTTP status when a response was received.
     pub status: Option<u16>,
+    /// Safe certificate or handshake cause, present only for TLS failures.
+    pub tls_cause: Option<crate::TlsCause>,
     /// Provider retry delay or remaining local quota spacing, when present.
     pub retry_after: Option<std::time::Duration>,
 }
 
 impl SourceError {
+    /// Describe a TLS failure using the shared fixed cause vocabulary.
+    pub fn tls_notice(self) -> Option<biomcp_types::SourceNotice> {
+        self.tls_cause
+            .filter(|_| self.reason == Reason::Tls)
+            .map(|cause| biomcp_types::SourceNotice::RequestGuidance {
+                message: format!("TLS verification failed: {cause}").into(),
+                retry_after_seconds: None,
+            })
+    }
     /// Refuse a source disabled by caller policy before any source access.
     pub fn disabled(source: Source) -> Self {
         Self {
             source,
             reason: Reason::Disabled,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
     }
@@ -38,7 +50,11 @@ impl SourceError {
 
 impl fmt::Display for SourceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {}", self.source, self.reason)
+        write!(f, "{}: {}", self.source, self.reason)?;
+        if let Some(cause) = self.tls_cause {
+            write!(f, ": {cause}")?;
+        }
+        Ok(())
     }
 }
 
@@ -254,6 +270,7 @@ pub fn bad_reply(source: Source, status: Option<u16>) -> RequestError {
         source,
         reason: Reason::BadReply,
         status,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

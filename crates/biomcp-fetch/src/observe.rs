@@ -149,6 +149,9 @@ pub struct Observation {
     pub source: biomcp_types::Source,
     /// HTTP status, absent on transport failure.
     pub status: Option<u16>,
+    /// Safe TLS failure cause; no certificate or library detail is retained.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tls_cause: Option<crate::TlsCause>,
     /// Retained decoded body bytes; transport/read failures retain no body.
     pub bytes: u64,
     /// Nominal keyless interval from the same shared quota declaration.
@@ -221,9 +224,36 @@ impl crate::Leg<'_> {
                 body.len() as u64,
                 Shape::inspect(body, media),
                 elapsed,
-                ("bundle", false, request.1, crate::Provenance::default()),
+                (
+                    "bundle",
+                    false,
+                    request.1,
+                    crate::Provenance::default(),
+                    None,
+                ),
             );
         }
+    }
+    pub(crate) fn observe_tls_failure(
+        &self,
+        request: (&[u8; 32], &str),
+        elapsed: std::time::Duration,
+        error: &ureq::Error,
+    ) {
+        self.observed(
+            request.0,
+            None,
+            0,
+            Shape::default(),
+            elapsed,
+            (
+                "bundle",
+                false,
+                request.1,
+                crate::Provenance::default(),
+                crate::tls::cause(error),
+            ),
+        );
     }
     pub(crate) fn observe_bundle(
         &self,
@@ -255,7 +285,13 @@ impl crate::Leg<'_> {
             body.len() as u64,
             Shape::inspect(header, media),
             elapsed,
-            ("bundle", false, request.1, crate::Provenance::default()),
+            (
+                "bundle",
+                false,
+                request.1,
+                crate::Provenance::default(),
+                None,
+            ),
         );
     }
     pub(crate) fn observed(
@@ -265,7 +301,7 @@ impl crate::Leg<'_> {
         bytes: u64,
         shape: Shape,
         elapsed: std::time::Duration,
-        context: (&str, bool, &str, crate::Provenance),
+        context: (&str, bool, &str, crate::Provenance, Option<crate::TlsCause>),
     ) {
         if let Some(sink) = &self.fetch.config.observations {
             sink.push(&Observation {
@@ -287,6 +323,7 @@ impl crate::Leg<'_> {
                 elapsed_ms: u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX),
                 shape,
                 provenance: context.3,
+                tls_cause: context.4,
             });
         }
     }

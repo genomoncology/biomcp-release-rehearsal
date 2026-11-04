@@ -27,6 +27,7 @@ pub(super) fn read(
                 source: Source::UniProt,
                 reason: Reason::BadReply,
                 status: None,
+                tls_cause: None,
                 retry_after: None,
             }))
         })

@@ -15,6 +15,7 @@ fn failure(source: Source) -> RequestError {
         source,
         reason: Reason::BadReply,
         status: None,
+        tls_cause: None,
         retry_after: None,
     })
 }

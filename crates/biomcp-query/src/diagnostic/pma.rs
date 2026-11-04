@@ -50,6 +50,7 @@ fn selected(
             source: Source::FdaPma,
             reason: biomcp_types::Reason::BadReply,
             status: Some(200),
+            tls_cause: None,
             retry_after: None,
         }
         .into());

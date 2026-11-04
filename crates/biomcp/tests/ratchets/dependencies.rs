@@ -16,6 +16,7 @@ const LAYERS: &[(&str, &[&str])] = &[
             "idna_adapter",
             "rustls",
             "rustls-platform-verifier",
+            "rustls-webpki",
             "tonic",
             "h2",
             "hyper",

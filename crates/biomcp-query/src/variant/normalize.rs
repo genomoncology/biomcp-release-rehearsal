@@ -128,6 +128,7 @@ fn service(
                     source: spec.source,
                     reason: biomcp_types::Reason::Rejected,
                     status: None,
+                    tls_cause: None,
                     retry_after: None,
                 }
                 .into(),

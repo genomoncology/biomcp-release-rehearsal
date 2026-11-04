@@ -62,6 +62,7 @@ fn failure(reason: Reason) -> RequestError {
         source: Source::PmcOa,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

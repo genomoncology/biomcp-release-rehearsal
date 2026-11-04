@@ -255,6 +255,13 @@ pub(crate) fn source(
         },
         reason,
     );
+    outcome.notices.extend(error.and_then(|error| match error {
+        RequestError::Source(error) => error.tls_notice(),
+        _ => None,
+    }));
+    outcome
+        .notices
+        .extend(report.failures.iter().find_map(|error| error.tls_notice()));
     outcome.notices.extend(biomcp_adapters::guidance::notices(
         source,
         reason,

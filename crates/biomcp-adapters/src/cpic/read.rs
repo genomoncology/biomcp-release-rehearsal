@@ -87,6 +87,7 @@ fn read<T: serde::de::DeserializeOwned + Native>(
             source: biomcp_types::Source::Cpic,
             reason: biomcp_types::Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }
         .into());

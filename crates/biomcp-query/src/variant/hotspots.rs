@@ -133,6 +133,7 @@ fn failure(reason: Reason) -> RequestError {
         source: Source::CancerHotspots,
         reason,
         status: None,
+        tls_cause: None,
         retry_after: None,
     }
     .into()

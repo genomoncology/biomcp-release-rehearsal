@@ -51,6 +51,7 @@ pub fn search(
             source: Source::Opentargets,
             reason: biomcp_types::Reason::BadReply,
             status: None,
+            tls_cause: None,
             retry_after: None,
         }));
     }
