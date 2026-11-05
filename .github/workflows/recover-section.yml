@@ -4,9 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       section:
-        description: Failed native section to rebuild and qualify alone
+        description: Native main section to build and qualify alone
         type: choice
         options: [manylinux_2_28_aarch64, macosx_11_0_arm64, win_amd64, manylinux_2_28_x86_64, macosx_11_0_x86_64]
+        required: true
+      main_revision:
+        description: Full immutable main commit captured from the canonical repository
+        type: string
+        required: true
+      main_tree:
+        description: Full tree ID of the selected main commit from the canonical repository
+        type: string
         required: true
       rehearsal:
         description: Required publication-disabled rehearsal boundary
@@ -21,7 +29,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PRODUCT_REVISION: 1bb97e64f41634b19efc42b937b195e55a20ece4
+  PRODUCT_REVISION: ${{ inputs.main_revision }}
+  PRODUCT_TREE: ${{ inputs.main_tree }}
   CARGO_TERM_COLOR: always
   CARGO_BUILD_JOBS: '2'
   RUST_TEST_THREADS: '2'
@@ -43,7 +52,7 @@ jobs:
           persist-credentials: false
           ref: ${{ env.PRODUCT_REVISION }}
           path: product
-      - name: Bind separate clean product and tooling sources
+      - name: Verify selected main commit and tree and record driver source
         shell: bash
         env:
           BOOTSTRAP_PYTHON: ${{ runner.os == 'Windows' && 'python' || 'python3' }}
@@ -62,7 +71,7 @@ jobs:
         run: |
           python release/toolchain.py python-check
           python release/toolchain.py install-rust
-      - name: Rebuild only this frozen native producer
+      - name: Build only the selected main native producer
         if: runner.os != 'Linux'
         shell: bash
         working-directory: product
@@ -74,19 +83,19 @@ jobs:
           name: producer-${{ inputs.section }}
           path: product/dist
           if-no-files-found: error
-      - name: Qualify the native producer using explicit tooling identity
+      - name: Qualify with runners and fixtures from selected main
         if: runner.os != 'Linux'
         shell: bash
-        working-directory: tooling
+        working-directory: product
         env:
-          BIOMCP_BUILD_REVISION: ${{ github.sha }}
+          BIOMCP_BUILD_REVISION: ${{ env.PRODUCT_REVISION }}
           BIOMCP_EVIDENCE_DIR: ${{ runner.temp }}/fixture-evidence
         run: |
-          python release/gate.py --artifacts ../product/dist --scratch "$RUNNER_TEMP/install" --python python
-          cp "$RUNNER_TEMP/install/report.json" ../product/dist/install-report.json
+          python release/gate.py --artifacts dist --scratch "$RUNNER_TEMP/install" --python python
+          cp "$RUNNER_TEMP/install/report.json" dist/install-report.json
           cp "$RUNNER_TEMP/install/bootstrap.json" ../section-evidence/bootstrap.json
           if [ "$RUNNER_OS" = macOS ]; then
-            python -c 'import json; assert any(r["artifact"] == "homebrew-formula" and r["result"] == "pass" for r in json.load(open("../product/dist/install-report.json")))'
+            python -c 'import json; assert any(r["artifact"] == "homebrew-formula" and r["result"] == "pass" for r in json.load(open("dist/install-report.json")))'
           fi
       - name: Rebuild and qualify only the selected Linux native and container bytes
         if: runner.os == 'Linux'
@@ -94,13 +103,13 @@ jobs:
         working-directory: product
         env:
           BIOMCP_BUILD_REVISION: ${{ env.PRODUCT_REVISION }}
-          BIOMCP_TOOLING_REVISION: ${{ github.sha }}
+          BIOMCP_TOOLING_REVISION: ${{ env.PRODUCT_REVISION }}
           BUILD_IMAGE_KEY: ${{ inputs.section == 'manylinux_2_28_x86_64' && 'manylinux-x86_64' || 'manylinux-aarch64' }}
         run: |
-          export BIOMCP_RELEASE_TOOLING_SOURCE="$GITHUB_WORKSPACE/tooling"
-          BUILD_IMAGE=$(python3 ../tooling/release/toolchain.py image "$BUILD_IMAGE_KEY")
+          export BIOMCP_RELEASE_TOOLING_SOURCE="$GITHUB_WORKSPACE/product"
+          BUILD_IMAGE=$(python3 release/toolchain.py image "$BUILD_IMAGE_KEY")
           export BUILD_IMAGE
-          sh ../tooling/release/linux.sh
+          sh release/linux.sh
           cp proof/bootstrap.json ../section-evidence/bootstrap.json
       - name: Retain actual source, tooling and artifact hashes
         if: always()

@@ -25,6 +25,24 @@ class HostedWorkflow(unittest.TestCase):
         self.assertIn('BIOMCP_BUILD_REVISION="$BIOMCP_TOOLING_REVISION" python release/gate.py', linux)
         self.assertIn('export BIOMCP_EVIDENCE_DIR=/output/fixture-evidence', linux)
 
+    def test_selected_main_section_qualifies_only_its_product_sources(self):
+        workflow = Path('.github/workflows/recover-section.yml').read_text()
+        self.assertIn('PRODUCT_REVISION: ${{ inputs.main_revision }}', workflow)
+        self.assertIn('PRODUCT_TREE: ${{ inputs.main_tree }}', workflow)
+        self.assertNotIn('1bb97e64', workflow)
+        gate, = [step for step in workflow.split('\n      - ')
+                 if 'python release/gate.py --artifacts' in step]
+        self.assertIn('working-directory: product', gate)
+        self.assertIn('BIOMCP_BUILD_REVISION: ${{ env.PRODUCT_REVISION }}', gate)
+        self.assertIn('--artifacts dist', gate)
+        linux, = [step for step in workflow.split('\n      - ')
+                  if 'sh release/linux.sh' in step]
+        self.assertIn('BIOMCP_TOOLING_REVISION: ${{ env.PRODUCT_REVISION }}', linux)
+        self.assertIn('BIOMCP_RELEASE_TOOLING_SOURCE="$GITHUB_WORKSPACE/product"', linux)
+        self.assertLess(workflow.index('name: producer-${{ inputs.section }}'),
+                        workflow.index('python release/gate.py --artifacts'))
+        self.assertNotIn('original_run', Path('release/section.py').read_text())
+
     def test_security_checks_install_pinned_cargo_deny_first(self):
         workflow = Path('.github/workflows/release.yml').read_text()
         install = 'cargo install cargo-deny --version "${{ steps.tools.outputs.cargo_deny }}" --locked'

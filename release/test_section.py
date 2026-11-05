@@ -20,18 +20,38 @@ class SectionCustody(unittest.TestCase):
             result = subprocess.run([sys.executable, str(Path(section.__file__).resolve()),
                                      'bind', '--product', str(root / 'product'),
                                      '--tooling', str(root / 'tooling'), '--output', str(root / 'evidence')],
-                                    env={**os.environ, 'GITHUB_SHA': tooling_revision},
+                                    env={**os.environ, 'GITHUB_SHA': tooling_revision,
+                                         'PRODUCT_REVISION': 'a' * 40, 'PRODUCT_TREE': 'b' * 40},
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('checkout revision differs', result.stderr)
             self.assertFalse((root / 'evidence').exists())
+
+    def test_cli_rejects_malformed_revision_and_mismatched_tree_before_build(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            revision = self.checkout(root / 'product', 'selected main')
+            driver = self.checkout(root / 'tooling', 'driver')
+            for requested, tree, error in (
+                    ('main', 'b' * 40, 'full 40-character commit'),
+                    (revision, 'b' * 40, 'checkout tree differs')):
+                result = subprocess.run(
+                    [sys.executable, str(Path(section.__file__).resolve()), 'bind',
+                     '--product', str(root / 'product'), '--tooling', str(root / 'tooling'),
+                     '--output', str(root / 'evidence')],
+                    env={**os.environ, 'GITHUB_SHA': driver,
+                         'PRODUCT_REVISION': requested, 'PRODUCT_TREE': tree},
+                    capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(error, result.stderr)
+                self.assertFalse((root / 'evidence').exists())
 
     def test_recovery_workflow_is_one_guarded_read_only_section(self):
         workflow = (Path(section.__file__).resolve().parents[1]
                     / '.github/workflows/recover-section.yml').read_text()
         for guard in ("github.repository == 'genomoncology/biomcp-release-rehearsal'",
                       "github.ref_type == 'branch'", "startsWith(github.ref_name, 'rehearsal-0642-')",
-                      'inputs.rehearsal == true', 'PRODUCT_REVISION: ' + section.PRODUCT,
+                      'inputs.rehearsal == true', 'PRODUCT_REVISION: ${{ inputs.main_revision }}',
                       'ref: ${{ env.PRODUCT_REVISION }}', 'contents: read',
                       'options: [manylinux_2_28_aarch64, macosx_11_0_arm64, win_amd64, manylinux_2_28_x86_64, macosx_11_0_x86_64]'):
             self.assertIn(guard, workflow)
@@ -58,8 +78,9 @@ class SectionCustody(unittest.TestCase):
             product, tooling, output = (root / name for name in ('product', 'tooling', 'evidence'))
             product_revision = self.checkout(product, 'frozen product')
             tooling_revision = self.checkout(tooling, 'recovery tooling')
-            with patch.object(section, 'PRODUCT', product_revision), patch.dict(
-                    os.environ, GITHUB_SHA=tooling_revision, GITHUB_RUN_ID='123', SECTION='win_amd64'):
+            with patch.dict(os.environ, PRODUCT_REVISION=product_revision,
+                            PRODUCT_TREE=section.git(product, 'rev-parse', 'HEAD^{tree}'),
+                            GITHUB_SHA=tooling_revision, GITHUB_RUN_ID='123', SECTION='win_amd64'):
                 section.bind(product, tooling, output)
                 sources = json.loads((output / 'sources.json').read_text())
                 self.assertEqual(sources['product']['revision'], product_revision)
@@ -92,7 +113,9 @@ class SectionCustody(unittest.TestCase):
             subprocess.run(['git', '-C', str(tooling), '-c', 'user.name=Fixture',
                             '-c', 'user.email=fixture@example.org', 'commit', '-qm', 'Change pin'], check=True)
             tooling_revision = section.git(tooling, 'rev-parse', 'HEAD')
-            with patch.object(section, 'PRODUCT', revision), patch.dict(os.environ, GITHUB_SHA=tooling_revision):
+            with patch.dict(os.environ, PRODUCT_REVISION=revision,
+                            PRODUCT_TREE=section.git(root / 'source', 'rev-parse', 'HEAD^{tree}'),
+                            GITHUB_SHA=tooling_revision):
                 with self.assertRaisesRegex(ValueError, 'preserve product tool pins'):
                     section.bind(root / 'source', tooling, root / 'evidence')
 

@@ -1,12 +1,11 @@
-"""Bind the frozen product and separately checked-out section recovery tooling."""
+"""Bind selected main source and separately checked-out rehearsal driver."""
 import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
-
-PRODUCT = '1bb97e64f41634b19efc42b937b195e55a20ece4'
 
 
 def git(root, *args):
@@ -14,6 +13,8 @@ def git(root, *args):
 
 
 def identity(root, expected):
+    if not re.fullmatch(r'[0-9a-f]{40}', expected):
+        raise ValueError('requested identity must be a full 40-character commit')
     revision = git(root, 'rev-parse', 'HEAD')
     if revision != expected:
         raise ValueError('checkout revision differs from requested identity')
@@ -29,11 +30,18 @@ def identity(root, expected):
             'tracked_bytes_sha256': source.hexdigest()}
 
 
+def selected_product(product):
+    result = identity(product, os.environ['PRODUCT_REVISION'])
+    tree = os.environ['PRODUCT_TREE']
+    if not re.fullmatch(r'[0-9a-f]{40}', tree) or result['tree'] != tree:
+        raise ValueError('checkout tree differs from requested main tree')
+    return result
+
+
 def bind(product, tooling, output):
-    record = {'product': identity(product, PRODUCT),
+    record = {'product': selected_product(product),
               'tooling': identity(tooling, os.environ['GITHUB_SHA']),
-              'original_run': '42030695983', 'publishing': False,
-              'producer_reuse': 'unavailable: selected failed producer did not reach its upload step'}
+              'publishing': False}
     for name in ('Cargo.lock', 'rust-toolchain.toml', 'release/toolchain.json'):
         if (product / name).read_bytes() != (tooling / name).read_bytes():
             raise ValueError('recovery must preserve product tool pins: ' + name)
@@ -46,7 +54,7 @@ def retain(product, tooling, output):
     hashes = {str(path.relative_to(product)): hashlib.sha256(path.read_bytes()).hexdigest()
               for path in sorted((product / 'dist').glob('*')) if path.is_file()}
     record = {'run': os.environ.get('GITHUB_RUN_ID'), 'section': os.environ.get('SECTION'),
-              'product': identity(product, PRODUCT),
+              'product': selected_product(product),
               'tooling': identity(tooling, os.environ['GITHUB_SHA']), 'sha256': hashes}
     (output / 'artifacts.json').write_text(json.dumps(record, indent=2) + '\n')
 
