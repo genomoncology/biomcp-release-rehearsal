@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "CDC WONDER VAERS",
+    discovery_aliases: &[],
     registry_order: Some(59),
     probe: Probe::Get(crate::vaers::HEALTH_PATH, &[]),
     components: &[],

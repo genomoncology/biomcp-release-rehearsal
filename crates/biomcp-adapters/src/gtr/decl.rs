@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "NCBI Genetic Testing Registry",
+    discovery_aliases: &[],
     registry_order: Some(3),
     probe: Probe::Get(crate::gtr::HEALTH_PATH, &[]),
     components: &[],

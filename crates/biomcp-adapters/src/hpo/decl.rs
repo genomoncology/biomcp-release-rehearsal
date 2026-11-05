@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Human Phenotype Ontology",
+    discovery_aliases: &[],
     registry_order: Some(55),
     probe: Probe::Get("/api/hp/terms/HP:0001250", &[]),
     components: &[],

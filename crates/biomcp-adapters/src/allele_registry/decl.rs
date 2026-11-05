@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "ClinGen Allele Registry",
+    discovery_aliases: &[],
     registry_order: Some(12),
     probe: Probe::Get("/allele/CA123643", &[]),
     components: &[],

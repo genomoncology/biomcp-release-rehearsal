@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "ClinPGx",
+    discovery_aliases: &[],
     registry_order: Some(2),
     probe: Probe::Get(
         crate::clinpgx::CLINICAL_PATH,

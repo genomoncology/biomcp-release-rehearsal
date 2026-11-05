@@ -4,6 +4,17 @@ use serde_json::{Value, json};
 // Official contracts: https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning
 // and https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle
 pub(super) const INSTRUCTIONS: &str = crate::help::FRONT_MAP;
+pub(super) fn instructions(
+    mode: crate::config::ToolMode,
+    context: crate::command::Context<'_>,
+) -> String {
+    if mode == crate::config::ToolMode::Typed {
+        super::typed::instructions(context)
+            .unwrap_or_else(|_| "Use biomcp_help for command arguments.".into())
+    } else {
+        INSTRUCTIONS.into()
+    }
+}
 pub(super) const REVISIONS: [&str; 4] = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"];
 pub(super) const VERSION_KEY: &str = "io.modelcontextprotocol/protocolVersion";
 pub(super) const CAPABILITIES_KEY: &str = "io.modelcontextprotocol/clientCapabilities";
@@ -92,9 +103,8 @@ pub(super) fn tool_result(
     let Ok(value) = outcome.value() else {
         return self::error(id, -32603, "Internal error");
     };
-    let reply = result(id.clone(), content(value.clone(), failed, form), modern);
-    if reply.get("result").is_some_and(within_cap) {
-        return reply;
+    if within_cap(value) {
+        return result(id, content(value.clone(), failed, form), modern);
     }
     let Ok(error) = serde_json::to_value(biomcp_types::ErrorEnvelope::from(
         biomcp_types::UsageError::McpResultTooBroad {
@@ -118,12 +128,8 @@ fn content(value: Value, failed: bool, form: ReplyForm) -> Value {
         }
     }
 }
-pub(super) fn within_cap(result: &Value) -> bool {
+pub(super) fn within_cap(value: &Value) -> bool {
+    // Admit the JSON value once, independent of its configured wire representation.
     // Count Unicode scalars after JSON escaping, not UTF-8 bytes or source text.
-    result
-        .to_string()
-        .chars()
-        .take(RESULT_CHARACTER_CAP)
-        .count()
-        < RESULT_CHARACTER_CAP
+    value.to_string().chars().take(RESULT_CHARACTER_CAP).count() < RESULT_CHARACTER_CAP
 }

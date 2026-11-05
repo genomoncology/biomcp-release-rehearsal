@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Semantic Scholar",
+    discovery_aliases: &[],
     registry_order: Some(40),
     probe: Probe::Get(
         "/paper/search",

@@ -40,8 +40,8 @@ fn panicking_worker_completes_with_internal_error() {
 fn serialized_result_character_boundaries() {
     use super::super::protocol::within_cap;
     use serde_json::json;
-    // Numeric boundary safety table stays here because a source reply is duplicated
-    // in the public tool result, which cannot express every one-character boundary.
+    // Numeric boundary safety stays here because installed command replies cannot
+    // express every one-character JSON value boundary.
     for (characters, allowed) in [(149_999, true), (150_000, false), (150_001, false)] {
         let value = json!({"text":"é".repeat(characters - 11)});
         assert_eq!(

@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Drugs@FDA",
+    discovery_aliases: &[],
     registry_order: Some(48),
     probe: Probe::Get("", &[("limit", Arg::Num(1))]),
     components: &[],

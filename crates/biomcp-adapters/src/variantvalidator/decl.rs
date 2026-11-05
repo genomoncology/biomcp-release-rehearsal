@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "VariantValidator",
+    discovery_aliases: &[],
     registry_order: Some(14),
     probe: Probe::Get(
         "/variantvalidator/GRCh38/LRG_321p1%3Ap.Arg273His/all",

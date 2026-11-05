@@ -18,12 +18,13 @@ pub struct VariantGet(Fields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    /// rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.
+    #[doc = "rs/CA/clinvar:N/VCV/HGVS/VCF\n\
+        rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates."]
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     input: VariantInput,
     /// Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
-    #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 1)))]
+    #[cfg_attr(feature = "schema", schemars(title = "Sections.", extend("x-positional" = 1)))]
     section: Box<[VariantSection]>,
     /// Rows per named source section page; omitted uses the native source default.
     #[serde(
@@ -40,21 +41,21 @@ struct Fields {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(range(min = 1, max = 2147483647)))]
     civic_profile: Option<u64>,
-    /// Explicit tumor context for keyed OncoKB annotation.
+    #[doc = "Tumor\nExplicit tumor context for keyed OncoKB annotation."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     tumor_type: Option<crate::Text>,
-    /// Native CIViC claim collection within the selected profile.
+    #[doc = "Claims\nNative CIViC claim collection within the selected profile."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_kind: Option<CivicClaimKind>,
-    /// Native CIViC cursor, retained unchanged.
+    #[doc = "Cursor\nNative CIViC cursor, retained unchanged."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_cursor: Option<crate::Text>,
     #[serde(flatten)]
     evidence_filter: crate::CivicEvidenceFilter,
-    /// Resolver for reference-qualified notation; never repairs the input locally.
+    #[doc = "Resolver.\nResolver for reference-qualified notation; never repairs the input locally."]
     #[serde(default = "resolver")]
     resolver: VariantResolver,
-    /// MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build.
+    #[doc = "Assembly\nMyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",

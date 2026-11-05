@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Cellosaurus",
+    discovery_aliases: &[],
     registry_order: Some(0),
     probe: Probe::Get("/release-info", &[("format", Arg::Text("json"))]),
     components: &[],

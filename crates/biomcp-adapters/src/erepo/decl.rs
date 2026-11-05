@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "ClinGen Evidence Repository",
+    discovery_aliases: &[],
     registry_order: Some(29),
     probe: Probe::Get(
         "/evrepo/api/summary/classifications",

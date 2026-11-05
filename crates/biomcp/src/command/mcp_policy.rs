@@ -51,12 +51,15 @@ fn replaces(request: &Request) -> bool {
 }
 
 fn saves(request: &Request) -> bool {
-    match request {
-        Request::ArticlePdf(_) | Request::TrialDocument(_) => true,
-        Request::ArticleText(query) => query.save().is_some(),
-        Request::ArticleSupplement(query) => query.save().is_some(),
-        _ => false,
-    }
+    let mandatory = crate::schema::find(request.schema())
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(text).ok())
+        .is_some_and(|schema| always_refused(&schema, true));
+    mandatory
+        || match request {
+            Request::ArticleText(query) => query.save().is_some(),
+            Request::ArticleSupplement(query) => query.save().is_some(),
+            _ => false,
+        }
 }
 
 fn hidden_save(request: &Request) -> bool {
@@ -85,4 +88,19 @@ fn hidden_save(request: &Request) -> bool {
 fn dotted(path: &std::path::Path) -> bool {
     path.iter()
         .any(|part| part.to_string_lossy().starts_with('.'))
+}
+
+/// File authority is declared by each command's save argument, including optional saves.
+pub(crate) fn can_save(schema: &serde_json::Value) -> bool {
+    schema.pointer("/properties/save").is_some()
+}
+
+/// Hosted calls refuse every save; a required save therefore has no hosted invocation.
+pub(crate) fn always_refused(schema: &serde_json::Value, hosted: bool) -> bool {
+    hosted
+        && can_save(schema)
+        && schema
+            .get("required")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|required| required.iter().any(|key| key == "save"))
 }

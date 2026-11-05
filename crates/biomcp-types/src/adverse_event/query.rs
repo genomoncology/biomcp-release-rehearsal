@@ -25,7 +25,7 @@ pub struct AdverseEventSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.
+    #[doc = "Drug, device or vaccine.\nLiteral drug text, MAUDE device phrase or exact supported VAERS vaccine."]
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     #[serde(
         default,
@@ -34,41 +34,42 @@ struct SearchFields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     text: Option<Text>,
-    #[doc = "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. \
+    #[doc = "FAERS drug names; OR.\nFAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. \
         Other filters AND with the names. BioMCP caps the escaped native query, including filters, \
         at FAERS_QUERY_MAX_BYTES (4096 bytes)."]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     drug: Vec<Text>,
-    /// MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
+    #[doc = "MAUDE manufacturer.\n\
+        MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     manufacturer: Option<Text>,
-    /// MAUDE exact native device.device_report_product_code; repeated codes join with OR.
+    #[doc = "MAUDE product codes; OR.\nMAUDE exact native device.device_report_product_code; repeated codes join with OR."]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     product_code: Vec<Text>,
-    /// MAUDE phrase on native product_problems.
+    #[doc = "MAUDE product problem.\nMAUDE phrase on native product_problems."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     problem: Option<Text>,
-    /// FAERS by default; VAERS accepts only exact supported vaccine names.
+    #[doc = "Source; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names."]
     #[serde(default = "default_source")]
     source: AdverseEventSource,
     /// Independent VAERS table; omitted means reported symptoms.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 1)))]
+    #[cfg_attr(feature = "schema", schemars(title = "VAERS table.", extend("x-positional" = 1)))]
     section: Option<super::VaersSection>,
-    /// Retained VAERS table for provider-free continuation.
+    #[doc = "VAERS snapshot.\nRetained VAERS table for provider-free continuation."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     snapshot: Option<Text>,
-    /// FAERS MedDRA term phrase match, not exact equality.
+    #[doc = "FAERS MedDRA phrase.\nFAERS MedDRA term phrase match, not exact equality."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     reaction: Option<Text>,
-    /// FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome.
+    #[doc = "FAERS seriousness flag.\nFAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     serious: Option<AdverseEventSerious>,
-    /// Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
+    #[doc = "First date, YYYY-MM[-DD].\nInclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("format" = "date")))]
     received_from: Option<PartialDate>,
-    /// Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
+    #[doc = "Last date, YYYY-MM[-DD].\nInclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("format" = "date")))]
     received_to: Option<PartialDate>,

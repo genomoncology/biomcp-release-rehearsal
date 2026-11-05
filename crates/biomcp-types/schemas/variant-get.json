@@ -108,7 +108,7 @@
           "type": "null"
         }
       ],
-      "description": "MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
+      "description": "Assembly; biomcp_help get variant\nAssembly\nMyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
     },
     "civic_cursor": {
       "anyOf": [
@@ -119,7 +119,7 @@
           "type": "null"
         }
       ],
-      "description": "Native CIViC cursor, retained unchanged."
+      "description": "Cursor\nNative CIViC cursor, retained unchanged."
     },
     "civic_kind": {
       "anyOf": [
@@ -130,7 +130,7 @@
           "type": "null"
         }
       ],
-      "description": "Native CIViC claim collection within the selected profile."
+      "description": "Claims; biomcp_help get variant\nClaims\nNative CIViC claim collection within the selected profile."
     },
     "civic_profile": {
       "description": "Selected CIViC molecular profile for native claim paging.",
@@ -143,7 +143,7 @@
       ]
     },
     "evidence_level": {
-      "description": "Native CIViC evidence levels; repeat to include several levels.",
+      "description": "A–E; biomcp_help get variant\nA–E\nNative CIViC evidence levels; repeat to include several levels.",
       "items": {
         "$ref": "#/$defs/CivicEvidenceLevel"
       },
@@ -158,11 +158,11 @@
           "type": "null"
         }
       ],
-      "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+      "description": "Status; biomcp_help get variant\nStatus\nNative CIViC evidence status; omitted preserves the source's existing default."
     },
     "input": {
       "$ref": "#/$defs/VariantInput",
-      "description": "rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.",
+      "description": "rs/CA/clinvar:N/VCV/HGVS/VCF\nrsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.",
       "x-positional": 0
     },
     "limit": {
@@ -183,15 +183,17 @@
     "resolver": {
       "$ref": "#/$defs/VariantResolver",
       "default": "car",
-      "description": "Resolver for reference-qualified notation; never repairs the input locally."
+      "description": "Resolver; biomcp_help get variant\nResolver.\nResolver for reference-qualified notation; never repairs the input locally."
     },
     "section": {
-      "description": "Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.",
+      "description": "Sections; biomcp_help get variant",
       "items": {
         "$ref": "#/$defs/VariantSection"
       },
+      "title": "Sections.",
       "type": "array",
-      "x-positional": 1
+      "x-positional": 1,
+      "x-section-rule": "Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key."
     },
     "section_limit": {
       "description": "Rows per named source section page; omitted uses the native source default.",
@@ -216,7 +218,7 @@
           "type": "null"
         }
       ],
-      "description": "Explicit tumor context for keyed OncoKB annotation."
+      "description": "Tumor\nExplicit tumor context for keyed OncoKB annotation."
     }
   },
   "required": [

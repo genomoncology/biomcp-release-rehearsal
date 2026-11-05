@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Europe PMC",
+    discovery_aliases: &[],
     registry_order: Some(34),
     probe: Probe::Get(
         "/search",

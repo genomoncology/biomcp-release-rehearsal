@@ -54,7 +54,7 @@ struct GetFields {
     source: Option<DrugSource>,
     /// Explicit named disclosures; empty means identity only.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
-    #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 1)))]
+    #[cfg_attr(feature = "schema", schemars(title = "Source sections.", extend("x-positional" = 1)))]
     section: Box<[DrugSection]>,
     /// Named section page size, refused on an identity-only card.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -63,13 +63,13 @@ struct GetFields {
     /// Named section continuation, refused on an identity-only card.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     section_offset: Option<u32>,
-    /// Exact published openFDA SPL section field, including table fields; required for the label section.
+    #[doc = "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields; required for the label section."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     label_section: Option<Text>,
-    /// Explicit native application product number, only for approvals.
+    #[doc = "FDA product number.\nExplicit native application product number, only for approvals."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     product_number: Option<Text>,
-    /// Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages
+    #[doc = "FDA letter document ID.\nExact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages"]
     /// and 6144 escaped bytes per fragment. No-text scans are explicit.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     document_id: Option<Text>,
@@ -77,10 +77,10 @@ struct GetFields {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(range(min = 1, max = 2147483647)))]
     civic_profile: Option<u64>,
-    /// Independent native evidence or assertion collection within the selected profile.
+    #[doc = "CIViC collection.\nIndependent native evidence or assertion collection within the selected profile."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_kind: Option<CivicClaimKind>,
-    /// Native continuation cursor for that exact drug, profile and claim collection.
+    #[doc = "CIViC continuation.\nNative continuation cursor for that exact drug, profile and claim collection."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     civic_cursor: Option<Text>,
     #[serde(flatten)]

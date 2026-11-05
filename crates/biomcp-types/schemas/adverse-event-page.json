@@ -120,7 +120,7 @@
       "description": "Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.",
       "properties": {
         "drug": {
-          "description": "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
+          "description": "FAERS drug names; OR.\nFAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
@@ -143,7 +143,7 @@
               "type": "null"
             }
           ],
-          "description": "MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
+          "description": "MAUDE manufacturer.\nMAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
         },
         "offset": {
           "default": 0,
@@ -161,10 +161,10 @@
               "type": "null"
             }
           ],
-          "description": "MAUDE phrase on native product_problems."
+          "description": "MAUDE product problem.\nMAUDE phrase on native product_problems."
         },
         "product_code": {
-          "description": "MAUDE exact native device.device_report_product_code; repeated codes join with OR.",
+          "description": "MAUDE product codes; OR.\nMAUDE exact native device.device_report_product_code; repeated codes join with OR.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
@@ -179,7 +179,7 @@
               "type": "null"
             }
           ],
-          "description": "FAERS MedDRA term phrase match, not exact equality."
+          "description": "FAERS MedDRA phrase.\nFAERS MedDRA term phrase match, not exact equality."
         },
         "received_from": {
           "anyOf": [
@@ -190,7 +190,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
+          "description": "First date, YYYY-MM[-DD].\nInclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
           "format": "date"
         },
         "received_to": {
@@ -202,7 +202,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
+          "description": "Last date, YYYY-MM[-DD].\nInclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
           "format": "date"
         },
         "section": {
@@ -215,6 +215,7 @@
             }
           ],
           "description": "Independent VAERS table; omitted means reported symptoms.",
+          "title": "VAERS table.",
           "x-positional": 1
         },
         "serious": {
@@ -226,7 +227,7 @@
               "type": "null"
             }
           ],
-          "description": "FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
+          "description": "FAERS seriousness flag.\nFAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
         },
         "snapshot": {
           "anyOf": [
@@ -237,16 +238,16 @@
               "type": "null"
             }
           ],
-          "description": "Retained VAERS table for provider-free continuation."
+          "description": "VAERS snapshot.\nRetained VAERS table for provider-free continuation."
         },
         "source": {
           "$ref": "#/$defs/Reply_AdverseEventSource",
           "default": "faers",
-          "description": "FAERS by default; VAERS accepts only exact supported vaccine names."
+          "description": "Source; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names."
         },
         "text": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.",
+          "description": "Drug, device or vaccine.\nLiteral drug text, MAUDE device phrase or exact supported VAERS vaccine.",
           "x-positional": 0
         }
       },

@@ -58,8 +58,9 @@
     },
     "section": {
       "$ref": "#/$defs/AuthorPaperSection",
-      "description": "Detailed disclosure when requested.",
-      "x-positional": 1
+      "description": "Detailed disclosure when requested; biomcp_help author papers",
+      "x-positional": 1,
+      "x-section-rule": "Detailed disclosure when requested."
     }
   },
   "required": [

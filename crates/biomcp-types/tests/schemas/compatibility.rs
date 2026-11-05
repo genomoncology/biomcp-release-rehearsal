@@ -536,7 +536,7 @@ fn tagged_branches(branches: &Value) -> Check<Vec<(String, &Value)>> {
 
 const ANNOTATIONS: &str = concat!(
     "$schema $id $defs title description default x-enum-descriptions x-extensible-enum ",
-    "x-positional x-trailing-section x-comma-separated x-cli-flags x-reply-query-titles x-identifier"
+    "x-positional x-trailing-section x-section-rule x-comma-separated x-cli-flags x-reply-query-titles x-identifier"
 );
 fn validate_keywords(object: &serde_json::Map<String, Value>, path: &str) -> Check<()> {
     for key in object.keys() {

@@ -19,7 +19,7 @@
           "search",
           "study"
         ],
-        "/result/commands/0/description": "Exact stored metadata search; text is never parsed as a query language. Sources: cbioportal.",
+        "/result/commands/0/description": "Search cancer genomics studies in cBioPortal. Sources: cbioportal.",
         "/result/commands/0/examples": {
           "count": 1
         },
@@ -49,7 +49,7 @@
           "get",
           "study"
         ],
-        "/result/commands/0/description": "Exact case-sensitive study card or bounded metadata section. Sources: cbioportal.",
+        "/result/commands/0/description": "Get cancer genomics study details. Sources: cbioportal.",
         "/result/commands/0/examples": {
           "count": 1
         },

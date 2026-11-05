@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "PubTator",
+    discovery_aliases: &[],
     registry_order: Some(37),
     probe: Probe::Get(
         "/publications/export/biocjson",

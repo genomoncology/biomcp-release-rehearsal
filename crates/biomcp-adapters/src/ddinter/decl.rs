@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "DDInter",
+    discovery_aliases: &[],
     registry_order: Some(51),
     probe: Probe::Get("/terms/", &[]),
     components: &[],

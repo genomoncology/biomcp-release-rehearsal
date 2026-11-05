@@ -41,21 +41,35 @@ pub(super) fn restrict(fetch: Fetch, context: Option<Context<'_>>) -> Fetch {
     }) else {
         return fetch;
     };
-    let disabled = [Use::Noncommercial, Use::Licensed]
+    fetch
+        .restrict_sources(disabled(context.declared_use, context.secrets))
+        .restrict_uses(
+            [Use::Noncommercial, Use::Licensed, Use::PerRecord]
+                .into_iter()
+                .collect(),
+        )
+}
+
+pub(crate) fn disabled(
+    declared_use: Option<DeclaredUse>,
+    secrets: Option<&biomcp_fetch::Secrets>,
+) -> std::collections::BTreeSet<biomcp_types::Source> {
+    if !matches!(
+        declared_use,
+        Some(DeclaredUse::Restricted | DeclaredUse::Commercial)
+    ) {
+        return Default::default();
+    }
+    [Use::Noncommercial, Use::Licensed]
         .into_iter()
         .flat_map(biomcp_query::sources::sources_for_use)
         .filter(|source| {
-            context.declared_use == Some(DeclaredUse::Restricted)
+            declared_use == Some(DeclaredUse::Restricted)
                 || !biomcp_query::sources::requests().any(|spec| {
                     spec.source == *source
                         && matches!(spec.key, KeyUse::Required(key)
-                            if context.secrets.is_some_and(|secrets| secrets.fingerprint(key.secret).is_some()))
+                            if secrets.is_some_and(|secrets| secrets.fingerprint(key.secret).is_some()))
                 })
         })
-        .collect();
-    fetch.restrict_sources(disabled).restrict_uses(
-        [Use::Noncommercial, Use::Licensed, Use::PerRecord]
-            .into_iter()
-            .collect(),
-    )
+        .collect()
 }

@@ -16,6 +16,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Monarch",
+    discovery_aliases: &[],
     registry_order: Some(54),
     probe: Probe::Custom(probe),
     components: &[HPO_COMPONENT, ORPHANET_COMPONENT],

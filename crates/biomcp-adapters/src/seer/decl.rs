@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "SEER Explorer",
+    discovery_aliases: &[],
     registry_order: Some(56),
     probe: Probe::Get("/get_var_formats.php", &[]),
     components: &[],

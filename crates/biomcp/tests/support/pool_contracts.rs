@@ -171,3 +171,7 @@ pub(crate) const SOURCE_PACING: (&str, &[&str]) = (
     "source-pacing/settings-and-ceilings",
     &["global --source_pacing"],
 );
+
+/// Typed discovery and explicit mode override use the installed MCP boundary.
+pub(crate) const TYPED_TOOLS: (&str, &[&str]) =
+    ("mcp-parity/mcp-typed-tools", &["option serve --tool-mode"]);

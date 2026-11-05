@@ -2,14 +2,18 @@
 use super::protocol;
 use serde_json::{Value, json};
 
-pub(super) fn initialize(params: &Value) -> Option<Value> {
+pub(super) fn initialize(
+    params: &Value,
+    mode: crate::config::ToolMode,
+    context: crate::command::Context<'_>,
+) -> Option<Value> {
     let revision = revision(params.get("protocolVersion")?.as_str()?);
     params.get("capabilities")?.as_object()?;
     let info = params.get("clientInfo")?;
     info.get("name")?.as_str()?;
     info.get("version")?.as_str()?;
     Some(json!({"protocolVersion":revision,
-        "capabilities":{"tools":{}}, "serverInfo":protocol::info(), "instructions":protocol::INSTRUCTIONS}))
+        "capabilities":{"tools":{}}, "serverInfo":protocol::info(), "instructions":protocol::instructions(mode, context)}))
 }
 
 // Pinned lifecycle version negotiation preserves a supported requested revision.

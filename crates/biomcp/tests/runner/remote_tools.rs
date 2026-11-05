@@ -61,32 +61,16 @@ fn check_tools(reply: &Value, read_only: bool) -> Result<(), String> {
 }
 fn results() -> Result<(), String> {
     // Unicode remains below the character cap despite exceeding it in UTF-8 bytes.
-    // ASCII crosses only when both content forms are included. Quotes exercise JSON escaping.
+    // Count each JSON value once; quotes exercise escaping and large values are refused.
     for (text, over) in [
         ("é🙂".repeat(25_000), false),
-        ("x".repeat(76_000), true),
-        ("\"\\".repeat(14_000), true),
+        ("x".repeat(76_000), false),
+        ("x".repeat(151_000), true),
+        ("\"\\".repeat(14_000), false),
+        ("\"\\".repeat(40_000), true),
     ] {
         let env = Environment::new().map_err(|e| e.to_string())?;
-        let recordings = env.root().join("recordings");
-        super::response_cases::copy_capture("gene/main", &recordings, |source, record| {
-            if source != "mygene" {
-                return;
-            }
-            if let Some(exchanges) = record.get_mut("exchanges").and_then(Value::as_array_mut) {
-                for exchange in exchanges {
-                    if let Some(rows) = exchange
-                        .pointer_mut("/body/value")
-                        .and_then(Value::as_array_mut)
-                    {
-                        for row in rows {
-                            row["summary"] = json!(text);
-                        }
-                    }
-                }
-            }
-        })
-        .map_err(|e| e.to_string())?;
+        let recordings = recording(&env, &text)?;
         let server = Server::start_replay(recordings)?;
         let (_, reply) = server.request(
             "POST",
@@ -103,20 +87,43 @@ fn results() -> Result<(), String> {
     Ok(())
 }
 
+pub(super) fn recording(env: &Environment, text: &str) -> Result<std::path::PathBuf, String> {
+    let recordings = env.root().join("recordings");
+    super::response_cases::copy_capture("gene/main", &recordings, |source, record| {
+        if source != "mygene" {
+            return;
+        }
+        if let Some(exchanges) = record.get_mut("exchanges").and_then(Value::as_array_mut) {
+            for exchange in exchanges {
+                if let Some(rows) = exchange
+                    .pointer_mut("/body/value")
+                    .and_then(Value::as_array_mut)
+                {
+                    for row in rows {
+                        row["summary"] = json!(text);
+                    }
+                }
+            }
+        }
+    })
+    .map_err(|e| e.to_string())?;
+    Ok(recordings)
+}
+
 fn check_result(reply: &Value, text: &str, over: bool) -> Result<(), String> {
     let result = reply.get("result").ok_or("missing result")?;
-    let serialized = result.to_string();
-    if serialized.chars().count() >= super::output_limit("remote-result-characters")?
-        || result.get("isError") != Some(&json!(over))
-    {
+    if result.get("isError") != Some(&json!(over)) {
         return Err(format!(
-            "whole result cap or error flag: {} characters",
-            serialized.chars().count()
+            "JSON value cap or error flag: {} characters",
+            result.to_string().chars().count()
         ));
     }
     let structured = result
         .get("structuredContent")
         .ok_or("missing structured content")?;
+    if structured.to_string().chars().count() >= super::output_limit("remote-result-characters")? {
+        return Err("JSON value exceeded character cap".into());
+    }
     let content: Value = serde_json::from_str(
         result
             .pointer("/content/0/text")
@@ -156,10 +163,8 @@ fn check_result(reply: &Value, text: &str, over: bool) -> Result<(), String> {
         {
             return Err("over-cap reply lacks narrowing guidance".into());
         }
-    } else if serialized.len() <= super::output_limit("remote-result-characters")?
-        || !serialized.contains(text)
-    {
-        return Err("Unicode reply was cut or measured in bytes".into());
+    } else if !structured.to_string().contains(&json!(text).to_string()) {
+        return Err("admitted reply summary changed".into());
     }
     Ok(())
 }

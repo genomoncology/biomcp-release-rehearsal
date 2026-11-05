@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "OncoKB",
+    discovery_aliases: &[],
     registry_order: Some(18),
     probe: Probe::Custom(|leg| leg.probe(&crate::oncokb::INFO, biomcp_fetch::Input::Params(&[]))),
     components: &[],

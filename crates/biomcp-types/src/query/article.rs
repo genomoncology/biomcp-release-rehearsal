@@ -92,19 +92,19 @@ pub struct ArticleSearch(Fields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    /// Require the source's native open-access filter; Semantic Scholar means a public PDF.
+    #[doc = "Native open access.\nRequire the source's native open-access filter; Semantic Scholar means a public PDF."]
     #[serde(default, skip_serializing_if = "is_false")]
     open_access: bool,
-    /// Exclude preprints using the source's native filter.
+    #[doc = "Exclude preprints.\nExclude preprints using the source's native filter."]
     #[serde(default, skip_serializing_if = "is_false")]
     no_preprints: bool,
-    /// Include retracted papers by default, or exclude them using a native filter.
+    #[doc = "Retraction filter.\nInclude retracted papers by default, or exclude them using a native filter."]
     #[serde(default, skip_serializing_if = "is_include")]
     #[cfg_attr(feature = "schema",
  schemars(extend("x-cli-flags" = {"include-retracted":RetractionFilter::Include,
  "exclude-retracted":RetractionFilter::Exclude})))]
     retracted: RetractionFilter,
-    /// Words sent to each named source in its default fields.
+    #[doc = "Source search words.\nWords sent to each named source in its default fields."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -112,7 +112,7 @@ struct Fields {
     )]
     #[cfg_attr(feature="schema", schemars(with="Text", extend("x-positional"=0)))]
     text: Option<Text>,
-    /// Sources to search in caller order, comma separated. Default: pubmed.
+    #[doc = "Sources; default pubmed.\nSources to search in caller order, comma separated. Default: pubmed."]
     /// Several sources take turns, remove duplicates and show every native rank.
     /// pubmed: keywords with PubMed MeSH mapping; dropped words appear as notices.
     /// europepmc: words in open full text and preprints; incidental mentions are possible.
@@ -123,13 +123,13 @@ struct Fields {
     #[serde(default = "sources")]
     #[cfg_attr(feature = "schema", schemars(length(min = 1), extend("x-comma-separated"=true)))]
     source: Box<[ArticleSource]>,
-    /// rank (default): native provider order; several sources take turns; native search cost.
+    #[doc = "rank, date or citations.\nrank (default): native provider order; several sources take turns; native search cost."]
     /// date: native search cost; PubMed means date added and Europe PMC means newest first; other sources refuse it.
     /// citations: most cited first across the whole pool; adds iCite calls, about 1 s per 1,000 PMIDs.
     /// All sources support citations.
     #[serde(default = "sort")]
     sort: ArticleSort,
-    /// Gene input; PubMed resolves it through HGNC.
+    #[doc = "Gene symbol or ID.\nGene input; PubMed resolves it through HGNC."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -161,7 +161,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     drug: Option<Text>,
-    /// Author words sent to PubMed's author field.
+    #[doc = "PubMed author words.\nAuthor words sent to PubMed's author field."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -169,7 +169,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     author: Option<Text>,
-    /// Journal words sent to PubMed's journal field.
+    #[doc = "PubMed journal words.\nJournal words sent to PubMed's journal field."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -177,7 +177,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     journal: Option<Text>,
-    /// Inclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date.
+    #[doc = "First publication date.\nInclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -185,7 +185,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     since: Option<PartialDate>,
-    /// Inclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date.
+    #[doc = "Last publication date.\nInclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -209,7 +209,7 @@ struct Fields {
     /// Number of pool items to skip.
     #[serde(default)]
     offset: u32,
-    /// Stable snapshot from an earlier response.
+    #[doc = "Stable result snapshot.\nStable snapshot from an earlier response."]
     #[serde(
         default,
         deserialize_with = "present",

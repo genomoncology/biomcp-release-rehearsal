@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "AlphaGenome",
+    discovery_aliases: &[],
     registry_order: Some(19),
     probe: Probe::Unavailable,
     components: &[],

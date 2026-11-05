@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "NIH iCite",
+    discovery_aliases: &[],
     registry_order: Some(39),
     probe: Probe::Get(
         "/pubs",

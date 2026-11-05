@@ -10,7 +10,7 @@ mod credential_reads_tests;
 
 pub(crate) mod file;
 use file::ConfigFile;
-pub(crate) use file::{ConfigError, ReplyForm};
+pub(crate) use file::{ConfigError, ReplyForm, ToolMode};
 
 pub(crate) const DEFAULT_HTTP_CAPACITY: usize = 8;
 
@@ -49,6 +49,31 @@ pub(crate) fn mcp_reply_form(settings: &Settings) -> ReplyForm {
         .ok()
         .and_then(Option::as_ref)
         .and_then(|file| file.mcp_reply_form)
+        .unwrap_or_default()
+}
+
+pub(crate) const DEFAULT_TYPED_ENUM_LIMIT: usize = 30;
+
+pub(crate) fn mcp_typed_schema_options(settings: &Settings) -> (bool, usize) {
+    let file = settings.as_ref().ok().and_then(Option::as_ref);
+    (
+        file.and_then(|f| f.mcp_typed_output_schema)
+            .unwrap_or(false),
+        file.and_then(|f| f.mcp_typed_enum_limit)
+            .unwrap_or(DEFAULT_TYPED_ENUM_LIMIT),
+    )
+}
+
+pub(crate) fn mcp_tool_mode(globals: &Globals, settings: &Settings) -> ToolMode {
+    globals
+        .mcp_tool_mode
+        .or_else(|| {
+            settings
+                .as_ref()
+                .ok()
+                .and_then(Option::as_ref)
+                .and_then(|file| file.mcp_tool_mode)
+        })
         .unwrap_or_default()
 }
 
@@ -441,4 +466,12 @@ pub(crate) fn executable() -> std::io::Result<PathBuf> {
         }
     }
     Ok(executable)
+}
+
+/// Explicit exclusions shared by execution and typed discovery.
+pub(crate) fn excluded_sources(
+    globals: &Globals,
+    settings: &Settings,
+) -> Result<std::collections::BTreeSet<biomcp_types::Source>, ConfigError> {
+    disabled_sources(globals, configured(settings)?)
 }

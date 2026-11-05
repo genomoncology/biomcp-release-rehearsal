@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "WHO prequalified diagnostic",
+    discovery_aliases: &["WHO"],
     registry_order: Some(4),
     probe: Probe::Get(crate::who_ivd::HEALTH_PATH, &[]),
     components: &[],

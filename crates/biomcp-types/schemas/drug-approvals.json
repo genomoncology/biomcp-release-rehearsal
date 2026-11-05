@@ -559,7 +559,7 @@
               "type": "null"
             }
           ],
-          "description": "Native continuation cursor for that exact drug, profile and claim collection."
+          "description": "CIViC continuation.\nNative continuation cursor for that exact drug, profile and claim collection."
         },
         "civic_kind": {
           "anyOf": [
@@ -570,7 +570,7 @@
               "type": "null"
             }
           ],
-          "description": "Independent native evidence or assertion collection within the selected profile."
+          "description": "CIViC collection.\nIndependent native evidence or assertion collection within the selected profile."
         },
         "civic_profile": {
           "description": "Selected native CIViC molecular profile for a drug-scoped claim stream.",
@@ -591,10 +591,10 @@
               "type": "null"
             }
           ],
-          "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+          "description": "FDA letter document ID.\nExact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
         },
         "evidence_level": {
-          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "description": "A–E\nNative CIViC evidence levels; repeat to include several levels.",
           "items": {
             "$ref": "#/$defs/Reply_CivicEvidenceLevel"
           },
@@ -609,7 +609,7 @@
               "type": "null"
             }
           ],
-          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+          "description": "Status\nNative CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/Reply_DrugId"
@@ -623,7 +623,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact published openFDA SPL section field, including table fields; required for the label section."
+          "description": "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields; required for the label section."
         },
         "product_number": {
           "anyOf": [
@@ -634,13 +634,14 @@
               "type": "null"
             }
           ],
-          "description": "Explicit native application product number, only for approvals."
+          "description": "FDA product number.\nExplicit native application product number, only for approvals."
         },
         "section": {
           "description": "Explicit named disclosures; empty means identity only.",
           "items": {
             "$ref": "#/$defs/Reply_DrugSection"
           },
+          "title": "Source sections.",
           "type": "array",
           "x-positional": 1
         },

@@ -114,7 +114,7 @@
           "type": "null"
         }
       ],
-      "description": "One ClinPGx collection; clinical is the default only on annotations."
+      "description": "One ClinPGx collection; clinical is the default only on; biomcp_help get pgx\nOne ClinPGx collection; clinical is the default only on annotations."
     },
     "section": {
       "anyOf": [
@@ -125,8 +125,9 @@
           "type": "null"
         }
       ],
-      "description": "One named section; omitted means the CPIC gene card.",
-      "x-positional": 0
+      "description": "One named section; omitted means the CPIC gene card; biomcp_help get pgx",
+      "x-positional": 0,
+      "x-section-rule": "One named section; omitted means the CPIC gene card."
     },
     "section_limit": {
       "description": "Rows per page: three clinical, five elsewhere.",
@@ -155,7 +156,7 @@
     },
     "source": {
       "$ref": "#/$defs/PgxSource",
-      "description": "Required source, checked against the section."
+      "description": "Required source, checked against the section; biomcp_help get pgx\nRequired source, checked against the section."
     }
   },
   "required": [

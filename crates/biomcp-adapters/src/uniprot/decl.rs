@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "UniProt",
+    discovery_aliases: &[],
     registry_order: Some(21),
     probe: Probe::Get(
         "/uniprotkb/P15056.json",

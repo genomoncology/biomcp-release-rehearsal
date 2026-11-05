@@ -30,7 +30,7 @@
           "search",
           "adverse-event"
         ],
-        "/result/commands/0/description": "Search five report headers by default. Sources: faers, maude, vaers.",
+        "/result/commands/0/description": "Search drug, device and vaccine adverse events. Sources: faers, maude, vaers.",
         "/result/commands/0/examples": {
           "count": 1
         }

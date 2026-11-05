@@ -8,17 +8,20 @@ import re
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 
 if __package__:
     from .artifacts import cargo, inspect
+    from .source_revision import revision as source_revision
     from .notices import NAMES as LEGAL_NAMES
     from .windows import check_runtime
     from .smoke import environment, smoke
     from .local_server import https_server
 else:
     from artifacts import cargo, inspect
+    from source_revision import revision as source_revision
     from notices import NAMES as LEGAL_NAMES
     from windows import check_runtime
     from smoke import environment, smoke
@@ -129,12 +132,17 @@ def installed(args):
     source = Path(__file__).resolve().parent.parent
     executable = root / ("case-runner.exe" if os.name == "nt" else "case-runner")
     if not args.prepared:
+        tooling_revision = source_revision()
         stage_fixtures(source, fixtures)
-        shutil.copy2(Path(cargo("release", tests=True)["executable"]), executable)
+        shutil.copy2(Path(cargo("release", tests=True, revision=tooling_revision)["executable"]), executable)
         tool = executable.with_name("tool-runner" + executable.suffix)
-        shutil.copy2(Path(cargo("release", tests="tools")["executable"]), tool)
+        shutil.copy2(Path(cargo("release", tests="tools", revision=tooling_revision)["executable"]), tool)
         shutil.copytree(source / "release", root / "tools/release", dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__"))
         shutil.copy2(source / "LICENSE", root / "tools/LICENSE")
+        bootstrap = {"tooling_revision": tooling_revision, "product_revision": record["revision"],
+                     "python": args.python}
+        (root / "bootstrap.json").write_text(json.dumps(bootstrap, sort_keys=True))
+        print(json.dumps({"bootstrap": bootstrap}), flush=True)
     if args.prepare_only:
         return
     results = []
@@ -268,7 +276,7 @@ def main():
     parser.add_argument("--report", type=Path, help="Write the complete JSON report here instead of scratch/report.json")
     parser.add_argument("--prepared", action="store_true", help="Use the already copied runner and public fixtures")
     parser.add_argument("--prepare-only", action="store_true")
-    parser.add_argument("--python", default="python3")
+    parser.add_argument("--python", default=sys.executable)
     parser.add_argument('--staged-formula', type=Path, help='Install the staged universal formula using local archives and verify candidate identity')
     args = parser.parse_args()
     if args.staged_formula:

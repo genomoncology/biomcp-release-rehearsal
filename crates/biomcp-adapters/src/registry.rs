@@ -6,7 +6,7 @@ pub(crate) mod legacy;
 pub use groups::{disable_groups, sources_for_use};
 mod names;
 mod probe;
-pub use names::display_name;
+pub use names::{discovery_aliases, display_name};
 pub use probe::probe;
 /// Canonical publisher record links and explicit uncitable ID kinds.
 pub mod records;

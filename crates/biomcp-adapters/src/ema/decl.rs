@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "European Medicines Agency",
+    discovery_aliases: &[],
     registry_order: Some(50),
     probe: Probe::Get("/en/about-us/about-website/legal-notice", &[]),
     components: &[],

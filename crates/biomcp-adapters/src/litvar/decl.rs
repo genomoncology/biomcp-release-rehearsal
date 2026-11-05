@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "LitVar",
+    discovery_aliases: &[],
     registry_order: Some(35),
     probe: Probe::Custom(|leg| {
         leg.probe(

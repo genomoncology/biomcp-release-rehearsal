@@ -2,6 +2,9 @@ use super::bundle_names;
 use clap::{Arg, ArgAction, Command};
 pub(super) fn serve_command() -> Command {
     Command::new("serve")
+        .arg(Arg::new("tool-mode").long("tool-mode")
+            .help("Advertise one CLI tool or generated typed command tools; default single.")
+            .value_parser(clap::value_parser!(crate::config::ToolMode)))
         .after_help("Example: biomcp serve\nExample: biomcp help serve")
         .arg(
             super::boolean_argument(Arg::new("hosted")
@@ -153,6 +156,9 @@ pub(super) fn housekeeping(
 }
 
 pub(super) fn serve(matches: &clap::ArgMatches, mut globals: super::Globals) -> super::Parsed {
+    globals.mcp_tool_mode = matches
+        .get_one::<crate::config::ToolMode>("tool-mode")
+        .copied();
     globals.hosted = matches.get_flag("hosted");
     globals.http_max_calls = matches
         .get_one::<std::num::NonZeroUsize>("http_max_calls")

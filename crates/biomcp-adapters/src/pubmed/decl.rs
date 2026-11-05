@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "PubMed",
+    discovery_aliases: &[],
     registry_order: Some(33),
     probe: Probe::Get(
         "/einfo.fcgi",

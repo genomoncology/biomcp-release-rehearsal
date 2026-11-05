@@ -31,14 +31,15 @@ pub struct TrialSearch(Box<Fields>);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    /// Explicit provider; defaults to ClinicalTrials.gov and never falls back.
+    #[doc = "clinicaltrials/nci.\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."]
     #[serde(default, skip_serializing_if = "TrialSource::is_default")]
     source: TrialSource,
-    /// Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.
+    #[doc = "Text; OR.\n\
+        Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(length(max = MAX_ALTERNATIVES)))]
     keyword: Box<[Text]>,
-    /// General registry discovery text.
+    #[doc = "Trial text.\nGeneral registry discovery text."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -46,14 +47,14 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text", extend("x-positional" = 0)))]
     query: Option<Text>,
-    /// Condition alternatives joined with OR; NCI requires NCIt codes.
+    #[doc = "Disease or NCIt.\nCondition alternatives joined with OR; NCI requires NCIt codes."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(length(max = MAX_ALTERNATIVES)))]
     condition: Box<[Text]>,
-    /// Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.
+    #[doc = "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial."]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     exact_condition: bool,
-    /// Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes.
+    #[doc = "MONDO/DOID/NCIT:C.\nExact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -61,11 +62,11 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "biodata::Curie"))]
     condition_id: Option<biodata::Curie>,
-    /// Intervention alternatives joined with OR; supported by ClinicalTrials.gov.
+    #[doc = "Treatment terms; OR.\nIntervention alternatives joined with OR; supported by ClinicalTrials.gov."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(length(max = MAX_ALTERNATIVES)))]
     intervention: Box<[Text]>,
-    /// Resolve one checked gene for registry text discovery only; no eligibility judgment.
+    #[doc = "Gene symbol/ID.\nResolve one checked gene for registry text discovery only; no eligibility judgment."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -73,7 +74,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "GeneInput"))]
     gene: Option<GeneInput>,
-    /// Literal variant text for registry discovery only; no eligibility judgment.
+    #[doc = "Variant text.\nLiteral variant text for registry discovery only; no eligibility judgment."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -81,7 +82,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     variant: Option<Text>,
-    #[doc = "Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. \
+    #[doc = "NCI NCIt code.\nExact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. \
         This listing does not establish biomarker positivity or patient eligibility."]
     #[serde(
         default,
@@ -90,7 +91,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "biodata::NcitId"))]
     biomarker_code: Option<biodata::NcitId>,
-    /// Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems.
+    #[doc = "NCI criterion.\nFilter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -98,7 +99,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "NciBiomarkerUse"))]
     biomarker_use: Option<NciBiomarkerUse>,
-    /// Search literal registry eligibility text for discovery only; no eligibility judgment.
+    #[doc = "Criteria text.\nSearch literal registry eligibility text for discovery only; no eligibility judgment."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -106,7 +107,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     criteria: Option<Text>,
-    #[doc = "Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, \
+    #[doc = "Native status.\nExact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, \
         Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, \
         Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. \
         ClinicalTrials.gov uses registry labels."]
@@ -117,7 +118,8 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "TrialStatusFilter"))]
     status: Option<TrialStatusFilter>,
-    /// Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV.
+    #[doc = "Native phase.\n\
+        Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -125,7 +127,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "TrialPhaseFilter"))]
     phase: Option<TrialPhaseFilter>,
-    /// Exact registry study type.
+    #[doc = "Study type.\nExact registry study type."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -149,7 +151,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "u32"))]
     age: Option<u32>,
-    /// Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius.
+    #[doc = "Facility.\nFacility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -157,11 +159,12 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     facility: Option<Text>,
-    /// Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.
+    #[doc = "Country label; biomcp_help search trial.\n\
+        Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(schema_with = "country::schema"))]
     country: Box<[Box<str>]>,
-    /// Radius center latitude in degrees.
+    #[doc = "Latitude degrees.\nRadius center latitude in degrees."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -169,7 +172,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     lat: Option<Text>,
-    /// Radius center longitude in degrees.
+    #[doc = "Longitude degrees.\nRadius center longitude in degrees."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -177,7 +180,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     lon: Option<Text>,
-    /// Source distance with explicit mi or km units.
+    #[doc = "Radius, mi or km.\nSource distance with explicit mi or km units."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -185,7 +188,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     distance: Option<Text>,
-    /// Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category.
+    #[doc = "Sponsor.\nSponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -193,7 +196,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     sponsor: Option<Text>,
-    /// Registry sponsor funding category; use --sponsor for a sponsor name.
+    #[doc = "Funding class.\nRegistry sponsor funding category; use --sponsor for a sponsor name."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -201,7 +204,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "SponsorType"))]
     sponsor_type: Option<SponsorType>,
-    /// First included registry update date.
+    #[doc = "First date.\nFirst included registry update date."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -209,7 +212,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     updated_since: Option<PartialDate>,
-    /// Last included registry update date.
+    #[doc = "Last date.\nLast included registry update date."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -217,7 +220,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     updated_until: Option<PartialDate>,
-    /// Exact NCT identity in a conjunction with other filters.
+    #[doc = "NCT identifier.\nExact NCT identity in a conjunction with other filters."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -225,7 +228,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "NctId"))]
     id: Option<NctId>,
-    /// Opaque registry continuation; keep filters unchanged.
+    #[doc = "Page token.\nOpaque registry continuation; keep filters unchanged."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -236,10 +239,10 @@ struct Fields {
     /// Zero-based offset of the first row in this continuation page.
     #[serde(default)]
     offset: u32,
-    /// Source total only; no returned study rows.
+    #[doc = "Total.\nSource total only; no returned study rows."]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     count_only: bool,
-    /// Require posted source results.
+    #[doc = "Posted results.\nRequire posted source results."]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     has_results: bool,
     /// Headers per page; NCI applies its own lower publisher limit.

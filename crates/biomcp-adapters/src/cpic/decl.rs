@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "CPIC",
+    discovery_aliases: &[],
     registry_order: Some(1),
     probe: Probe::Get(crate::cpic::GENE_PATH, &[("limit", Arg::Num(1))]),
     components: &[],

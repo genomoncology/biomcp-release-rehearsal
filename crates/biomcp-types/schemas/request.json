@@ -1034,7 +1034,7 @@
   "oneOf": [
     {
       "additionalProperties": false,
-      "description": "Find native NCI biomarker concepts.",
+      "description": "Search NCI biomarker concepts by name or synonym.",
       "properties": {
         "command": {
           "const": "search-biomarker",
@@ -1083,7 +1083,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Search native NCI biomarker rows by exact NCIt code.",
+      "description": "Get NCI biomarker concepts by code.",
       "properties": {
         "command": {
           "const": "get-biomarker",
@@ -1108,7 +1108,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Find NCI organization names without assigning an identity.",
+      "description": "Search clinical research organizations.",
       "properties": {
         "city": {
           "$ref": "#/$defs/Text",
@@ -1189,7 +1189,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover native author candidates without identity reconciliation.",
+      "description": "Search research paper authors.",
       "properties": {
         "command": {
           "const": "search-author",
@@ -1234,7 +1234,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Page one exact provider record’s native papers.",
+      "description": "List an author's research papers.",
       "properties": {
         "command": {
           "const": "author-papers",
@@ -1282,7 +1282,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read exact provider author cards in input order.",
+      "description": "Get research author details.",
       "properties": {
         "command": {
           "const": "get-author",
@@ -1307,7 +1307,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read the native assay total for one exact ChEMBL cell.",
+      "description": "Get a cell line's ChEMBL assay count.",
       "properties": {
         "command": {
           "const": "cell-line-assay-count",
@@ -1344,7 +1344,7 @@
           ]
         }
       ],
-      "description": "Discover unchanged literal Cellosaurus candidates.",
+      "description": "Search cell lines by name or identifier.",
       "properties": {
         "command": {
           "const": "search-cell-line",
@@ -1386,7 +1386,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read an exact accession or verified qualified source identity.",
+      "description": "Get cell line details and cross-references.",
       "properties": {
         "command": {
           "const": "get-cell-line",
@@ -1425,7 +1425,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Search one native GWAS Catalog association page.",
+      "description": "Search genetic associations in GWAS Catalog.",
       "properties": {
         "command": {
           "const": "search-gwas",
@@ -1505,7 +1505,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one exact association and its native loci.",
+      "description": "Get GWAS Catalog associations or studies.",
       "properties": {
         "command": {
           "const": "get-gwas-association",
@@ -1554,7 +1554,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one exact study and its native relations.",
+      "description": "Get GWAS Catalog associations or studies.",
       "properties": {
         "command": {
           "const": "get-gwas-study",
@@ -1603,7 +1603,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read native InterPro matches.",
+      "description": "Get protein domains and families from InterPro.",
       "properties": {
         "accession": {
           "$ref": "#/$defs/UniProtIsoform",
@@ -1646,7 +1646,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read exact participant-admitted complex headers.",
+      "description": "List protein complexes containing a protein.",
       "properties": {
         "accession": {
           "$ref": "#/$defs/UniProtIsoform",
@@ -1685,7 +1685,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read native participants under an exact protein anchor.",
+      "description": "List the members of a protein complex.",
       "properties": {
         "accession": {
           "$ref": "#/$defs/UniProtIsoform",
@@ -1729,7 +1729,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read exact native feature rows with checked residue selectors.",
+      "description": "Get protein features by residue or region.",
       "properties": {
         "accession": {
           "$ref": "#/$defs/UniProtIsoform",
@@ -1779,7 +1779,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read native alternative products without constructing sequences.",
+      "description": "Get protein isoforms and alternative products.",
       "properties": {
         "accession": {
           "$ref": "#/$defs/UniProtIsoform",
@@ -1818,7 +1818,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read source PDB references without residue coverage inference.",
+      "description": "Get protein structure references from PDB.",
       "properties": {
         "accession": {
           "$ref": "#/$defs/UniProtIsoform",
@@ -1857,7 +1857,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one exact source sequence without alias repair.",
+      "description": "Get a source protein sequence.",
       "properties": {
         "command": {
           "const": "protein-sequence",
@@ -1889,7 +1889,7 @@
           ]
         }
       ],
-      "description": "Discover reviewed human UniProt candidates without selecting one.",
+      "description": "Search reviewed human proteins in UniProt.",
       "properties": {
         "command": {
           "const": "search-protein",
@@ -1936,7 +1936,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read exact protein cards or all HGNC-listed protein candidates.",
+      "description": "Get protein details and source annotations.",
       "properties": {
         "command": {
           "const": "get-protein",
@@ -1977,7 +1977,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover literal HP term candidates in publisher order.",
+      "description": "Search human phenotypes in HPO.",
       "properties": {
         "command": {
           "const": "search-phenotype",
@@ -2018,7 +2018,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one independent exact HPO or Monarch term card.",
+      "description": "Get human phenotype details and relationships.",
       "properties": {
         "command": {
           "const": "get-phenotype",
@@ -2065,7 +2065,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover source-native human pathway headers.",
+      "description": "Search human biological pathways.",
       "properties": {
         "command": {
           "const": "search-pathway",
@@ -2128,7 +2128,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read an exact human pathway card or summary.",
+      "description": "Get human pathway details.",
       "properties": {
         "command": {
           "const": "get-pathway",
@@ -2177,7 +2177,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Page retained exact source membership references.",
+      "description": "List genes in a biological pathway.",
       "properties": {
         "command": {
           "const": "pathway-genes",
@@ -2222,7 +2222,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Page retained source-contained event references.",
+      "description": "List events within a biological pathway.",
       "properties": {
         "command": {
           "const": "pathway-events",
@@ -2274,7 +2274,7 @@
           ]
         }
       ],
-      "description": "Discover literal study catalog metadata.",
+      "description": "Search cancer genomics studies in cBioPortal.",
       "properties": {
         "cancer_type": {
           "$ref": "#/$defs/CbioportalCancerTypeId",
@@ -2323,7 +2323,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read exact study metadata.",
+      "description": "Get cancer genomics study details.",
       "properties": {
         "command": {
           "const": "get-study",
@@ -2392,7 +2392,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover source-native CPIC gene pairs.",
+      "description": "Search pharmacogenomic gene and drug pairs.",
       "properties": {
         "command": {
           "const": "search-pgx",
@@ -2445,7 +2445,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read an explicit CPIC gene card or source section.",
+      "description": "Get pharmacogenomic evidence and source sections.",
       "properties": {
         "command": {
           "const": "get-pgx",
@@ -2539,7 +2539,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one exact ClinPGx clinical annotation accession.",
+      "description": "Get pharmacogenomic evidence and source sections.",
       "properties": {
         "command": {
           "const": "get-pgx-annotation",
@@ -2563,7 +2563,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover native diagnostic laboratory tests.",
+      "description": "Search diagnostic laboratory tests and devices.",
       "properties": {
         "biomarker": {
           "anyOf": [
@@ -2574,7 +2574,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact table-0 biomarker cell; unsupported in the group table."
+          "description": "Exact table-0 cell.\nExact table-0 biomarker cell; unsupported in the group table."
         },
         "bundle_revision": {
           "anyOf": [
@@ -2585,7 +2585,7 @@
               "type": "null"
             }
           ],
-          "description": "Immutable stored bundle revision retained by a continuation."
+          "description": "Stored bundle revision.\nImmutable stored bundle revision retained by a continuation."
         },
         "command": {
           "const": "search-diagnostic",
@@ -2600,7 +2600,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact MedGen:CUI identifier only."
+          "description": "Exact MedGen:CUI.\nExact MedGen:CUI identifier only."
         },
         "decision_from": {
           "anyOf": [
@@ -2611,7 +2611,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
+          "description": "First date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
         },
         "decision_to": {
           "anyOf": [
@@ -2622,7 +2622,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
+          "description": "Last date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
         },
         "device_id": {
           "anyOf": [
@@ -2633,7 +2633,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact PMA application, application/supplement or native K identity."
+          "description": "PMA or K identifier.\nExact PMA application, application/supplement or native K identity."
         },
         "drug_application": {
           "anyOf": [
@@ -2644,7 +2644,7 @@
               "type": "null"
             }
           ],
-          "description": "Cell-owned typed NDA/BLA application."
+          "description": "NDA/BLA application.\nCell-owned typed NDA/BLA application."
         },
         "gene": {
           "anyOf": [
@@ -2655,7 +2655,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact source gene_symbol field, without alias expansion."
+          "description": "Exact gene symbol.\nExact source gene_symbol field, without alias expansion."
         },
         "gene_id": {
           "anyOf": [
@@ -2666,7 +2666,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact source GeneID, exclusive with gene symbol."
+          "description": "Exact NCBI GeneID.\nExact source GeneID, exclusive with gene symbol."
         },
         "initiated_from": {
           "anyOf": [
@@ -2677,7 +2677,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive initiation date, YYYY-MM-DD; FDA device recalls only."
+          "description": "First date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."
         },
         "initiated_to": {
           "anyOf": [
@@ -2688,7 +2688,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive initiation date, YYYY-MM-DD; FDA device recalls only."
+          "description": "Last date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."
         },
         "limit": {
           "default": 5,
@@ -2707,7 +2707,7 @@
               "type": "null"
             }
           ],
-          "description": "WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."
+          "description": "Manufacturer phrase.\nWHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."
         },
         "marker": {
           "anyOf": [
@@ -2718,7 +2718,7 @@
               "type": "null"
             }
           ],
-          "description": "Literal whole-word phrase in WHO's Pathogen/Disease/Marker cell."
+          "description": "WHO marker phrase.\nLiteral whole-word phrase in WHO's Pathogen/Disease/Marker cell."
         },
         "name": {
           "anyOf": [
@@ -2729,7 +2729,7 @@
               "type": "null"
             }
           ],
-          "description": "Native trade_name (PMA) or device_name (510(k)) phrase."
+          "description": "Native device name.\nNative trade_name (PMA) or device_name (510(k)) phrase."
         },
         "offset": {
           "default": 0,
@@ -2747,11 +2747,11 @@
               "type": "null"
             }
           ],
-          "description": "Exact native FDA device recall product code."
+          "description": "FDA product code.\nExact native FDA device recall product code."
         },
         "source": {
           "$ref": "#/$defs/DiagnosticSearchSource",
-          "description": "Explicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery."
+          "description": "Native diagnostic source.\nExplicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery."
         },
         "type": {
           "anyOf": [
@@ -2762,7 +2762,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact native test_type value."
+          "description": "Native test_type.\nExact native test_type value."
         }
       },
       "required": [
@@ -2773,7 +2773,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read an exact source diagnostic record or relation page.",
+      "description": "Get diagnostic test or device details.",
       "properties": {
         "bundle_revision": {
           "anyOf": [
@@ -2846,14 +2846,14 @@
     },
     {
       "additionalProperties": false,
-      "description": "Search source-native adverse event reports.",
+      "description": "Search drug, device and vaccine adverse events.",
       "properties": {
         "command": {
           "const": "search-adverse-event",
           "type": "string"
         },
         "drug": {
-          "description": "FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
+          "description": "FAERS drug names; OR.\nFAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
           "items": {
             "$ref": "#/$defs/Text"
           },
@@ -2876,7 +2876,7 @@
               "type": "null"
             }
           ],
-          "description": "MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
+          "description": "MAUDE manufacturer.\nMAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
         },
         "offset": {
           "default": 0,
@@ -2894,10 +2894,10 @@
               "type": "null"
             }
           ],
-          "description": "MAUDE phrase on native product_problems."
+          "description": "MAUDE product problem.\nMAUDE phrase on native product_problems."
         },
         "product_code": {
-          "description": "MAUDE exact native device.device_report_product_code; repeated codes join with OR.",
+          "description": "MAUDE product codes; OR.\nMAUDE exact native device.device_report_product_code; repeated codes join with OR.",
           "items": {
             "$ref": "#/$defs/Text"
           },
@@ -2912,7 +2912,7 @@
               "type": "null"
             }
           ],
-          "description": "FAERS MedDRA term phrase match, not exact equality."
+          "description": "FAERS MedDRA phrase.\nFAERS MedDRA term phrase match, not exact equality."
         },
         "received_from": {
           "anyOf": [
@@ -2923,7 +2923,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
+          "description": "First date, YYYY-MM[-DD].\nInclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.",
           "format": "date"
         },
         "received_to": {
@@ -2935,7 +2935,7 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
+          "description": "Last date, YYYY-MM[-DD].\nInclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.",
           "format": "date"
         },
         "section": {
@@ -2948,6 +2948,7 @@
             }
           ],
           "description": "Independent VAERS table; omitted means reported symptoms.",
+          "title": "VAERS table.",
           "x-positional": 1
         },
         "serious": {
@@ -2959,7 +2960,7 @@
               "type": "null"
             }
           ],
-          "description": "FAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
+          "description": "FAERS seriousness flag.\nFAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
         },
         "snapshot": {
           "anyOf": [
@@ -2970,16 +2971,16 @@
               "type": "null"
             }
           ],
-          "description": "Retained VAERS table for provider-free continuation."
+          "description": "VAERS snapshot.\nRetained VAERS table for provider-free continuation."
         },
         "source": {
           "$ref": "#/$defs/AdverseEventSource",
           "default": "faers",
-          "description": "FAERS by default; VAERS accepts only exact supported vaccine names."
+          "description": "Source; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names."
         },
         "text": {
           "$ref": "#/$defs/Text",
-          "description": "Literal drug text, MAUDE device phrase or exact supported VAERS vaccine.",
+          "description": "Drug, device or vaccine.\nLiteral drug text, MAUDE device phrase or exact supported VAERS vaccine.",
           "x-positional": 0
         }
       },
@@ -2990,7 +2991,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one exact source report, without source probing.",
+      "description": "Get a drug, device or vaccine adverse event report.",
       "properties": {
         "command": {
           "const": "get-adverse-event",
@@ -3066,7 +3067,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover one source-native disease candidate page.",
+      "description": "Search diseases and their identifiers.",
       "properties": {
         "command": {
           "const": "search-disease",
@@ -3114,7 +3115,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read an exact source disease concept or native statistic page.",
+      "description": "Get disease details and source statistics.",
       "properties": {
         "age_range": {
           "anyOf": [
@@ -3236,7 +3237,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Discover literal native drug candidates.",
+      "description": "Search drugs and medicines by name.",
       "properties": {
         "classification": {
           "anyOf": [
@@ -3367,7 +3368,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read one exact source drug identity.",
+      "description": "Get drug and medicine details.",
       "properties": {
         "civic_cursor": {
           "anyOf": [
@@ -3378,7 +3379,7 @@
               "type": "null"
             }
           ],
-          "description": "Native continuation cursor for that exact drug, profile and claim collection."
+          "description": "CIViC continuation.\nNative continuation cursor for that exact drug, profile and claim collection."
         },
         "civic_kind": {
           "anyOf": [
@@ -3389,7 +3390,7 @@
               "type": "null"
             }
           ],
-          "description": "Independent native evidence or assertion collection within the selected profile."
+          "description": "CIViC collection.\nIndependent native evidence or assertion collection within the selected profile."
         },
         "civic_profile": {
           "description": "Selected native CIViC molecular profile for a drug-scoped claim stream.",
@@ -3414,10 +3415,10 @@
               "type": "null"
             }
           ],
-          "description": "Exact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
+          "description": "FDA letter document ID.\nExact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
         },
         "evidence_level": {
-          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "description": "A–E\nNative CIViC evidence levels; repeat to include several levels.",
           "items": {
             "$ref": "#/$defs/CivicEvidenceLevel"
           },
@@ -3432,7 +3433,7 @@
               "type": "null"
             }
           ],
-          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+          "description": "Status\nNative CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/DrugId"
@@ -3446,7 +3447,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact published openFDA SPL section field, including table fields; required for the label section."
+          "description": "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields; required for the label section."
         },
         "product_number": {
           "anyOf": [
@@ -3457,13 +3458,14 @@
               "type": "null"
             }
           ],
-          "description": "Explicit native application product number, only for approvals."
+          "description": "FDA product number.\nExplicit native application product number, only for approvals."
         },
         "section": {
           "description": "Explicit named disclosures; empty means identity only.",
           "items": {
             "$ref": "#/$defs/DrugSection"
           },
+          "title": "Source sections.",
           "type": "array",
           "x-positional": 1
         },
@@ -3499,7 +3501,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read native WHO prequalification rows by exact reference.",
+      "description": "Get drug and medicine details.",
       "properties": {
         "command": {
           "const": "get-who-medicine",
@@ -3524,7 +3526,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read source-native variant assertions.",
+      "description": "Get genetic variant assertions from ClinVar or ClinGen.",
       "properties": {
         "assertion": {
           "anyOf": [
@@ -3596,7 +3598,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read source ancestry observations.",
+      "description": "Get genetic variant population frequencies.",
       "properties": {
         "build": {
           "anyOf": [
@@ -3651,7 +3653,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Observe an exact allele in an explicitly selected cohort.",
+      "description": "Get genetic variant observations in a cohort.",
       "properties": {
         "build": {
           "anyOf": [
@@ -3722,7 +3724,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Send unchanged HGVS to explicit normalization services.",
+      "description": "Normalize reference-qualified genetic variant HGVS.",
       "properties": {
         "build": {
           "anyOf": [
@@ -3773,7 +3775,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read a published variant identifier.",
+      "description": "Get genetic variants.",
       "properties": {
         "build": {
           "anyOf": [
@@ -3784,7 +3786,7 @@
               "type": "null"
             }
           ],
-          "description": "MyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
+          "description": "Assembly\nMyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
         },
         "civic_cursor": {
           "anyOf": [
@@ -3795,7 +3797,7 @@
               "type": "null"
             }
           ],
-          "description": "Native CIViC cursor, retained unchanged."
+          "description": "Cursor\nNative CIViC cursor, retained unchanged."
         },
         "civic_kind": {
           "anyOf": [
@@ -3806,7 +3808,7 @@
               "type": "null"
             }
           ],
-          "description": "Native CIViC claim collection within the selected profile."
+          "description": "Claims\nNative CIViC claim collection within the selected profile."
         },
         "civic_profile": {
           "description": "Selected CIViC molecular profile for native claim paging.",
@@ -3823,7 +3825,7 @@
           "type": "string"
         },
         "evidence_level": {
-          "description": "Native CIViC evidence levels; repeat to include several levels.",
+          "description": "A–E\nNative CIViC evidence levels; repeat to include several levels.",
           "items": {
             "$ref": "#/$defs/CivicEvidenceLevel"
           },
@@ -3838,11 +3840,11 @@
               "type": "null"
             }
           ],
-          "description": "Native CIViC evidence status; omitted preserves the source's existing default."
+          "description": "Status\nNative CIViC evidence status; omitted preserves the source's existing default."
         },
         "input": {
           "$ref": "#/$defs/VariantInput",
-          "description": "rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.",
+          "description": "rs/CA/clinvar:N/VCV/HGVS/VCF\nrsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates.",
           "x-positional": 0
         },
         "limit": {
@@ -3863,13 +3865,14 @@
         "resolver": {
           "$ref": "#/$defs/VariantResolver",
           "default": "car",
-          "description": "Resolver for reference-qualified notation; never repairs the input locally."
+          "description": "Resolver.\nResolver for reference-qualified notation; never repairs the input locally."
         },
         "section": {
           "description": "Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.",
           "items": {
             "$ref": "#/$defs/VariantSection"
           },
+          "title": "Sections.",
           "type": "array",
           "x-positional": 1
         },
@@ -3896,7 +3899,7 @@
               "type": "null"
             }
           ],
-          "description": "Explicit tumor context for keyed OncoKB annotation."
+          "description": "Tumor\nExplicit tumor context for keyed OncoKB annotation."
         }
       },
       "required": [
@@ -3936,7 +3939,7 @@
           ]
         }
       ],
-      "description": "Discover source-native variant candidates.",
+      "description": "Search genetic variants by gene, change or region.",
       "properties": {
         "build": {
           "$ref": "#/$defs/Build",
@@ -4006,7 +4009,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Save an exact registry document to an explicit destination.",
+      "description": "Save a clinical trial document.",
       "properties": {
         "command": {
           "const": "trial-document",
@@ -4041,7 +4044,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Retrieve exact trial cards and source protocol sections.",
+      "description": "Get clinical trial details.",
       "properties": {
         "command": {
           "const": "get-trial",
@@ -4097,7 +4100,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Search ClinicalTrials.gov without local screening.",
+      "description": "Search clinical trials.",
       "properties": {
         "age": {
           "description": "Age in years; unstated source bounds count as no limit.",
@@ -4107,18 +4110,18 @@
         },
         "biomarker_code": {
           "$ref": "#/$defs/NcitId",
-          "description": "Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
+          "description": "NCI NCIt code.\nExact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
         },
         "biomarker_use": {
           "$ref": "#/$defs/NciBiomarkerUse",
-          "description": "Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
+          "description": "NCI criterion.\nFilter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
         },
         "command": {
           "const": "search-trial",
           "type": "string"
         },
         "condition": {
-          "description": "Condition alternatives joined with OR; NCI requires NCIt codes.",
+          "description": "Disease or NCIt.\nCondition alternatives joined with OR; NCI requires NCIt codes.",
           "items": {
             "$ref": "#/$defs/Text"
           },
@@ -4127,14 +4130,14 @@
         },
         "condition_id": {
           "$ref": "#/$defs/Curie",
-          "description": "Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."
+          "description": "MONDO/DOID/NCIT:C.\nExact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."
         },
         "count_only": {
-          "description": "Source total only; no returned study rows.",
+          "description": "Total.\nSource total only; no returned study rows.",
           "type": "boolean"
         },
         "country": {
-          "description": "Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+          "description": "Country label; biomcp_help search trial.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
           "items": {
             "enum": [
               "Afghanistan",
@@ -4371,34 +4374,34 @@
         },
         "criteria": {
           "$ref": "#/$defs/Text",
-          "description": "Search literal registry eligibility text for discovery only; no eligibility judgment."
+          "description": "Criteria text.\nSearch literal registry eligibility text for discovery only; no eligibility judgment."
         },
         "distance": {
           "$ref": "#/$defs/Text",
-          "description": "Source distance with explicit mi or km units."
+          "description": "Radius, mi or km.\nSource distance with explicit mi or km units."
         },
         "exact_condition": {
-          "description": "Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
+          "description": "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
           "type": "boolean"
         },
         "facility": {
           "$ref": "#/$defs/Text",
-          "description": "Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
+          "description": "Facility.\nFacility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
         },
         "gene": {
           "$ref": "#/$defs/GeneInput",
-          "description": "Resolve one checked gene for registry text discovery only; no eligibility judgment."
+          "description": "Gene symbol/ID.\nResolve one checked gene for registry text discovery only; no eligibility judgment."
         },
         "has_results": {
-          "description": "Require posted source results.",
+          "description": "Posted results.\nRequire posted source results.",
           "type": "boolean"
         },
         "id": {
           "$ref": "#/$defs/NctId",
-          "description": "Exact NCT identity in a conjunction with other filters."
+          "description": "NCT identifier.\nExact NCT identity in a conjunction with other filters."
         },
         "intervention": {
-          "description": "Intervention alternatives joined with OR; supported by ClinicalTrials.gov.",
+          "description": "Treatment terms; OR.\nIntervention alternatives joined with OR; supported by ClinicalTrials.gov.",
           "items": {
             "$ref": "#/$defs/Text"
           },
@@ -4406,7 +4409,7 @@
           "type": "array"
         },
         "keyword": {
-          "description": "Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
+          "description": "Text; OR.\nRepeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
           "items": {
             "$ref": "#/$defs/Text"
           },
@@ -4415,7 +4418,7 @@
         },
         "lat": {
           "$ref": "#/$defs/Text",
-          "description": "Radius center latitude in degrees."
+          "description": "Latitude degrees.\nRadius center latitude in degrees."
         },
         "limit": {
           "default": 10,
@@ -4427,11 +4430,11 @@
         },
         "lon": {
           "$ref": "#/$defs/Text",
-          "description": "Radius center longitude in degrees."
+          "description": "Longitude degrees.\nRadius center longitude in degrees."
         },
         "next_page": {
           "$ref": "#/$defs/Text",
-          "description": "Opaque registry continuation; keep filters unchanged."
+          "description": "Page token.\nOpaque registry continuation; keep filters unchanged."
         },
         "offset": {
           "default": 0,
@@ -4442,11 +4445,11 @@
         },
         "phase": {
           "$ref": "#/$defs/TrialPhaseFilter",
-          "description": "Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
+          "description": "Native phase.\nExact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
         },
         "query": {
           "$ref": "#/$defs/Text",
-          "description": "General registry discovery text.",
+          "description": "Trial text.\nGeneral registry discovery text.",
           "x-positional": 0
         },
         "sex": {
@@ -4455,35 +4458,35 @@
         },
         "source": {
           "$ref": "#/$defs/TrialSource",
-          "description": "Explicit provider; defaults to ClinicalTrials.gov and never falls back."
+          "description": "clinicaltrials/nci.\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
         },
         "sponsor": {
           "$ref": "#/$defs/Text",
-          "description": "Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
+          "description": "Sponsor.\nSponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
         },
         "sponsor_type": {
           "$ref": "#/$defs/SponsorType",
-          "description": "Registry sponsor funding category; use --sponsor for a sponsor name."
+          "description": "Funding class.\nRegistry sponsor funding category; use --sponsor for a sponsor name."
         },
         "status": {
           "$ref": "#/$defs/TrialStatusFilter",
-          "description": "Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
+          "description": "Native status.\nExact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
         },
         "study_type": {
           "$ref": "#/$defs/StudyType",
-          "description": "Exact registry study type."
+          "description": "Study type.\nExact registry study type."
         },
         "updated_since": {
           "$ref": "#/$defs/PartialDate",
-          "description": "First included registry update date."
+          "description": "First date.\nFirst included registry update date."
         },
         "updated_until": {
           "$ref": "#/$defs/PartialDate",
-          "description": "Last included registry update date."
+          "description": "Last date.\nLast included registry update date."
         },
         "variant": {
           "$ref": "#/$defs/Text",
-          "description": "Literal variant text for registry discovery only; no eligibility judgment."
+          "description": "Variant text.\nLiteral variant text for registry discovery only; no eligibility judgment."
         }
       },
       "required": [
@@ -4493,7 +4496,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Save a publisher PDF to an explicit destination.",
+      "description": "Save a research article PDF.",
       "properties": {
         "command": {
           "const": "article-pdf",
@@ -4522,7 +4525,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read source citation evidence.",
+      "description": "Get research article citation evidence.",
       "properties": {
         "cited": {
           "$ref": "#/$defs/ArticleInput",
@@ -4570,7 +4573,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Source-native paper recommendations.",
+      "description": "Get related research article recommendations.",
       "properties": {
         "command": {
           "const": "article-recommend",
@@ -4622,7 +4625,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Read a licensed supplementary file.",
+      "description": "Read a research article supplementary file.",
       "properties": {
         "command": {
           "const": "article-supplement",
@@ -4701,7 +4704,7 @@
           ]
         }
       ],
-      "description": "Read licensed PMC body text.",
+      "description": "Read research article full text.",
       "properties": {
         "command": {
           "const": "article-text",
@@ -4750,7 +4753,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Papers citing one PMID.",
+      "description": "List research papers citing an article.",
       "properties": {
         "command": {
           "const": "article-citations",
@@ -4794,7 +4797,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Papers referenced by one PMID.",
+      "description": "List research papers referenced by an article.",
       "properties": {
         "command": {
           "const": "article-references",
@@ -4838,7 +4841,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Retrieve PubMed article cards.",
+      "description": "Get research article details.",
       "properties": {
         "command": {
           "const": "get-article",
@@ -4923,11 +4926,11 @@
           ]
         }
       ],
-      "description": "Search PubMed article identities.",
+      "description": "Search research articles and biomedical papers.",
       "properties": {
         "author": {
           "$ref": "#/$defs/Text",
-          "description": "Author words sent to PubMed's author field."
+          "description": "PubMed author words.\nAuthor words sent to PubMed's author field."
         },
         "command": {
           "const": "search-article",
@@ -4943,11 +4946,11 @@
         },
         "gene": {
           "$ref": "#/$defs/GeneInput",
-          "description": "Gene input; PubMed resolves it through HGNC."
+          "description": "Gene symbol or ID.\nGene input; PubMed resolves it through HGNC."
         },
         "journal": {
           "$ref": "#/$defs/Text",
-          "description": "Journal words sent to PubMed's journal field."
+          "description": "PubMed journal words.\nJournal words sent to PubMed's journal field."
         },
         "limit": {
           "default": 10,
@@ -4958,7 +4961,7 @@
           "type": "integer"
         },
         "no_preprints": {
-          "description": "Exclude preprints using the source's native filter.",
+          "description": "Exclude preprints.\nExclude preprints using the source's native filter.",
           "type": "boolean"
         },
         "offset": {
@@ -4969,16 +4972,16 @@
           "type": "integer"
         },
         "open_access": {
-          "description": "Require the source's native open-access filter; Semantic Scholar means a public PDF.",
+          "description": "Native open access.\nRequire the source's native open-access filter; Semantic Scholar means a public PDF.",
           "type": "boolean"
         },
         "pool": {
           "$ref": "#/$defs/Text",
-          "description": "Stable snapshot from an earlier response."
+          "description": "Stable result snapshot.\nStable snapshot from an earlier response."
         },
         "retracted": {
           "$ref": "#/$defs/RetractionFilter",
-          "description": "Include retracted papers by default, or exclude them using a native filter.",
+          "description": "Retraction filter.\nInclude retracted papers by default, or exclude them using a native filter.",
           "x-cli-flags": {
             "exclude-retracted": "exclude",
             "include-retracted": "include"
@@ -4986,18 +4989,18 @@
         },
         "since": {
           "$ref": "#/$defs/PartialDate",
-          "description": "Inclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date."
+          "description": "First publication date.\nInclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date."
         },
         "sort": {
           "$ref": "#/$defs/ArticleSort",
           "default": "rank",
-          "description": "rank (default): native provider order; several sources take turns; native search cost.\ndate: native search cost; PubMed means date added and Europe PMC means newest first; other sources refuse it.\ncitations: most cited first across the whole pool; adds iCite calls, about 1 s per 1,000 PMIDs.\nAll sources support citations."
+          "description": "rank, date or citations.\nrank (default): native provider order; several sources take turns; native search cost.\ndate: native search cost; PubMed means date added and Europe PMC means newest first; other sources refuse it.\ncitations: most cited first across the whole pool; adds iCite calls, about 1 s per 1,000 PMIDs.\nAll sources support citations."
         },
         "source": {
           "default": [
             "pubmed"
           ],
-          "description": "Sources to search in caller order, comma separated. Default: pubmed.\nSeveral sources take turns, remove duplicates and show every native rank.\npubmed: keywords with PubMed MeSH mapping; dropped words appear as notices.\neuropepmc: words in open full text and preprints; incidental mentions are possible.\nlitvar: exact variant publications; requires --variant and a protein change needs --gene; unresolved inputs return candidates.\nsemantic-scholar: broad discovery; a shared keyless pool may return 429; an optional free key raises the limit.\nlitsense: sentence resemblance, not a match; unrelated hits and timeouts are possible.\npubtator: entity and word search including full text; needs the right entity ID; --gene uses HGNC Entrez identity and cannot run without that join.",
+          "description": "Sources; default pubmed.\nSources to search in caller order, comma separated. Default: pubmed.\nSeveral sources take turns, remove duplicates and show every native rank.\npubmed: keywords with PubMed MeSH mapping; dropped words appear as notices.\neuropepmc: words in open full text and preprints; incidental mentions are possible.\nlitvar: exact variant publications; requires --variant and a protein change needs --gene; unresolved inputs return candidates.\nsemantic-scholar: broad discovery; a shared keyless pool may return 429; an optional free key raises the limit.\nlitsense: sentence resemblance, not a match; unrelated hits and timeouts are possible.\npubtator: entity and word search including full text; needs the right entity ID; --gene uses HGNC Entrez identity and cannot run without that join.",
           "items": {
             "$ref": "#/$defs/ArticleSource"
           },
@@ -5007,7 +5010,7 @@
         },
         "text": {
           "$ref": "#/$defs/Text",
-          "description": "Words sent to each named source in its default fields.",
+          "description": "Source search words.\nWords sent to each named source in its default fields.",
           "x-positional": 0
         },
         "type": {
@@ -5016,7 +5019,7 @@
         },
         "until": {
           "$ref": "#/$defs/PartialDate",
-          "description": "Inclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date."
+          "description": "Last publication date.\nInclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date."
         },
         "variant": {
           "$ref": "#/$defs/Text",
@@ -5030,7 +5033,7 @@
     },
     {
       "additionalProperties": false,
-      "description": "Get gene identities and annotations.",
+      "description": "Get gene identities and source annotations.",
       "properties": {
         "command": {
           "const": "get-gene",
@@ -5075,7 +5078,7 @@
           ]
         }
       ],
-      "description": "Search gene headers.",
+      "description": "Search human genes by name or identifier.",
       "properties": {
         "band": {
           "$ref": "#/$defs/Cytoband",

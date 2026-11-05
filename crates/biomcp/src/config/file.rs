@@ -14,6 +14,14 @@ pub(crate) enum ReplyForm {
     TextOnly,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, clap::ValueEnum)]
+#[serde(rename_all = "kebab-case")]
+pub(crate) enum ToolMode {
+    #[default]
+    Single,
+    Typed,
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct ConfigError(pub(crate) String, ConfigScope);
 #[derive(Clone, Debug)]
@@ -51,7 +59,10 @@ impl ConfigError {
 #[serde(deny_unknown_fields)]
 pub(crate) struct ConfigFile {
     pub(super) hosted_max_use: Option<crate::command::DeclaredUse>,
+    pub(super) mcp_tool_mode: Option<ToolMode>,
     pub(super) mcp_reply_form: Option<ReplyForm>,
+    pub(super) mcp_typed_output_schema: Option<bool>,
+    pub(super) mcp_typed_enum_limit: Option<usize>,
     pub(super) format: Option<crate::grammar::Format>,
     pub(super) proxy: Option<String>,
     pub(super) http: Option<Http>,
@@ -166,7 +177,10 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         .transpose()?;
     let file = ConfigFile {
         hosted_max_use: take(&mut map, "hosted_max_use")?,
+        mcp_tool_mode: take(&mut map, "mcp_tool_mode")?,
         mcp_reply_form: take(&mut map, "mcp_reply_form")?,
+        mcp_typed_output_schema: take(&mut map, "mcp_typed_output_schema")?,
+        mcp_typed_enum_limit: take(&mut map, "mcp_typed_enum_limit")?,
         format: take(&mut map, "format")?,
         proxy: take(&mut map, "proxy")?,
         http,

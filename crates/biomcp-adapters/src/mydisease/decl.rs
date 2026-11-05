@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "MyDisease.info",
+    discovery_aliases: &[],
     registry_order: Some(53),
     probe: Probe::Get("/metadata", &[]),
     components: &[
@@ -28,6 +29,7 @@ pub(crate) static ORPHANET: SourceDecl = SourceDecl {
         ORPHANET_COMPONENT.terms,
     ),
     display: "Orphadata Science",
+    discovery_aliases: &[],
     registry_order: None,
     probe: Probe::Component,
     components: &[],
@@ -47,6 +49,7 @@ pub(crate) static OMIM: SourceDecl = SourceDecl {
         OMIM_COMPONENT.terms,
     ),
     display: "OMIM",
+    discovery_aliases: &[],
     registry_order: None,
     probe: Probe::Component,
     components: &[],

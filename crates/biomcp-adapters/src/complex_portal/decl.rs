@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Complex Portal",
+    discovery_aliases: &[],
     registry_order: Some(23),
     probe: Probe::Get(
         "/search/P15056",

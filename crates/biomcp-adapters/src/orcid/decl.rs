@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "ORCID",
+    discovery_aliases: &[],
     registry_order: Some(41),
     probe: Probe::Get("/0000-0002-4299-3018/person", &[]),
     components: &[],
