@@ -175,3 +175,38 @@ def classification_case(change):
         result['commands'] = [{'ordinal': 1, 'exchanges': {'drift_omitted': 1}}]
     return {"case": change, "result": result, "witness": witness}
 
+
+
+def publication_growth_case(change='addition', count=1590, insertion=650):
+    # Retained LitVar diagnostics: 1590 PMIDs, 200-ID iCite batches,
+    # unchanged PubMed selection, then one insertion and rebatching.
+    old = [str(10000000 + i) for i in range(count)]
+    new = old[:insertion] + ['20000000'] + old[insertion:]
+    if change == 'removal':
+        old, new = new, old
+    def requests(ids):
+        rows = [{'identity': 'publications', 'source': 'litvar', 'role': 'Publications',
+                 'status': 200, 'provenance': {'inputs': None, 'input_context': None,
+                 'discovery': {'namespace': 'pmid', 'ids': ids}}}]
+        for start in range(0, len(ids), 200):
+            batch = ids[start:start + 200]
+            rows.append({'identity': ','.join(batch), 'source': 'icite', 'role': 'Raw',
+                         'status': 200, 'provenance': {'input_context': 'fixed-request',
+                         'inputs': {'namespace': 'pmid', 'ids': batch}}})
+        rows.append({'identity': 'same-pubmed', 'source': 'pubmed', 'role': 'Summary',
+                     'status': 200})
+        return rows
+    before, after = requests(old), requests(new)
+    if change == 'missing-batch':
+        after.pop(-2)
+    if change == 'parameter':
+        for row in after[1:-1]:
+            row['provenance']['input_context'] = 'changed-request'
+    if change == 'unproven':
+        after[0]['provenance']['discovery']['ids'] = old
+    return {'case': 'article/litvar/akt1-rsid-citations.yaml',
+            'result': {'drift': ['icite: request-plan-changed', 'icite: request-plan-added'],
+                       'commands': [{'ordinal': 1, 'exchanges': {'omitted': 0, 'drift_omitted': 0}}]},
+            'witness': [{'ordinal': 1, 'baseline': {'requests': before},
+                         'live': {'requests': after}}]}
+
