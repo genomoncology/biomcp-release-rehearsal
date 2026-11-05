@@ -1,6 +1,7 @@
 # Concurrent first opens of a fresh cache never fail as busy
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 6e2cc8bc747279c25b150eadcb56c7dbde94d5c2
 Milestone: 5
 
 ## Outcome

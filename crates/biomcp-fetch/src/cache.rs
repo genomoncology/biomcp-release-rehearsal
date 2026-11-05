@@ -116,14 +116,7 @@ impl Cache {
             .map_err(|error| db_error(error))?;
         Self::initialize(&mut connection)?;
         // Ownership is validated before changing the file's journal mode.
-        let journal: String = connection
-            .pragma_query_value(None, "journal_mode", |row| row.get(0))
-            .map_err(|error| db_error(error))?;
-        if !journal.eq_ignore_ascii_case("wal") {
-            connection
-                .pragma_update(None, "journal_mode", "WAL")
-                .map_err(|error| db_error(error))?;
-        }
+        enable_wal(&connection)?;
         Ok(Self(
             Mutex::new(connection),
             path.with_extension("parts"),
@@ -323,6 +316,34 @@ impl Cache {
             .map_err(|error| db_error(error))?;
             tx.commit().map_err(|error| db_error(error))
         })
+    }
+}
+
+// SQLite may refuse a read-to-exclusive journal-mode upgrade without invoking
+// its busy handler. Finalize that attempt before waiting, so another opener can
+// finish its upgrade; every attempt shares the original five-second wait.
+fn enable_wal(connection: &Connection) -> Result<(), CacheError> {
+    let deadline = Deadline::start(OPEN_WAIT, None);
+    loop {
+        sql_deadline(connection, deadline)?;
+        let result = (|| {
+            let journal: String = connection
+                .pragma_query_value(None, "journal_mode", |row| row.get(0))
+                .map_err(|error| db_error(error))?;
+            if !journal.eq_ignore_ascii_case("wal") {
+                sql_deadline(connection, deadline)?;
+                connection
+                    .pragma_update(None, "journal_mode", "WAL")
+                    .map_err(|error| db_error(error))?;
+            }
+            Ok(())
+        })();
+        match result {
+            Err(CacheError::Busy) if !deadline.expired() => {
+                std::thread::park_timeout(Duration::from_millis(1).min(deadline.remaining()));
+            }
+            result => return result,
+        }
     }
 }
 

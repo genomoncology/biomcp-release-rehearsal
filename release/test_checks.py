@@ -181,8 +181,8 @@ else:
             self.assertEqual(result.returncode, 0, result.stderr)
             completed = json.loads(result.stdout.splitlines()[-1])
             commands = [json.loads(line) for line in log.read_text().splitlines()]
-            self.assertEqual(commands, ["schema", "help", "serve", "--proofs", "--test-threads"])
-            self.assertEqual(completed["checks"], ["schemas", "help", "version", "mcp-all-stdout",
+            self.assertEqual(commands, ["schema", "help"] + ["health"] * 8 + ["serve", "--proofs", "--test-threads"])
+            self.assertEqual(completed["checks"], ["schemas", "help", "concurrent-first-opens", "version", "mcp-all-stdout",
                              "ordinary-cache-created", "runner-proofs", "all-cases-and-trials"])
             self.assertEqual(completed["tools"], ["biomcp"])
             self.assertEqual(completed["trials"], 2)
