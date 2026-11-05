@@ -16,11 +16,14 @@ REPORT = [
     {"artifact": "wheel", "result": "pass", "checks": ["candidate-bytes", "schemas"]},
     {"artifact": "homebrew-formula", "result": "deferred", "reason": "Homebrew is unavailable"},
 ]
-GATE = r'''import argparse, json, pathlib
+GATE = r'''import argparse, json, os, pathlib
 parser = argparse.ArgumentParser()
 parser.add_argument('--scratch', type=pathlib.Path)
 parser.add_argument('--report', type=pathlib.Path)
 args, _ = parser.parse_known_args()
+evidence = pathlib.Path(os.environ['BIOMCP_EVIDENCE_DIR'])
+evidence.mkdir(parents=True)
+(evidence / 'startup-proof').write_text('writable')
 report = json.dumps(ROWS, indent=2) + '\n'
 (args.report or args.scratch / 'report.json').write_text(report)
 print('installed checks completed')

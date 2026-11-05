@@ -3,6 +3,8 @@
 set -eu
 test -n "$BUILD_IMAGE"
 revision=$(python3 release/source_revision.py)
+tooling_source=${BIOMCP_RELEASE_TOOLING_SOURCE:-$PWD}
+tooling_revision=${BIOMCP_TOOLING_REVISION:-$revision}
 cold=${BIOMCP_RELEASE_COLD:-0}
 report=${BIOMCP_RELEASE_REPORT:-$PWD/dist/cold-report.json}
 stage() {
@@ -33,9 +35,9 @@ build() {
   docker "$@"
 }
 stage build build run --rm "$@" --user "$(id -u):$(id -g)" -e HOME=/tmp \
-  -v "$PWD:/source" -w /source \
+  -v "$PWD:/source" -v "$tooling_source:/tooling" -w /source \
   -e CARGO_HOME=/cargo \
-  -e CARGO_BUILD_JOBS=2 -e "BIOMCP_BUILD_REVISION=$revision" \
+  -e CARGO_BUILD_JOBS=2 -e "BIOMCP_BUILD_REVISION=$revision" -e "BIOMCP_TOOLING_REVISION=$tooling_revision" \
   "$BUILD_IMAGE" /bin/bash -c '
     set -euo pipefail
     python_series=$(python3 release/toolchain.py get python | tr -d .)
@@ -49,7 +51,9 @@ stage build build run --rm "$@" --user "$(id -u):$(id -g)" -e HOME=/tmp \
       python release/toolchain.py python-check
       python release/toolchain.py install-rust
       python release/artifacts.py build --manylinux --revision "$BIOMCP_BUILD_REVISION" --output dist
-      python release/gate.py --prepare-only --artifacts dist --scratch /source/proof
+      cd /tooling
+      BIOMCP_BUILD_REVISION="$BIOMCP_TOOLING_REVISION" python release/gate.py \
+        --prepare-only --artifacts /source/dist --scratch /source/proof
     fi
   '
 # The install process sees the artifacts and copied proof, without the checkout.
@@ -61,6 +65,7 @@ stage install docker run --rm "$@" --user "$(id -u):$(id -g)" -e HOME=/tmp \
     cp -a /proof /tmp/check
     python_series=$(python3 /tmp/check/tools/release/toolchain.py get python | tr -d .)
     export PATH=/opt/python/cp$python_series-cp$python_series/bin:$PATH
+    export BIOMCP_EVIDENCE_DIR=/output/fixture-evidence
     python /tmp/check/tools/release/gate.py --prepared --python python \
       --artifacts /artifacts --scratch /tmp/check --report /output/install-report.json
   ' > install-report.log
@@ -78,12 +83,12 @@ stage container-archive tar -xzf "$archive" -C container
 stage container-runner cp proof/case-runner container/case-runner
 stage container-tool-runner cp proof/tool-runner container/tool-runner
 stage container-fixtures cp -R proof/fixtures container/fixtures
-stage container-recipe cp release/Dockerfile container/Dockerfile
+stage container-recipe cp "$tooling_source/release/Dockerfile" container/Dockerfile
 image="biomcp-candidate:$arch"
 stage container-build docker build --build-arg "runtime_image=$(python3 release/toolchain.py image runtime)" \
   --build-arg "runtime_packages=$(python3 release/toolchain.py get runtime-packages)" --platform "linux/$arch" -t "$image" container
 version=$(python3 -c 'import json; print(json.load(open("dist/release.json"))["version"])') || version=unknown
-stage container-check python3 release/container_check.py "$image" "$arch" container "$version" "$@"
+stage container-check python3 "$tooling_source/release/container_check.py" "$image" "$arch" container "$version" "$@"
 stage container-save docker save "$image" -o "dist/biomcp-container-$arch.tar"
 stage container-cleanup docker image rm "$image"
 

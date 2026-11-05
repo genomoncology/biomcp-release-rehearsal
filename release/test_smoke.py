@@ -102,6 +102,7 @@ else:
                 self.assertIn("1 failed", result.stdout)
 
     def test_isolated_installed_commands_and_cleanup(self):
+        from release.gate import stage_fixtures
         binary = Path(os.environ["BIOMCP_INSTALLED_BINARY"]).resolve()
         runner = Path(os.environ["BIOMCP_CASE_RUNNER"]).resolve()
         version = os.environ["BIOMCP_INSTALLED_VERSION"]
@@ -114,10 +115,7 @@ else:
             shutil.copy2(runner.with_name("tool-runner" + runner.suffix),
                          installed / ("tool-runner" + runner.suffix))
             fixtures = root / "fixtures"
-            shutil.copytree("tests", fixtures)
-            provenance = Path("sdlc/planning/slices/gene.md")
-            (fixtures / "support" / provenance).parent.mkdir(parents=True)
-            shutil.copy2(provenance, fixtures / "support" / provenance)
+            stage_fixtures(Path.cwd(), fixtures)
             parent = root / "job-tmp"
             parent.mkdir()
             sentinel = parent / "keep"
@@ -143,6 +141,7 @@ finally:
                         env["TMPDIR"] = str(parent)
                     selected = installed / ("absent" if fail else binary.name)
                     result = subprocess.run([sys.executable, "-c", script, str(selected), str(installed / ("case-runner" + runner.suffix)), str(fixtures), version], env=env, capture_output=True, text=True, timeout=300)
+                    print(result.stdout, end="", flush=True)
                     self.assertEqual(result.returncode == 0, not fail, result.stdout + result.stderr)
                     roots = json.loads(result.stdout.splitlines()[-1])["temporary_roots"]
                     self.assertEqual(len(roots), 1 if fail else 2)
