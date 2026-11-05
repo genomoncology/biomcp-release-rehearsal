@@ -1,6 +1,7 @@
 # Run the full installed smoke as one observable, isolated section
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: fe0a439be6f920faa642069924383c4b88617037
 
 Milestone: 5
 

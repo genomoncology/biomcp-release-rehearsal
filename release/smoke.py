@@ -15,6 +15,15 @@ import threading
 SCHEMA_ID = "biomcp.problem/2"
 
 
+def phase(name):
+    """Retain a fixed stage name independently of buffered runner output."""
+    path = os.environ.get("BIOMCP_SMOKE_PHASE_FILE")
+    if path:
+        with Path(path).open("a") as output:
+            output.write(json.dumps({"phase": name, "pid": os.getpid(),
+                                     "monotonic_ns": time.monotonic_ns()}) + "\n")
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -96,13 +105,16 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
                 raise ValueError("installed command failed: " + result.stdout.decode() + result.stderr.decode())
             return json.loads(result.stdout)
         checks = []
+        phase("schema")
         require(command(["schema", SCHEMA_ID])["$id"] == SCHEMA_ID, "schema identity differs")
         checks.append("schemas")
+        phase("help")
         require(command(["help"])["result"]["commands"], "help commands missing")
         checks.append("help")
         evidence = Path(os.environ.get("BIOMCP_EVIDENCE_DIR", Path.cwd() / "target/fixture-evidence"))
         evidence.mkdir(parents=True, exist_ok=True)
         first_open = Path(tempfile.mkdtemp(prefix="installed-cache-first-open-", dir=evidence))
+        phase("concurrent-first-opens")
         opened = cache_first_opens(binary, first_open)
         require(opened["empty_cache_before_release"] and opened["exits"] == [0] * 8,
                 "installed concurrent first opens failed; retained evidence: " + str(first_open))
@@ -111,6 +123,7 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
         checks.append("concurrent-first-opens")
         # The first tool call creates the ordinary cache; every emitted line,
         # including shutdown, must be a correlated JSON-RPC response.
+        phase("stdio-mcp")
         tools = mcp_probe([str(binary)] + list(server_args), env, root, version)
         checks.extend(["version", "mcp-all-stdout"])
         require(any((root / "cache").rglob("*.sqlite")), "first tool call did not create the cache")
@@ -120,10 +133,13 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
         env.update(BIOMCP_TEST_EXECUTABLE=str(binary), BIOMCP_TEST_FIXTURES=str(fixtures),
                    BIOMCP_TEST_PYTHON=os.path.abspath(interpreter))
         tool = runner.with_name("tool-runner" + runner.suffix)
+        phase("tool-proofs")
         case_suite([str(tool), "--proofs"], env, root, fixtures, timeout)
         checks.append("runner-proofs")
+        phase("all-cases")
         summary = case_suite([str(runner)], env, root, fixtures, timeout)
         checks.append("all-cases-and-trials")
+        phase("complete")
         return {"tools": tools, "checks": checks, **summary}
 
 
