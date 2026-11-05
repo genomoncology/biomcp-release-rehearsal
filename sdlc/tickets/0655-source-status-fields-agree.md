@@ -1,6 +1,7 @@
 # 0655 — Source status fields never contradict each other
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 31b7b283063a00afb82aaa6c025091df4dc59b40
 
 Milestone: 5
 

@@ -23,13 +23,6 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
     encoding: Encoding,
 ) -> io::Result<Outcome> {
     let source = bundle_source(bundle);
-    let source_state = if stale {
-        biomcp_types::SourceState::Stale
-    } else if result.is_ok() {
-        biomcp_types::SourceState::Ok
-    } else {
-        biomcp_types::SourceState::Failed
-    };
     let refusals = result
         .as_ref()
         .map_or(biomcp_query::sources::Refusal::None, |mapped| {
@@ -44,6 +37,17 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
         _ => None,
     });
     let reason = source_error.map(|error| error.reason);
+    let source_status = if reason == Some(biomcp_types::Reason::Disabled) {
+        biomcp_types::SourceStatus::Skipped(reason)
+    } else if stale {
+        biomcp_types::SourceStatus::Stale(reason)
+    } else if result.is_ok() {
+        biomcp_types::SourceStatus::Ok
+    } else if reason == Some(biomcp_types::Reason::Syncing) {
+        biomcp_types::SourceStatus::Syncing
+    } else {
+        biomcp_types::SourceStatus::Failed(reason)
+    };
     let local_error = super::local::kind(result.as_ref().err().copied());
     let mut problems = Vec::new();
     let value = result.ok().map(|mapped| {
@@ -54,15 +58,7 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
         Envelope::<T>::new(Status::Failed, biomcp_types::SyncQuery { source }, value);
     envelope.problems = problems;
     envelope.local_error = local_error;
-    let mut source_outcome = biomcp_query::sources::outcome(
-        source,
-        if reason == Some(biomcp_types::Reason::Disabled) {
-            biomcp_types::SourceState::Skipped
-        } else {
-            source_state
-        },
-        reason,
-    );
+    let mut source_outcome = biomcp_query::sources::outcome(source, source_status);
     if let Some(error) = source_error {
         source_outcome.notices = biomcp_query::sources::notices(source, reason, error.retry_after);
         source_outcome.notices.extend(error.tls_notice());

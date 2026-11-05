@@ -243,17 +243,16 @@ pub(crate) fn source(
             reason,
             Some(biomcp_types::Reason::Disabled | biomcp_types::Reason::NoKey)
         ) {
-            SourceState::Skipped
+            biomcp_types::SourceStatus::Skipped(reason)
         } else if report.stale {
-            SourceState::Stale
+            biomcp_types::SourceStatus::Stale(reason)
         } else if reason == Some(biomcp_types::Reason::Syncing) {
-            SourceState::Syncing
+            biomcp_types::SourceStatus::Syncing
         } else if error.is_some() {
-            SourceState::Failed
+            biomcp_types::SourceStatus::Failed(reason)
         } else {
-            SourceState::Ok
+            biomcp_types::SourceStatus::Ok
         },
-        reason,
     );
     outcome.notices.extend(error.and_then(|error| match error {
         RequestError::Source(error) => error.tls_notice(),
@@ -303,8 +302,7 @@ pub(crate) fn retain_source_state(target: &mut SourceOutcome, incoming: &SourceO
     if target.state != SourceState::Failed
         && (target.state != SourceState::Stale || incoming.state == SourceState::Failed)
     {
-        target.state = incoming.state;
-        target.reason = incoming.reason;
+        target.set_status(incoming.status());
     }
 }
 

@@ -6,7 +6,7 @@ use biomcp_types::ReplyBody;
 use biomcp_adapters::{allele_registry, mutalyzer, variantvalidator};
 use biomcp_fetch::{Deadline, RequestError, SourceSpec};
 use biomcp_types::{
-    NormalizationResult, NormalizationSource, Request, SourceOutcome, SourceState, StepKind,
+    NormalizationResult, NormalizationSource, Request, SourceOutcome, StepKind,
     VariantNormalization, VariantNormalize, VariantResolution,
 };
 type Row = (
@@ -143,8 +143,9 @@ fn service(
         problems: Vec::new(),
     });
     if result.value.outcome == VariantResolution::Rejected {
-        source.state = SourceState::Failed;
-        source.reason = Some(biomcp_types::Reason::Rejected);
+        source.set_status(biomcp_types::SourceStatus::Failed(Some(
+            biomcp_types::Reason::Rejected,
+        )));
     }
     (result, source, error.and_then(status::local))
 }

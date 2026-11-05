@@ -7,7 +7,7 @@ use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     PathwayGet, PathwayHeader, PathwayPage, PathwayPageInfo, PathwaySearch, PathwaySource,
-    PathwayTotalKind, Problem, ReplyData, Request, Source, SourceOutcome, SourceState, StepKind,
+    PathwayTotalKind, Problem, ReplyData, Request, Source, SourceOutcome, StepKind,
 };
 // Queued whole rows, next native position, source total and catalog content revision.
 type LegState = (Vec<PathwayHeader>, Option<u32>, u64, Option<biodata::Text>);
@@ -176,8 +176,7 @@ fn initial(cx: &Ctx<'_>, q: &PathwaySearch, deadline: Deadline<'_>, out: &mut Ou
             saved.1.push((vec![], Some(0), 0, None));
             saved.3.push(biomcp_adapters::registry::outcome(
                 Source::Reactome,
-                SourceState::Ok,
-                None,
+                biomcp_types::SourceStatus::Ok,
             ));
         }
     }

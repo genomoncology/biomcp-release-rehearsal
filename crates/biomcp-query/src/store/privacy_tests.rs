@@ -1,7 +1,7 @@
 //! Security contract: licensed routes cannot yet reach query continuation stores from the CLI.
 use super::{EvidenceState, Store};
 use biomcp_fetch::{Fetch, FetchConfig, Mode, Secret, SecretName, Secrets};
-use biomcp_types::{ArticleItem, SourceOutcome, SourceState};
+use biomcp_types::{ArticleItem, SourceOutcome};
 use std::{path::Path, time::Duration};
 
 type Check = Result<(), Box<dyn std::error::Error>>;
@@ -36,7 +36,7 @@ fn source(private: bool) -> SourceOutcome {
     } else {
         biomcp_types::Source::PubMed
     };
-    biomcp_adapters::registry::outcome(source, SourceState::Ok, None)
+    biomcp_adapters::registry::outcome(source, biomcp_types::SourceStatus::Ok)
 }
 fn item() -> ArticleItem {
     ArticleItem {

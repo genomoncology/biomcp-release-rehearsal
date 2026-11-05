@@ -1561,14 +1561,6 @@
       "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
     },
     {
-      "path": "crates/biomcp-query/src/diagnostic/companion.rs",
-      "site": "search: ) . copied ( ) ; let mut group_unsupported = false ; if let Ok ( page ) = result { let q = page . info .",
-      "maximum": 1,
-      "class": "migrated",
-      "owner": "diagnostic",
-      "reason": "This existing success or checked-selector branch retains its established failure or absence path in the owning function; it does not admit a source record by ignoring an identity error."
-    },
-    {
       "path": "crates/biomcp-query/src/diagnostic/get.rs",
       "site": "get: ) . and_then ( | v | v . parse ( ) . ok ( )",
       "maximum": 1,

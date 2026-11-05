@@ -76,8 +76,9 @@ pub(super) fn read<'a>(
             .cloned()
             .map(|mut s| {
                 if cx.fetch.disabled(s.source) {
-                    s.state = biomcp_types::SourceState::Skipped;
-                    s.reason = Some(biomcp_types::Reason::Disabled);
+                    s.set_status(biomcp_types::SourceStatus::Skipped(Some(
+                        biomcp_types::Reason::Disabled,
+                    )));
                     s.count = None;
                     s.retrieved_count = None;
                 }

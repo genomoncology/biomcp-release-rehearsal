@@ -4,8 +4,8 @@ use biodata::Build;
 use biomcp_adapters::oncokb;
 use biomcp_fetch::{Deadline, SecretName};
 use biomcp_types::{
-    PageInfo, Reason, Section, Source, SourceOutcome, SourceState, VariantGet, VariantHeader,
-    VariantOncokb, VariantSection,
+    PageInfo, Reason, Section, Source, SourceOutcome, VariantGet, VariantHeader, VariantOncokb,
+    VariantSection,
 };
 
 pub(super) fn section(
@@ -109,7 +109,7 @@ fn skipped(reason: Reason) -> super::sections::Result<VariantOncokb> {
             source: Source::Oncokb,
             reason,
         },
-        vec![source(SourceState::Skipped, reason)],
+        vec![source(biomcp_types::SourceStatus::Skipped(Some(reason)))],
         Vec::new(),
         None,
         false,
@@ -118,14 +118,14 @@ fn skipped(reason: Reason) -> super::sections::Result<VariantOncokb> {
 fn unavailable(reason: Reason) -> super::sections::Result<VariantOncokb> {
     (
         Section::unavailable(Source::Oncokb, reason),
-        vec![source(SourceState::Failed, reason)],
+        vec![source(biomcp_types::SourceStatus::Failed(Some(reason)))],
         Vec::new(),
         None,
         false,
     )
 }
-fn source(state: SourceState, reason: Reason) -> SourceOutcome {
-    biomcp_adapters::registry::outcome(Source::Oncokb, state, Some(reason))
+fn source(status: biomcp_types::SourceStatus) -> SourceOutcome {
+    biomcp_adapters::registry::outcome(Source::Oncokb, status)
 }
 
 pub(super) fn input_genomic(query: &VariantGet, build: Build) -> Option<String> {

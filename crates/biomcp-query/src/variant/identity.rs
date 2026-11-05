@@ -73,8 +73,7 @@ pub(super) fn read(cx: &Ctx<'_>, query: &VariantGet, deadline: Deadline<'_>) -> 
             if rejection.is_some() {
                 found.reason = Some(Reason::Rejected);
                 if let Some(source) = found.sources.first_mut() {
-                    source.state = biomcp_types::SourceState::Failed;
-                    source.reason = Some(Reason::Rejected);
+                    source.set_status(biomcp_types::SourceStatus::Failed(Some(Reason::Rejected)));
                 }
             }
             if let Some(rejection) = &rejection

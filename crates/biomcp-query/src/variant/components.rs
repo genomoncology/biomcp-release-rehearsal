@@ -2,9 +2,7 @@
 use crate::{Ctx, status};
 use biodata::Build;
 use biomcp_fetch::Deadline;
-use biomcp_types::{
-    Reason, Section, Source, SourceState, VariantGet, VariantHeader, VariantPredictors,
-};
+use biomcp_types::{Reason, Section, Source, VariantGet, VariantHeader, VariantPredictors};
 pub(super) fn skipped<T>() -> super::sections::Result<T> {
     (
         Section::Skipped {
@@ -13,8 +11,7 @@ pub(super) fn skipped<T>() -> super::sections::Result<T> {
         },
         vec![biomcp_adapters::registry::outcome(
             Source::MyVariant,
-            SourceState::Skipped,
-            Some(Reason::Disabled),
+            biomcp_types::SourceStatus::Skipped(Some(Reason::Disabled)),
         )],
         Vec::new(),
         None,

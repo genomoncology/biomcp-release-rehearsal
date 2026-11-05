@@ -67,6 +67,7 @@ mod remote_tools;
 mod replay;
 mod socket_read;
 mod source_pacing;
+mod source_status;
 tool_only! { pub(crate) mod live; }
 tool_only! { mod live_follow_proof; }
 tool_only! { mod live_proof; }
@@ -286,6 +287,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(housekeeping::trials());
     trials.extend(clinpgx::trials());
     trials.extend(variant_hotspots::trials());
+    trials.extend(source_status::trials());
     trials.extend(vaers::trials());
     trials.extend(trial_get::trials());
     trials.extend(trial_results::trials());
@@ -322,14 +324,19 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(nci::trials());
     trials.extend(drug_civic::trials());
     trials.push(citation_values::trial());
-    trials.push(transcript_trial(pool_contract::ARTICLE_SAVES.0, || {
-        article_save::check().map_err(Into::into)
-    }));
-    trials.push(transcript_trial(
-        "mcp-parity/ping-passes-held-provider-call",
-        || held_proxy::check().map_err(Into::into),
-    ));
+    trials.extend(transcript_trials());
     trials
+}
+
+fn transcript_trials() -> [Trial; 2] {
+    [
+        transcript_trial(pool_contract::ARTICLE_SAVES.0, || {
+            article_save::check().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/ping-passes-held-provider-call", || {
+            held_proxy::check().map_err(Into::into)
+        }),
+    ]
 }
 
 fn load_floors(case: &mut Case, path: &Path) -> Result<(), String> {

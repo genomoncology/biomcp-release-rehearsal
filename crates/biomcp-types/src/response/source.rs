@@ -1,4 +1,5 @@
-use crate::{Reason, Source};
+//! Source outcomes retain publisher metadata and one atomic status.
+use crate::{Source, SourceStatus, SourceStatusView};
 use serde::{Deserialize, Serialize};
 biodata::wire_enum! {
 /// State of a source actually asked by the command.
@@ -29,11 +30,8 @@ pub struct SourceOutcome {
     /// Publisher page documenting the terms.
     #[cfg_attr(feature = "schema", schemars(extend("format" = "uri")))]
     pub terms_url: Box<str>,
-    /// Retained state.
-    pub state: SourceState,
-    /// Failure or stale-fallback reason.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<Reason>,
+    #[serde(flatten)]
+    status: SourceStatusView,
     /// Exact provider search term.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub term: Option<crate::Text>,
@@ -46,6 +44,61 @@ pub struct SourceOutcome {
     /// Source notices and request recovery guidance.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub notices: Vec<SourceNotice>,
+}
+
+impl SourceOutcome {
+    /// Build a source report with one complete status.
+    pub fn new(
+        source: Source,
+        usage: crate::Use,
+        terms: Box<str>,
+        terms_url: Box<str>,
+        status: SourceStatus,
+    ) -> Self {
+        Self {
+            source,
+            usage,
+            terms,
+            terms_url,
+            status: status.into(),
+            term: None,
+            count: None,
+            retrieved_count: None,
+            notices: Vec::new(),
+        }
+    }
+
+    /// Replace state and reason together.
+    ///
+    /// Individual fields remain read-only, including on a mutable outcome.
+    /// ```compile_fail
+    /// fn invalid(mut source: biomcp_types::SourceOutcome) {
+    ///     source.reason = Some(biomcp_types::Reason::Unsupported);
+    /// }
+    /// ```
+    /// A copied read-only view cannot be installed as a status.
+    /// ```compile_fail
+    /// fn invalid(mut source: biomcp_types::SourceOutcome) {
+    ///     let mut view = (*source).clone();
+    ///     view.reason = Some(biomcp_types::Reason::Unsupported);
+    ///     source.set_status(view);
+    /// }
+    /// ```
+    pub fn set_status(&mut self, status: SourceStatus) {
+        self.status = status.into();
+    }
+
+    /// Copy the complete source status without separating state from reason.
+    pub fn status(&self) -> SourceStatus {
+        self.status.status()
+    }
+}
+
+impl std::ops::Deref for SourceOutcome {
+    type Target = SourceStatusView;
+    fn deref(&self) -> &Self::Target {
+        &self.status
+    }
 }
 
 /// A source notice or request recovery step.

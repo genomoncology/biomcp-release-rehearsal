@@ -364,3 +364,16 @@ typed-hosted-check:
 	mkdir -p "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted"
 	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json-render-diagnostics > "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted/build.jsonl"
 	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/typed-hosted/catalogs" python3 -c 'import json,subprocess,sys; rows=[json.loads(line) for line in open(sys.argv[1]) if line.startswith("{")]; executables={row["target"]["name"]:row["executable"] for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable")}; subprocess.run([sys.executable,"scripts/trials.py","--runner",executables["cases"],"--executable",executables["biomcp"],"--installed","mcp-parity/typed-hosted-catalog"],check=True)' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted/build.jsonl"
+
+.PHONY: source-status-check
+source-status-check:
+	cargo test --locked -p biomcp-types --test rust_api $(TEST_THREADS)
+	cargo test --locked -p biomcp-types --doc $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases source-status $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases variant-hotspots/ $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases diagnostic/fda-cdx $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases local/commands $(TEST_THREADS)
+
+.PHONY: source-status-pre-review
+source-status-pre-review:
+	+$(MAKE) source-status-check check-cheap current-schema-check schema-release-check

@@ -30,11 +30,10 @@ pub(crate) fn search<Q: Query, T: Serialize + DeserializeOwned>(
             out.sources.push(biomcp_adapters::registry::outcome(
                 Source::Nci,
                 if status::reason(error) == Some(Reason::Disabled) {
-                    biomcp_types::SourceState::Skipped
+                    biomcp_types::SourceStatus::Skipped(status::reason(error))
                 } else {
-                    biomcp_types::SourceState::Failed
+                    biomcp_types::SourceStatus::Failed(status::reason(error))
                 },
-                status::reason(error),
             ));
         }
         if status::reason(error) == Some(Reason::TooLarge) {

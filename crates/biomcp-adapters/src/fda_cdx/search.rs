@@ -12,8 +12,6 @@ pub struct Search {
     pub info: BundleInfo,
     /// Identity conflicts and unsupported group-table biomarker evaluation.
     pub problems: Vec<Problem>,
-    /// The group table has no biomarker column; only table zero was evaluated.
-    pub group_unsupported: bool,
 }
 /// Search source-owned fields without synchronizing or parsing clinical text.
 pub fn search(leg: &Leg<'_>, query: &DiagnosticSearch) -> Result<Search, RequestError> {
@@ -89,7 +87,6 @@ pub fn search(leg: &Leg<'_>, query: &DiagnosticSearch) -> Result<Search, Request
         total,
         info,
         problems,
-        group_unsupported,
     })
 }
 fn changed_revision() -> RequestError {

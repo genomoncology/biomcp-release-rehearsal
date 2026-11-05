@@ -615,7 +615,7 @@
               "type": "null"
             }
           ],
-          "description": "Typed failure or skip reason."
+          "description": "Failure or stale-fallback reason."
         },
         "source": {
           "$ref": "#/$defs/Reply_Source",
@@ -623,7 +623,7 @@
         },
         "state": {
           "$ref": "#/$defs/Reply_SourceState",
-          "description": "Probe outcome; disabled and missing credentials remain skipped."
+          "description": "Retained state."
         },
         "terms": {
           "$ref": "#/$defs/Reply_Text",

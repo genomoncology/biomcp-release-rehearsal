@@ -156,8 +156,7 @@ fn search_source(
 fn unsupported(source: Source, mut out: Outcome) -> Outcome {
     out.sources.push(biomcp_adapters::registry::outcome(
         source,
-        SourceState::Skipped,
-        Some(biomcp_types::Reason::Unsupported),
+        biomcp_types::SourceStatus::Skipped(Some(biomcp_types::Reason::Unsupported)),
     ));
     out
 }

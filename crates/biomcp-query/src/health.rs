@@ -3,7 +3,7 @@
 use biodata::Text;
 use biomcp_adapters::registry;
 use biomcp_fetch::{Fetch, KeyUse, RequestError};
-use biomcp_types::{Health, Reason, SourceHealth, SourceState};
+use biomcp_types::{Health, Reason, SourceHealth, SourceStatus};
 use std::time::Duration;
 const PROBE_BUDGET: Duration = Duration::from_secs(3);
 /// Probe every implemented source with one shared command deadline and short source caps.
@@ -30,31 +30,30 @@ pub fn run(fetch: &Fetch, budget: Duration) -> Result<Health, RequestError> {
                         None
                     };
                     let mut notices = Vec::new();
-                    let (state, reason, latency_ms) = if let Some(reason) = skip {
-                        (SourceState::Skipped, Some(reason), None)
+                    let (status, latency_ms) = if let Some(reason) = skip {
+                        (SourceStatus::Skipped(Some(reason)), None)
                     } else if fetch.is_offline() && bundle.is_some() {
-                        (SourceState::Skipped, Some(Reason::Offline), None)
+                        (SourceStatus::Skipped(Some(Reason::Offline)), None)
                     } else {
                         source_probe(spec, &leg, &mut notices)?
                     };
-                    let (state, reason, latency_ms) =
-                        local_offline((state, reason, latency_ms), bundle);
-                    Ok(SourceHealth {
-                        bundle_size: bundle.map(|_| biomcp_types::BundleSize::SharedStorage),
-                        notices,
-                        bundle,
-                        components: component_health(spec.source, fetch)?.into(),
-                        source: spec.source,
-                        terms: Text::new(spec.terms.name)
+                    let (status, latency_ms) = local_offline((status, latency_ms), bundle);
+                    let mut health = SourceHealth::new(
+                        spec.source,
+                        Text::new(spec.terms.name)
                             .map_err(|_| biomcp_fetch::InputError::Serialization)?,
-                        terms_url: Text::new(spec.terms.url)
+                        Text::new(spec.terms.url)
                             .map_err(|_| biomcp_fetch::InputError::Serialization)?,
-                        usage: spec.terms.usage,
+                        spec.terms.usage,
                         disabled,
-                        state,
-                        reason,
-                        latency_ms,
-                    })
+                        status,
+                    );
+                    health.bundle_size = bundle.map(|_| biomcp_types::BundleSize::SharedStorage);
+                    health.notices = notices;
+                    health.bundle = bundle;
+                    health.components = component_health(spec.source, fetch)?.into();
+                    health.latency_ms = latency_ms;
+                    Ok(health)
                 }) as Box<dyn FnOnce() -> Result<SourceHealth, RequestError> + Send>
             })
             .collect(),
@@ -85,15 +84,15 @@ fn component_health(
 }
 
 fn local_offline(
-    probe: (SourceState, Option<Reason>, Option<u64>),
+    probe: (SourceStatus, Option<u64>),
     bundle: Option<biomcp_types::LocalBundleState>,
-) -> (SourceState, Option<Reason>, Option<u64>) {
+) -> (SourceStatus, Option<u64>) {
     use biomcp_types::LocalBundleState;
-    match (probe.1, bundle) {
-        (Some(Reason::Offline), Some(LocalBundleState::Fresh)) => (SourceState::Ok, None, None),
-        (Some(Reason::Offline), Some(LocalBundleState::Stale)) => (SourceState::Stale, None, None),
+    match (biomcp_types::SourceStatusView::from(probe.0).reason, bundle) {
+        (Some(Reason::Offline), Some(LocalBundleState::Fresh)) => (SourceStatus::Ok, None),
+        (Some(Reason::Offline), Some(LocalBundleState::Stale)) => (SourceStatus::Stale(None), None),
         (Some(Reason::Offline), Some(LocalBundleState::Missing)) => {
-            (SourceState::Skipped, Some(Reason::Offline), None)
+            (SourceStatus::Skipped(Some(Reason::Offline)), None)
         }
         _ => probe,
     }
@@ -103,12 +102,12 @@ fn source_probe(
     spec: &'static biomcp_fetch::SourceSpec,
     leg: &biomcp_fetch::Leg<'_>,
     notices: &mut Vec<biomcp_types::SourceNotice>,
-) -> Result<(SourceState, Option<Reason>, Option<u64>), RequestError> {
+) -> Result<(SourceStatus, Option<u64>), RequestError> {
     let start = leg.remaining();
     let result = registry::probe(spec, leg);
     let elapsed = start.saturating_sub(leg.remaining()).as_millis() as u64;
     match result {
-        Ok(()) => Ok((SourceState::Ok, None, Some(elapsed))),
+        Ok(()) => Ok((SourceStatus::Ok, Some(elapsed))),
         Err(error) => {
             if crate::status::local(error).is_some() {
                 return Err(error);
@@ -125,12 +124,12 @@ fn source_probe(
                 Some(reason),
                 retry,
             ));
-            let state = if reason == Reason::Disabled {
-                SourceState::Skipped
+            let status = if reason == Reason::Disabled {
+                SourceStatus::Skipped(Some(reason))
             } else {
-                SourceState::Failed
+                SourceStatus::Failed(Some(reason))
             };
-            Ok((state, Some(reason), Some(elapsed)))
+            Ok((status, Some(elapsed)))
         }
     }
 }

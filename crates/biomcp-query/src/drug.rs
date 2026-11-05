@@ -233,8 +233,7 @@ pub(super) use crate::status::empty;
 fn unsupported(source: DrugSource, mut out: Outcome) -> Outcome {
     out.sources.push(biomcp_adapters::registry::outcome(
         source.source(),
-        biomcp_types::SourceState::Skipped,
-        Some(biomcp_types::Reason::Unsupported),
+        biomcp_types::SourceStatus::Skipped(Some(biomcp_types::Reason::Unsupported)),
     ));
     out
 }
@@ -251,14 +250,9 @@ fn component_outcomes(cx: &Ctx<'_>, out: &mut Outcome, search: bool) {
         out.sources.push(biomcp_adapters::registry::outcome(
             source,
             if disabled {
-                biomcp_types::SourceState::Skipped
+                biomcp_types::SourceStatus::Skipped(Some(biomcp_types::Reason::Disabled))
             } else {
-                parent.state
-            },
-            if disabled {
-                Some(biomcp_types::Reason::Disabled)
-            } else {
-                parent.reason
+                parent.status()
             },
         ));
     }
@@ -329,13 +323,13 @@ pub(super) fn rejected_input(source: DrugSource, field: &str, mut out: Outcome) 
         code: biomcp_types::ProblemCode::ValueUnknown,
     });
     if let Some(existing) = out.sources.iter_mut().find(|s| s.source == source.source()) {
-        existing.state = biomcp_types::SourceState::Failed;
-        existing.reason = Some(biomcp_types::Reason::BadReply);
+        existing.set_status(biomcp_types::SourceStatus::Failed(Some(
+            biomcp_types::Reason::BadReply,
+        )));
     } else {
         out.sources.push(biomcp_adapters::registry::outcome(
             source.source(),
-            biomcp_types::SourceState::Failed,
-            Some(biomcp_types::Reason::BadReply),
+            biomcp_types::SourceStatus::Failed(Some(biomcp_types::Reason::BadReply)),
         ));
     }
     status::item(&mut out, false, true, false);

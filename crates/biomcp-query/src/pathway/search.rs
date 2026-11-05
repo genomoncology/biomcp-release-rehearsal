@@ -6,7 +6,7 @@ use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     PathwayGet, PathwayPage, PathwayPageInfo, PathwaySearch, PathwayTotalKind, Reason, ReplyData,
-    Request, Source, SourceState, StepKind,
+    Request, Source, StepKind,
 };
 fn page(q: &PathwaySearch) -> PathwayPage {
     PathwayPage {
@@ -40,11 +40,10 @@ pub(crate) fn search(cx: &Ctx<'_>, q: &PathwaySearch) -> Outcome {
             out.sources.push(biomcp_adapters::registry::outcome(
                 source,
                 if reason == Some(Reason::Disabled) {
-                    SourceState::Skipped
+                    biomcp_types::SourceStatus::Skipped(reason)
                 } else {
-                    SourceState::Failed
+                    biomcp_types::SourceStatus::Failed(reason)
                 },
-                reason,
             ));
         }
         out.local = status::local(error);

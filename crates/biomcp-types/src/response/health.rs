@@ -1,4 +1,5 @@
-use crate::{Reason, Source, SourceState, Text, Use};
+//! Bounded source probes retain the same atomic status as query outcomes.
+use crate::{Source, SourceStatus, SourceStatusView, Text, Use};
 use serde::{Deserialize, Serialize};
 /// Source reachability and publisher terms, independent of local HTTP service health.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -49,14 +50,44 @@ pub struct SourceHealth {
     pub usage: Use,
     /// Whether source policy prevents all requests and cached reads.
     pub disabled: bool,
-    /// Probe outcome; disabled and missing credentials remain skipped.
-    pub state: SourceState,
-    /// Typed failure or skip reason.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<Reason>,
+    #[serde(flatten)]
+    status: SourceStatusView,
     /// Probe duration in milliseconds; omitted when policy skipped the probe.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub latency_ms: Option<u64>,
+}
+
+impl SourceHealth {
+    /// Build a bounded source probe with its publisher metadata and complete status.
+    pub fn new(
+        source: Source,
+        terms: Text,
+        terms_url: Text,
+        usage: Use,
+        disabled: bool,
+        status: SourceStatus,
+    ) -> Self {
+        Self {
+            notices: Vec::new(),
+            bundle: None,
+            bundle_size: None,
+            components: Box::default(),
+            source,
+            terms,
+            terms_url,
+            usage,
+            disabled,
+            status: status.into(),
+            latency_ms: None,
+        }
+    }
+}
+
+impl std::ops::Deref for SourceHealth {
+    type Target = SourceStatusView;
+    fn deref(&self) -> &Self::Target {
+        &self.status
+    }
 }
 
 /// Local HTTP service health, independent of every upstream source.

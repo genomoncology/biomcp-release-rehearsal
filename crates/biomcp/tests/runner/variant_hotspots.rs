@@ -41,7 +41,6 @@ fn candidate() -> Result<(), String> {
     envelope(&value)?;
     let base = "/result/candidates/0/sections/hotspots/data";
     for (path, expected) in [
-        ("/reason", json!("no-join-id")),
         ("/records/0/membership", json!("candidate")),
         ("/records/0/transcript", json!("ENST00000288602")),
         ("/records/0/residue", json!("V600")),

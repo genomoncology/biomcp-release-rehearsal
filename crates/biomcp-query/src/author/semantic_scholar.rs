@@ -22,8 +22,7 @@ pub(super) fn papers(cx: &Ctx<'_>, q: &AuthorPapersQuery, id: &SemanticScholarAu
         if out.sources.is_empty() {
             out.sources.push(biomcp_adapters::registry::outcome(
                 Source::SemanticScholar,
-                SourceState::Failed,
-                None,
+                biomcp_types::SourceStatus::Failed(None),
             ));
         }
     }
@@ -41,8 +40,7 @@ fn execute(
     if cx.fetch.disabled(Source::SemanticScholar) {
         out.sources.push(biomcp_adapters::registry::outcome(
             Source::SemanticScholar,
-            SourceState::Skipped,
-            Some(Reason::Disabled),
+            biomcp_types::SourceStatus::Skipped(Some(Reason::Disabled)),
         ));
         return Err(SourceError::disabled(Source::SemanticScholar).into());
     }
@@ -60,8 +58,7 @@ fn execute(
                 key_needed: false,
                 source: biomcp_adapters::registry::outcome(
                     Source::SemanticScholar,
-                    SourceState::Ok,
-                    None,
+                    biomcp_types::SourceStatus::Ok,
                 ),
             },
             None,

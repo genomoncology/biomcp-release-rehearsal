@@ -112,10 +112,9 @@ fn disclose(
         };
         Section::Data {
             source: Source::CancerHotspots,
-            data: VariantHotspots {
-                reason: Some(Reason::NoJoinId),
-                records: records.into(),
-                page: PageInfo {
+            data: VariantHotspots::new(
+                records.into(),
+                PageInfo {
                     offset: query.section_offset(),
                     returned,
                     total,
@@ -123,7 +122,7 @@ fn disclose(
                     truncated: None,
                 },
                 next,
-            },
+            ),
         }
     }
 }

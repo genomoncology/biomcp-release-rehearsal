@@ -142,8 +142,9 @@ fn create<'a>(
     let Some(ids) = ids else {
         crate::status::item(out, false, true, false);
         if let Some(source) = out.sources.last_mut() {
-            source.state = biomcp_types::SourceState::Failed;
-            source.reason = Some(biomcp_types::Reason::BadReply);
+            source.set_status(biomcp_types::SourceStatus::Failed(Some(
+                biomcp_types::Reason::BadReply,
+            )));
         }
         restart(query, references, out, true);
         return Ok(None);

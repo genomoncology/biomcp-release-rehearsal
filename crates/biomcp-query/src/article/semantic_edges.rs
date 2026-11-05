@@ -192,12 +192,13 @@ fn resolve_input<'a>(
     let input = match result {
         Ok(ids) if ids.len() == 1 => ids.first().copied().map(biomcp_types::ArticleInput::Pmid),
         Ok(ids) => {
-            source.state = biomcp_types::SourceState::Failed;
-            source.reason = Some(if ids.is_empty() {
-                Reason::NotFound
-            } else {
-                Reason::BadReply
-            });
+            source.set_status(biomcp_types::SourceStatus::Failed(Some(
+                if ids.is_empty() {
+                    Reason::NotFound
+                } else {
+                    Reason::BadReply
+                },
+            )));
             None
         }
         Err(error) if status::local(error).is_some() => return Err(error),

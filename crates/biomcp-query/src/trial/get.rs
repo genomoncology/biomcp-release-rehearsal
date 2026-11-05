@@ -63,8 +63,7 @@ fn fetch(
             Ok((detail, metadata)) => {
                 let mut own_source = source.clone();
                 if own_source.state == SourceState::Failed && source_updated.is_some() {
-                    own_source.state = SourceState::Ok;
-                    own_source.reason = None;
+                    own_source.set_status(biomcp_types::SourceStatus::Ok);
                 }
                 let snapshot = Snapshot {
                     detail,

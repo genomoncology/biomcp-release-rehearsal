@@ -176,8 +176,7 @@ fn skipped(out: &mut Outcome, graph: bool, text: bool) {
         if disabled && !out.sources.iter().any(|outcome| outcome.source == source) {
             out.sources.push(biomcp_adapters::registry::outcome(
                 source,
-                biomcp_types::SourceState::Skipped,
-                Some(biomcp_types::Reason::Disabled),
+                biomcp_types::SourceStatus::Skipped(Some(biomcp_types::Reason::Disabled)),
             ));
         }
     }

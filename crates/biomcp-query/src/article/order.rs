@@ -93,7 +93,7 @@ pub(super) fn apply<'a>(
     out.sources.retain(|s| s.source != Source::Icite);
     let mut source = result.source;
     if stale && result.error.is_none() {
-        source.state = biomcp_types::SourceState::Stale;
+        source.set_status(biomcp_types::SourceStatus::Stale(source.reason));
     }
     out.sources.push(source);
     if let Some(error) = result.local {

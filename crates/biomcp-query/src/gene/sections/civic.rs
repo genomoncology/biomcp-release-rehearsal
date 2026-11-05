@@ -54,8 +54,7 @@ pub(super) fn run(cx: &Ctx<'_>, deadline: Deadline<'_>, genes: &[(HgncId, Gene)]
         })
         .collect();
     if ids.is_empty() {
-        source.state = biomcp_types::SourceState::Failed;
-        source.reason = Some(Reason::NoJoinId);
+        source.set_status(biomcp_types::SourceStatus::Failed(Some(Reason::NoJoinId)));
     }
     SectionResult {
         dropped,

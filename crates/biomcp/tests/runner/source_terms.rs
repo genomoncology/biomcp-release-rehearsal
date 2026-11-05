@@ -179,8 +179,7 @@ tool_only! {
 fn subtraction() -> Result<(), String> {
     let outcome = biomcp_query::sources::outcome(
         biomcp_types::Source::Hgnc,
-        biomcp_types::SourceState::Ok,
-        None,
+        biomcp_types::SourceStatus::Ok,
     );
     let mut envelope = json!({"sources":[outcome], "result":{"value":1}});
     let cap = size(&envelope, "")?;
@@ -231,8 +230,7 @@ tool_only! {
 fn markdown_subtraction() -> Result<(), String> {
     let outcome = biomcp_query::sources::outcome(
         biomcp_types::Source::Hgnc,
-        biomcp_types::SourceState::Ok,
-        None,
+        biomcp_types::SourceStatus::Ok,
     );
     let text = format!(
         "## Sources\n\n| Source | State | Terms | Terms url | Use |\n| --- | --- | --- | --- | --- |\n| hgnc | ok | {} | {} | open |\n\n",

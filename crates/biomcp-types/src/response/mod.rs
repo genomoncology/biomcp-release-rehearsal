@@ -46,6 +46,8 @@ pub use key::{KeyHelp, KeyState, KeyTier, RegisteredKey, RegisteredKeys};
 mod page;
 mod section;
 mod source;
+mod source_status;
+pub use source_status::{SourceStatus, SourceStatusView};
 mod source_timestamp;
 pub use source_timestamp::{
     SourceDateTime, SourceDateTimeValue, SourceLocalTimestampValue, SourceTimestamp,
