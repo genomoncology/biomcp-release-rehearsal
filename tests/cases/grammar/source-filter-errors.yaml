@@ -20,12 +20,14 @@
         "/error/valid_values": [
           "faers"
         ],
-        "/next/0/args": [
-          "help",
-          "search",
-          "adverse-event"
-        ],
-        "/error/message": "a selected source does not support the requested filters"
+        "/error/message": "a selected source does not support the requested filters",
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "search",
+            "adverse-event"
+          ]
+        }
       }
     },
     {
@@ -45,12 +47,14 @@
         "/error/valid_values": [
           "fda-drug-recall"
         ],
-        "/next/0/args": [
-          "help",
-          "search",
-          "drug"
-        ],
-        "/error/message": "a selected source does not support the requested filters"
+        "/error/message": "a selected source does not support the requested filters",
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "search",
+            "drug"
+          ]
+        }
       }
     },
     {
@@ -98,12 +102,14 @@
         "/error/valid_values": [
           "who-ivd"
         ],
-        "/next/0/args": [
-          "help",
-          "search",
-          "diagnostic"
-        ],
-        "/error/message": "a selected source does not support the requested filters"
+        "/error/message": "a selected source does not support the requested filters",
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "search",
+            "diagnostic"
+          ]
+        }
       }
     },
     {
@@ -122,12 +128,14 @@
         "/error/valid_values": [
           "reactome"
         ],
-        "/next/0/args": [
-          "help",
-          "search",
-          "pathway"
-        ],
-        "/error/message": "a selected source does not support the requested filters"
+        "/error/message": "a selected source does not support the requested filters",
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "search",
+            "pathway"
+          ]
+        }
       }
     },
     {
@@ -145,12 +153,14 @@
         "/error/valid_values": [
           "reactome"
         ],
-        "/next/0/args": [
-          "help",
-          "search",
-          "pathway"
-        ],
-        "/error/message": "a selected source does not support the requested filters"
+        "/error/message": "a selected source does not support the requested filters",
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "search",
+            "pathway"
+          ]
+        }
       }
     },
     {

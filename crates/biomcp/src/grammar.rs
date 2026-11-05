@@ -7,6 +7,7 @@ pub(crate) mod rewrite;
 pub(crate) use entry::entry_aliases;
 mod errors;
 mod metadata;
+mod recovery;
 mod tree;
 pub(crate) use tree::Root;
 mod validation;
@@ -196,14 +197,15 @@ pub(crate) fn root() -> Result<Root, ParseInvalid> {
 pub(crate) struct ParseInvalid {
     pub(crate) argument: Option<String>,
     pub(crate) usage: Option<biomcp_types::UsageError>,
+    pub(crate) prefer_argument_error: bool,
 }
 pub(crate) fn parse(root: &Command, args: &[OsString]) -> Result<Parsed, ParseInvalid> {
     let args = entry::arguments(args, root);
     let args = arguments::boolean_literals(&args, root);
     let matches = root
         .clone()
-        .try_get_matches_from(std::iter::once(OsString::from("biomcp")).chain(args))
-        .map_err(|error| errors::parse_invalid(root, &error))?;
+        .try_get_matches_from(std::iter::once(OsString::from("biomcp")).chain(args.iter().cloned()))
+        .map_err(|error| errors::parse_invalid(root, &error, &args))?;
     let globals = globals(&matches)?;
     let (verb, matches) = matches.subcommand().ok_or_else(ParseInvalid::default)?;
     if verb == "serve" {
@@ -457,7 +459,7 @@ fn request(verb: &str, entity: &str, matches: &clap::ArgMatches) -> Result<Reque
         .ok_or_else(ParseInvalid::default)?;
     rewrite::request(command.via, verb, entity, value.clone()).map_err(|cause| {
         errors::source_filter(command.via, verb, entity, &value, &cause)
-            .unwrap_or_else(|| errors::checked_invalid(verb, entity, &cause))
+            .unwrap_or_else(|| errors::checked_invalid(command.via, verb, entity, &value, &cause))
     })
 }
 

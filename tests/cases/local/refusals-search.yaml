@@ -56,7 +56,7 @@ steps:
   - --unrecognized-argument
   exit: 2
   expect:
-    /error/code: usage.retired
+    /error/code: usage.arguments
 - run:
   - search
   - protein

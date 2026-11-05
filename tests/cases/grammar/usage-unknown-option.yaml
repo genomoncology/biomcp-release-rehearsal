@@ -20,11 +20,13 @@
         "/error/option": "--country",
         "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
         "/error/valid_values/0": "--civic-cursor",
-        "/next/0/args": [
-          "help",
-          "get",
-          "drug"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "drug"
+          ]
+        }
       }
     }
   ]

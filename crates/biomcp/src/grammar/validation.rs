@@ -42,7 +42,7 @@ pub(super) fn help<'a>(path: impl IntoIterator<Item = &'a str>) -> biomcp_types:
     }
 }
 
-fn resolve<'a>(schema: &'a Value, property: &'a Value) -> &'a Value {
+pub(super) fn resolve<'a>(schema: &'a Value, property: &'a Value) -> &'a Value {
     if let Some(reference) = property.get("$ref").and_then(Value::as_str) {
         return schema
             .pointer(reference.trim_start_matches('#'))

@@ -18,11 +18,10 @@ pub(super) fn render(
     {
         calls.push(call.to_string());
     }
-    if calls.is_empty() {
-        format!("{status}: JSON reply is in structuredContent.")
-    } else {
-        format!("{status}: next {}", calls.join("; "))
-    }
+    calls.first().map_or_else(
+        || format!("{status}: JSON reply is in structuredContent."),
+        |call| format!("{status}: next {call}"),
+    )
 }
 // The parser names the rejected option; omit it and let the parser check the correction.
 fn correction(

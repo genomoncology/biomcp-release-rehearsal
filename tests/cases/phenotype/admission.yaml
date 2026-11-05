@@ -18,13 +18,18 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
-        "/error/option": "--source",
-        "/next/0/args": [
-          "help",
-          "get",
-          "phenotype"
-        ]
+        "/error/message": "a selected source does not support the requested filters",
+        "/error/option": "--section",
+        "/error/valid_values": [
+          "monarch"
+        ],
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "phenotype"
+          ]
+        }
       },
       "max_bytes": 354
     },
@@ -43,13 +48,18 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
-        "/error/option": "--source",
-        "/next/0/args": [
-          "help",
-          "get",
-          "phenotype"
-        ]
+        "/error/message": "a selected source does not support the requested filters",
+        "/error/option": "--section",
+        "/error/valid_values": [
+          "monarch"
+        ],
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "phenotype"
+          ]
+        }
       },
       "max_bytes": 354
     },
@@ -68,13 +78,18 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
-        "/error/option": "--source",
-        "/next/0/args": [
-          "help",
-          "get",
-          "phenotype"
-        ]
+        "/error/message": "a selected source does not support the requested filters",
+        "/error/option": "--section",
+        "/error/valid_values": [
+          "monarch"
+        ],
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "phenotype"
+          ]
+        }
       },
       "max_bytes": 354
     },

@@ -1,3 +1,4 @@
+mod argument_recovery;
 mod corporate;
 mod credential_containment;
 mod drug_identity;
@@ -254,6 +255,7 @@ fn run_case_owned(
 
 pub(super) fn protocol_trials() -> Vec<Trial> {
     let mut trials = Vec::new();
+    trials.extend(argument_recovery::trials());
     trials.extend(protocol::trials());
     trials.extend(article_lean::trials());
     trials.extend(configuration::trials());

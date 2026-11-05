@@ -18,11 +18,13 @@
         "/error/valid_values": [
           "Canonical ClinicalTrials.gov identifier."
         ],
-        "/next/0/args": [
-          "help",
-          "get",
-          "trial"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "trial"
+          ]
+        }
       }
     },
     {
@@ -36,11 +38,13 @@
       "expect": {
         "/error/code": "usage.arguments",
         "/error/option": "input",
-        "/next/0/args": [
-          "help",
-          "get",
-          "article"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "article"
+          ]
+        }
       }
     },
     {
@@ -54,11 +58,13 @@
       "expect": {
         "/error/code": "usage.arguments",
         "/error/option": "input",
-        "/next/0/args": [
-          "help",
-          "get",
-          "variant"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "variant"
+          ]
+        }
       }
     },
     {
@@ -72,11 +78,13 @@
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/next/0/args": [
-          "help",
-          "get",
-          "variant"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "variant"
+          ]
+        }
       }
     },
     {
@@ -91,11 +99,13 @@
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/next/0/args": [
-          "help",
-          "get",
-          "trial"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "trial"
+          ]
+        }
       }
     },
     {
@@ -108,11 +118,13 @@
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/next/0/args": [
-          "help",
-          "get",
-          "author"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "author"
+          ]
+        }
       }
     },
     {
@@ -126,11 +138,13 @@
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/next/0/args": [
-          "help",
-          "get",
-          "article"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "article"
+          ]
+        }
       }
     },
     {
@@ -143,11 +157,13 @@
       "is_error": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/next/0/args": [
-          "help",
-          "get",
-          "trial"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "trial"
+          ]
+        }
       }
     }
   ]

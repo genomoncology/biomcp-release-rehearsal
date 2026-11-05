@@ -19,11 +19,13 @@
         "/error/valid_values": [
           "Bounded nonempty text with surrounding Unicode whitespace removed. Minimum length: 1. Maximum length: 1048576."
         ],
-        "/next/0/args": [
-          "help",
-          "get",
-          "drug"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "drug"
+          ]
+        }
       }
     }
   ]

@@ -1,0 +1,103 @@
+[
+  {
+    "args": [
+      "get",
+      "trial",
+      "NCT07491445",
+      "summary",
+      "eligibility",
+      "--source",
+      "ctgov"
+    ],
+    "tool": "get_trial",
+    "fields": {
+      "input": [
+        "NCT07491445"
+      ],
+      "section": [
+        "summary",
+        "eligibility"
+      ],
+      "source": "ctgov"
+    },
+    "option": "section"
+  },
+  {
+    "args": [
+      "search",
+      "diagnostic",
+      "--source",
+      "fda-cdx",
+      "--gene",
+      "KRAS"
+    ],
+    "tool": "search_diagnostic",
+    "fields": {
+      "source": "fda-cdx",
+      "gene": "KRAS"
+    },
+    "option": "--gene"
+  },
+  {
+    "args": [
+      "search",
+      "pgx",
+      "--gene",
+      "CYP2D6"
+    ],
+    "tool": "search_pgx",
+    "fields": {
+      "gene": "CYP2D6"
+    },
+    "option": "--source"
+  },
+  {
+    "args": [
+      "article",
+      "text",
+      "39214094"
+    ],
+    "tool": "article_text",
+    "fields": {
+      "input": "39214094"
+    },
+    "option": "--part"
+  },
+  {
+    "args": [
+      "get",
+      "disease",
+      "MONDO:0005184",
+      "genes",
+      "survival",
+      "--source",
+      "monarch"
+    ],
+    "tool": "get_disease",
+    "fields": {
+      "id": "MONDO:0005184",
+      "section": [
+        "genes",
+        "survival"
+      ],
+      "source": "monarch"
+    },
+    "option": "section"
+  },
+  {
+    "args": [
+      "search",
+      "pgx",
+      "--gene",
+      "DPYD",
+      "--source",
+      "not-a-source"
+    ],
+    "tool": "search_pgx",
+    "fields": {
+      "gene": "DPYD",
+      "source": "not-a-source"
+    },
+    "option": "--source"
+  }
+]

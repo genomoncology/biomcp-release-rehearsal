@@ -29,11 +29,13 @@
           "ema",
           "ddinter"
         ],
-        "/next/0/args": [
-          "help",
-          "get",
-          "drug"
-        ]
+        "/next/*/args": {
+          "includes": [
+            "help",
+            "get",
+            "drug"
+          ]
+        }
       }
     }
   ]
