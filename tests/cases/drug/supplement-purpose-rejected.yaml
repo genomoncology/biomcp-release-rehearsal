@@ -1,0 +1,27 @@
+{
+  "feature": "drug-approvals",
+  "story": "Rejected FDA letter destinations leave the approval history intact and disclose unavailable purpose per row.",
+  "live_check": "Synthetic rejected-origin and invalid-download-URL controls; recorded only",
+  "replay": "drug/supplement-purpose-rejected",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA208692",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/page/total": 2,
+        "/page/returned": 2,
+        "/status": "partial",
+        "/result/approvals/data/records/0/supplement_purpose/state": "unavailable",
+        "/result/approvals/data/records/0/supplement_purpose/reason": "rejected",
+        "/result/approvals/data/records/1/supplement_purpose/state": "unavailable",
+        "/result/approvals/data/records/1/supplement_purpose/reason": "rejected"
+      }
+    }
+  ]
+}

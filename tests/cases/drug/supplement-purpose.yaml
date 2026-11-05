@@ -1,0 +1,38 @@
+{
+  "feature": "drug-approvals",
+  "story": "Efficacy supplements carry literal FDA-letter purposes with exact document attribution, including every indication and corrected letters; unavailable downloads stay explicit.",
+  "live_check": "Synthetic PDFs transcribe attributed FDA text; recorded only",
+  "replay": "drug/supplement-purpose",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA208692",
+        "approvals",
+        "--source",
+        "drugsfda",
+        "--section-limit",
+        "50"
+      ],
+      "expect": {
+        "/page/total": 15,
+        "/result/approvals/data/records/0/submission_number": "19",
+        "/result/approvals/data/records/2/supplement_purpose/state": "stated",
+        "/result/approvals/data/records/2/supplement_purpose/document_id": "81763",
+        "/result/approvals/data/records/2/supplement_purpose/text": "This Prior Approval supplemental new drug application provides for the use of cabozantinib to treat: • adult and pediatric patients 12 years of age and older with previously treated, unresectable, locally advanced or metastatic, well-differentiated pancreatic neuroendocrine tumors. • adult and pediatric patients 12 years of age and older with previously treated, unresectable, locally advanced or metastatic, well-differentiated extra-pancreatic neuroendocrine tumors.",
+        "/result/approvals/data/records/6/supplement_purpose/state": "stated",
+        "/result/approvals/data/records/6/supplement_purpose/document_id": "68715",
+        "/result/approvals/data/records/6/supplement_purpose/text": "This Prior Approval supplemental new drug application provides for Cabometyx® (cabozantinib) for the treatment of adult and pediatric patients 12 years of age and older with locally advanced or metastatic differentiated thyroid cancer (DTC) that has progressed following prior VEGFR-targeted therapy and who are radioactive iodine- refractory or ineligible.",
+        "/result/approvals/data/records/1/supplement_purpose/state": "unavailable",
+        "/result/approvals/data/records/1/supplement_purpose/message": "The linked FDA letter could not be read; its supplement purpose is unavailable.",
+        "/result/approvals/data/records/2/event": {
+          "omits": [
+            "indication"
+          ]
+        },
+        "/status": "partial"
+      }
+    }
+  ]
+}

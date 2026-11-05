@@ -88,8 +88,10 @@ fn controls() -> Check {
     let env = Environment::new()?;
     let replay = env.root().join("recordings");
     copy_capture("drug/approvals-newest", &replay, |_, record| {
-        let rows = &mut record["exchanges"][0]["body"]["value"]["results"][0]["submissions"];
-        if let Some(rows) = rows.as_array_mut() {
+        if let Some(rows) = record
+            .pointer_mut("/exchanges/0/body/value/results/0/submissions")
+            .and_then(Value::as_array_mut)
+        {
             rows.truncate(3);
             for (row, number) in rows.iter_mut().zip(["2", "10", "100"]) {
                 row["submission_number"] = json!(number);

@@ -11,7 +11,7 @@ pub use civic::{
 };
 pub use fda::{
     DrugFdaCandidate, DrugFdaDocument, DrugFdaIngredient, DrugFdaPage, DrugFdaProduct,
-    DrugFdaProperty, DrugFdaSubmission,
+    DrugFdaProperty, DrugFdaSubmission, DrugFdaSupplementPurpose,
 };
 mod query;
 mod response;

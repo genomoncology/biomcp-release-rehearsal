@@ -1,0 +1,192 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=application_number%3A%22NDA208692%22&limit=1",
+  "exchanges": [
+    {
+      "fetched": 1793907628,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+            "terms": "https://open.fda.gov/terms/",
+            "license": "https://open.fda.gov/license/",
+            "last_updated": "2026-11-04",
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "submissions": [
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "17",
+                  "submission_status": "AP",
+                  "submission_status_date": "20250326",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "8176317",
+                      "url": "https://example.org/letter.pdf",
+                      "date": "20250328",
+                      "type": "Letter"
+                    }
+                  ]
+                },
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "18",
+                  "submission_status": "AP",
+                  "submission_status_date": "20250326",
+                  "review_priority": "STANDARD",
+                  "submission_class_code": "EFFICACY",
+                  "submission_class_code_description": "Efficacy",
+                  "submission_property_type": [
+                    {
+                      "code": "Orphan"
+                    }
+                  ],
+                  "application_docs": [
+                    {
+                      "id": "8176318",
+                      "url": "https://127.0.0.1/letter.pdf",
+                      "date": "20250328",
+                      "type": "Letter"
+                    }
+                  ]
+                }
+              ],
+              "application_number": "NDA208692",
+              "sponsor_name": "EXELIXIS INC",
+              "openfda": {
+                "application_number": [
+                  "NDA208692"
+                ],
+                "brand_name": [
+                  "CABOMETYX"
+                ],
+                "generic_name": [
+                  "CABOZANTINIB"
+                ],
+                "manufacturer_name": [
+                  "Exelixis, Inc."
+                ],
+                "product_ndc": [
+                  "42388-023",
+                  "42388-025",
+                  "42388-024"
+                ],
+                "product_type": [
+                  "HUMAN PRESCRIPTION DRUG"
+                ],
+                "route": [
+                  "ORAL"
+                ],
+                "substance_name": [
+                  "CABOZANTINIB S-MALATE"
+                ],
+                "rxcui": [
+                  "1790161",
+                  "1790167",
+                  "1790169",
+                  "1790171",
+                  "1790173",
+                  "1790175"
+                ],
+                "spl_id": [
+                  "e8cdcbdc-d863-4d48-af3e-a8926b9ab017"
+                ],
+                "spl_set_id": [
+                  "3850cce2-6137-42e5-a792-d318c4a4b3b5"
+                ],
+                "package_ndc": [
+                  "42388-023-26",
+                  "42388-023-46",
+                  "42388-023-36",
+                  "42388-023-37",
+                  "42388-023-57",
+                  "42388-025-26",
+                  "42388-025-46",
+                  "42388-025-37",
+                  "42388-025-57",
+                  "42388-024-26",
+                  "42388-024-46",
+                  "42388-024-37",
+                  "42388-024-57"
+                ],
+                "unii": [
+                  "DR7ST46X58"
+                ]
+              },
+              "products": [
+                {
+                  "product_number": "003",
+                  "reference_drug": "Yes",
+                  "brand_name": "CABOMETYX",
+                  "active_ingredients": [
+                    {
+                      "name": "CABOZANTINIB S-MALATE",
+                      "strength": "EQ 60MG BASE"
+                    }
+                  ],
+                  "reference_standard": "Yes",
+                  "dosage_form": "TABLET",
+                  "route": "ORAL",
+                  "marketing_status": "Prescription",
+                  "te_code": "AB"
+                },
+                {
+                  "product_number": "001",
+                  "reference_drug": "Yes",
+                  "brand_name": "CABOMETYX",
+                  "active_ingredients": [
+                    {
+                      "name": "CABOZANTINIB S-MALATE",
+                      "strength": "EQ 20MG BASE"
+                    }
+                  ],
+                  "reference_standard": "No",
+                  "dosage_form": "TABLET",
+                  "route": "ORAL",
+                  "marketing_status": "Prescription",
+                  "te_code": "AB"
+                },
+                {
+                  "product_number": "002",
+                  "reference_drug": "Yes",
+                  "brand_name": "CABOMETYX",
+                  "active_ingredients": [
+                    {
+                      "name": "CABOZANTINIB S-MALATE",
+                      "strength": "EQ 40MG BASE"
+                    }
+                  ],
+                  "reference_standard": "No",
+                  "dosage_form": "TABLET",
+                  "route": "ORAL",
+                  "marketing_status": "Prescription",
+                  "te_code": "AB"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ use biomcp_types::{
 };
 mod approvals;
 mod letter;
+mod purpose;
 pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     let mut out = empty(
         (DrugFdaPage {

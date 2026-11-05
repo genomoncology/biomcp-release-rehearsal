@@ -1,0 +1,1 @@
+Synthetic controls derived from the public NDA208692 API recording: two efficacy supplements link respectively to an unapproved origin and an IP-host download URL. Neither destination may be requested. The API history must remain readable with unavailable purpose on both rows.

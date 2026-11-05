@@ -89,6 +89,7 @@ impl Submission {
                 },
             },
             submission_number: self.submission_number.clone(),
+            supplement_purpose: None,
             review_priority: self.review_priority.clone(),
             submission_class_code: self.submission_class_code.clone(),
             submission_class_code_description: self

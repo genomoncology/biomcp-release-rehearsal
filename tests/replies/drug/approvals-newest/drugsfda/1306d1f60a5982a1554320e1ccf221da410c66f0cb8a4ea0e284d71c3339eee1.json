@@ -1,0 +1,20 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2005/021588s008ltr.pdf",
+  "exchanges": [
+    {
+      "fetched": 1793907994,
+      "status": 404,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "error": "Explicitly synthetic unavailable-document response for offline coverage."
+        }
+      }
+    }
+  ]
+}

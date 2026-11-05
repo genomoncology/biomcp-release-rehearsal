@@ -1,0 +1,28 @@
+{
+  "feature": "drug-approvals",
+  "story": "A letter naming a different supplement never supplies an indication for the requested supplement.",
+  "live_check": "Synthetic wrong-letter control; recorded only",
+  "replay": "drug/supplement-purpose-mismatch",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA208692",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/page/total": 1,
+        "/result/approvals/data/records/0/supplement_purpose/state": "unavailable",
+        "/result/approvals/data/records/0/supplement_purpose/message": "No complete supplement-purpose statement could be read from the linked FDA letter; no indication was inferred.",
+        "/result/approvals/data/records/0/event": {
+          "omits": [
+            "indication"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -67,6 +67,39 @@ pub struct DrugFdaSubmission {
     /// Native documents; document dates remain separate from the submission status date.
     #[serde(default, skip_serializing_if = "biodata::absent_or_empty")]
     pub application_docs: Option<Box<[DrugFdaDocument]>>,
+    /// Literal supplement purpose from its linked FDA letter; never a current-indication inference.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supplement_purpose: Option<DrugFdaSupplementPurpose>,
+}
+/// FDA-letter evidence for an efficacy supplement, independent of the current product label.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[serde(tag = "state", rename_all = "kebab-case")]
+pub enum DrugFdaSupplementPurpose {
+    /// A complete source-stated purpose; may include several indications or other efficacy changes.
+    Stated {
+        /// FDA wording with PDF line wrapping normalized to spaces.
+        text: Text,
+        /// The document belongs to this submission in Drugs@FDA.
+        document_id: Text,
+        /// Published FDA letter URL.
+        #[cfg_attr(feature = "schema", schemars(extend("format" = "uri")))]
+        url: Text,
+    },
+    /// Missing evidence does not mean the supplement has no indication.
+    Unavailable {
+        /// What evidence is absent or could not be read.
+        message: Box<str>,
+        /// Selected native letter, when one was linked.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        document_id: Option<Text>,
+        /// Selected native letter URL, when supplied.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        url: Option<Text>,
+        /// Actual download failure, when a request failed.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        reason: Option<crate::Reason>,
+    },
 }
 /// A source-stated submission property, without interpretation.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

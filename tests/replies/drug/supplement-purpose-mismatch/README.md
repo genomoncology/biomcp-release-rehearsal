@@ -1,0 +1,1 @@
+Explicitly synthetic wrong-supplement control. The NDA208692/S-017 document URL returns the synthetic S-012 letter from supplement-purpose. A shared application number and indication wording must not allow evidence from a different supplement to be attached to S-017.

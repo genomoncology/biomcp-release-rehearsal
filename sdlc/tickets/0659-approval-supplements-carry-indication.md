@@ -1,6 +1,7 @@
 # 0659 — Approval supplements say what they approved
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: da33c68235a10aa082987142779ce63d81a6d6ef
 
 Milestone: 5
 

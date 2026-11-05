@@ -1,0 +1,1 @@
+Explicitly synthetic missing-document control derived from the attributed NDA208692 application fixture: retain only efficacy supplement S-017 and remove its application_docs. No product label may be used to infer this supplement purpose.

@@ -391,6 +391,25 @@ source-status-check:
 source-status-pre-review:
 	+$(MAKE) source-status-check check-cheap current-schema-check schema-release-check
 
+.PHONY: supplement-indications-reproduce
+supplement-indications-reproduce:
+	python3.13 scripts/check_supplement_indications.py
+
+.PHONY: supplement-indications-focused
+supplement-indications-focused:
+	+$(MAKE) schema-generate
+	mkdir -p target/supplement-indications
+	tar -czf target/supplement-indications/schema.tar.gz crates/biomcp-types/schemas/drug-approvals.json
+	python3.13 scripts/trials.py --installed --case-file drug/supplement-purpose.yaml --case-file drug/supplement-purpose-missing.yaml --case-file drug/supplement-purpose-mismatch.yaml --case-file drug/supplement-purpose-rejected.yaml drug-approvals/newest-submission-pages drug-approvals/undated-and-numeric-ties
+
+.PHONY: supplement-letter-reproduce
+supplement-letter-reproduce:
+	python3.13 scripts/check_supplement_indications.py letter
+
+.PHONY: supplement-indications-check
+supplement-indications-check:
+	+$(MAKE) supplement-indications-focused check-cheap current-schema-check schema-release-check
+
 .PHONY: label-priority-check
 label-priority-check:
 	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/label-priority-evidence" cargo test --locked -p biomcp --test cases drug-label/indication-priority-and-native-pages $(TEST_THREADS)

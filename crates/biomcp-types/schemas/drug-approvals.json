@@ -539,6 +539,17 @@
             "array",
             "null"
           ]
+        },
+        "supplement_purpose": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_DrugFdaSupplementPurpose"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Literal supplement purpose from its linked FDA letter; never a current-indication inference."
         }
       },
       "required": [
@@ -546,6 +557,91 @@
         "submission_number"
       ],
       "type": "object"
+    },
+    "Reply_DrugFdaSupplementPurpose": {
+      "description": "FDA-letter evidence for an efficacy supplement, independent of the current product label.",
+      "oneOf": [
+        {
+          "description": "A complete source-stated purpose; may include several indications or other efficacy changes.",
+          "properties": {
+            "document_id": {
+              "$ref": "#/$defs/Reply_Text",
+              "description": "The document belongs to this submission in Drugs@FDA."
+            },
+            "state": {
+              "const": "stated",
+              "type": "string"
+            },
+            "text": {
+              "$ref": "#/$defs/Reply_Text",
+              "description": "FDA wording with PDF line wrapping normalized to spaces."
+            },
+            "url": {
+              "$ref": "#/$defs/Reply_Text",
+              "description": "Published FDA letter URL.",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "state",
+            "text",
+            "document_id",
+            "url"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Missing evidence does not mean the supplement has no indication.",
+          "properties": {
+            "document_id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Selected native letter, when one was linked."
+            },
+            "message": {
+              "description": "What evidence is absent or could not be read.",
+              "type": "string"
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Reason"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Actual download failure, when a request failed."
+            },
+            "state": {
+              "const": "unavailable",
+              "type": "string"
+            },
+            "url": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Reply_Text"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Selected native letter URL, when supplied."
+            }
+          },
+          "required": [
+            "state",
+            "message"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "Reply_DrugGet": {
       "description": "A source-selected drug request echoed with a native ID after name resolution.",

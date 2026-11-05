@@ -1,0 +1,23 @@
+{
+  "feature": "drug-approvals",
+  "story": "An efficacy supplement with no linked letter states that its purpose is unavailable instead of borrowing the product label.",
+  "live_check": "Synthetic missing-document control; recorded only",
+  "replay": "drug/supplement-purpose-missing",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "NDA208692",
+        "approvals",
+        "--source",
+        "drugsfda"
+      ],
+      "expect": {
+        "/page/total": 1,
+        "/result/approvals/data/records/0/supplement_purpose/state": "unavailable",
+        "/result/approvals/data/records/0/supplement_purpose/message": "No FDA approval letter is linked to this supplement."
+      }
+    }
+  ]
+}
