@@ -33,7 +33,7 @@ def bind(product, tooling, output):
     record = {'product': identity(product, PRODUCT),
               'tooling': identity(tooling, os.environ['GITHUB_SHA']),
               'original_run': '42030695983', 'publishing': False,
-              'producer_reuse': 'unavailable: original run uploaded no producer artifacts'}
+              'producer_reuse': 'unavailable: selected failed producer did not reach its upload step'}
     for name in ('Cargo.lock', 'rust-toolchain.toml', 'release/toolchain.json'):
         if (product / name).read_bytes() != (tooling / name).read_bytes():
             raise ValueError('recovery must preserve product tool pins: ' + name)

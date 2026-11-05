@@ -56,6 +56,16 @@ class SectionCustody(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'checkout revision'):
                 section.identity(root / 'source', 'a' * 40)
             self.assertEqual(section.identity(root / 'source', revision)['revision'], revision)
+            tooling = root / 'tooling'
+            self.checkout(tooling, 'tooling')
+            (tooling / 'Cargo.lock').write_text('different pin')
+            subprocess.run(['git', '-C', str(tooling), 'add', '.'], check=True)
+            subprocess.run(['git', '-C', str(tooling), '-c', 'user.name=Fixture',
+                            '-c', 'user.email=fixture@example.org', 'commit', '-qm', 'Change pin'], check=True)
+            tooling_revision = section.git(tooling, 'rev-parse', 'HEAD')
+            with patch.object(section, 'PRODUCT', revision), patch.dict(os.environ, GITHUB_SHA=tooling_revision):
+                with self.assertRaisesRegex(ValueError, 'preserve product tool pins'):
+                    section.bind(root / 'source', tooling, root / 'evidence')
 
 
 if __name__ == '__main__':
