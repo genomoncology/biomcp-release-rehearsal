@@ -1,6 +1,7 @@
 # Windows release wrapper runs under default PowerShell
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: fd829000c1f44cead03d95a9c7dcbb98709c37d2
 Milestone: 5
 
 ## Outcome
