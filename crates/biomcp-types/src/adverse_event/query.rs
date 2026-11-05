@@ -1,4 +1,4 @@
-use super::{AdverseEventSection, AdverseEventSerious, AdverseEventSource};
+use super::{AdverseEventAggregate, AdverseEventSection, AdverseEventSerious, AdverseEventSource};
 use crate::QueryInvalid;
 use biodata::{PartialDate, ReportId, Text};
 use serde::{Deserialize, Serialize};
@@ -52,6 +52,11 @@ struct SearchFields {
     #[doc = "Source; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names."]
     #[serde(default = "default_source")]
     source: AdverseEventSource,
+    #[doc = "FAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. \
+        Counts are not rates or causal associations; a report may contribute to several terms. \
+        Requires MedDRA and offset zero."]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    aggregate: Option<AdverseEventAggregate>,
     /// Independent VAERS table; omitted means reported symptoms.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(title = "VAERS table.", extend("x-positional" = 1)))]
@@ -73,18 +78,30 @@ struct SearchFields {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("format" = "date")))]
     received_to: Option<PartialDate>,
-    /// Native report headers or VAERS rows per page; default five.
+    /// Native report headers, counted FAERS reaction terms or VAERS rows; default five.
     #[serde(default = "default_limit")]
     #[cfg_attr(feature = "schema", schemars(range(min = 1, max = 50)))]
     limit: u32,
-    /// Native row offset. VAERS continuation requires its retained snapshot.
+    /// Native report row offset; reaction counts require zero. VAERS needs its snapshot.
     #[serde(default)]
     offset: u32,
+}
+impl SearchFields {
+    fn validate_aggregate(&self) -> Result<(), QueryInvalid> {
+        if self.aggregate.is_some() && self.source != AdverseEventSource::Faers {
+            return Err(QueryInvalid::new(&["source", "aggregate"]));
+        }
+        if self.aggregate.is_some() && self.offset != 0 {
+            return Err(QueryInvalid::new(&["aggregate", "offset"]));
+        }
+        Ok(())
+    }
 }
 crate::query::validation::checked_query!(AdverseEventSearch, SearchFields);
 impl TryFrom<SearchFields> for AdverseEventSearch {
     type Error = QueryInvalid;
     fn try_from(mut v: SearchFields) -> Result<Self, Self::Error> {
+        v.validate_aggregate()?;
         let maude_filter =
             v.manufacturer.is_some() || !v.product_code.is_empty() || v.problem.is_some();
         if v.source != AdverseEventSource::Maude && maude_filter {
@@ -175,6 +192,7 @@ impl AdverseEventSearch {
             product_code: vec![code],
             problem: None,
             source: AdverseEventSource::Maude,
+            aggregate: None,
             section: None,
             snapshot: None,
             reaction: None,
@@ -184,6 +202,11 @@ impl AdverseEventSearch {
             limit: default_limit(),
             offset: 0,
         })
+    }
+
+    /// Requested source-native aggregation, distinct from report discovery.
+    pub fn aggregate(&self) -> Option<AdverseEventAggregate> {
+        self.0.aggregate
     }
 
     /// Selected VAERS grouping.

@@ -1,0 +1,31 @@
+{
+  "feature": "adverse-event-search",
+  "live_check": "synthetic count response; no clinical-positive claim",
+  "story": "Typed adverse-event arguments select the same native reaction-count request as the single tool.",
+  "replay": "adverse-event/faers-reaction-counts",
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  },
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "search_adverse_event",
+        "arguments": {
+          "text": "Synthetic medicine",
+          "source": "faers",
+          "aggregate": "reactions",
+          "limit": 2
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/query/aggregate": "reactions",
+        "/query/limit": 2,
+        "/result/reaction_counts/items/0/count": 5000000000,
+        "/result/reaction_counts/items/1/term": "SYNTHETIC REACTION B",
+        "/result/reaction_counts/limit_reached": true
+      }
+    }
+  ]
+}

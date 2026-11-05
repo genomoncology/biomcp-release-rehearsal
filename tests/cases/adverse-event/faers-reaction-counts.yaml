@@ -1,0 +1,148 @@
+{
+  "feature": "adverse-event-search",
+  "live_check": "synthetic source-native count response; no clinical-positive claim",
+  "story": "One search returns source reaction buckets for matching reports without fetching or interpreting each report. Component exclusions still apply before cached count reads.",
+  "replay": "adverse-event/faers-reaction-counts",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "Synthetic medicine",
+        "--aggregate",
+        "reactions",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/aggregate": "reactions",
+        "/result/reaction_counts/items": [
+          {
+            "term": "SYNTHETIC REACTION A",
+            "count": 5000000000
+          },
+          {
+            "term": "SYNTHETIC REACTION B",
+            "count": 9
+          }
+        ],
+        "/result/reaction_counts/limit_reached": true,
+        "/result/unit": "reports",
+        "/result/components/0/component": "meddra",
+        "/result": {
+          "omits": [
+            "items"
+          ]
+        },
+        "": {
+          "omits": [
+            "page",
+            "next"
+          ]
+        }
+      },
+      "mcp": [
+        "search",
+        "adverse-event",
+        "Synthetic medicine",
+        "--aggregate",
+        "reactions",
+        "--limit",
+        "2"
+      ]
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "Missing medicine",
+        "--aggregate",
+        "reactions",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/status": "complete",
+        "": {
+          "omits": [
+            "page",
+            "next"
+          ]
+        },
+        "/result": {
+          "omits": [
+            "reaction_counts",
+            "items"
+          ]
+        },
+        "/query/aggregate": "reactions"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "Synthetic medicine",
+        "--aggregate",
+        "reactions",
+        "--limit",
+        "2",
+        "--disable-sources",
+        "meddra"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/state": "skipped",
+        "/sources/0/reason": "disabled"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "Synthetic medicine",
+        "--aggregate",
+        "reactions",
+        "--offset",
+        "1"
+      ],
+      "exit": 2,
+      "expect": {
+        "/status": "usage"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "Synthetic device",
+        "--source",
+        "maude",
+        "--aggregate",
+        "reactions"
+      ],
+      "exit": 2,
+      "expect": {
+        "/status": "usage"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "Malformed medicine",
+        "--aggregate",
+        "reactions",
+        "--limit",
+        "2"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/reason": "bad-reply"
+      }
+    }
+  ]
+}

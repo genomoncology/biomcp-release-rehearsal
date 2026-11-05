@@ -188,14 +188,15 @@ pub use query::{CheckedQuery, QueryInvalid};
 
 mod adverse_event;
 pub use adverse_event::{
-    AdverseEventDevice, AdverseEventDevices, AdverseEventDrug, AdverseEventDrugs,
-    AdverseEventFaersCard, AdverseEventGet, AdverseEventHeader, AdverseEventIdentifierRecords,
-    AdverseEventIdentifierSection, AdverseEventIdentifiers, AdverseEventIdentityCounts,
-    AdverseEventMaudeCard, AdverseEventNarrative, AdverseEventNarrativeItem, AdverseEventPage,
-    AdverseEventReaction, AdverseEventReactionMatch, AdverseEventReactions, AdverseEventRecords,
-    AdverseEventSearch, AdverseEventSection, AdverseEventSerious, AdverseEventSource, ReportUnit,
-    VAERS_INFLUENZA, VaersCell, VaersNotice, VaersRow, VaersScope, VaersSection, VaersSummary,
-    vaers_vaccine_code,
+    AdverseEventAggregate, AdverseEventDevice, AdverseEventDevices, AdverseEventDrug,
+    AdverseEventDrugs, AdverseEventFaersCard, AdverseEventGet, AdverseEventHeader,
+    AdverseEventIdentifierRecords, AdverseEventIdentifierSection, AdverseEventIdentifiers,
+    AdverseEventIdentityCounts, AdverseEventMaudeCard, AdverseEventNarrative,
+    AdverseEventNarrativeItem, AdverseEventPage, AdverseEventReaction, AdverseEventReactionCount,
+    AdverseEventReactionCounts, AdverseEventReactionMatch, AdverseEventReactions,
+    AdverseEventRecords, AdverseEventSearch, AdverseEventSection, AdverseEventSerious,
+    AdverseEventSource, ReportUnit, VAERS_INFLUENZA, VaersCell, VaersNotice, VaersRow, VaersScope,
+    VaersSection, VaersSummary, vaers_vaccine_code,
 };
 
 mod pgx;

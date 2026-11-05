@@ -69,7 +69,7 @@ drug-failures: Every kept drug source reports synthetic transport and broken-bod
 drug-identity: Drug sources reject mismatched, conflicting and absent identity joins before cache admission or product selection.
 drug-help: Discover source-scoped drug sections, selectors and explicit bundle synchronization through generated help and executable case examples.
 diagnostic-gtr: Explicitly synchronize the complete GTR pair and read exact native test candidates, cards and relation pages without implicit synchronization or clinical inference.
-adverse-event-search: Search literal FAERS drug names joined with OR and other filters joined with AND, with typed phrase, seriousness and receipt selectors, native report pages and exact next requests.
+adverse-event-search: Search literal FAERS names and filters for native report pages with exact next requests, or return openFDA reaction count buckets without derived rates or causal interpretation.
 cpic-pgx: Read explicit CPIC gene pairs, identity, native recommendations, guideline references and declared diplotype mappings without clinical inference.
 maude-reports: Search native device phrases, manufacturer phrases, exact product codes and product problem phrases and read exact native cards, device rows and complete narratives with source terms and independent count units.
 adverse-event-get: Read one exact FAERS report and independently page retained drug, reaction and original identifier arrays without causal or product identity inference.

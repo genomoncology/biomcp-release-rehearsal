@@ -4,7 +4,9 @@ use super::{
 use crate::{ComponentLabel, ResponseBody};
 use biodata::{FaersPatient, FaersReporter, FaersSeriousness, ReportId, Text};
 use serde::{Deserialize, Serialize};
+mod counts;
 mod rows;
+pub use counts::{AdverseEventReactionCount, AdverseEventReactionCounts};
 pub use rows::{
     AdverseEventDevice, AdverseEventDrug, AdverseEventIdentityCounts, AdverseEventNarrativeItem,
     AdverseEventReaction,
@@ -41,6 +43,9 @@ AdverseEventReactionMatch {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct AdverseEventPage {
+    /// Source reaction buckets when aggregation was requested; never report header rows.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reaction_counts: Option<AdverseEventReactionCounts>,
     /// Explicit analyzed reaction selector semantics when a reaction was supplied.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reaction_match: Option<AdverseEventReactionMatch>,

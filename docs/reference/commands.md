@@ -1037,9 +1037,10 @@ Arguments:
           VAERS table; biomcp_help search adverse-event
 
 Options:
-      --drug <drug>...
-          FAERS drug names; OR.
-          FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
+      --aggregate <aggregate>
+          FAERS reaction counts; biomcp_help search adverse-event
+          FAERS reaction counts.
+          Use reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero.
 
       --format <format>
           Choose JSON or Markdown output; configuration can change the default.
@@ -1050,12 +1051,12 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups.
 
-      --limit <limit>
-          Native report headers or VAERS rows per page; default five.
+      --drug <drug>...
+          FAERS drug names; OR.
+          FAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
 
-      --manufacturer <manufacturer>
-          MAUDE manufacturer.
-          MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
+      --limit <limit>
+          Native report headers, counted FAERS reaction terms or VAERS rows; default five.
 
       --source_pacing <source_pacing>
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values.
@@ -1063,8 +1064,12 @@ Options:
       --config <config>
           Read configuration from this file.
 
+      --manufacturer <manufacturer>
+          MAUDE manufacturer.
+          MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
+
       --offset <offset>
-          Native row offset. VAERS continuation requires its retained snapshot.
+          Native report row offset; reaction counts require zero. VAERS needs its snapshot.
 
       --problem <problem>
           MAUDE product problem.
@@ -1078,12 +1083,18 @@ Options:
           FAERS MedDRA phrase.
           FAERS MedDRA term phrase match, not exact equality.
 
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
       --received-from <received_from>
           First date, YYYY-MM[-DD].
           Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
 
-      --offline[=<offline>]
-          Read local data without source requests.
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
@@ -1091,12 +1102,6 @@ Options:
       --received-to <received_to>
           Last date, YYYY-MM[-DD].
           Inclusive FAERS or MAUDE FDA receipt upper bound, YYYY-MM-DD or YYYY-MM; a month ends on its last day.
-
-      --fresh[=<fresh>]
-          Request fresh source data instead of cached replies.
-
-          [default: false]
-          [possible values: true, false]
 
       --serious <serious>
           FAERS seriousness flag; biomcp_help search adverse-event
@@ -1116,12 +1121,15 @@ Options:
 
 Search drug, device and vaccine adverse events. Sources: faers, maude, vaers.
 
+- `--aggregate`: FAERS reaction counts; biomcp_help search adverse-event
+FAERS reaction counts.
+Use reactions for source count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero.
 - `--drug`: FAERS drug names; OR.
 FAERS exact drug name; repeat --drug for OR. OR inside one quoted value stays exact. Other filters AND with the names. BioMCP caps the escaped source query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
-- `--limit`: Source report headers or VAERS rows per page; default five.
+- `--limit`: Source report headers, counted FAERS reaction terms or VAERS rows; default five.
 - `--manufacturer`: MAUDE manufacturer.
 MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
-- `--offset`: Source row offset. VAERS continuation requires its retained snapshot.
+- `--offset`: Source report row offset; reaction counts require zero. VAERS needs its snapshot.
 - `--problem`: MAUDE product problem.
 MAUDE phrase on source product_problems.
 - `--product-code`: MAUDE product codes; OR.

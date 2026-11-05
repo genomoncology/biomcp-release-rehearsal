@@ -1,0 +1,1 @@
+Synthetic openFDA count replies for request and numeric-admission tests. The drug names, reaction labels and counts are invented. These fixtures do not establish a clinical association or native provider total. Only the count endpoint is recorded; report-by-report fetches cannot satisfy this case.

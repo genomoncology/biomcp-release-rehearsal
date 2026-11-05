@@ -1,8 +1,29 @@
 {
   "$defs": {
+    "Reply_AdverseEventAggregate": {
+      "description": "Source-native aggregation of matching FAERS reports.",
+      "enum": [
+        "reactions"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        " Exact reaction-term buckets from openFDA; reports may contribute to several terms."
+      ]
+    },
     "Reply_AdverseEventSearch": {
       "description": "Search five report headers by default. MAUDE accepts device text or a manufacturer, product-code or problem filter. One report may list several devices; filters may match different devices. VAERS accepts MMR, COVID19, COVID-19 vaccine or one exact qualified native influenza code, matched without case; use influenza to list codes and labels. Tables remain separate and are never summed. One report may list several vaccines. VAERS returns five reported symptom rows by default; seriousness and age select independent tables. Counts are reports, not people. Reports do not show that a vaccine caused an event and cannot measure risk or compare vaccine safety.",
       "properties": {
+        "aggregate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_AdverseEventAggregate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "FAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero."
+        },
         "drug": {
           "description": "FAERS drug names; OR.\nFAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
           "items": {
@@ -12,7 +33,7 @@
         },
         "limit": {
           "default": 5,
-          "description": "Native report headers or VAERS rows per page; default five.",
+          "description": "Native report headers, counted FAERS reaction terms or VAERS rows; default five.",
           "format": "uint32",
           "maximum": 50,
           "minimum": 1,
@@ -31,7 +52,7 @@
         },
         "offset": {
           "default": 0,
-          "description": "Native row offset. VAERS continuation requires its retained snapshot.",
+          "description": "Native report row offset; reaction counts require zero. VAERS needs its snapshot.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"

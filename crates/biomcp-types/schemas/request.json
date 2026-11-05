@@ -1,5 +1,15 @@
 {
   "$defs": {
+    "AdverseEventAggregate": {
+      "description": "Source-native aggregation of matching FAERS reports.",
+      "enum": [
+        "reactions"
+      ],
+      "type": "string",
+      "x-enum-descriptions": [
+        " Exact reaction-term buckets from openFDA; reports may contribute to several terms."
+      ]
+    },
     "AdverseEventSection": {
       "description": "One source-owned section; no all or reporter section.",
       "enum": [
@@ -2848,6 +2858,17 @@
       "additionalProperties": false,
       "description": "Search drug, device and vaccine adverse events.",
       "properties": {
+        "aggregate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AdverseEventAggregate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "FAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero."
+        },
         "command": {
           "const": "search-adverse-event",
           "type": "string"
@@ -2861,7 +2882,7 @@
         },
         "limit": {
           "default": 5,
-          "description": "Native report headers or VAERS rows per page; default five.",
+          "description": "Native report headers, counted FAERS reaction terms or VAERS rows; default five.",
           "format": "uint32",
           "maximum": 50,
           "minimum": 1,
@@ -2880,7 +2901,7 @@
         },
         "offset": {
           "default": 0,
-          "description": "Native row offset. VAERS continuation requires its retained snapshot.",
+          "description": "Native report row offset; reaction counts require zero. VAERS needs its snapshot.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"

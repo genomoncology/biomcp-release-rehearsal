@@ -1,6 +1,7 @@
 //! One explicit adverse-event source; no inference, drug choice or source probing.
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
+mod counts;
 mod get;
 mod vaers;
 use crate::{Ctx, Outcome, status};
@@ -11,14 +12,13 @@ use biomcp_types::{
 };
 /// Search report headers through the declared source and its reviewed component admission.
 pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
+    if query.aggregate().is_some() {
+        return counts::search(cx, query);
+    }
     if query.source() == biomcp_types::AdverseEventSource::Vaers {
         return vaers::search(cx, query);
     }
-    let source = if query.source() == biomcp_types::AdverseEventSource::Faers {
-        Source::Faers
-    } else {
-        Source::Maude
-    };
+    let source = query.source().source();
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let spec = if source == Source::Faers {
@@ -43,6 +43,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
         crate::status::Parts {
             dropped: false,
             body: (AdverseEventPage {
+                reaction_counts: None,
                 reaction_match: query
                     .reaction()
                     .map(|_| biomcp_types::AdverseEventReactionMatch::PhraseMatch),

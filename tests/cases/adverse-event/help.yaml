@@ -15,6 +15,7 @@
             "text",
             "--source",
             "--reaction",
+            "--aggregate",
             "--serious",
             "--received-from",
             "--received-to",

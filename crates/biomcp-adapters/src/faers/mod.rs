@@ -17,8 +17,10 @@ pub static SPEC: SourceSpec = SourceSpec {
     key: crate::openfda_key::OPTIONAL,
     deadline: Duration::from_secs(15),
 };
+mod counts;
 mod raw;
 mod search;
+pub use counts::{CountPage, reactions};
 pub use search::{Page, expression, search};
 
 pub mod detail;

@@ -109,3 +109,10 @@ impl AdverseEventSource {
         }
     }
 }
+biodata::wire_enum! { described
+    /// Source-native aggregation of matching FAERS reports.
+    AdverseEventAggregate {
+        /// Exact reaction-term buckets from openFDA; reports may contribute to several terms.
+        Reactions => "reactions",
+    }
+}

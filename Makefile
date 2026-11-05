@@ -1,5 +1,11 @@
 .DEFAULT_GOAL := landing-gate
 
+.PHONY: faers-counts-integration-check
+faers-counts-integration-check:
+	sh scripts/faers_counts_job.sh mechanical
+	sh scripts/faers_counts_job.sh focused
+	+$(MAKE) current-schema-check
+
 # Cargo and the test harnesses do not interpret pm's fractional core booking.
 ifneq ($(strip $(PM_JOB_CORES)),)
 PM_WORKERS := $(shell python3 -c 'import math,os; print(max(1, math.floor(float(os.environ["PM_JOB_CORES"]))))')
