@@ -1,12 +1,13 @@
 # 0671 — Gene name replay declares its live-check eligibility
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 88af1cb16c3552a627a15dfe79b5e96c73e52a9f
 
 Milestone: 5
 
 ## Outcome
 
-The gene full-name replay declares its intended live-check eligibility using the existing case format. Installed `--live-check --list` succeeds with the complete case inventory, while this synthetic replay remains an offline test.
+The gene full-name replay declares its intended live-check eligibility using the existing case format. Installed `--live-check --list` succeeds with the complete case inventory, while this configured replay remains an offline test.
 
 ## Why
 
@@ -22,7 +23,7 @@ Hosted selected-main run 42095109380 built its package successfully, then failed
 
 ## Keeps
 
-- Keeps: the strict inventory completeness check, synthetic gene fixtures, gene-search behavior, hosted revision selection and provider admission. No live provider request is needed.
+- Keeps: the strict inventory completeness check, gene replay fixtures, gene-search behavior, hosted revision selection and provider admission. No live provider request is needed.
 
 ## Defers
 

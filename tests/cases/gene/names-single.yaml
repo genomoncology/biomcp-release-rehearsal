@@ -1,4 +1,5 @@
 {
+  "live_check": "configured single-tool replay",
   "feature": "gene-search",
   "story": "HGNC full names, previous names and alias names are searchable, with exact symbols first",
   "replay": "gene/main",
