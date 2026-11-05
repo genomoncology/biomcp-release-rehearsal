@@ -65,7 +65,7 @@ stage install docker run --rm "$@" --user "$(id -u):$(id -g)" -e HOME=/tmp \
     cp -a /proof /tmp/check
     python_series=$(python3 /tmp/check/tools/release/toolchain.py get python | tr -d .)
     export PATH=/opt/python/cp$python_series-cp$python_series/bin:$PATH
-    export BIOMCP_EVIDENCE_DIR=/tmp/check/evidence
+    export BIOMCP_EVIDENCE_DIR=/output/fixture-evidence
     python /tmp/check/tools/release/gate.py --prepared --python python \
       --artifacts /artifacts --scratch /tmp/check --report /output/install-report.json
   ' > install-report.log

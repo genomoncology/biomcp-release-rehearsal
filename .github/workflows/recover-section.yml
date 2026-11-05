@@ -115,4 +115,7 @@ jobs:
             product/dist
             product/install-report.log
             section-evidence
+            ${{ runner.temp }}/fixture-evidence
+            ${{ runner.temp }}/install/bootstrap.json
+            ${{ runner.temp }}/install/report.json
           if-no-files-found: error
