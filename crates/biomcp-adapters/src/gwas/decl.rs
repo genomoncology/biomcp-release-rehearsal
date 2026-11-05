@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "GWAS Catalog",
+    discovery_aliases: &[],
     registry_order: Some(10),
     probe: Probe::Get(
         "/associations",

@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "MyVariant.info",
+    discovery_aliases: &[],
     registry_order: Some(11),
     probe: Probe::Get("/metadata", &[]),
     components: crate::myvariant::components::COMPONENTS,

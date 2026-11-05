@@ -128,7 +128,7 @@ fn cli(
     }
     Ok(value)
 }
-fn output(
+pub(super) fn output(
     command: &mut super::capture::Capture,
     input: Option<&str>,
 ) -> Result<std::process::Output, String> {

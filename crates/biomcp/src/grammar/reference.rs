@@ -239,3 +239,34 @@ fn pacing_document() -> Result<String, std::fmt::Error> {
     }
     Ok(text)
 }
+
+#[test]
+fn every_section_rule_keeps_its_complete_source_text() -> Check {
+    let parser = super::root().map_err(|_| "grammar unavailable")?;
+    let commands = crate::help::commands(&parser)?;
+    let paths = super::command_paths();
+    for command in &commands {
+        let Some(actual) = &command.section_rule else {
+            continue;
+        };
+        let (_, _, id) = paths
+            .iter()
+            .find(|(verb, entity, _)| command.command == [*verb, *entity])
+            .ok_or("section rule has no schema owner")?;
+        let schema: serde_json::Value =
+            serde_json::from_str(crate::schema::find(id).ok_or("missing schema")?)?;
+        let section = schema
+            .pointer("/properties/section")
+            .ok_or("missing section")?;
+        let original = section
+            .get("x-section-rule")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| format!("{id}: missing canonical section rule"))?;
+        assert_eq!(actual, &crate::help::source_prose(original), "{id}");
+        assert!(
+            !actual.contains("biomcp_help"),
+            "{id}: compact guidance leaked into rule"
+        );
+    }
+    Ok(())
+}

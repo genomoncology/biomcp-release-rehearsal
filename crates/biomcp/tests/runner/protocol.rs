@@ -2,6 +2,18 @@
 mod reply_form;
 #[path = "protocol_schemas.rs"]
 mod schemas;
+#[path = "typed_tools.rs"]
+mod typed;
+#[path = "typed_bridge.rs"]
+mod typed_bridge;
+#[path = "typed_help.rs"]
+mod typed_help;
+#[path = "typed_hosted.rs"]
+mod typed_hosted;
+#[path = "typed_reply.rs"]
+mod typed_reply;
+#[path = "typed_schemas.rs"]
+mod typed_schemas;
 use super::{
     launch::Environment,
     mcp::{exchange, request},
@@ -16,6 +28,34 @@ type Check = Result<(), String>;
 
 pub(super) fn trials() -> Vec<Trial> {
     let mut trials = vec![
+        transcript_trial("mcp-parity/typed-cli-bridge", || {
+            typed_bridge::check().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-description-contract", || {
+            typed::description_contract().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-hosted-catalog", || {
+            typed_hosted::check().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-help-research-discovery", || {
+            typed_help::discovery().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-getter-help", || {
+            typed::getter_help().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-help-next-recovery", || {
+            typed_help::recovery().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/compact-typed-schemas", || {
+            let env = Environment::new()?;
+            typed_schemas::check(&env).map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-reply-forms-and-cap", || {
+            typed_reply::check().map_err(Into::into)
+        }),
+        transcript_trial(super::pool_contract::TYPED_TOOLS.0, || {
+            typed::check().map_err(Into::into)
+        }),
         transcript_trial("mcp-parity/cancellation-suppresses-later-output", || {
             cancellation().map_err(Into::into)
         }),
@@ -47,6 +87,17 @@ pub(super) fn trials() -> Vec<Trial> {
             discovery().map_err(Into::into)
         }),
     ];
+    tool_only! {
+        trials.push(transcript_trial("mcp-parity/typed-baseline-and-replay-guards", || {
+            typed::guards().map_err(Into::into)
+        }));
+        trials.push(transcript_trial("mcp-parity/typed-historical-baseline-and-replay", || {
+            typed::historical().map_err(Into::into)
+        }));
+        trials.push(transcript_trial("mcp-parity/typed-clock-controls", || {
+            typed::clock_controls().map_err(Into::into)
+        }));
+    }
     trials.push(transcript_trial("mcp-parity/reply-forms", || {
         reply_form::check().map_err(Into::into)
     }));

@@ -1,0 +1,157 @@
+{
+  "feature": "query-validation",
+  "live_check": "offline parser-only; no source requests",
+  "story": "Numeric argument failures retain their source-owned accepted form and bounds.",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "gtr",
+        "--limit",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Five results by default; at most fifty source rows or product headers. Minimum: 1. Maximum: 50."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "gtr",
+        "--offset",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Zero-based source result offset. Minimum: 0."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "aspirin",
+        "--limit",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Native report headers or VAERS rows per page; default five. Minimum: 1. Maximum: 50."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "aspirin",
+        "--offset",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Native row offset. VAERS continuation requires its retained snapshot. Minimum: 0."
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "civic",
+        "--section-limit",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Rows per named source section page; omitted uses the native source default. Minimum: 1. Maximum: 50."
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "civic",
+        "--section-offset",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Source rows to skip independently of identity candidate paging. Minimum: 0."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma",
+        "--age",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Age in years; unstated source bounds count as no limit. Minimum: 0."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma",
+        "--limit",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Headers per page; NCI applies its own lower publisher limit. Minimum: 1. Maximum: 100."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "BRCA1",
+        "--offset",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Number of pool items to skip. Minimum: 0."
+      }
+    }
+  ]
+}

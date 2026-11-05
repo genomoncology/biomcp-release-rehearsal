@@ -28,6 +28,12 @@ pub(super) fn validate(object: &serde_json::Map<String, Value>) -> Check<()> {
         return Err("invalid reply query title annotation".into());
     }
     if object
+        .get("x-section-rule")
+        .is_some_and(|value| value.as_str().is_none_or(str::is_empty))
+    {
+        return Err("unsupported section-rule annotation".into());
+    }
+    if object
         .get("x-trailing-section")
         .is_some_and(|value| value != &Value::Bool(true))
     {

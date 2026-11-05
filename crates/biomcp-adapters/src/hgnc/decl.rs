@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "HGNC",
+    discovery_aliases: &[],
     registry_order: Some(16),
     probe: Probe::Custom(crate::hgnc::probe),
     components: &[],

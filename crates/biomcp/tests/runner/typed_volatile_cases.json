@@ -1,0 +1,503 @@
+{
+  "article/citations/citing.yaml step 1": {
+    "capture_sha256": "0f24e2a5950358fd05be782f44a36fa20db2b810ca4224ec96d01305b39cbcd0",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/citations/edge-cursors.yaml step 1": {
+    "capture_sha256": "0551f951578e740570d31d044205a262ecc7ee3d2ef64f97f59f6caedaa523b9",
+    "pointers": [
+      "/next/0/args/8",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/citations/references.yaml step 1": {
+    "capture_sha256": "c9729f21be65470cd38d57cdfe0f0bafb76c2dadb082a4c05da83eb3b1e9bf81",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/edges/anonymous-row.yaml step 1": {
+    "capture_sha256": "3aa039c57987bd95ca35372c21163913d8b939cca266c3a575b7aaad8b23847c",
+    "pointers": [
+      "/next/0/args/8",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/edges/references.yaml step 1": {
+    "capture_sha256": "564bcc615e9ecccd90904375dbd71e039b58f47cc069ad785b0a9b59d152fb6f",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/edges/window.yaml step 1": {
+    "capture_sha256": "51452b0b3cedb901296b3d4aba4d7973f75119068776d92f61b407a0f0366360",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/filters/access-europepmc.yaml step 1": {
+    "capture_sha256": "162d61d0adef762f47630a982e08a8243e0ee296cfb7de468b6a7849e8a5cdb5",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/filters/include-retracted.yaml step 1": {
+    "capture_sha256": "2338cfe404c37caa75c8a2d8555b0d06ec061cd6ce1f2b29b0881d3b02a7bbcd",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/filters/include-retracted.yaml step 2": {
+    "capture_sha256": "957447d01198ef5e42c2d9e6997954c125240708224b2b82efe17b5a0db0bfba",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/filters/since.yaml step 1": {
+    "capture_sha256": "c29f2d4b0372b29df376ada27e6e85269346efee56c51add84e267bb7f5fc212",
+    "pointers": [
+      "/next/0/args/8",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/filters/since.yaml step 2": {
+    "capture_sha256": "6de9ea3de8b05f7caa80c5ada3ef77b7a33ee7dafd3bdda645924d8c28167b1b",
+    "pointers": [
+      "/next/0/args/8",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/fold/failed-pubmed.yaml step 1": {
+    "capture_sha256": "c266ff9c9e188640602675fd68465f64a52594e62d1fd24a750864af818811e8",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/litsense/licensed-subset.yaml step 1": {
+    "capture_sha256": "824177bd4e59edfc54ba44d74dee1accf23a79e493a08518e3fcfac090780638",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/litvar/akt1-rsid-citations.yaml step 1": {
+    "capture_sha256": "5b49b8d55cd37bac1cd5910087ab902cccbba92e705ced2bfb037b4ad1270470",
+    "pointers": [
+      "/next/0/args/5",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/litvar/akt1-rsid-citations.yaml step 2": {
+    "capture_sha256": "8d913fd484fedb236c77cba34404ac2833e8b34eaa51a45598f566d08ffd408d",
+    "pointers": [
+      "/next/0/args/7",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/recommendations/multi.yaml step 1": {
+    "capture_sha256": "8b924ee859621a70d447b363710c66d9b9477dc8166d35ae8045448ccd6736be",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/recommendations/single.yaml step 1": {
+    "capture_sha256": "855b30fcc0055bdaf8cf9d7d4b3d57fb9018fa4463bc3bdd02f88a35db60c0d3",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/recommendations/single.yaml step 2": {
+    "capture_sha256": "f8bae7b2b38328c24c2da29ccb8d411160c204f9152c4a5925e679dd3f530795",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "article/search/synthetic-four-term-short.yaml step 1": {
+    "capture_sha256": "b219d66674109473f9c582ab188717f4be26c42b76328c7b1a0edbfdc86118ff",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "author/papers-details.yaml step 1": {
+    "capture_sha256": "aa729bf076b4520ea42eb60cd279f099bcda347318ebe01dadde908ece87c967",
+    "pointers": [
+      "/next/1/args/7"
+    ]
+  },
+  "author/papers-details.yaml step 2": {
+    "capture_sha256": "109f4f358590b6a3e7c7366f6c9a2f7618b29208ec74726c853317a491db50fb",
+    "pointers": [
+      "/next/1/args/7"
+    ]
+  },
+  "author/papers-disabled-pool.yaml step 1": {
+    "capture_sha256": "443c6e4dced13d2216eed8d78bfa2462ec3e2cff63d82f449de6c549f5c0c129",
+    "pointers": [
+      "/next/1/args/6"
+    ]
+  },
+  "author/papers.yaml step 1": {
+    "capture_sha256": "be2c31bb4f3f34471ee6aadf6f8d2988feccbb1efafcf48413f868d0d6943352",
+    "pointers": [
+      "/next/1/args/6"
+    ]
+  },
+  "author/papers.yaml step 2": {
+    "capture_sha256": "698dba9b6024d0cfe14047a734ffe29cdc5754b81729058169b876cdc7427e68",
+    "pointers": [
+      "/next/1/args/6"
+    ]
+  },
+  "author/search-disabled-pool.yaml step 1": {
+    "capture_sha256": "ae579eec735b2f1381fd40411b42f4dc3cae25b0f8ad7971b713f6a8d6694fcb",
+    "pointers": [
+      "/next/2/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "author/search.yaml step 1": {
+    "capture_sha256": "73933cd003f54953ab0ddcb9eebbbb1482237372a63fcb2a46bd6eab4465528e",
+    "pointers": [
+      "/next/2/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "author/source-alias.yaml step 1": {
+    "capture_sha256": "9963bc3f9d5564afb6956bd0461e33d846188b15db4273a646b8abe22a75ccc0",
+    "pointers": [
+      "/next/2/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "author/source-alias.yaml step 2": {
+    "capture_sha256": "94124314f9b1da50cf9ea13ef5a2e781ce496dc444244647004b89594580fd02",
+    "pointers": [
+      "/next/2/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "gwas/examples.yaml step 3": {
+    "capture_sha256": "b099ce447584261d87cfbbed642ec6a477a1e7851bd579b7fae1e600d8ac773f",
+    "pointers": [
+      "/next/0/args/7",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id",
+      "/result/continuation/query/pool",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id"
+    ]
+  },
+  "orcid/refused-member.yaml step 1": {
+    "capture_sha256": "cf964e3e8d73d6f6d8395d4a6c1a359b8e7cc0649cbf5729aa517a5883b06aab",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "orcid/refused-member.yaml step 2": {
+    "capture_sha256": "e328c860c25130fdd0b971ef0dc9ebbc716fe36d9df33d1e69aef28c61a178ed",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "orcid/visibility.yaml step 1": {
+    "capture_sha256": "bb06b3857b4b6ff510ca9a38b30014046878f6dc72f7c658b2b302611a59994e",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "pathway-sections/all.yaml step 1": {
+    "capture_sha256": "e0e46cf376426530da830ea488305efb753dd220bdb7adf032004030dca2987c",
+    "pointers": [
+      "/next/5/args/6",
+      "/next/6/args/5",
+      "/next/7/args/6",
+      "/result/events/data/page/pool/created",
+      "/result/events/data/page/pool/expires",
+      "/result/events/data/page/pool/id",
+      "/result/genes/data/page/pool/created",
+      "/result/genes/data/page/pool/expires",
+      "/result/genes/data/page/pool/id"
+    ]
+  },
+  "pathway-sections/examples.yaml step 1": {
+    "capture_sha256": "6552ec3e9a0c70b03a4a126407b900d47826fa74a95f540b04ab616a6057c20a",
+    "pointers": [
+      "/next/5/args/6",
+      "/next/6/args/5",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id"
+    ]
+  },
+  "pathway-sections/examples.yaml step 2": {
+    "capture_sha256": "5eb795557bb04ec244eb9b4bf8802ce9b49a9bc5e3bdf35d63c36277b3d9b91a",
+    "pointers": [
+      "/next/5/args/7",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id"
+    ]
+  },
+  "pathway-sections/examples.yaml step 3": {
+    "capture_sha256": "86ffeb7876bfa040007e0bae4d76d49e21af0361efec83a08f2e72116cd8f2e6",
+    "pointers": [
+      "/next/0/args/6",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id"
+    ]
+  },
+  "pathway-sections/examples.yaml step 4": {
+    "capture_sha256": "f956ee0ceffff32d098ff041f3d3f719de253a1de02de4c360305fd00a93caf4",
+    "pointers": [
+      "/next/0/args/8",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id"
+    ]
+  },
+  "protein/cards.yaml step 2": {
+    "capture_sha256": "afe64cb1c31c878ce8cca5daa85697be879a6785a1bfe3ec5ba383122b5f7f4f",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 1": {
+    "capture_sha256": "3be3caa6be5397fe5b88e4e57cc375adbabc2e748d194a4157ae6c18d81558c8",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 10": {
+    "capture_sha256": "abfb6d00b0898b24c03f85c6bf177b09b4d6676b00716ab4c1ce562168db0d10",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 11": {
+    "capture_sha256": "dd08d0535f9df587e9e17b6310f7df3d04d898c47dec35158eb77b45a9b7e835",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 12": {
+    "capture_sha256": "79e9f05e24714bb22331a913d3d4721f32c704bd0da966b052fd72c70f2fcd22",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 2": {
+    "capture_sha256": "c71753025b0706a1c34ec436b0e0ddaadf979f9ebe705baf69a694b893bb073d",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 3": {
+    "capture_sha256": "11090b85a4293c97eeb4e0934a80fac34a0e177c2ca86253e78c76c85bce6df6",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 4": {
+    "capture_sha256": "c16fdd1002c37609ce88402e233da8ef4a697795b1c0db74d8ea1773408baa2f",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 5": {
+    "capture_sha256": "4c64e188f32c6db9d4b496880229e7e3e577cb892c91f94a7cd347c46c7778e6",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 6": {
+    "capture_sha256": "7bd747945e4b936c65d0a5d4294d601120411b6bf8fdf8dba1c69744701289a9",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 7": {
+    "capture_sha256": "f3a166230786aafafda90d48bf599d7354cbc20e7ec74b1466d031d00d2badba",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 8": {
+    "capture_sha256": "ce5c5e6cd6ab2201d6b38b437d4d984aa89438fc6198f48f1391c8d8504994f2",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/examples.yaml step 9": {
+    "capture_sha256": "910485655ef0ff4840b706b7e75529278bf79c8f526fce91dff974df30c4cbb7",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/native-reviewed.yaml step 1": {
+    "capture_sha256": "7068d577b1d988b70d4d3e7e7e38d3b920a37a2c601e9511aef38bc232b427fc",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/native-sections.yaml step 7": {
+    "capture_sha256": "a1e1ec59562f77c3ea673670dfbb11df4678b45253fbfc63851bbb2f919e4557",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/paging.yaml step 1": {
+    "capture_sha256": "c29fb5fa76b6852625b27dee4987d81fdb2aae575a3448421c90531e49deefe1",
+    "pointers": [
+      "/next/5/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "protein/paging.yaml step 2": {
+    "capture_sha256": "5d33dadbbd4c259d279d23161aac8ced6ef94f5d55932840fd15c311d4c96aab",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "readme/article.yaml step 1": {
+    "capture_sha256": "3b00fbe7f0dbe7999ac1a1b1cf3aa350f9c9e83643ef309966f5d46f38a291d2",
+    "pointers": [
+      "/next/0/args/6",
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id"
+    ]
+  },
+  "study/examples.yaml step 3": {
+    "capture_sha256": "6ce229629cbed1ecdbc9569e7bea887f39083507e3f87f339d60a071117733bc",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id",
+      "/result/snapshot/acquired"
+    ]
+  },
+  "study/examples.yaml step 4": {
+    "capture_sha256": "ef8f8cd678a155d5d3224d2cef0065fb8bdf46dafb599348e2fa6195671ecaf1",
+    "pointers": [
+      "/page/pool/created",
+      "/page/pool/expires",
+      "/page/pool/id",
+      "/result/page/pool/created",
+      "/result/page/pool/expires",
+      "/result/page/pool/id",
+      "/result/snapshot/acquired"
+    ]
+  },
+  "study/examples.yaml step 5": {
+    "capture_sha256": "a439c0c0fbde819f3412f68c36c00c2373fadc6541b410d15ae43431fa15d70d",
+    "pointers": [
+      "/result/snapshot/acquired"
+    ]
+  },
+  "study/examples.yaml step 6": {
+    "capture_sha256": "bf44efc59b2420d3bb4588082c54a21a6411befbefbde771ab90ec0d6e26a5b5",
+    "pointers": [
+      "/result/snapshot/acquired"
+    ]
+  }
+}

@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "GenCC",
+    discovery_aliases: &[],
     registry_order: Some(31),
     probe: Probe::Get(crate::gencc::HEALTH_PATH, &[]),
     components: &[],

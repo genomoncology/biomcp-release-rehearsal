@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "FDA medical device recall",
+    discovery_aliases: &[],
     registry_order: Some(9),
     probe: Probe::Get("/device/recall.json", &[("limit", Arg::Num(1))]),
     components: &[],

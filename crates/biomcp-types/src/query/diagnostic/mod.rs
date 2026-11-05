@@ -50,52 +50,52 @@ pub struct DiagnosticSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Explicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
+    #[doc = "Native diagnostic source.\nExplicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery."]
     source: DiagnosticSearchSource,
-    /// Exact source GeneID, exclusive with gene symbol.
+    #[doc = "Exact NCBI GeneID.\nExact source GeneID, exclusive with gene symbol."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     gene_id: Option<NcbiGeneId>,
-    /// Exact source gene_symbol field, without alias expansion.
+    #[doc = "Exact gene symbol.\nExact source gene_symbol field, without alias expansion."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     gene: Option<GeneSymbol>,
-    /// Exact MedGen:CUI identifier only.
+    #[doc = "Exact MedGen:CUI.\nExact MedGen:CUI identifier only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(regex(pattern = "^MedGen:C[0-9]+$")))]
     condition_id: Option<Text>,
-    /// Exact native test_type value.
+    #[doc = "Native test_type.\nExact native test_type value."]
     #[serde(default, rename = "type", skip_serializing_if = "Option::is_none")]
     test_type: Option<biodata::GtrTestType>,
-    /// Exact PMA application, application/supplement or native K identity.
+    #[doc = "PMA or K identifier.\nExact PMA application, application/supplement or native K identity."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     device_id: Option<DiagnosticDeviceId>,
-    /// Cell-owned typed NDA/BLA application.
+    #[doc = "NDA/BLA application.\nCell-owned typed NDA/BLA application."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     drug_application: Option<FdaDrugApplication>,
-    /// Exact table-0 biomarker cell; unsupported in the group table.
+    #[doc = "Exact table-0 cell.\nExact table-0 biomarker cell; unsupported in the group table."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     biomarker: Option<Text>,
-    /// Literal whole-word phrase in WHO's Pathogen/Disease/Marker cell.
+    #[doc = "WHO marker phrase.\nLiteral whole-word phrase in WHO's Pathogen/Disease/Marker cell."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     marker: Option<Text>,
-    /// WHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase.
+    #[doc = "Manufacturer phrase.\nWHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     manufacturer: Option<Text>,
-    /// Exact native FDA device recall product code.
+    #[doc = "FDA product code.\nExact native FDA device recall product code."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     product_code: Option<Text>,
-    /// Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+    #[doc = "First date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     initiated_from: Option<PartialDate>,
-    /// Inclusive initiation date, YYYY-MM-DD; FDA device recalls only.
+    #[doc = "Last date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     initiated_to: Option<PartialDate>,
-    /// Native trade_name (PMA) or device_name (510(k)) phrase.
+    #[doc = "Native device name.\nNative trade_name (PMA) or device_name (510(k)) phrase."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     name: Option<Text>,
-    /// Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+    #[doc = "First date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     decision_from: Option<PartialDate>,
-    /// Inclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.
+    #[doc = "Last date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     decision_to: Option<PartialDate>,
     /// Five results by default; at most fifty source rows or product headers.
@@ -105,7 +105,7 @@ struct SearchFields {
     /// Zero-based source result offset.
     #[serde(default)]
     offset: u32,
-    /// Immutable stored bundle revision retained by a continuation.
+    #[doc = "Stored bundle revision.\nImmutable stored bundle revision retained by a continuation."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     bundle_revision: Option<Text>,
 }

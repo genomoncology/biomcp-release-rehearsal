@@ -33,8 +33,9 @@
     },
     "section": {
       "$ref": "#/$defs/GwasCommandSection",
-      "description": "Association loci or study associations and ancestries.",
-      "x-positional": 1
+      "description": "Association loci or study associations and ancestries; biomcp_help get gwas",
+      "x-positional": 1,
+      "x-section-rule": "Association loci or study associations and ancestries."
     },
     "section_limit": {
       "description": "Maximum native relation rows.",

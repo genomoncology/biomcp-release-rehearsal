@@ -223,6 +223,7 @@ fn checked_in_schemas_match_types() {
         .map(|contract| {
             let mut new = (contract.generate)();
             new["$id"] = contract.id.into();
+            generation::command_descriptions(&mut new, contract.id);
             compatibility::check_reviewed(&new, &new, contract.kind, &reviews)
                 .unwrap_or_else(|error| panic!("{}: {error}", contract.name));
             let path = root.join(format!("{}.json", contract.name));
@@ -509,4 +510,9 @@ fn every_command_path_has_one_grammar_or_one_shared_rewrite()
         })
         .collect::<Result<std::collections::BTreeSet<_>, Box<dyn std::error::Error>>>()?;
     commands::every_path_has_one_grammar_or_one_shared_rewrite(&schemas)
+}
+
+#[test]
+fn section_rules_keep_the_complete_source_owned_prose() -> Result<(), String> {
+    generation::section_rules_keep_the_complete_source_owned_prose()
 }

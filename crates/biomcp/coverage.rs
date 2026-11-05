@@ -19,7 +19,7 @@ pub(crate) fn command_sources(
     sources
 }
 
-fn source_words(
+pub(crate) fn source_words(
     node: &serde_json::Value,
     schema: &serde_json::Value,
     sources: &mut std::collections::BTreeSet<String>,

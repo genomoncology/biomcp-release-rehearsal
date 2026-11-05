@@ -48,11 +48,12 @@
       "x-positional": 0
     },
     "section": {
-      "description": "Requested section words, preserving caller order and repetitions.\nTrailing section words select sections. Use --section WORD to keep inputs that equal a section word as inputs.",
+      "description": "Requested section words, preserving caller order and; biomcp_help get gene",
       "items": {
         "$ref": "#/$defs/GeneSectionWord"
       },
       "type": "array",
+      "x-section-rule": "Requested section words, preserving caller order and repetitions.\nTrailing section words select sections. Use --section WORD to keep inputs that equal a section word as inputs.",
       "x-trailing-section": true
     }
   },

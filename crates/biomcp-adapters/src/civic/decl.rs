@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "CIViC",
+    discovery_aliases: &[],
     registry_order: Some(26),
     probe: Probe::GraphQl("/api/graphql"),
     components: &[],

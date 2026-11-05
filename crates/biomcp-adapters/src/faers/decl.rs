@@ -8,6 +8,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "FDA FAERS",
+    discovery_aliases: &[],
     registry_order: Some(57),
     probe: Probe::Custom(probe),
     components: &[MEDDRA_COMPONENT],
@@ -27,6 +28,7 @@ pub(crate) static MEDDRA: SourceDecl = SourceDecl {
         MEDDRA_COMPONENT.terms,
     ),
     display: "MedDRA",
+    discovery_aliases: &[],
     registry_order: None,
     probe: Probe::Component,
     components: &[],

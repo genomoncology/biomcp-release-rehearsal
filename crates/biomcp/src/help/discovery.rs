@@ -101,7 +101,7 @@ fn complete_examples(commands: &mut [HelpCommand]) {
     }
 }
 
-fn plain(text: &str) -> String {
+pub(super) fn plain(text: &str) -> String {
     let mut out = String::new();
     for token in text.split_inclusive(|c: char| !c.is_alphanumeric() && c != '_') {
         let word = token.trim_end_matches(|c: char| !c.is_alphanumeric() && c != '_');

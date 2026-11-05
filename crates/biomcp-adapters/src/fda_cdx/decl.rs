@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "FDA companion diagnostic",
+    discovery_aliases: &[],
     registry_order: Some(6),
     probe: Probe::Get(crate::fda_cdx::HEALTH_PATH, &[]),
     components: &[],

@@ -18,7 +18,7 @@
           "author",
           "papers"
         ],
-        "/result/commands/0/description": "One exact source record's publication window. Sources: orcid, semantic-scholar.",
+        "/result/commands/0/description": "List an author's research papers. Sources: orcid, semantic-scholar.",
         "/result/commands/0/examples": {
           "count": 1
         },

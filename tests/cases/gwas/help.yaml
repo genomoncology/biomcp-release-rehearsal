@@ -26,7 +26,7 @@
           "search",
           "gwas"
         ],
-        "/result/commands/0/description": "Source associations in default p-value-ascending order. Sources: gwas.",
+        "/result/commands/0/description": "Search genetic associations in GWAS Catalog. Sources: gwas.",
         "/result/commands/0/examples": {
           "count": 1
         },
@@ -54,7 +54,7 @@
           "get",
           "gwas"
         ],
-        "/result/commands/0/description": "Source association or study and source context. Sources: gwas.",
+        "/result/commands/0/description": "Get GWAS Catalog associations or studies. Sources: gwas.",
         "/result/commands/0/examples": {
           "count": 1
         },

@@ -1,7 +1,7 @@
 //! Schema-fed command help shared with MCP discovery.
 
 #[path = "../coverage.rs"]
-mod coverage;
+pub(crate) mod coverage;
 mod discovery;
 pub(crate) const FRONT_MAP: &str = include_str!(concat!(env!("OUT_DIR"), "/front-map.txt"));
 mod schema_fields;
@@ -101,6 +101,11 @@ fn compact(commands: &mut [HelpCommand]) {
 }
 
 #[cfg(test)]
+pub(crate) fn source_prose(text: &str) -> String {
+    discovery::plain(text)
+}
+
+#[cfg(test)]
 pub(crate) fn reference(root: &crate::grammar::Root) -> io::Result<Help> {
     let mut commands = commands(root)?;
     public_grammar::canonical(root, &mut commands)?;
@@ -128,9 +133,14 @@ pub(crate) fn commands(root: &crate::grammar::Root) -> io::Result<Vec<HelpComman
             description: command_description(verb, entity, &schema),
             arguments,
             section_rule: (!sections.is_empty()).then(|| {
+                let section = field(field(&schema, "properties"), "section");
                 text(
-                    field(field(&schema, "properties"), "section"),
-                    "description",
+                    section,
+                    if section.get("x-section-rule").is_some() {
+                        "x-section-rule"
+                    } else {
+                        "description"
+                    },
                 )
             }),
             sections,
@@ -161,13 +171,11 @@ fn command_description(verb: &str, entity: &str, schema: &Value) -> String {
         .into_iter()
         .collect::<Vec<_>>()
         .join(", ");
-    let description = text(schema, "description");
-    let first = description
-        .split(". ")
-        .next()
-        .unwrap_or_default()
-        .trim_end_matches('.');
-    format!("{first}. Sources: {sources}.")
+    let summary = biomcp_types::COMMANDS
+        .iter()
+        .find(|row| row.verb == verb && row.entity == entity)
+        .map_or("", |row| row.summary.trim());
+    format!("{summary} Sources: {sources}.")
 }
 
 fn extra_commands(commands: &mut Vec<HelpCommand>, examples: &BTreeMap<String, Vec<Vec<String>>>) {

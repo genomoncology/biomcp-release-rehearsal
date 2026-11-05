@@ -10,7 +10,7 @@
         "diagnostic"
       ],
       "expect": {
-        "/result/commands/0/description": "Search five source records by default. Sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd.",
+        "/result/commands/0/description": "Search diagnostic laboratory tests and devices. Sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd.",
         "/result/commands/0/examples": {
           "count": 1
         },
@@ -45,7 +45,7 @@
         "diagnostic"
       ],
       "expect": {
-        "/result/commands/0/description": "Get one exact source record or supported section. Sources: fda-510k, fda-device-recall, fda-pma, gtr, who-ivd.",
+        "/result/commands/0/description": "Get diagnostic test or device details. Sources: fda-510k, fda-device-recall, fda-pma, gtr, who-ivd.",
         "/result/commands/0/examples": {
           "count": 1
         },

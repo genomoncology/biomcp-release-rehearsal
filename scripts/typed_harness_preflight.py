@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Synthetic pipe checks only; never starts BioMCP, a client, or a provider."""
+
+import json
+import os
+from pathlib import Path
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+
+from typed_harness_capture import exchange
+from typed_harness_smoke import check_sources, cleanup_remote_scratch, copy_script, interrupted, own_process, remote_scratch, ssh
+
+
+def server(both_errors=False):
+    for line in sys.stdin.buffer:
+        frame = json.loads(line)
+        # Whitespace is intentional: forwarding must retain the original bytes.
+        usage = frame["params"]["arguments"]["input"] == ["lung cancer"]
+        body = {"status": "usage" if usage else "complete"}
+        if usage:
+            body["error"] = {"code": "usage.arguments"}
+        elif both_errors:
+            body = {"status": "local", "error": {"code": "local.failure"}}
+        result = {"synthetic": True, "isError": usage or both_errors, "structuredContent": body}
+        response = b'{ "jsonrpc": "2.0", "id": ' + json.dumps(frame["id"]).encode() + b', "result": ' + json.dumps(result, separators=(",", ":")).encode() + b' }\n'
+        sys.stdout.buffer.write(response)
+        sys.stdout.buffer.flush()
+
+
+def bridge(path, both_errors=False):
+    command = [sys.executable, __file__, "server"] + (["both-errors"] if both_errors else [])
+    child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    try:
+        exchange(child, Path(path))
+        child.wait(timeout=3)
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait()
+
+
+def request(index, value):
+    return json.dumps({"jsonrpc": "2.0", "id": index, "method": "tools/call", "params": {"name": "get_trial", "arguments": {"input": [value]}}}).encode() + b"\n"
+
+
+def cancellation(root):
+    for termination in [signal.SIGTERM, signal.SIGHUP]:
+        pid_file = root / str(termination)
+        owner = subprocess.Popen([sys.executable, __file__, "owner", str(pid_file)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        try:
+            deadline = time.monotonic() + 3
+            while not pid_file.exists() and time.monotonic() < deadline:
+                time.sleep(0.02)
+            if not pid_file.exists():
+                raise RuntimeError("synthetic owned child did not start")
+            pid = int(pid_file.read_text())
+            owner.send_signal(termination)
+            owner.communicate(timeout=12)
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                pass
+            else:
+                os.kill(pid, signal.SIGKILL)
+                raise RuntimeError("owned child survived owner termination")
+        finally:
+            if owner.poll() is None:
+                owner.kill()
+                owner.communicate()
+
+
+def check():
+    check_sources()
+    with tempfile.TemporaryDirectory(prefix="typed-harness-preflight-") as temporary:
+        root = Path(temporary)
+        inputs = request(1, "NCT02563002") + request(2, "lung cancer")
+        successful = root / "successful"
+        successful.mkdir()
+        run = subprocess.run([sys.executable, __file__, "bridge", str(successful)], input=inputs, capture_output=True, timeout=5)
+        if run.returncode or (successful / "requests.jsonl").read_bytes() != inputs:
+            raise RuntimeError(f"synthetic forwarding failed: {run.stderr!r}")
+        if (successful / "replies.jsonl").read_bytes() != run.stdout or run.stdout.count(b'"synthetic":true') != 2:
+            raise RuntimeError("reply bytes changed or replies were lost")
+        refused = root / "refused"
+        refused.mkdir()
+        run = subprocess.run([sys.executable, __file__, "bridge", str(refused)], input=inputs + request(3, "lung cancer"), capture_output=True, timeout=5)
+        if run.returncode == 0 or b"unexpected tools/call" not in run.stderr:
+            raise RuntimeError("third-call bound failed")
+        both_errors = root / "both-errors"
+        both_errors.mkdir()
+        run = subprocess.run([sys.executable, __file__, "bridge", str(both_errors), "both-errors"], input=inputs, capture_output=True, timeout=5)
+        if run.returncode == 0 or b"expected complete success" not in run.stderr:
+            raise RuntimeError("two-error pair silently passed")
+        cancellation(root)
+    print("Synthetic complete+usage pass, two-error rejection, byte forwarding, call bound and TERM/HUP cleanup pass; no product/client/provider ran")
+
+
+def transport(host):
+    scratch = remote_scratch(host)
+    try:
+        with tempfile.TemporaryDirectory(prefix="typed-transfer-preflight-") as temporary:
+            payload = Path(temporary) / "public ' quoted payload.txt"
+            payload.write_bytes(b"synthetic public transport payload\x00\n")
+            for source in [Path(__file__).with_name("typed_harness_smoke.py"), Path(__file__).with_name("typed_harness_turn_limit.ts"), payload]:
+                copy_script(host, source, scratch)
+            try:
+                copy_script(host, payload, scratch)
+            except subprocess.CalledProcessError as error:
+                if b"FileExistsError" not in error.stderr:
+                    raise
+            else:
+                raise RuntimeError("duplicate destination was not refused")
+    finally:
+        cleanup_remote_scratch(host, scratch)
+    ssh(host, ["test", "!", "-e", scratch], timeout=15)
+    print("SSH receiving hashes, duplicate refusal and bounded private scratch cleanup pass; no product/client/provider ran")
+
+
+if __name__ == "__main__":
+    action = sys.argv[1] if len(sys.argv) > 1 else "check"
+    if action == "server":
+        server(len(sys.argv) > 2 and sys.argv[2] == "both-errors")
+    elif action == "bridge":
+        bridge(sys.argv[2], len(sys.argv) > 3 and sys.argv[3] == "both-errors")
+    elif action == "check":
+        check()
+    elif action == "owner":
+        signal.signal(signal.SIGTERM, interrupted)
+        signal.signal(signal.SIGHUP, interrupted)
+        own_process([sys.executable, __file__, "sleeper", sys.argv[2]], 180)
+    elif action == "sleeper":
+        Path(sys.argv[2]).write_text(str(os.getpid()))
+        time.sleep(180)
+    elif action == "transport":
+        transport(sys.argv[2])
+    else:
+        raise SystemExit("expected check, bridge, or server")

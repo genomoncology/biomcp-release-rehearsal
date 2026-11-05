@@ -1406,14 +1406,14 @@
         },
         "biomarker_code": {
           "$ref": "#/$defs/Reply_NcitId",
-          "description": "Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
+          "description": "NCI NCIt code.\nExact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. This listing does not establish biomarker positivity or patient eligibility."
         },
         "biomarker_use": {
           "$ref": "#/$defs/Reply_NciBiomarkerUse",
-          "description": "Filter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
+          "description": "NCI criterion.\nFilter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
         },
         "condition": {
-          "description": "Condition alternatives joined with OR; NCI requires NCIt codes.",
+          "description": "Disease or NCIt.\nCondition alternatives joined with OR; NCI requires NCIt codes.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
@@ -1422,14 +1422,14 @@
         },
         "condition_id": {
           "$ref": "#/$defs/Reply_Curie",
-          "description": "Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."
+          "description": "MONDO/DOID/NCIT:C.\nExact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."
         },
         "count_only": {
-          "description": "Source total only; no returned study rows.",
+          "description": "Total.\nSource total only; no returned study rows.",
           "type": "boolean"
         },
         "country": {
-          "description": "Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+          "description": "Country label; biomcp_help search trial.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
           "items": {
             "enum": [
               "Afghanistan",
@@ -1666,34 +1666,34 @@
         },
         "criteria": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Search literal registry eligibility text for discovery only; no eligibility judgment."
+          "description": "Criteria text.\nSearch literal registry eligibility text for discovery only; no eligibility judgment."
         },
         "distance": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Source distance with explicit mi or km units."
+          "description": "Radius, mi or km.\nSource distance with explicit mi or km units."
         },
         "exact_condition": {
-          "description": "Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
+          "description": "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
           "type": "boolean"
         },
         "facility": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
+          "description": "Facility.\nFacility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
         },
         "gene": {
           "$ref": "#/$defs/Reply_GeneInput",
-          "description": "Resolve one checked gene for registry text discovery only; no eligibility judgment."
+          "description": "Gene symbol/ID.\nResolve one checked gene for registry text discovery only; no eligibility judgment."
         },
         "has_results": {
-          "description": "Require posted source results.",
+          "description": "Posted results.\nRequire posted source results.",
           "type": "boolean"
         },
         "id": {
           "$ref": "#/$defs/Reply_NctId",
-          "description": "Exact NCT identity in a conjunction with other filters."
+          "description": "NCT identifier.\nExact NCT identity in a conjunction with other filters."
         },
         "intervention": {
-          "description": "Intervention alternatives joined with OR; supported by ClinicalTrials.gov.",
+          "description": "Treatment terms; OR.\nIntervention alternatives joined with OR; supported by ClinicalTrials.gov.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
@@ -1701,7 +1701,7 @@
           "type": "array"
         },
         "keyword": {
-          "description": "Repeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
+          "description": "Text; OR.\nRepeat for ClinicalTrials.gov general text alternatives joined with OR; different filters combine with AND. NCI accepts one keyword.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
@@ -1710,7 +1710,7 @@
         },
         "lat": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Radius center latitude in degrees."
+          "description": "Latitude degrees.\nRadius center latitude in degrees."
         },
         "limit": {
           "default": 10,
@@ -1722,11 +1722,11 @@
         },
         "lon": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Radius center longitude in degrees."
+          "description": "Longitude degrees.\nRadius center longitude in degrees."
         },
         "next_page": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Opaque registry continuation; keep filters unchanged."
+          "description": "Page token.\nOpaque registry continuation; keep filters unchanged."
         },
         "offset": {
           "default": 0,
@@ -1737,11 +1737,11 @@
         },
         "phase": {
           "$ref": "#/$defs/Reply_TrialPhaseFilter",
-          "description": "Exact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
+          "description": "Native phase.\nExact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
         },
         "query": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "General registry discovery text.",
+          "description": "Trial text.\nGeneral registry discovery text.",
           "x-positional": 0
         },
         "sex": {
@@ -1750,35 +1750,35 @@
         },
         "source": {
           "$ref": "#/$defs/Reply_TrialSource",
-          "description": "Explicit provider; defaults to ClinicalTrials.gov and never falls back."
+          "description": "clinicaltrials/nci.\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
         },
         "sponsor": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Sponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
+          "description": "Sponsor.\nSponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
         },
         "sponsor_type": {
           "$ref": "#/$defs/Reply_SponsorType",
-          "description": "Registry sponsor funding category; use --sponsor for a sponsor name."
+          "description": "Funding class.\nRegistry sponsor funding category; use --sponsor for a sponsor name."
         },
         "status": {
           "$ref": "#/$defs/Reply_TrialStatusFilter",
-          "description": "Exact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
+          "description": "Native status.\nExact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
         },
         "study_type": {
           "$ref": "#/$defs/Reply_StudyType",
-          "description": "Exact registry study type."
+          "description": "Study type.\nExact registry study type."
         },
         "updated_since": {
           "$ref": "#/$defs/Reply_PartialDate",
-          "description": "First included registry update date."
+          "description": "First date.\nFirst included registry update date."
         },
         "updated_until": {
           "$ref": "#/$defs/Reply_PartialDate",
-          "description": "Last included registry update date."
+          "description": "Last date.\nLast included registry update date."
         },
         "variant": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Literal variant text for registry discovery only; no eligibility judgment."
+          "description": "Variant text.\nLiteral variant text for registry discovery only; no eligibility judgment."
         }
       },
       "type": "object"

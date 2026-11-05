@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "InterPro",
+    discovery_aliases: &[],
     registry_order: Some(22),
     probe: Probe::Get(
         "/entry/interpro/protein/uniprot/P00533/",

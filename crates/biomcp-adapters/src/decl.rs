@@ -36,6 +36,8 @@ pub struct SourceDecl {
     pub spec: &'static SourceSpec,
     /// Publisher's display name.
     pub display: &'static str,
+    /// Explicit publisher names used in command descriptions.
+    pub discovery_aliases: &'static [&'static str],
     /// Direct request discovery order; components have no direct request.
     pub registry_order: Option<usize>,
     /// Explicit bounded health behavior.

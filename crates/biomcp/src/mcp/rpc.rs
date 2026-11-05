@@ -17,7 +17,8 @@ pub(super) fn message(
     frame: &[u8],
     legacy: &mut bool,
     read_only: bool,
-    root: &crate::grammar::Root,
+    context: crate::command::Context<'_>,
+    mode: crate::config::ToolMode,
 ) -> Message {
     let Ok(value) = serde_json::from_slice::<Value>(frame) else {
         return Message::Reply(protocol::error(Value::Null, -32700, "Parse error"));
@@ -52,7 +53,7 @@ pub(super) fn message(
             return Message::Reply(error);
         }
     } else if method == "initialize" {
-        let Some(result) = legacy::initialize(&params) else {
+        let Some(result) = legacy::initialize(&params, mode, context) else {
             return Message::Reply(protocol::error(id.clone(), -32602, "Invalid params"));
         };
         *legacy = true;
@@ -60,8 +61,12 @@ pub(super) fn message(
     }
     let result = match method {
         "ping" => json!({}),
-        "server/discover" => current::discover(),
-        "tools/list" => match protocol::tools(root, read_only) {
+        "server/discover" => current::discover(mode, context),
+        "tools/list" => match if mode == crate::config::ToolMode::Typed {
+            super::typed::tools(context, read_only)
+        } else {
+            protocol::tools(context.root, read_only)
+        } {
             Ok(tools) => json!({"tools":tools}),
             Err(_) => {
                 return Message::Reply(protocol::error(

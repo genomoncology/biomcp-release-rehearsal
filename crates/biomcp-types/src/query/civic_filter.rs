@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CivicEvidenceFilter {
-    /// Native CIViC evidence levels; repeat to include several levels.
+    #[doc = "A–E\nNative CIViC evidence levels; repeat to include several levels."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     pub evidence_level: Box<[CivicEvidenceLevel]>,
-    /// Native CIViC evidence status; omitted preserves the source's existing default.
+    #[doc = "Status\nNative CIViC evidence status; omitted preserves the source's existing default."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub evidence_status: Option<CivicEvidenceStatus>,
 }

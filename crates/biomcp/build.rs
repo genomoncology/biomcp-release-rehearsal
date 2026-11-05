@@ -58,6 +58,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         PathBuf::from(env::var("OUT_DIR")?).join("front-map.txt"),
         &map,
     )?;
+    let typed_map = front_map::generate_typed(&schemas)?;
+    if typed_map.chars().count() > 4096 {
+        return Err(format!(
+            "typed front map exceeds 4096 characters: {}",
+            typed_map.chars().count()
+        )
+        .into());
+    }
+    fs::write(
+        PathBuf::from(env::var("OUT_DIR")?).join("typed-front-map.txt"),
+        typed_map,
+    )?;
     embed_skills(&map)?;
     embed_examples()
 }

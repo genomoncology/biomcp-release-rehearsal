@@ -86,16 +86,17 @@
       "description": "Checked stored source record, supplied by a continuation."
     },
     "section": {
-      "description": "Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.",
+      "description": "Optional intact source sections. Default cards only;; biomcp_help get trial",
       "items": {
         "$ref": "#/$defs/TrialSection"
       },
       "type": "array",
+      "x-section-rule": "Optional intact source sections. Default cards only; diseases and summary require NCI. NCI locations, contacts, references and documents are unsupported.",
       "x-trailing-section": true
     },
     "source": {
       "$ref": "#/$defs/TrialSource",
-      "description": "Explicit provider; defaults to ClinicalTrials.gov and never falls back."
+      "description": "Explicit provider; defaults to ClinicalTrials.gov and; biomcp_help get trial\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
     }
   },
   "required": [

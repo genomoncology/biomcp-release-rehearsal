@@ -8,6 +8,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "FDA MAUDE",
+    discovery_aliases: &[],
     registry_order: Some(58),
     probe: Probe::Custom(probe),
     components: &[GMDN_COMPONENT],
@@ -27,6 +28,7 @@ pub(crate) static GMDN: SourceDecl = SourceDecl {
         GMDN_COMPONENT.terms,
     ),
     display: "GMDN",
+    discovery_aliases: &[],
     registry_order: None,
     probe: Probe::Component,
     components: &[],

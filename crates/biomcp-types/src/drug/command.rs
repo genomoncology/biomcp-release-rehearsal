@@ -17,7 +17,8 @@ impl schemars::JsonSchema for DrugGetCommand {
             if let Some(object) = input.as_object_mut() {
                 object.insert(
                     "description".into(),
-                    concat!("Source-native ID or complete brand or generic name; WHO references retain native spaces. ",
+                    concat!("Source ID, brand or generic name.\n",
+                        "Source-native ID or complete brand or generic name; WHO references retain native spaces. ",
                         "Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. ",
                         "Other sources retain search order. The chosen record reports up to five alternatives and their total.").into(),
                 );

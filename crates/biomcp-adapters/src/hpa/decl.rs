@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Human Protein Atlas",
+    discovery_aliases: &[],
     registry_order: Some(32),
     probe: Probe::Get("/ENSG00000157764.json", &[]),
     components: &[],

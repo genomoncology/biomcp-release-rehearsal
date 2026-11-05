@@ -1,0 +1,71 @@
+{
+  "feature": "query-validation",
+  "live_check": "offline parser-only; no source requests",
+  "story": "Nullable numeric failures retain source-owned accepted forms and bounds.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "aspirin",
+        "--civic-profile",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Selected native CIViC molecular profile for a drug-scoped claim stream. Minimum: 1. Maximum: 2147483647."
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "aspirin",
+        "--section-limit",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Named section page size, refused on an identity-only card. Minimum: 1. Maximum: 50."
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "aspirin",
+        "--section-offset",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Named section continuation, refused on an identity-only card. Minimum: 0."
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "--civic-profile",
+        "old-value"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/valid_values/0": "Selected CIViC molecular profile for native claim paging. Minimum: 1. Maximum: 2147483647."
+      }
+    }
+  ]
+}

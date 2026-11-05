@@ -265,8 +265,26 @@ impl Service {
         } else {
             None
         };
+        let keys = self.catalog_keys(request, &value);
+        let Ok(keys) = keys else {
+            return (
+                400,
+                Some(json!({"error":"Invalid source key headers"})),
+                Some(revision),
+            );
+        };
+        let mut context =
+            crate::command::Context::new(&self.globals, &self.fetch, &self.root, &self.settings);
+        context.declared_use = declared_use;
+        context.secrets = keys.as_ref();
         let mut legacy = revision != super::protocol::REVISIONS[0];
-        let result = match super::rpc::message(&request.body, &mut legacy, true, &self.root) {
+        let result = match super::rpc::message(
+            &request.body,
+            &mut legacy,
+            true,
+            context,
+            crate::config::mcp_tool_mode(&self.globals, &self.settings),
+        ) {
             super::rpc::Message::Reply(reply) => reply,
             super::rpc::Message::Notification { .. } => return (202, None, Some(revision)),
             super::rpc::Message::Tool { id, params, modern } => {
@@ -280,6 +298,22 @@ impl Service {
         };
         (status, Some(result), Some(revision))
     }
+    fn catalog_keys(
+        &self,
+        request: &wire::Request,
+        value: &Value,
+    ) -> io::Result<Option<biomcp_fetch::Secrets>> {
+        (self.globals.hosted
+            && crate::config::mcp_tool_mode(&self.globals, &self.settings)
+                == crate::config::ToolMode::Typed
+            && matches!(
+                value.get("method").and_then(Value::as_str),
+                Some("tools/list" | "server/discover" | "initialize")
+            ))
+        .then(|| request.source_keys())
+        .transpose()
+    }
+
     fn tool(
         &self,
         request: &wire::Request,
@@ -292,12 +326,9 @@ impl Service {
         let scope = self.globals.hosted.then(|| {
             biomcp_fetch::Cancellation::with_budget(crate::config::budget(&self.settings))
         });
-        let Some(call) = super::research::parse(params) else {
-            return (
-                200,
-                Some(super::protocol::error(id, -32602, "Invalid params")),
-                Some(revision),
-            );
+        let call = match self.parse_tool(&id, params, modern) {
+            Ok(call) => call,
+            Err(reply) => return (200, Some(reply), Some(revision)),
         };
         let keys = if self.globals.hosted {
             let keys = match request.source_keys() {
@@ -341,16 +372,44 @@ impl Service {
                 },
                 true,
             ) {
-                Ok(outcome) => super::protocol::tool_result(
+                Ok(outcome) => super::typed::tool_result(
                     id,
                     &outcome,
                     modern,
-                    crate::config::mcp_reply_form(&self.settings),
+                    &self.globals,
+                    &self.settings,
+                    &self.root,
+                    &call.args,
                 ),
                 Err(_) => super::protocol::error(id, -32603, "Internal error"),
             }
         };
         (200, Some(result), Some(revision))
+    }
+    fn parse_tool(
+        &self,
+        id: &Value,
+        params: &Value,
+        modern: bool,
+    ) -> Result<super::research::Call, Value> {
+        let call = super::typed::parse(
+            &self.root,
+            params,
+            crate::config::mcp_tool_mode(&self.globals, &self.settings),
+            self.globals.fresh,
+        )
+        .ok_or_else(|| super::protocol::error(id.clone(), -32602, "Invalid params"))?;
+        call.map_err(|rejected| {
+            super::typed::rejection(
+                id.clone(),
+                rejected,
+                modern,
+                &self.globals,
+                &self.settings,
+                &self.root,
+            )
+            .unwrap_or_else(|_| super::protocol::error(id.clone(), -32603, "Internal error"))
+        })
     }
     fn allowed(&self, request: &wire::Request) -> bool {
         if !matches!(request.one("origin"), Ok(None)) {

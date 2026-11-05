@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Mutalyzer",
+    discovery_aliases: &[],
     registry_order: Some(13),
     probe: Probe::Get("/normalize/NM_004333.4:c.1799T%3EA", &[]),
     components: &[],

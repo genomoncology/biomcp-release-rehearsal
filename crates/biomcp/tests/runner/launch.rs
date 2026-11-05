@@ -3,9 +3,10 @@ use std::{fs, io, path::Path, sync::Arc};
 use biomcp_test_support::environment as child_environment;
 pub(super) use child_environment::ENV_PATHS;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(super) struct Environment {
     root: Arc<tempfile::TempDir>,
+    selected_executable: Option<std::path::PathBuf>,
     replay_owner: Option<Arc<tempfile::TempDir>>,
     transcript: Option<Arc<super::transcript::Context>>,
 }
@@ -15,9 +16,18 @@ impl Environment {
         let root = child_environment::new()?;
         Ok(Self {
             root: Arc::new(root),
+            selected_executable: None,
             replay_owner: None,
             transcript: super::transcript::current(),
         })
+    }
+
+    tool_only! {
+    pub(super) fn using_executable(&self, binary: &Path) -> Self {
+        let mut environment = self.clone();
+        environment.selected_executable = Some(executable(binary));
+        environment
+    }
     }
 
     pub(super) fn with_replay_owner(mut self, owner: Arc<tempfile::TempDir>) -> Self {
@@ -75,8 +85,14 @@ impl Environment {
         args: &[String],
         transcript_args: &[String],
     ) -> super::capture::Capture {
-        let mut command =
-            child_environment::command(&executable(program.as_ref()), self.root.path(), args);
+        let selected = if program.as_ref() == Path::new(env!("CARGO_BIN_EXE_biomcp")) {
+            self.selected_executable
+                .clone()
+                .unwrap_or_else(|| executable(program.as_ref()))
+        } else {
+            executable(program.as_ref())
+        };
+        let mut command = child_environment::command(&selected, self.root.path(), args);
         let nested = std::env::current_exe().is_ok_and(|runner| runner == program.as_ref());
         if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE")
             && let Some(directory) = Path::new(&profile).parent()
@@ -175,5 +191,16 @@ pub(super) fn native_budget(key: &str) -> Result<usize, String> {
         .get(key)
         .copied()
         .ok_or_else(|| format!("unmeasured native proof: {key}"))
+}
+}
+
+tool_only! {
+// Required explicit historical wire-compatibility input at the launcher boundary.
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The launcher reads the explicit installed baseline path"
+)]
+pub(super) fn typed_baseline() -> Option<std::path::PathBuf> {
+    std::env::var_os("BIOMCP_TYPED_BASELINE").map(std::path::PathBuf::from)
 }
 }

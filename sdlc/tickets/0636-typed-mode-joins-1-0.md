@@ -1,6 +1,7 @@
 # Typed MCP mode joins the 1.0 release as an opt-in setting
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d05185e6267c40c40805c5909db20afab3bd6efd
 Milestone: 5
 Depends on: 0629, 0630, 0631, 0632
 

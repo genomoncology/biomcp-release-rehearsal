@@ -18,7 +18,7 @@
         "/result/commands/0/examples": {
           "count": 1
         },
-        "/result/commands/0/description": "Checked gene-keyed CPIC pair search. Sources: cpic.",
+        "/result/commands/0/description": "Search pharmacogenomic gene and drug pairs. Sources: cpic.",
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--gene",
@@ -51,7 +51,7 @@
         "/result/commands/0/examples": {
           "count": 1
         },
-        "/result/commands/0/description": "PGx card or section. Sources: clinpgx, cpic.",
+        "/result/commands/0/description": "Get pharmacogenomic evidence and source sections. Sources: clinpgx, cpic.",
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
             "--gene",

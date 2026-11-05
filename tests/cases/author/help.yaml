@@ -13,7 +13,7 @@
             "--pool"
           ]
         },
-        "/result/commands/0/description": "Exact author name query and source window; positional text maps to query. Sources: semantic-scholar.",
+        "/result/commands/0/description": "Search research paper authors. Sources: semantic-scholar.",
         "/result/commands/0/examples": {
           "count": 1
         },
@@ -34,7 +34,7 @@
             "ids"
           ]
         },
-        "/result/commands/0/description": "Exact qualified records in caller order, with no name reconciliation. Sources: orcid, semantic-scholar.",
+        "/result/commands/0/description": "Get research author details. Sources: orcid, semantic-scholar.",
         "/result/commands/0/examples": {
           "count": 1
         },

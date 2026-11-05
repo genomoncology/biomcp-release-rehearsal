@@ -7,6 +7,7 @@ mod output_schema;
 mod protocol;
 mod research;
 mod rpc;
+mod typed;
 mod worker;
 
 use framing::Frame;
@@ -27,6 +28,7 @@ enum Event {
 }
 
 struct Call {
+    args: Vec<std::ffi::OsString>,
     id: Value,
     modern: bool,
     cancelled: bool,
@@ -119,7 +121,13 @@ fn start_input(sender: mpsc::SyncSender<Event>) -> io::Result<()> {
 
 impl Server {
     fn message(&mut self, frame: &[u8]) -> io::Result<Option<Value>> {
-        match rpc::message(frame, &mut self.legacy, self.globals.hosted, &self.root) {
+        match rpc::message(
+            frame,
+            &mut self.legacy,
+            self.globals.hosted,
+            crate::command::Context::new(&self.globals, &self.fetch, &self.root, &self.settings),
+            crate::config::mcp_tool_mode(&self.globals, &self.settings),
+        ) {
             rpc::Message::Reply(reply) => Ok(Some(reply)),
             rpc::Message::Tool { id, params, modern } => self.admit(id, &params, modern),
             rpc::Message::Notification { method, params } => {
@@ -138,8 +146,27 @@ impl Server {
     }
 
     fn admit(&mut self, id: Value, params: &Value, modern: bool) -> io::Result<Option<Value>> {
-        let Some(call) = research::parse(params) else {
+        let Some(call) = typed::parse(
+            &self.root,
+            params,
+            crate::config::mcp_tool_mode(&self.globals, &self.settings),
+            self.globals.fresh,
+        ) else {
             return Ok(Some(protocol::error(id, -32602, "Invalid params")));
+        };
+        let call = match call {
+            Ok(call) => call,
+            Err(rejected) => {
+                return typed::rejection(
+                    id,
+                    rejected,
+                    modern,
+                    &self.globals,
+                    &self.settings,
+                    &self.root,
+                )
+                .map(Some);
+            }
         };
         let key = id.to_string();
         if self.active.contains_key(&key) {
@@ -167,12 +194,16 @@ impl Server {
             ),
         };
         let scope = recovery.as_ref().and(cancellation.clone());
-        self.start_call(key, id, modern, cancellation, move || {
+        let original_args = call.args.clone();
+        self.start_call(key.clone(), id, modern, cancellation, move || {
             let mut context = crate::command::Context::new(&globals, &fetch, &root, &settings);
             context.recovery = recovery.as_deref();
             context.scope = scope.as_ref();
             research::execute(&call, context, false)
         })?;
+        if let Some(call) = self.active.get_mut(&key) {
+            call.args = original_args;
+        }
         Ok(None)
     }
 
@@ -199,6 +230,7 @@ impl Server {
         self.active.insert(
             key,
             Call {
+                args: Vec::new(),
                 id,
                 modern,
                 cancelled: false,
@@ -224,11 +256,14 @@ impl Server {
             return Ok(None);
         }
         Ok(Some(match outcome {
-            Ok(outcome) => protocol::tool_result(
+            Ok(outcome) => typed::tool_result(
                 call.id,
                 &outcome,
                 call.modern,
-                crate::config::mcp_reply_form(&self.settings),
+                &self.globals,
+                &self.settings,
+                &self.root,
+                &call.args,
             ),
             Err(_) => protocol::error(call.id, -32603, "Internal error"),
         }))

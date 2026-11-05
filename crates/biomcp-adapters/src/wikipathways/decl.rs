@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "WikiPathways",
+    discovery_aliases: &[],
     registry_order: Some(25),
     probe: Probe::Get("/help.html", &[]),
     components: &[],

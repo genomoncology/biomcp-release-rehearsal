@@ -3,6 +3,7 @@ use crate::decl::{Guidance, Probe, SourceDecl};
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "Cancer Hotspots",
+    discovery_aliases: &[],
     registry_order: Some(27),
     probe: Probe::Get("/api/hotspots/single/byGene/BRAF", &[]),
     components: &[],

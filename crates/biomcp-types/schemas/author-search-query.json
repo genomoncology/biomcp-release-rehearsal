@@ -49,7 +49,7 @@
     "source": {
       "$ref": "#/$defs/AuthorSearchSource",
       "default": "semantic-scholar",
-      "description": "Native author source."
+      "description": "Native author source; biomcp_help search author\nNative author source."
     }
   },
   "required": [

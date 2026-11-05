@@ -4,6 +4,7 @@ use biomcp_fetch::Arg;
 pub(crate) static DECL: SourceDecl = SourceDecl {
     spec: &super::SPEC,
     display: "cBioPortal",
+    discovery_aliases: &[],
     registry_order: Some(43),
     probe: Probe::Get("/studies", &[("pageSize", Arg::Num(1))]),
     components: &[],
