@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=%22pancreatic%22&limit=2&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1793898000,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\": {\"results\": {\"skip\": 0, \"limit\": 2, \"total\": 4}}, \"results\": [{\"id\": \"00000000-0000-4000-8000-000000000004\", \"set_id\": \"00000000-0000-4000-8000-000000000004\", \"effective_time\": \"20261105\", \"version\": \"1\", \"openfda\": {\"brand_name\": [\"Incidental warning product\"]}, \"warnings\": [\"Pancreatic events were reported.\"]}, {\"id\": \"00000000-0000-4000-8000-000000000001\", \"set_id\": \"00000000-0000-4000-8000-000000000001\", \"effective_time\": \"20261105\", \"version\": \"1\", \"openfda\": {\"brand_name\": [\"Indication therapy\"]}, \"indications_and_usage\": [\"For pancreatic disease.\"]}]}"
+      }
+    }
+  ]
+}

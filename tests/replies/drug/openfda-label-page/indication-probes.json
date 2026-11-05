@@ -1,0 +1,6 @@
+{
+  "provenance": "Authored NOT_FOUND responses for the added indication-field discovery stage. These permit existing label-text replay controls to continue to their original recorded query; they are not live provider observations.",
+  "urls": [
+    "https://api.fda.gov/drug/label.json?search=indications_and_usage%3A%22chronic%20myeloid%20leukemia%22&limit=10&sort=effective_time%3Adesc"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=set_id%3A%224764f37b-c9e6-4ede-bcc2-8a03b7c521df%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\": {\"disclaimer\": \"Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.\", \"terms\": \"https://open.fda.gov/terms/\", \"license\": \"https://open.fda.gov/license/\", \"last_updated\": \"2026-11-04\", \"results\": {\"skip\": 0, \"limit\": 1, \"total\": 1}}, \"results\": [{\"spl_product_data_elements\": [\"SPRYCEL dasatinib dasatinib dasatinib anhydrous lactose monohydrate MICROCRYSTALLINE CELLULOSE croscarmellose sodium HYDROXYPROPYL CELLULOSE (1600000 WAMW) magnesium stearate HYPROMELLOSE, UNSPECIFIED titanium dioxide POLYETHYLENE GLYCOL, UNSPECIFIED biconvex BMS;527 SPRYCEL dasatinib dasatinib dasatinib anhydrous lactose monohydrate MICROCRYSTALLINE CELLULOSE croscarmellose sodium HYDROXYPROPYL CELLULOSE (1600000 WAMW) magnesium stearate HYPROMELLOSE, UNSPECIFIED titanium dioxide POLYETHYLENE GLYCOL, UNSPECIFIED biconvex BMS;528 SPRYCEL dasatinib dasatinib dasatinib anhydrous lactose monohydrate MICROCRYSTALLINE CELLULOSE croscarmellose sodium HYDROXYPROPYL CELLULOSE (1600000 WAMW) magnesium stearate HYPROMELLOSE, UNSPECIFIED titanium dioxide POLYETHYLENE GLYCOL, UNSPECIFIED biconvex BMS;524 SPRYCEL dasatinib dasatinib dasatinib anhydrous lactose monohydrate MICROCRYSTALLINE CELLULOSE croscarmellose sodium HYDROXYPROPYL CELLULOSE (1600000 WAMW) magnesium stearate HYPROMELLOSE, UNSPECIFIED titanium dioxide POLYETHYLENE GLYCOL, UNSPECIFIED biconvex BMS80;855 SPRYCEL dasatinib dasatinib dasatinib anhydrous lactose monohydrate MICROCRYSTALLINE CELLULOSE croscarmellose sodium HYDROXYPROPYL CELLULOSE (1600000 WAMW) magnesium stearate HYPROMELLOSE, UNSPECIFIED titanium dioxide POLYETHYLENE GLYCOL, UNSPECIFIED biconvex BMS100;852 SPRYCEL dasatinib dasatinib dasatinib anhydrous lactose monohydrate MICROCRYSTALLINE CELLULOSE croscarmellose sodium HYDROXYPROPYL CELLULOSE (1600000 WAMW) magnesium stearate HYPROMELLOSE, UNSPECIFIED titanium dioxide POLYETHYLENE GLYCOL, UNSPECIFIED biconvex BMS140;857\"], \"set_id\": \"4764f37b-c9e6-4ede-bcc2-8a03b7c521df\", \"id\": \"860a6889-e984-452f-9f99-f4c68ba6eaca\", \"effective_time\": \"20260821\", \"version\": \"48\", \"openfda\": {}}]}"
+      }
+    }
+  ]
+}

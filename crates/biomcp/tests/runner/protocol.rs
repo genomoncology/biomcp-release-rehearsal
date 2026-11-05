@@ -1,3 +1,5 @@
+#[path = "label_priority.rs"]
+mod label_priority;
 #[path = "mcp_reply_form.rs"]
 mod reply_form;
 #[path = "protocol_schemas.rs"]
@@ -87,6 +89,7 @@ pub(super) fn trials() -> Vec<Trial> {
             discovery().map_err(Into::into)
         }),
     ];
+    trials.extend(label_priority::trials());
     tool_only! {
         trials.push(transcript_trial("mcp-parity/typed-baseline-and-replay-guards", || {
             typed::guards().map_err(Into::into)

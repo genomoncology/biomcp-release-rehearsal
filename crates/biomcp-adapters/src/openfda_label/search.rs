@@ -10,10 +10,10 @@ use biomcp_fetch::{Leg, RequestError};
 pub struct Search {
     /// Candidate page or source failure.
     pub page: Result<Page, RequestError>,
-    /// Exact unfielded selector when discovery reached the free-text step.
+    /// Native label-text selector when discovery passed the name fields.
     pub free_text: Option<Text>,
 }
-/// Discover exact applications or names, then words, then free text.
+/// Discover applications or names, then indication wording, then other label text.
 pub fn search(leg: &Leg<'_>, name: &Text, limit: u32, offset: u32) -> Search {
     let mut free_text = None;
     let page = discover(leg, name, limit, offset, &mut free_text, None);
@@ -99,15 +99,24 @@ fn discover(
         let name = literal(name.as_str());
         format!("openfda.brand_name{suffix}:{name} OR openfda.generic_name{suffix}:{name}")
     };
-    let exact = candidates(leg, &scoped(selector(".exact")), limit, offset)?;
-    if exact.window.total().is_some_and(|total| total > 0) {
-        return Ok(exact);
-    }
-    let fallback = candidates(leg, &scoped(selector("")), limit, offset)?;
-    // Preserve native matches, totals and offsets, even when a word match is
-    // not a complete product name. Select by total so later pages never switch queries.
-    if fallback.window.total().is_some_and(|total| total > 0) {
-        return Ok(fallback);
+    for (selector, label_text) in [
+        (scoped(selector(".exact")), false),
+        (scoped(selector("")), false),
+        (
+            scoped(format!("indications_and_usage:{}", literal(name.as_str()))),
+            true,
+        ),
+    ] {
+        let found = candidates(leg, &selector, limit, offset)?;
+        // Select by native total so exhausted pages never broaden the query.
+        if found.window.total().is_some_and(|total| total > 0) {
+            if label_text {
+                *free_text = Some(selector.parse().map_err(|_| {
+                    biomcp_fetch::bad_reply(biomcp_types::Source::OpenfdaLabel, Some(200))
+                })?);
+            }
+            return Ok(found);
+        }
     }
     let selector = literal(name.as_str());
     *free_text = Some(

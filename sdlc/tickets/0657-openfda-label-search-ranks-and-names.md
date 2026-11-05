@@ -1,6 +1,7 @@
 # 0657 — openFDA label search ranks its hits and names every one
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 290b2f278a7c411eb72e791df2bb4f2ffc996e90
 
 Milestone: 5
 

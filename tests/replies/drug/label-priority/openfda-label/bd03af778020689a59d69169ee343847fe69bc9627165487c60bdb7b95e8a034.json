@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=%22pancreatic%22&limit=2&sort=effective_time%3Adesc&skip=2",
+  "exchanges": [
+    {
+      "fetched": 1793898000,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\": {\"results\": {\"skip\": 2, \"limit\": 2, \"total\": 4}}, \"results\": [{\"id\": \"00000000-0000-4000-8000-000000000002\", \"set_id\": \"00000000-0000-4000-8000-000000000002\", \"effective_time\": \"20261105\", \"version\": \"1\", \"openfda\": {}, \"spl_product_data_elements\": [\"Native unnamed therapy\"], \"indications_and_usage\": [\"For pancreatic disease.\"]}, {\"id\": \"00000000-0000-4000-8000-000000000003\", \"set_id\": \"00000000-0000-4000-8000-000000000003\", \"effective_time\": \"20261105\", \"version\": \"1\", \"openfda\": {}, \"indications_and_usage\": [\"For pancreatic disease.\"]}]}"
+      }
+    }
+  ]
+}

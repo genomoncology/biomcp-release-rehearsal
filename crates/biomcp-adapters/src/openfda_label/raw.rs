@@ -37,7 +37,7 @@ impl Record {
             .map(Vec::as_slice)
             .filter(|parts| !parts.is_empty())
     }
-    /// Derive a checked display fallback without changing the original section strings.
+    /// Check product-data text without changing the original section strings.
     pub(super) fn product_name(&self) -> (Option<Text>, Vec<biomcp_types::Problem>) {
         let mut problems = crate::mapped::Problems {
             source: biomcp_types::Source::OpenfdaLabel,

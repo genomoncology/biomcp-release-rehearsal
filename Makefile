@@ -391,6 +391,30 @@ source-status-check:
 source-status-pre-review:
 	+$(MAKE) source-status-check check-cheap current-schema-check schema-release-check
 
+.PHONY: label-priority-check
+label-priority-check:
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/label-priority-evidence" cargo test --locked -p biomcp --test cases drug-label/indication-priority-and-native-pages $(TEST_THREADS)
+	@for selection in drug/indication.yaml drug/openfda-label-page.yaml drug/label-discovery.yaml drug/label-free-text.yaml drug/label-controls.yaml; do \
+		cargo test --locked -p biomcp --test cases "$$selection" $(TEST_THREADS) || exit $$?; \
+	done
+	cargo test --locked -p biomcp --test cases member-values/openfda-label $(TEST_THREADS)
+
+.PHONY: label-priority-integration
+label-priority-integration: fmt label-priority-check label-display-check
+	cargo clippy --locked -p biomcp-adapters -p biomcp-query -p biomcp --all-targets -- -D warnings
+	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)
+	python3 scripts/check_docs.py
+
+.PHONY: label-display-check
+label-display-check:
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/label-display-evidence" cargo test --locked -p biomcp --test cases drug-label/native-name-fallback $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases drug/label-display-body.yaml $(TEST_THREADS)
+
+.PHONY: label-display-baseline-check
+label-display-baseline-check:
+	cd target/label-display-baseline && shasum -a 256 -c binary.sha256
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/label-display-baseline/biomcp" BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/label-display-baseline-evidence" cargo test --locked -p biomcp --test cases drug-label/native-name-fallback $(TEST_THREADS)
+
 .PHONY: help-contract-check
 help-contract-check:
 	cargo test --locked -p biomcp --bin biomcp every_rendered_flag_retains_its_schema_or_parser_description $(TEST_THREADS)

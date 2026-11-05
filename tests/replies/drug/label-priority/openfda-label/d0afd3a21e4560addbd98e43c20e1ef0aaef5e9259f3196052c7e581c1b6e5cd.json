@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=indications_and_usage%3A%22pancreatic%22&limit=2&sort=effective_time%3Adesc&skip=3",
+  "exchanges": [
+    {
+      "fetched": 1793898000,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 1,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\": {\"results\": {\"skip\": 3, \"limit\": 2, \"total\": 3}}, \"results\": []}"
+      }
+    }
+  ]
+}
