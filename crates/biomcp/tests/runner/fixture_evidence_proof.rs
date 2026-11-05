@@ -4,7 +4,7 @@ use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use std::{
     fs,
-    io::{Read, Write},
+    io::Write,
     net::{Shutdown, TcpStream},
 };
 
@@ -115,7 +115,7 @@ fn aborted(finish: bool) -> Result<std::path::PathBuf, String> {
         .map_err(|e| e.to_string())?;
     // EOF acknowledges that the worker observed the incomplete CONNECT.
     let mut end = [0];
-    if client.read(&mut end).map_err(|e| e.to_string())? != 0 {
+    if super::super::socket_read::read(&mut client, &mut end).map_err(|e| e.to_string())? != 0 {
         return Err("partial CONNECT unexpectedly received a response".into());
     }
     drop(env);

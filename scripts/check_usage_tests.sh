@@ -4,7 +4,7 @@ set -eu
 cd "$(dirname "$0")/.."
 case "${1:-focused}" in
   docs)
-    exec python3 -c 'import json, os; command=json.load(open("sdlc/pm.json"))["ticketsGate"]; assert command.count("make landing-gate") == 1; os.execlp("sh", "sh", "-c", command.replace("make landing-gate", "make docs-check"))' ;;
+    exec sh scripts/make_goal.sh docs-check ;;
   scans)
     mkdir -p target/usage-installed/scans/baseline
     git archive 00b80ec46 crates/biomcp/src/grammar.rs crates/biomcp/src/grammar tests/cases/grammar | tar -xf - -C target/usage-installed/scans/baseline

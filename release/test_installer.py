@@ -2,6 +2,7 @@
 from release.artifacts import binary_archive
 from release.local_server import QuietHandler, https_server, server
 import hashlib
+import json
 import io
 import os
 from pathlib import Path
@@ -309,6 +310,45 @@ class Installer(unittest.TestCase):
             self.assertIn(message, result.stderr)
             self.assertFalse(self.destination.exists())
         self.assertEqual(self.install("--help").returncode, 0)
+
+
+class LegacyInstaller(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('BIOMCP_TEST_PINNED_INSTALLER'), 'requires pinned public installer download')
+    def test_pinned_public_installer_uses_only_local_candidate_archive(self):
+        from release.published import legacy_installer, check_version, run
+        import platform
+        suffix = 'darwin-' if sys.platform == 'darwin' else 'linux-'
+        suffix += 'arm64' if platform.machine() in ('arm64', 'aarch64') else 'x86_64'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifacts = root / 'candidate'
+            artifacts.mkdir()
+            content = b'#!/bin/sh\necho "biomcp 1.0.0"\n'
+            archive, _ = candidate(artifacts, 'biomcp-' + suffix + '.tar.gz', content)
+            from release.artifacts import wheel
+            record = {'revision': 'a' * 40, 'version': '1.0.0',
+                      'distribution': 'biomcp-cli', 'platform': 'manylinux_2_28_x86_64',
+                      'profile': 'release', 'cargo_profile': {'debug_assertions': False, 'opt_level': '3'},
+                      'binary_sha256': hashlib.sha256(content).hexdigest()}
+            binary = root / 'fake-binary'
+            binary.write_bytes(content)
+            write_payloads(artifacts)
+            wheel(artifacts, binary, record)
+            (artifacts / 'release.json').write_text(json.dumps(record))
+            command = legacy_installer(root, '1.0.0', artifacts, 'a' * 40)
+            check_version(run(command + ['version']), '1.0.0')
+            requested = [json.loads(line) for line in (root / 'downloads.jsonl').read_text().splitlines()]
+            self.assertEqual(requested, [archive.name, archive.name + '.sha256'])
+
+    def test_changed_pinned_script_is_refused_before_execution(self):
+        from release.published import legacy_installer
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            script = root / 'modified.sh'
+            script.write_text('exit 0')
+            with self.assertRaisesRegex(ValueError, 'checksum differs'):
+                legacy_installer(root, '1.0.0', root, 'a' * 40, script)
+            self.assertFalse((root / 'bin').exists())
 
 
 if __name__ == "__main__":

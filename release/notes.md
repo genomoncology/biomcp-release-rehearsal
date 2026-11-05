@@ -112,3 +112,54 @@ ClinVar VCV, RCV and SCV equality and hashing include the version. Rust callers 
 The candidate's schema identity changes appear below when these notes are staged. They compare current schemas with the preserved `release/migration-schema-baseline.tar.gz` history. Refreshing the compatibility baseline for a release does not replace that history. The [schema directory](https://github.com/genomoncology/biomcp/tree/main/crates/biomcp-types/schemas) defines output fields and required values. In particular, adverse-event snapshot fields become optional when a cache write fails; callers must handle their absence. A major bump permits an intentional breaking schema change. The schema check does not prohibit all breaking changes.
 
 Posted trial results are an explicit exception to the 1.0 command freeze. `get trial ID results` adds the ClinicalTrials.gov results section, including native group values, units, parameter and dispersion labels, analyses and adverse-event tables. The trial-cards reply schema adds `card.results_first_posted` and `sections.results`; the trial-get schema adds the `results` section. The card date is the first public posting date, not submission or last update. Values are reported source values, with no clinical calculations.
+
+
+## Qualification tooling revision
+
+This revision changes release qualification tooling while preserving application inputs from `ed9c36a963ef79317ac2568b495aea443e6d079e`. Its merge parents are that reference revision and tooling source `d81b7fb358309057396dfe229c0a2582b8c5ce4f`, in that order. The local platform matrix evidence is reused by protected-input byte identity; artifact source revisions remain independently embedded and checked.
+
+The changes add artifact/source binding, pinned installer and real plugin probes, interrupted-read handling in installed HTTP tests, canonical Make tool setup, and safe Windows remote command construction. History-scan exceptions remain exact blob/commit/file/line/rule matches.
+
+Every tracked path outside the 27 qualification paths below retains its reference bytes and file mode. This covers production crate sources and build scripts, dependency and feature configuration, package manifests, skills, plugin files, public user documentation, and immutable schema inputs.
+
+Protected input identity covers 4,614 files and 59,784,116 content bytes. Its SHA-256 is `58063d876dcb1971405ab99a08fe2dafeae31b67bf544e432a9d2a6c2c597cd6`. The digest starts with `biomcp-protected-inputs-v1` followed by NUL, then records sorted by raw path bytes; each record contains mode, type, path, decimal byte length and lowercase content SHA-256, with every field NUL-terminated.
+
+Unchanged schema and migration input SHA-256 values:
+
+| Input | SHA-256 |
+| --- | --- |
+| `release/schema-baseline.json` | `82b0a5e2ea2ac4fd0dd08ed145b6a98aecfcd4b9ceb4746d02400fdf5dac6f30` |
+| `release/schema-baseline.tar.gz` | `b4d569b4de963831b2216460c48f3190c9a10f568981d4270fe8594830fbf867` |
+| `release/migration-schema-baseline.tar.gz` | `a84699c334a7d11ecbe6f12e8f8cbd0c5e14e06d85fb977a5ff3357b31d95fd3` |
+
+Qualification paths changed from the reference revision:
+
+```text
+crates/biomcp/tests/runner/fixture_evidence_proof.rs
+crates/biomcp/tests/runner/held_proxy.rs
+crates/biomcp/tests/runner/http_limits.rs
+crates/biomcp/tests/runner/mod.rs
+crates/biomcp/tests/runner/proof.rs
+crates/biomcp/tests/runner/socket_read.rs
+release/artifacts.py
+release/notes.md
+release/published.py
+release/qualification.md
+release/secrets.ignore.jsonl
+release/smoke.py
+release/test_checks.py
+release/test_installer.py
+release/test_promotion.py
+scripts/check_http_read.sh
+scripts/check_release_channels.sh
+scripts/check_usage_tests.sh
+scripts/check_windows_release.cmd
+scripts/check_windows_release.sh
+scripts/check_windows_remote.sh
+scripts/make_goal.sh
+scripts/test_make_goal.py
+scripts/test_windows_remote.py
+scripts/test_windows_vm_lock.py
+scripts/windows_remote.py
+scripts/windows_vm_lock.sh
+```

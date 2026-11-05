@@ -74,6 +74,16 @@ windows_vm_release 1
         self.assertEqual((self.lock / "owner").read_text(), "thinkthen j321\n")
         self.assertFalse(self.log.exists())
 
+    def test_current_ticket_must_match_expected_ticket_before_claim(self):
+        labels = Path(self.env['JOB_LABEL_FILE'])
+        labels.write_text('pm.repo=biomcp-redux\npm.ticket=0293\n')
+        result = self.run_shell('windows_vm_claim 0621\n')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.lock.exists())
+        result = self.run_shell('windows_vm_claim 0293\nwindows_vm_release 0\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(self.lock.exists())
+
     def test_missing_actual_job_id_fails_before_claim(self):
         result = self.run_shell("windows_vm_claim\n", JOB_LABEL_FILE="")
         self.assertNotEqual(result.returncode, 0)
