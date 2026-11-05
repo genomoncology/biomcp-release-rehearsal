@@ -63,7 +63,8 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 - Build the defects and cheapest high-value gaps from the evals gap recheck (`planning/eval-gap-recheck-2026-11-04.md`) before the cut: errors that name the filter and boolean values 0604, the openFDA label search page 0605, MAUDE received dates 0606, posted trial results 0607, and every openFDA label section 0608. Ian put the rest in 1.0 too (2026-11-04, m24381): FAERS several names 0609, gnomAD homozygotes and joint totals 0610, device approval search and documents 0611, cBioPortal rows 0613, GWAS studies by PMID 0614, CIViC level filters 0615, WHO PQ dates 0616, cell-line filters 0617.
 - Cut the release candidate from main once every ticket above lands (0336).
 
-- Rehearse the final candidate on every platform (0293).
+- Rehearse the final candidate on every platform (0293), each section as its own job, rerunning only the section that fails (`decisions/2026-11-05-release-finds-no-bugs.md`).
+- Then make every release section pass alone on main before the next cut (0640), and run the multi-process cache checks under repeated load (0641).
 - Comparisons with 0.9.3 and agent benchmarks belong to the evals team (experiment 513), not BioMCP; 0402, 0405, 0462 and 0490 were handed over (Ian, 2026-11-03, m23337 and m23350). BioMCP tickets the changes evals marks as sure wins.
 - Ian approves BioData's public repository and its v1.0.0 tag, which 0459 pins (asked through Jarvis on 2026-11-01).
 - Ian approves the publication credentials and settings 0533 lists. The release workflow has no manual approval pause (0554).
