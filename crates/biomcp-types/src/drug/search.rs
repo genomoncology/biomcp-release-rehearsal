@@ -10,7 +10,9 @@ fn default_limit() -> u32 {
     10
 }
 #[doc = " Search one drug source. FDA drug recalls accept a name or native firm, classification, \
-    status, reason and initiation dates; counts are recall records. WHO prequalification accepts a name or date range. Other sources require a name."]
+    status, reason and initiation dates; counts are recall records. \
+    WHO prequalification accepts a name or date range. openFDA labels also accept literal indication wording. \
+    Other sources require a name."]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "SearchFields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -20,7 +22,9 @@ pub struct DrugSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Search phrase; optional for FDA drug recalls and WHO date ranges. Drugs@FDA searches brands and ingredients,
+    /// Name phrase; optional with supported source filters.
+    /// FDA drug recalls, WHO date ranges and label indication searches allow no name.
+    /// Drugs@FDA searches brands and ingredients,
     /// exact names before word matches. openFDA labels search exact then word brand/generic names,
     /// then label text (including indications) when no names match; source matches need not be exact names.
     /// Harmonized recall names match but never become display names.
@@ -32,6 +36,16 @@ struct SearchFields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     query: Option<Text>,
+    /// Literal label indication; openFDA labels only.
+    /// Search the native Indications and Usage field without disease synonym expansion.
+    /// An optional name query further narrows the same source search.
+    #[serde(
+        default,
+        deserialize_with = "present_query",
+        skip_serializing_if = "Option::is_none"
+    )]
+    #[cfg_attr(feature = "schema", schemars(with = "Text"))]
+    indication: Option<Text>,
     /// Literal published recalling firm phrase; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     firm: Option<Text>,
@@ -84,6 +98,9 @@ impl TryFrom<SearchFields> for DrugSearch {
         if !(1..=50).contains(&fields.limit) {
             return Err(QueryInvalid::new(&["limit"]));
         }
+        if fields.indication.is_some() && fields.source != DrugSource::OpenfdaLabel {
+            return Err(QueryInvalid::new(&["indication", "source"]));
+        }
         if fields.name_selector.is_some() && fields.source != DrugSource::Chembl {
             return Err(QueryInvalid::new(&["name_selector", "source"]));
         }
@@ -113,7 +130,9 @@ impl TryFrom<SearchFields> for DrugSearch {
         }
         super::recall::validate_search(
             fields.source,
-            fields.query.is_some() || (fields.source == DrugSource::WhoPq && who_dates),
+            fields.query.is_some()
+                || fields.indication.is_some()
+                || (fields.source == DrugSource::WhoPq && who_dates),
             fields.firm.is_some()
                 || fields.classification.is_some()
                 || fields.status.is_some()
@@ -139,6 +158,7 @@ impl DrugSearch {
     pub fn named(query: Text, source: DrugSource, limit: u32) -> Result<Self, QueryInvalid> {
         SearchFields {
             query: Some(query),
+            indication: None,
             source,
             limit,
             offset: 0,
@@ -174,6 +194,10 @@ impl DrugSearch {
     /// Literal source query, without rewriting.
     pub fn query(&self) -> Option<&Text> {
         self.0.query.as_ref()
+    }
+    /// Literal native Indications and Usage phrase; never an inferred indication.
+    pub fn indication(&self) -> Option<&Text> {
+        self.0.indication.as_ref()
     }
     /// Selected native recall filter.
     pub fn firm(&self) -> Option<&Text> {

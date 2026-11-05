@@ -1,4 +1,4 @@
-//! Unfielded search recovers labels without harmonized names.
+//! Literal indication search and unfielded recovery of labels without harmonized names.
 //! Native application numbers remain exact, separate from brand or ingredient identity.
 //! Publisher fields: https://open.fda.gov/apis/drug/label/searchable-fields/.
 use super::{Page, literal, page};
@@ -16,7 +16,23 @@ pub struct Search {
 /// Discover exact applications or names, then words, then free text.
 pub fn search(leg: &Leg<'_>, name: &Text, limit: u32, offset: u32) -> Search {
     let mut free_text = None;
-    let page = discover(leg, name, limit, offset, &mut free_text);
+    let page = discover(leg, name, limit, offset, &mut free_text, None);
+    Search { page, free_text }
+}
+/// Search the label's own indication wording, optionally constrained by a name.
+pub fn search_indication(
+    leg: &Leg<'_>,
+    indication: &Text,
+    name: Option<&Text>,
+    limit: u32,
+    offset: u32,
+) -> Search {
+    let selector = format!("indications_and_usage:{}", literal(indication.as_str()));
+    let mut free_text = None;
+    let page = match name {
+        Some(name) => discover(leg, name, limit, offset, &mut free_text, Some(&selector)),
+        None => candidates(leg, &selector, limit, offset),
+    };
     Search { page, free_text }
 }
 /// Retain native word-search candidates for strict complete-name and approved single-term get matching.
@@ -41,7 +57,12 @@ fn discover(
     limit: u32,
     offset: u32,
     free_text: &mut Option<Text>,
+    indication: Option<&str>,
 ) -> Result<Page, RequestError> {
+    let scoped = |selector: String| match indication {
+        Some(indication) => format!("({selector}) AND {indication}"),
+        None => selector,
+    };
     if !(1..=50).contains(&limit) {
         return Err(biomcp_fetch::bad_reply(
             biomcp_types::Source::OpenfdaLabel,
@@ -55,7 +76,10 @@ fn discover(
     {
         let mut found = page(
             leg,
-            &format!("openfda.application_number:{}", literal(name.as_str())),
+            &scoped(format!(
+                "openfda.application_number:{}",
+                literal(name.as_str())
+            )),
             limit,
             offset,
             None,
@@ -75,11 +99,11 @@ fn discover(
         let name = literal(name.as_str());
         format!("openfda.brand_name{suffix}:{name} OR openfda.generic_name{suffix}:{name}")
     };
-    let exact = candidates(leg, &selector(".exact"), limit, offset)?;
+    let exact = candidates(leg, &scoped(selector(".exact")), limit, offset)?;
     if exact.window.total().is_some_and(|total| total > 0) {
         return Ok(exact);
     }
-    let fallback = candidates(leg, &selector(""), limit, offset)?;
+    let fallback = candidates(leg, &scoped(selector("")), limit, offset)?;
     // Preserve native matches, totals and offsets, even when a word match is
     // not a complete product name. Select by total so later pages never switch queries.
     if fallback.window.total().is_some_and(|total| total > 0) {
@@ -93,7 +117,7 @@ fn discover(
     );
     // The publisher searched label text, so a matching passage need not name
     // this product. Preserve its candidates and mark exact name matches separately.
-    candidates(leg, &selector, limit, offset)
+    candidates(leg, &scoped(selector), limit, offset)
 }
 
 // openFDA reports an exhausted offset as a 404 without a total. Probe the same

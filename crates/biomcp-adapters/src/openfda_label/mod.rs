@@ -1,4 +1,4 @@
-//! Identity-checked openFDA name discovery without clinical text selection.
+//! Source-scoped openFDA label identities, name discovery and literal indication search.
 use biomcp_fetch::Input;
 use biomcp_fetch::{SourceSpec, Terms};
 use biomcp_types::Source;
@@ -44,7 +44,7 @@ fn literal(value: &str) -> String {
     format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }
 mod search;
-pub use search::{Search, search, search_names};
+pub use search::{Search, search, search_indication, search_names};
 fn normalize_name(value: &str) -> String {
     value
         .chars()

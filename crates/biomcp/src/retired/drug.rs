@@ -7,11 +7,10 @@ pub(super) const SEARCH: &[(&str, ErrorMessage)] = &[
     ("--interactions", ErrorMessage::DrugPartnerSearch),
     ("--region", ErrorMessage::DrugRegion),
     ("--product-type", ErrorMessage::DrugProductType),
-    ("--target", ErrorMessage::DrugUnproved),
-    ("--indication", ErrorMessage::DrugUnproved),
-    ("--type", ErrorMessage::DrugUnproved),
-    ("--atc", ErrorMessage::DrugUnproved),
-    ("--pharm-class", ErrorMessage::DrugUnproved),
+    ("--target", ErrorMessage::DrugUnsupportedFilters),
+    ("--type", ErrorMessage::DrugUnsupportedFilters),
+    ("--atc", ErrorMessage::DrugUnsupportedFilters),
+    ("--pharm-class", ErrorMessage::DrugUnsupportedFilters),
 ];
 pub(super) const GET: &[(&str, ErrorMessage)] = &[
     ("--name", ErrorMessage::DrugName),
@@ -33,7 +32,7 @@ pub(super) fn command(words: &[&str]) -> Option<ErrorMessage> {
         ["ema", "sync", ..] => Some(ErrorMessage::EmaSync),
         ["ddinter", "sync", ..] => Some(ErrorMessage::DdinterSync),
         ["who", "sync", ..] => Some(ErrorMessage::WhoPqSync),
-        ["gene", "drugs", ..] => Some(ErrorMessage::DrugUnproved),
+        ["gene", "drugs", ..] => Some(ErrorMessage::DrugUnsupportedFilters),
         _ => None,
     }
 }

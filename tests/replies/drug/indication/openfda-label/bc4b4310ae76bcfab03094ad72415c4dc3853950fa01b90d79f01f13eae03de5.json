@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=openfda.spl_set_id%3A%2222222222-2222-4222-8222-222222222222%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"results\":{\"skip\":0,\"limit\":1,\"total\":1}},\"results\":[{\"id\":\"55555555-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\"set_id\":\"22222222-2222-4222-8222-222222222222\",\"version\":\"1\",\"effective_time\":\"20261005\",\"openfda\":{\"brand_name\":[\"BETA LABEL\"],\"generic_name\":[\"SYNTHETIC INGREDIENT 2\"],\"spl_set_id\":[\"22222222-2222-4222-8222-222222222222\"]},\"indications_and_usage\":[\"Synthetic fixture indication: melanoma.\"]}]}"
+      }
+    }
+  ]
+}

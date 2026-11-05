@@ -73,7 +73,7 @@ pub(super) fn message(root: &clap::Command, args: &[OsString]) -> Option<ErrorMe
     }
     match positional.as_slice() {
         ["list", "disease", ..] => Some(ErrorMessage::DiseaseHelp),
-        ["disease", "drugs", ..] => Some(ErrorMessage::DiseaseDrugs),
+        ["disease", "drugs", ..] => Some(ErrorMessage::DiseaseLabelSearch),
         ["search", "disease", ..] if matches!(source, Some("mondo" | "doid" | "mesh")) => {
             Some(ErrorMessage::DiseaseOntologySelector)
         }

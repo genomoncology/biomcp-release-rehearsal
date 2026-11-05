@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=indications_and_usage%3A%22pancreatic%20cancer%22&limit=2&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"results\":{\"skip\":0,\"limit\":2,\"total\":1}},\"results\":[{\"id\":\"66666666-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\"set_id\":\"33333333-3333-4333-8333-333333333333\",\"version\":\"1\",\"effective_time\":\"20261005\",\"openfda\":{\"brand_name\":[\"GAMMA LABEL\"],\"generic_name\":[\"SYNTHETIC INGREDIENT 3\"],\"spl_set_id\":[\"33333333-3333-4333-8333-333333333333\"]},\"indications_and_usage\":[\"Synthetic fixture indication: pancreatic cancer.\"]}]}"
+      }
+    }
+  ]
+}

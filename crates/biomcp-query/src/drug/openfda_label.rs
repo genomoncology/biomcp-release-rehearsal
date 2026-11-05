@@ -17,13 +17,16 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         })
         .with_query(query.clone()),
     );
-    let Some(name) = query.query() else {
-        return super::unsupported(query.source(), out);
-    };
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let leg = cx.fetch.leg(&source::SPEC, deadline).fresh(cx.fresh);
-    let discovery = source::search(&leg, name, query.limit(), query.offset());
+    let discovery = match (query.indication(), query.query()) {
+        (Some(indication), name) => {
+            source::search_indication(&leg, indication, name, query.limit(), query.offset())
+        }
+        (None, Some(name)) => source::search(&leg, name, query.limit(), query.offset()),
+        (None, None) => return super::unsupported(query.source(), out),
+    };
     let result = discovery.page.and_then(|page| {
         out.problems.extend(page.problems);
         let items = page
@@ -32,7 +35,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
             .iter()
             .map(|r| {
                 let mut header = r.header()?;
-                header.matched_name = r.name_match(name);
+                header.matched_name = query.query().and_then(|name| r.name_match(name));
                 Ok(header)
             })
             .collect::<Result<Vec<_>, RequestError>>()?;
@@ -48,10 +51,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         let next_offset = window.next_offset();
         let items = window.rows;
         let returned = items.len() as u32;
-        {
-            let found = returned != 0;
-            crate::status::item(&mut out, found, false, false);
-        };
+        crate::status::item(&mut out, returned != 0, false, false);
         if let Some(source) = out.sources.first_mut() {
             source.count = Some(total);
             source.retrieved_count = Some(returned);

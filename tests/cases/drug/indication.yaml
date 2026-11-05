@@ -1,0 +1,157 @@
+{
+  "feature": "drug-label",
+  "live_check": "Synthetic indication selector and paging fixture; no live calls",
+  "replay": "drug/indication",
+  "story": "Indication searches select only the native label field and retain query, total, native identities and empty pages.",
+  "steps": [
+    {
+      "mcp": [
+        "search",
+        "drug",
+        "--indication",
+        "melanoma",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/indication": "melanoma",
+        "/page/total": 2,
+        "/page/returned": 1,
+        "/result/items/0/id": "11111111-1111-4111-8111-111111111111",
+        "/result/items/0/name": "ALPHA LABEL"
+      },
+      "run": [
+        "search",
+        "drug",
+        "--indication",
+        "melanoma",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ]
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/query/indication": "melanoma",
+        "/query/offset": 1,
+        "/page/total": 2,
+        "/page/returned": 1,
+        "/result/items/0/id": "22222222-2222-4222-8222-222222222222"
+      }
+    },
+    {
+      "follow": "disambiguate",
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "22222222-2222-4222-8222-222222222222",
+        "/result/header/name": "BETA LABEL"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--indication",
+        "melanoma",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1",
+        "--offset",
+        "2"
+      ],
+      "expect": {
+        "/page/total": 2,
+        "/page/returned": 0,
+        "/result/total": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--indication",
+        "pancreatic cancer",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/page/returned": 1,
+        "/result/items/0/id": "33333333-3333-4333-8333-333333333333"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--indication",
+        "unlisted indication",
+        "--source",
+        "openfda-label"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/page/returned": 0,
+        "/result/total": 0
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "ALPHA LABEL",
+        "--indication",
+        "melanoma",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/query/query": "ALPHA LABEL",
+        "/query/indication": "melanoma",
+        "/page/total": 1,
+        "/page/returned": 1,
+        "/result/items/0/id": "11111111-1111-4111-8111-111111111111",
+        "/result/items/0/matched_name": "brand"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "--indication",
+        "melanoma",
+        "--source",
+        "drugsfda"
+      ],
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "disease",
+        "drugs",
+        "breast cancer"
+      ],
+      "offline": true,
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired",
+        "/error/message": "use: search drug --source openfda-label --indication <TEXT>; no disease synonym expansion"
+      }
+    }
+  ]
+}

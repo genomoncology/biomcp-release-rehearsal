@@ -365,6 +365,13 @@ typed-hosted-check:
 	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json-render-diagnostics > "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted/build.jsonl"
 	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/typed-hosted/catalogs" python3 -c 'import json,subprocess,sys; rows=[json.loads(line) for line in open(sys.argv[1]) if line.startswith("{")]; executables={row["target"]["name"]:row["executable"] for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable")}; subprocess.run([sys.executable,"scripts/trials.py","--runner",executables["cases"],"--executable",executables["biomcp"],"--installed","mcp-parity/typed-hosted-catalog"],check=True)' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted/build.jsonl"
 
+.PHONY: drug-indication-focused
+drug-indication-focused:
+	+$(MAKE) schema-generate docs-generate
+	mkdir -p target/drug-indication-generated
+	tar -czf target/drug-indication-generated/source.tar.gz crates/biomcp-types/schemas docs/reference/commands.md
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/drug-indication-transcripts" python3 scripts/trials.py --installed mcp-parity/typed-cli-bridge mcp-parity/compact-typed-schemas mcp-parity/typed-hosted-catalog --case-file drug/indication.yaml --case-file drug/openfda-label-page.yaml --case-file drug/label-free-text.yaml --case-file drug/retired.yaml
+
 .PHONY: source-status-check
 source-status-check:
 	cargo test --locked -p biomcp-types --test rust_api $(TEST_THREADS)

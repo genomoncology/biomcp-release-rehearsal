@@ -50,7 +50,37 @@ pub(super) fn check() -> Check {
         json!({"name":"get_gene","arguments":{"input":["--help"]}}),
         &literal,
     )?;
-    fresh_cases()
+    fresh_cases()?;
+    indication()
+}
+
+fn indication() -> Check {
+    let env = environment()?;
+    let replay = fixtures().join("replies/drug/indication");
+    let globals = env.globals(Some(&replay), false);
+    let expected = cli(
+        &env,
+        &[
+            "search",
+            "drug",
+            "--indication",
+            "melanoma",
+            "--source",
+            "openfda-label",
+            "--limit",
+            "1",
+        ],
+        &globals,
+    )?;
+    if expected.get("status") != Some(&json!("complete")) {
+        return Err(format!("indication CLI search failed: {expected}"));
+    }
+    parity(
+        &env,
+        &globals,
+        json!({"name":"search_drug","arguments":{"indication":"melanoma","source":"openfda-label","limit":1}}),
+        &expected,
+    )
 }
 
 fn environment() -> Result<Environment, String> {
