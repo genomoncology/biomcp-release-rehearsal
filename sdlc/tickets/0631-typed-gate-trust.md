@@ -1,6 +1,6 @@
 # Typed gates fail when they prove nothing
 
-Status: OPEN.
+Status: COMPLETE. Reviewed typed implementation landed through 0636 at 95e7be997f3bc038111fd65527e03ce4db1e5d2a; completion requested by the PM in m26076. Earlier branch-only ordering was superseded by the approved main integration.
 Milestone: 5
 Depends on: 0623
 
