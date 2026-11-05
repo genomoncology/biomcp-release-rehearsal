@@ -85,6 +85,56 @@ class ReviewedPublicHistory(unittest.TestCase):
         print("Reviewed public history row omissions rejected: 50")
 
 
+class ReviewedSiblingHistory(unittest.TestCase):
+    """Check exact public sibling rows against their real immutable blobs."""
+
+    def test_each_reviewed_sibling_row_is_exact_and_required(self):
+        target = os.environ.get("BIOMCP_APPEND_HISTORY")
+        if not target:
+            self.skipTest("requires the complete public append ancestry")
+        target = Path(target)
+        path = "src/entities/variant/resolution/coding_oracles/aliases.json"
+        sources = [
+            ("6c9c2d5995f9b2f2b83fa2625f6f540ae8799e2d", "5b4821ad23375d8096e596c42026e134045ae9bf"),
+            ("6d517ab2047dad49695adbe918596d856295c562", "8ce1e9a200985491fa3e6d30aa982bd3d717bff9"),
+        ]
+        rows = [json.loads(line) for line in history_scan.HISTORY_IGNORE.read_text().splitlines()]
+        selected = [row for row in rows if row["file"] == path]
+        self.assertEqual(Counter((row["commit"], row["blob"], row["line"], row["rule"]) for row in selected),
+                         Counter((sources[0][0], sources[0][1], line, "generic-api-key")
+                                 for line in (2306, 2361, 2421)),
+                         "the safe two-blob scan receipt requires exactly three reviewed rows")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = {**environment(root), "PATH": os.defpath, "GIT_CONFIG_NOSYSTEM": "1"}
+            payloads = []
+            for commit, blob in sources:
+                self.assertEqual(history_scan.git(target, env, "rev-parse", commit + ":" + path).decode().strip(), blob)
+                payloads.append((path, history_scan.git(target, env, "cat-file", "blob", blob)))
+            ledger = root / "secrets.ignore.jsonl"
+            original = history_scan.findings
+            def screen(records):
+                ledger.write_text("".join(json.dumps(row) + "\n" for row in records))
+                observed = []
+                def collect(report, mapping, staging):
+                    for finding, staged, coordinates in original(report, mapping, staging):
+                        observed.append({key: finding[key] for key in ("blob", "file", "line", "rule")})
+                        yield finding, staged, coordinates
+                with (patch.object(history_scan, "HISTORY_IGNORE", ledger),
+                      patch.object(history_scan, "inputs", return_value=iter(payloads)),
+                      patch.object(history_scan, "findings", side_effect=collect),
+                      redirect_stdout(io.StringIO())):
+                    status = history_scan.scan("history", target, Path("target/security-tools"))
+                return status, observed
+            self.assertEqual(screen(rows), (0, []), "production screening must accept both reviewed sibling blobs")
+            for row in selected:
+                with self.subTest(blob=row["blob"], line=row["line"]):
+                    expected = {key: row[key] for key in ("blob", "file", "line", "rule")}
+                    self.assertEqual(screen([item for item in rows if item != row]), (1, [expected]),
+                                     "omitting one row must expose exactly its own finding")
+        print("Reviewed public sibling row omissions rejected: 3")
+
+
 class SmokeSchema(unittest.TestCase):
     def test_installed_probe_schema_is_in_checked_in_registry(self):
         schemas = Path(__file__).resolve().parents[1] / "crates/biomcp-types/schemas"

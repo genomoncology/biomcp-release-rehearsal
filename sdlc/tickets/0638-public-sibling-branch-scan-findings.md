@@ -1,6 +1,7 @@
 # Secret-scan findings on public sibling branches are classified exactly
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 3310f95fdc9ebbcdf3c11e586466eee7175e332f
 Milestone: 5
 
 ## Outcome

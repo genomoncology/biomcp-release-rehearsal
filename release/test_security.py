@@ -442,7 +442,11 @@ class Screening(unittest.TestCase):
             git("-C", str(sibling), "commit", "--quiet", "--allow-empty", "-m", "Sibling binding fixture")
             sibling_commit = git("-C", str(sibling), "rev-parse", "HEAD")
             git("branch", "side-only-exception", sibling_commit)
-            screen([entries[0], {**entries[1], "commit": sibling_commit}], 2, "history-ignore-unreachable-commit", row=2)
+            sibling_entries = [entries[0], {**entries[1], "commit": sibling_commit}]
+            screen(sibling_entries, 0)
+            # Detached sibling worktrees do not belong to this scanner's scope.
+            git("branch", "-D", "side-only-exception")
+            screen(sibling_entries, 2, "history-ignore-unreachable-commit", row=2)
             screen([{**r, "line": 2} for r in entries], 2, "history-ignore-wrong-line")
             screen([{**r, "rule": "unrelated-rule"} for r in entries], 1)
             screen([{**r, "commit": empty} for r in entries], 2, "history-ignore-wrong-blob")
