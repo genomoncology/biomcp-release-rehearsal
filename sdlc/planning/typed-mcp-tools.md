@@ -6,7 +6,7 @@
 
 Ian decided that BioMCP's MCP server should again offer function-specific tools such as `search_trial`, `get_trial`, `get_variant` and `search_article` (relayed by evals and Jarvis, m25063 and m25064). The reasons: Claude, Codex and pi now search for tools as they need them instead of preloading every description, and the Amazon Quick team said Quick does not preload MCP tools either and recommended function-specific tools with relevant summaries. Ian: "if the multi-tool is worse than the single tool, we might not want to keep it."
 
-The goal is a typed mode that a tool-searching agent uses at lower cost and with fewer lost answers than the single tool, measured by the Biomed Agent Bench in pi on a strong model, pi on a weaker model, and Claude Code. Until that result and Ian's decision, typed mode lives on its branch and the single tool stays the default everywhere.
+The goal is a typed mode that a tool-searching agent uses at lower cost and with fewer lost answers than the single tool, measured by the Biomed Agent Bench in pi on a strong model, pi on a weaker model, and Claude Code. Ian then put typed mode in 1.0 as an opt-in setting so a temporary test server can test it (2026-11-05, ticket 0635); the single tool stays the default until the bench result.
 
 Experiment 513's 14-tool Python prototype set the bar: the single tool cost 0.83× and 0.92× of the typed tools in two pairs, within noise, and the 14 tools' descriptions cost about 546k tokens over one round. Its lessons: descriptions are the product, because tool search returns one tool alone; keep argument text short; use enums for short choice lists; accept names; reply with structured content and a one-line summary; put the most useful line first in the server instructions.
 

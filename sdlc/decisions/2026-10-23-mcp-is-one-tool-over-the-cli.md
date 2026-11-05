@@ -8,3 +8,5 @@ Decided 2026-10-23 by Ian.
 - A case may send its request through the CLI or the MCP tool, so the suite proves both agree.
 
 Amended 2026-10-25 by Ian: the server also offers `search` and `fetch` for ChatGPT, whose deep research and company knowledge features require those two tool names. Both are thin wrappers that run the same CLI commands as the main tool, and they stay consistent with it.
+
+Amended 2026-11-05 by Ian: typed tools ship in 1.0 as an opt-in mode. Ian: "we're going to try to get a 1.0 release out to a temporary test server, and I want that test server to be able to test the multi-tool BioMCP tool." The single tool stays the default; `mcp_tool_mode = "typed"` or `serve --tool-mode typed` offers one generated tool per command, running the same CLI commands, per `planning/typed-mcp-tools.md`. Whether typed becomes the default waits for the Biomed Agent Bench.
