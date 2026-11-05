@@ -16,7 +16,7 @@ Since the 1.0 candidate of 2026-11-04, qualification found nine problems, one ru
 ## Options considered
 
 - Keep requalifying every section on each candidate. That is how the nine finds arrived one run at a time.
-- Accept the hosted Windows job, which runs the same `release/gate.py` installed gate, and drop the local Windows VM run. Not chosen: Ian asked for the failing section to be run until it is done.
+- Accept the hosted Windows job, which runs the same `release/gate.py` installed gate, and drop the local Windows VM run. First not chosen, because Ian asked for the failing section to run until done. Then chosen for 1.0 (PM, m26377): the VM wrapper reached the installed cases (j30357), and its next failure was a VM fault, a freshly vendored file vanishing mid-build (j30533), with no product cause. The hosted exact-release Windows run is the Windows proof. The VM run continues outside the release path once Jarvis has looked at the VM.
 
 ## Replaces
 
