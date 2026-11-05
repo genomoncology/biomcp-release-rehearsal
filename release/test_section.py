@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -11,6 +12,34 @@ from release import section
 
 
 class SectionCustody(unittest.TestCase):
+    def test_cli_rejects_another_product_before_creating_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.checkout(root / 'product', 'another product')
+            tooling_revision = self.checkout(root / 'tooling', 'tooling')
+            result = subprocess.run([sys.executable, str(Path(section.__file__).resolve()),
+                                     'bind', '--product', str(root / 'product'),
+                                     '--tooling', str(root / 'tooling'), '--output', str(root / 'evidence')],
+                                    env={**os.environ, 'GITHUB_SHA': tooling_revision},
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('checkout revision differs', result.stderr)
+            self.assertFalse((root / 'evidence').exists())
+
+    def test_recovery_workflow_is_one_guarded_read_only_section(self):
+        workflow = (Path(section.__file__).resolve().parents[1]
+                    / '.github/workflows/recover-section.yml').read_text()
+        for guard in ("github.repository == 'genomoncology/biomcp-release-rehearsal'",
+                      "github.ref_type == 'branch'", "startsWith(github.ref_name, 'rehearsal-0642-')",
+                      'inputs.rehearsal == true', 'PRODUCT_REVISION: ' + section.PRODUCT,
+                      'ref: ${{ env.PRODUCT_REVISION }}', 'contents: read',
+                      'options: [manylinux_2_28_aarch64, macosx_11_0_arm64, win_amd64]'):
+            self.assertIn(guard, workflow)
+        self.assertEqual(workflow.count('    runs-on:'), 1)
+        for forbidden in ('push:', 'pull_request:', 'schedule:', 'contents: write',
+                          'packages: write', 'id-token: write', 'secrets.', 'publication.py'):
+            self.assertNotIn(forbidden, workflow)
+
     def checkout(self, root, text):
         root.mkdir()
         subprocess.run(['git', 'init', '-q', str(root)], check=True)

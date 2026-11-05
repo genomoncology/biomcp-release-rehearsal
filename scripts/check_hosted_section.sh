@@ -3,6 +3,9 @@
 set -eu
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:$PATH"
+python3.13 --version
+actionlint -version
+ruff --version
 python3.13 -m unittest release.test_section release.test_linux release.test_gate release.test_source_revision release.test_workflow_contracts
 python3.13 scripts/check_shell.py
 actionlint
