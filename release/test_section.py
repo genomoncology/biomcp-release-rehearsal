@@ -33,7 +33,7 @@ class SectionCustody(unittest.TestCase):
                       "github.ref_type == 'branch'", "startsWith(github.ref_name, 'rehearsal-0642-')",
                       'inputs.rehearsal == true', 'PRODUCT_REVISION: ' + section.PRODUCT,
                       'ref: ${{ env.PRODUCT_REVISION }}', 'contents: read',
-                      'options: [manylinux_2_28_aarch64, macosx_11_0_arm64, win_amd64]'):
+                      'options: [manylinux_2_28_aarch64, macosx_11_0_arm64, win_amd64, manylinux_2_28_x86_64, macosx_11_0_x86_64]'):
             self.assertIn(guard, workflow)
         self.assertEqual(workflow.count('    runs-on:'), 1)
         for forbidden in ('push:', 'pull_request:', 'schedule:', 'contents: write',
