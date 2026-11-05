@@ -10,3 +10,8 @@ python3.13 -m unittest release.test_section release.test_linux release.test_gate
 python3.13 scripts/check_shell.py
 actionlint
 ruff check --no-cache --select F401,F841,ERA,BLE,E722,S110 release/section.py release/test_section.py
+uvx --offline --from vulture==2.14 vulture --version
+uvx --offline --from vulture==2.14 vulture release/section.py --min-confidence 60
+npm exec --offline --yes --package=jscpd@4.0.5 -- jscpd --version
+npm exec --offline --yes --package=jscpd@4.0.5 -- jscpd --format python --reporters console,json \
+  --output target/0642-jscpd release/section.py release/test_section.py

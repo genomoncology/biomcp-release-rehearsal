@@ -114,6 +114,7 @@ jobs:
           path: |
             product/dist
             product/install-report.log
+            product/proof/bootstrap.json
             section-evidence
             ${{ runner.temp }}/fixture-evidence
             ${{ runner.temp }}/install/bootstrap.json
