@@ -1,7 +1,7 @@
 use super::DrugSection;
 use biodata::DrugId;
 use serde::{Deserialize, Serialize};
-/// One explicitly selected drug source; omitted search source means MyChem alone.
+/// One explicitly selected record source; omitted search source means MyChem.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "&'static str")]
 pub enum DrugSource {

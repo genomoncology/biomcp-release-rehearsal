@@ -1,0 +1,145 @@
+{
+  "feature": "drug-native-sources",
+  "story": "Native synonyms and uniquely source-stated aliases recover selected-source records; continuations retain the actual searched spelling.",
+  "verified": "Every response, identifier relation, drug name and timestamp in this replay is explicitly synthetic. The invented drug/code names establish no real drug identity. Public eight-call baseline j30887 separately reproduces actual reported zeros.",
+  "replay": "drug/source-aliases",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "Experimental synonym",
+        "--source",
+        "chembl"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "Experimental synonym",
+        "--source",
+        "chembl"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "CHEMBL941",
+        "/query/name_selector": "synonym",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "chembl"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "chembl"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "CHEMBL941",
+        "/query/query": "Canonical therapy",
+        "/page/total": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "CHEMBL941",
+        "/query/query": "Canonical therapy",
+        "/page/total": 2
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "CHEMBL1201585",
+        "/query/query": "Canonical therapy",
+        "/page/offset": 1,
+        "/page/total": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "Orphan code",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "Orphan code",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/page/returned": 0,
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/sources/1/source": "mychem",
+        "/next/0/args": [
+          "get",
+          "drug",
+          "KTUFNOKKBVMGRW-UHFFFAOYSA-M",
+          "--source",
+          "mychem"
+        ]
+      }
+    },
+    {
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "CHEMBL941",
+        "/query/input": "CHEMBL941",
+        "/sources/0/notices/0/kind": "request-guidance"
+      },
+      "run": [
+        "get",
+        "drug",
+        "EX-66",
+        "--source",
+        "chembl"
+      ],
+      "mcp": [
+        "get",
+        "drug",
+        "EX-66",
+        "--source",
+        "chembl"
+      ]
+    }
+  ],
+  "live_check": "Authored synthetic alias responses; local replay only, excluded from provider live checks."
+}

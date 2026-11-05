@@ -14,14 +14,20 @@
       ],
       "exit": 0,
       "full_output_bytes": true,
-      "max_bytes": 459,
+      "max_bytes": 2000,
       "expect": {
         "/status": "complete",
         "/page/total": 0,
         "/page/returned": 0,
-        "/sources/0/state": "ok"
+        "/sources/0/state": "ok",
+        "/sources/1/source": "mychem",
+        "/sources/2/source": "openfda-label",
+        "/sources/3/source": "chembl",
+        "/sources/1/state": "ok",
+        "/sources/2/state": "ok",
+        "/sources/3/state": "ok"
       }
     }
   ],
-  "verified": "The full CLI reply measures 399 bytes. The limit adds 15 percent."
+  "verified": "Authored empty recall and alias-authority replies retain native zero counts; no real provider absence is claimed."
 }

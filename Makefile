@@ -1,5 +1,62 @@
 .DEFAULT_GOAL := landing-gate
 
+.PHONY: drug-alias-review-regressions drug-alias-review-tools
+drug-alias-review-regressions:
+	cargo test --locked -p biomcp --test cases drug/source-aliases-review
+	$(MAKE) drug-alias-review-tools
+
+drug-alias-review-tools:
+	cargo test --locked -p biomcp --test tools -- --cases "$(CURDIR)/tests/tool-cases" drug-native-sources/drug/source-aliases-review
+
+.PHONY: drug-alias-baseline
+drug-alias-baseline: plain-cli-build
+	python3 scripts/drug_alias_probe.py
+
+.PHONY: drug-alias-prepare drug-alias-check drug-alias-review-check drug-alias-scans
+DRUG_ALIAS_BASELINE ?= d590e1c7bf92fbcf8b0dc299814d9fe2983244b5
+drug-alias-prepare:
+	cargo fmt --all
+	$(MAKE) schema-generate docs-generate
+	mkdir -p dist
+	COPYFILE_DISABLE=1 tar -czf dist/drug-alias-generated.tar.gz crates/biomcp-query/src/drug.rs crates/biomcp-query/src/drug/aliases.rs crates/biomcp-query/src/drug/resolve.rs crates/biomcp-types/src/drug/query.rs crates/biomcp-types/src/drug/search.rs crates/biomcp-types/schemas docs/reference/commands.md
+	$(MAKE) drug-alias-check
+
+drug-alias-check:
+	cargo clippy --keep-going --locked -p biomcp-types -p biomcp-query -p biomcp --all-targets --features biomcp-types/schema -- -D warnings
+	cargo test --locked -p biomcp --test cases drug/
+	cargo test --locked -p biomcp --test tools -- --cases "$(CURDIR)/tests/tool-cases" drug-native-sources/drug/source-aliases.yaml --exact
+
+drug-alias-review-check: drug-alias-check drug-alias-review-tools current-schema-check schema-release-check
+	$(MAKE) drug-alias-scans
+
+drug-alias-scans:
+	sh scripts/check_trial_results.sh scans $(DRUG_ALIAS_BASELINE)
+
+.PHONY: drug-alias-main-integration
+drug-alias-main-integration:
+	cargo clippy --keep-going --locked -p biomcp-types -p biomcp-query -p biomcp --all-targets --features biomcp-types/schema -- -D warnings
+	cargo test --locked -p biomcp --test cases drug/source-aliases
+	cargo test --locked -p biomcp --test cases drug/indication.yaml
+	$(MAKE) drug-alias-review-tools current-schema-check
+
+.PHONY: drug-alias-cache-regressions
+drug-alias-cache-regressions:
+	cargo test --locked -p biomcp --test cases drug-native-sources/chembl-search-cache-admission -- --exact
+	cargo test --locked -p biomcp --test cases drug-native-sources/mychem-search-cache-admission -- --exact
+
+.PHONY: drug-label-alias-integration
+drug-label-alias-integration: fmt
+	cargo clippy --keep-going --locked -p biomcp-adapters -p biomcp-types -p biomcp-query -p biomcp --all-targets --features biomcp-types/schema -- -D warnings
+	cargo test --locked -p biomcp --test cases drug/source-aliases $(TEST_THREADS)
+	cargo test --locked -p biomcp --test tools -- --cases "$(CURDIR)/tests/tool-cases" drug-native-sources/drug/source-aliases
+	cargo test --locked -p biomcp --test cases drug/indication.yaml $(TEST_THREADS)
+	$(MAKE) label-priority-check label-display-check
+
+.PHONY: drug-source-guidance-check
+drug-source-guidance-check:
+	+$(MAKE) schema-generate docs-generate
+	+$(MAKE) --keep-going typed-schema-check typed-hosted-check
+
 .PHONY: faers-counts-integration-check
 faers-counts-integration-check:
 	sh scripts/faers_counts_job.sh mechanical

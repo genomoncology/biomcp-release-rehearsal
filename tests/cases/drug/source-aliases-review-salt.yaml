@@ -1,0 +1,67 @@
+{
+  "feature": "drug-native-sources",
+  "story": "A unique salt-only candidate never supplies automatic aliases for a bare name.",
+  "verified": "All records, names and cross-source relations in this replay are authored synthetic regression witnesses.",
+  "replay": "drug/source-aliases-review-salt",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/sources/0/source": "opentargets",
+        "/sources/0/state": "ok",
+        "/query/query": "EX-66",
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/page/total": 0,
+        "/page/returned": 0
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets"
+      ],
+      "mcp": [
+        "get",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets"
+      ],
+      "expect": {
+        "/sources/0/source": "opentargets",
+        "/sources/0/state": "ok",
+        "/query/input": "EX-66",
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/status": "absent",
+        "/query/source": "opentargets",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "EX-66"
+        ]
+      },
+      "exit": 1
+    }
+  ],
+  "live_check": "Authored synthetic alias responses; local replay only, excluded from provider live checks."
+}

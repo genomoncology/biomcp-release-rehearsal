@@ -448,7 +448,7 @@ fn annotate(body: &mut ReplyData, resolution: DrugNameResolution) {
     header.name_resolution = Some(resolution);
 }
 
-fn within<'a>(cx: &Ctx<'a>, budget: std::time::Duration) -> Ctx<'a> {
+pub(super) fn within<'a>(cx: &Ctx<'a>, budget: std::time::Duration) -> Ctx<'a> {
     Ctx {
         fetch: cx.fetch,
         // Drug source credentials remain in the borrowed Fetch; no drug source contacts NCBI.

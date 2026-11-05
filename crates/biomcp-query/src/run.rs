@@ -78,7 +78,7 @@ pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
         Request::GetAdverseEvent(q) => crate::adverse_event::get(cx, q),
         Request::SearchDisease(query) => crate::disease::search(cx, query),
         Request::GetDisease(query) => crate::disease::get(cx, query),
-        Request::SearchDrug(query) => crate::drug::search(cx, query),
+        Request::SearchDrug(query) => crate::drug::search_with_aliases(cx, query),
         Request::GetDrug(query) => crate::drug::get(cx, query),
         Request::GetWhoMedicine(query) => crate::drug::who::get(cx, query),
         Request::VariantAssertions(query) => crate::variant::assertions::get(cx, query),

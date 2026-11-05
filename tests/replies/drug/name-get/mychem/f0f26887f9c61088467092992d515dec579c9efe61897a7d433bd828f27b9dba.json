@@ -1,0 +1,21 @@
+{
+  "method": "GET",
+  "source": "mychem",
+  "url": "https://mychem.info/v1/query?q=Missing%20name&size=50&from=0&fields=drugbank.id%2Cdrugbank.name%2Cchembl.molecule_chembl_id%2Cchembl.pref_name%2Cchembl.molecule_type%2Cgtopdb.ligand_id%2Cgtopdb.name%2Cgtopdb.type%2Cunii.unii%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.product_id%2Cndc.productndc%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname%2Cdrugbank.synonyms%2Cchembl.molecule_hierarchy%2Cchembl.molecule_synonyms%2Cdrugcentral.id%2Cdrugcentral.synonyms%2Cdrugcentral.xrefs%2Cgtopdb.synonyms%2Cgtopdb.chembl_id%2Cgtopdb.xrefs%2Cunii.rxcui%2Cunii.ncit%2Cndc.applicationnumber%2Cndc.dosageformname%2Cndc.package%2Copenfda.generic_name%2Copenfda.brand_name%2Copenfda.spl_set_id%2Copenfda.application_number",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 0,
+          "hits": []
+        }
+      }
+    }
+  ]
+}

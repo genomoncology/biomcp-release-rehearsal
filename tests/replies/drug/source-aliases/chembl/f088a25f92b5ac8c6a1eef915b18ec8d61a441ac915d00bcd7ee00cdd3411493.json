@@ -1,0 +1,25 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule.json?pref_name__iexact=EX-66&limit=10&offset=0",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecules": [],
+          "page_meta": {
+            "total_count": 0,
+            "offset": 0,
+            "limit": 10
+          }
+        }
+      }
+    }
+  ]
+}

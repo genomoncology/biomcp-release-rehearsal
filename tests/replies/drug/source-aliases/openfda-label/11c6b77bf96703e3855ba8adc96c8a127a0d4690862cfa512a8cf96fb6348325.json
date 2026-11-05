@@ -1,0 +1,27 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=%28indications_and_usage%3A%22EX-66%22%29%20AND%20indications_and_usage%3A%22solid%20cancer%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 0
+            }
+          },
+          "results": []
+        }
+      }
+    }
+  ]
+}

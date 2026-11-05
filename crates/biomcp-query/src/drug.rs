@@ -1,6 +1,7 @@
 //! Literal native drug discovery and exact selected source identities.
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
+mod aliases;
 mod civic;
 mod ddinter;
 mod drugsfda;
@@ -11,12 +12,14 @@ mod recall;
 mod resolve;
 pub(crate) mod who;
 use crate::{Ctx, Outcome, status};
+/// Search selected-source records, consulting source-stated names only after an empty lookup.
+pub(crate) use aliases::search as search_with_aliases;
 use biomcp_adapters::mychem;
 use biomcp_types::{
     DrugGet, DrugPage, DrugSearch, DrugSource, PageInfo, Request, Source, StepKind,
 };
-/// Search the one selected source, without fan-out or selecting an identity.
-pub(crate) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
+/// Search the selected source directly without consulting another source.
+fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     if query.source() == DrugSource::FdaDrugRecall {
         return recall::search(cx, query);
     }
@@ -71,7 +74,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
 /// Get one exact native document, without fallback or automatic section expansion.
 pub(crate) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     let mut out = if query.is_name() {
-        resolve::get(cx, query)
+        aliases::get(cx, query)
     } else {
         selected_get(cx, query)
     };

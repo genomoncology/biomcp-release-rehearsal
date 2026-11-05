@@ -1,0 +1,46 @@
+{
+  "feature": "drug-native-sources",
+  "story": "Disabled alias authorities are reported and never contacted or used to supply aliases.",
+  "verified": "Every response, identifier relation, drug name and timestamp in this replay is explicitly synthetic. The invented drug/code names establish no real drug identity. Public eight-call baseline j30887 separately reproduces actual reported zeros.",
+  "replay": "drug/source-aliases",
+  "config": {
+    "disable_sources": [
+      "mychem",
+      "chembl",
+      "openfda-label"
+    ]
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/sources/1/source": "mychem",
+        "/sources/1/reason": "disabled",
+        "/sources/2/source": "openfda-label",
+        "/sources/2/reason": "disabled",
+        "/sources/3/source": "chembl",
+        "/sources/3/reason": "disabled"
+      }
+    }
+  ],
+  "live_check": "Authored synthetic alias responses; local replay only, excluded from provider live checks."
+}

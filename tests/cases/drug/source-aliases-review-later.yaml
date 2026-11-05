@@ -1,0 +1,59 @@
+{
+  "feature": "drug-native-sources",
+  "story": "Later exact authorities can supply an alias missing from the first exact record.",
+  "verified": "All records, names and cross-source relations in this replay are authored synthetic regression witnesses.",
+  "replay": "drug/source-aliases-review-later",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/sources/0/source": "opentargets",
+        "/sources/0/state": "ok",
+        "/status": "complete",
+        "/result/items/0/id": "CHEMBL941",
+        "/query/query": "Canonical therapy"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets"
+      ],
+      "mcp": [
+        "get",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets"
+      ],
+      "expect": {
+        "/sources/0/source": "opentargets",
+        "/sources/0/state": "ok",
+        "/status": "complete",
+        "/result/header/id": "CHEMBL941",
+        "/query/input": "CHEMBL941"
+      }
+    }
+  ],
+  "live_check": "Authored synthetic alias responses; local replay only, excluded from provider live checks."
+}

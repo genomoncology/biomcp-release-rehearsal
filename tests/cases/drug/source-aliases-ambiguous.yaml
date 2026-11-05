@@ -1,0 +1,43 @@
+{
+  "feature": "drug-native-sources",
+  "story": "Ambiguous source aliases remain candidates and never cause an automatic identity choice.",
+  "verified": "All replies and alias relations are explicitly authored synthetic examples.",
+  "replay": "drug/source-aliases",
+  "config": {
+    "disable_sources": [
+      "mychem",
+      "openfda-label"
+    ]
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "Ambiguous therapy",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "mcp": [
+        "search",
+        "drug",
+        "Ambiguous therapy",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/next/0/kind": "disambiguate",
+        "/next/0/args/2": "Ambiguous therapy",
+        "/next/0/args/4": "chembl"
+      }
+    }
+  ],
+  "live_check": "Authored synthetic alias responses; local replay only, excluded from provider live checks."
+}

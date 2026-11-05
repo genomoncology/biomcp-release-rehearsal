@@ -1,0 +1,56 @@
+{
+  "feature": "drug-native-sources",
+  "story": "A real failed authority leg survives earlier successful component metadata.",
+  "verified": "All records, names and cross-source relations in this replay are authored synthetic regression witnesses.",
+  "replay": "drug/source-aliases-review-evidence",
+  "steps": [
+    {
+      "expect": {
+        "/sources/0/source": "opentargets",
+        "/sources/0/state": "ok",
+        "/sources/3/source": "chembl",
+        "/sources/3/state": "failed",
+        "/page/total": 0,
+        "/page/returned": 0
+      },
+      "mcp_call": {
+        "name": "search_drug",
+        "arguments": {
+          "query": "EX-66",
+          "source": "opentargets",
+          "limit": 1
+        }
+      }
+    },
+    {
+      "expect": {
+        "/sources/0/source": "opentargets",
+        "/sources/0/state": "ok",
+        "/sources/3/source": "chembl",
+        "/sources/3/state": "failed",
+        "/status": "absent",
+        "/query/input": "EX-66",
+        "/query/source": "opentargets",
+        "/sources/0/notices/0/kind": "request-guidance",
+        "/next/0/args": [
+          "search",
+          "drug",
+          "EX-66"
+        ]
+      },
+      "exit": 1,
+      "mcp_call": {
+        "name": "get_drug",
+        "arguments": {
+          "input": "EX-66",
+          "source": "opentargets"
+        }
+      }
+    }
+  ],
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  },
+  "live_check": "Authored synthetic alias responses; local replay only, excluded from provider live checks."
+}

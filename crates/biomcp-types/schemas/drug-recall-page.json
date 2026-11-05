@@ -272,7 +272,7 @@
         "source": {
           "$ref": "#/$defs/Reply_DrugSource",
           "default": "mychem",
-          "description": "Exactly one source; default MyChem never fans out."
+          "description": "Selected source.\n\nAfter an empty name lookup, existing sources may supply aliases."
         },
         "status": {
           "anyOf": [

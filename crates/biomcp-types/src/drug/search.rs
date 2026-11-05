@@ -72,7 +72,9 @@ struct SearchFields {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     prequalified_to: Option<biodata::PartialDate>,
 
-    /// Exactly one source; default MyChem never fans out.
+    /// Selected source.
+    ///
+    /// After an empty name lookup, existing sources may supply aliases.
     #[serde(default = "default_source")]
     source: DrugSource,
     /// Explicit ChEMBL native name selector; omitted means preferred name.
@@ -146,6 +148,25 @@ impl TryFrom<SearchFields> for DrugSearch {
     }
 }
 impl DrugSearch {
+    /// Retry a source-stated name while preserving every native filter and page selector.
+    pub fn with_name(&self, name: Text) -> Self {
+        let mut query = self.clone();
+        query.0.query = Some(name);
+        query
+    }
+    /// Select the native ChEMBL synonym filter without changing the request's other fields.
+    pub fn with_name_selector(
+        &self,
+        selector: super::DrugNameSelector,
+    ) -> Result<Self, QueryInvalid> {
+        let mut fields = self.0.clone();
+        fields.name_selector = Some(selector);
+        fields.try_into()
+    }
+    /// Whether the caller chose a literal ChEMBL name filter.
+    pub fn explicit_name_selector(&self) -> bool {
+        self.0.name_selector.is_some()
+    }
     /// Inclusive WHO prequalification lower bound.
     pub fn prequalified_from(&self) -> Option<biodata::PartialDate> {
         self.0.prequalified_from

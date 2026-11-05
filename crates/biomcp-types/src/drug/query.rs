@@ -225,8 +225,15 @@ impl DrugGet {
     }
     /// Select one exact native identity, with no sections requested.
     pub fn new(input: DrugId, source: DrugSource) -> Result<Self, QueryInvalid> {
+        Self::named(
+            Text::new(&input.to_string()).map_err(|_| QueryInvalid::new(&["input"]))?,
+            source,
+        )
+    }
+    /// Resolve a complete source name through the same checked boundary as CLI input.
+    pub fn named(input: Text, source: DrugSource) -> Result<Self, QueryInvalid> {
         GetFields {
-            input: Text::new(&input.to_string()).map_err(|_| QueryInvalid::new(&["input"]))?,
+            input,
             source: Some(source),
             section: Box::default(),
             section_limit: None,
@@ -240,6 +247,12 @@ impl DrugGet {
             evidence_filter: Default::default(),
         }
         .try_into()
+    }
+    /// Retry a source-stated alias while preserving the requested sections and filters.
+    pub fn with_name(&self, input: Text) -> Result<Self, QueryInvalid> {
+        let mut fields = self.fields.clone();
+        fields.input = input;
+        fields.try_into()
     }
     /// Continue one native claim collection while preserving selected drug, source and section paging.
     pub fn with_civic_page(
