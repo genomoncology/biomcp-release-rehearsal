@@ -36,7 +36,7 @@
           ]
         }
       },
-      "max_bytes": 6500
+      "max_bytes": 8276
     },
     {
       "run": [
@@ -76,7 +76,7 @@
           "supplements"
         ]
       },
-      "max_bytes": 5000
+      "max_bytes": 3855
     },
     {
       "run": [
@@ -89,7 +89,7 @@
           "count": 1
         }
       },
-      "max_bytes": 1372
+      "max_bytes": 381
     },
     {
       "run": [
@@ -102,8 +102,8 @@
           "count": 1
         }
       },
-      "max_bytes": 1391
+      "max_bytes": 395
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. The source_pacing global argument adds 162 compact JSON bytes and one array separator. Its exhausted leaf budget adds exactly those 163 bytes, preserving the prior headroom; other budgets stay unchanged."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

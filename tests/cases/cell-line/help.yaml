@@ -20,7 +20,7 @@
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 2136,
+      "max_bytes": 1739,
       "run": [
         "help",
         "search",
@@ -55,7 +55,7 @@
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 3111,
+      "max_bytes": 2096,
       "run": [
         "help",
         "get",
@@ -76,7 +76,7 @@
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 1691,
+      "max_bytes": 496,
       "run": [
         "help",
         "cell-line",
@@ -85,5 +85,5 @@
     }
   ],
   "story": "Cell line commands expose sections, paging, exact source identities and two parsed examples without response inference.",
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

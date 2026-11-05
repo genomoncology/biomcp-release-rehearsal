@@ -35,7 +35,7 @@ pub(crate) fn command() -> Command {
     root = root.arg(
         Arg::new("disable-sources")
             .long("disable-sources")
-            .help("Exclude source names or source terms groups.")
+            .help("Exclude source names or source terms groups. Example: --disable-sources civic.")
             .global(true)
             .num_args(1)
             .value_delimiter(',')
@@ -45,7 +45,7 @@ pub(crate) fn command() -> Command {
         Arg::new("source_pacing")
             .long("source_pacing")
             .help(
-                "Override source pacing with a JSON map of rate, keyed_rate and in_flight values.",
+                "Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.",
             )
             .global(true),
     );
@@ -54,7 +54,7 @@ pub(crate) fn command() -> Command {
             Arg::new(name)
                 .long(name)
                 .hide(name != "config")
-                .help("Read configuration from this file.")
+                .help("Read configuration from this file. Example: --config config.json.")
                 .global(true)
                 .value_parser(clap::value_parser!(PathBuf)),
         );

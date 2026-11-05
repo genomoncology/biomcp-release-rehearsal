@@ -96,7 +96,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     variant: Option<Text>,
-    /// Save the whole original document to an explicit file or existing folder.
+    /// Save the whole original document to an explicit file or existing folder. Example: --save article-output.
     #[serde(
         default,
         deserialize_with = "present",

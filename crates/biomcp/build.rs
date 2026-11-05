@@ -5,6 +5,8 @@
 )]
 use std::{collections::BTreeMap, env, error::Error, fs, path::PathBuf};
 
+#[path = "build/argument_examples.rs"]
+mod argument_examples;
 #[path = "build/front_map.rs"]
 mod front_map;
 #[path = "build/schema_metadata.rs"]
@@ -267,6 +269,7 @@ fn embed_examples() -> Result<(), Box<dyn Error>> {
             witnesses.push((file, index));
         }
     }
+    argument_examples::append(&cases, &mut examples)?;
     fs::write(
         PathBuf::from(env::var("OUT_DIR")?).join("examples.json"),
         serde_json::to_vec(&examples)?,

@@ -17,6 +17,7 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
         .and_then(|r| r.pointer("/result/tools"))
         .and_then(Value::as_array)
         .ok_or("tools")?;
+    faers_drug(tools)?;
     for (verb, entity, id) in biomcp_types::command_paths() {
         let name = format!("{verb}_{entity}").replace('-', "_");
         let tool = tools
@@ -74,6 +75,20 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
         .trim();
     if !description.starts_with(summary) {
         return Err("CLI help lost the command summary".into());
+    }
+    Ok(())
+}
+fn faers_drug(tools: &[Value]) -> Result<(), String> {
+    let description = tools
+        .iter()
+        .find(|tool| tool.get("name") == Some(&json!("search_adverse_event")))
+        .and_then(|tool| tool.pointer("/inputSchema/properties/drug/description"))
+        .and_then(Value::as_str)
+        .ok_or("typed FAERS drug description")?;
+    if description != "FAERS drug names; OR." {
+        return Err(format!(
+            "typed FAERS drug lost its owning description: {description}"
+        ));
     }
     Ok(())
 }

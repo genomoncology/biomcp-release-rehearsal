@@ -117,7 +117,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Age in years; unstated source bounds count as no limit. Minimum: 0."
+        "/error/valid_values/0": "Age in years. ClinicalTrials.gov only; unstated source bounds count as no limit. Minimum: 0."
       }
     },
     {
@@ -134,7 +134,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Headers per page; NCI applies its own lower publisher limit. Minimum: 1. Maximum: 100."
+        "/error/valid_values/0": "Page size. Headers per page; NCI applies its own lower publisher limit. Minimum: 1. Maximum: 100."
       }
     },
     {

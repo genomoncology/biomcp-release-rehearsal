@@ -15,7 +15,7 @@
         },
         "/result/commands/0/description": "Get genetic variants. Sources: alphagenome, car, civic, clinvar, erepo, gnomad, gwas, hotspots, mutalyzer, myvariant, oncokb, variantvalidator."
       },
-      "max_bytes": 5514
+      "max_bytes": 8251
     },
     {
       "run": [
@@ -28,7 +28,7 @@
           "count": 1
         }
       },
-      "max_bytes": 3976
+      "max_bytes": 5046
     },
     {
       "run": [
@@ -41,7 +41,7 @@
           "count": 1
         }
       },
-      "max_bytes": 2847
+      "max_bytes": 2770
     },
     {
       "run": [
@@ -54,7 +54,7 @@
           "count": 1
         }
       },
-      "max_bytes": 2540
+      "max_bytes": 2593
     },
     {
       "run": [
@@ -67,7 +67,7 @@
           "count": 1
         }
       },
-      "max_bytes": 2493
+      "max_bytes": 2527
     },
     {
       "run": [
@@ -80,8 +80,8 @@
           "count": 1
         }
       },
-      "max_bytes": 3135
+      "max_bytes": 3358
     }
   ],
-  "verified": "Get variant and assertions help measured in j16526: 3741 and 1290 CLI bytes. Their caps are ceil(measured bytes * 1.15); token caps are ceil(byte cap / 4). Other help caps retain j11310. No comparable 0.9 schema-generated help baseline exists. MCP tools/list retains its existing description cap. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. Assertions help is 2475 CLI bytes after the shared variant identifier/build fields (j28000); its cap is ceil(measured bytes * 1.15)."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

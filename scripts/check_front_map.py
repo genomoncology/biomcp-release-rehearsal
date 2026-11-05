@@ -70,7 +70,7 @@ def main():
         schema_id = country["description"].rsplit("biomcp schema ", 1)[1].rstrip(".")
         query_schema = json.loads(run(binary, ["schema", schema_id], env))
         complete_choices = query_schema["properties"]["country"]["items"]["enum"]
-        assert country["description"].startswith(str(len(complete_choices)) + " allowed values;")
+        assert f"{len(complete_choices)} allowed values." in country["description"]
         assert "United States" in complete_choices
         install = root / "installed"
         run(binary, ["skill", "install", str(install)], env)

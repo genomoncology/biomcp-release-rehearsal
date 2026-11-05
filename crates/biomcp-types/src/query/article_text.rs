@@ -35,7 +35,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     find: Option<Text>,
-    /// Explicit checked protein substitution.
+    /// Explicit checked protein substitution. Example: --variant p.V600E.
     #[serde(
         default,
         deserialize_with = "present",
@@ -43,7 +43,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     variant: Option<Text>,
-    /// Save the whole original document to an explicit file or existing folder.
+    /// Save the whole original document to an explicit file or existing folder. Example: --save article-output.
     #[serde(
         default,
         deserialize_with = "present",

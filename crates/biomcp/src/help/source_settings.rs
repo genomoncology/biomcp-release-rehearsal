@@ -52,29 +52,3 @@ pub(super) fn help(topic: &str) -> Help {
         }],
     }
 }
-
-pub(super) fn timing(commands: &mut [HelpCommand]) {
-    for command in commands {
-        let sources: &[biomcp_types::Source] = if command.command == ["health"] {
-            &[
-                biomcp_types::Source::Gwas,
-                biomcp_types::Source::InterPro,
-                biomcp_types::Source::Vaers,
-            ]
-        } else {
-            &[]
-        };
-        for &source in sources {
-            if let Some(guidance) = biomcp_query::sources::deadline(source) {
-                command.description.push(' ');
-                command.description.push_str(guidance);
-            }
-            if source == biomcp_types::Source::Vaers {
-                command.description.push(' ');
-                command
-                    .description
-                    .push_str(biomcp_query::sources::WONDER_QUOTA);
-            }
-        }
-    }
-}

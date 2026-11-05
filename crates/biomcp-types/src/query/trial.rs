@@ -66,7 +66,7 @@ struct Fields {
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(length(max = MAX_ALTERNATIVES)))]
     intervention: Box<[Text]>,
-    #[doc = "Gene symbol/ID.\nResolve one checked gene for registry text discovery only; no eligibility judgment."]
+    #[doc = "Gene symbol/ID.\nClinicalTrials.gov only: resolve one checked gene for registry text discovery; no eligibility judgment."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -74,7 +74,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "GeneInput"))]
     gene: Option<GeneInput>,
-    #[doc = "Variant text.\nLiteral variant text for registry discovery only; no eligibility judgment."]
+    #[doc = "Variant text.\nClinicalTrials.gov only: literal variant text for registry discovery; no eligibility judgment."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -99,7 +99,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "NciBiomarkerUse"))]
     biomarker_use: Option<NciBiomarkerUse>,
-    #[doc = "Criteria text.\nSearch literal registry eligibility text for discovery only; no eligibility judgment."]
+    #[doc = "Criteria text.\nClinicalTrials.gov only: search exact registry eligibility text for discovery; no eligibility judgment."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -127,7 +127,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "TrialPhaseFilter"))]
     phase: Option<TrialPhaseFilter>,
-    #[doc = "Study type.\nExact registry study type."]
+    #[doc = "Study type.\nClinicalTrials.gov only: exact registry study type."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -135,7 +135,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "StudyType"))]
     study_type: Option<StudyType>,
-    /// Registry sex facet.
+    /// ClinicalTrials.gov only: registry sex facet.
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -143,7 +143,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "TrialSex"))]
     sex: Option<TrialSex>,
-    /// Age in years; unstated source bounds count as no limit.
+    #[doc = "Age in years.\nClinicalTrials.gov only; unstated source bounds count as no limit."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -164,7 +164,7 @@ struct Fields {
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(schema_with = "country::schema"))]
     country: Box<[Box<str>]>,
-    #[doc = "Latitude degrees.\nRadius center latitude in degrees."]
+    #[doc = "Latitude degrees.\nClinicalTrials.gov only: radius center latitude in degrees."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -172,7 +172,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     lat: Option<Text>,
-    #[doc = "Longitude degrees.\nRadius center longitude in degrees."]
+    #[doc = "Longitude degrees.\nClinicalTrials.gov only: radius center longitude in degrees."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -180,7 +180,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     lon: Option<Text>,
-    #[doc = "Radius, mi or km.\nSource distance with explicit mi or km units."]
+    #[doc = "Radius, mi or km.\nClinicalTrials.gov only: source distance with explicit mi or km units."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -188,7 +188,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     distance: Option<Text>,
-    #[doc = "Sponsor.\nSponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."]
+    #[doc = "Sponsor.\nClinicalTrials.gov only: sponsor name; broadens after zero exact matches. Use --sponsor-type for the funding category."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -196,7 +196,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     sponsor: Option<Text>,
-    #[doc = "Funding class.\nRegistry sponsor funding category; use --sponsor for a sponsor name."]
+    #[doc = "Funding class.\nClinicalTrials.gov only: registry sponsor funding category; use --sponsor for a sponsor name."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -204,7 +204,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "SponsorType"))]
     sponsor_type: Option<SponsorType>,
-    #[doc = "First date.\nFirst included registry update date."]
+    #[doc = "First date.\nClinicalTrials.gov only: first included registry update date."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -212,7 +212,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     updated_since: Option<PartialDate>,
-    #[doc = "Last date.\nLast included registry update date."]
+    #[doc = "Last date.\nClinicalTrials.gov only: last included registry update date."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -220,7 +220,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     updated_until: Option<PartialDate>,
-    #[doc = "NCT identifier.\nExact NCT identity in a conjunction with other filters."]
+    #[doc = "NCT identifier.\nClinicalTrials.gov only: exact NCT identity in a conjunction with other filters."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",
@@ -236,16 +236,16 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     next_page: Option<Text>,
-    /// Zero-based offset of the first row in this continuation page.
+    #[doc = "Page offset.\nZero-based offset of the first row in this continuation page."]
     #[serde(default)]
     offset: u32,
     #[doc = "Total.\nSource total only; no returned study rows."]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     count_only: bool,
-    #[doc = "Posted results.\nRequire posted source results."]
+    #[doc = "Posted results.\nClinicalTrials.gov only: require posted source results."]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     has_results: bool,
-    /// Headers per page; NCI applies its own lower publisher limit.
+    #[doc = "Page size.\nHeaders per page; NCI applies its own lower publisher limit."]
     #[serde(default = "default_limit")]
     #[cfg_attr(feature = "schema", schemars(range(min = 1, max = 100)))]
     limit: u32,
@@ -306,15 +306,15 @@ impl TrialSearch {
     pub fn intervention(&self) -> &[Text] {
         &self.0.intervention
     }
-    /// Resolve one checked gene for registry text discovery only; no eligibility judgment.
+    /// ClinicalTrials.gov only: resolve one checked gene for registry text discovery; no eligibility judgment.
     pub fn gene(&self) -> Option<&GeneInput> {
         self.0.gene.as_ref()
     }
-    /// Literal variant text for registry discovery only; no eligibility judgment.
+    /// ClinicalTrials.gov only: literal variant text for registry discovery; no eligibility judgment.
     pub fn variant(&self) -> Option<&Text> {
         self.0.variant.as_ref()
     }
-    /// Search literal registry eligibility text for discovery only; no eligibility judgment.
+    /// ClinicalTrials.gov only: search exact registry eligibility text for discovery; no eligibility judgment.
     pub fn criteria(&self) -> Option<&Text> {
         self.0.criteria.as_ref()
     }
@@ -346,15 +346,15 @@ impl TrialSearch {
             TrialPhaseFilter::Registry(_) => None,
         }
     }
-    /// Exact registry study type.
+    /// ClinicalTrials.gov only: exact registry study type.
     pub fn study_type(&self) -> Option<&StudyType> {
         self.0.study_type.as_ref()
     }
-    /// Registry sex facet.
+    /// ClinicalTrials.gov only: registry sex facet.
     pub fn sex(&self) -> Option<&TrialSex> {
         self.0.sex.as_ref()
     }
-    /// Age in years; unstated source bounds count as no limit.
+    #[doc = "Age in years.\nClinicalTrials.gov only; unstated source bounds count as no limit."]
     pub fn age(&self) -> Option<&u32> {
         self.0.age.as_ref()
     }
@@ -366,15 +366,15 @@ impl TrialSearch {
     pub fn country(&self) -> &[Box<str>] {
         &self.0.country
     }
-    /// Radius center latitude in degrees.
+    /// ClinicalTrials.gov only: radius center latitude in degrees.
     pub fn lat(&self) -> Option<&Text> {
         self.0.lat.as_ref()
     }
-    /// Radius center longitude in degrees.
+    /// ClinicalTrials.gov only: radius center longitude in degrees.
     pub fn lon(&self) -> Option<&Text> {
         self.0.lon.as_ref()
     }
-    /// Source distance with explicit mi or km units.
+    /// ClinicalTrials.gov only: source distance with explicit mi or km units.
     pub fn distance(&self) -> Option<&Text> {
         self.0.distance.as_ref()
     }
@@ -386,15 +386,15 @@ impl TrialSearch {
     pub fn sponsor_type(&self) -> Option<&SponsorType> {
         self.0.sponsor_type.as_ref()
     }
-    /// First included registry update date.
+    /// ClinicalTrials.gov only: first included registry update date.
     pub fn updated_since(&self) -> Option<&PartialDate> {
         self.0.updated_since.as_ref()
     }
-    /// Last included registry update date.
+    /// ClinicalTrials.gov only: last included registry update date.
     pub fn updated_until(&self) -> Option<&PartialDate> {
         self.0.updated_until.as_ref()
     }
-    /// Exact NCT identity in a conjunction with other filters.
+    /// ClinicalTrials.gov only: exact NCT identity in a conjunction with other filters.
     pub fn id(&self) -> Option<&NctId> {
         self.0.id.as_ref()
     }

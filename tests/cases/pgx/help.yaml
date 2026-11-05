@@ -33,8 +33,8 @@
           "cpic"
         ]
       },
-      "max_bytes": 2217,
-      "max_tokens": 555
+      "max_bytes": 1850,
+      "max_tokens": 463
     },
     {
       "run": [
@@ -78,8 +78,8 @@
           "clinpgx"
         ]
       },
-      "max_bytes": 3745
+      "max_bytes": 4242
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

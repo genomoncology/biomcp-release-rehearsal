@@ -42,7 +42,7 @@
         "/result/config": "keys.oncokb_api_key",
         "/result/environment": "ONCOKB_TOKEN"
       },
-      "max_bytes": 300
+      "max_bytes": 209
     }
   ]
 }

@@ -1,0 +1,431 @@
+{
+  "feature": "schema-discovery",
+  "live_check": "local-only generated help and parser refusals; no source requests",
+  "story": "Entity and command-topic aliases list their related executable commands and refuse unsupported arguments.",
+  "steps": [
+    {
+      "run": [
+        "help",
+        "adverse-event"
+      ],
+      "mcp": [
+        "help",
+        "adverse-event"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "search",
+              "adverse-event"
+            ],
+            [
+              "get",
+              "adverse-event"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "adverse-event",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "assay-count"
+      ],
+      "mcp": [
+        "help",
+        "assay-count"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "cell-line",
+              "assay-count"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "assay-count",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "assertions"
+      ],
+      "mcp": [
+        "help",
+        "assertions"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "variant",
+              "assertions"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "assertions",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "biomarker"
+      ],
+      "mcp": [
+        "help",
+        "biomarker"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "search",
+              "biomarker"
+            ],
+            [
+              "get",
+              "biomarker"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "biomarker",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "citation-evidence"
+      ],
+      "mcp": [
+        "help",
+        "citation-evidence"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "article",
+              "citation-evidence"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "citation-evidence",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "citations"
+      ],
+      "mcp": [
+        "help",
+        "citations"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "article",
+              "citations"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "citations",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "complex-members"
+      ],
+      "mcp": [
+        "help",
+        "complex-members"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "protein",
+              "complex-members"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "complex-members",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "complexes"
+      ],
+      "mcp": [
+        "help",
+        "complexes"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "protein",
+              "complexes"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "complexes",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "diagnostic"
+      ],
+      "mcp": [
+        "help",
+        "diagnostic"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "search",
+              "diagnostic"
+            ],
+            [
+              "get",
+              "diagnostic"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "diagnostic",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "disease"
+      ],
+      "mcp": [
+        "help",
+        "disease"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "search",
+              "disease"
+            ],
+            [
+              "get",
+              "disease"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "disease",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "document"
+      ],
+      "mcp": [
+        "help",
+        "document"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "trial",
+              "document"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "document",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    },
+    {
+      "run": [
+        "help",
+        "domains"
+      ],
+      "mcp": [
+        "help",
+        "domains"
+      ],
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/status": "complete",
+        "/result/commands/*/command": {
+          "includes_all_of": [
+            [
+              "protein",
+              "domains"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "help",
+        "domains",
+        "--unrecognized-argument"
+      ],
+      "exit": 2,
+      "expect": {
+        "/schema": "biomcp.error/4",
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

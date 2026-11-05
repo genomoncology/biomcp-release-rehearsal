@@ -54,7 +54,7 @@
     },
     "save": {
       "$ref": "#/$defs/Text",
-      "description": "Save the whole original document to an explicit file or existing folder."
+      "description": "Save the whole original document to an explicit file or existing folder. Example: --save article-output."
     },
     "sheet": {
       "$ref": "#/$defs/Text",

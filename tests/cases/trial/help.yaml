@@ -38,14 +38,11 @@
           "--updated-until",
           "--variant"
         ],
-        "/result/commands/0/arguments/4/description": "",
         "/result/commands/0/examples": {
           "count": 1
-        },
-        "/result/commands/0/arguments/29/description": "",
-        "/result/commands/0/arguments/9/description": ""
+        }
       },
-      "max_bytes": 11802,
+      "max_bytes": 13163,
       "run": [
         "help",
         "search",
@@ -80,7 +77,7 @@
           "summary"
         ]
       },
-      "max_bytes": 4120,
+      "max_bytes": 3927,
       "run": [
         "help",
         "get",
@@ -99,7 +96,7 @@
           "count": 1
         }
       },
-      "max_bytes": 2228,
+      "max_bytes": 1255,
       "run": [
         "help",
         "trial",
@@ -108,5 +105,5 @@
     }
   ],
   "story": "Trial help describes source discovery, intact sections and explicit document saves with executable examples.",
-  "verified": "Measured compact CLI bytes plus 15 percent in j10693: search trial 4489, get trial 2700, trial document 1088. No comparable released schema-generated help baseline exists. CLI/MCP parity shares these assertions. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. Search trial entity help measured at 10262 bytes in j22622 on the combined source; its cap keeps the established fifteen percent margin."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

@@ -1,8 +1,13 @@
 """Refresh existing help metadata snapshots after an intentional help presentation change."""
 import json
+import math
+import tempfile
 from pathlib import Path
 import subprocess
 import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from release.smoke import environment
 
 
 def pointer(value, path):
@@ -13,9 +18,8 @@ def pointer(value, path):
     return value
 
 
-def main():
-    binary = sys.argv[1]
-    shared_help = json.loads(subprocess.check_output([binary, "help", "help"], text=True))
+def refresh(binary, env):
+    shared_help = json.loads(subprocess.check_output([binary, "--offline", "help", "help"], text=True, env=env))
     shared_names = {
         argument["name"]
         for command in shared_help["result"]["commands"]
@@ -31,7 +35,14 @@ def main():
         for step in case.get("steps", []):
             if step.get("run", [None])[0] != "help" or step.get("exit", 0) != 0:
                 continue
-            output = json.loads(subprocess.check_output([binary, *step["run"]], text=True))
+            raw = subprocess.check_output([binary, "--offline", *step["run"]], env=env)
+            output = json.loads(raw)
+            for limit, actual in [("max_bytes", len(raw)), ("max_tokens", math.ceil(len(raw) / 4))]:
+                for limits in (step, step.get("expect", {}).get("", {})):
+                    if isinstance(limits, dict) and limit in limits:
+                        measured = math.ceil(actual * 1.15)
+                        changed |= limits[limit] != measured
+                        limits[limit] = measured
             for key, expected in list(step.get("expect", {}).items()):
                 if (key.endswith("/description") and isinstance(expected, str)) or key.endswith("/examples"):
                     actual = pointer(output, key)
@@ -70,6 +81,11 @@ def main():
                     changed = True
         if changed:
             path.write_text(json.dumps(case, indent=2, ensure_ascii=False) + "\n")
+
+
+def main():
+    with tempfile.TemporaryDirectory(prefix="help-measure-") as scratch:
+        refresh(str(Path(sys.argv[1]).resolve()), environment(scratch))
 
 
 if __name__ == "__main__":

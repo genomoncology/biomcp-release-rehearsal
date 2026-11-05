@@ -1,5 +1,6 @@
 //! Schema-fed command help shared with MCP discovery.
 
+mod argument_details;
 #[path = "../coverage.rs"]
 pub(crate) mod coverage;
 mod discovery;
@@ -56,7 +57,18 @@ pub(crate) fn dispatch(root: &crate::grammar::Root, path: &[String]) -> io::Resu
                     && c.command.first() == path.first())
         })
         .collect();
-    if !public_grammar::overview(root, &mut commands, path)? {
+    let entity = path.len() == 1
+        && crate::grammar::command_paths()
+            .iter()
+            .any(|(_, entity, _)| path.first().is_some_and(|word| word.as_str() == *entity));
+    if entity {
+        for command in &mut commands {
+            command.arguments.clear();
+            command.sections.clear();
+            command.section_rule = None;
+        }
+        compact(&mut commands);
+    } else if !public_grammar::overview(root, &mut commands, path)? {
         compact(&mut commands);
     }
     if path.is_empty() {
@@ -68,20 +80,11 @@ pub(crate) fn dispatch(root: &crate::grammar::Root, path: &[String]) -> io::Resu
 }
 // Large catalogs remain available through the command's complete query schema.
 const INLINE_CHOICE_LIMIT: usize = 24;
-fn compact(commands: &mut [HelpCommand]) {
+pub(crate) fn compact(commands: &mut [HelpCommand]) {
     for command in commands {
         command.reply_schemas.clear();
         command.examples.truncate(1);
         for argument in &mut command.arguments {
-            let accepted_form = argument
-                .description
-                .split(". ")
-                .next()
-                .unwrap_or_default()
-                .to_owned();
-            if argument.position.is_none() {
-                argument.description.clear();
-            }
             if !matches!(
                 argument.name.as_str(),
                 "--source" | "--sources" | "section" | "--section"
@@ -90,10 +93,10 @@ fn compact(commands: &mut [HelpCommand]) {
                     .iter()
                     .find(|(verb, entity, _)| command.command == [*verb, *entity])
             {
-                argument.description = format!(
-                    "{} allowed values; {accepted_form}. Full list: biomcp schema {schema}.",
+                argument.description.push_str(&format!(
+                    " {} allowed values. Full list: biomcp schema {schema}.",
                     argument.choices.len()
-                );
+                ));
                 argument.choices.clear();
             }
         }
@@ -157,13 +160,13 @@ pub(crate) fn commands(root: &crate::grammar::Root) -> io::Result<Vec<HelpComman
     commands.push(topic("exit", crate::exit::reference()));
 
     public_grammar::augment(root, &mut commands)?;
+    argument_details::complete(&mut commands);
     discovery::complete(&mut commands);
     for command in &mut commands {
         if command.reply_schemas.is_empty() {
             command.reply_schemas = crate::schema::local_replies(&command.command);
         }
     }
-    source_settings::timing(&mut commands);
     Ok(commands)
 }
 fn command_description(verb: &str, entity: &str, schema: &Value) -> String {

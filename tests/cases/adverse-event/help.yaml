@@ -5,7 +5,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 5491
+          "max_bytes": 6811
         },
         "/result/commands": {
           "count": 1
@@ -36,7 +36,7 @@
           "count": 1
         }
       },
-      "max_bytes": 5492,
+      "max_bytes": 6811,
       "run": [
         "help",
         "search",
@@ -46,7 +46,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 4002
+          "max_bytes": 3560
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -81,7 +81,7 @@
           "narrative"
         ]
       },
-      "max_bytes": 4004,
+      "max_bytes": 3560,
       "run": [
         "help",
         "get",
@@ -90,5 +90,5 @@
     }
   ],
   "story": "Generated adverse-event help exposes native sources, filters, independent sections and two executable examples per command.",
-  "verified": "j13144 measured search/get compact envelopes at 1663/2242 bytes and stdout including newline at 1664/2243 bytes. Ceilings add fifteen percent. Examples come from parsed case run steps; the existing example check executes every example over its own replay. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout. Examples come from parsed case run steps; the existing example check executes every example over its own replay."
 }

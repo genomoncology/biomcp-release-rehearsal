@@ -5,7 +5,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 2368
+          "max_bytes": 1794
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -25,7 +25,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 2369,
+      "max_bytes": 1794,
       "run": [
         "help",
         "search",
@@ -35,7 +35,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 6000
+          "max_bytes": 2844
         },
         "/result/commands/0/arguments/*/name": {
           "includes_all_of": [
@@ -63,7 +63,7 @@
         ],
         "/status": "complete"
       },
-      "max_bytes": 6000,
+      "max_bytes": 2844,
       "run": [
         "help",
         "get",
@@ -73,7 +73,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 1440
+          "max_bytes": 433
         },
         "/result/commands/0/command": [
           "sync",
@@ -84,7 +84,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 1441,
+      "max_bytes": 433,
       "run": [
         "help",
         "sync",
@@ -93,5 +93,5 @@
     }
   ],
   "story": "Study help exposes bounded metadata commands, parsed examples and calculation boundaries.",
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

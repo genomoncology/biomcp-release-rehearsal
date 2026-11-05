@@ -78,7 +78,12 @@ pub(super) fn overview(
             parent.reply_schemas.clear();
             result.push(parent);
         }
-        scoped_globals(root, &mut result);
+        let globals = commands
+            .iter()
+            .find(|entry| entry.command.is_empty())
+            .map(|entry| entry.arguments.as_slice())
+            .unwrap_or_default();
+        scoped_globals(globals, &mut result);
     }
     for child in parser.get_subcommands().filter(|c| !c.is_hide_set()) {
         let mut child_path = path.to_vec();
@@ -258,12 +263,15 @@ fn metadata(arg: &Arg) -> HelpArgument {
     }
 }
 
-pub(super) fn scoped_globals(parser: &Command, commands: &mut [HelpCommand]) {
+fn scoped_globals(globals: &[HelpArgument], commands: &mut [HelpCommand]) {
     for command in commands {
-        for argument in parser.get_arguments().filter(|arg| !arg.is_hide_set()) {
-            let value = metadata(argument);
-            if !command.arguments.iter().any(|arg| arg.name == value.name) {
-                command.arguments.push(value);
+        for argument in globals {
+            if !command
+                .arguments
+                .iter()
+                .any(|arg| arg.name == argument.name)
+            {
+                command.arguments.push(argument.clone());
             }
         }
     }

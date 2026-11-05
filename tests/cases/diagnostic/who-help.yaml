@@ -9,7 +9,7 @@
         "sync",
         "who-ivd"
       ],
-      "max_bytes": 1391,
+      "max_bytes": 395,
       "expect": {
         "/result/commands/0/command": [
           "sync",
@@ -24,5 +24,5 @@
       }
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

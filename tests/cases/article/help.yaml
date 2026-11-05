@@ -29,7 +29,7 @@
           ]
         }
       },
-      "max_bytes": 14000
+      "max_bytes": 1885
     },
     {
       "run": [
@@ -71,7 +71,7 @@
           "citations"
         ]
       },
-      "max_bytes": 14000
+      "max_bytes": 10160
     },
     {
       "run": [
@@ -88,7 +88,7 @@
           "count": 1
         }
       },
-      "max_bytes": 14000
+      "max_bytes": 2414
     },
     {
       "run": [
@@ -105,7 +105,7 @@
           "count": 1
         }
       },
-      "max_bytes": 14000
+      "max_bytes": 2690
     },
     {
       "run": [
@@ -126,7 +126,7 @@
           "semantic-scholar"
         ]
       },
-      "max_bytes": 14000
+      "max_bytes": 1977
     },
     {
       "run": [
@@ -147,7 +147,7 @@
           "semantic-scholar"
         ]
       },
-      "max_bytes": 14000
+      "max_bytes": 1991
     },
     {
       "run": [
@@ -164,7 +164,7 @@
           "count": 1
         }
       },
-      "max_bytes": 5000
+      "max_bytes": 2130
     },
     {
       "run": [
@@ -181,7 +181,7 @@
           "count": 1
         }
       },
-      "max_bytes": 5000
+      "max_bytes": 1876
     }
   ]
 }

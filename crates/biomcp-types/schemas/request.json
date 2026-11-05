@@ -4128,7 +4128,7 @@
       "description": "Search clinical trials.",
       "properties": {
         "age": {
-          "description": "Age in years; unstated source bounds count as no limit.",
+          "description": "Age in years.\nClinicalTrials.gov only; unstated source bounds count as no limit.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
@@ -4399,11 +4399,11 @@
         },
         "criteria": {
           "$ref": "#/$defs/Text",
-          "description": "Criteria text.\nSearch literal registry eligibility text for discovery only; no eligibility judgment."
+          "description": "Criteria text.\nClinicalTrials.gov only: search exact registry eligibility text for discovery; no eligibility judgment."
         },
         "distance": {
           "$ref": "#/$defs/Text",
-          "description": "Radius, mi or km.\nSource distance with explicit mi or km units."
+          "description": "Radius, mi or km.\nClinicalTrials.gov only: source distance with explicit mi or km units."
         },
         "exact_condition": {
           "description": "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
@@ -4415,15 +4415,15 @@
         },
         "gene": {
           "$ref": "#/$defs/GeneInput",
-          "description": "Gene symbol/ID.\nResolve one checked gene for registry text discovery only; no eligibility judgment."
+          "description": "Gene symbol/ID.\nClinicalTrials.gov only: resolve one checked gene for registry text discovery; no eligibility judgment."
         },
         "has_results": {
-          "description": "Posted results.\nRequire posted source results.",
+          "description": "Posted results.\nClinicalTrials.gov only: require posted source results.",
           "type": "boolean"
         },
         "id": {
           "$ref": "#/$defs/NctId",
-          "description": "NCT identifier.\nExact NCT identity in a conjunction with other filters."
+          "description": "NCT identifier.\nClinicalTrials.gov only: exact NCT identity in a conjunction with other filters."
         },
         "intervention": {
           "description": "Treatment terms; OR.\nIntervention alternatives joined with OR; supported by ClinicalTrials.gov.",
@@ -4443,11 +4443,11 @@
         },
         "lat": {
           "$ref": "#/$defs/Text",
-          "description": "Latitude degrees.\nRadius center latitude in degrees."
+          "description": "Latitude degrees.\nClinicalTrials.gov only: radius center latitude in degrees."
         },
         "limit": {
           "default": 10,
-          "description": "Headers per page; NCI applies its own lower publisher limit.",
+          "description": "Page size.\nHeaders per page; NCI applies its own lower publisher limit.",
           "format": "uint32",
           "maximum": 100,
           "minimum": 1,
@@ -4455,7 +4455,7 @@
         },
         "lon": {
           "$ref": "#/$defs/Text",
-          "description": "Longitude degrees.\nRadius center longitude in degrees."
+          "description": "Longitude degrees.\nClinicalTrials.gov only: radius center longitude in degrees."
         },
         "next_page": {
           "$ref": "#/$defs/Text",
@@ -4463,7 +4463,7 @@
         },
         "offset": {
           "default": 0,
-          "description": "Zero-based offset of the first row in this continuation page.",
+          "description": "Page offset.\nZero-based offset of the first row in this continuation page.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
@@ -4479,7 +4479,7 @@
         },
         "sex": {
           "$ref": "#/$defs/TrialSex",
-          "description": "Registry sex facet."
+          "description": "ClinicalTrials.gov only: registry sex facet."
         },
         "source": {
           "$ref": "#/$defs/TrialSource",
@@ -4487,11 +4487,11 @@
         },
         "sponsor": {
           "$ref": "#/$defs/Text",
-          "description": "Sponsor.\nSponsor name; ClinicalTrials.gov broadens after zero exact matches. Use --sponsor-type for the funding category."
+          "description": "Sponsor.\nClinicalTrials.gov only: sponsor name; broadens after zero exact matches. Use --sponsor-type for the funding category."
         },
         "sponsor_type": {
           "$ref": "#/$defs/SponsorType",
-          "description": "Funding class.\nRegistry sponsor funding category; use --sponsor for a sponsor name."
+          "description": "Funding class.\nClinicalTrials.gov only: registry sponsor funding category; use --sponsor for a sponsor name."
         },
         "status": {
           "$ref": "#/$defs/TrialStatusFilter",
@@ -4499,19 +4499,19 @@
         },
         "study_type": {
           "$ref": "#/$defs/StudyType",
-          "description": "Study type.\nExact registry study type."
+          "description": "Study type.\nClinicalTrials.gov only: exact registry study type."
         },
         "updated_since": {
           "$ref": "#/$defs/PartialDate",
-          "description": "First date.\nFirst included registry update date."
+          "description": "First date.\nClinicalTrials.gov only: first included registry update date."
         },
         "updated_until": {
           "$ref": "#/$defs/PartialDate",
-          "description": "Last date.\nLast included registry update date."
+          "description": "Last date.\nClinicalTrials.gov only: last included registry update date."
         },
         "variant": {
           "$ref": "#/$defs/Text",
-          "description": "Variant text.\nLiteral variant text for registry discovery only; no eligibility judgment."
+          "description": "Variant text.\nClinicalTrials.gov only: literal variant text for registry discovery; no eligibility judgment."
         }
       },
       "required": [
@@ -4687,7 +4687,7 @@
         },
         "save": {
           "$ref": "#/$defs/Text",
-          "description": "Save the whole original document to an explicit file or existing folder."
+          "description": "Save the whole original document to an explicit file or existing folder. Example: --save article-output."
         },
         "sheet": {
           "$ref": "#/$defs/Text",
@@ -4763,11 +4763,11 @@
         },
         "save": {
           "$ref": "#/$defs/Text",
-          "description": "Save the whole original document to an explicit file or existing folder."
+          "description": "Save the whole original document to an explicit file or existing folder. Example: --save article-output."
         },
         "variant": {
           "$ref": "#/$defs/Text",
-          "description": "Explicit checked protein substitution."
+          "description": "Explicit checked protein substitution. Example: --variant p.V600E."
         }
       },
       "required": [
@@ -4955,7 +4955,7 @@
       "properties": {
         "author": {
           "$ref": "#/$defs/Text",
-          "description": "PubMed author words.\nAuthor words sent to PubMed's author field."
+          "description": "PubMed/Europe PMC author words.\nPubMed and Europe PMC only: author words sent to the source's author field."
         },
         "command": {
           "const": "search-article",
@@ -4963,11 +4963,11 @@
         },
         "disease": {
           "$ref": "#/$defs/Text",
-          "description": "Disease words."
+          "description": "Disease words.\nAvailable for command sources except LitVar."
         },
         "drug": {
           "$ref": "#/$defs/Text",
-          "description": "Drug words."
+          "description": "Drug words.\nAvailable for command sources except LitVar."
         },
         "gene": {
           "$ref": "#/$defs/GeneInput",
@@ -4975,7 +4975,7 @@
         },
         "journal": {
           "$ref": "#/$defs/Text",
-          "description": "PubMed journal words.\nJournal words sent to PubMed's journal field."
+          "description": "PubMed/Europe PMC journal words.\nPubMed and Europe PMC only: journal words sent to the source's journal field."
         },
         "limit": {
           "default": 10,
@@ -4986,7 +4986,7 @@
           "type": "integer"
         },
         "no_preprints": {
-          "description": "Exclude preprints.\nExclude preprints using the source's native filter.",
+          "description": "Exclude preprints.\nPubMed and Europe PMC only: exclude preprints using the source's native filter.",
           "type": "boolean"
         },
         "offset": {
@@ -4997,7 +4997,7 @@
           "type": "integer"
         },
         "open_access": {
-          "description": "Native open access.\nRequire the source's native open-access filter; Semantic Scholar means a public PDF.",
+          "description": "Native open access.\nPubMed, Europe PMC and Semantic Scholar only: require native open access; Semantic Scholar means a public PDF.",
           "type": "boolean"
         },
         "pool": {
@@ -5006,7 +5006,7 @@
         },
         "retracted": {
           "$ref": "#/$defs/RetractionFilter",
-          "description": "Retraction filter.\nInclude retracted papers by default, or exclude them using a native filter.",
+          "description": "Retraction filter.\nInclude retracted papers by default. Exclusion is supported only by PubMed and Europe PMC.",
           "x-cli-flags": {
             "exclude-retracted": "exclude",
             "include-retracted": "include"
@@ -5014,7 +5014,7 @@
         },
         "since": {
           "$ref": "#/$defs/PartialDate",
-          "description": "First publication date.\nInclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date."
+          "description": "First publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive lower publication-date bound; PubMed matches electronic or print date."
         },
         "sort": {
           "$ref": "#/$defs/ArticleSort",
@@ -5035,16 +5035,16 @@
         },
         "text": {
           "$ref": "#/$defs/Text",
-          "description": "Source search words.\nWords sent to each named source in its default fields.",
+          "description": "Source search words.\nWords sent to each named source in its default fields; unsupported by LitVar, which requires a variant selector.",
           "x-positional": 0
         },
         "type": {
           "$ref": "#/$defs/ArticleType",
-          "description": "Publication-type filter."
+          "description": "Publication type.\nPubMed and Europe PMC only: native publication-type filter."
         },
         "until": {
           "$ref": "#/$defs/PartialDate",
-          "description": "Last publication date.\nInclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date."
+          "description": "Last publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive upper publication-date bound; PubMed matches electronic or print date."
         },
         "variant": {
           "$ref": "#/$defs/Text",

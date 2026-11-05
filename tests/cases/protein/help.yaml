@@ -29,7 +29,7 @@
           ]
         }
       },
-      "max_bytes": 2464
+      "max_bytes": 2013
     },
     {
       "run": [
@@ -67,7 +67,7 @@
         },
         "/result/commands/0/section_rule": "Select source sections or all bounded first pages; function keeps one whole text record."
       },
-      "max_bytes": 3371
+      "max_bytes": 2348
     },
     {
       "run": [
@@ -95,7 +95,7 @@
           ]
         }
       },
-      "max_bytes": 2464
+      "max_bytes": 2021
     },
     {
       "run": [
@@ -122,7 +122,7 @@
           ]
         }
       },
-      "max_bytes": 2411
+      "max_bytes": 1769
     },
     {
       "run": [
@@ -148,7 +148,7 @@
           ]
         }
       },
-      "max_bytes": 2139
+      "max_bytes": 1406
     },
     {
       "run": [
@@ -174,7 +174,7 @@
           ]
         }
       },
-      "max_bytes": 2145
+      "max_bytes": 1439
     },
     {
       "run": [
@@ -201,7 +201,7 @@
           ]
         }
       },
-      "max_bytes": 2372
+      "max_bytes": 1786
     },
     {
       "run": [
@@ -227,7 +227,7 @@
           ]
         }
       },
-      "max_bytes": 2151
+      "max_bytes": 1408
     },
     {
       "run": [
@@ -250,8 +250,8 @@
           ]
         }
       },
-      "max_bytes": 1640
+      "max_bytes": 493
     }
   ],
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain. The source_pacing global argument adds 162 compact JSON bytes and one array separator. Each exhausted leaf budget adds exactly those 163 bytes, preserving the prior headroom; other budgets stay unchanged."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

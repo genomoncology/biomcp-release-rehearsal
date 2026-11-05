@@ -1,6 +1,7 @@
 # 0653 — Help describes every flag and resolves entity names
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b55a552a89128d887c57541dbb61d97f072901e5
 
 Milestone: 5
 

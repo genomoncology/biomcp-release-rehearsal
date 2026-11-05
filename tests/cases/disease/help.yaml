@@ -25,7 +25,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 2311,
+      "max_bytes": 2037,
       "run": [
         "help",
         "search",
@@ -66,7 +66,7 @@
         ],
         "/status": "complete"
       },
-      "max_bytes": 4433,
+      "max_bytes": 4787,
       "run": [
         "help",
         "get",
@@ -75,5 +75,5 @@
     }
   ],
   "story": "Disease help exposes exact source selectors, independent sections and two executable examples per command.",
-  "verified": "Measured compact CLI and MCP parity in j12432; max_bytes is comparable bytes plus 15 percent, rounded up. Source outcome terms use the shared validated deduction; component terms remain counted. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout. Source outcome terms use the shared validated deduction; component terms remain counted."
 }

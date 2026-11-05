@@ -23,7 +23,7 @@
           ]
         }
       },
-      "max_bytes": 4700
+      "max_bytes": 7130
     },
     {
       "run": [
@@ -60,7 +60,7 @@
           ]
         }
       },
-      "max_bytes": 4679
+      "max_bytes": 8134
     },
     {
       "run": [
@@ -77,7 +77,7 @@
           "count": 1
         }
       },
-      "max_bytes": 1372
+      "max_bytes": 381
     },
     {
       "run": [
@@ -94,8 +94,8 @@
           "count": 1
         }
       },
-      "max_bytes": 1391
+      "max_bytes": 395
     }
   ],
-  "verified": "Measured complete CLI and MCP help envelopes, including the output newline, use 15 percent headroom. Examples are embedded from case run steps and executed with only their owning explicit sync prerequisites. Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout. Examples are embedded from case run steps and executed with only their owning explicit sync prerequisites."
 }

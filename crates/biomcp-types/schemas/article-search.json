@@ -119,15 +119,15 @@
   "properties": {
     "author": {
       "$ref": "#/$defs/Text",
-      "description": "PubMed author words.\nAuthor words sent to PubMed's author field."
+      "description": "PubMed/Europe PMC author words.\nPubMed and Europe PMC only: author words sent to the source's author field."
     },
     "disease": {
       "$ref": "#/$defs/Text",
-      "description": "Disease words."
+      "description": "Disease words.\nAvailable for command sources except LitVar."
     },
     "drug": {
       "$ref": "#/$defs/Text",
-      "description": "Drug words."
+      "description": "Drug words.\nAvailable for command sources except LitVar."
     },
     "gene": {
       "$ref": "#/$defs/GeneInput",
@@ -135,7 +135,7 @@
     },
     "journal": {
       "$ref": "#/$defs/Text",
-      "description": "PubMed journal words.\nJournal words sent to PubMed's journal field."
+      "description": "PubMed/Europe PMC journal words.\nPubMed and Europe PMC only: journal words sent to the source's journal field."
     },
     "limit": {
       "default": 10,
@@ -146,7 +146,7 @@
       "type": "integer"
     },
     "no_preprints": {
-      "description": "Exclude preprints.\nExclude preprints using the source's native filter.",
+      "description": "Exclude preprints.\nPubMed and Europe PMC only: exclude preprints using the source's native filter.",
       "type": "boolean"
     },
     "offset": {
@@ -157,7 +157,7 @@
       "type": "integer"
     },
     "open_access": {
-      "description": "Native open access.\nRequire the source's native open-access filter; Semantic Scholar means a public PDF.",
+      "description": "Native open access.\nPubMed, Europe PMC and Semantic Scholar only: require native open access; Semantic Scholar means a public PDF.",
       "type": "boolean"
     },
     "pool": {
@@ -166,7 +166,7 @@
     },
     "retracted": {
       "$ref": "#/$defs/RetractionFilter",
-      "description": "Retraction filter; biomcp_help search article\nRetraction filter.\nInclude retracted papers by default, or exclude them using a native filter.",
+      "description": "Retraction filter; biomcp_help search article\nRetraction filter.\nInclude retracted papers by default. Exclusion is supported only by PubMed and Europe PMC.",
       "x-cli-flags": {
         "exclude-retracted": "exclude",
         "include-retracted": "include"
@@ -174,7 +174,7 @@
     },
     "since": {
       "$ref": "#/$defs/PartialDate",
-      "description": "First publication date.\nInclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date."
+      "description": "First publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive lower publication-date bound; PubMed matches electronic or print date."
     },
     "sort": {
       "$ref": "#/$defs/ArticleSort",
@@ -195,16 +195,16 @@
     },
     "text": {
       "$ref": "#/$defs/Text",
-      "description": "Source search words.\nWords sent to each named source in its default fields.",
+      "description": "Source search words.\nWords sent to each named source in its default fields; unsupported by LitVar, which requires a variant selector.",
       "x-positional": 0
     },
     "type": {
       "$ref": "#/$defs/ArticleType",
-      "description": "Publication-type filter; biomcp_help search article\nPublication-type filter."
+      "description": "Publication type; biomcp_help search article\nPublication type.\nPubMed and Europe PMC only: native publication-type filter."
     },
     "until": {
       "$ref": "#/$defs/PartialDate",
-      "description": "Last publication date.\nInclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date."
+      "description": "Last publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive upper publication-date bound; PubMed matches electronic or print date."
     },
     "variant": {
       "$ref": "#/$defs/Text",

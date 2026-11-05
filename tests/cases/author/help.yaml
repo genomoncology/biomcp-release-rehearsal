@@ -20,7 +20,7 @@
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 3026,
+      "max_bytes": 1830,
       "run": [
         "help",
         "search",
@@ -41,7 +41,7 @@
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 2350,
+      "max_bytes": 539,
       "run": [
         "help",
         "get",
@@ -50,5 +50,5 @@
     }
   ],
   "story": "Author help describes exact provider identity and unavailable topic rank",
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

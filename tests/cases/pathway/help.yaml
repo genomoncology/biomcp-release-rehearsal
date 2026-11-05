@@ -32,7 +32,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 2918,
+      "max_bytes": 3179,
       "run": [
         "help",
         "search",
@@ -69,7 +69,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 3001,
+      "max_bytes": 2657,
       "run": [
         "help",
         "get",
@@ -97,7 +97,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 2487,
+      "max_bytes": 1827,
       "run": [
         "help",
         "pathway",
@@ -124,7 +124,7 @@
         },
         "/status": "complete"
       },
-      "max_bytes": 2218,
+      "max_bytes": 1462,
       "run": [
         "help",
         "pathway",
@@ -148,7 +148,7 @@
           ]
         }
       },
-      "max_bytes": 1479,
+      "max_bytes": 463,
       "run": [
         "help",
         "sync",
@@ -157,5 +157,5 @@
     }
   ],
   "story": "Every pathway command documents its sources, selectors, sections, paging and two parsed case examples.",
-  "verified": "Help byte limits use j18463 output plus fifteen percent for defaults, aliases, inherited options and examples; higher existing limits remain."
+  "verified": "Help limits are refreshed by scripts/refresh_help_cases.py from complete offline CLI stdout."
 }

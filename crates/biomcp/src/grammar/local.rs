@@ -30,21 +30,21 @@ pub(super) fn serve_command() -> Command {
         .arg(
             Arg::new("http_max_calls")
                 .long("http_max_calls")
-                .help("Limit tool calls in flight.")
+                .help("Limit tool calls in flight. Example: --http_max_calls 8.")
                 .value_parser(clap::value_parser!(std::num::NonZeroUsize))
                 .requires("http"),
         )
         .arg(
             Arg::new("http_max_connections")
                 .long("http_max_connections")
-                .help("Limit open HTTP connections; must cover http_max_calls.")
+                .help("Limit open HTTP connections; must cover http_max_calls. Example: --http_max_connections 64.")
                 .value_parser(clap::value_parser!(std::num::NonZeroUsize))
                 .requires("http"),
         )
         .arg(
             Arg::new("allow-host")
                 .long("allow-host")
-                .help("Allow an HTTP Host authority; required for non-loopback listeners.")
+                .help("Allow an HTTP Host authority; required for non-loopback listeners. Example: --allow-host api.example.org.")
                 .action(ArgAction::Append)
                 .requires("http"),
         )
@@ -68,6 +68,11 @@ pub(super) fn help_command(root: &Command) -> Command {
             child = child.subcommands(bundle_names().into_iter().map(Command::new));
         }
         help = help.subcommand(child);
+    }
+    for (_, entity, _) in super::command_paths() {
+        if help.find_subcommand(entity).is_none() {
+            help = help.subcommand(Command::new(entity));
+        }
     }
     help.subcommand(
         Command::new("help").arg(

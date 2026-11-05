@@ -68,11 +68,11 @@
     },
     "save": {
       "$ref": "#/$defs/Text",
-      "description": "Save the whole original document to an explicit file or existing folder."
+      "description": "Save the whole original document to an explicit file or existing folder. Example: --save article-output."
     },
     "variant": {
       "$ref": "#/$defs/Text",
-      "description": "Explicit checked protein substitution."
+      "description": "Explicit checked protein substitution. Example: --variant p.V600E."
     }
   },
   "required": [

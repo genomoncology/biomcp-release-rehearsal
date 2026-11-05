@@ -92,19 +92,19 @@ pub struct ArticleSearch(Fields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    #[doc = "Native open access.\nRequire the source's native open-access filter; Semantic Scholar means a public PDF."]
+    #[doc = "Native open access.\nPubMed, Europe PMC and Semantic Scholar only: require native open access; Semantic Scholar means a public PDF."]
     #[serde(default, skip_serializing_if = "is_false")]
     open_access: bool,
-    #[doc = "Exclude preprints.\nExclude preprints using the source's native filter."]
+    #[doc = "Exclude preprints.\nPubMed and Europe PMC only: exclude preprints using the source's native filter."]
     #[serde(default, skip_serializing_if = "is_false")]
     no_preprints: bool,
-    #[doc = "Retraction filter.\nInclude retracted papers by default, or exclude them using a native filter."]
+    #[doc = "Retraction filter.\nInclude retracted papers by default. Exclusion is supported only by PubMed and Europe PMC."]
     #[serde(default, skip_serializing_if = "is_include")]
     #[cfg_attr(feature = "schema",
  schemars(extend("x-cli-flags" = {"include-retracted":RetractionFilter::Include,
  "exclude-retracted":RetractionFilter::Exclude})))]
     retracted: RetractionFilter,
-    #[doc = "Source search words.\nWords sent to each named source in its default fields."]
+    #[doc = "Source search words.\nWords sent to each named source in its default fields; unsupported by LitVar, which requires a variant selector."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -145,7 +145,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     variant: Option<Text>,
-    /// Disease words.
+    #[doc = "Disease words.\nAvailable for command sources except LitVar."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -153,7 +153,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     disease: Option<Text>,
-    /// Drug words.
+    #[doc = "Drug words.\nAvailable for command sources except LitVar."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -161,7 +161,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     drug: Option<Text>,
-    #[doc = "PubMed author words.\nAuthor words sent to PubMed's author field."]
+    #[doc = "PubMed/Europe PMC author words.\nPubMed and Europe PMC only: author words sent to the source's author field."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -169,7 +169,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     author: Option<Text>,
-    #[doc = "PubMed journal words.\nJournal words sent to PubMed's journal field."]
+    #[doc = "PubMed/Europe PMC journal words.\nPubMed and Europe PMC only: journal words sent to the source's journal field."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -177,7 +177,8 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     journal: Option<Text>,
-    #[doc = "First publication date.\nInclusive lower publication-date bound at the stated precision; PubMed matches either electronic or print date."]
+    #[doc = "First publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive lower publication-date \
+        bound; PubMed matches electronic or print date."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -185,7 +186,8 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     since: Option<PartialDate>,
-    #[doc = "Last publication date.\nInclusive upper publication-date bound at the stated precision; PubMed matches either electronic or print date."]
+    #[doc = "Last publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive upper publication-date \
+        bound; PubMed matches electronic or print date."]
     #[serde(
         default,
         deserialize_with = "present",
@@ -193,7 +195,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "PartialDate"))]
     until: Option<PartialDate>,
-    /// Publication-type filter.
+    #[doc = "Publication type.\nPubMed and Europe PMC only: native publication-type filter."]
     #[serde(
         default,
         rename = "type",
