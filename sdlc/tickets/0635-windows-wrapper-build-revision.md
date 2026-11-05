@@ -1,6 +1,7 @@
 # Windows release wrapper passes the tooling build revision explicitly
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 612e37d75a472d8394ea539b77e3f288efb6139a
 Milestone: 5
 
 ## Outcome

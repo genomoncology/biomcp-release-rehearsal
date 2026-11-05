@@ -9,6 +9,11 @@ artifacts=$3
 case "$ticket" in [0-9][0-9][0-9][0-9]) ;; *) exit 2 ;; esac
 case "$revision" in *[!0-9a-f]*|'') exit 2 ;; esac
 [ "${#revision}" -eq 40 ] || exit 2
+# Freeze the tooling source before any VM use; product identity is independent.
+tooling_revision=$(git rev-parse --verify 'HEAD^{commit}')
+tooling_revision=$(python3 release/source_revision.py --revision "$tooling_revision")
+python3 -c 'from pathlib import Path; import sys; from release.artifacts import candidate_record; candidate_record(Path(sys.argv[1]), sys.argv[2])' "$artifacts" "$revision"
+printf 'Tooling revision: %s\nProduct revision: %s\n' "$tooling_revision" "$revision"
 . scripts/windows_vm_lock.sh
 # This wrapper runs on Gator, which already owns the VM and lock directory.
 windows_vm_ssh() { sh -c "$1"; }
@@ -40,8 +45,8 @@ remote="C:\\h\\biomcp-$ticket-$windows_job_id"
 # Refuse a pre-existing folder; cleanup removes only one created by this job.
 windows_remote_cmd "if exist \"$remote\" (exit /b 1) else (mkdir \"$remote\")"
 owned=1
-git archive HEAD > "$scratch/source.tar"
+git archive "$tooling_revision" > "$scratch/source.tar"
 tar -cf "$scratch/artifacts.tar" -C "$artifacts" .
 scp -O -o BatchMode=yes -P 2222 "$scratch/source.tar" "$scratch/artifacts.tar" "Docker@localhost:C:/h/biomcp-$ticket-$windows_job_id/"
 windows_remote_cmd "tar -xf \"$remote\\source.tar\" -C \"$remote\" && mkdir \"$remote\\candidate\" && tar -xf \"$remote\\artifacts.tar\" -C \"$remote\\candidate\""
-windows_remote_cmd "cd /d \"$remote\" && call scripts\\check_windows_release.cmd \"$remote\" $revision"
+windows_remote_cmd "cd /d \"$remote\" && call scripts\\check_windows_release.cmd \"$remote\" $revision $tooling_revision"

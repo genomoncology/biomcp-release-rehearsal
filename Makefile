@@ -315,3 +315,13 @@ civic-evidence-structure:
 .PHONY: civic-evidence-combined
 civic-evidence-combined:
 	+sh scripts/check_civic_evidence.sh combined
+
+# Local bootstrap proof only; no Windows VM or candidate qualification.
+.PHONY: windows-bootstrap-check windows-bootstrap-walk
+windows-bootstrap-check: shell-check
+	uvx --offline --from ruff==0.17.2 ruff check --select F401,F841,ERA,BLE,E722,S110 release/gate.py release/test_gate.py
+	uvx --offline --from vulture==2.14 vulture release/gate.py --min-confidence 60
+	python3 -m unittest release.test_gate release.test_source_revision release.test_windows
+
+windows-bootstrap-walk: windows-bootstrap-check
+	BIOMCP_TEST_ARCHIVE_BOOTSTRAP=1 python3 -m unittest release.test_gate.InstalledCli.test_archive_bootstrap_preserves_tooling_and_product_identity
