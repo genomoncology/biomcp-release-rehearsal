@@ -16,9 +16,9 @@ On the branch `mcp-typed-tools`, `biomcp serve` takes a tool-mode setting: `sing
   - Each description, at most about 300 characters, stands alone: what the tool returns, the ID forms and names it accepts, and the source of each section.
   - Arguments: enums for sources, sections and other short choice lists; each argument description at most 80 characters.
   - Tools that take an ID accept a plain name where the command does (0599 on main), and otherwise their error gives the exact next call as a typed-tool call.
-  - Replies carry structured content plus a one-line text summary.
+  - Replies carry structured content plus a one-line text summary (superseded by 0624: the summary leads the JSON text).
   - Server instructions: the short command map with the most useful line first, within 4,096 characters.
   - Hosted modes and `hosted_max_use` apply unchanged in both modes.
-- Proof: installed-binary MCP cases in `typed` mode list every generated tool within the size budgets, call one search and one get per entity, and match the CLI's replies; a wrong enum value is refused by schema; `single` mode is byte-identical to main. Report the total tool-list characters. Then build one Linux x86_64 binary from the branch by `pm job` and report its path and SHA-256 for the bench.
-- Changes: `crates/biomcp/src/mcp/**`, `crates/biomcp/src/config.rs`, `crates/biomcp/src/config/file.rs`, `crates/biomcp/build/**`, `tests/tool-cases/**`, `tests/cases/mcp/**`; the tool mode setting, the typed tool generator, descriptions, cases and the branch build.
+- Proof: installed-binary MCP cases in `typed` mode list every generated tool within the size budgets, call one search and one get per entity, and match the CLI's replies; a wrong enum value is refused (superseded by 0626: as an `isError` usage result); `single` mode is byte-identical to main. Report the total tool-list characters. The bench build moves to 0632, after the review fixes 0624–0631 (`records/2026-11-05-typed-mcp-tools-review.md`).
+- Changes: `crates/biomcp/src/mcp/**`, `crates/biomcp/src/grammar/**`, `crates/biomcp/src/help.rs`, `docs/**`, `crates/biomcp/src/config.rs`, `crates/biomcp/src/config/file.rs`, `crates/biomcp/build/**`, `tests/tool-cases/**`, `tests/cases/mcp/**`; the tool mode setting, the typed tool generator, descriptions, cases and the branch build.
 - Defers: merging to main, until the bench results and Ian's decision.
