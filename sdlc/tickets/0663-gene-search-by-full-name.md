@@ -1,6 +1,7 @@
 # 0663 — Gene search finds a gene by its full name
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 41470bbb4632e42b4382fa87fcdd25b0ab558e68
 
 Milestone: 5
 

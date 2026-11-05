@@ -25,6 +25,10 @@ The [upgrade table](https://github.com/genomoncology/biomcp/blob/main/sdlc/plann
 - Article downloads use exact file selections and `--save PATH`. Text readers, PDFs and supplements have separate commands. HTTP MCP refuses file saves.
 - Variant normalization uses `--source`, `--hgvs` and explicit builds. Variant source assertions, population and recurrence use their named commands. No source score becomes a clinical classification.
 
+## HGNC gene name search
+
+Gene search matches words in HGNC current names, previous names and alias names, while exact symbols rank first. Pre-release 1.0 HGNC stores need their index rebuilt to include the added name fields. A sync that downloads the complete HGNC file rebuilds the index; an HTTP 304 response reuses the old index. Use a fresh store when the publisher keeps returning 304. No released 1.0 store requires migration.
+
 ## Added population fields
 
 Variant population replies add source-published `homozygote_count` for exome and genome totals and `joint` AC, AN and homozygote totals. A joint section with `state: empty` means gnomAD supplied no joint data; BioMCP never adds exome and genome counts. `dataset_version` names a release only when matching same-response exome and genome totals independently report the same version. Joint counts have no invented independent release or frequency. Existing counts, filters and ancestry pagination retain their meanings.

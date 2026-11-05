@@ -1,0 +1,81 @@
+{
+  "feature": "gene-search",
+  "story": "HGNC full names, previous names and alias names are searchable, with exact symbols first",
+  "replay": "gene/main",
+  "config": {
+    "mcp_tool_mode": "single"
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "gene",
+        "kirsten rat sarcoma"
+      ],
+      "mcp": [
+        "search",
+        "gene",
+        "kirsten rat sarcoma"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/result/items/0/symbol": "KRAS"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "gene",
+        "aconitate hydratase"
+      ],
+      "mcp": [
+        "search",
+        "gene",
+        "aconitate hydratase"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/result/items/0/symbol": "ACO1"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "gene",
+        "aconitase 1"
+      ],
+      "mcp": [
+        "search",
+        "gene",
+        "aconitase 1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/result/items/0/symbol": "ACO1"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "gene",
+        "IFNA13"
+      ],
+      "mcp": [
+        "search",
+        "gene",
+        "IFNA13"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 2,
+        "/result/items/0/symbol": "IFNA13",
+        "/result/items/0/match/kind": "symbol",
+        "/result/items/1/symbol": "IFNA1",
+        "/result/items/1/match/kind": "alias"
+      }
+    }
+  ]
+}

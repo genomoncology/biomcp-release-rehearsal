@@ -50,6 +50,7 @@ mod drug_label;
 mod drug_next;
 mod evidence;
 mod faers_get;
+mod gene_names;
 mod held_proxy;
 mod hgnc_sync;
 mod hosted_deadline;
@@ -303,6 +304,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(pathway_sections::trials());
     trials.extend(oncokb::trials());
     trials.extend(protein_sections::trials());
+    trials.extend(gene_names::trials());
     trials.extend(drug_label::trials());
     trials.extend(study_catalog::trials());
     trials.extend(pathway_commands::trials());

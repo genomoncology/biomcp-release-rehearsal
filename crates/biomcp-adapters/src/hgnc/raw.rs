@@ -17,7 +17,9 @@ pub(super) struct Gene {
     pub status: Option<String>,
     pub location: Option<String>,
     pub alias_symbol: Option<String>,
+    pub alias_name: Option<String>,
     pub prev_symbol: Option<String>,
+    pub prev_name: Option<String>,
     pub entrez_id: Option<String>,
     pub ensembl_gene_id: Option<String>,
     pub uniprot_ids: Option<String>,
@@ -55,7 +57,13 @@ impl Row for Gene {
             keys.exact
                 .push((KeyKind::Band, cell(self.location.as_deref()).into()));
         }
-        keys.words.push(cell(self.name.as_deref()).into());
+        for names in [
+            self.name.as_deref(),
+            self.alias_name.as_deref(),
+            self.prev_name.as_deref(),
+        ] {
+            keys.words.extend(parts(cell(names)).map(Into::into));
+        }
         keys
     }
 }
