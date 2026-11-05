@@ -78,5 +78,17 @@ pub(crate) fn collect(root: &Path, paths: &mut Vec<std::path::PathBuf>) -> std::
 
 pub(crate) fn read_case(path: &Path) -> Result<Case, String> {
     let text = fs::read_to_string(path).map_err(|error| error.to_string())?;
-    serde_saphyr::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))
+    let case: Case =
+        serde_saphyr::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
+    if case
+        ._live_check
+        .as_deref()
+        .is_none_or(|value| value.trim().is_empty())
+    {
+        return Err(format!(
+            "{}: missing live_check provenance declaration",
+            path.display()
+        ));
+    }
+    Ok(case)
 }

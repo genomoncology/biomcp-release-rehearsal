@@ -69,7 +69,12 @@ fn put(root: &Path, relative: &str, step: &str) -> Check {
     fs::write(
         path,
         format!(
-            "feature: schema-discovery\nstory: Runner contract probe\nsteps:\n  - run: [schema, biomcp.source/1]\n{step}\n"
+            concat!(
+                "live_check: Local runner contract proof; excluded from provider live checks.\n",
+                "feature: schema-discovery\nstory: Runner contract probe\nsteps:\n",
+                "  - run: [schema, biomcp.source/1]\n{step}\n"
+            ),
+            step = step
         ),
     )
     .map_err(|error| error.to_string())
@@ -568,7 +573,8 @@ pub(super) fn retained_both(
 tool_only! {
 fn named_mcp_case() -> Check {
     let directory = tempfile::tempdir().map_err(|error| error.to_string())?;
-    fs::write(directory.path().join("named.yaml"), r#"feature: schema-discovery
+    fs::write(directory.path().join("named.yaml"), r#"live_check: Local named-tool contract proof; excluded from provider live checks.
+feature: schema-discovery
 story: Named tool checks its structured answer
 steps:
   - mcp_call:

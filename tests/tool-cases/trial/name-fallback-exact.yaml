@@ -1,4 +1,5 @@
 {
+  "live_check": "Tool-specific local replay; excluded from provider live checks.",
   "feature": "trial-search",
   "story": "An exact sponsor phrase that finds a native trial never runs a broader search.",
   "replay": "trial/name-fallback",

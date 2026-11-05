@@ -82,7 +82,8 @@ fn replay(directory: &Path, mut steps: Value) -> Result<Value, String> {
     fs::write(
         file.path(),
         serde_json::to_vec(&json!(
-            {"feature":"disease-monarch","story":"Selected association rows preserve native context","replay":directory,"steps":steps}
+            {"live_check":"Temporary local source-fact replay; excluded from provider live checks.",
+            "feature":"disease-monarch","story":"Selected association rows preserve native context","replay":directory,"steps":steps}
         ))
         .map_err(|e| e.to_string())?,
     )

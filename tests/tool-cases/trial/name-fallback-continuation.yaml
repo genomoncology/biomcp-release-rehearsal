@@ -1,4 +1,5 @@
 {
+  "live_check": "Tool-specific local replay; excluded from provider live checks.",
   "feature": "trial-search",
   "story": "An explicit request-mapping stub reuses a native NCT05273554 row to check combined sponsor/facility broadening, strict filter retention, unchanged source counts and a native continuation token. Total and token alone are synthetic pagination controls.",
   "replay": "trial/name-fallback",

@@ -1,4 +1,5 @@
 {
+  "live_check": "Tool-specific local replay; excluded from provider live checks.",
   "feature": "drug-label",
   "story": "Recorded labels support free-text discovery without harmonized names and exact application searches without product substitution",
   "replay": "drug/label-discovery",

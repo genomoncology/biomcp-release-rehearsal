@@ -1,6 +1,7 @@
 # 0675 — Every case reader requires the live-check decision
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 95d4c674da04ac3543587adb35705aa9128fa6d3
 
 Milestone: 5
 

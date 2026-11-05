@@ -1,4 +1,5 @@
 {
+  "live_check": "Tool-specific local replay; excluded from provider live checks.",
   "feature": "trial-search",
   "story": "A refused exact request never becomes a broader name search; owned malformed continuation markers are invalid input.",
   "replay": "trial/name-fallback",

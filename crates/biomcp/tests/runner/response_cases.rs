@@ -40,6 +40,7 @@ pub(super) fn checked_steps(
     fs::write(
         &path,
         serde_json::to_vec(&json!({
+            "live_check": "Temporary local response-mutation replay; excluded from provider live checks.",
             "feature": "gene-identity",
             "story": "A checked command keeps valid source facts and reports malformed siblings",
             "replay": recordings,

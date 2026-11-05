@@ -238,7 +238,8 @@ pub(super) fn mcp(
     fs::write(
         file.path(),
         serde_json::to_vec(&json!(
-            {"feature":"phenotype-identity","story":"CLI and MCP preserve the same unchanged native source facts","replay":directory,
+            {"live_check":"Temporary local source-fact replay; excluded from provider live checks.",
+            "feature":"phenotype-identity","story":"CLI and MCP preserve the same unchanged native source facts","replay":directory,
             "steps":[{"run":words,"mcp":words,"exit":exit,"is_error":exit>=2,"expect":{"":{"equals":local}},"max_bytes":ceiling,
             "max_tokens":ceiling.div_ceil(4)}]}
         ))

@@ -52,7 +52,8 @@ fn replay(directory: &Path, steps: Value) -> Result<Value, String> {
     fs::write(
         file.path(),
         serde_json::to_vec(&json!(
-            {"feature":"disease-ols","story":"Source disease facts retain identity, order and pagination","replay":directory,"steps":steps}
+            {"live_check":"Temporary local source-fact replay; excluded from provider live checks.",
+            "feature":"disease-ols","story":"Source disease facts retain identity, order and pagination","replay":directory,"steps":steps}
         ))
         .map_err(|e| e.to_string())?,
     )

@@ -1,4 +1,5 @@
 {
+  "live_check": "Tool-specific local replay; excluded from provider live checks.",
   "feature": "trial-search",
   "story": "A real exact-zero sponsor/collaborator positive and honest MD Anderson sponsor/facility zeros each name the exact and single broader native requests.",
   "replay": "trial/name-fallback",

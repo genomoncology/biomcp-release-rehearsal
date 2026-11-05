@@ -97,24 +97,38 @@ fn missing_marker(
     // Plant an actual kept recording case, then remove only its declaration.
     let path = fixtures().join("cases/readme/gene.yaml");
     let mut case: Value = serde_saphyr::from_str(&fs::read_to_string(path)?)?;
-    case.as_object_mut()
-        .ok_or("missing case object")?
-        .remove("live_check");
-    fs::write(
-        root.join("cases/unreviewed.yaml"),
-        serde_json::to_vec(&case)?,
-    )?;
-    let output = env
-        .command(
-            std::env::current_exe()?,
-            &["--live-check".into(), "--list".into()],
-        )
-        .env("BIOMCP_TEST_FIXTURES", root)
-        .output()?;
-    if output.status.success()
-        || !String::from_utf8_lossy(&output.stderr).contains("unreviewed.yaml: missing live_check")
-    {
-        return Err("discovery accepted a real recording without its declaration".into());
+    for declaration in [None, Some(json!("  "))] {
+        let object = case.as_object_mut().ok_or("missing case object")?;
+        object.remove("live_check");
+        if let Some(value) = declaration {
+            object.insert("live_check".into(), value);
+        }
+        fs::write(
+            root.join("cases/unreviewed.yaml"),
+            serde_json::to_vec(&case)?,
+        )?;
+        for arguments in [
+            vec!["--live-check".into(), "--list".into()],
+            vec![
+                "--cases".into(),
+                root.join("cases").display().to_string(),
+                "--list".into(),
+            ],
+        ] {
+            let output = env
+                .command(std::env::current_exe()?, &arguments)
+                .env("BIOMCP_TEST_FIXTURES", root)
+                .output()?;
+            if output.status.success()
+                || !String::from_utf8_lossy(&output.stderr)
+                    .contains("unreviewed.yaml: missing live_check")
+            {
+                return Err(format!(
+                    "discovery accepted a missing or blank declaration: {arguments:?}; {output:?}"
+                )
+                .into());
+            }
+        }
     }
     Ok(())
 }

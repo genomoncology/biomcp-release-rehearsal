@@ -1,4 +1,5 @@
 {
+ "live_check": "Offline retired-command validation; excluded from provider live checks.",
  "feature": "disease-ols",
  "story": "Retired disease inputs return fixed recovery without source access or query rewriting.",
  "steps": [

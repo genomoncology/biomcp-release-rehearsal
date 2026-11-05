@@ -50,7 +50,8 @@ pub(in crate::runner) fn run(root: &Path) -> Result<(), String> {
         let ceiling = budget(&format!("trial-condition/{name}"))?;
         let step = json!({"run":words,"mcp":words,"exit":exit,"is_error":exit != 0,"expect":expect,"max_bytes":ceiling,"max_tokens":ceiling.div_ceil(4)});
         let case = json!(
-            {"feature":"trial-search","story":"Exact captured concept determines only the literal source filter","replay":output.join(name),
+            {"live_check":"Temporary local source-fact replay; excluded from provider live checks.",
+            "feature":"trial-search","story":"Exact captured concept determines only the literal source filter","replay":output.join(name),
             "config":{"keys":{"nci_api_key":"synthetic-trial-condition-key"}},"steps":[step]}
         );
         let file = output.join(format!("{name}-case.json"));

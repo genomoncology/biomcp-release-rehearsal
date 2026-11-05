@@ -180,7 +180,7 @@ finally:
             (fixtures / "support" / provenance).parent.mkdir(parents=True)
             shutil.copy2(provenance, fixtures / "support" / provenance)
             case = fixtures / "cases/installed-schema.yaml"
-            case.write_text("feature: schema-discovery\nstory: Installed schema identity\nsteps:\n  - run: [schema, biodata.source/1]\n    expect: {'/$id': biodata.source/1}\n")
+            case.write_text("live_check: Local installed-schema mutation proof; excluded from provider live checks.\nfeature: schema-discovery\nstory: Installed schema identity\nsteps:\n  - run: [schema, biodata.source/1]\n    expect: {'/$id': biodata.source/1}\n")
             script = "from release.smoke import smoke; import sys; smoke(*sys.argv[1:])"
             result = subprocess.run([sys.executable, "-c", script, str(planted), str(runner), str(fixtures),
                                      os.environ["BIOMCP_INSTALLED_VERSION"]], capture_output=True, text=True)

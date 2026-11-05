@@ -50,16 +50,6 @@ pub(crate) fn run(list: bool, details: bool) -> Result<Value, String> {
         .into_iter()
         .map(|path| {
             let case = super::read_case(&path)?;
-            if case
-                ._live_check
-                .as_deref()
-                .is_none_or(|value| value.trim().is_empty())
-            {
-                return Err(format!(
-                    "{}: missing live_check provenance declaration",
-                    path.display()
-                ));
-            }
             Ok((path, case))
         })
         .collect::<Result<Vec<_>, String>>()?;
