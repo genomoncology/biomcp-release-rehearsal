@@ -33,7 +33,7 @@ pub static SPEC: SourceSpec = SourceSpec {
         url: "https://alphagenome.google/terms",
         usage: biomcp_types::Use::Licensed,
     },
-    base: "https://gdmscience.googleapis.com:443",
+    base: "https://gdmscience.googleapis.com",
     key: KeyUse::Required(Credential {
         tier: biomcp_types::KeyTier::NoFallback,
         secret: SecretName::AlphaGenomeApiKey,

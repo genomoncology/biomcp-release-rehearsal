@@ -1,6 +1,7 @@
 # 0665 — Use the canonical AlphaGenome HTTPS endpoint
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 5018220c7ef76fca8286591f19f7b3c60f26ce37
 
 Milestone: 5
 

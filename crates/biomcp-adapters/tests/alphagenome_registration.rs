@@ -9,7 +9,7 @@ fn restricted_source_requires_its_own_key_before_any_provider_request()
     let terms = registry::terms(source).ok_or("missing terms")?;
     assert_eq!(terms.usage, Use::Licensed);
     assert_eq!(terms.url, "https://alphagenome.google/terms");
-    assert_eq!(SPEC.base, "https://gdmscience.googleapis.com:443");
+    assert_eq!(SPEC.base, "https://gdmscience.googleapis.com");
     assert!(matches!(
         SPEC.key,
         KeyUse::Required(Credential {

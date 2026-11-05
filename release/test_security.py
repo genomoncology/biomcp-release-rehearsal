@@ -5,6 +5,7 @@ import hashlib
 import lzma
 import json
 import os
+import re
 from pathlib import Path
 from release.smoke import environment
 import secrets
@@ -21,6 +22,38 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Screening(unittest.TestCase):
+    def test_alphagenome_public_literals_pass_but_fresh_credentials_fail(self):
+        # Reconstruct only the two reviewed public source literals, in the
+        # adjacency observed in the staged binary; never retain a matched value.
+        adapter = ROOT / "crates/biomcp-adapters/src"
+        endpoint = json.loads(re.search(r'base: ("[^"\n]+")',
+                                       (adapter / "alphagenome/mod.rs").read_text())[1])
+        diagnostic = json.loads(re.search(r'D::Error::custom\(("[^"\n]+")\)',
+                                         (adapter / "strict_input.rs").read_text())[1])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            artifacts = root / "artifacts"
+            artifacts.mkdir()
+            binary = artifacts / "biomcp"
+            public = b"MZ" + bytes(128) + (endpoint + diagnostic).encode() + b"\n"
+            token = secrets.token_hex(24)
+            for payload, expected in [(public, 0),
+                                      (public + ("api_key = " + token + "\n").encode(), 1)]:
+                binary.write_bytes(payload)
+                result = subprocess.run(
+                    [sys.executable, str(ROOT / "release/secrets.py"), "artifacts", str(artifacts),
+                     "--cache", str(ROOT / "target/security-tools")],
+                    cwd=ROOT, env={**environment(root), "PATH": os.defpath},
+                    capture_output=True, text=True, timeout=180)
+                print("AlphaGenome public-literal screening exit=" + str(result.returncode)
+                      + " expected=" + str(expected))
+                self.assertEqual(result.returncode, expected, "artifact screening boundary changed")
+                self.assertTrue(token not in result.stdout + result.stderr,
+                                "scanner disclosed synthetic credential material")
+                if expected:
+                    findings = [json.loads(line) for line in result.stdout.splitlines()]
+                    self.assertIn("generic-api-key", {row["rule"] for row in findings})
+
     def test_screening_failures_report_safe_categories_without_exception_values(self):
         from contextlib import redirect_stderr
         from release.secrets import main
