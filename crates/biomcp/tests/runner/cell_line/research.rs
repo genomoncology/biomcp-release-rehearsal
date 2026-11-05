@@ -38,26 +38,18 @@ pub(super) fn run(measure: bool) -> Result<(), String> {
         json!("https://www.cellosaurus.org/CVCL_2119"),
     )?;
     path(&fetched, "/title", json!("MOLM-13"))?;
-    path(
-        &fetched,
-        "/metadata/result/header/accession",
-        json!("CVCL_2119"),
-    )?;
     let mut args = vec!["get".to_string()];
     args.extend(shlex::split(id).ok_or("opaque fetch args")?);
     let card = super::super::trial_get::command(&env, &args, &globals, 0)?;
-    if fetched.get("metadata") != Some(&card) {
+    if fetched.get("metadata") != Some(&super::super::research::fetch_metadata(&card)) {
         return Err("research fetch differs from exact CLI card".into());
     }
-    args.extend(["--format".into(), "md".into()]);
-    args.extend(globals);
-    let output = env
-        .command(env!("CARGO_BIN_EXE_biomcp"), &args)
-        .output()
-        .map_err(|e| e.to_string())?;
-    let markdown = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
-    if !output.status.success() || fetched.get("text") != Some(&json!(markdown)) {
-        return Err("research fetch Markdown differs from CLI".into());
+    if fetched
+        .get("text")
+        .and_then(Value::as_str)
+        .is_none_or(|text| !text.contains("MOLM-13") || !text.contains("CVCL_2119"))
+    {
+        return Err("research fetch lost its readable cell-line card".into());
     }
     Ok(())
 }

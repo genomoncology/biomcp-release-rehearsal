@@ -1,6 +1,7 @@
 # 0656 — fetch returns readable text once
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 36b8461491e430c8b052a0517205eae3a49de42a
 
 Milestone: 5
 

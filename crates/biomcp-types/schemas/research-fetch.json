@@ -58,7 +58,7 @@
     },
     "metadata": {
       "$ref": "#/$defs/Reply_ResearchEnvelope",
-      "description": "Complete original CLI envelope."
+      "description": "Original envelope disclosures without a second copy of the record."
     },
     "text": {
       "$ref": "#/$defs/Reply_Markdown",

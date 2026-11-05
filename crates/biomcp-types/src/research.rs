@@ -57,7 +57,7 @@ pub struct ResearchFetch<M> {
     /// Nonempty canonical source URL.
     #[cfg_attr(feature = "schema", schemars(extend("format" = "uri")))]
     pub url: crate::Text,
-    /// Complete original CLI envelope.
+    /// Original envelope disclosures without a second copy of the record.
     pub metadata: M,
 }
 

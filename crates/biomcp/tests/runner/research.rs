@@ -1,6 +1,8 @@
 //! Research wrappers map the existing CLI result without provider calls.
 #[path = "research_links.rs"]
 mod links;
+#[path = "research_readable.rs"]
+mod readable;
 use super::{
     launch::Environment,
     mcp::{exchange, request},
@@ -12,6 +14,9 @@ use serde_json::{Value, json};
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
+        transcript_trial("mcp-research/fetch-readable-record-once", || {
+            readable::check().map_err(Into::into)
+        }),
         transcript_trial("mcp-research/research-registry-projection-paths", || {
             links::check().map_err(Into::into)
         }),
@@ -65,16 +70,27 @@ pub(super) fn call_checked(
         .pointer("/content/0/text")
         .and_then(Value::as_str)
         .ok_or("missing text")?;
-    if serde_json::from_str::<Value>(text).map_err(|e| e.to_string())? != *value {
+    let tools = replies
+        .iter()
+        .find(|v| v.get("id") == Some(&json!(0)))
+        .and_then(|v| v.pointer("/result/tools"))
+        .and_then(Value::as_array)
+        .ok_or("tool catalog missing")?;
+    let typed = tools
+        .iter()
+        .any(|tool| tool.get("name") == Some(&json!("get_gene")));
+    let payload = if typed {
+        text.lines().last().unwrap_or_default()
+    } else {
+        text
+    };
+    if serde_json::from_str::<Value>(payload).map_err(|e| e.to_string())? != *value {
         return Err("research text differs from structured content".into());
     }
     {
-        let tool = replies
+        let tool = tools
             .iter()
-            .find(|v| v.get("id") == Some(&json!(0)))
-            .and_then(|v| v.pointer("/result/tools"))
-            .and_then(Value::as_array)
-            .and_then(|tools| tools.iter().find(|v| v.get("name") == Some(&json!(name))))
+            .find(|v| v.get("name") == Some(&json!(name)))
             .ok_or("tool definition missing")?;
         let schema = tool.get("outputSchema").ok_or("output schema missing")?;
         jsonschema::validator_for(schema)
@@ -272,23 +288,19 @@ fn fetch_parity(
             _ => crate::runner::output_limit("research-measured-2828")?,
         };
         bounded(&fetched, cap)?;
-        if fetched.get("metadata") != Some(&cli_get)
+        if fetched.get("metadata") != Some(&fetch_metadata(&cli_get))
             || fetched.get("id") != Some(&json!(id))
             || fetched.get("title") != hit.get("title")
             || fetched.get("url") != hit.get("url")
         {
             return Err("fetch differs from CLI".into());
         }
-        let mut md = get;
-        md.extend(["--format".to_owned(), "md".to_owned()]);
-        md.extend(fetch_globals);
-        let output = env
-            .command(env!("CARGO_BIN_EXE_biomcp"), &md)
-            .output()
-            .map_err(|e| e.to_string())?;
-        let text = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
-        if fetched.get("text") != Some(&json!(text)) {
-            return Err("fetch Markdown differs".into());
+        if fetched
+            .get("text")
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
+            return Err("fetch readable record missing".into());
         }
     }
     Ok(())
@@ -477,23 +489,27 @@ fn phenotype() -> Result<(), String> {
     if fetched.get("title") != Some(&json!("Synthetic term"))
         || fetched.get("url") != Some(&json!("https://hpo.jax.org/browse/term/HP:0000001"))
         || fetched.get("url") != card.pointer("/result/term/attribution/url")
-        || fetched.get("metadata") != Some(&card)
+        || fetched.get("metadata") != Some(&fetch_metadata(&card))
         || !id.contains("HP:0000001")
     {
         return Err(format!(
             "phenotype fetch lost its source identity: {fetched}"
         ));
     }
-    let mut args = args;
-    args.extend(["--format".into(), "md".into()]);
-    args.extend(globals);
-    let output = env
-        .command(env!("CARGO_BIN_EXE_biomcp"), &args)
-        .output()
-        .map_err(|e| e.to_string())?;
-    let text = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
-    if fetched.get("text") != Some(&json!(text)) || !text.contains("Complete synthetic comment") {
-        return Err("phenotype fetch lost complete card Markdown".into());
+    if fetched
+        .get("text")
+        .and_then(Value::as_str)
+        .is_none_or(|text| !text.contains("Complete synthetic comment"))
+    {
+        return Err("phenotype fetch lost complete card text".into());
     }
     Ok(())
+}
+// Fetch keeps the envelope disclosures separately from its one rendered record.
+pub(super) fn fetch_metadata(value: &Value) -> Value {
+    let mut expected = value.clone();
+    if let Some(fields) = expected.as_object_mut() {
+        fields.remove("result");
+    }
+    expected
 }

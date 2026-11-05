@@ -208,6 +208,7 @@ dependencies = [
  "jsonschema",
  "libtest-mimic",
  "nix",
+ "quick-xml",
  "rpassword",
  "rusqlite",
  "rustls",

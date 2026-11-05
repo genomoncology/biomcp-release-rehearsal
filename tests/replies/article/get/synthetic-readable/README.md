@@ -1,0 +1,1 @@
+Synthetic PMID 39214094 response for research fetch readability. The title and abstract are invented, including escaped inline markup, entities, scientific comparison text and literal Markdown. This is not the PubMed article.

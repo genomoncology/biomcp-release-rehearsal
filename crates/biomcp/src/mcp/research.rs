@@ -1,5 +1,6 @@
 //! Read-only research projections over the same parsed CLI commands.
 mod records;
+mod text;
 use serde_json::{Value, json};
 use std::{ffi::OsString, io};
 
@@ -121,16 +122,19 @@ pub(super) fn execute(
                 *outcome.value_mut()? = original;
                 return Ok(outcome);
             };
+            let text = text::render(&original)?;
+            let mut metadata = original;
+            if let Some(fields) = metadata.as_object_mut() {
+                fields.remove("result");
+            }
             serde_json::to_value(biomcp_types::ResearchFetch {
                 id: id.clone().into(),
-                title: hit.title,
+                title: text::source(hit.title.as_str())
+                    .parse()
+                    .map_err(io::Error::other)?,
                 url: hit.url,
-                text: biodata::Markdown::new(
-                    &String::from_utf8(crate::view::markdown(&original)?)
-                        .map_err(io::Error::other)?,
-                )
-                .map_err(io::Error::other)?,
-                metadata: original,
+                text: biodata::Markdown::new(&text).map_err(io::Error::other)?,
+                metadata,
             })?
         }
     };
