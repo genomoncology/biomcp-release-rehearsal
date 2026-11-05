@@ -14,3 +14,7 @@ In hosted mode, help, `next` and the tool list never offer a command, flag or se
 - Proof: hosted installed cases at `restricted` assert each refused item is absent from help, `next` and tools/list, no `--config` in any `next`, `version` answers, and a disabled source names its reason; local mode unchanged; routine gate.
 - Changes: `crates/biomcp/src/mcp/`, `crates/biomcp/src/grammar*`, `tests/`; the fix and its cases.
 - Defers: nothing.
+
+## Scope ruling (PM, 2026-11-05, m27096)
+
+0654 covers the operational surface in its Outcome: refused commands and flags, `--config` and server paths in `next`, `version`, `help sources`, source-off reasons, and the typed continuations, error and relation guidance already in progress. Field-level metadata for fields only a disabled source answers moves to 0676, after the cut.
