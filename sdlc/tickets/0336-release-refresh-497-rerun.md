@@ -1,6 +1,6 @@
 # 0336 — Cut the 1.0 release candidate from main once every 1.0 ticket lands
 
-Status: OPEN.
+Status: COMPLETE. Original product cut complete: final baseline bd09c9ab was merged into release/1.0 ed9c36a963ef79317ac2568b495aea443e6d079e with exact main tree; public rehearsal41938765815 passed all21jobs/five native targets/two containers/two stagedHomebrew, cryptoj29794 verified26subjects. Ledger/proof-tooling refresh and its new-head rehearsal remain explicitly under0633/0634/0293 and PMm25328; publication/history append still pending Ian.
 
 Milestone: 5
 
