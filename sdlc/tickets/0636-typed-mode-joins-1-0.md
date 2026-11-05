@@ -11,7 +11,7 @@ The reviewed `mcp-typed-tools` branch merges to main, so the 1.0 release candida
 - Why: Ian, 2026-11-05: "we're going to try to get a 1.0 release out to a temporary test server, and I want that test server to be able to test the multi-tool BioMCP tool." Recorded as the 2026-11-05 amendment to `decisions/2026-10-23-mcp-is-one-tool-over-the-cli.md`. This reopens the frozen product source (4250d1952, candidate ed9c36a96) for this one change.
 - Starts from: the branch tip after 0624–0632, `planning/typed-mcp-tools.md`, and current main.
 - Rules:
-  - Single mode is byte-identical to the frozen candidate: every existing case, the schema baseline and the single-mode baseline pass unchanged.
+  - Single mode is byte-identical to the frozen candidate, with one allowed change: 0628's source-owned `next` step on `get` usage errors for name-like inputs (for example `get variant "BRAF V600E"` now suggests `search variant --query=...` instead of `help get variant`, m25441). Every other field of those errors and every successful reply stay byte-identical; each changed case is a named witness whose new `next` call executes, and the release notes list the change. All other cases, the schema baseline and the single-mode baseline pass unchanged.
   - Typed mode passes 0632's harness check before the merge.
   - Help text changes from 0627's command summaries are allowed and listed in the release notes, with `mcp_tool_mode` and the typed tool list.
   - After the merge, re-cut the candidate (0336's refresh steps, schema baseline export) and run 0293's qualification on the new head: hosted rehearsal on all five platforms, and the local cold matrix since product code changed.
