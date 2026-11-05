@@ -1,6 +1,6 @@
 # 0668 — Search FDA device approvals by name or company
 
-Status: OPEN.
+Status: COMPLETE. Fresh independent evidence review accepts existing device PMA/510(k) search on main abff4ee89b39ff03c5c2495588890878511313f5. Job j30824 passes both MCP modes: name/company search, returned-ID get, empty success, help and typed schema. Yellow evidence data/biomcp-redux-evidence/0668-device-search/d72b1442f/manifest.json verifies 21 transcripts and archived source matching main. Derived fixtures and missing original evaluation request disclosed; no live Optune claim. No product change or probe landing; j30828 cancelled, not a pass.
 
 Milestone: 5
 
