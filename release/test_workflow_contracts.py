@@ -9,6 +9,22 @@ from release.workflow import PLATFORMS
 
 
 class HostedWorkflow(unittest.TestCase):
+    def test_native_gate_names_actual_tooling_after_retaining_the_producer(self):
+        workflow = Path('.github/workflows/release.yml').read_text()
+        qualify = workflow.split('\n  qualify:\n')[1].split('\n  stage:\n')[0]
+        producer = qualify.index('python release/artifacts.py build --revision "$GITHUB_SHA" --output dist')
+        retained = qualify.index('name: producer-${{ matrix.platform }}')
+        gate = qualify.index('python release/gate.py --artifacts dist')
+        self.assertLess(producer, retained)
+        self.assertLess(retained, gate)
+        step, = [step for step in qualify.split('\n      - ')
+                 if 'python release/gate.py --artifacts dist' in step]
+        self.assertIn('BIOMCP_BUILD_REVISION: ${{ github.sha }}', step)
+        self.assertNotIn('BIOMCP_BUILD_REVISION: ${{ github.sha }}', qualify[:retained])
+        linux = Path('release/linux.sh').read_text()
+        self.assertIn('BIOMCP_BUILD_REVISION="$BIOMCP_TOOLING_REVISION" python release/gate.py', linux)
+        self.assertIn('export BIOMCP_EVIDENCE_DIR=/output/fixture-evidence', linux)
+
     def test_security_checks_install_pinned_cargo_deny_first(self):
         workflow = Path('.github/workflows/release.yml').read_text()
         install = 'cargo install cargo-deny --version "${{ steps.tools.outputs.cargo_deny }}" --locked'

@@ -1,0 +1,123 @@
+name: Recover one rehearsal section
+
+on:
+  workflow_dispatch:
+    inputs:
+      section:
+        description: Failed native section to rebuild and qualify alone
+        type: choice
+        options: [manylinux_2_28_aarch64, macosx_11_0_arm64, win_amd64, manylinux_2_28_x86_64, macosx_11_0_x86_64]
+        required: true
+      rehearsal:
+        description: Required publication-disabled rehearsal boundary
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recover-${{ github.ref }}-${{ inputs.section }}
+  cancel-in-progress: false
+
+env:
+  PRODUCT_REVISION: 1bb97e64f41634b19efc42b937b195e55a20ece4
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: '2'
+  RUST_TEST_THREADS: '2'
+  SECTION: ${{ inputs.section }}
+
+jobs:
+  section:
+    if: github.repository == 'genomoncology/biomcp-release-rehearsal' && github.ref_type == 'branch' && startsWith(github.ref_name, 'rehearsal-0642-') && inputs.rehearsal == true
+    runs-on: ${{ fromJSON('{"manylinux_2_28_aarch64":"ubuntu-24.04-arm","macosx_11_0_arm64":"macos-15","win_amd64":"windows-2022","manylinux_2_28_x86_64":"ubuntu-24.04","macosx_11_0_x86_64":"macos-15-intel"}')[inputs.section] }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: tooling
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ env.PRODUCT_REVISION }}
+          path: product
+      - name: Bind separate clean product and tooling sources
+        shell: bash
+        env:
+          BOOTSTRAP_PYTHON: ${{ runner.os == 'Windows' && 'python' || 'python3' }}
+        run: |
+          "$BOOTSTRAP_PYTHON" tooling/release/section.py bind --product product --tooling tooling --output section-evidence
+          "$BOOTSTRAP_PYTHON" tooling/release/toolchain.py outputs >> "$GITHUB_OUTPUT"
+        id: tools
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        if: runner.os != 'Linux'
+        with:
+          python-version: ${{ steps.tools.outputs.python }}
+      - name: Install pinned native tools
+        if: runner.os != 'Linux'
+        shell: bash
+        working-directory: tooling
+        run: |
+          python release/toolchain.py python-check
+          python release/toolchain.py install-rust
+      - name: Rebuild only this frozen native producer
+        if: runner.os != 'Linux'
+        shell: bash
+        working-directory: product
+        run: python release/artifacts.py build --revision "$PRODUCT_REVISION" --output dist
+      - name: Retain completed native producer before installed checks
+        if: runner.os != 'Linux'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: producer-${{ inputs.section }}
+          path: product/dist
+          if-no-files-found: error
+      - name: Qualify the native producer using explicit tooling identity
+        if: runner.os != 'Linux'
+        shell: bash
+        working-directory: tooling
+        env:
+          BIOMCP_BUILD_REVISION: ${{ github.sha }}
+          BIOMCP_EVIDENCE_DIR: ${{ runner.temp }}/fixture-evidence
+        run: |
+          python release/gate.py --artifacts ../product/dist --scratch "$RUNNER_TEMP/install" --python python
+          cp "$RUNNER_TEMP/install/report.json" ../product/dist/install-report.json
+          cp "$RUNNER_TEMP/install/bootstrap.json" ../section-evidence/bootstrap.json
+          if [ "$RUNNER_OS" = macOS ]; then
+            python -c 'import json; assert any(r["artifact"] == "homebrew-formula" and r["result"] == "pass" for r in json.load(open("../product/dist/install-report.json")))'
+          fi
+      - name: Rebuild and qualify only the selected Linux native and container bytes
+        if: runner.os == 'Linux'
+        shell: bash
+        working-directory: product
+        env:
+          BIOMCP_BUILD_REVISION: ${{ env.PRODUCT_REVISION }}
+          BIOMCP_TOOLING_REVISION: ${{ github.sha }}
+          BUILD_IMAGE_KEY: ${{ inputs.section == 'manylinux_2_28_x86_64' && 'manylinux-x86_64' || 'manylinux-aarch64' }}
+        run: |
+          export BIOMCP_RELEASE_TOOLING_SOURCE="$GITHUB_WORKSPACE/tooling"
+          BUILD_IMAGE=$(python3 ../tooling/release/toolchain.py image "$BUILD_IMAGE_KEY")
+          export BUILD_IMAGE
+          sh ../tooling/release/linux.sh
+          cp proof/bootstrap.json ../section-evidence/bootstrap.json
+      - name: Retain actual source, tooling and artifact hashes
+        if: always()
+        shell: bash
+        env:
+          BOOTSTRAP_PYTHON: ${{ runner.os == 'Windows' && 'python' || 'python3' }}
+        run: '"$BOOTSTRAP_PYTHON" tooling/release/section.py retain --product product --tooling tooling --output section-evidence'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: recovered-${{ inputs.section }}
+          path: |
+            product/dist
+            product/install-report.log
+            product/proof/bootstrap.json
+            section-evidence
+            ${{ runner.temp }}/fixture-evidence
+            ${{ runner.temp }}/install/bootstrap.json
+            ${{ runner.temp }}/install/report.json
+          if-no-files-found: error

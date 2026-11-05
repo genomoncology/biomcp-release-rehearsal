@@ -1,6 +1,7 @@
 # Hosted qualification prepares writable installed checks with explicit tooling identity
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d4123ff8054939ee0d9949992c17c2fa53e2dee9
 
 Milestone: 5
 

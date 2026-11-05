@@ -134,11 +134,23 @@ jobs:
           make fmt lint test docs-check
           du -sh target/debug
           cargo clean --profile dev
-      - name: Build and install native artifacts, including CLI version and offline health
+      - name: Build native artifacts
         if: runner.os != 'Linux'
         shell: bash
+        run: python release/artifacts.py build --revision "$GITHUB_SHA" --output dist
+      - name: Retain completed native producer before installed checks
+        if: runner.os != 'Linux'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: producer-${{ matrix.platform }}
+          path: dist
+          if-no-files-found: error
+      - name: Install native artifacts, including CLI version and offline health
+        if: runner.os != 'Linux'
+        shell: bash
+        env:
+          BIOMCP_BUILD_REVISION: ${{ github.sha }}
         run: |
-          python release/artifacts.py build --revision "$GITHUB_SHA" --output dist
           python release/gate.py --artifacts dist --scratch "$RUNNER_TEMP/install" --python python
           cp "$RUNNER_TEMP/install/report.json" dist/install-report.json
           if [ "$RUNNER_OS" = macOS ]; then

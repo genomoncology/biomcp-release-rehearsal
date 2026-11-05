@@ -9,10 +9,6 @@
     "sdlc/data/*.md",
     "ROADMAP.md"
   ],
-  "mailroom": {
-    "repo": "agents",
-    "name": "biomcp-redux"
-  },
   "milestones": {
     "file": "planning/milestones.md"
   },
