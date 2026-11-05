@@ -1,6 +1,6 @@
 # 0660 — Variant joins bridge builds and IDs
 
-Status: OPEN.
+Status: COMPLETE. Current main b4117cdd5 already resolves the investigated GRCh37 variant to GRCh38 and ClinGen CAid before CIViC/gnomAD joins in both modes; fresh independent evidence ACCEPT at Yellow0660/current-main-b4117cdd5-j30638 manifestd5e05c2a32b6211b5055d9e1362c693d90464e6c20368011a7c038b19af111a1. Original evaluation request unavailable; reconstructed case disclosed, j30638 harness RED preserved, no product change or test probes landed.
 
 Milestone: 5
 
