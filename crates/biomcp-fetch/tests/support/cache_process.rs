@@ -22,7 +22,7 @@ use std::{
     path::Path,
     process::{Child, Stdio},
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 struct Worker {
@@ -41,8 +41,12 @@ impl Worker {
     fn start(path: &Path, base: &str, key: &str) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
+        let sqlite = path.with_file_name(format!("{key}-sqlite.jsonl"));
+        std::fs::write(&sqlite, []).unwrap();
+        std::fs::write(path.with_file_name(format!("{key}-phases.jsonl")), []).unwrap();
         let mut process = Command::new(std::env::current_exe().unwrap())
             .args(["--exact", "cache_process::child", "--nocapture"])
+            .env(biomcp_fetch::SQLITE_DIAGNOSTICS, sqlite)
             .env("CACHE_CHILD", key)
             .env("CACHE_PATH", path)
             .env("CACHE_BASE", base)
@@ -134,6 +138,20 @@ fn failure(process: &mut Child, context: &str) -> ! {
     panic!("{context}; child status {observed:?}; final status {status:?}: {output}");
 }
 
+fn phase(path: &Path, actor: &str, event: &str, elapsed: Duration) {
+    let record = serde_json::json!({
+        "actor": actor, "phase": event,
+        "unix_us": SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_micros().to_string(),
+        "elapsed_us": elapsed.as_micros().to_string(),
+    });
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path.with_file_name(format!("{actor}-phases.jsonl")))
+        .unwrap();
+    writeln!(file, "{record}").unwrap();
+}
+
 fn event(control: &mut TcpStream, expected: u8) {
     let mut received = [0];
     control.read_exact(&mut received).unwrap();
@@ -145,6 +163,10 @@ fn event(control: &mut TcpStream, expected: u8) {
 }
 
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The diagnostic job retains successful synthetic fixtures too"
+)]
 fn concurrent_first_opens_and_distinct_writes_survive_into_a_new_process() {
     let directory = tempfile::Builder::new()
         .prefix("cache-process-")
@@ -163,6 +185,8 @@ fn concurrent_first_opens_and_distinct_writes_survive_into_a_new_process() {
     // Both child first opens encounter an active writer, then proceed together.
     lock.execute_batch("CREATE TABLE unrelated(value TEXT); BEGIN IMMEDIATE")
         .unwrap();
+    let held = Instant::now();
+    phase(&path, "parent", "writer_held", Duration::ZERO);
     let mut first = Worker::start(&path, server.base, "first");
     let mut second = Worker::start(&path, server.base, "second");
     for worker in [&mut first, &mut second] {
@@ -170,6 +194,7 @@ fn concurrent_first_opens_and_distinct_writes_survive_into_a_new_process() {
         worker.event(b'O');
     }
     lock.execute_batch("COMMIT").unwrap();
+    phase(&path, "parent", "writer_released", held.elapsed());
     for worker in [&mut first, &mut second] {
         worker.event(b'A');
     }
@@ -203,7 +228,9 @@ fn concurrent_first_opens_and_distinct_writes_survive_into_a_new_process() {
         2
     );
     drop(lock);
-    std::fs::remove_dir_all(directory).unwrap();
+    if std::env::var_os("CACHE_OPEN_DIAGNOSTICS").is_none() {
+        std::fs::remove_dir_all(directory).unwrap();
+    }
 }
 
 #[test]
@@ -223,7 +250,21 @@ fn child() {
         .unwrap();
     event(&mut control, b'S');
     control.write_all(b"O").unwrap();
-    let fetch = Fetch::open(config(Path::new(&path))).unwrap();
+    let path = Path::new(&path);
+    let opening = Instant::now();
+    phase(path, &key, "open_start", Duration::ZERO);
+    let opened = Fetch::open(config(path));
+    phase(
+        path,
+        &key,
+        if opened.is_ok() {
+            "open_ok"
+        } else {
+            "open_error"
+        },
+        opening.elapsed(),
+    );
+    let fetch = opened.unwrap();
     let quota_server = Server::new();
     let template = spec(&quota_server, KeyUse::None);
     let spec = Box::leak(Box::new(SourceSpec { base, ..*template }));

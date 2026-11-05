@@ -1,7 +1,6 @@
 """Run the bounded public diagnostic once and retain verified evidence before cleanup."""
 import argparse
 import datetime
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -9,64 +8,12 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 
-COMMAND = ['cargo', 'test', '--locked', '-p', 'biomcp', '--test', 'tools',
-           '--', '--live-check', '--details']
-FILES = ('report.json', 'build.log', 'exit-status', 'run.json')
-
-# The receiver creates a unique destination, accepts only our named plain files,
-# and verifies the sender's manifest before acknowledging durable delivery.
-RECEIVE = r'''
-import hashlib, json, os, pathlib, sys, tarfile
-root = pathlib.Path(sys.argv[1])
-root.mkdir(parents=True, exist_ok=False)
-allowed = {'report.json', 'build.log', 'exit-status', 'run.json', 'manifest.json'}
-seen = set()
-with tarfile.open(fileobj=sys.stdin.buffer, mode='r|') as archive:
-    for member in archive:
-        if member.name not in allowed or member.name in seen or not member.isfile():
-            raise ValueError('unexpected evidence entry')
-        seen.add(member.name)
-        source = archive.extractfile(member)
-        with (root / member.name).open('xb') as target:
-            while True:
-                chunk = source.read(1024 * 1024)
-                if not chunk:
-                    break
-                target.write(chunk)
-            target.flush()
-            os.fsync(target.fileno())
-if seen != allowed:
-    raise ValueError('incomplete evidence')
-manifest_bytes = (root / 'manifest.json').read_bytes()
-if hashlib.sha256(manifest_bytes).hexdigest() != sys.argv[2]:
-    raise ValueError('manifest transfer mismatch')
-manifest = json.loads(manifest_bytes)
-if set(manifest) != allowed - {'manifest.json'}:
-    raise ValueError('unexpected manifest entries')
-for name, expected in manifest.items():
-    digest = hashlib.sha256()
-    with (root / name).open('rb') as source:
-        for chunk in iter(lambda: source.read(1024 * 1024), b''):
-            digest.update(chunk)
-    if digest.hexdigest() != expected:
-        raise ValueError('evidence checksum mismatch: ' + name)
-fd = os.open(str(root), os.O_RDONLY)
-try:
-    os.fsync(fd)
-finally:
-    os.close(fd)
-'''
-
-
-def digest(path):
-    checksum = hashlib.sha256()
-    with path.open('rb') as source:
-        for chunk in iter(lambda: source.read(1024 * 1024), b''):
-            checksum.update(chunk)
-    return checksum.hexdigest()
+if __package__:
+    from .nightly_evidence import COMMAND, FILES as FILES, RECEIVE as RECEIVE, digest as digest, deliver
+else:
+    from nightly_evidence import COMMAND, FILES as FILES, RECEIVE as RECEIVE, digest as digest, deliver
 
 
 def terminal(requests):
@@ -233,6 +180,57 @@ def same_window(old, new, left, right):
     return False
 
 
+def failed_status(status):
+    return status is None or type(status) is int and (status == 429 or 500 <= status < 600)
+
+
+def replacement_failure(item, before, after):
+    # Discovery may change a failed dependent's identity. Check the same full
+    # input selection rule with transport status removed from that comparison.
+    if not failed_status(item.get('status')):
+        return False
+    healthy = {key: dict(value, status=200) if value is item else value
+               for key, value in after.items()}
+    changes = discovery_changes(before, healthy)
+    return any(old.get('status') == 200 and dependent_change(
+        [old], [healthy[item['identity']]], changes, before, healthy,
+        (before, healthy), complete=True) == 'churn'
+        for key, old in before.items() if key not in after)
+
+
+def failure_plan(before, after, discoveries, peers):
+    roots = {key: old for key, old in before.items() if key in after
+             and failed_status(after[key].get('status'))}
+    removed = [value for key, value in before.items() if key not in after]
+    added = [value for key, value in after.items() if key not in before]
+    def downstream(request):
+        provenance = request.get('provenance') or {}
+        inputs = provenance.get('inputs') or {}
+        ids = inputs.get('ids')
+        return (provenance.get('input_context') and valid_ids(ids) and bool(ids)
+                and any(set(ids) <= set(discovery_sequences(root).get(
+                    inputs.get('namespace'), [])) for root in roots.values()))
+    removed = [request for request in removed if not downstream(request)]
+    # A successful provider may also have changed the full selection while a
+    # sibling request failed. Preserve the ordinary discovery/context checks.
+    healthy = {key: dict(value, status=200) if failed_status(value.get('status')) else value
+               for key, value in after.items()}
+    added = [healthy[request['identity']] for request in added]
+    # Old diagnostics can retain dependent inputs without the failed root's
+    # discovery selection. That is missing proof, not contradictory proof.
+    if (removed and not added and roots
+            and all(not discovery_sequences(root) for root in roots.values())
+            and all((request.get('provenance') or {}).get('input_context')
+                    and valid_ids(((request.get('provenance') or {}).get('inputs') or {}).get('ids'))
+                    and ((request.get('provenance') or {}).get('inputs') or {}).get('namespace')
+                    not in discoveries for request in removed)):
+        return 'uncertain'
+    return dependent_change(removed, added, discoveries, before, healthy,
+                            (peers[0], {key: dict(value, status=200)
+                             if key in healthy and failed_status(value.get('status')) else value
+                             for key, value in peers[1].items()}), complete=True) if removed or added else 'healthy'
+
+
 def command_causes(command):
     if not isinstance(command, dict) or not all(
             isinstance(command.get(side), dict) and isinstance(command[side].get('requests'), list)
@@ -242,9 +240,9 @@ def command_causes(command):
     after = terminal(command['live']['requests'])
     throttled = {item['source'] for item in after.values() if item.get('status') == 429}
     outage = {item['source'] for key, item in after.items()
-              if key in before and before[key].get('status') == 200
-              and (item.get('status') is None or
-                   type(item.get('status')) is int and 500 <= item['status'] < 600)}
+              if failed_status(item.get('status')) and item.get('status') != 429
+              and (key in before and before[key].get('status') == 200
+                   or replacement_failure(item, before, after))}
     recovered = {item['source'] for key, item in after.items()
                  if key in before and before[key].get('status') != 200
                  and item.get('status') == 200}
@@ -255,7 +253,7 @@ def command_causes(command):
     return {'throttled': throttled, 'outage': outage, 'recovered': recovered}
 
 
-def cache_order_throttle(command, earlier_throttled):
+def cache_order_failure(command, earlier_failed):
     if command['baseline']['requests']:
         return False
     added = list(terminal(command['live']['requests']).values())
@@ -263,7 +261,7 @@ def cache_order_throttle(command, earlier_throttled):
         return False
     roots = [request for request in added
              if not (request.get('provenance') or {}).get('inputs')]
-    if len(roots) != 1 or roots[0]['source'] not in earlier_throttled:
+    if len(roots) != 1 or roots[0]['source'] not in earlier_failed:
         return False
     discoveries = discovery_sequences(roots[0])
     for request in added:
@@ -285,14 +283,18 @@ def command_classification(capture, discoveries, peers, complete=False, comparis
     for item in after.values():
         status = item.get('status')
         if not (type(status) is int and (200 <= status < 300 or status == 429)):
-            if not (item['identity'] in before and before[item['identity']].get('status') == 200
-                    and (status is None or type(status) is int and 500 <= status < 600)):
+            if not (failed_status(status) and (
+                    item['identity'] in before and before[item['identity']].get('status') == 200
+                    or replacement_failure(item, before, after))):
                 return 'failure'
     # A provider failure ends discovery and its downstream work in this command.
     # Other commands still have to explain their own request plans.
     for cause in ('outage', 'throttled'):
         if causes[cause]:
-            return cause if explained_source_failures(capture) else 'failure'
+            if not explained_source_failures(capture):
+                return 'failure'
+            plan = failure_plan(before, after, discoveries, peers)
+            return cause if plan in ('healthy', 'churn') else plan
     comparison = comparison or {}
     removed = [before[key] for key in before.keys() - after.keys()]
     added = [after[key] for key in after.keys() - before.keys()]
@@ -384,10 +386,20 @@ def classify_case(row):
     peers = tuple(terminal([request for command in witness
                             for request in command[side]['requests']])
                   for side in ('baseline', 'live'))
-    outcomes = []
-    earlier_throttled = set()
+    outcomes, effects = [], []
+    earlier_failed = {}
+    earlier_roots = {}
+    previous_command, previous_outcome, previous_comparison = None, None, {}
     output_changes = {item for item in drift if ': output status changed:' in item}
     for command, comparison in zip(witness, result['commands']):
+        # An earlier failed root was never cached, so later commands may
+        # repeat it while their baseline consumed the successful cache entry.
+        original = command
+        command = dict(command, baseline=dict(command['baseline'], requests=[
+            *command['baseline']['requests'], *[root for key, root in earlier_roots.items()
+                if key not in terminal(command['baseline']['requests'])
+                and key in terminal(command['live']['requests'])
+                and failed_status(terminal(command['live']['requests'])[key].get('status'))]]))
         before = terminal(command['baseline']['requests'])
         after = terminal(command['live']['requests'])
         seen = before.keys() & after.keys()
@@ -400,19 +412,42 @@ def classify_case(row):
             current.extend(changes)
         complete = comparison.get('before_status') == comparison.get('after_status') == 'complete'
         outcome = command_classification(command, discoveries, peers, complete, comparison)
-        if outcome == 'uncertain' and cache_order_throttle(command, earlier_throttled):
-            outcome = 'throttled'
+        if outcome == 'uncertain' and cache_order_failure(command, earlier_failed):
+            root = next(request for request in command['live']['requests']
+                        if not (request.get('provenance') or {}).get('inputs'))
+            outcome = earlier_failed[root['source']]
+        if (outcome == 'healthy' and previous_outcome in ('outage', 'throttled')
+                and not before and not after and previous_command is not None
+                and all('output' in original[side] and 'output' in previous_command[side]
+                        and original[side]['output'] == previous_command[side]['output']
+                        for side in ('baseline', 'live'))
+                and comparison.get('before_status') != comparison.get('after_status')
+                and all(comparison.get(key) == previous_comparison.get(key)
+                        for key in ('before_status', 'after_status'))):
+            outcome = previous_outcome
         outcomes.append(outcome)
-        earlier_throttled.update(command_causes(command)['throttled'])
+        causes = command_causes(command)
+        effect = next((cause for cause in ('outage', 'throttled')
+                       if causes[cause]), outcome) if outcome == 'uncertain' else outcome
+        effects.append(effect)
+        for cause in ('throttled', 'outage'):
+            earlier_failed.update({source: cause for source in causes[cause]})
+        for key, request in after.items():
+            if request.get('status') == 200:
+                earlier_roots.pop(key, None)
+        earlier_roots.update({key: before[key] for key in before.keys() & after.keys()
+                              if failed_status(after[key].get('status'))})
+        previous_command, previous_outcome, previous_comparison = original, outcome, comparison
         matched = {item for item in output_changes
                    if item.startswith('command ' + str(command['ordinal'])
                                       + ': output status changed:')}
         if matched:
-            if not explained_output(command, comparison, outcomes[-1]):
+            if not (explained_output(command, comparison, effect)
+                    or not before and not after and outcome in ('outage', 'throttled')):
                 return 'failure'
             output_changes -= matched
     if 'page continuation changed' in drift and not any(
-            outcome in ('throttled', 'outage', 'recovered', 'churn') for outcome in outcomes):
+            outcome in ('throttled', 'outage', 'recovered', 'churn') for outcome in effects):
         return 'failure'
     if output_changes:
         return 'failure'
@@ -487,22 +522,6 @@ def run_check(scratch, previous=()):
     except (ValueError, KeyError, TypeError, AttributeError) as error:
         print('Invalid live-check report: ' + str(error), file=sys.stderr)
         return True
-
-
-def deliver(scratch, host, evidence_dir):
-    manifest = {name: digest(scratch / name) for name in FILES}
-    (scratch / 'manifest.json').write_text(json.dumps(manifest, sort_keys=True) + '\n')
-    archive = scratch / 'transfer.tar'
-    with tarfile.open(archive, 'w') as target:
-        for name in (*FILES, 'manifest.json'):
-            target.add(scratch / name, arcname=name, recursive=False)
-    destination = evidence_dir / scratch.name
-    command = shlex.join(['python3', '-c', RECEIVE, str(destination),
-                          digest(scratch / 'manifest.json')])
-    with archive.open('rb') as source:
-        subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=30',
-                        host, command], stdin=source, check=True)
-    print('Verified evidence: ' + host + ':' + str(destination))
 
 
 def read_previous(host, evidence_dir, night):

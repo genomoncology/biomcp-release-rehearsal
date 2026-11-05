@@ -145,8 +145,8 @@ finally:
                     result = subprocess.run([sys.executable, "-c", script, str(selected), str(installed / ("case-runner" + runner.suffix)), str(fixtures), version], env=env, capture_output=True, text=True, timeout=300)
                     self.assertEqual(result.returncode == 0, not fail, result.stdout + result.stderr)
                     roots = json.loads(result.stdout.splitlines()[-1])["temporary_roots"]
-                    self.assertEqual(len(roots), 1)
-                    self.assertFalse(Path(roots[0]).exists(), "smoke leaked its temporary directory")
+                    self.assertEqual(len(roots), 1 if fail else 2)
+                    self.assertTrue(all(not Path(path).exists() for path in roots), "smoke leaked successful temporary evidence")
                     if configured:
                         self.assertEqual(Path(roots[0]).parent, parent)
                     self.assertEqual(list(parent.iterdir()), [sentinel])

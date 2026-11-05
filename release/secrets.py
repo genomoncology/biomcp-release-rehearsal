@@ -68,6 +68,7 @@ ARCHIVE_SUFFIXES = (".zip", ".whl", ".mcpb", ".tar", ".gz", ".tgz", ".7z", ".rar
 
 
 HISTORY_IGNORE = Path(__file__).with_name("secrets.ignore.jsonl")
+HISTORY_SCOPE = ("--single-worktree", "--all", "HEAD")
 
 
 def git(target, env, *args):
@@ -98,7 +99,7 @@ def inputs(mode, target, env, since=None, progress=None):
     # Enumerate actual reachable blobs, not patches: merge-only additions, binary
     # attributes and default diff suppression must not hide historical content.
     # Keep named refs and this HEAD without importing detached sibling jobs.
-    scope = ["--single-worktree", "--all", "HEAD"]
+    scope = list(HISTORY_SCOPE)
     if since is not None:
         if not re.fullmatch("[a-f0-9]{40}", since):
             raise ValueError("secret baseline must be a full commit hash")
@@ -291,7 +292,7 @@ def history_ignores(target, env, mapping, staging):
         if not keys:
             continue
         if reachable is None:
-            reachable = set(git(target, env, "rev-list", "HEAD").decode().splitlines())
+            reachable = set(git(target, env, "rev-list", *HISTORY_SCOPE).decode().splitlines())
         if row["commit"] not in reachable:
             raise HistoryBindingError("history-ignore-unreachable-commit", number)
         try:

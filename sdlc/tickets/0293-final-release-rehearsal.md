@@ -4,9 +4,11 @@ Status: OPEN. Reopened: 0336 adds 0334 and 0335 to the candidate; the final rehe
 
 Milestone: 5
 
-Depends on: 0289, 0290, 0292, 0297, 0319, 0332, 0336, 0621, 0622, 0634, 0635, 0636
+Depends on: 0289, 0290, 0292, 0297, 0319, 0332, 0336, 0621, 0622, 0634, 0635, 0636, 0638, 0639
 
 Reopened again 2026-11-05: after 0636 merges typed mode into main, re-cut the candidate from that main (0336's refresh steps, including the schema baseline export, keeping the immutable migration baseline) and qualify the new head in full: the hosted rehearsal on all five platforms and the local cold matrix, since product code changed. 0633, 0634 and 0635 tooling carries over.
+
+Reopened 2026-11-05 (m26035): installed candidate 015aea0a reproduced a user-reachable cache startup `Busy` at the `journal_mode=WAL` switch (j30327, 1 of 24 concurrent starts on a fresh cache). After 0639 fixes the cause, cut one final candidate from main with 0639 and 0638's tooling and qualify it in full; 015's results do not carry over for product proof.
 
 ## Outcome
 

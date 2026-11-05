@@ -33,6 +33,9 @@ if args[0] in ('version', 'health'):
     elif args == ['version', '--verbose']:
         print('biomcp 1.0.0\nCommit: ' + ('b' if FAIL == 'commit' else 'a') * 40 + '\nTarget: fixture')
     elif args == ['health', '--offline']:
+        cache = pathlib.Path(os.environ['XDG_CACHE_HOME'])
+        cache.mkdir(parents=True, exist_ok=True)
+        (cache / 'reply.sqlite').touch()
         print(json.dumps({'status': 'complete', 'result': {'sources': [
             {'source': 'synthetic', 'disabled': 'synthetic' in disabled, 'state': 'skipped',
              'reason': 'disabled' if 'synthetic' in disabled else 'offline'}]}}))

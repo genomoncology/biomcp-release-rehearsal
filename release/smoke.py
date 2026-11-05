@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Run one installed executable with copied fixtures and no checkout dependency."""
+import concurrent.futures
 import json
 import os
 import re
@@ -9,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import threading
 
 SCHEMA_ID = "biomcp.problem/2"
 
@@ -33,6 +35,54 @@ def environment(root):
     return env
 
 
+def cache_first_opens(binary, root):
+    """Eight real installed commands share one fresh cache, with no lock observer."""
+    root = Path(root).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    env = environment(root)
+    for name in ["home", "config", "cache"]:
+        (root / name).mkdir()
+    configuration = root / "config/biomcp"
+    configuration.mkdir()
+    (configuration / "config.json").write_text(json.dumps({"disable_sources": ["open", "noncommercial", "restricted"]}))
+    barrier = threading.Barrier(9, timeout=60)
+    for index in range(8):
+        (root / f"{index:02}-sqlite.jsonl").write_bytes(b"")
+
+    def run(index):
+        local = dict(env, BIOMCP_SQLITE_DIAGNOSTICS=str(root / f"{index:02}-sqlite.jsonl"))
+        barrier.wait()
+        started = time.monotonic_ns()
+        with (root / f"{index:02}.stdout").open("wb") as stdout, (root / f"{index:02}.stderr").open("wb") as stderr:
+            try:
+                result = subprocess.run([str(binary), "health", "--offline"], env=local,
+                                        stdout=stdout, stderr=stderr, timeout=60)
+                status = result.returncode
+            except subprocess.TimeoutExpired:
+                status = "watchdog"
+        record = {"worker": index, "dispatch_start_ns": started,
+                  "duration_ms": (time.monotonic_ns() - started) / 1e6, "exit": status}
+        (root / f"{index:02}-exec.json").write_text(json.dumps(record) + "\n")
+        return record
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        futures = [pool.submit(run, index) for index in range(8)]
+        empty = not any((root / "cache").iterdir())
+        release = {"monotonic_ns": time.monotonic_ns(), "unix_ns": time.time_ns(),
+                   "host_load": os.getloadavg() if hasattr(os, "getloadavg") else None,
+                   "empty_cache": empty}
+        barrier.wait()
+        records = [future.result() for future in futures]
+    (root / "barrier.json").write_text(json.dumps(release) + "\n")
+    diagnostics = [json.loads(line) for index in range(8)
+                   for line in (root / f"{index:02}-sqlite.jsonl").read_text().splitlines()]
+    record = {"host_load": release["host_load"], "empty_cache_before_release": empty,
+              "dispatch_spread_ms": (max(row["dispatch_start_ns"] for row in records) - min(row["dispatch_start_ns"] for row in records)) / 1e6,
+              "exits": [row["exit"] for row in records], "sqlite_errors": diagnostics}
+    (root / "commands.json").write_text(json.dumps(record, indent=2) + "\n")
+    return record
+
+
 def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=None, python=sys.executable):
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory).resolve()
@@ -50,6 +100,15 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
         checks.append("schemas")
         require(command(["help"])["result"]["commands"], "help commands missing")
         checks.append("help")
+        evidence = Path(os.environ.get("BIOMCP_EVIDENCE_DIR", Path.cwd() / "target/fixture-evidence"))
+        evidence.mkdir(parents=True, exist_ok=True)
+        first_open = Path(tempfile.mkdtemp(prefix="installed-cache-first-open-", dir=evidence))
+        opened = cache_first_opens(binary, first_open)
+        require(opened["empty_cache_before_release"] and opened["exits"] == [0] * 8,
+                "installed concurrent first opens failed; retained evidence: " + str(first_open))
+        require(any((first_open / "cache").rglob("*.sqlite")), "concurrent first opens did not create the cache")
+        shutil.rmtree(first_open)
+        checks.append("concurrent-first-opens")
         # The first tool call creates the ordinary cache; every emitted line,
         # including shutdown, must be a correlated JSON-RPC response.
         tools = mcp_probe([str(binary)] + list(server_args), env, root, version)

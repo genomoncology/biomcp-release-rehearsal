@@ -1,6 +1,7 @@
 # Nightly outage covers the requests a failed source drops
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 78d1ee710b4207970edc803ff69b897874e59c34
 Milestone: 5
 
 ## Outcome

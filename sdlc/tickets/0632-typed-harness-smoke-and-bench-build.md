@@ -1,6 +1,6 @@
 # Typed tools reach the model in real harnesses, then the bench build
 
-Status: OPEN.
+Status: COMPLETE. Reviewed typed harness and artifact work landed through 0636 at 95e7be997f3bc038111fd65527e03ce4db1e5d2a, satisfying the m25603 completion alternative; closed per PM m26076. The later single approved Pi attempt j30356 failed in client discovery before BioMCP calls, with visibility unproven and benchmark held per m26084.
 Milestone: 5
 Depends on: 0624, 0625, 0626, 0627, 0628
 
