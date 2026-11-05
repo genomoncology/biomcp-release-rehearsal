@@ -42,7 +42,8 @@ if mode == 'nested-group':
     child = subprocess.Popen([sys.executable, '-c',
         'import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); '
         'open("nested-ready", "w").write("ready"); time.sleep(60)'], start_new_session=True)
-    pathlib.Path('nested-pid').write_text(str(child.pid))
+    pathlib.Path('nested-pid.tmp').write_text(str(child.pid))
+    pathlib.Path('nested-pid.tmp').replace('nested-pid')
     child.wait()
 if mode == 'baseline-failure':
     baseline['summary'] = 'Failure'
@@ -55,10 +56,46 @@ else:
     for mutant, summary in zip(selected, summaries):
         outcomes.append(dict(scenario=dict(Mutant=mutant), summary=summary,
                              phase_results=[phase(2)]))
-(output / 'outcomes.json').write_text(json.dumps(dict(outcomes=outcomes)))
+(output / 'outcomes.json.tmp').write_text(json.dumps(dict(outcomes=outcomes)))
+(output / 'outcomes.json.tmp').replace(output / 'outcomes.json')
 if mode == 'interrupted':
     time.sleep(60)
 sys.exit(4 if mode == 'baseline-failure' else 2)
+'''
+
+DEADLINE_RUNNER = r'''import json, os, pathlib, runpy, subprocess, sys, time
+sys.path.insert(0, str(pathlib.Path(sys.argv[1]).parent))
+sys.argv = sys.argv[1:]
+state = runpy.run_path(sys.argv[0])['main'].__globals__
+execute = state['execute']
+current = {}
+def record(value):
+    with open('deadline-waits.jsonl', 'a') as stream:
+        stream.write(json.dumps(value) + '\n')
+def observed_execute(command, deadline, log, extra_env=None):
+    current.update(deadline=deadline, before=time.time())
+    record(dict(kind='execute', **current))
+    return execute(command, deadline, log, extra_env)
+state['execute'] = observed_execute
+class ReadyChild(subprocess.Popen):
+    expired = False
+    def wait(self, timeout=None):
+        if not self.expired and self.args[0] == 'cargo' and '--shard' in self.args:
+            self.expired = True
+            ready = [pathlib.Path(path) for path in json.loads(os.environ['DEADLINE_READY'])]
+            guard = time.monotonic() + 15
+            while not all(path.exists() for path in ready):
+                if self.poll() is not None or time.monotonic() >= guard:
+                    raise RuntimeError('Native child never became ready')
+                time.sleep(0.01)
+            record(dict(kind='wait', timeout=timeout, **current))
+            raise subprocess.TimeoutExpired(self.args, timeout)
+        return super().wait(timeout)
+subprocess.Popen = ReadyChild
+try:
+    sys.exit(state['main']())
+except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+    sys.exit(str(error))
 '''
 
 
@@ -131,19 +168,33 @@ class MutationCommands(unittest.TestCase):
     def report(self):
         return json.loads((self.output / 'mutation-report.json').read_text())
 
+    def deadline_runner(self, *ready):
+        runner = self.root / 'deadline-runner.py'
+        runner.write_text(DEADLINE_RUNNER)
+        self.env['DEADLINE_READY'] = json.dumps([str(path) for path in ready])
+        return [sys.executable, str(runner), self.script]
+
+    def assert_shared_deadline_wait(self):
+        deadline = json.loads(self.plan.read_text())['deadline']
+        calls = [json.loads(line) for line in (self.root / 'deadline-waits.jsonl').read_text().splitlines()]
+        self.assertTrue(calls)
+        self.assertTrue(all(call['deadline'] == deadline for call in calls))
+        waits = [call for call in calls if call['kind'] == 'wait']
+        self.assertEqual(len(waits), 1)
+        self.assertGreater(waits[0]['timeout'], 0)
+        self.assertLessEqual(waits[0]['timeout'], deadline - waits[0]['before'])
+
     def assert_owned_children_stop(self, cancel=False):
         self.prepare('--measure')
-        if not cancel:
-            value = json.loads(self.plan.read_text())
-            value['deadline'] = time.time() + 5
-            self.plan.write_text(json.dumps(value))
         self.env['FAKE_MODE'] = 'nested-group'
-        runner = subprocess.Popen([sys.executable, self.script, 'shard', '--plan', str(self.plan),
+        command = ([sys.executable, self.script] if cancel else
+                   self.deadline_runner(self.root / 'nested-ready', self.root / 'nested-pid'))
+        runner = subprocess.Popen([*command, 'shard', '--plan', str(self.plan),
                                    '--index', '0'], cwd=self.root, env=self.env,
                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.addCleanup(lambda: runner.poll() is None and runner.kill())
         deadline = time.monotonic() + 15
-        while not (self.root / 'nested-ready').exists():
+        while not all((self.root / name).exists() for name in ('nested-ready', 'nested-pid')):
             if runner.poll() is not None or time.monotonic() >= deadline:
                 self.fail('Native descendant never became ready')
             time.sleep(0.01)
@@ -156,7 +207,9 @@ class MutationCommands(unittest.TestCase):
         self.addCleanup(cleanup)
         if cancel:
             runner.terminate()
-        runner.wait(timeout=15)
+        self.assertEqual(runner.wait(timeout=15), 143 if cancel else 0)
+        if not cancel:
+            self.assert_shared_deadline_wait()
         # A separate native Cargo group must not outlive its runner.
         while time.monotonic() < deadline:
             try:
@@ -257,9 +310,13 @@ class MutationCommands(unittest.TestCase):
         self.assertTrue(any('Shard 1' in error for error in report['errors']))
 
     def test_deadline_preserves_partial_native_outcomes_without_fresh_budget(self):
-        self.prepare('--measure', started=time.time() - 90 * 60 + 3)
+        self.prepare('--measure')
         self.env['FAKE_MODE'] = 'interrupted'
-        self.call('shard', '--plan', self.plan, '--index', 0)
+        command = self.deadline_runner(self.output / 'shard-0/mutants.out/outcomes.json')
+        result = subprocess.run([*command, 'shard', '--plan', str(self.plan), '--index', '0'],
+                                cwd=self.root, env=self.env, capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assert_shared_deadline_wait()
         self.call('collect', '--plan', self.plan)
         report = self.report()
         self.assertEqual(report['completed'], 3)
@@ -269,11 +326,20 @@ class MutationCommands(unittest.TestCase):
 
     def test_version_check_obeys_the_shared_deadline(self):
         self.env['FAKE_MODE'] = 'version-hang'
-        self.call('plan', '--previous', self.previous, '--output', self.output,
-                  '--started', time.time() - 90 * 60 + 2, '--measure', ok=False)
-        self.assertFalse(self.plan.exists())
-        calls = [json.loads(line) for line in (self.root / 'cargo-calls.jsonl').read_text().splitlines()]
-        self.assertEqual(len(calls), 1)
+        for remaining in (2, -1):
+            with self.subTest(remaining=remaining):
+                output = self.root / f'version-deadline-{remaining}'
+                log = self.root / 'cargo-calls.jsonl'
+                log.unlink(missing_ok=True)
+                result = self.call('plan', '--previous', self.previous, '--output', output,
+                                   '--started', time.time() - 90 * 60 + remaining,
+                                   '--measure', ok=False)
+                self.assertIn('Install the pinned cargo-mutants before planning', result.stderr)
+                self.assertFalse((output / 'plan.json').exists())
+                calls = [json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
+                self.assertIn(len(calls), (0, 1) if remaining > 0 else (0,))
+                for call in calls:
+                    self.assertEqual(call['args'], ['mutants', '--version'])
 
     def test_expired_shard_lists_every_mutant_as_unrun(self):
         self.prepare('--measure')

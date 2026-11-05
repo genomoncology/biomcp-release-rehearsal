@@ -1,6 +1,7 @@
 # 0667 — Test release deadlines without assuming child startup speed
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c3e7ed487737cce79d19a17c4e812c1a3456b879
 
 Milestone: 5
 
