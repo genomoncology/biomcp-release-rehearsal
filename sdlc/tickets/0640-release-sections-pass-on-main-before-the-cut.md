@@ -4,8 +4,6 @@ Status: OPEN.
 
 Milestone: 5
 
-Depends on: 0293
-
 ## Outcome
 
 `release/qualification.md` lists every release section with the one command that runs it alone, its host and its inputs. Before the next candidate is cut, each section has passed alone against a main commit on its real host, so qualification starts from sections already known to work.
