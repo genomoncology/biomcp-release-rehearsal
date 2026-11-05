@@ -97,7 +97,8 @@ jobs:
           BIOMCP_TOOLING_REVISION: ${{ github.sha }}
         run: |
           export BIOMCP_RELEASE_TOOLING_SOURCE="$GITHUB_WORKSPACE/tooling"
-          export BUILD_IMAGE="$(python3 ../tooling/release/toolchain.py image manylinux-aarch64)"
+          BUILD_IMAGE=$(python3 ../tooling/release/toolchain.py image manylinux-aarch64)
+          export BUILD_IMAGE
           sh ../tooling/release/linux.sh
           cp proof/bootstrap.json ../section-evidence/bootstrap.json
       - name: Retain actual source, tooling and artifact hashes
