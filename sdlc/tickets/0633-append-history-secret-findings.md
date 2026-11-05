@@ -1,6 +1,7 @@
 # Every secret-scan finding in the appended history is classified exactly
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 5fac5bf8fa4f0e3b343987df2e63aebfbdddc222
 Milestone: 5
 
 ## Outcome

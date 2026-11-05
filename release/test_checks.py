@@ -1,12 +1,88 @@
 """Installed smoke contracts still reject broken candidates under Python optimization."""
 import json
+import io
+import os
+from collections import Counter
+from contextlib import redirect_stdout
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from release.smoke import SCHEMA_ID
+from release import secrets as history_scan
+from release.smoke import SCHEMA_ID, environment
+
+
+class ReviewedPublicHistory(unittest.TestCase):
+    """Exercise the real append ancestry when its safe scan receipt is supplied."""
+
+    @classmethod
+    def setUpClass(cls):
+        target = os.environ.get("BIOMCP_APPEND_HISTORY")
+        findings = os.environ.get("BIOMCP_APPEND_FINDINGS")
+        if not target or not findings:
+            raise unittest.SkipTest("requires the complete public append ancestry and safe scan receipt")
+        cls.target = Path(target).resolve(strict=True)
+        cls.observed = json.loads(Path(findings).read_text())
+        cls.rows = [json.loads(line) for line in history_scan.HISTORY_IGNORE.read_text().splitlines()]
+        cls.cache = Path(__file__).resolve().parents[1] / "target/security-tools"
+
+    @staticmethod
+    def identity(row):
+        return row["blob"], row["file"], row["line"], row["rule"]
+
+    def reviewed_rows(self):
+        observed = Counter(map(self.identity, self.observed))
+        self.assertEqual(len(self.observed), 50, "actual public scan receipt changed")
+        self.assertEqual(set(observed.values()), {1}, "one row must not cover several findings")
+        selected = [row for row in self.rows if self.identity(row) in observed]
+        self.assertEqual(Counter(map(self.identity, selected)), observed,
+                         "each actual finding requires exactly one reviewed binding")
+        return selected
+
+    def test_each_row_matches_one_actual_finding(self):
+        self.reviewed_rows()
+
+    def test_production_history_scan_passes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = {**environment(Path(directory)), "PATH": os.environ["PATH"]}
+            result = subprocess.run(
+                [sys.executable, history_scan.__file__, "history", str(self.target),
+                 "--cache", str(self.cache)], env=env, capture_output=True, text=True)
+        print(result.stdout, end="")
+        self.assertEqual(result.returncode, 0, "production public history scan failed")
+
+    def test_removing_any_reviewed_row_fails_the_production_scanner(self):
+        # The full scan above owns ancestry coverage. Each negative scan selects
+        # only that immutable historical blob, without changing scanner policy.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = {**environment(root), "PATH": os.defpath, "GIT_CONFIG_NOSYSTEM": "1"}
+            ledger = root / "secrets.ignore.jsonl"
+            for row in self.reviewed_rows():
+                with self.subTest(file=row["file"], blob=row["blob"], line=row["line"]):
+                    blob = history_scan.git(self.target, env, "rev-parse",
+                                            row["commit"] + ":" + row["file"]).decode().strip()
+                    self.assertEqual(blob, row["blob"], "reviewed source blob changed")
+                    payload = history_scan.git(self.target, env, "show",
+                                               row["commit"] + ":" + row["file"])
+                    ledger.write_text("".join(json.dumps(item) + "\n"
+                                              for item in self.rows if item != row))
+                    output = io.StringIO()
+                    with (patch.object(history_scan, "HISTORY_IGNORE", ledger),
+                          patch.object(history_scan, "inputs",
+                                       return_value=iter([(row["file"], payload)])),
+                          redirect_stdout(output)):
+                        status = history_scan.scan("history", self.target, self.cache)
+                    self.assertEqual(status, 1, "removing a reviewed row must reject its finding")
+                    reported = [json.loads(line) for line in output.getvalue().splitlines()
+                                if line.startswith("{")]
+                    findings = [item for item in reported if item.get("level") != "info"]
+                    self.assertEqual(findings, [{"file": row["file"], "rule": row["rule"]}],
+                                     "omission must expose exactly its one actual finding")
+        print("Reviewed public history row omissions rejected: 50")
 
 
 class SmokeSchema(unittest.TestCase):
