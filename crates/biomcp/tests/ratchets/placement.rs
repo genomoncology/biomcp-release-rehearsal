@@ -4,6 +4,10 @@ use std::{fs, path::Path};
 // One authoritative list; architecture 10.4 must reproduce each path and reason.
 const ALLOWED: &[(&str, &str)] = &[
     (
+        "crates/biomcp/src/mcp/http/load_benchmark.rs",
+        "Measure explicitly invoked bounded HTTP load against one owned service and Fetch.",
+    ),
+    (
         "crates/biomcp/tests/ratchets/source_declaration_proof.rs",
         "Plant source declaration omissions, identity mismatches, unnamed provider facts and transport source literals at the structural boundary.",
     ),
@@ -37,7 +41,7 @@ const ALLOWED: &[(&str, &str)] = &[
     ),
     (
         "crates/biomcp/src/mcp/http/call.rs",
-        "Prove hosted tool capacity and shutdown ownership with held worker exits using the private server limit.",
+        "Prove HTTP failure recovery, safe diagnostic fields and hosted worker capacity and shutdown ownership at private boundaries.",
     ),
     (
         "crates/biomcp/src/config/credential_reads_tests.rs",

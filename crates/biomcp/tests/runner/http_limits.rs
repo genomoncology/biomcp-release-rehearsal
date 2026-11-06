@@ -210,8 +210,8 @@ fn chunked() -> Check {
 fn overload() -> Check {
     let server = Server::start()?;
     let mut held = Vec::new();
-    // Framing reserves one reader beyond the eight active call slots for health.
-    for _ in 0..9 {
+    // Framing can use the full existing worker bound (twice the connection cap plus one).
+    for _ in 0..17 {
         let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
         socket
             .write_all(b"GET /health HTTP/1.1\r\n")
@@ -280,6 +280,23 @@ pub(super) fn read_only_health(server: &Server) -> Result<(u16, serde_json::Valu
     if status != 503 || old.get("store") != Some(&serde_json::json!(false)) || version != 4 {
         return Err(format!(
             "health admitted or migrated an old query schema: {status} {old} version={version}"
+        ));
+    }
+    connection
+        .execute_batch("DELETE FROM meta WHERE owner='biomcp-query'; DROP TABLE reply")
+        .map_err(|e| e.to_string())?;
+    let (status, damaged) = server.request("GET", "/health", "")?;
+    let tables: u32 = connection
+        .query_row(
+            "SELECT count(*) FROM sqlite_master WHERE name='reply'",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    // Health promises compatibility/openability, not payload-table integrity or repair.
+    if status != 200 || damaged.get("store") != Some(&serde_json::json!(true)) || tables != 0 {
+        return Err(format!(
+            "health promise changed on a damaged payload table: {status} {damaged}; tables={tables}"
         ));
     }
     response
@@ -372,6 +389,8 @@ fn busy_capacity(configured: bool, flags: bool) -> Check {
     }
     if configured {
         refuse_over_capacity(&server, &probe, &mut held)?;
+    } else {
+        refused_call_diagnostic(&server)?;
     }
     let (status, body) = server.request("GET", "/health", "")?;
     if status != 200 || body.get("store") != Some(&serde_json::json!(true)) {
@@ -379,6 +398,39 @@ fn busy_capacity(configured: bool, flags: bool) -> Check {
     }
     drop(writers);
     drop(held);
+    Ok(())
+}
+
+#[cfg(unix)]
+fn refused_call_diagnostic(server: &Server) -> Check {
+    let call = super::mcp::request(
+        serde_json::json!(10),
+        "tools/call",
+        serde_json::json!({"name":"fetch", "arguments":{"id":"protein private-query"}}),
+    );
+    let (status, _) = server.request("POST", "/mcp", &call.to_string())?;
+    if status != 503 {
+        return Err(format!("tool call escaped connection cap: {status}"));
+    }
+    let diagnostics = server
+        .diagnostics
+        .lock()
+        .map_err(|_| "diagnostic receiver poisoned")?;
+    let event = diagnostics
+        .recv_timeout(Duration::from_secs(60))
+        .map_err(|e| e.to_string())?;
+    let event: serde_json::Value = serde_json::from_str(&event).map_err(|e| e.to_string())?;
+    if event.get("event") != Some(&serde_json::json!("mcp_call"))
+        || event.get("tool") != Some(&serde_json::json!("fetch"))
+        || event.get("status") != Some(&serde_json::json!("error"))
+        || event.get("failed_sources") != Some(&serde_json::json!([]))
+        || event.to_string().contains("private-query")
+        || diagnostics.try_recv().is_ok()
+    {
+        return Err(format!(
+            "unsafe, missing or repeated capacity diagnostic: {event}"
+        ));
+    }
     Ok(())
 }
 

@@ -29,7 +29,7 @@ Set `"mcp_typed_output_schema": true` to include reply envelope schemas on the d
 
 ## HTTP capacity
 
-`http_max_calls` limits tool calls in flight. `http_max_connections` limits open non-health HTTP connections. Each key accepts a positive integer. The server refuses `http_max_connections` when it is below `http_max_calls`. Pending framing readers and active requests share the connection cap. Framing readers follow the connection setting and reserve a reader to classify health checks. `/health` uses neither the connection cap nor the tool call cap.
+`http_max_calls` limits tool calls in flight. `http_max_connections` limits open non-health HTTP connections. Each key accepts a positive integer. The server refuses `http_max_connections` when it is below `http_max_calls`. Pending framing readers and active requests share the connection cap. Framing readers share the existing worker bound of twice the connection setting plus one. `/health` uses neither the connection cap nor the tool call cap, but idle or incomplete sockets can exhaust framing workers and make it return 503. A front end that forwards complete requests avoids this raw-socket limit.
 
 Use the same names as flags on `serve --http`: `--http_max_calls` and `--http_max_connections`. The defaults live in [`DEFAULT_HTTP_CAPACITY`](../crates/biomcp/src/config.rs). Raise connections above calls to let discovery requests answer while tool calls occupy their slots.
 
@@ -87,3 +87,7 @@ Flag fields override file fields for that source. Other fields and sources remai
 `mcp_reply_form` accepts `both` (JSON text plus `structuredContent`), `structured-only` (JSON in `structuredContent` plus a one-line text note), or `text-only` (JSON text). It applies to all MCP tools over stdio and HTTP, including error replies. The default is `both` for local and hosted servers. Choose `structured-only` only for clients that read `structuredContent`. When included, the output schema describes that JSON value regardless of reply form.
 
 Hosted HTTP servers can set `"hosted_max_use": "restricted"` in JSON configuration to allow only `restricted` declarations, even when callers supply source keys. The setting accepts `restricted`, `commercial` or `academic` and defaults to `academic`. Requests above the ceiling are refused with an error naming the allowed modes; missing headers still select `restricted`. Ordinary CLI and stdio are unchanged.
+
+`GET /health` checks that the local cache/store opens with compatible metadata within two seconds. It makes no upstream requests, does not verify every stored table or row, and does not promise that sources are available or a query will succeed. Incompatible metadata or an unreadable store returns 503. A missing or damaged payload table can still return 200; this endpoint does not repair it.
+
+HTTP tool calls write one JSON diagnostic with the registered tool name, duration in milliseconds, reply status and failed source names. Arguments, query text and credentials are excluded.

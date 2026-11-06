@@ -855,3 +855,15 @@ accepted-batch-article-finish:
 	cargo test --locked -p biomcp --test cases variant/identity $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases article/fulltext/ $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases article/preprint/ $(TEST_THREADS)
+
+.PHONY: hosted-resilience-focused
+hosted-resilience-focused:
+	cargo test --locked -p biomcp --bin biomcp mcp::http::call::tests $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-hosted/replay-partial-at-deadline $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-hosted/pacing/whole-call-deadline $(TEST_THREADS)
+
+.PHONY: hosted-resilience-mechanical
+hosted-resilience-mechanical:
+	+$(MAKE) --no-print-directory check-cheap
+	+$(MAKE) --no-print-directory hosted-resilience-focused

@@ -1,6 +1,7 @@
 # 0690 — Hosted server keeps serving and says why
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 420ee47acfd3d2ef34324d79e0b75078e22a79a6
 
 Milestone: 5
 

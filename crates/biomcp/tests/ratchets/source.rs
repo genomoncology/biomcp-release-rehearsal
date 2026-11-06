@@ -63,7 +63,7 @@ const EXCEPTIONS: &[(&str, &str)] = &[
         "Convert closed nonempty source spellings into neutral provenance text",
     ),
     (
-        "crates/biomcp/src/mcp/http.rs",
+        "crates/biomcp/src/mcp/http/connections.rs",
         "Own bounded HTTP connection workers and join completed handles",
     ),
     (

@@ -3,6 +3,8 @@ mod admission;
 mod authority;
 mod call;
 mod chunked;
+mod connections;
+mod logging;
 mod metadata;
 mod wire;
 use authority::Authority;
@@ -12,7 +14,6 @@ use std::{
     io,
     net::{SocketAddr, TcpListener, TcpStream},
     sync::Arc,
-    thread,
 };
 const ACCEPT_POLL: std::time::Duration = std::time::Duration::from_millis(20);
 const HEALTH_BUDGET: std::time::Duration = std::time::Duration::from_secs(2);
@@ -108,76 +109,10 @@ pub(crate) fn serve(
     ready.push(b'\n');
     std::io::Write::write_all(&mut std::io::stderr().lock(), &ready)
         .map_err(|_| StartError::Local)?;
-    connections(listener, service, stopped).map_err(|_| StartError::Local)
-}
-#[expect(
-    clippy::disallowed_methods,
-    reason = "Own bounded framing and active request workers through completion"
-)]
-fn connections(
-    listener: TcpListener,
-    service: Arc<Service>,
-    stopped: std::sync::mpsc::Receiver<()>,
-) -> io::Result<()> {
-    listener.set_nonblocking(true)?;
-    let mut workers: Vec<thread::JoinHandle<()>> = Vec::new();
-    let max_workers = service.max_connections * 2 + 1;
-    let readers = admission::Slots::new(service.max_connections + 1);
-    loop {
-        if stopped.try_recv().is_ok() {
-            break;
-        }
-        let mut stream = match listener.accept() {
-            Ok((stream, _)) => {
-                stream.set_nonblocking(false)?;
-                stream
-            }
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
-                match stopped.recv_timeout(ACCEPT_POLL) {
-                    Ok(()) | Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
-                    Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
-                }
-            }
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) => return Err(error),
-        };
-        let mut retained = Vec::with_capacity(workers.len());
-        for worker in workers {
-            if worker.is_finished() {
-                let _ = worker.join();
-            } else {
-                retained.push(worker);
-            }
-        }
-        workers = retained;
-        // Retain a whole-worker bound while phase permits change hands or diagnostics run.
-        let reader = if workers.len() < max_workers {
-            readers.take()
-        } else {
-            None
-        };
-        let Some(reader) = reader else {
-            record(wire::unavailable(&mut stream));
-            continue;
-        };
-        let connection = service.connections.take();
-        let service = service.clone();
-        workers.push(
-            thread::Builder::new()
-                .name("mcp-http".into())
-                .spawn(move || {
-                    record(service.handle(stream, reader, connection));
-                })?,
-        );
-    }
-    drop(listener);
-    service.calls.cancel();
-    for worker in workers {
-        worker
-            .join()
-            .map_err(|_| io::Error::other("HTTP worker stopped"))?;
-    }
-    Ok(())
+    connections::run(listener, service, stopped).map_err(|error| {
+        record(Err(error));
+        StartError::Local
+    })
 }
 fn record(result: io::Result<()>) {
     if let Err(error) = result {
@@ -195,12 +130,14 @@ impl Service {
     ) -> io::Result<()> {
         // A malformed or oversized framing closes without reflecting untrusted headers.
         let request = wire::read(&mut stream)?;
+        let started = std::time::Instant::now();
         // A reserved reader classifies health even when ordinary connections are full.
         let _connection = if request.path == "/health" {
             drop(connection);
             None
         } else {
             let Some(permit) = connection else {
+                logging::record(&request, started.elapsed(), 503, None);
                 return wire::unavailable(&mut stream);
             };
             drop(reader);
@@ -219,6 +156,12 @@ impl Service {
         wire::write(&mut stream, status, &body, revision, allow)
     }
     fn route(&self, request: &wire::Request) -> (u16, Option<Value>, Option<&'static str>) {
+        let started = std::time::Instant::now();
+        let result = self.route_inner(request);
+        logging::record(request, started.elapsed(), result.0, result.1.as_ref());
+        result
+    }
+    fn route_inner(&self, request: &wire::Request) -> (u16, Option<Value>, Option<&'static str>) {
         if !self.allowed(request) {
             return (403, Some(json!({"error":"Forbidden"})), None);
         }
