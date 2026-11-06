@@ -1,6 +1,7 @@
 # 0687 — Ignore ledger binds to landed main
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7e00168413416a075625ea5baa11324d6d1a815c
 
 Milestone: 5
 
