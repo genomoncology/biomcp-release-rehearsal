@@ -35,3 +35,7 @@ The bench takes the skill byte for byte, and two of its 20 questions involve CPI
 ## Depends on
 
 - Depends on: nothing.
+
+## Amendment, 2026-11-06
+
+PM ruling: the bench's three refusals are intended, but `variant normalize` on bare HGVS gives the agent no route to a working form. The reply now names that route (`search variant` with gene and coding change, then `get variant`), and the `assertions` refusal's instruction reaches `next` as well. This amends Keeps for these two refusals only. Hosting does not rely on either, and no other refusal changes.
