@@ -1,6 +1,6 @@
 # 0060 — PM count checks (PM-owned, no developer lane)
 
-Status: OPEN.
+Status: WITHDRAWN. All count-check dates have passed and it held milestone 1 open (W57 of records/2026-11-06-pre-release-review.md)
 
 Milestone: 1
 
