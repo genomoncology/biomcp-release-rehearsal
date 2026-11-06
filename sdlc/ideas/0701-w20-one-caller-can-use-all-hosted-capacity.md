@@ -1,6 +1,7 @@
 # W20: one caller can use all hosted capacity
 
-Status: open.
+Status: closed.
+Declined: the hosting wrapper caps work per verified user; 0548 defers per-user caps to it
 
 Kind: idea
 When: never unless the reason changes
