@@ -31,3 +31,7 @@ Item 4: no name search, so the tester paged through 73 sites to find Pancreas (4
 ## Changes
 
 - Changes: `crates/biomcp-adapters/src/seer/`, `crates/biomcp-query/src/disease/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+The timeouts did not reproduce (m28873, m28896). The publisher answered in 0.2 to 0.3 seconds from the M5, and hosting's two deployed runs passed in about 10 and 2 seconds, on the deployed revision. The cause is unknown and hosting read no server logs, so no timeout fix is claimed. The usability work stands. Hosting also saw `value.unknown` problems on the membership and method fields; check those replies and fix them here.
