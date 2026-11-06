@@ -33,5 +33,11 @@
       },
       "max_bytes": 5501
     }
-  ]
+  ],
+  "config": {
+    "disable_sources": [
+      "noncommercial",
+      "licensed"
+    ]
+  }
 }

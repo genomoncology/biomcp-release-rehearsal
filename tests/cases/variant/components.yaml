@@ -13,7 +13,7 @@
         "conservation",
         "cosmic",
         "--disable-sources",
-        "restricted",
+        "licensed",
         "--build",
         "GRCh37"
       ],
@@ -23,7 +23,7 @@
         "/result/candidates/0/sections/conservation/state": "data",
         "/result/candidates/0/sections/cosmic/state": "skipped",
         "/result/candidates/0/identity/ids": {
-          "count": 1
+          "includes": "clinvar:13961"
         }
       }
     }

@@ -64,7 +64,7 @@ def cli_checks(binary, record):
         env = environment(root)
         config = root / "config/biomcp/config.json"
         config.parent.mkdir(parents=True)
-        groups = ["open", "noncommercial", "restricted"]
+        groups = ["open", "noncommercial", "licensed"]
         config.write_text(json.dumps({"disable_sources": groups}))
         # Terms groups preserve aggregators with independently labeled components.
         # Discover their IDs offline from the installed candidate, then disable

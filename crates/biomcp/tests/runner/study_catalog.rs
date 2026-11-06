@@ -261,27 +261,36 @@ fn replacement() -> Check {
         if found.pointer("/page/total") != Some(&json!(12)) {
             return Err(format!("failed replacement lost old rows: {found}"));
         }
-        for group in ["cbioportal", "restricted"] {
-            let skipped = call(
-                &env,
-                &replay,
-                &["search", "study", "atlas", "--disable-sources", group],
-                4,
-                "catalog/replacement/4",
-            )?;
-            if skipped.get("result").is_some()
-                || skipped.pointer("/sources/0/reason") != Some(&json!("disabled"))
-            {
-                return Err(format!("disabled read: {skipped}"));
-            }
-            call(
-                &env,
-                &replay,
-                &["sync", "cbioportal-studies", "--disable-sources", group],
-                4,
-                "catalog/replacement/5",
-            )?;
+        let skipped = call(
+            &env,
+            &replay,
+            &[
+                "search",
+                "study",
+                "atlas",
+                "--disable-sources",
+                "cbioportal",
+            ],
+            4,
+            "catalog/replacement/4",
+        )?;
+        if skipped.get("result").is_some()
+            || skipped.pointer("/sources/0/reason") != Some(&json!("disabled"))
+        {
+            return Err(format!("disabled read: {skipped}"));
         }
+        call(
+            &env,
+            &replay,
+            &[
+                "sync",
+                "cbioportal-studies",
+                "--disable-sources",
+                "cbioportal",
+            ],
+            4,
+            "catalog/replacement/5",
+        )?;
     }
     Ok(())
 }

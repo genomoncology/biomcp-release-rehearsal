@@ -53,7 +53,7 @@ pub struct RecurrenceStudy {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct RecurrenceTerms {
-    /// Study-specific rights remain unverified.
+    /// Whether the source terms have not been reviewed.
     pub unverified: bool,
     /// Source warning about possible commercial restrictions.
     pub notice: Box<str>,

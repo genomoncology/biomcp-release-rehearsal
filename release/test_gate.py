@@ -24,7 +24,7 @@ if args[0] in ('version', 'health'):
     assert 'ONCOKB_API_KEY' not in os.environ
     config = pathlib.Path(os.environ['APPDATA']) / 'biomcp/config.json'
     disabled = json.loads(config.read_text())['disable_sources']
-    assert disabled[:3] == ['open', 'noncommercial', 'restricted']
+    assert disabled[:3] == ['open', 'noncommercial', 'licensed']
     assert pathlib.Path.cwd() != pathlib.Path(LOG).parent
     if args[0] == FAIL:
         sys.exit(7)

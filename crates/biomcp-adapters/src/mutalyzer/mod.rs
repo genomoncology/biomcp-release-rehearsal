@@ -13,7 +13,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     destinations: biomcp_fetch::Destinations::Primary,
     user_agent: None,
     terms: biomcp_fetch::Terms {
-        name: "Mutalyzer service output terms require review",
+        name: "Citation requested; commercial use of results not addressed",
         url: "https://mutalyzer.nl/",
         usage: biomcp_types::Use::Open,
     },

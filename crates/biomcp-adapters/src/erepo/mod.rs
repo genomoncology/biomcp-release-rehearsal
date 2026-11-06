@@ -11,8 +11,8 @@ pub static SPEC: SourceSpec = SourceSpec {
     destinations: biomcp_fetch::Destinations::Primary,
     user_agent: None,
     terms: biomcp_fetch::Terms {
-        name: "ClinGen sharing policy; record rights unverified",
-        url: "https://clinicalgenome.org/about/terms-of-use/",
+        name: "ClinGen curated content: CC0 1.0",
+        url: "https://clinicalgenome.org/docs/terms-of-use/",
         usage: biomcp_types::Use::Open,
     },
     source: Source::Erepo,

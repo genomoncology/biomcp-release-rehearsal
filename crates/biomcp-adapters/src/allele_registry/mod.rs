@@ -11,13 +11,13 @@ use biomcp_fetch::{Arg, Endpoint, KeyUse, Leg, PathSegment, RequestError, Source
 use biomcp_types::{Source, VariantHeader};
 pub use population::population_id;
 use std::time::Duration;
-/// Public GET access; raw output redistribution rights remain unverified.
+/// ClinGen curated content is dedicated to the public domain under CC0.
 pub static SPEC: SourceSpec = SourceSpec {
     destinations: biomcp_fetch::Destinations::Primary,
     user_agent: None,
     terms: biomcp_fetch::Terms {
-        name: "ClinGen Allele Registry service terms; output rights require review",
-        url: "https://clinicalgenome.org/about/terms-of-use/",
+        name: "ClinGen curated content: CC0 1.0",
+        url: "https://clinicalgenome.org/docs/terms-of-use/",
         usage: biomcp_types::Use::Open,
     },
     source: Source::AlleleRegistry,

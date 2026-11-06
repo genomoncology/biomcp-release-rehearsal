@@ -15,7 +15,7 @@ pub(super) fn expired() -> Result<(), String> {
     let first = call("gwas_search/state/expired/1", &env, &replay, &args, 0)?;
     let page = super::super::action(&first, "page")?;
     fs::remove_dir_all(replay.join("gwas")).map_err(|e| e.to_string())?;
-    for source in ["gwas", "restricted"] {
+    for source in ["gwas", "open"] {
         let mut command = env.globals(Some(&replay), false);
         command.extend(page.clone());
         command.extend(["--disable-sources".into(), source.into()]);

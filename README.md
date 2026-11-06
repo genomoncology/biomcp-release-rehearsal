@@ -14,13 +14,13 @@ biomcp version
 
 ## Configure sources and keys
 
-Every source and component field is enabled by default, including noncommercial and restricted data. Publisher terms remain authoritative. Public API access grants no additional reuse rights. Commercial users must set this configuration:
+Every source and component field is enabled by default, including noncommercial and separately licensed data. Publisher terms remain authoritative. Public API access grants no additional reuse rights. Commercial users must set this configuration:
 
 ```json
-{"disable_sources": ["noncommercial", "restricted"]}
+{"disable_sources": ["noncommercial", "licensed"]}
 ```
 
-BioMCP reads `$XDG_CONFIG_HOME/biomcp/config.json` or `~/.config/biomcp/config.json` on Unix, and `%APPDATA%/biomcp/config.json` on Windows. Use `--config PATH` for another file. Source names and the `noncommercial` and `restricted` groups also work with `--disable-sources`. Configuration and command exclusions combine. Exclusions also prevent disabled data from returning through cache, replay or stored collections.
+BioMCP reads `$XDG_CONFIG_HOME/biomcp/config.json` or `~/.config/biomcp/config.json` on Unix, and `%APPDATA%/biomcp/config.json` on Windows. Use `--config PATH` for another file. Source names and the `noncommercial` and `licensed` groups also work with `--disable-sources`. Configuration and command exclusions combine. Exclusions also prevent disabled data from returning through cache, replay or stored collections.
 
 See [server configuration](docs/configuration.md) for cache and store folders, Docker storage and server settings.
 
@@ -60,13 +60,7 @@ Run `biomcp mcp-config` to print ready-to-paste stdio configuration using the in
 
 For native HTTP clients, `biomcp serve --http` listens at `http://127.0.0.1:8080/mcp`. Supply an address after `--http` to select another listener. A non-loopback listener requires `--allow-host HOST` or `http.allowed_hosts` in configuration. The allowlist does not authenticate callers. Restrict listener access to trusted clients. Browser origins are refused. HTTP refuses synchronization, store cleaning, fresh requests and file saves. Stdio allows new-file saves and refuses replacement. `GET /health` checks the local server and store without upstream requests.
 
-Use `biomcp serve --hosted` for a shared server, with `--http` for HTTP transport. Hosted mode refuses MCP file saves, `health`, `sync`, `store clean`, `--fresh` and `key` commands on both transports. Each refusal returns `usage.mcp_unavailable` and names hosted mode. Read-only queries keep the shared request cache and query pools. Public replies stay shared across callers. Replies from no-fallback sources remain available only to callers with the same key, including recorded replies and stored continuations. Hosted mode refuses older licensed recordings and stored continuations that lack caller ownership. The HTTP `GET /health` endpoint remains available for local server checks. Hosted HTTP calls may supply source credentials through the header names reported by `biomcp key list`. The list also reports each source's fallback tier. Caller headers override server credentials for that request only. Sources in the no-fallback tier require the caller's credential even when the server has a configured key. Other sources may use the server credential when the caller supplies none. Missing required credentials direct callers to their account settings. Tool arguments never accept keys. Ordinary HTTP mode ignores these headers.
-
-Hosted HTTP requests declare use through `x-biomcp-use: commercial` or `x-biomcp-use: academic`. A missing header means commercial. Commercial requests disable sources and components classified as noncommercial or restricted in the source registry. Academic requests use the server configuration. A caller source key enables that source for either use, while server exclusions always apply. Invalid declarations are refused before source access. These rules also apply to cached and stored replies. Ordinary HTTP and stdio ignore the header.
-
-The hosting front end must strip the client-sent `x-biomcp-use` header and set it from the authenticated account attestation. It must also strip all client-sent `x-biomcp-key-` headers before injecting credentials from the authenticated caller's account settings. BioMCP does not authenticate these headers itself.
-
-Hosted source pacing follows each effective key. Keyless calls share one bucket per source. Set `--rate-share` to the fraction of each keyed source rate assigned to this server, such as `--rate-share 0.25` for each of four instances. Keyless hosted buckets and ordinary process buckets keep the source's full rate. The front end chooses these shares; servers do not coordinate rates with each other. Hosted HTTP calls have a whole-call wall-clock deadline and return the typed `deadline-exceeded` reason when it expires. The server keeps a bounded number of active calls, including timed-out work until it stops.
+See [hosted server configuration](docs/configuration.md#hosted-servers) for deployment, source use, caller credentials and request limits.
 
 ## Develop
 

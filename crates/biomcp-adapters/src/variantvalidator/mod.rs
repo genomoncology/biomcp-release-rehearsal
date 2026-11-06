@@ -15,7 +15,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     destinations: biomcp_fetch::Destinations::Primary,
     user_agent: None,
     terms: biomcp_fetch::Terms {
-        name: "VariantValidator service output terms require review",
+        name: "Citation requested; commercial use of results not addressed",
         url: "https://variantvalidator.org/help/about/",
         usage: biomcp_types::Use::Open,
     },

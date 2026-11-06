@@ -118,8 +118,6 @@ pub struct FetchConfig {
     pub disabled_sources: std::collections::BTreeSet<biomcp_types::Source>,
     /// Component terms categories switched off by the same source policy.
     pub disabled_uses: std::collections::BTreeSet<biomcp_types::Use>,
-    /// Preserve the retired restricted configuration group.
-    pub legacy_restricted: bool,
     /// Configured credentials.
     pub secrets: Secrets,
     /// Explicit SQLite cache path; absence disables storage.
@@ -154,7 +152,6 @@ impl Default for FetchConfig {
             cache_owners: Vec::new(),
             disabled_sources: Default::default(),
             disabled_uses: Default::default(),
-            legacy_restricted: false,
             secrets: Secrets::default(),
             cache: None,
             cache_predecessors: Vec::new(),
@@ -194,7 +191,6 @@ pub struct Fetch {
     bundle_imports: std::sync::Arc<std::sync::Mutex<std::collections::BTreeSet<&'static str>>>,
     disabled_sources: std::collections::BTreeSet<biomcp_types::Source>,
     disabled_uses: std::collections::BTreeSet<biomcp_types::Use>,
-    legacy_restricted: bool,
 }
 
 #[expect(
@@ -280,7 +276,6 @@ impl Fetch {
             clock: clock.map(std::sync::Arc::new),
             disabled_sources: config.disabled_sources.clone(),
             disabled_uses: config.disabled_uses.clone(),
-            legacy_restricted: config.legacy_restricted,
             config: std::sync::Arc::new(config),
             limiters: std::sync::Arc::default(),
             background_refresh: None,
@@ -310,17 +305,6 @@ impl Fetch {
         let mut restricted = self.clone();
         restricted.disabled_sources.extend(disabled);
         restricted
-    }
-
-    /// Whether the retired restricted configuration group is selected.
-    pub fn legacy_restricted(&self) -> bool {
-        self.legacy_restricted
-    }
-    /// Preserve legacy configuration exclusions without publishing a use label.
-    pub fn restrict_legacy(&self, disabled: bool) -> Self {
-        let mut fetch = self.clone();
-        fetch.legacy_restricted |= disabled;
-        fetch
     }
 
     /// Whether a component category was explicitly switched off.
@@ -471,11 +455,6 @@ impl Leg<'_> {
     pub fn disabled_use(&self, usage: biomcp_types::Use) -> bool {
         self.fetch.disabled_use(usage)
     }
-    /// Whether legacy component exclusions apply to this leg.
-    pub fn legacy_restricted(&self) -> bool {
-        self.fetch.legacy_restricted()
-    }
-
     /// Bypass cached reads and stale fallback for this leg and its batch children.
     /// The process policy cannot be weakened by a call.
     pub fn fresh(mut self, fresh: bool) -> Self {

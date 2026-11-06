@@ -405,7 +405,7 @@
           "type": "string"
         },
         "unverified": {
-          "description": "Study-specific rights remain unverified.",
+          "description": "Whether the source terms have not been reviewed.",
           "type": "boolean"
         },
         "url": {

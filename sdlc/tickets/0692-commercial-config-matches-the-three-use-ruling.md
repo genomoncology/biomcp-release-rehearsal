@@ -1,6 +1,7 @@
 # 0692 — Commercial config matches the three-use ruling
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 76b744f0f1c287e0675e85aa5b7a8278eed5569f
 
 Milestone: 5
 

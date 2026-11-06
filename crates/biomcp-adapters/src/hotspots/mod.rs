@@ -8,14 +8,14 @@ use biomcp_fetch::{
 use biomcp_types::{HotspotAlternate, HotspotMembership, HotspotRecord, Source};
 use serde::Deserialize;
 use std::time::Duration;
-/// Publisher terms remain unverified; raw captures remain external.
+/// ODbL attribution and share-alike apply to database reuse.
 pub static SPEC: SourceSpec = SourceSpec {
     destinations: biomcp_fetch::Destinations::Primary,
     user_agent: None,
     terms: biomcp_fetch::Terms {
-        name: "Publisher-specific terms; data reuse unverified",
+        name: "ODbL: attribution and share-alike",
         url: "https://www.cancerhotspots.org/",
-        usage: biomcp_types::Use::Open,
+        usage: biomcp_types::Use::Attribution,
     },
     source: Source::CancerHotspots,
     base: "https://www.cancerhotspots.org",

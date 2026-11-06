@@ -34,6 +34,12 @@ def check(root):
     if sorted(examples) != sorted(recorded) or len(recorded) != 4:
         raise ValueError("README examples differ from recorded cases")
 
+    commercial = json.loads(re.search(r"```json\n(.*?)```", readme, re.S).group(1))
+    for path in (root / "tests/cases/readme").glob("*.yaml"):
+        case = json.loads(path.read_text())
+        if case.get("replay") and case.get("config") != commercial:
+            raise ValueError(f"README commercial setup differs from {path}")
+
     if (root / "skills/SKILL.md").stat().st_size > 4096:
         raise ValueError("agent skill exceeds 4 KB")
     roadmap = (root / "ROADMAP.md").read_text()

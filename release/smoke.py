@@ -68,7 +68,7 @@ def cache_first_opens(binary, root):
         (root / name).mkdir()
     configuration = root / "config/biomcp"
     configuration.mkdir()
-    (configuration / "config.json").write_text(json.dumps({"disable_sources": ["open", "noncommercial", "restricted"]}))
+    (configuration / "config.json").write_text(json.dumps({"disable_sources": ["open", "noncommercial", "licensed"]}))
     barrier = threading.Barrier(9, timeout=60)
     for index in range(8):
         (root / f"{index:02}-sqlite.jsonl").write_bytes(b"")

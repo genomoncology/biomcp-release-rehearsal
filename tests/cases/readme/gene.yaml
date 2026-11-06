@@ -35,18 +35,21 @@
           "equals": {
             "source": "oncokb",
             "state": "skipped",
-            "reason": "no-key",
+            "reason": "disabled",
             "use": "licensed",
             "terms": "OncoKB license",
             "terms_url": "https://faq.oncokb.org/licensing"
           }
         },
-        "/next/*/kind": {
-          "includes": "key"
-        },
         "/result/items/0/answer/gene/mane/0/status": "select"
       },
       "max_bytes": 2400
     }
-  ]
+  ],
+  "config": {
+    "disable_sources": [
+      "noncommercial",
+      "licensed"
+    ]
+  }
 }

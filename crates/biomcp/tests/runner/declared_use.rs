@@ -4,9 +4,9 @@ use crate::runner::transcript::trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 mod ceiling;
+mod commercial;
 mod components;
 mod continuation;
-mod legacy;
 mod records;
 const ACADEMIC: &str = "x-biomcp-use: academic\r\n";
 const KEY: &str = "7c28f96a-3f48-4d6b-8d30-512c5d41e979";
@@ -29,8 +29,8 @@ pub(super) fn trials() -> Vec<Trial> {
         trial("mcp-hosted/use/optional-rate-keys", || {
             ceiling::optional_keys().map_err(Into::into)
         }),
-        trial("mcp-hosted/use/legacy-group-membership", || {
-            legacy::check().map_err(Into::into)
+        trial("mcp-hosted/use/commercial-config", || {
+            commercial::check().map_err(Into::into)
         }),
         trial("mcp-hosted/use/continuation-rights", || {
             continuation::check().map_err(Into::into)

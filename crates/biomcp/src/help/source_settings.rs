@@ -13,9 +13,9 @@ pub(super) fn help(topic: &str) -> Help {
         .join(", ");
     let mut description = String::from(
         "Every source and carried field is enabled by default. Publisher terms remain authoritative. \
-        Commercial users must set {\"disable_sources\":[\"noncommercial\",\"restricted\"]}. \
+        Commercial users must set {\"disable_sources\":[\"noncommercial\",\"licensed\"]}. \
         Use config disable_sources or --disable-sources with source names or groups; exclusions combine. \
-        restricted means each publisher's terms need checking. Group consequences follow. ",
+        Groups use the registry's current terms categories. Group consequences follow. ",
     );
     description.insert_str(
         0,

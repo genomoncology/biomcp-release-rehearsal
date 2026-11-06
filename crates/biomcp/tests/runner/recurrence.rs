@@ -90,7 +90,7 @@ fn wire() -> Result<(), String> {
         || first.pointer("/result/more") != Some(&json!(true))
         || first.pointer("/result/all_pages_read") != Some(&json!(false))
         || first.pointer("/result/denominator").is_some()
-        || first.pointer("/result/terms/unverified") != Some(&json!(true))
+        || first.pointer("/result/terms/unverified") != Some(&json!(false))
     {
         return Err(format!("wrong page counts or rights: {first}"));
     }

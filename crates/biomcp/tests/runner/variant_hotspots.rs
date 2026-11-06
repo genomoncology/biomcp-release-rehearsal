@@ -92,7 +92,7 @@ pub(super) fn body(request: &str) -> Result<String, String> {
         "dbsnp":{"rsid":"rs113488022","gene":{"symbol":"BRAF"}},"clinvar":{"variant_id":13961}})
         .to_string())
     } else {
-        // Counts are deliberately synthetic; provider data rights remain unverified.
+        // Counts are deliberately synthetic; provider data uses ODbL.
         Ok(json!(
             [{"hugoSymbol":"BRAF","transcriptId":"ENST00000288602","residue":"V600","tumorCount":12,"variantAminoAcid":{"E":8,"K":4}},
             {"hugoSymbol":"BRAF","transcriptId":"ENST00000288602","residue":"D594","tumorCount":5,"variantAminoAcid":{"G":5}},

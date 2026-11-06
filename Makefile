@@ -867,3 +867,7 @@ hosted-resilience-focused:
 hosted-resilience-mechanical:
 	+$(MAKE) --no-print-directory check-cheap
 	+$(MAKE) --no-print-directory hosted-resilience-focused
+
+.PHONY: commercial-config-check
+commercial-config-check:
+	python3 scripts/trials.py --case-file readme/gene.yaml --case-file readme/article.yaml --case-file readme/trial.yaml mcp-hosted/use/commercial-config

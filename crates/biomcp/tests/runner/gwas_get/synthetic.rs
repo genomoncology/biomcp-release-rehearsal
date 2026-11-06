@@ -44,7 +44,7 @@ pub(super) fn ancestry() -> Result<(), String> {
             "GCST000035",
             "ancestries",
             "--disable-sources",
-            "restricted",
+            "gwas",
         ]
         .map(str::to_owned),
     );
