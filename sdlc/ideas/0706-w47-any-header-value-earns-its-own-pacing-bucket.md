@@ -1,6 +1,7 @@
 # W47: any header value earns its own pacing bucket
 
-Status: open.
+Status: closed.
+Declined: the wrapper strips client key headers; 0505
 
 Kind: idea
 When: never unless the reason changes
