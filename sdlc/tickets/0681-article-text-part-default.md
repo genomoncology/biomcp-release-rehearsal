@@ -31,3 +31,7 @@ Claude's retest of the live typed server on 2026-11-06 (pin 1bb97e64; hosting m2
 ## Changes
 
 - Changes: the article query and its schema, `tests/`.
+
+## Amendment, 2026-11-06
+
+PM ruling (m27763): current main's `part` is a one-based number that selects from the article's body outline, alongside the find, variant and save modes; there is no abstract or full-text enum. Keep that syntax. An omitted selector returns the existing `get article` card with its abstract. An invalid `part` states the valid range and how to list the outline, and puts no sentence in `valid_values`. No new enum values.
