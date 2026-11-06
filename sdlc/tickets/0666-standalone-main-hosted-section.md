@@ -1,6 +1,7 @@
 # 0666 — Run one hosted release section against an explicit main commit
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 3b96575f9c16396681d2d31356e87170a4d2c457
 
 Milestone: 5
 
