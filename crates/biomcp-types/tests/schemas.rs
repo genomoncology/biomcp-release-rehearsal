@@ -516,3 +516,8 @@ fn every_command_path_has_one_grammar_or_one_shared_rewrite()
 fn section_rules_keep_the_complete_source_owned_prose() -> Result<(), String> {
     generation::section_rules_keep_the_complete_source_owned_prose()
 }
+
+#[test]
+fn required_component_annotations_are_metadata_with_checked_sources() -> Result<(), String> {
+    annotations::required_component_annotations_are_metadata_with_checked_sources()
+}

@@ -75,6 +75,14 @@ biodata::wire_enum! { described
     }
 }
 impl AdverseEventSection {
+    /// Terminology required before reading this whole section, including stored rows.
+    pub const fn required_component(self) -> Option<crate::Source> {
+        match self {
+            Self::Reactions => Some(crate::Source::Meddra),
+            Self::Devices => Some(crate::Source::Gmdn),
+            _ => None,
+        }
+    }
     /// Whether this section requires an absolute native drug index.
     pub fn is_identifier(self) -> bool {
         !matches!(
@@ -100,6 +108,28 @@ biodata::wire_enum! { described
 }
 
 impl AdverseEventSource {
+    /// Component admitted for every search of this source, independent of filters.
+    pub const fn required_search_component(self) -> Option<crate::Source> {
+        match self {
+            Self::Maude => AdverseEventSection::Devices.required_component(),
+            Self::Faers | Self::Vaers => None,
+        }
+    }
+    #[cfg(feature = "schema")]
+    pub(crate) fn search_components() -> std::collections::BTreeMap<String, crate::Source> {
+        schemars::schema_for!(Self)
+            .get("enum")
+            .and_then(|value| value.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|value| value.as_str()?.parse::<Self>().ok())
+            .filter_map(|source| {
+                source
+                    .required_search_component()
+                    .map(|component| (source.to_string(), component))
+            })
+            .collect()
+    }
     /// Source identity for this explicit native selector.
     pub const fn source(self) -> crate::Source {
         match self {

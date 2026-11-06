@@ -6,9 +6,7 @@ use crate::{Ctx, Outcome, source_snapshot, status};
 use biodata::{FaersReport, Text};
 use biomcp_adapters::faers;
 use biomcp_fetch::{CacheError, Deadline, RequestError};
-use biomcp_types::{
-    AdverseEventGet, AdverseEventSection, ReplyData, Request, Source, SourceOutcome, StepKind,
-};
+use biomcp_types::{AdverseEventGet, ReplyData, Request, Source, SourceOutcome, StepKind};
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Saved(
     FaersReport,
@@ -42,10 +40,8 @@ fn read(
     // Source and component admission precede any retained payload read.
     let denied = if cx.fetch.disabled(Source::Faers) {
         Some(biomcp_fetch::SourceError::disabled(Source::Faers).into())
-    } else if q.section() == Some(AdverseEventSection::Reactions) {
-        biomcp_adapters::adverse_event_sources::components::meddra(&leg).err()
     } else {
-        None
+        biomcp_adapters::adverse_event_sources::components::section(&leg, q.section()).err()
     };
     if let Some(e) = denied {
         out.sources

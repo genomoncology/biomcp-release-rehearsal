@@ -1,6 +1,7 @@
 //! Stdio scheduling and the single response writer.
 mod current;
 mod framing;
+mod hosted;
 pub(crate) mod http;
 mod legacy;
 mod output_schema;
@@ -161,9 +162,12 @@ impl Server {
                     id,
                     rejected,
                     modern,
-                    &self.globals,
-                    &self.settings,
-                    &self.root,
+                    crate::command::Context::new(
+                        &self.globals,
+                        &self.fetch,
+                        &self.root,
+                        &self.settings,
+                    ),
                 )
                 .map(Some);
             }

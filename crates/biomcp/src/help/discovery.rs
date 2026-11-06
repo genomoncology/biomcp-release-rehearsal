@@ -1,7 +1,7 @@
 //! Build navigation from the same commands and sections used for execution.
 use biomcp_types::HelpCommand;
 
-pub(super) fn complete(commands: &mut Vec<HelpCommand>) {
+pub(crate) fn relations(commands: &[HelpCommand]) -> String {
     let entities: std::collections::BTreeSet<_> = commands
         .iter()
         .filter(|c| c.command.first().is_some_and(|v| v == "get"))
@@ -48,13 +48,14 @@ pub(super) fn complete(commands: &mut Vec<HelpCommand>) {
         })
         .collect::<Vec<_>>()
         .join("\n");
-    commands.push(super::topic(
-        "relations",
-        format!(
-            "Follow source relationships through a named get section or a search filter. \
+    format!(
+        "Follow source relationships through a named get section or a search filter. \
         These links retrieve source records without deciding their clinical meaning.\n{relations}"
-        ),
-    ));
+    )
+}
+
+pub(super) fn complete(commands: &mut Vec<HelpCommand>) {
+    commands.push(super::topic("relations", relations(commands)));
     complete_examples(commands);
     if let Some(index) = commands.iter().position(|c| c.command.is_empty()) {
         let index = commands.remove(index);

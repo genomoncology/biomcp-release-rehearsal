@@ -1,6 +1,7 @@
 # 0654 — Hosted mode offers only what it serves and says why a source is off
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 724d3f92a5a7c2ce86d4af834b5fc0a76d18a6e3
 
 Milestone: 5
 

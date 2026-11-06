@@ -428,6 +428,24 @@ typed-hosted-check:
 	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json-render-diagnostics > "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted/build.jsonl"
 	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/typed-hosted/catalogs" python3 -c 'import json,subprocess,sys; rows=[json.loads(line) for line in open(sys.argv[1]) if line.startswith("{")]; executables={row["target"]["name"]:row["executable"] for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable")}; subprocess.run([sys.executable,"scripts/trials.py","--runner",executables["cases"],"--executable",executables["biomcp"],"--installed","mcp-parity/typed-hosted-catalog"],check=True)' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/typed-hosted/build.jsonl"
 
+.PHONY: hosted-surface-check
+hosted-surface-check:
+	python3 scripts/trials.py --installed mcp-hosted/served-surface-and-source-policy mcp-parity/typed-hosted-catalog
+
+.PHONY: hosted-surface-mechanical
+hosted-surface-mechanical:
+	cargo fmt --all -- --check
+	+$(MAKE) hosted-surface-lint
+	cargo test --locked -p biomcp --test ratchets -- repository_obeys_structural_contract --exact
+
+.PHONY: hosted-surface-development
+hosted-surface-development:
+	+$(MAKE) --keep-going hosted-surface-check hosted-surface-mechanical
+
+.PHONY: hosted-surface-generate
+hosted-surface-generate:
+	+$(MAKE) schema-generate docs-generate
+	tar -czf target/hosted-surface-generated.tar.gz crates/biomcp-types/schemas docs/reference/commands.md
 .PHONY: drug-indication-focused
 drug-indication-focused:
 	+$(MAKE) schema-generate docs-generate
@@ -447,6 +465,23 @@ source-status-check:
 .PHONY: source-status-pre-review
 source-status-pre-review:
 	+$(MAKE) source-status-check check-cheap current-schema-check schema-release-check
+
+.PHONY: hosted-surface-annotations
+hosted-surface-annotations:
+	cargo fmt --all -- --check
+	cargo test --locked -p biomcp-types --features schema --test schemas required_component_annotations_are_metadata_with_checked_sources -- --exact
+	+$(MAKE) hosted-surface-lint
+
+.PHONY: hosted-surface-lint
+hosted-surface-lint:
+	cargo clippy --keep-going --locked -p biomcp -p biomcp-types --all-targets --all-features -- -D warnings
+
+.PHONY: hosted-reply-parity hosted-reply-parity-check
+hosted-reply-parity:
+	+$(MAKE) --keep-going hosted-reply-parity-check hosted-surface-lint fmt
+
+hosted-reply-parity-check:
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/hosted-reply-parity/$(shell git rev-parse HEAD)" python3 scripts/trials.py --installed mcp-parity/reply-forms mcp-parity/typed-reply-forms-and-cap mcp-hosted/use/source-admission mcp-hosted/served-surface-and-source-policy
 
 .PHONY: supplement-indications-reproduce
 supplement-indications-reproduce:

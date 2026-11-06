@@ -130,6 +130,15 @@ impl Server {
         path: &str,
         body: &str,
     ) -> Result<(u16, Value), String> {
+        self.request_with_headers(method, path, body, "")
+    }
+    pub(super) fn request_with_headers(
+        &self,
+        method: &str,
+        path: &str,
+        body: &str,
+        extra: &str,
+    ) -> Result<(u16, Value), String> {
         let value = serde_json::from_str::<Value>(body).ok();
         let method_header = value
             .as_ref()
@@ -145,7 +154,7 @@ impl Server {
             .unwrap_or_default();
         let headers = format!(
             "Content-Type: application/json\r\nAccept: application/json, text/event-stream\r\nMCP-Protocol-Version: \
-        2026-07-28\r\n{method_header}{name_header}"
+        2026-07-28\r\n{method_header}{name_header}{extra}"
         );
         let (status, body, _) =
             self.raw(method, path, &self.address.to_string(), &headers, body)?;

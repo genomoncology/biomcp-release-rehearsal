@@ -272,7 +272,7 @@ pub use response::{UsageArguments, UsageError};
 pub use response::{Reply, ReplyBody, ReplyData};
 
 mod coverage;
-pub use coverage::{command_implicit_sources, command_section_sources};
+pub use coverage::{command_implicit_sources, command_section_component, command_section_sources};
 
 #[cfg(feature = "schema")]
 pub use adverse_event::AdverseEventSearchCommand;

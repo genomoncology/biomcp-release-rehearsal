@@ -2,17 +2,11 @@
 use biomcp_query::Action;
 use biomcp_types::{ErrorMessage, Request, UsageError};
 
-pub(super) fn refusal(parsed: &crate::grammar::Parsed, http: bool) -> Option<UsageError> {
+pub(crate) fn refusal(parsed: &crate::grammar::Parsed, http: bool) -> Option<UsageError> {
     let globals = &parsed.globals;
     let action = parsed.action.as_ref();
     if globals.hosted
-        && (parsed.key.is_some()
-            || globals.fresh
-            || matches!(
-                action,
-                Some(Action::Health | Action::Sync { .. } | Action::StoreClean)
-            )
-            || matches!(action, Some(Action::Run { request, .. }) if saves(request)))
+        && (parsed.key.is_some() || globals.fresh || action.is_some_and(hosted_refused))
     {
         return Some(UsageError::McpUnavailable(ErrorMessage::McpHosted));
     }
@@ -39,6 +33,12 @@ pub(super) fn refusal(parsed: &crate::grammar::Parsed, http: bool) -> Option<Usa
         }
         _ => None,
     }
+}
+pub(crate) fn hosted_refused(action: &Action) -> bool {
+    matches!(
+        action,
+        Action::Health | Action::Sync { .. } | Action::StoreClean
+    ) || matches!(action, Action::Run { request, fresh } if *fresh || saves(request))
 }
 fn replaces(request: &Request) -> bool {
     match request {

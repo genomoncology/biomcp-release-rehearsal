@@ -7,6 +7,7 @@ pub(super) fn next(
     let steps = result
         .next
         .iter()
+        .filter(|step| !globals.hosted || !super::mcp_policy::hosted_refused(&step.1))
         .map(|step| crate::spell::step(step.0, &step.1))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(source_steps(globals, steps))
@@ -17,7 +18,9 @@ fn source_steps(
     steps: Vec<biomcp_types::Step>,
 ) -> Vec<biomcp_types::Step> {
     let mut prefix: Vec<Box<str>> = Vec::new();
-    if let Some(path) = &globals.config {
+    if let Some(path) = &globals.config
+        && !globals.hosted
+    {
         prefix.extend([
             "--config".into(),
             path.to_string_lossy().into_owned().into(),

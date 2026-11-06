@@ -326,7 +326,7 @@ impl Service {
         let scope = self.globals.hosted.then(|| {
             biomcp_fetch::Cancellation::with_budget(crate::config::budget(&self.settings))
         });
-        let call = match self.parse_tool(&id, params, modern) {
+        let call = match self.parse_tool(&id, params, modern, declared_use) {
             Ok(call) => call,
             Err(reply) => return (200, Some(reply), Some(revision)),
         };
@@ -391,6 +391,7 @@ impl Service {
         id: &Value,
         params: &Value,
         modern: bool,
+        declared_use: Option<crate::command::DeclaredUse>,
     ) -> Result<super::research::Call, Value> {
         let call = super::typed::parse(
             &self.root,
@@ -404,9 +405,16 @@ impl Service {
                 id.clone(),
                 rejected,
                 modern,
-                &self.globals,
-                &self.settings,
-                &self.root,
+                crate::command::Context {
+                    globals: &self.globals,
+                    root: &self.root,
+                    settings: &self.settings,
+                    fetch: &self.fetch,
+                    recovery: self.recovery.as_deref(),
+                    secrets: None,
+                    declared_use,
+                    scope: None,
+                },
             )
             .unwrap_or_else(|_| super::protocol::error(id.clone(), -32603, "Internal error"))
         })

@@ -32,7 +32,7 @@ impl DeclaredUse {
     }
 }
 
-pub(super) fn restrict(fetch: Fetch, context: Option<Context<'_>>) -> Fetch {
+pub(crate) fn restrict(fetch: Fetch, context: Option<Context<'_>>) -> Fetch {
     let Some(context) = context.filter(|c| {
         matches!(
             c.declared_use,

@@ -4,6 +4,7 @@ mod argument_details;
 #[path = "../coverage.rs"]
 pub(crate) mod coverage;
 mod discovery;
+pub(crate) use discovery::relations;
 pub(crate) const FRONT_MAP: &str = include_str!(concat!(env!("OUT_DIR"), "/front-map.txt"));
 mod schema_fields;
 use schema_fields::{resolve, value_type};

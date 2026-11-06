@@ -13,12 +13,28 @@ pub const GMDN_FIELDS: &[&str] = &["device.generic_name"];
 /// Admit a FAERS reaction section or reaction-filtered search before endpoint/cache/replay access.
 /// Ordinary search, card and drugs reads do not require this terminology component.
 pub fn meddra(leg: &Leg<'_>) -> Result<(), RequestError> {
-    admit(leg, Source::Meddra, Source::Faers)
+    section(leg, Some(biomcp_types::AdverseEventSection::Reactions))
 }
-/// Admit a MAUDE positional search or devices section before endpoint/cache/replay access.
+/// Admit a MAUDE search before endpoint/cache/replay access.
 /// Card and narrative reads do not require this terminology component.
 pub fn gmdn(leg: &Leg<'_>) -> Result<(), RequestError> {
-    admit(leg, Source::Gmdn, Source::Maude)
+    let source = biomcp_types::AdverseEventSource::Maude;
+    if let Some(component) = source.required_search_component() {
+        admit(leg, component, source.source())?;
+    }
+    Ok(())
+}
+/// Admit the component declared by the section owner before cache or source access.
+pub fn section(
+    leg: &Leg<'_>,
+    section: Option<biomcp_types::AdverseEventSection>,
+) -> Result<(), RequestError> {
+    if let Some(section) = section
+        && let Some(component) = section.required_component()
+    {
+        admit(leg, component, section.source().source())?;
+    }
+    Ok(())
 }
 fn admit(leg: &Leg<'_>, component: Source, owner: Source) -> Result<(), RequestError> {
     if all()

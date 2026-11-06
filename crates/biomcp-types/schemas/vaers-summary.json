@@ -22,7 +22,8 @@
               "type": "null"
             }
           ],
-          "description": "FAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero."
+          "description": "FAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero.",
+          "x-required-component": "meddra"
         },
         "drug": {
           "description": "FAERS drug names; OR.\nFAERS literal drug name; repeat --drug for OR. OR inside one quoted value stays literal. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).",
@@ -48,7 +49,8 @@
               "type": "null"
             }
           ],
-          "description": "MAUDE manufacturer.\nMAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."
+          "description": "MAUDE manufacturer.\nMAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.",
+          "x-required-component": "gmdn"
         },
         "offset": {
           "default": 0,
@@ -66,14 +68,16 @@
               "type": "null"
             }
           ],
-          "description": "MAUDE product problem.\nMAUDE phrase on native product_problems."
+          "description": "MAUDE product problem.\nMAUDE phrase on native product_problems.",
+          "x-required-component": "gmdn"
         },
         "product_code": {
           "description": "MAUDE product codes; OR.\nMAUDE exact native device.device_report_product_code; repeated codes join with OR.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
-          "type": "array"
+          "type": "array",
+          "x-required-component": "gmdn"
         },
         "reaction": {
           "anyOf": [
@@ -84,7 +88,8 @@
               "type": "null"
             }
           ],
-          "description": "FAERS MedDRA phrase.\nFAERS MedDRA term phrase match, not exact equality."
+          "description": "FAERS MedDRA phrase.\nFAERS MedDRA term phrase match, not exact equality.",
+          "x-required-component": "meddra"
         },
         "received_from": {
           "anyOf": [
@@ -148,7 +153,10 @@
         "source": {
           "$ref": "#/$defs/Reply_AdverseEventSource",
           "default": "faers",
-          "description": "Source; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names."
+          "description": "Source; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names.",
+          "x-required-components": {
+            "maude": "gmdn"
+          }
         },
         "text": {
           "$ref": "#/$defs/Reply_Text",

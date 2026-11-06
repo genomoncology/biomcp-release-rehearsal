@@ -101,6 +101,7 @@ pub(super) fn execute(
     } else {
         crate::command::tool(&call.args, context)?
     };
+    super::hosted::project(&mut outcome, context, &call.args)?;
     if !matches!(
         outcome.status,
         crate::exit::Status::Success | crate::exit::Status::Absent
