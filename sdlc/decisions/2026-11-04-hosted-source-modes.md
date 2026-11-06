@@ -8,3 +8,7 @@ Ian, 2026-11-04 (dictated, relayed by Jarvis in m24652): "The basic gist is: if 
 - Ian, directly, 2026-11-04: "Hosting will use restricted. What that means is that, no matter what configurations you do, we will not pass through or support any of the commercial restricted endpoints ... If there are data elements that are not usable for commercial entities, we will not access them, share them, or return them back." So our hosted deployment serves only `restricted`, whatever header or key a caller sends. A deployment sets the highest mode it serves; local CLI and stdio keep every configured source.
 
 0585 built the three modes and the labels. 0619 closes the two gaps this ruling exposes: an optional rate-limit key (Semantic Scholar) enabling a noncommercial source in `commercial`, and the hosted server accepting any caller's `commercial` or `academic` header.
+
+## Amendment, 2026-11-06
+
+Ian, on the six sources the pre-release review questioned: "You can keep on things that have no explicit non-commercial use stuff." So a source whose terms say nothing on commercial use, such as Mutalyzer and VariantValidator, stays on at `restricted`. On cBioPortal: "I certainly want to support the idea that the restricted mode understands the studies at the flag level." 0710 builds that.

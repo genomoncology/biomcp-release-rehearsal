@@ -22,7 +22,7 @@ Rows W3, W4, W10, W38, W46, W50, W51, W53 and W56 of `records/2026-11-06-pre-rel
 
 ## Keeps
 
-- Keeps: use labels other than those named. cBioPortal's restricted studies wait for Ian's answer (the record's Q2). No word-matching test of terms text.
+- Keeps: use labels other than those named. cBioPortal's restricted studies belong to 0710. No word-matching test of terms text.
 
 ## Defers
 

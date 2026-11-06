@@ -127,6 +127,8 @@ cBioPortal's terms say data is open "unless otherwise noted", and that some stud
 
 Recommendation: B. It meets your ruling and keeps the source. Mutalyzer and VariantValidator terms say nothing on results; I recommend they stay on with no further review.
 
+Ian answered 2026-11-06: B, as a study-level flag in `restricted` (0710). Sources with no explicit noncommercial terms stay on.
+
 ### Q3. Publishing account settings, at the final approval
 
 No hurry, since 1.0 has no deadline. These change outside accounts, so they need you.
