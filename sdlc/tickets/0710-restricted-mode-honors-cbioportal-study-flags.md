@@ -30,4 +30,4 @@ Ian, 2026-11-06, on the record's Q2: "I certainly want to support the idea that 
 
 ## Changes
 
-- Changes: `crates/biomcp-adapters/src/cbioportal/`, `crates/biomcp-query/`, `docs/`, `tests/`. Hosting rebuilds its baked study list from the flagged list.
+- Changes: `crates/biomcp-adapters/src/cbioportal/`, `crates/biomcp-query/`, `docs/`, `tests/`. BioMCP applies the flag when it reads a study, so hosting's existing snapshot stays readable and needs no refetch.
