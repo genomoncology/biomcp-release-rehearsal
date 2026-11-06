@@ -1,0 +1,168 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele/CA118639?fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1793808996,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA118639",
+          "communityStandardTitle": [
+            "NM_000492.4(CFTR):c.1521_1523del (p.Phe508del)"
+          ],
+          "externalRecords": {
+            "ClinVarVariations": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/clinvar/variation/7105",
+                "RCV": [
+                  "RCV000007523",
+                  "RCV000007524",
+                  "RCV000058929",
+                  "RCV000119038",
+                  "RCV000626692",
+                  "RCV000626693",
+                  "RCV001004459",
+                  "RCV001642198",
+                  "RCV001831519",
+                  "RCV002251888",
+                  "RCV001787370",
+                  "RCV001787371",
+                  "RCV002243627",
+                  "RCV003444054",
+                  "RCV002490332",
+                  "RCV003227599"
+                ],
+                "variationId": 7105
+              }
+            ],
+            "dbSNP": [
+              {
+                "@id": "http://www.ncbi.nlm.nih.gov/snp/113993960",
+                "rs": 113993960
+              }
+            ]
+          },
+          "genomicAlleles": [
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "",
+                  "end": 117559594,
+                  "referenceAllele": "CTT",
+                  "start": 117559591
+                }
+              ],
+              "hgvs": [
+                "NC_000007.14:g.117559592_117559594del",
+                "CM000669.2:g.117559592_117559594del"
+              ],
+              "referenceGenome": "GRCh38",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000055"
+            },
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "",
+                  "end": 117199648,
+                  "referenceAllele": "CTT",
+                  "start": 117199645
+                }
+              ],
+              "hgvs": [
+                "NC_000007.13:g.117199646_117199648del",
+                "CM000669.1:g.117199646_117199648del"
+              ],
+              "referenceGenome": "GRCh37",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000031"
+            },
+            {
+              "chromosome": "7",
+              "coordinates": [
+                {
+                  "allele": "",
+                  "end": 116986884,
+                  "referenceAllele": "CTT",
+                  "start": 116986881
+                }
+              ],
+              "hgvs": [
+                "NC_000007.12:g.116986882_116986884del"
+              ],
+              "referenceGenome": "NCBI36",
+              "referenceSequence": "http://reg.genome.network/refseq/RS000007"
+            },
+            {
+              "coordinates": [
+                {
+                  "allele": "",
+                  "end": 98811,
+                  "referenceAllele": "CTT",
+                  "start": 98808
+                }
+              ],
+              "hgvs": [
+                "NG_016465.4:g.98809_98811del",
+                "LRG_663:g.98809_98811del"
+              ],
+              "referenceSequence": "http://reg.genome.network/refseq/RS003205"
+            }
+          ],
+          "transcriptAlleles": [
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000003084.11:c.1521_1523del"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_000492.4:c.1521_1523del"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000003084.6:p.Phe508del"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_000483.3:p.Phe508del"
+                  }
+                }
+              }
+            },
+            {
+              "MANE": {
+                "maneVersion": "1.3",
+                "maneStatus": "MANE Select",
+                "nucleotide": {
+                  "Ensembl": {
+                    "hgvs": "ENST00000003084.11:c.1521_1523del"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NM_000492.4:c.1521_1523del"
+                  }
+                },
+                "protein": {
+                  "Ensembl": {
+                    "hgvs": "ENSP00000003084.6:p.Phe508del"
+                  },
+                  "RefSeq": {
+                    "hgvs": "NP_000483.3:p.Phe508del"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "feature": "variant-population",
+  "live_check": "synthetic response-only CAid routing using retained population source facts and a synthetic CAR 404; no live source claim",
+  "story": "A CAid resolves to population counts, while an unknown canonical allele returns empty.",
+  "replay": "variant/id-forms",
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "get_variant",
+        "arguments": {
+          "input": "CA123643",
+          "section": [
+            "population"
+          ]
+        }
+      },
+      "expect": {
+        "/result/candidates/0/sections/population/state": "data",
+        "/result/candidates/0/sections/population/data/build": "GRCh38",
+        "/result/candidates/0/sections/population/data/variant": "7-140753336-A-T",
+        "/result/candidates/0/sections/population/data/exome/ac": 2
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "CA123643"
+        }
+      },
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/variant": "7-140753336-A-T",
+        "/result/population/data/exome/ac": 2
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "get_variant",
+        "arguments": {
+          "input": "CA118639",
+          "section": [
+            "population"
+          ]
+        }
+      },
+      "expect": {
+        "/result/candidates/0/sections/population/state": "data",
+        "/result/candidates/0/sections/population/data/variant": "7-117559590-ATCT-A",
+        "/result/candidates/0/sections/population/data/exome/ac": 18037,
+        "/result/candidates/0/sections/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "CA118639"
+        }
+      },
+      "expect": {
+        "/result/population/state": "data",
+        "/result/population/data/variant": "7-117559590-ATCT-A",
+        "/result/population/data/exome/ac": 18037,
+        "/result/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "get_variant",
+        "arguments": {
+          "input": "CA999999999999"
+        }
+      },
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/result/resolution": "absent"
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "CA999999999999"
+        }
+      },
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/result/population/state": "empty"
+      }
+    }
+  ],
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  }
+}

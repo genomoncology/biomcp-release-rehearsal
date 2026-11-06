@@ -101,7 +101,14 @@ fn read(
         read.local = found.local;
         read.candidates = found.rows;
         if let Some(reason) = found.reason {
-            read.population = Section::unavailable(Source::Gnomad, reason);
+            read.population = if reason == Reason::NotFound {
+                Section::Empty {
+                    source: Source::Gnomad,
+                    record: None,
+                }
+            } else {
+                Section::unavailable(Source::Gnomad, reason)
+            };
             return read;
         }
     }

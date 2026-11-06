@@ -1,6 +1,7 @@
 # 0684 — Variant lookups accept a ClinGen allele ID
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a78e1da71828ce669732397c782f650539189e89
 
 Milestone: 5
 

@@ -609,6 +609,11 @@ help-recovery-check:
 	cargo test --locked -p biomcp --test cases mcp-parity/typed-hosted-catalog $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases mcp-parity/mcp-typed-tools $(TEST_THREADS)
 
+.PHONY: caid-population-check
+caid-population-check:
+	mkdir -p "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/caid-population"
+	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json-render-diagnostics > "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/caid-population/build.jsonl"
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/caid-population-evidence" python3 -c 'import json,subprocess,sys; rows=[json.loads(line) for line in open(sys.argv[1]) if line.startswith("{")]; executables={row["target"]["name"]:row["executable"] for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable")}; subprocess.run([sys.executable,"scripts/trials.py","--runner",executables["cases"],"--executable",executables["biomcp"],"--installed","--case-file","variant/population/caid-typed.yaml"],check=True)' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/caid-population/build.jsonl"
 
 
 .PHONY: typed-description-check typed-description-contract-check
@@ -627,6 +632,12 @@ population-reply-metadata-check:
 	+$(MAKE) hosted-surface-generate typed-schema-check
 	python3 scripts/trials.py mcp-parity/mcp-typed-tools --case-file variant/population/indel-invalid-crossref.yaml --case-file variant/population/indel-typed.yaml
 
+.PHONY: caid-population-affected caid-population-pre-review
+caid-population-affected: caid-population-check
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/debug/biomcp" cargo test --locked -p biomcp --test cases variant/ $(TEST_THREADS)
+	BIOMCP_TEST_EXECUTABLE="$(CURDIR)/target/debug/biomcp" cargo test --locked -p biomcp --test cases variant-population/ $(TEST_THREADS)
+caid-population-pre-review:
+	+$(MAKE) --keep-going caid-population-affected fmt lint-workspace ratchets
 .PHONY: trial-provenance-check
 trial-provenance-check:
 	cargo test --locked -p biomcp --test ratchets required_surface_has_asserted_calls $(TEST_THREADS)
