@@ -4,7 +4,7 @@ Status: OPEN. Reopened: 0336 adds 0334 and 0335 to the candidate; the final rehe
 
 Milestone: 5
 
-Depends on: 0289, 0290, 0292, 0297, 0319, 0332, 0336, 0621, 0622, 0634, 0635, 0636, 0638, 0639, 0640, 0651, 0652, 0653, 0654, 0655, 0656, 0657, 0658, 0659, 0660, 0661, 0662, 0663, 0665, 0666, 0667, 0668, 0669, 0671, 0675, 0677, 0678, 0679, 0680, 0681, 0682, 0683, 0684, 0686
+Depends on: 0289, 0290, 0292, 0297, 0319, 0332, 0336, 0621, 0622, 0634, 0635, 0636, 0638, 0639, 0640, 0651, 0652, 0653, 0654, 0655, 0656, 0657, 0658, 0659, 0660, 0661, 0662, 0663, 0665, 0666, 0667, 0668, 0669, 0671, 0675, 0677, 0678, 0679, 0680, 0681, 0682, 0683, 0684, 0686, 0687, 0641, 0649, 0670, 0676, 0689, 0690, 0691, 0692, 0693, 0694, 0695, 0696, 0697
 
 Reopened again 2026-11-05: after 0636 merges typed mode into main, re-cut the candidate from that main (0336's refresh steps, including the schema baseline export, keeping the immutable migration baseline) and qualify the new head in full: the hosted rehearsal on all five platforms and the local cold matrix, since product code changed. 0633, 0634 and 0635 tooling carries over.
 
@@ -34,3 +34,7 @@ The qualified release candidate is `release/1.0` at `ff2e9b64c8b6f205ecd60c3bc51
 The raw evidence is retained on Yellow at `/home/ian/workspace/data/biomcp-redux/0293-release-rehearsal-evidence/candidate-ff2e9b64c8b6/hosted-40542150253`. Its 132-file manifest has SHA-256 `0abc92aaebe5de95ad61504ac89256621c574688c5620f7fabf33e7d062b15b3`. The archive holds terminal API records, raw logs, exact workflow and tooling, five platform install reports, artifact download receipts, member hashes and binary identity receipts. It contains no product archives or executables.
 
 A fresh independent reviewer accepted the hosted evidence after checking all 132 manifest entries, all 79 raw log members, all six downloaded artifact ZIPs against API sizes and digests, every artifact member, 15 native executables, two container executables, and the platform reports against the raw logs. The review confirmed offline source isolation, both Homebrew installs, schema comparison, staging and the skipped release operator. The build delegate reverified the durable archive and removed its owned temporary downloads after acceptance. GitHub artifacts remain available. Publication and the history append remain deferred for Ian's approval.
+
+## Amendment, 2026-11-06
+
+The 12 staged-artifact findings recorded in this ticket's earlier progress as unclassified were classified (m26534: one harmless compiled pairing of the public AlphaGenome address and a neighboring message, no credential) and fixed by 0665. Load tests (0641, 0670) and the follow-ups 0649 and 0676 now come before this rehearsal, per `decisions/2026-11-05-release-finds-no-bugs.md`. Publish commands that stay unproved until the tag are named by 0697.

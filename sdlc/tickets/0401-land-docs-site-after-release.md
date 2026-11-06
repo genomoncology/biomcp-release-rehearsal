@@ -16,3 +16,7 @@ After 1.0 is published, main takes the `docs/site` branch as one squashed or re-
 - Proof: the gate's site build passes; the `/install.sh` check fails on a build without it; `make docs-check` passes on the merged tree.
 - Changes: the squashed site commit, the gate target, the install.sh copy and its check.
 - Defers: publishing the site, which needs Ian.
+
+## Amendment, 2026-11-06
+
+PM ruling (W33 of `records/2026-11-06-pre-release-review.md`): refresh the site branch against the release code before the cut, and land it in the release session, so 1.0 users do not reach 0.9 docs. This ticket's dependency on 0294 stays for the landing; the refresh does not wait for it. Publishing the site stays Ian's decision.

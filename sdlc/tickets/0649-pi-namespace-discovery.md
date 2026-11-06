@@ -4,8 +4,6 @@ Status: OPEN.
 
 Milestone: 5
 
-Depends on: 0293
-
 ## Outcome
 
 Assess the evidenced Pi code-mode discovery problem and make the smallest justified metadata or client-description change, if needed, while preserving BioMCP's full usage, licensing and provenance instructions. Record whether the supported fix belongs in client configuration, the smoke prompt, or server metadata. Ian requested this ticket in m26153; it does not gate 1.0.

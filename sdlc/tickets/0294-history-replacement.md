@@ -19,3 +19,7 @@ After Ian approves, the public BioMCP main gains one merge commit whose parents 
 - Proof: after the push, the public repository shows both histories, v0.9.3 and older tags resolve, stars and releases are intact, and the merge tree equals the approved candidate.
 - Changes: none in this repository.
 - Defers: nothing.
+
+## Amendment, 2026-11-06
+
+PM rulings from `records/2026-11-06-pre-release-review.md`. W8: this ticket owns the `release-publication` environment and PyPI trusted publisher; a read-only check confirms both before the tag, and Ian approves the account change in the final packet. W31: push the tag first and fast-forward public main only after publication passes, so a failed tag leaves public main untouched. W32: the hosting validation hold in `decisions/2026-11-05-hosting-validates-before-1-0.md` applies here. The blind comparison gate was dropped by Ian (m23337, m23350); it is not a dependency.

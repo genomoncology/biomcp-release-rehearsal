@@ -4,8 +4,6 @@ Status: OPEN.
 
 Milestone: 5
 
-Depends on: 0293
-
 ## Outcome
 
 In hosted mode, a typed tool's schema, help and `next` omit a query field or filter when every source that can answer it is turned off on that server, and say which sources a field needs. Each query owner states which sources answer each of its fields, and one shared projection reads those facts. Fields some served source can answer stay as they are.
