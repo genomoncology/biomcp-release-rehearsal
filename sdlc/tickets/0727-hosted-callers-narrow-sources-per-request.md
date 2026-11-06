@@ -45,3 +45,5 @@ Names are source names only, not groups. The list of names users may leave out i
 Stored results: source snapshots already check disabled sources on read. Article pools need 0691's key, so this lands after 0691. Follow-up steps must not turn the header into a `--disable-sources` flag.
 
 Proof adds a case where two callers with different lists run the same article search and neither receives the other's stored pool.
+
+Ian confirmed on 2026-11-06: OncoKB and AlphaGenome stay off at `restricted`, even with a user's key.
