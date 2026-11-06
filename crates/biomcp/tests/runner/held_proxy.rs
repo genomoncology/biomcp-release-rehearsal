@@ -1,6 +1,8 @@
 //! Event-driven proof that pending source work leaves the server responsive.
 //! Cancellation interrupts sockets and cooperative checks; DNS resolution and TCP connect retain their existing deadline bounds.
 use super::{launch::Environment, mcp::request, process::Process};
+use crate::runner::transcript::trial as transcript_trial;
+use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{
     fs,
@@ -11,6 +13,21 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+
+pub(super) fn trials() -> Vec<Trial> {
+    vec![
+        transcript_trial("mcp-parity/oversized-frame-drains-active-call", || {
+            oversized().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/cancel-stops-work-and-frees-capacity", || {
+            cancelled().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/cancel-preserves-another-active-call", || {
+            isolated_cancel().map_err(Into::into)
+        }),
+    ]
+}
+
 const WATCHDOG: Duration = Duration::from_secs(30);
 enum Probe {
     Stop,

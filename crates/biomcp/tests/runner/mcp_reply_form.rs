@@ -4,8 +4,16 @@ use super::super::{
     launch::Environment,
     mcp::{exchange_with_globals, request},
 };
+use crate::runner::transcript::trial as transcript_trial;
+use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::io::Write;
+
+pub(super) fn trials() -> Vec<Trial> {
+    vec![transcript_trial("mcp-parity/reply-forms", || {
+        check().map_err(Into::into)
+    })]
+}
 
 pub(super) fn check() -> Result<(), String> {
     for hosted in [false, true] {

@@ -1,6 +1,7 @@
 # 0685 — Feature registrations live with their owning modules
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 6688f220eb64e9979d84c4f1f25d796c06cf7768
 
 Milestone: 5
 

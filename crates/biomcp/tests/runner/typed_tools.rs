@@ -12,8 +12,59 @@ use super::super::{
     launch::Environment,
     mcp::{exchange_with_globals, request},
 };
+use crate::runner::transcript::trial as transcript_trial;
+use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::io::Write;
+
+pub(super) fn trials() -> Vec<Trial> {
+    vec![
+        transcript_trial("mcp-parity/typed-cli-bridge", || {
+            super::typed_bridge::check().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-description-contract", || {
+            description_contract().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-hosted-catalog", || {
+            super::typed_hosted::check().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-help-research-discovery", || {
+            super::typed_help::discovery().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-getter-help", || {
+            getter_help().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-help-next-recovery", || {
+            super::typed_help::recovery().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/compact-typed-schemas", || {
+            let env = Environment::new()?;
+            super::typed_schemas::check(&env).map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-reply-forms-and-cap", || {
+            super::typed_reply::check().map_err(Into::into)
+        }),
+        transcript_trial(super::super::pool_contract::TYPED_TOOLS.0, || {
+            check().map_err(Into::into)
+        }),
+    ]
+}
+
+tool_only! {
+pub(super) fn proof_trials() -> Vec<Trial> {
+    vec![
+        transcript_trial("mcp-parity/typed-baseline-and-replay-guards", || {
+            guards().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-historical-baseline-and-replay", || {
+            historical().map_err(Into::into)
+        }),
+        transcript_trial("mcp-parity/typed-clock-controls", || {
+            clock_controls().map_err(Into::into)
+        }),
+    ]
+}
+}
 
 pub(super) fn getter_help() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;

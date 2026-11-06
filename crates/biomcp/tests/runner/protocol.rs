@@ -33,35 +33,8 @@ type Check = Result<(), String>;
 
 pub(super) fn trials() -> Vec<Trial> {
     let mut trials = hosted_surface::trials();
+    trials.extend(typed::trials());
     trials.extend([
-        transcript_trial("mcp-parity/typed-cli-bridge", || {
-            typed_bridge::check().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/typed-description-contract", || {
-            typed::description_contract().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/typed-hosted-catalog", || {
-            typed_hosted::check().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/typed-help-research-discovery", || {
-            typed_help::discovery().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/typed-getter-help", || {
-            typed::getter_help().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/typed-help-next-recovery", || {
-            typed_help::recovery().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/compact-typed-schemas", || {
-            let env = Environment::new()?;
-            typed_schemas::check(&env).map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/typed-reply-forms-and-cap", || {
-            typed_reply::check().map_err(Into::into)
-        }),
-        transcript_trial(super::pool_contract::TYPED_TOOLS.0, || {
-            typed::check().map_err(Into::into)
-        }),
         transcript_trial("mcp-parity/cancellation-suppresses-later-output", || {
             cancellation().map_err(Into::into)
         }),
@@ -74,15 +47,9 @@ pub(super) fn trials() -> Vec<Trial> {
         transcript_trial("mcp-parity/offline-observations-reuse", || {
             offline_observations().map_err(Into::into)
         }),
-        transcript_trial("mcp-parity/oversized-frame-drains-active-call", || {
-            super::held_proxy::oversized().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/cancel-stops-work-and-frees-capacity", || {
-            super::held_proxy::cancelled().map_err(Into::into)
-        }),
-        transcript_trial("mcp-parity/cancel-preserves-another-active-call", || {
-            super::held_proxy::isolated_cancel().map_err(Into::into)
-        }),
+    ]);
+    trials.extend(super::held_proxy::trials());
+    trials.extend([
         transcript_trial("mcp-parity/bounded-framing", || {
             framing().map_err(Into::into)
         }),
@@ -95,19 +62,9 @@ pub(super) fn trials() -> Vec<Trial> {
     ]);
     trials.extend(label_priority::trials());
     tool_only! {
-        trials.push(transcript_trial("mcp-parity/typed-baseline-and-replay-guards", || {
-            typed::guards().map_err(Into::into)
-        }));
-        trials.push(transcript_trial("mcp-parity/typed-historical-baseline-and-replay", || {
-            typed::historical().map_err(Into::into)
-        }));
-        trials.push(transcript_trial("mcp-parity/typed-clock-controls", || {
-            typed::clock_controls().map_err(Into::into)
-        }));
+        trials.extend(typed::proof_trials());
     }
-    trials.push(transcript_trial("mcp-parity/reply-forms", || {
-        reply_form::check().map_err(Into::into)
-    }));
+    trials.extend(reply_form::trials());
     trials.extend(super::store_clean::trials());
     trials.extend(super::store_coexistence::trials());
     trials
