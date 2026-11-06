@@ -15,10 +15,9 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
     let mut failures = Vec::new();
     for (verb, entity, id) in biomcp_types::command_paths() {
         let name = format!("{verb}_{entity}").replace('-', "_");
-        let tool = tools
-            .iter()
-            .find(|t| field(t, "name").as_str() == Some(name.as_str()))
-            .ok_or("missing tool")?;
+        let Some(tool) = tools.iter().find(|tool| tool["name"] == name) else {
+            continue; // Grouped command contracts remain available through canonical help.
+        };
         if field(tool, "description")
             .as_str()
             .is_some_and(|s| s.contains('\n'))
@@ -82,6 +81,7 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
     if !failures.is_empty() {
         return Err(failures.join("\n"));
     }
+    super::typed_catalog::budgets(env, &tools)?;
     settings(env, &tools)
 }
 fn catalog(env: &Environment, config: Value) -> Result<Vec<Value>, String> {
@@ -97,9 +97,7 @@ fn catalog(env: &Environment, config: Value) -> Result<Vec<Value>, String> {
         .and_then(Value::as_array)
         .cloned()
         .ok_or("catalog missing")?;
-    if tools.len() != biomcp_types::command_paths().len() + 3 {
-        return Err("typed catalog must include every command plus help and research tools".into());
-    }
+    super::typed_catalog::check(&tools)?;
     Ok(tools)
 }
 fn nested_description(node: &Value, top: bool) -> bool {
@@ -194,13 +192,13 @@ fn report(tools: &[Value]) -> Result<(), String> {
 fn settings(env: &Environment, default: &[Value]) -> Result<(), String> {
     let enabled = catalog(
         env,
-        json!({"mcp_tool_mode":"typed", "mcp_typed_output_schema":true}),
+        json!({"mcp_tool_mode":"typed", "mcp_typed_output_schema":true,"mcp_typed_definition_bytes":200000}),
     )?;
     report(&enabled)?;
     for tool in enabled {
         if matches!(
             field(&tool, "name").as_str(),
-            Some("biomcp_help" | "search" | "fetch")
+            Some("biomcp_help" | "biomcp" | "search" | "fetch")
         ) {
             if !default.contains(&tool) {
                 return Err("shared help/research contract changed".into());
@@ -236,12 +234,14 @@ fn enum_settings(env: &Environment, default: &[Value]) -> Result<(), String> {
     )?;
     if !large
         .iter()
+        .filter(|tool| tool["name"] != "biomcp_reference")
         .any(|tool| oversized_enum(field(tool, "inputSchema"), 30))
     {
         return Err("raised enum limit did not restore large choices".into());
     }
     if !default
         .iter()
+        .filter(|tool| tool["name"] != "biomcp_reference")
         .any(|tool| oversized_enum(field(tool, "inputSchema"), 1))
     {
         return Err("short enums lost their choices".into());
@@ -252,11 +252,15 @@ fn enum_settings(env: &Environment, default: &[Value]) -> Result<(), String> {
     )?;
     if small
         .iter()
+        .filter(|tool| tool["name"] != "biomcp_reference")
         .any(|tool| oversized_enum(field(tool, "inputSchema"), 1))
     {
         return Err("enum limit setting ignored".into());
     }
-    for tool in &large {
+    for tool in large
+        .iter()
+        .filter(|tool| tool["name"] != "biomcp_reference")
+    {
         let name = field(tool, "name").as_str().ok_or("tool name")?;
         let compact = small
             .iter()

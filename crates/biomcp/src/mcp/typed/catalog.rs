@@ -102,6 +102,20 @@ pub(super) fn hosted_schema(
     entity: &str,
     excluded: &BTreeSet<Source>,
 ) -> Value {
+    schema = caller_schema(schema, verb, entity, excluded);
+    if let Some(properties) = schema.get_mut("properties").and_then(Value::as_object_mut) {
+        properties.remove("save");
+        properties.remove("replace");
+    }
+    schema
+}
+
+pub(super) fn caller_schema(
+    mut schema: Value,
+    verb: &str,
+    entity: &str,
+    excluded: &BTreeSet<Source>,
+) -> Value {
     let source_exclusions = capability_excluded(&schema, excluded);
     filter(&mut schema, &source_exclusions);
     let allowed = schema
@@ -117,8 +131,6 @@ pub(super) fn hosted_schema(
         .unwrap_or_default();
     if let Some(properties) = schema.get_mut("properties").and_then(Value::as_object_mut) {
         properties.retain(|name, _| allowed.contains(name));
-        properties.remove("save");
-        properties.remove("replace");
     }
     filter_sections(&mut schema, verb, entity, excluded);
     schema

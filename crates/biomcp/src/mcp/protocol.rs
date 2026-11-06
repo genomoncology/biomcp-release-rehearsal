@@ -8,7 +8,7 @@ pub(super) fn instructions(
     mode: crate::config::ToolMode,
     context: crate::command::Context<'_>,
 ) -> String {
-    if mode == crate::config::ToolMode::Typed {
+    let mut instructions = if mode == crate::config::ToolMode::Typed {
         super::typed::instructions(context)
             .unwrap_or_else(|_| "Use biomcp_help for command arguments.".into())
     } else if context.globals.hosted {
@@ -16,7 +16,10 @@ pub(super) fn instructions(
             .unwrap_or_else(|_| "Use help for command arguments.".into())
     } else {
         INSTRUCTIONS.into()
-    }
+    };
+    instructions.push('\n');
+    instructions.push_str(crate::grammar::ENUM_CASE_GUIDANCE);
+    instructions
 }
 pub(super) const REVISIONS: [&str; 4] = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"];
 pub(super) const VERSION_KEY: &str = "io.modelcontextprotocol/protocolVersion";

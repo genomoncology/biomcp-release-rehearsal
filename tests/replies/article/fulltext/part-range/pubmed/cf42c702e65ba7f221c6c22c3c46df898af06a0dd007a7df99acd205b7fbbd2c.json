@@ -1,0 +1,22 @@
+{
+  "method": "POST",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
+  "post": {
+    "request_content_type": "application/x-www-form-urlencoded",
+    "request_body_sha256": "7751673527cfb62133a1459c7bb5ae223ad9c94bc8ddd9a32098d889bc40bea7"
+  },
+  "exchanges": [
+    {
+      "fetched": 1792839535,
+      "status": 200,
+      "content_type": "text/xml; charset=UTF-8",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "<PubmedArticleSet><PubmedArticle><MedlineCitation><PMID>28944238</PMID><Article><ArticleTitle>Synthetic outline article</ArticleTitle><Abstract><AbstractText>Synthetic abstract.</AbstractText></Abstract></Article></MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType=\"pubmed\">28944238</ArticleId><ArticleId IdType=\"pmc\">PMC5606870</ArticleId></ArticleIdList></PubmedData></PubmedArticle></PubmedArticleSet>"
+      }
+    }
+  ]
+}

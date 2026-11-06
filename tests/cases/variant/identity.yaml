@@ -22,7 +22,7 @@
           "get",
           "variant"
         ],
-        "/error/valid_values/0": "Candidate rows per page; more remain reachable through typed next commands. Minimum: 1. Maximum: 50."
+        "/error/valid_values/0": "integer >= 1 <= 50"
       }
     },
     {
@@ -44,7 +44,7 @@
           "get",
           "variant"
         ],
-        "/error/valid_values/0": "Candidate rows to skip in source order. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     }
   ]

@@ -1,6 +1,7 @@
 //! Read-only research projections over the same parsed CLI commands.
 mod records;
 mod text;
+use biomcp_types::ResearchHit;
 use serde_json::{Value, json};
 use std::{ffi::OsString, io};
 
@@ -41,6 +42,15 @@ pub(super) enum Projection {
 pub(super) struct Call {
     pub(super) args: Vec<OsString>,
     pub(super) projection: Projection,
+    pub(super) catalog: Option<super::typed::Catalog>,
+}
+pub(super) struct Completed {
+    pub(super) outcome: crate::command::Outcome,
+    pub(super) summary: Option<String>,
+}
+enum View {
+    Search(Value),
+    Fetch(String, ResearchHit),
 }
 pub(super) fn parse(params: &Value) -> Option<Call> {
     let name = params.get("name")?.as_str()?;
@@ -58,6 +68,7 @@ pub(super) fn parse(params: &Value) -> Option<Call> {
         return Some(Call {
             args,
             projection: Projection::Cli,
+            catalog: None,
         });
     }
     let key = match name {
@@ -76,6 +87,7 @@ pub(super) fn parse(params: &Value) -> Option<Call> {
     Some(Call {
         args: args.into_iter().map(OsString::from).collect(),
         projection,
+        catalog: None,
     })
 }
 fn search_args(input: &str) -> Vec<String> {
@@ -95,53 +107,81 @@ pub(super) fn execute(
     call: &Call,
     context: crate::command::Context<'_>,
     http: bool,
-) -> io::Result<crate::command::Outcome> {
+) -> io::Result<Completed> {
     let mut outcome = if http {
         crate::command::tool_http(&call.args, context)?
     } else {
         crate::command::tool(&call.args, context)?
     };
     super::hosted::project(&mut outcome, context, &call.args)?;
-    if !matches!(
+    let view = if matches!(
         outcome.status,
         crate::exit::Status::Success | crate::exit::Status::Absent
     ) {
-        return Ok(outcome);
+        let view = prepare_view(context.root, call, outcome.value()?)?;
+        if view.is_none() && matches!(call.projection, Projection::Fetch(_)) {
+            outcome.status = crate::exit::Status::Failed;
+        }
+        view
+    } else {
+        None
+    };
+    let summary = if let Some(catalog) = call.catalog.as_ref() {
+        super::typed::prepare_with_catalog(&mut outcome, context, &call.args, catalog)?
+    } else {
+        super::typed::prepare(&mut outcome, context, &call.args, http)?
+    };
+    if let Some(view) = view {
+        let original = std::mem::take(outcome.value_mut()?);
+        *outcome.value_mut()? = render_view(view, original)?;
     }
-    if matches!(&call.projection, Projection::Cli) {
-        return Ok(outcome);
+    Ok(Completed { outcome, summary })
+}
+// Exact record IDs are derived before the typed transport changes command spelling.
+fn prepare_view(
+    root: &crate::grammar::Root,
+    call: &Call,
+    original: &Value,
+) -> io::Result<Option<View>> {
+    match &call.projection {
+        Projection::Cli => Ok(None),
+        Projection::Search => {
+            search(root, call, original.clone()).map(|value| Some(View::Search(value)))
+        }
+        Projection::Fetch(id) => Ok(records::fetch(entity(root, call), id, original)
+            .map(|hit| View::Fetch(id.clone(), hit))),
     }
-    let original = std::mem::take(outcome.value_mut()?);
-    let projected = match &call.projection {
-        Projection::Cli => original,
-        Projection::Search => search(context.root, call, original)?,
-        Projection::Fetch(id) => {
-            let entity = entity(context.root, call);
-            let hit = records::fetch(entity, id, &original);
-            let Some(hit) = hit else {
-                outcome.status = crate::exit::Status::Failed;
-                *outcome.value_mut()? = original;
-                return Ok(outcome);
-            };
+}
+fn render_view(view: View, original: Value) -> io::Result<Value> {
+    match view {
+        View::Search(mut value) => {
+            let metadata = value
+                .get_mut("metadata")
+                .and_then(Value::as_object_mut)
+                .ok_or_else(|| io::Error::other("research search metadata"))?;
+            metadata.insert("envelope".into(), original);
+            Ok(value)
+        }
+        View::Fetch(id, hit) => {
             let text = text::render(&original)?;
             let mut metadata = original;
             if let Some(fields) = metadata.as_object_mut() {
                 fields.remove("result");
             }
             serde_json::to_value(biomcp_types::ResearchFetch {
-                id: id.clone().into(),
+                id: id.into(),
                 title: text::source(hit.title.as_str())
                     .parse()
                     .map_err(io::Error::other)?,
                 url: hit.url,
                 text: biodata::Markdown::new(&text).map_err(io::Error::other)?,
                 metadata,
-            })?
+            })
+            .map_err(Into::into)
         }
-    };
-    *outcome.value_mut()? = projected;
-    Ok(outcome)
+    }
 }
+
 fn search(root: &crate::grammar::Root, call: &Call, envelope: Value) -> io::Result<Value> {
     let entity = entity(root, call);
     let rows = envelope.pointer("/result/items").and_then(Value::as_array);

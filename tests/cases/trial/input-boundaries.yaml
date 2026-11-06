@@ -50,7 +50,7 @@
       "offline": true,
       "expect": {
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Page offset. Zero-based offset of the first row in this continuation page. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     }
   ],

@@ -1,5 +1,5 @@
 //! Process options share one declaration with installed replay discovery.
-use clap::{Arg, ArgAction, Command};
+use clap::{Arg, ArgAction, Command, builder::TypedValueParser};
 use std::path::PathBuf;
 
 /// Shared literal semantics for actual booleans; fixed-value enum switches opt out.
@@ -72,5 +72,32 @@ pub(crate) fn command() -> Command {
                 .overrides_with(name),
         ));
     }
-    root
+    case_choices(root)
+}
+
+/// Apply the same choice matching to every parser-owned enum, including local commands.
+pub(super) fn case_choices(command: Command) -> Command {
+    command
+        .mut_args(|argument| {
+            let parser = argument.get_value_parser();
+            let Some(choices) = parser.possible_values().map(Iterator::collect::<Vec<_>>) else {
+                return argument;
+            };
+            let strings = parser.type_id() == clap::builder::ValueParser::string().type_id();
+            let argument = argument.ignore_case(true);
+            if strings {
+                let canonical = choices.clone();
+                argument.value_parser(clap::builder::PossibleValuesParser::new(choices).map(
+                    move |text| {
+                        canonical
+                            .iter()
+                            .find(|choice| choice.matches(&text, true))
+                            .map_or(text.clone(), |choice| choice.get_name().to_owned())
+                    },
+                ))
+            } else {
+                argument
+            }
+        })
+        .mut_subcommands(case_choices)
 }

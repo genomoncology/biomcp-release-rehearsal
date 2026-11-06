@@ -17,7 +17,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Five results by default; at most fifty source rows or product headers. Minimum: 1. Maximum: 50."
+        "/error/valid_values/0": "integer >= 1 <= 50"
       }
     },
     {
@@ -34,7 +34,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Zero-based source result offset. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     },
     {
@@ -50,7 +50,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Native report headers, counted FAERS reaction terms or VAERS rows; default five. Minimum: 1. Maximum: 50."
+        "/error/valid_values/0": "integer >= 1 <= 50"
       }
     },
     {
@@ -66,7 +66,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Native report row offset; reaction counts require zero. VAERS needs its snapshot. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     },
     {
@@ -83,7 +83,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Rows per named source section page; omitted uses the native source default. Minimum: 1. Maximum: 50."
+        "/error/valid_values/0": "integer >= 1 <= 50"
       }
     },
     {
@@ -100,7 +100,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Source rows to skip independently of identity candidate paging. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     },
     {
@@ -117,7 +117,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Age in years. ClinicalTrials.gov only; unstated source bounds count as no limit. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     },
     {
@@ -134,7 +134,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Page size. Headers per page; NCI applies its own lower publisher limit. Minimum: 1. Maximum: 100."
+        "/error/valid_values/0": "integer >= 1 <= 100"
       }
     },
     {
@@ -150,7 +150,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Number of pool items to skip. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     }
   ]

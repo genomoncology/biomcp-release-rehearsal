@@ -38,37 +38,7 @@ fn check() -> Result<(), String> {
         expected.push(value);
     }
     for mode in ["single", "typed"] {
-        env.config(&json!({"mcp_tool_mode":mode}))
-            .map_err(|e| e.to_string())?;
-        let frames: Vec<_> = cases
-            .iter()
-            .enumerate()
-            .map(|(index, case)| {
-                let params = if mode == "typed" {
-                    json!({"name":case.tool,"arguments":case.fields})
-                } else {
-                    json!({"name":"biomcp","arguments":{"args":case.args}})
-                };
-                request(json!(index), "tools/call", params)
-            })
-            .collect();
-        let replies = exchange_with_globals(&env, &frames, &["--offline".into()])?;
-        if replies.len() != cases.len() {
-            return Err("missing usage replies".into());
-        }
-        for (index, (case, expected)) in cases.iter().zip(&expected).enumerate() {
-            let reply = replies
-                .iter()
-                .find(|reply| reply.get("id") == Some(&json!(index)))
-                .ok_or("missing correlated usage reply")?;
-            let value = reply
-                .pointer("/result/structuredContent")
-                .ok_or("missing usage envelope")?;
-            if value != expected || reply.pointer("/result/isError") != Some(&json!(true)) {
-                return Err(format!("{mode} usage differs from CLI: {reply}"));
-            }
-            validate(&env, case, value)?;
-        }
+        check_mode(&env, &cases, &expected, mode)?;
     }
     let (_, retired) = cli(
         &env,
@@ -76,6 +46,100 @@ fn check() -> Result<(), String> {
     )?;
     if retired.pointer("/error/code") != Some(&json!("usage.retired")) {
         return Err("obsolete source lost migration guidance".into());
+    }
+    Ok(())
+}
+
+fn check_mode(
+    env: &Environment,
+    cases: &[Case],
+    expected: &[Value],
+    mode: &str,
+) -> Result<(), String> {
+    let typed = mode == "typed";
+    env.config(&json!({"mcp_tool_mode":mode,"mcp_typed_output_schema":true}))
+        .map_err(|e| e.to_string())?;
+    let tools = if typed { catalog(env)? } else { Vec::new() };
+    let frames = cases
+        .iter()
+        .enumerate()
+        .map(|(index, case)| {
+            let params = if typed {
+                let tool = super::protocol::typed_catalog::command(&tools, &case.tool)
+                    .ok_or_else(|| format!("missing registered recovery route {}", case.tool))?;
+                super::protocol::typed_catalog::call(&tool, &case.fields)
+            } else {
+                json!({"name":"biomcp","arguments":{"args":case.args}})
+            };
+            Ok(request(json!(index), "tools/call", params))
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    let replies = exchange_with_globals(env, &frames, &["--offline".into()])?;
+    if replies.len() != frames.len() {
+        return Err("missing usage replies".into());
+    }
+    for (index, (case, expected)) in cases.iter().zip(expected).enumerate() {
+        let reply = replies
+            .iter()
+            .find(|reply| reply.get("id") == Some(&json!(index)))
+            .ok_or("missing correlated usage reply")?;
+        let value = reply
+            .pointer("/result/structuredContent")
+            .ok_or("missing usage envelope")?;
+        let equal = if typed {
+            super::protocol::typed_followups::data(value)
+                == super::protocol::typed_followups::data(expected)
+        } else {
+            value == expected
+        };
+        if !equal || reply.pointer("/result/isError") != Some(&json!(true)) {
+            return Err(format!("{mode} usage differs from CLI: {reply}"));
+        }
+        if typed {
+            typed_correction(env, value, &tools)?;
+        } else {
+            validate(env, case, value)?;
+        }
+    }
+    Ok(())
+}
+fn catalog(env: &Environment) -> Result<Vec<Value>, String> {
+    let replies = exchange_with_globals(
+        env,
+        &[request(json!("catalog"), "tools/list", json!({}))],
+        &["--offline".into()],
+    )?;
+    replies
+        .first()
+        .and_then(|reply| reply.pointer("/result/tools"))
+        .and_then(Value::as_array)
+        .cloned()
+        .ok_or("missing typed catalog".into())
+}
+
+fn typed_correction(env: &Environment, value: &Value, tools: &[Value]) -> Result<(), String> {
+    super::protocol::typed_followups::check_next(value, tools, &mut 0)?;
+    let next = value
+        .pointer("/next/0")
+        .ok_or("missing typed corrected call")?;
+    if next.get("name") == Some(&json!("biomcp_help")) {
+        return Err("expected a corrected request".into());
+    }
+    let replies = exchange_with_globals(
+        env,
+        &[request(
+            json!(999),
+            "tools/call",
+            json!({"name":next["name"],"arguments":next["arguments"]}),
+        )],
+        &["--offline".into()],
+    )?;
+    let corrected = replies
+        .first()
+        .and_then(|reply| reply.pointer("/result/structuredContent"))
+        .ok_or("missing typed corrected reply")?;
+    if corrected.get("status") == Some(&json!("usage")) {
+        return Err(format!("typed correction does not parse: {corrected}"));
     }
     Ok(())
 }

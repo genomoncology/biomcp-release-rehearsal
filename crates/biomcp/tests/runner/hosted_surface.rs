@@ -1,4 +1,5 @@
 //! Hosted discovery and follow-ups describe this server's actual authority.
+//! live_check: local HTTP/stdio transport replay with recorded public replies; no live calls.
 use super::super::{
     http::Server,
     launch::{Environment, fixtures},
@@ -72,7 +73,7 @@ fn server(mode: &str, disabled: &[&str], replay: &str) -> Result<(Server, Enviro
     let config = Environment::new().map_err(|e| e.to_string())?;
     config
         .config(
-            &json!({"mcp_tool_mode":mode,"hosted_max_use":"restricted","disable_sources":disabled}),
+            &json!({"mcp_tool_mode":mode,"mcp_typed_output_schema":true,"hosted_max_use":"restricted","disable_sources":disabled}),
         )
         .map_err(|e| e.to_string())?;
     let server = Server::configured_globals(
@@ -244,12 +245,34 @@ fn source_notices(server: &Server, mode: &str) -> Check {
                 "{mode}: disabled source lacks {expected} explanation: {reply}"
             ));
         }
-        for step in reply
-            .get("next")
-            .and_then(Value::as_array)
-            .into_iter()
-            .flatten()
-        {
+        offered_next(server, mode, &reply)?;
+    }
+    Ok(())
+}
+
+fn offered_next(server: &Server, mode: &str, reply: &Value) -> Check {
+    if mode == "typed" {
+        super::typed_followups::check_next(reply, &catalog(server)?, &mut 0)?;
+    }
+    for step in reply
+        .get("next")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        if mode == "typed" {
+            let fields = step
+                .pointer("/arguments/arguments")
+                .or_else(|| step.get("arguments"))
+                .and_then(Value::as_object)
+                .ok_or("typed next arguments")?;
+            if ["fresh", "config", "source_pacing"]
+                .iter()
+                .any(|key| fields.contains_key(*key))
+            {
+                return Err(format!("{mode}: unavailable next option: {step}"));
+            }
+        } else {
             let args = step
                 .get("args")
                 .and_then(Value::as_array)
@@ -377,7 +400,16 @@ fn query(
     words: &[&str],
     input: Value,
 ) -> Result<Value, String> {
-    call(server, params(mode, tool, words, input))
+    let params = if mode == "typed" {
+        let tools = catalog(server)?;
+        super::typed_catalog::command(&tools, tool).map_or_else(
+            || params(mode, tool, words, input.clone()),
+            |route| super::typed_catalog::call(&route, &input),
+        )
+    } else {
+        params(mode, tool, words, input)
+    };
+    call(server, params)
 }
 
 fn call(server: &Server, params: Value) -> Result<Value, String> {

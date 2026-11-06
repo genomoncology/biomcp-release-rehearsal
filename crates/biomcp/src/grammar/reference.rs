@@ -13,6 +13,7 @@ fn documents() -> Result<Vec<(&'static str, String)>, Box<dyn std::error::Error>
         Run `make docs-generate` to update.\n\nOptions shown on the root command apply to its subcommands. \
         Query sections and source rules follow each command.\n\n",
     );
+    writeln!(reference, "{}\n", super::ENUM_CASE_GUIDANCE)?;
     let mut printed = BTreeSet::new();
     command(&mut reference, &parser, &[], &help, &mut printed)?;
     for entry in &help.commands {

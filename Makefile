@@ -15,6 +15,36 @@ markdown-help-check: markdown-help-installed-check
 markdown-help-gate: markdown-help-installed-check
 	+$(MAKE) landing-gate
 
+.PHONY: article-default-prepare article-default-focused article-default-lint
+article-default-prepare:
+	cargo fmt --all
+	+$(MAKE) schema-generate docs-generate
+	mkdir -p target/article-default-generated
+	tar -czf target/article-default-generated/source.tar.gz crates/biomcp-types/schemas docs/reference/commands.md
+
+article-default-focused:
+	rm -rf target/article-default-proof
+	mkdir -p target/article-default-proof
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/article-default-proof" cargo test --locked -p biomcp --test tools -- --cases "$(CURDIR)/tests/tool-cases" article/
+	cargo test --locked -p biomcp --test cases grammar/argument-description-guidance
+	cargo test --locked -p biomcp --test cases grammar/numeric-description-guidance
+	cargo test --locked -p biomcp --test cases trial/input-boundaries
+	cargo test --locked -p biomcp --test cases variant/identity
+	cargo test --locked -p biomcp --test cases article/fulltext/
+	cargo test --locked -p biomcp --test cases article/preprint/
+
+article-default-lint: fmt
+	cargo clippy --keep-going --locked -p biomcp-types -p biomcp-query -p biomcp --all-targets --features biomcp-types/schema -- -D warnings
+	+$(MAKE) current-schema-check
+	cargo test --locked -p biomcp --test cases article/help
+	cargo test --locked -p biomcp --test cases article/get/
+
+.PHONY: article-default-corrected-check
+article-default-corrected-check: article-default-lint
+	cargo test --locked -p biomcp --test ratchets repository_obeys_structural_contract -- --exact
+	cargo test --locked -p biomcp --test cases query-validation/argument-recovery -- --exact
+	+$(MAKE) article-default-focused
+
 .PHONY: drug-alias-review-regressions drug-alias-review-tools
 drug-alias-review-regressions:
 	cargo test --locked -p biomcp --test cases drug/source-aliases-review
@@ -642,6 +672,75 @@ typed-description-contract-check:
 typed-description-lint-check:
 	+$(MAKE) --keep-going fmt lint-workspace lint-tools typed-description-contract-check
 
+
+.PHONY: typed-followups-check typed-followups-affected
+typed-followups-check:
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/typed-followups" cargo test --locked -p biomcp --test cases mcp-parity/typed-followups $(TEST_THREADS)
+typed-followups-affected:
+	+$(MAKE) --keep-going check-cheap typed-followups-parity typed-followups-toolcases
+.PHONY: typed-followups-parity typed-followups-toolcases typed-followups-aliases typed-followups-faers
+typed-followups-parity typed-followups-toolcases: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/typed-followups-affected
+typed-followups-parity:
+	cargo test --locked -p biomcp --test cases mcp-parity/ $(TEST_THREADS)
+typed-followups-toolcases:
+	+$(MAKE) --keep-going typed-followups-aliases typed-followups-faers
+typed-followups-aliases:
+	cargo test --locked -p biomcp --test tools -- --cases ../../tests/tool-cases source-aliases $(filter-out --,$(TEST_THREADS))
+typed-followups-faers:
+	cargo test --locked -p biomcp --test tools -- --cases ../../tests/tool-cases faers-reaction-counts.yaml $(filter-out --,$(TEST_THREADS))
+
+
+.PHONY: typed-followups-recovery typed-followups-recovery-check
+typed-followups-recovery: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/typed-followups-recovery
+typed-followups-recovery:
+	cargo test --locked -p biomcp --test cases query-validation/argument-recovery $(TEST_THREADS)
+typed-followups-recovery-check:
+	+$(MAKE) --keep-going typed-followups-recovery typed-followups-parity check-cheap
+
+.PHONY: enum-case-check
+enum-case-check:
+	rm -rf "$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-transcripts"
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-transcripts" cargo test --locked -p biomcp --test cases enumerated-letter-case $(TEST_THREADS)
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-transcripts" cargo test --locked -p biomcp --test cases grammar/enum-case.yaml $(TEST_THREADS)
+
+.PHONY: enum-case-prepare enum-case-lint enum-case-schema-check
+enum-case-prepare:
+	cargo fmt --all
+	+$(MAKE) schema-generate docs-generate
+	mkdir -p dist
+	git diff --binary > dist/enum-case-generated.patch
+	+$(MAKE) --keep-going enum-case-check enum-case-lint enum-case-schema-check
+
+enum-case-lint:
+	cargo clippy --keep-going --locked -p biomcp -p biomcp-types --all-targets --features biomcp-types/schema -- -D warnings
+
+enum-case-schema-check:
+	+$(MAKE) current-schema-check schema-release-check
+	cargo test --locked -p biomcp-types --features schema --test schemas enum_field_scope_is_checked_metadata_without_a_schema_major_change
+
+.PHONY: enum-case-fixture-prepare enum-case-fixture-check enum-case-retired-check enum-case-bridge-check
+enum-case-fixture-prepare:
+	cargo fmt --all
+	+$(MAKE) schema-generate docs-generate
+	mkdir -p dist
+	git diff --binary > dist/enum-case-generated.patch
+	+$(MAKE) --keep-going enum-case-fixture-check enum-case-retired-check enum-case-bridge-check enum-case-lint enum-case-schema-check
+
+enum-case-fixture-check:
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-fixture-transcripts" cargo test --locked -p biomcp --test cases grammar/enum-case.yaml $(TEST_THREADS)
+
+enum-case-retired-check:
+	cargo test --locked -p biomcp --test cases retired $(TEST_THREADS)
+
+enum-case-bridge-check:
+	cargo test --locked -p biomcp --test cases mcp-parity/typed-cli-bridge $(TEST_THREADS)
+
+.PHONY: enum-case-review-fix
+enum-case-review-fix:
+	cargo fmt --all
+	mkdir -p dist
+	git diff --binary > dist/enum-case-generated.patch
+	+$(MAKE) --keep-going enum-case-check enum-case-lint
 .PHONY: population-reply-metadata-check
 population-reply-metadata-check:
 	+$(MAKE) hosted-surface-generate typed-schema-check
@@ -659,3 +758,88 @@ trial-provenance-check:
 	mkdir -p "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/trial-provenance"
 	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json-render-diagnostics > "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/trial-provenance/build.jsonl"
 	python3 -c 'import json,subprocess,sys; rows=[json.loads(line) for line in open(sys.argv[1]) if line.startswith("{")]; executables={row["target"]["name"]:row["executable"] for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable")}; subprocess.run([sys.executable,"scripts/trials.py","--runner",executables["cases"],"--executable",executables["biomcp"],"--installed","trial-search/trial/gene-notices.yaml","trial-search/trial/gene-notices-context.yaml","trial-search/trial/gene-notices-mcp-typed-mode"],check=True)' "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/trial-provenance/build.jsonl"
+
+
+.PHONY: typed-owned-followups-check
+typed-owned-followups-check:
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/typed-owned-followups" cargo test --locked -p biomcp --test cases mcp-parity/typed-owned- $(TEST_THREADS)
+
+.PHONY: typed-owned-followups-green typed-followups-research
+typed-owned-followups-green:
+	+$(MAKE) --keep-going typed-owned-followups-check typed-followups-recovery typed-followups-parity typed-followups-toolcases typed-followups-research check-cheap
+typed-followups-research:
+	cargo test --locked -p biomcp --test cases mcp-research/ $(TEST_THREADS)
+
+.PHONY: typed-grouped-integration-check
+typed-grouped-integration-check: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/typed-grouped-integration
+typed-grouped-integration-check:
+	+$(MAKE) --keep-going fmt lint-workspace lint-tools
+	cargo test --locked -p biomcp --test cases mcp-research/ $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases mcp-hosted/served-surface-and-source-policy $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases variant-population/variant/population/indel- $(TEST_THREADS)
+
+.PHONY: typed-followups-hosted-recovery
+# Reuse the owner trial without rebuilding an installed release binary.
+typed-followups-hosted-recovery: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/typed-followups-hosted-recovery
+typed-followups-hosted-recovery:
+	cargo test --locked -p biomcp --test cases mcp-hosted/served-surface-and-source-policy $(TEST_THREADS)
+	+$(MAKE) --keep-going typed-followups-recovery typed-followups-parity check-cheap
+
+
+.PHONY: typed-catalog-followups-composition-check
+typed-catalog-followups-composition-check: export BIOMCP_TRANSCRIPT_DIR := $(CURDIR)/target/typed-catalog-followups-composition
+typed-catalog-followups-composition-check:
+	+$(MAKE) --keep-going check-cheap typed-followups-parity typed-followups-research
+	cargo test --locked -p biomcp --test cases mcp-hosted/served-surface-and-source-policy $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases query-validation/argument-recovery $(TEST_THREADS)
+
+.PHONY: enum-case-metadata-prepare enum-case-metadata-check enum-case-front-map-check
+enum-case-front-map-check:
+	cargo build --locked -p biomcp
+	python3 scripts/check_front_map.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
+
+enum-case-metadata-prepare:
+	cargo fmt --all
+	+$(MAKE) schema-generate docs-generate
+	mkdir -p dist
+	git diff --binary > dist/enum-case-generated.patch
+	+$(MAKE) --keep-going enum-case-metadata-check enum-case-lint enum-case-schema-check
+
+enum-case-metadata-check:
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-metadata-transcripts" cargo test --locked -p biomcp --test cases mcp-parity/compact-typed-schemas $(TEST_THREADS)
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-metadata-transcripts" cargo test --locked -p biomcp --test cases mcp-parity/typed-hosted-catalog $(TEST_THREADS)
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-metadata-transcripts" cargo test --locked -p biomcp --test cases mcp-parity/typed-help-research-discovery $(TEST_THREADS)
+	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-metadata-transcripts" cargo test --locked -p biomcp --test cases schema-discovery/help-contract $(TEST_THREADS)
+
+.PHONY: gencc-publisher-check gencc-publisher-load
+gencc-publisher-check: fmt
+	cargo test --locked -p biomcp --test cases gene-sections/gencc-first-publisher $(TEST_THREADS)
+
+gencc-publisher-load: fmt
+	mkdir -p target
+	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json > target/gencc-load-build.jsonl
+	python3 scripts/gencc_publisher_load.py target/gencc-load-build.jsonl
+
+.PHONY: accepted-batch-composition-check
+accepted-batch-composition-check:
+	+$(MAKE) hosted-surface-generate
+	+$(MAKE) --keep-going typed-catalog-followups-composition-check enum-case-check article-default-focused
+	cargo test --locked -p biomcp --test tools -- --proofs schema-discovery/rejects-bad-cases $(filter-out --,$(TEST_THREADS))
+	python3 scripts/measure_typed_catalog.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp" "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/accepted-batch-catalog"
+
+.PHONY: accepted-batch-composition-finish accepted-batch-unrun-boundaries accepted-batch-unrun-negative accepted-batch-unrun-profiles
+accepted-batch-composition-finish:
+	mkdir -p target/accepted-batch-finish
+	cargo build --locked -p biomcp --bin biomcp --test cases --test tools --message-format=json-render-diagnostics > target/accepted-batch-finish/build.jsonl
+	python3 -c 'import hashlib,json,subprocess; from pathlib import Path; rows=[json.loads(x) for x in Path("target/accepted-batch-finish/build.jsonl").read_text().splitlines() if x.startswith("{")]; artifacts={r["target"]["name"]:{"path":r["executable"],"sha256":hashlib.sha256(Path(r["executable"]).read_bytes()).hexdigest(),"profile":r["profile"]} for r in rows if r.get("reason")=="compiler-artifact" and r.get("executable")}; assert all(x in artifacts for x in ("biomcp","cases","tools")); Path("target/accepted-batch-finish/source-bindings.json").write_text(json.dumps({"revision":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),"artifacts":artifacts},indent=2)+"\n")'
+	+$(MAKE) --keep-going lint-workspace lint-tools enum-case-check article-default-focused accepted-batch-unrun-boundaries accepted-batch-unrun-negative accepted-batch-unrun-profiles
+
+accepted-batch-unrun-boundaries:
+	cargo test --locked -p biomcp --test cases mcp-hosted/served-surface-and-source-policy $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases query-validation/argument-recovery $(TEST_THREADS)
+
+accepted-batch-unrun-negative:
+	cargo test --locked -p biomcp --test tools -- --proofs schema-discovery/rejects-bad-cases $(filter-out --,$(TEST_THREADS))
+
+accepted-batch-unrun-profiles:
+	python3 scripts/measure_typed_catalog.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp" "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/accepted-batch-catalog"

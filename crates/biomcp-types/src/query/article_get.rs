@@ -27,6 +27,13 @@ impl TryFrom<Fields> for ArticleGet {
     }
 }
 impl ArticleGet {
+    /// Build an abstract-bearing card request for one already validated identity.
+    pub fn single(input: ArticleInput) -> Self {
+        Self(Fields {
+            input: vec![input].into(),
+            section: Box::default(),
+        })
+    }
     /// Check batch bounds.
     pub fn new(input: Box<[ArticleInput]>) -> Result<Self, QueryInvalid> {
         Self::with_sections(input, Box::default())

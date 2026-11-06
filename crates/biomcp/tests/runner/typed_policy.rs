@@ -107,14 +107,11 @@ pub(super) fn get_help(env: &Environment) -> Result<(), String> {
         );
         let replies = exchange_with_globals(env, &[frame], &["--offline".into()])?;
         let reply = replies.first().ok_or("invalid getter reply")?;
-        let expected = command
-            .split_whitespace()
-            .map(Value::from)
-            .collect::<Vec<_>>();
-        let mut next = vec![json!("help")];
-        next.extend(expected);
-        if reply.pointer("/result/structuredContent/next/0/args") != Some(&json!(next)) {
-            return Err(format!("getter lost CLI-owned help: {reply}"));
+        if reply.pointer("/result/structuredContent/next/0/name") != Some(&json!("biomcp_help"))
+            || reply.pointer("/result/structuredContent/next/0/arguments/command")
+                != Some(&json!(command))
+        {
+            return Err(format!("getter lost typed help: {reply}"));
         }
         let text = reply
             .pointer("/result/content/0/text")

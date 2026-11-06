@@ -107,8 +107,8 @@ fn checked(result: &Value, form: &str, index: usize) -> Result<Value, String> {
     if index == 2
         && value.get("next")
             != Some(&json!([
-                {"kind":"configure","args":["get","trial","NCT07491445","eligibility"]},
-                {"kind":"configure","args":["help","get","trial"]}
+                {"kind":"configure","name":"get_trial","arguments":{"input":["NCT07491445"],"section":["eligibility"]}},
+                {"kind":"configure","name":"biomcp_help","arguments":{"command":"get trial"}}
             ]))
     {
         return Err(format!("typed reply lost ordered recovery steps: {value}"));
@@ -198,7 +198,7 @@ fn cap() -> Result<(), String> {
                 ));
             }
             if let Some(reference) = &reference {
-                if reference != value {
+                if super::typed_followups::data(reference) != super::typed_followups::data(value) {
                     return Err("single and typed cap replies differ".into());
                 }
             } else {

@@ -16,7 +16,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Selected native CIViC molecular profile for a drug-scoped claim stream. Minimum: 1. Maximum: 2147483647."
+        "/error/valid_values/0": "integer >= 1 <= 2147483647"
       }
     },
     {
@@ -32,7 +32,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Named section page size, refused on an identity-only card. Minimum: 1. Maximum: 50."
+        "/error/valid_values/0": "integer >= 1 <= 50"
       }
     },
     {
@@ -48,7 +48,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Named section continuation, refused on an identity-only card. Minimum: 0."
+        "/error/valid_values/0": "integer >= 0"
       }
     },
     {
@@ -64,7 +64,7 @@
       "expect": {
         "/status": "usage",
         "/error/code": "usage.arguments",
-        "/error/valid_values/0": "Selected CIViC molecular profile for native claim paging. Minimum: 1. Maximum: 2147483647."
+        "/error/valid_values/0": "integer >= 1 <= 2147483647"
       }
     }
   ]

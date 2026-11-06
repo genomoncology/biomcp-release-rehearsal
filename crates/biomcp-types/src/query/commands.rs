@@ -278,7 +278,7 @@ macro_rules! command_types {
                 "article", "supplement", ArticleSupplement, "article-supplement", "biomcp.article-supplement/3", ArticleSupplement,
                 "article-supplement", "biomcp.article-supplement/3", "biomcp.article-supplement/3", 42, Direct
             );
-            /// Read research article full text.
+            /// Get the abstract card by default, or explicitly read article body text.
             ArticleText(ArticleText) => (
                 "article", "text", ArticleText, "article-text", "biomcp.article-text/4", ArticleText, "article-text", "biomcp.article-text/4",
                 "biomcp.article-text/4", 44, Direct

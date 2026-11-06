@@ -31,6 +31,10 @@ pub(super) fn expected(
     let Some(paths) = pointers(case, step)? else {
         return Ok(None);
     };
+    let paths = paths
+        .into_iter()
+        .filter(|path| !path.contains("/next/"))
+        .collect::<Vec<_>>();
     project(&paths, before, after).map(Some)
 }
 

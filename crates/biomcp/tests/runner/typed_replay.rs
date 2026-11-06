@@ -418,21 +418,36 @@ fn compare(
     typed_globals.extend(["--tool-mode".into(), "typed".into()]);
     let reply = exchange_with_globals(
         env,
-        &[request(
-            json!(1),
-            "tools/call",
-            json!({"name":name,"arguments":input}),
-        )],
+        &[
+            request(
+                json!(1),
+                "tools/call",
+                super::super::typed_catalog::call(tool, input),
+            ),
+            request(json!(2), "tools/list", json!({})),
+        ],
         &typed_globals,
     )?;
-    let reply = reply.first().ok_or("missing typed reply")?;
+    let tools = reply
+        .iter()
+        .find(|reply| reply["id"] == 2)
+        .and_then(|reply| reply.pointer("/result/tools"))
+        .and_then(Value::as_array)
+        .ok_or("typed catalog")?;
+    let reply = reply
+        .iter()
+        .find(|reply| reply["id"] == 1)
+        .ok_or("missing typed reply")?;
     *calls += 1;
     let actual = reply
         .pointer("/result/structuredContent")
         .ok_or_else(|| format!("{name}: {reply}"))?;
-    let checked = volatile::expected(case.0, case.1, expected, actual)?;
-    let expected = checked.as_ref().unwrap_or(expected);
-    if serde_json::to_vec(actual).map_err(|e| e.to_string())?
+    super::super::typed_followups::check_next(actual, tools, &mut 0)?;
+    let actual_data = super::super::typed_followups::data(actual);
+    let expected_data = super::super::typed_followups::data(expected);
+    let checked = volatile::expected(case.0, case.1, &expected_data, &actual_data)?;
+    let expected = checked.as_ref().unwrap_or(&expected_data);
+    if serde_json::to_vec(&actual_data).map_err(|e| e.to_string())?
         != serde_json::to_vec(expected).map_err(|e| e.to_string())?
     {
         return Err(format!(
@@ -440,7 +455,7 @@ fn compare(
         ));
     }
     super::super::super::schema::Registry::embedded()?.validate(
-        actual,
+        &actual_data,
         &[],
         expected.get("status") != Some(&json!("usage")),
     )?;

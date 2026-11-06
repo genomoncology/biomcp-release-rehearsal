@@ -16,29 +16,7 @@
   "$id": "biomcp.article-text/4",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "anyOf": [
-    {
-      "required": [
-        "part"
-      ]
-    },
-    {
-      "required": [
-        "find"
-      ]
-    },
-    {
-      "required": [
-        "variant"
-      ]
-    },
-    {
-      "required": [
-        "save"
-      ]
-    }
-  ],
-  "description": "Read one bounded body part, find matching rows, or save the complete Markdown document.",
+  "description": "Return the abstract card by default, or explicitly read body text.",
   "properties": {
     "find": {
       "$ref": "#/$defs/Text",
@@ -57,7 +35,7 @@
       "type": "integer"
     },
     "part": {
-      "description": "One-based outline part number.",
+      "description": "One-based outline part; omit reader selectors for the abstract card.",
       "format": "uint32",
       "minimum": 1,
       "type": "integer"
@@ -79,5 +57,8 @@
     "input"
   ],
   "title": "ArticleText",
-  "type": "object"
+  "type": "object",
+  "x-reply-query-titles": [
+    "ArticleGet"
+  ]
 }

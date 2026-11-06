@@ -25,11 +25,10 @@ const MAX_RETAINED_EVENTS: usize = 32;
 
 enum Event {
     Input(Frame),
-    Completed(String, io::Result<crate::command::Outcome>),
+    Completed(String, io::Result<research::Completed>),
 }
 
 struct Call {
-    args: Vec<std::ffi::OsString>,
     id: Value,
     modern: bool,
     cancelled: bool,
@@ -148,10 +147,11 @@ impl Server {
 
     fn admit(&mut self, id: Value, params: &Value, modern: bool) -> io::Result<Option<Value>> {
         let Some(call) = typed::parse(
-            &self.root,
+            crate::command::Context::new(&self.globals, &self.fetch, &self.root, &self.settings),
             params,
             crate::config::mcp_tool_mode(&self.globals, &self.settings),
             self.globals.fresh,
+            false,
         ) else {
             return Ok(Some(protocol::error(id, -32602, "Invalid params")));
         };
@@ -168,6 +168,7 @@ impl Server {
                         &self.root,
                         &self.settings,
                     ),
+                    false,
                 )
                 .map(Some);
             }
@@ -198,16 +199,12 @@ impl Server {
             ),
         };
         let scope = recovery.as_ref().and(cancellation.clone());
-        let original_args = call.args.clone();
         self.start_call(key.clone(), id, modern, cancellation, move || {
             let mut context = crate::command::Context::new(&globals, &fetch, &root, &settings);
             context.recovery = recovery.as_deref();
             context.scope = scope.as_ref();
             research::execute(&call, context, false)
         })?;
-        if let Some(call) = self.active.get_mut(&key) {
-            call.args = original_args;
-        }
         Ok(None)
     }
 
@@ -221,7 +218,7 @@ impl Server {
         id: Value,
         modern: bool,
         cancellation: Option<biomcp_fetch::Cancellation>,
-        work: impl FnOnce() -> io::Result<crate::command::Outcome> + Send + 'static,
+        work: impl FnOnce() -> io::Result<research::Completed> + Send + 'static,
     ) -> io::Result<()> {
         let sender = self.sender.clone();
         let worker_key = key.clone();
@@ -234,7 +231,6 @@ impl Server {
         self.active.insert(
             key,
             Call {
-                args: Vec::new(),
                 id,
                 modern,
                 cancelled: false,
@@ -248,7 +244,7 @@ impl Server {
     fn complete(
         &mut self,
         key: &str,
-        outcome: io::Result<crate::command::Outcome>,
+        outcome: io::Result<research::Completed>,
     ) -> io::Result<Option<Value>> {
         let Some(call) = self.active.remove(key) else {
             return Ok(None);
@@ -260,15 +256,7 @@ impl Server {
             return Ok(None);
         }
         Ok(Some(match outcome {
-            Ok(outcome) => typed::tool_result(
-                call.id,
-                &outcome,
-                call.modern,
-                &self.globals,
-                &self.settings,
-                &self.root,
-                &call.args,
-            ),
+            Ok(outcome) => typed::tool_result(call.id, &outcome, call.modern, &self.settings),
             Err(_) => protocol::error(call.id, -32603, "Internal error"),
         }))
     }

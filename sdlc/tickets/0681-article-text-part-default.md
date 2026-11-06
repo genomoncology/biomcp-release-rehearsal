@@ -1,6 +1,7 @@
 # 0681 — Article text defaults to the abstract and lists valid parts
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7a0cab3c7f89fa673ce858821bd3962523bedf57
 
 Milestone: 5
 

@@ -1,0 +1,122 @@
+{
+  "feature": "article-get",
+  "live_check": "synthetic recorded article card and local argument validation; no live source calls",
+  "story": "Omitted reader selectors return the existing abstract card; explicit invalid body selectors retain numeric guidance.",
+  "replay": "article/get/synthetic-derived",
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  },
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "article_text",
+        "arguments": {
+          "input": "33123537"
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/query/input": [
+          "33123537"
+        ],
+        "/result/items/0/answer/card/abstract_parts": {
+          "count": 1
+        },
+        "/result/items/0": {
+          "omits": [
+            "sections"
+          ]
+        },
+        "/sources": {
+          "count": 1
+        },
+        "/sources/0/source": "pubmed"
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "article_text",
+        "arguments": {
+          "input": "33123537",
+          "part": "abstract"
+        }
+      },
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--part",
+        "/error/valid_values": [
+          "integer >= 1"
+        ]
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "article_text",
+        "arguments": {
+          "input": "33123537",
+          "part": 1.5
+        }
+      },
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--part",
+        "/error/valid_values": [
+          "integer >= 1"
+        ]
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "article_text",
+        "arguments": {
+          "input": "33123537",
+          "part": -1
+        }
+      },
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--part",
+        "/error/valid_values": [
+          "integer >= 1"
+        ]
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "article_text",
+        "arguments": {
+          "input": "33123537",
+          "part": 0
+        }
+      },
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--part",
+        "/error/valid_values": [
+          "integer >= 1"
+        ]
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "get_article",
+        "arguments": {
+          "input": [
+            "33123537"
+          ]
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/answer/card/abstract_parts": {
+          "count": 1
+        }
+      }
+    }
+  ]
+}

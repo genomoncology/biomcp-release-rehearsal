@@ -1,0 +1,86 @@
+{
+  "feature": "article-fulltext",
+  "live_check": "local-only argument validation with offline mode; no source requests",
+  "story": "Conflicting selectors preserve CLI help and expose an exact executable typed help call.",
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  },
+  "steps": [
+    {
+      "run": [
+        "article",
+        "text",
+        "39214094",
+        "--part",
+        "1",
+        "--find",
+        "needle"
+      ],
+      "offline": true,
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/option": "--part",
+        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+        "/error/valid_values": [
+          "integer >= 1"
+        ],
+        "/next": {
+          "count": 1
+        },
+        "/next/0/args": [
+          "help",
+          "article",
+          "text"
+        ]
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "article_text",
+        "arguments": {
+          "input": "39214094",
+          "part": 1,
+          "find": "needle"
+        }
+      },
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/status": "usage",
+        "/error/code": "usage.arguments",
+        "/error/option": "--part",
+        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+        "/error/valid_values": [
+          "integer >= 1"
+        ],
+        "/next": {
+          "count": 1
+        },
+        "/next/0": {
+          "equals": {
+            "kind": "configure",
+            "name": "biomcp_help",
+            "arguments": {
+              "command": "article text"
+            }
+          }
+        }
+      }
+    },
+    {
+      "follow": "configure",
+      "offline": true,
+      "expect": {
+        "/schema": "biomcp.help/6",
+        "/result/commands/0/command": [
+          "article",
+          "text"
+        ]
+      }
+    }
+  ]
+}

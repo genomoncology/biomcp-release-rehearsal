@@ -119,7 +119,8 @@ fn parse_arguments(
     args: &[OsString],
     encoding: Encoding,
 ) -> io::Result<Result<crate::grammar::Parsed, Outcome>> {
-    let retired = crate::retired::message(root, args);
+    let canonical = crate::grammar::canonical_command(root, args);
+    let retired = crate::retired::message(root, canonical.as_deref().unwrap_or(args));
     let parsed = match crate::grammar::parse(root, args) {
         Ok(parsed) => parsed,
         Err(cause) => {

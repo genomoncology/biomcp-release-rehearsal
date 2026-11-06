@@ -71,12 +71,22 @@ impl TrialPhaseFilter {
 #[cfg(feature = "schema")]
 fn filter_schema<A: schemars::JsonSchema, B: schemars::JsonSchema>() -> schemars::Schema {
     let mut values = Vec::new();
-    for schema in [schemars::schema_for!(A), schemars::schema_for!(B)] {
+    let mut by_source = schemars::json_schema!({});
+    for (source, schema) in [
+        (TrialSource::Ctgov, schemars::schema_for!(A)),
+        (TrialSource::Nci, schemars::schema_for!(B)),
+    ] {
         if let Some(choices) = schema.get("enum").and_then(|value| value.as_array()) {
             values.extend(choices.iter().cloned());
+            by_source.insert(source.as_str().into(), choices.clone().into());
         }
     }
-    schemars::json_schema!({"type": "string", "enum": values})
+    schemars::json_schema!({
+        "type": "string", "enum": values,
+        "x-enum-by-field": {
+            "field": "source", "default": TrialSource::default(), "choices": by_source
+        }
+    })
 }
 #[cfg(feature = "schema")]
 impl schemars::JsonSchema for TrialStatusFilter {

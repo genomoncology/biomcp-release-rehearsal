@@ -83,7 +83,8 @@ def main():
                                  env=env, capture_output=True, text=True, timeout=30)
         assert process.returncode == 0 and not process.stderr, process.stderr
         reply = json.loads(process.stdout.splitlines()[0])
-        assert reply["result"]["instructions"] == front
+        guidance = "Listed choices accept any letter case; replies use their listed spelling."
+        assert reply["result"]["instructions"] == front + "\n" + guidance
         (args.output / "help.json").write_text(help_reply)
         (args.output / "front-map.txt").write_text(front)
         (args.output / "initialize.json").write_text(process.stdout)

@@ -1,5 +1,10 @@
 //! Schema-fed command parsing shared by CLI and MCP.
 mod arguments;
+mod choices;
+pub(crate) use choices::ENUM_CASE_GUIDANCE;
+mod command_words;
+pub(crate) use command_words::canonical as canonical_command;
+pub(crate) use command_words::cli as command_arguments;
 mod decode;
 mod entry;
 mod process_arguments;
@@ -190,7 +195,9 @@ pub(crate) fn root() -> Result<Root, ParseInvalid> {
     );
     let help = local::help_command(&root);
     root = root.subcommand(help);
-    Ok(Root::new(metadata::describe(root)))
+    Ok(Root::new(metadata::describe(
+        process_arguments::case_choices(root),
+    )))
 }
 
 #[derive(Debug, Default)]
@@ -377,6 +384,7 @@ fn arguments(matches: &clap::ArgMatches, schema: &Value) -> Result<Value, ParseI
         }
     }
     split_sections(&mut result, schema)?;
+    choices::canonicalize(&mut result, schema);
     Ok(Value::Object(result))
 }
 
@@ -440,7 +448,11 @@ fn split_sections(result: &mut Map<String, Value>, schema: &Value) -> Result<(),
             return Err(ParseInvalid::default());
         };
         let mut split = input.len();
-        while split > 1 && input.get(split - 1).is_some_and(|v| words.contains(v)) {
+        while split > 1
+            && input
+                .get(split - 1)
+                .is_some_and(|value| choices::matching(value, words).is_some())
+        {
             split -= 1;
         }
         let section = input.split_off(split);
@@ -463,7 +475,7 @@ fn request(verb: &str, entity: &str, matches: &clap::ArgMatches) -> Result<Reque
     })
 }
 
-fn request_arguments(
+pub(crate) fn request_arguments(
     verb: &str,
     entity: &str,
     matches: &clap::ArgMatches,

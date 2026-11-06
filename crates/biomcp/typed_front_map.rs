@@ -31,7 +31,7 @@ pub(crate) fn generate(
                 .filter(|source| !excluded.contains(source)),
         );
     }
-    let mut lines = vec!["Call named tools for source evidence; use biomcp_help(command) for arguments, sections and examples.".to_owned()];
+    let mut lines = vec!["Call listed tools directly; other command names below select biomcp_reference(command,arguments). Use biomcp_help(command) for arguments, sections and examples.".to_owned()];
     for (tools, sources) in rows.into_values() {
         lines.push(format!("{}: {}", words(&tools), words(&sources)));
     }

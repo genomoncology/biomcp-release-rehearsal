@@ -28,6 +28,7 @@ pub(super) fn discovery() -> Result<(), String> {
                 "tools/call",
                 json!({"name":"biomcp","arguments":{"args":["help","search","trial"]}}),
             ),
+            request(json!(5), "server/discover", json!({})),
         ],
     )?;
     let typed = frames(
@@ -60,9 +61,7 @@ fn discovery_contract(single: &[Value], typed: &[Value]) -> Result<(), String> {
         .pointer("/result/tools")
         .and_then(Value::as_array)
         .ok_or("typed catalog")?;
-    if tools.len() != biomcp_types::command_paths().len() + 3 {
-        return Err("typed catalog count".into());
-    }
+    super::typed_catalog::check(tools)?;
     let original = reply(single, 1)?
         .pointer("/result/tools")
         .and_then(Value::as_array)
@@ -80,12 +79,31 @@ fn discovery_contract(single: &[Value], typed: &[Value]) -> Result<(), String> {
         let expected = reply(single, id)?
             .pointer("/result/structuredContent")
             .ok_or("single result")?;
-        if reply(typed, id)?.pointer("/result/structuredContent") != Some(expected) {
+        if super::typed_followups::data(
+            reply(typed, id)?
+                .pointer("/result/structuredContent")
+                .ok_or("typed result")?,
+        ) != super::typed_followups::data(expected)
+        {
             return Err(format!("typed parity {id}"));
         }
     }
     if reply(typed, 4)?.pointer("/result/isError") != Some(&json!(false)) {
         return Err("help call refused".into());
+    }
+    for replies in [single, typed] {
+        let guidance = reply(replies, 5)?
+            .pointer("/result/instructions")
+            .and_then(Value::as_str)
+            .ok_or("instructions")?;
+        if guidance
+            .matches("Listed choices accept any letter case")
+            .count()
+            != 1
+            || !guidance.contains("replies use their listed spelling")
+        {
+            return Err("case guidance must appear once in discovery instructions".into());
+        }
     }
     let instructions = reply(typed, 5)?
         .pointer("/result/instructions")

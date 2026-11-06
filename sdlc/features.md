@@ -20,7 +20,7 @@ article-sections: A caller requests indexing and normalized entity annotations w
 article-citations: A caller sorts by iCite citation counts and walks citing or referenced papers with explicit missing counts.
 article-fulltext: A caller reads available full text through semantic parts, tables, outlines and checked continuations.
 article-retired: A caller using a retired article spelling receives its fixed replacement or removal explanation.
-mcp-parity: A caller sends CLI arguments through the default MCP tool or named arguments through registry-generated typed tools, receives the same command result and validates structured replies against each advertised schema; typed discovery includes command help, research search and fetch, executable help follow-ups, and a catalog whose tools, sources and file-write hints reflect serving authority.
+mcp-parity: A caller sends CLI arguments through the default MCP tool or named arguments through registry-generated typed tools, receives the same command result and validates structured replies against each advertised schema; typed discovery includes command help, research search and fetch, typed follow-ups admitted against the caller’s advertised tools and input schemas, section names in the section argument, and a catalog whose tools, sources and file-write hints reflect serving authority.
 schema-discovery: A caller lists versioned schemas with descriptions, discovers resolvable command reply contracts and scoped help aliases, and follows safe guidance for invalid schema requests and unknown commands.
 corporate-network: A caller adds corporate certificate authorities, follows standard proxy settings and receives private configuration guidance for network failures.
 markdown-view: A caller reads gene and article results as Markdown, copies next commands, and keeps JSON for MCP.
@@ -120,7 +120,7 @@ housekeeping: Print build provenance and ready-to-paste local MCP configuration 
 store-coexistence: Allowed bundle reads import only names missing from the current generation through a verified atomic transfer, preserve both files, and retain current published bundles on conflicts.
 agent-skill: Agents read case-backed guidance and install managed guidance only inside an explicit directory.
 variant-alphagenome: Read independently paged native scoring groups for one source-resolved GRCh38 variant with the caller's required key.
-query-validation: A caller sees argument identities and accepted forms for input failures, accepting sources and declared replacements for incompatible filters, and optional true or false values for boolean flags.
+query-validation: A caller sees argument identities and accepted forms for input failures, accepting sources and declared replacements for incompatible filters, optional true or false values for boolean flags, and case-insensitive enumerated choices echoed canonically.
 local-file-persistence: Create private Unix cache files and update symlinked credential configuration targets while retaining field order.
 diagnostic-device-recall: Search native device recall records, inspect exact recall numbers and follow product codes to MAUDE without inferring harm.
 organization-nci: Find source-native NCI organizations with bounded snapshots and local paging.

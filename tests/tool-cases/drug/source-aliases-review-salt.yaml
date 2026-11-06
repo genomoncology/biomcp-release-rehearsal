@@ -30,11 +30,12 @@
         "/sources/0/notices/0/kind": "request-guidance",
         "/status": "absent",
         "/query/source": "opentargets",
-        "/next/0/args": [
-          "search",
-          "drug",
-          "EX-66"
-        ]
+        "/next/0/name": "search_drug",
+        "/next/0/arguments": {
+          "equals": {
+            "query": "EX-66"
+          }
+        }
       },
       "exit": 1,
       "mcp_call": {

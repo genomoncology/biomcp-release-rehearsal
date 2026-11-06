@@ -11,6 +11,10 @@ mod schemas;
 mod typed;
 #[path = "typed_bridge.rs"]
 mod typed_bridge;
+#[path = "typed_catalog.rs"]
+pub(super) mod typed_catalog;
+#[path = "typed_followups.rs"]
+pub(super) mod typed_followups;
 #[path = "typed_help.rs"]
 mod typed_help;
 #[path = "typed_hosted.rs"]
@@ -32,7 +36,8 @@ use std::{io::Write, process::Stdio, time::Instant};
 type Check = Result<(), String>;
 
 pub(super) fn trials() -> Vec<Trial> {
-    let mut trials = hosted_surface::trials();
+    let mut trials = typed_followups::trials();
+    trials.extend(hosted_surface::trials());
     trials.extend(typed::trials());
     trials.extend([
         transcript_trial("mcp-parity/cancellation-suppresses-later-output", || {

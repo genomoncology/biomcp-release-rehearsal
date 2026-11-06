@@ -12,9 +12,9 @@ Mount a Docker named volume at the container's `XDG_CACHE_HOME` path to keep the
 
 ## MCP tools
 
-`biomcp serve --tool-mode typed` advertises one named tool for each registered command, with typed arguments, source and section choices, structured replies and a one-line summary. Set `"mcp_tool_mode": "typed"` in configuration for the same behavior. The flag overrides configuration. `single` remains the default and keeps the CLI-argument tool and research compatibility tools. Hosted restrictions apply in either mode. Typed mode follows `mcp_reply_form`: text begins with a one-line summary and includes the serialized JSON when the chosen form carries JSON text. The result cap counts the JSON value once in either tool mode.
+`biomcp serve --tool-mode typed` advertises direct search/get tools for drug, trial, article, variant, disease and diagnostic, plus gene lookup and adverse-event search. Other commands use `biomcp_reference` with a registered `command` name and its typed `arguments` object. For example, `{"command":"get_protein","arguments":{"id":"P04637"}}` reads a protein. `biomcp_help` supplies command contracts and examples, and the `biomcp` tool retains the complete CLI grammar. Research `search` and `fetch` remain available. Typed calls return structured replies and a one-line summary. Set `"mcp_tool_mode": "typed"` in configuration for the same behavior. The flag overrides configuration. `single` remains the default and keeps the CLI-argument tool and research compatibility tools. Hosted restrictions apply in either mode. Typed mode follows `mcp_reply_form`: text begins with a one-line summary and includes the serialized JSON when the chosen form carries JSON text. The result cap counts the JSON value once in either tool mode. Typed `next` entries carry `kind`, `name` and `arguments`. Sections use the command's `section` field, including inside a reference call's nested arguments. Replies omit inherited CLI globals and server paths from these calls, and omit suggestions that the effective catalog cannot execute.
 
-Typed discovery omits `outputSchema` by default. Set `"mcp_typed_output_schema": true` to include the command reply envelope schemas. `mcp_typed_enum_limit` sets the largest choice list advertised inline (default 30); larger lists use strings, with accepted values checked by the CLI parser. Both settings apply only to typed discovery. For example:
+Set `"mcp_typed_output_schema": true` to include reply envelope schemas on the direct entity tools and `biomcp_reference`. The shared `biomcp`, research `search` and `fetch` tools retain their output schemas in either setting. `mcp_typed_enum_limit` sets the largest choice list advertised inline (default 30); larger lists use strings, with accepted values checked by the CLI parser. Both settings apply only to typed discovery; the reference command-name enum always lists its routes. For example:
 
 ```json
 {
@@ -23,6 +23,9 @@ Typed discovery omits `outputSchema` by default. Set `"mcp_typed_output_schema":
   "mcp_typed_enum_limit": 30
 }
 ```
+
+
+`mcp_typed_tool_limit` and `mcp_typed_definition_bytes` set positive ceilings on the complete typed catalog. Defaults are 20 tools and 48 KiB of compact UTF-8 tool definitions, or 64 KiB when output schemas are explicitly enabled; their owner is [the typed budget configuration](../crates/biomcp/src/config/mcp.rs). Counts include help, research, reference and escape-hatch tools. Bytes include descriptions, annotations and any output schemas, excluding the JSON-RPC envelope and server instructions. A catalog exceeding either ceiling returns an error naming the required size and configured limits. Clinical tools and complete descriptions are retained. An explicit `mcp_typed_definition_bytes` value overrides either default, including when output schemas are enabled. Larger catalogs may require a larger configured byte ceiling. Single mode is unaffected.
 
 ## HTTP capacity
 

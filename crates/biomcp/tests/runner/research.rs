@@ -43,16 +43,18 @@ pub(super) fn call_checked(
     globals: &[String],
     expected_error: Option<bool>,
 ) -> Result<Value, String> {
+    let tools = catalog(env, globals)?;
+    let route = super::protocol::typed_catalog::command(&tools, name)
+        .ok_or_else(|| format!("tool definition missing: {name}"))?;
+    let params = super::protocol::typed_catalog::call(&route, &arguments);
+    let called = params
+        .get("name")
+        .and_then(Value::as_str)
+        .ok_or("tool name")?
+        .to_owned();
     let replies = super::mcp::exchange_with_globals(
         env,
-        &[
-            request(json!(0), "tools/list", json!({})),
-            request(
-                json!(1),
-                "tools/call",
-                json!({"name":name,"arguments":arguments}),
-            ),
-        ],
+        &[request(json!(1), "tools/call", params)],
         globals,
     )?;
     let result = replies
@@ -70,15 +72,9 @@ pub(super) fn call_checked(
         .pointer("/content/0/text")
         .and_then(Value::as_str)
         .ok_or("missing text")?;
-    let tools = replies
-        .iter()
-        .find(|v| v.get("id") == Some(&json!(0)))
-        .and_then(|v| v.pointer("/result/tools"))
-        .and_then(Value::as_array)
-        .ok_or("tool catalog missing")?;
     let typed = tools
         .iter()
-        .any(|tool| tool.get("name") == Some(&json!("get_gene")));
+        .any(|tool| tool.get("name") == Some(&json!("biomcp_reference")));
     let payload = if typed {
         text.lines().last().unwrap_or_default()
     } else {
@@ -87,26 +83,7 @@ pub(super) fn call_checked(
     if serde_json::from_str::<Value>(payload).map_err(|e| e.to_string())? != *value {
         return Err("research text differs from structured content".into());
     }
-    {
-        let tool = tools
-            .iter()
-            .find(|v| v.get("name") == Some(&json!(name)))
-            .ok_or("tool definition missing")?;
-        let schema = tool.get("outputSchema").ok_or("output schema missing")?;
-        jsonschema::validator_for(schema)
-            .map_err(|e| e.to_string())?
-            .validate(value)
-            .map_err(|e| e.to_string())?;
-        if let Some(id) = value
-            .get("schema")
-            .or_else(|| value.pointer("/metadata/envelope/schema"))
-            .or_else(|| value.pointer("/metadata/schema"))
-            .and_then(Value::as_str)
-            && !super::schema_proof::reply_ids(schema).contains(id)
-        {
-            return Err(format!("tool returned an unadvertised schema ID: {id}"));
-        }
-    }
+    validate_reply_schema(&tools, &called, value)?;
     use std::io::Write;
     writeln!(
         std::io::stderr(),
@@ -116,6 +93,49 @@ pub(super) fn call_checked(
     .map_err(|e| e.to_string())?;
     Ok(value.clone())
 }
+fn catalog(env: &Environment, globals: &[String]) -> Result<Vec<Value>, String> {
+    let replies = super::mcp::exchange_with_globals(
+        env,
+        &[request(json!(0), "tools/list", json!({}))],
+        globals,
+    )?;
+    replies
+        .first()
+        .and_then(|reply| reply.pointer("/result/tools"))
+        .and_then(Value::as_array)
+        .cloned()
+        .ok_or("tool catalog missing".into())
+}
+
+fn validate_reply_schema(tools: &[Value], name: &str, value: &Value) -> Result<(), String> {
+    let tool = tools
+        .iter()
+        .find(|v| v.get("name") == Some(&json!(name)))
+        .ok_or("tool definition missing")?;
+    let Some(schema) = tool.get("outputSchema") else {
+        // Shared help intentionally omits an advertised output schema; its reply
+        // must still satisfy its complete canonical artifact schema.
+        if name == "biomcp_help" {
+            return super::schema::Registry::embedded()?.validate(value, &[], false);
+        }
+        return Err("output schema missing".into());
+    };
+    jsonschema::validator_for(schema)
+        .map_err(|e| e.to_string())?
+        .validate(value)
+        .map_err(|e| e.to_string())?;
+    if let Some(id) = value
+        .get("schema")
+        .or_else(|| value.pointer("/metadata/envelope/schema"))
+        .or_else(|| value.pointer("/metadata/schema"))
+        .and_then(Value::as_str)
+        && !super::schema_proof::reply_ids(schema).contains(id)
+    {
+        return Err(format!("tool returned an unadvertised schema ID: {id}"));
+    }
+    Ok(())
+}
+
 fn parity() -> Result<(), String> {
     for (query, args, capture) in [
         (

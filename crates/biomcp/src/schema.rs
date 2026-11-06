@@ -1,4 +1,6 @@
 //! Schema discovery generated from checked-in artifact identities.
+pub(crate) mod steps;
+
 const SCHEMAS: &[(&str, &str)] = include!(concat!(env!("OUT_DIR"), "/schemas.rs"));
 
 pub(crate) fn find(name: &str) -> Option<&'static str> {

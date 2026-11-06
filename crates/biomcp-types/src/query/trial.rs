@@ -159,7 +159,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     facility: Option<Text>,
-    #[doc = "Country label; biomcp_help search trial.\n\
+    #[doc = "Country label.\n\
         Exact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(schema_with = "country::schema"))]

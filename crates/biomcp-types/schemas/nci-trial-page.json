@@ -1353,7 +1353,33 @@
         "III",
         "IV"
       ],
-      "type": "string"
+      "type": "string",
+      "x-enum-by-field": {
+        "choices": {
+          "ctgov": [
+            "early-1",
+            "1",
+            "2",
+            "3",
+            "4",
+            "not-applicable",
+            "1/2",
+            "2/3"
+          ],
+          "nci": [
+            "NA",
+            "0",
+            "I",
+            "I_II",
+            "II",
+            "II_III",
+            "III",
+            "IV"
+          ]
+        },
+        "default": "ctgov",
+        "field": "source"
+      }
     },
     "Reply_TrialRecords_NciDiseaseRef": {
       "description": "Whole-record page retaining collection order.",
@@ -1429,7 +1455,7 @@
           "type": "boolean"
         },
         "country": {
-          "description": "Country label; biomcp_help search trial.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+          "description": "Country label.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
           "items": {
             "enum": [
               "Afghanistan",
@@ -1858,7 +1884,42 @@
         "Temporarily Closed to Accrual and Intervention",
         "Withdrawn"
       ],
-      "type": "string"
+      "type": "string",
+      "x-enum-by-field": {
+        "choices": {
+          "ctgov": [
+            "ACTIVE_NOT_RECRUITING",
+            "COMPLETED",
+            "ENROLLING_BY_INVITATION",
+            "NOT_YET_RECRUITING",
+            "RECRUITING",
+            "SUSPENDED",
+            "TERMINATED",
+            "WITHDRAWN",
+            "AVAILABLE",
+            "NO_LONGER_AVAILABLE",
+            "TEMPORARILY_NOT_AVAILABLE",
+            "APPROVED_FOR_MARKETING",
+            "WITHHELD",
+            "UNKNOWN"
+          ],
+          "nci": [
+            "Active",
+            "Administratively Complete",
+            "Approved",
+            "Closed to Accrual",
+            "Closed to Accrual and Intervention",
+            "Complete",
+            "INACTIVE",
+            "Enrolling by Invitation",
+            "Temporarily Closed to Accrual",
+            "Temporarily Closed to Accrual and Intervention",
+            "Withdrawn"
+          ]
+        },
+        "default": "ctgov",
+        "field": "source"
+      }
     },
     "Reply_Use": {
       "description": "Reviewed source-use category, without inferring rights in individual records.",

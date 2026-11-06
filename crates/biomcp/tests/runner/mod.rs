@@ -2,6 +2,7 @@ mod argument_recovery;
 mod corporate;
 mod credential_containment;
 mod drug_identity;
+mod enum_case;
 mod key_reload;
 mod local_files;
 tool_only! { mod protein_commands; }
@@ -258,6 +259,7 @@ fn run_case_owned(
 pub(super) fn protocol_trials() -> Vec<Trial> {
     let mut trials = Vec::new();
     trials.extend(argument_recovery::trials());
+    trials.extend(enum_case::trials());
     trials.extend(protocol::trials());
     trials.extend(article_lean::trials());
     trials.extend(configuration::trials());
@@ -371,15 +373,17 @@ fn load_floors(case: &mut Case, path: &Path) -> Result<(), String> {
     }
     Ok(())
 }
-fn action(previous: &Value, kind: &str) -> Result<Vec<String>, String> {
-    let steps = previous
+fn continuation<'a>(previous: &'a Value, kind: &str) -> Result<&'a Value, String> {
+    previous
         .get("next")
         .and_then(Value::as_array)
-        .ok_or("follow action absent")?;
-    let action = steps
+        .ok_or("follow action absent")?
         .iter()
-        .find(|s| s.get("kind").and_then(Value::as_str) == Some(kind))
-        .ok_or("follow action absent")?;
+        .find(|step| step.get("kind").and_then(Value::as_str) == Some(kind))
+        .ok_or_else(|| "follow action absent".into())
+}
+fn action(previous: &Value, kind: &str) -> Result<Vec<String>, String> {
+    let action = continuation(previous, kind)?;
     action
         .get("args")
         .and_then(Value::as_array)
@@ -407,6 +411,25 @@ fn run_sequence(
     })
 }
 
+fn follow_step(current: &mut Step, previous: &Value, kind: &str) -> Result<(), String> {
+    let next = continuation(previous, kind)?;
+    if let Some(name) = next.get("name").and_then(Value::as_str) {
+        current.run = None;
+        current.mcp_call = Some(case_data::McpCall {
+            name: name.to_owned(),
+            arguments: next
+                .get("arguments")
+                .ok_or("typed follow arguments")?
+                .clone(),
+        });
+    } else {
+        current.run = Some(action(previous, kind)?);
+        current.mcp_call = None;
+    }
+    current.mcp = None;
+    Ok(())
+}
+
 fn run_sequence_with(
     step: &Step,
     expectations: &assertions::Expectations<'_>,
@@ -415,11 +438,11 @@ fn run_sequence_with(
 ) -> Result<Value, String> {
     let mut current = step.clone();
     if let Some(kind) = &step.follow {
-        current.run = Some(action(
+        follow_step(
+            &mut current,
             previous.ok_or("follow requires previous output")?,
             kind,
-        )?);
-        current.mcp = None;
+        )?;
     }
     let Some(walk) = &step.walk else {
         return execute(&current, expectations);

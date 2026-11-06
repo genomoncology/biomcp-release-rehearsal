@@ -68,12 +68,13 @@ pub(super) fn message(
             protocol::tools(context.root, read_only)
         } {
             Ok(tools) => json!({"tools":tools}),
-            Err(_) => {
-                return Message::Reply(protocol::error(
-                    id.clone(),
-                    -32603,
-                    "Output schema unavailable",
-                ));
+            Err(error) => {
+                let message = if error.kind() == std::io::ErrorKind::InvalidInput {
+                    error.to_string()
+                } else {
+                    "Output schema unavailable".into()
+                };
+                return Message::Reply(protocol::error(id.clone(), -32603, &message));
             }
         },
         "tools/call" => {

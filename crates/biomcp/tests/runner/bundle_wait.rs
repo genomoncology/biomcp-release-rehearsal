@@ -2,7 +2,7 @@
 use super::{configuration::invoke, launch::Environment, network_stub::Stub};
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
-use std::{fs, process::Stdio, sync::mpsc, time::Duration};
+use std::{fs, io::Write, process::Stdio, sync::mpsc, time::Duration};
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
@@ -48,13 +48,6 @@ fn first_reader(expires: bool) -> Result<(), String> {
         "disable_sources":["oncokb"]});
     env.config(&config).map_err(|e| e.to_string())?;
     invoke(&env, vec!["get".into(), "gene".into(), "ODC1".into()], 0)?;
-    if expires {
-        config
-            .as_object_mut()
-            .ok_or("config map")?
-            .insert("command_timeout_seconds".into(), json!(1));
-        env.config(&config).map_err(|e| e.to_string())?;
-    }
     let mut command = env.command(
         env!("CARGO_BIN_EXE_biomcp"),
         &["sync".into(), "gencc".into()],
@@ -73,6 +66,13 @@ fn first_reader(expires: bool) -> Result<(), String> {
             String::from_utf8_lossy(&output.stderr)
         ));
     }
+    if expires {
+        config
+            .as_object_mut()
+            .ok_or("config map")?
+            .insert("command_timeout_seconds".into(), json!(1));
+        env.config(&config).map_err(|e| e.to_string())?;
+    }
     let result = reader(&env, publish, expires);
     let output = command.wait_with_output(child).map_err(|e| e.to_string())?;
     if !output.status.success() {
@@ -80,6 +80,16 @@ fn first_reader(expires: bool) -> Result<(), String> {
             "publisher failed: {}",
             String::from_utf8_lossy(&output.stdout)
         ));
+    }
+    if result.is_err() {
+        let retained =
+            biomcp_test_support::evidence::retain(env.root()).map_err(|e| e.to_string())?;
+        writeln!(
+            std::io::stderr(),
+            "GenCC reader evidence: {}",
+            retained.display()
+        )
+        .map_err(|e| e.to_string())?;
     }
     peer.finish()?;
     result
@@ -113,35 +123,32 @@ fn reader(env: &Environment, publish: mpsc::Sender<()>, expires: bool) -> Result
         let environment = env;
         let destination = &observations;
         scope.spawn(move || {
-            let result = invoke(
-                environment,
-                vec![
-                    "get".into(),
-                    "gene".into(),
-                    "ODC1".into(),
-                    "gencc".into(),
-                    "--observe".into(),
-                    destination.to_string_lossy().into(),
-                ],
-                0,
-            );
+            let result = read_result(environment, destination, expires);
             let _ = done.send(result);
         });
         let admission = if expires {
-            // Creating the observation sink is the reader’s startup report.
-            // Process creation and loading do not consume the short exit guard.
+            // Wait admission is an observation event, never file creation.
+            // The deadline can also end during cache access before that event.
             let end = std::time::Instant::now() + Duration::from_secs(15);
-            while !observations.exists() {
-                if std::time::Instant::now() >= end || completion.try_recv().is_ok() {
-                    publish.send(()).map_err(|e| e.to_string())?;
-                    return Err("reader did not report startup".into());
+            loop {
+                if reader_waiting(&observations) {
+                    break completion
+                        .recv_timeout(Duration::from_secs(15))
+                        .map(Some)
+                        .map_err(|e| e.to_string());
+                }
+                match completion.try_recv() {
+                    Ok(value) => break Ok(Some(value)),
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        break Err("reader disconnected before wait admission".into());
+                    }
+                    Err(mpsc::TryRecvError::Empty) => {}
+                }
+                if std::time::Instant::now() >= end {
+                    break Err("reader neither entered bundle wait nor completed".into());
                 }
                 std::thread::yield_now();
             }
-            completion
-                .recv_timeout(Duration::from_secs(3))
-                .map(Some)
-                .map_err(|e| e.to_string())
         } else {
             wait_for_reader(&observations, &completion).map(|()| None)
         };
@@ -155,15 +162,16 @@ fn reader(env: &Environment, publish: mpsc::Sender<()>, expires: bool) -> Result
                 .map_err(|e| e.to_string())??,
         };
         let valid = if expires {
-            value
-                .get("sources")
-                .and_then(Value::as_array)
-                .is_some_and(|sources| {
-                    sources.iter().any(|source| {
-                        source.get("source") == Some(&json!("gencc"))
-                            && source.get("reason") == Some(&json!("syncing"))
+            value.get("local_error") == Some(&json!("busy"))
+                || value
+                    .get("sources")
+                    .and_then(Value::as_array)
+                    .is_some_and(|sources| {
+                        sources.iter().any(|source| {
+                            source.get("source") == Some(&json!("gencc"))
+                                && source.get("reason") == Some(&json!("syncing"))
+                        })
                     })
-                })
         } else {
             value.pointer("/result/items/0/sections/gencc/state") == Some(&json!("data"))
         };
@@ -181,12 +189,7 @@ pub(super) fn wait_for_reader(
 ) -> Result<(), String> {
     let end = std::time::Instant::now() + Duration::from_secs(15);
     loop {
-        let admitted = fs::read_to_string(path)
-            .unwrap_or_default()
-            .lines()
-            .filter_map(|line| serde_json::from_str::<Value>(line).ok())
-            .any(|event| event.get("role") == Some(&json!("bundle-wait")));
-        if admitted {
+        if reader_waiting(path) {
             return Ok(());
         }
         match completion.try_recv() {
@@ -201,4 +204,51 @@ pub(super) fn wait_for_reader(
         }
         std::thread::yield_now();
     }
+}
+
+fn reader_waiting(path: &std::path::Path) -> bool {
+    fs::read_to_string(path)
+        .unwrap_or_default()
+        .lines()
+        .filter_map(|line| serde_json::from_str::<Value>(line).ok())
+        .any(|event| event.get("role") == Some(&json!("bundle-wait")))
+}
+
+fn read_result(
+    env: &Environment,
+    observations: &std::path::Path,
+    expires: bool,
+) -> Result<Value, String> {
+    let output = env
+        .command(
+            env!("CARGO_BIN_EXE_biomcp"),
+            &[
+                "get".into(),
+                "gene".into(),
+                "ODC1".into(),
+                "gencc".into(),
+                "--observe".into(),
+                observations.to_string_lossy().into(),
+            ],
+        )
+        .output()
+        .map_err(|e| e.to_string())?;
+    let value: Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
+    let busy = expires
+        && output.status.code() == Some(5)
+        && value.get("local_error") == Some(&json!("busy"));
+    let phase = json!({"bundle_wait": reader_waiting(observations),
+        "exit": output.status.code(), "local_error": value.get("local_error")});
+    fs::write(env.root().join("reader-phase.json"), phase.to_string())
+        .map_err(|e| e.to_string())?;
+    writeln!(std::io::stdout(), "GENCC_READER_PHASE {phase}").map_err(|e| e.to_string())?;
+    if ((!output.status.success() || value.get("local_error").is_some()) && !busy)
+        || !output.stderr.is_empty()
+    {
+        return Err(format!(
+            "reader failed: {phase}; stderr: {}; stdout: {value}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(value)
 }

@@ -20,6 +20,7 @@ pub(super) fn parse(params: &Value) -> Option<super::super::research::Call> {
     Some(super::super::research::Call {
         args,
         projection: super::super::research::Projection::Cli,
+        catalog: None,
     })
 }
 // Translate only CLI-owned help steps, preserving their complete command path.

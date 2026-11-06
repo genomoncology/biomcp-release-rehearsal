@@ -25,10 +25,7 @@ pub(super) fn check() -> Result<(), String> {
             .get("name")
             .and_then(Value::as_str)
             .ok_or("tool name")?;
-        let writes = matches!(
-            name,
-            "article_pdf" | "article_text" | "article_supplement" | "trial_document"
-        );
+        let writes = matches!(name, "biomcp" | "biomcp_reference");
         if tool.pointer("/annotations/readOnlyHint") != Some(&json!(!writes)) {
             return Err(format!("wrong file capability hint: {name}"));
         }
@@ -251,21 +248,15 @@ fn configured_exclusions(env: &Environment, budgets: &mut Vec<String>) -> Result
                 .find(|tool| tool.get("name") == Some(&json!("search_diagnostic")))
         })
         .and_then(|tool| tool.pointer("/inputSchema/properties/marker/description"));
-    let summary = reply
+    let reference = reply
         .pointer("/result/tools")
         .and_then(Value::as_array)
-        .and_then(|tools| {
-            tools
-                .iter()
-                .find(|tool| tool.get("name") == Some(&json!("search_gwas")))
-        })
-        .and_then(|tool| tool.get("description"))
-        .and_then(Value::as_str)
-        .ok_or("GWAS summary")?;
-    if summary.contains("Catalog") {
-        return Err(format!(
-            "partial excluded publisher remains in summary: {summary}"
-        ));
+        .and_then(|tools| tools.iter().find(|tool| tool["name"] == "biomcp_reference"))
+        .and_then(|tool| tool.pointer("/inputSchema/properties/command/enum"))
+        .and_then(Value::as_array)
+        .ok_or("reference commands")?;
+    if !reference.contains(&json!("search_gwas")) {
+        return Err("source exclusion removed the reference command".into());
     }
     if marker != Some(&json!("WHO marker phrase.")) {
         return Err("unrelated publisher exclusion hid allowed WHO diagnostic prose".into());

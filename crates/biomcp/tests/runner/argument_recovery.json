@@ -53,18 +53,6 @@
   },
   {
     "args": [
-      "article",
-      "text",
-      "39214094"
-    ],
-    "tool": "article_text",
-    "fields": {
-      "input": "39214094"
-    },
-    "option": "--part"
-  },
-  {
-    "args": [
       "get",
       "disease",
       "MONDO:0005184",

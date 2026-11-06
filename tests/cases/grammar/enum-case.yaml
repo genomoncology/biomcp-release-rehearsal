@@ -1,0 +1,333 @@
+{
+  "feature": "query-validation",
+  "live_check": "offline parser checks after one retained trial replay initializes the isolated case cache; no source requests",
+  "story": "Enumerated values accept any letter case and echo canonical values while unknown choices keep the valid list.",
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma"
+      ],
+      "expect": {
+        "/status": "complete"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--status",
+        "recruiting"
+      ],
+      "offline": true,
+      "expect": {
+        "/query/status": "RECRUITING"
+      },
+      "is_error": true,
+      "exit": 4
+    },
+    {
+      "offline": true,
+      "expect": {
+        "/query/status": "RECRUITING"
+      },
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "status": "recruiting"
+        }
+      },
+      "is_error": true
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "NCI",
+        "--status",
+        "wItHdRaWn"
+      ],
+      "offline": true,
+      "expect": {
+        "/query/status": "Withdrawn",
+        "/query/source": "nci"
+      },
+      "is_error": true,
+      "exit": 4
+    },
+    {
+      "offline": true,
+      "expect": {
+        "/query/status": "Withdrawn",
+        "/query/source": "nci"
+      },
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "source": "NCI",
+          "status": "WITHDRAWN"
+        }
+      },
+      "is_error": true
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--status",
+        "not-a-choice"
+      ],
+      "offline": true,
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--status",
+        "/error/valid_values": [
+          "ACTIVE_NOT_RECRUITING",
+          "COMPLETED",
+          "ENROLLING_BY_INVITATION",
+          "NOT_YET_RECRUITING",
+          "RECRUITING",
+          "SUSPENDED",
+          "TERMINATED",
+          "WITHDRAWN",
+          "AVAILABLE",
+          "NO_LONGER_AVAILABLE",
+          "TEMPORARILY_NOT_AVAILABLE",
+          "APPROVED_FOR_MARKETING",
+          "WITHHELD",
+          "UNKNOWN",
+          "Active",
+          "Administratively Complete",
+          "Approved",
+          "Closed to Accrual",
+          "Closed to Accrual and Intervention",
+          "Complete",
+          "INACTIVE",
+          "Enrolling by Invitation",
+          "Temporarily Closed to Accrual",
+          "Temporarily Closed to Accrual and Intervention",
+          "Withdrawn"
+        ]
+      }
+    },
+    {
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--status",
+        "/error/valid_values": [
+          "ACTIVE_NOT_RECRUITING",
+          "COMPLETED",
+          "ENROLLING_BY_INVITATION",
+          "NOT_YET_RECRUITING",
+          "RECRUITING",
+          "SUSPENDED",
+          "TERMINATED",
+          "WITHDRAWN",
+          "AVAILABLE",
+          "NO_LONGER_AVAILABLE",
+          "TEMPORARILY_NOT_AVAILABLE",
+          "APPROVED_FOR_MARKETING",
+          "WITHHELD",
+          "UNKNOWN",
+          "Active",
+          "Administratively Complete",
+          "Approved",
+          "Closed to Accrual",
+          "Closed to Accrual and Intervention",
+          "Complete",
+          "INACTIVE",
+          "Enrolling by Invitation",
+          "Temporarily Closed to Accrual",
+          "Temporarily Closed to Accrual and Intervention",
+          "Withdrawn"
+        ]
+      },
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "status": "not-a-choice"
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "CTGOV",
+        "--status",
+        "Withdrawn"
+      ],
+      "offline": true,
+      "expect": {
+        "/query/status": "WITHDRAWN"
+      },
+      "is_error": true,
+      "exit": 4
+    },
+    {
+      "offline": true,
+      "expect": {
+        "/query/status": "WITHDRAWN"
+      },
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "source": "CTGOV",
+          "status": "Withdrawn"
+        }
+      },
+      "is_error": true
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "unknown-provider"
+      ],
+      "offline": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--source",
+        "/error/valid_values": [
+          "ctgov",
+          "nci"
+        ]
+      },
+      "exit": 2,
+      "is_error": true
+    },
+    {
+      "offline": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--source",
+        "/error/valid_values": [
+          "ctgov",
+          "nci"
+        ]
+      },
+      "is_error": true,
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "source": "unknown-provider"
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "pgx",
+        "RECOMMENDATIONS",
+        "--gene",
+        "CYP2D6",
+        "--source",
+        "CPIC"
+      ],
+      "offline": true,
+      "is_error": true,
+      "exit": 4,
+      "expect": {
+        "/query/section": "recommendations",
+        "/query/source": "cpic"
+      }
+    },
+    {
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/query/section": "recommendations",
+        "/query/source": "cpic"
+      },
+      "mcp_call": {
+        "name": "get_pgx",
+        "arguments": {
+          "section": "RECOMMENDATIONS",
+          "gene": "CYP2D6",
+          "source": "CPIC"
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "phenotype",
+        "headache",
+        "--source",
+        "HPO"
+      ],
+      "offline": true,
+      "is_error": true,
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.retired"
+      }
+    },
+    {
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.retired"
+      },
+      "mcp_call": {
+        "name": "search_phenotype",
+        "arguments": {
+          "text": "headache",
+          "source": "HPO"
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--source",
+        "NCI",
+        "--status",
+        "recruiting"
+      ],
+      "offline": true,
+      "is_error": true,
+      "exit": 2,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--status",
+        "/error/valid_values": {
+          "includes": "RECRUITING"
+        }
+      }
+    },
+    {
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "--status",
+        "/error/valid_values": {
+          "includes": "RECRUITING"
+        }
+      },
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "source": "NCI",
+          "status": "recruiting"
+        }
+      }
+    }
+  ],
+  "replay": "trial/condition"
+}

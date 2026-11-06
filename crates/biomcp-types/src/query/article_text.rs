@@ -1,16 +1,12 @@
 use super::gene::{QueryInvalid, present};
 use crate::{ArticleInput, Text};
 use serde::{Deserialize, Serialize};
-/// Read one bounded body part, find matching rows, or save the complete Markdown document.
+/// Return the abstract card by default, or explicitly read body text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "Fields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature="schema",
- schemars(with="Fields",
- extend("anyOf"=[{"required":["part"]},
-{"required":["find"]},
-{"required":["variant"]},
-{"required":["save"]}])))]
+ schemars(with="Fields", extend("x-reply-query-titles"=["ArticleGet"])))]
 pub struct ArticleText(Fields);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -19,7 +15,7 @@ struct Fields {
     /// PubMed or PMC identity. DOI selectors are not accepted by the reader.
     #[cfg_attr(feature="schema", schemars(extend("x-positional"=0)))]
     input: ArticleInput,
-    /// One-based outline part number.
+    /// One-based outline part; omit reader selectors for the abstract card.
     #[serde(
         default,
         deserialize_with = "present",
@@ -74,14 +70,14 @@ impl TryFrom<Fields> for ArticleText {
         .into_iter()
         .filter(|v| *v)
         .count()
-            != 1
+            > 1
         {
             return Err(QueryInvalid::new(&["part", "find", "variant", "save"]));
         }
         if v.part == Some(0) {
             return Err(QueryInvalid::new(&["part"]));
         }
-        if (v.part.is_some() || v.save.is_some()) && v.offset != 0 {
+        if v.find.is_none() && v.variant.is_none() && v.offset != 0 {
             return Err(QueryInvalid::new(&["part", "save", "offset"]));
         }
         if v.replace && v.save.is_none() {
@@ -91,6 +87,18 @@ impl TryFrom<Fields> for ArticleText {
     }
 }
 impl ArticleText {
+    /// Normalize the default reader view to the existing abstract-bearing article card.
+    pub fn into_request(self) -> crate::Request {
+        if self.0.part.is_none()
+            && self.0.find.is_none()
+            && self.0.variant.is_none()
+            && self.0.save.is_none()
+        {
+            crate::Request::GetArticle(crate::ArticleGet::single(self.0.input))
+        } else {
+            crate::Request::ArticleText(self)
+        }
+    }
     /// Build a part selector used in source continuation actions.
     pub fn part(input: ArticleInput, part: u32) -> Result<Self, QueryInvalid> {
         let mut fields = Fields::new(input);

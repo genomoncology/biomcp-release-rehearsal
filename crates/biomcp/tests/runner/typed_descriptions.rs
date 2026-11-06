@@ -13,10 +13,9 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
     faers_drug(&tools)?;
     for (verb, entity, id) in biomcp_types::command_paths() {
         let name = format!("{verb}_{entity}").replace('-', "_");
-        let tool = tools
-            .iter()
-            .find(|tool| tool.get("name") == Some(&json!(name)))
-            .ok_or("registry tool")?;
+        let Some(tool) = tools.iter().find(|tool| tool["name"] == name) else {
+            continue; // Grouped command contracts remain available through canonical help.
+        };
         let description = tool
             .get("description")
             .and_then(Value::as_str)

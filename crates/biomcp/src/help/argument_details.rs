@@ -24,6 +24,12 @@ pub(super) fn complete(commands: &mut [HelpCommand]) {
             })
             .unwrap_or_default();
         for argument in &mut command.arguments {
+            if !argument.choices.is_empty() && argument.value_type != "boolean" {
+                argument.description.push('\n');
+                argument
+                    .description
+                    .push_str(crate::grammar::ENUM_CASE_GUIDANCE);
+            }
             if !argument.name.starts_with("--") {
                 continue;
             }

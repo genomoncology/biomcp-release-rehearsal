@@ -87,7 +87,10 @@ impl Calls {
                 let outcome = worker::execute(|| {
                     research::execute(&call, context, true).map(|outcome| {
                         super::super::typed::tool_result(
-                            worker_id, &outcome, modern, &globals, &settings, &root, &call.args,
+                            worker_id,
+                            &outcome,
+                            modern,
+                            context.settings,
                         )
                     })
                 });
@@ -212,6 +215,7 @@ mod tests {
                 call: Call {
                     args: Vec::new(),
                     projection: Projection::Cli,
+                    catalog: None,
                 },
                 secrets: None,
                 declared_use: crate::command::DeclaredUse::Academic,

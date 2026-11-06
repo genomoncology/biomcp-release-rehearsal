@@ -19,23 +19,30 @@ pub(super) fn check(mode: &str) -> Check {
 
 fn component_catalog(server: &Server) -> Check {
     let tools = catalog(server)?;
-    let get = tools
+    let route = super::super::typed_catalog::command(&tools, "get_adverse_event")
+        .ok_or("get adverse event reference route")?;
+    let reference = tools
         .iter()
-        .find(|tool| tool.get("name") == Some(&json!("get_adverse_event")))
-        .ok_or("get adverse event")?;
-    let validator = jsonschema::validator_for(get.get("inputSchema").ok_or("get schema")?)
-        .map_err(|e| e.to_string())?;
-    if !validator.is_valid(&json!({"id":"100","source":"faers","section":"drugs"}))
-        || !validator.is_valid(&json!({"id":"123","source":"maude","section":"narrative"}))
-    {
-        return Err("component-free report sections disappeared".into());
-    }
-    for (source, section) in [("faers", "reactions"), ("maude", "devices")] {
-        if validator.is_valid(&json!({"id":"100","source":source,"section":section})) {
-            return Err(format!(
-                "{section} offered with its required component disabled"
-            ));
+        .find(|tool| tool["name"] == "biomcp_reference")
+        .ok_or("reference tool")?;
+    let schema = reference.get("inputSchema").ok_or("reference schema")?;
+    let validator = jsonschema::validator_for(schema).map_err(|error| error.to_string())?;
+    for input in [
+        json!({"id":"100","source":"faers","section":"drugs"}),
+        json!({"id":"123","source":"maude","section":"narrative"}),
+    ] {
+        let call = super::super::typed_catalog::call(&route, &input);
+        if !validator.is_valid(call.get("arguments").ok_or("reference arguments")?) {
+            return Err("component-free report reference call disappeared".into());
         }
+    }
+    // Per-command component admission is proved by canonical help and execution below.
+    // The generic reference schema must not enumerate a refused section as a choice.
+    if ["reactions", "devices"]
+        .iter()
+        .any(|section| schema.to_string().contains(&format!("\"{section}\"")))
+    {
+        return Err("reference schema advertises a component-disabled section".into());
     }
     let search = tools
         .iter()
@@ -198,6 +205,8 @@ fn component_card(server: &Server, mode: &str) -> Check {
             step.get("args")
                 .and_then(Value::as_array)
                 .is_some_and(|args| args.contains(&json!("reactions")))
+                || step.pointer("/arguments/section") == Some(&json!("reactions"))
+                || step.pointer("/arguments/arguments/section") == Some(&json!("reactions"))
         })
     {
         return Err("disabled reaction section offered by next".into());

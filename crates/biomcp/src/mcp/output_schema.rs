@@ -6,10 +6,19 @@ pub(super) fn for_command(verb: &str, entity: &str, id: &str) -> io::Result<Valu
     let ids = crate::schema::replies(id, verb, entity)
         .into_iter()
         .collect();
-    Ok(
-        json!({"$schema":super::protocol::SCHEMA_DIALECT,"type":"object",
-        "anyOf":[envelope(ids)?,shape(&canonical("biomcp.error/4")?)?]}),
-    )
+    let mut branches = [envelope(ids)?, shape(&canonical("biomcp.error/4")?)?];
+    for branch in &mut branches {
+        if let Some(fields) = branch.get_mut("properties").and_then(Value::as_object_mut) {
+            fields.insert(
+                "next".into(),
+                json!({"type":"array","items":{
+                "type":"object","properties":{"kind":{"type":"string"},
+                    "name":{"type":"string"},"arguments":{"type":"object"}},
+                "required":["kind","name","arguments"],"additionalProperties":false}}),
+            );
+        }
+    }
+    Ok(json!({"$schema":super::protocol::SCHEMA_DIALECT,"type":"object","anyOf":branches}))
 }
 fn envelope(ids: BTreeSet<String>) -> io::Result<Value> {
     let health = canonical(<biomcp_types::Health as biomcp_types::ResponseBody>::SCHEMA)?;

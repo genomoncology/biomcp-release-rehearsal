@@ -574,3 +574,22 @@ fn compatibility_checks_string_length_caps() {
         "negative caps are malformed"
     );
 }
+
+#[test]
+fn enum_field_scope_is_checked_metadata_without_a_schema_major_change() {
+    let old = json!({"$id":"biodata.example/1", "type":"string", "enum":["WITHDRAWN","Withdrawn"]});
+    let mut new = old.clone();
+    new["x-enum-by-field"] = json!({"field":"source", "default":"registry", "choices":{
+        "registry":["WITHDRAWN"], "other":["Withdrawn"]
+    }});
+    assert!(check(&old, &new).is_ok());
+    for scope in [
+        json!(true),
+        json!({"field":"source", "default":"missing", "choices":{"registry":["WITHDRAWN"]}}),
+        json!({"field":"source", "default":"registry", "choices":{"registry":["invented"]}}),
+        json!({"field":"", "default":"registry", "choices":{"registry":["WITHDRAWN"]}}),
+    ] {
+        new["x-enum-by-field"] = scope;
+        assert!(check(&old, &new).is_err());
+    }
+}

@@ -326,10 +326,6 @@ impl Service {
         let scope = self.globals.hosted.then(|| {
             biomcp_fetch::Cancellation::with_budget(crate::config::budget(&self.settings))
         });
-        let call = match self.parse_tool(&id, params, modern, declared_use) {
-            Ok(call) => call,
-            Err(reply) => return (200, Some(reply), Some(revision)),
-        };
         let keys = if self.globals.hosted {
             let keys = match request.source_keys() {
                 Ok(keys) => keys,
@@ -345,6 +341,20 @@ impl Service {
         } else {
             None
         };
+        let context = crate::command::Context {
+            globals: &self.globals,
+            root: &self.root,
+            settings: &self.settings,
+            fetch: &self.fetch,
+            recovery: self.recovery.as_deref(),
+            secrets: keys.as_ref(),
+            declared_use,
+            scope: scope.as_ref(),
+        };
+        let call = match self.parse_tool(&id, params, modern, context) {
+            Ok(call) => call,
+            Err(reply) => return (200, Some(reply), Some(revision)),
+        };
         let result = if let Some(scope) = scope {
             self.calls.run(
                 self,
@@ -358,29 +368,8 @@ impl Service {
                 },
             )
         } else {
-            match super::research::execute(
-                &call,
-                crate::command::Context {
-                    globals: &self.globals,
-                    root: &self.root,
-                    settings: &self.settings,
-                    fetch: &self.fetch,
-                    recovery: self.recovery.as_deref(),
-                    secrets: keys.as_ref(),
-                    declared_use,
-                    scope: None,
-                },
-                true,
-            ) {
-                Ok(outcome) => super::typed::tool_result(
-                    id,
-                    &outcome,
-                    modern,
-                    &self.globals,
-                    &self.settings,
-                    &self.root,
-                    &call.args,
-                ),
+            match super::research::execute(&call, context, true) {
+                Ok(outcome) => super::typed::tool_result(id, &outcome, modern, context.settings),
                 Err(_) => super::protocol::error(id, -32603, "Internal error"),
             }
         };
@@ -391,32 +380,19 @@ impl Service {
         id: &Value,
         params: &Value,
         modern: bool,
-        declared_use: Option<crate::command::DeclaredUse>,
+        context: crate::command::Context<'_>,
     ) -> Result<super::research::Call, Value> {
         let call = super::typed::parse(
-            &self.root,
+            context,
             params,
             crate::config::mcp_tool_mode(&self.globals, &self.settings),
             self.globals.fresh,
+            true,
         )
         .ok_or_else(|| super::protocol::error(id.clone(), -32602, "Invalid params"))?;
         call.map_err(|rejected| {
-            super::typed::rejection(
-                id.clone(),
-                rejected,
-                modern,
-                crate::command::Context {
-                    globals: &self.globals,
-                    root: &self.root,
-                    settings: &self.settings,
-                    fetch: &self.fetch,
-                    recovery: self.recovery.as_deref(),
-                    secrets: None,
-                    declared_use,
-                    scope: None,
-                },
-            )
-            .unwrap_or_else(|_| super::protocol::error(id.clone(), -32603, "Internal error"))
+            super::typed::rejection(id.clone(), rejected, modern, context, true)
+                .unwrap_or_else(|_| super::protocol::error(id.clone(), -32603, "Internal error"))
         })
     }
     fn allowed(&self, request: &wire::Request) -> bool {

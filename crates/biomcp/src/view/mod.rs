@@ -97,8 +97,10 @@ impl View<'_> {
             let node = property(schema, name, self.root).unwrap_or(&Value::Null);
             if (value.is_object() || value.is_array()) && nonfinite(value).is_none() {
                 heading(name, depth, out);
-                if name == "next" {
-                    steps(value, out);
+                if typed_step(value, node, self.root, out) {
+                    continue;
+                } else if name == "next" {
+                    steps(value, node, self.root, out);
                 } else if !(name == "parts"
                     && self
                         .hint
@@ -135,6 +137,16 @@ impl View<'_> {
     }
     fn array(&self, items: &[Value], schema: &Value, depth: usize, out: &mut String) {
         let item_schema = member(schema, "items", self.root).unwrap_or(&Value::Null);
+        if !items.is_empty()
+            && items
+                .iter()
+                .all(|value| projected_step(value, item_schema, self.root))
+        {
+            for item in items {
+                typed_step(item, item_schema, self.root, out);
+            }
+            return;
+        }
         if items.is_empty() {
             out.push_str("None\n\n");
             return;
@@ -325,8 +337,33 @@ fn controls(text: &str) -> String {
     }
     out
 }
-fn steps(value: &Value, out: &mut String) {
+fn projected_step(value: &Value, schema: &Value, root: &Value) -> bool {
+    value.get("name").is_some()
+        && value.get("arguments").is_some()
+        && crate::schema::steps::paths(root, schema, value)
+            .iter()
+            .any(String::is_empty)
+}
+fn typed_step(value: &Value, schema: &Value, root: &Value, out: &mut String) -> bool {
+    if !projected_step(value, schema, root) {
+        return false;
+    }
+    if let Some(kind) = value.get("kind") {
+        out.push_str(&format!("**{}:**\n\n", scalar(kind)));
+    }
+    let call = serde_json::json!({"name":value["name"],"arguments":value["arguments"]}).to_string();
+    let longest = call.split(|ch| ch != '`').map(str::len).max().unwrap_or(0);
+    let fence = "`".repeat(3.max(longest + 1));
+    out.push_str(&format!("{fence}json\n{call}\n{fence}\n\n"));
+    true
+}
+
+fn steps(value: &Value, schema: &Value, root: &Value, out: &mut String) {
+    let item = member(schema, "items", root).unwrap_or(schema);
     for step in value.as_array().into_iter().flatten() {
+        if typed_step(step, item, root, out) {
+            continue;
+        }
         let Some(args) = step.get("args").and_then(Value::as_array) else {
             continue;
         };

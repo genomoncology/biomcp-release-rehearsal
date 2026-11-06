@@ -69,6 +69,14 @@ pub(super) fn accepted(schema: &Value, property: &Value) -> Option<Box<[biodata:
             .filter_map(Value::as_str)
             .map(str::to_owned)
             .collect()
+    } else if super::property_type(value) == Some("integer") {
+        let mut form = String::from("integer");
+        for (key, operator) in [("minimum", ">="), ("maximum", "<=")] {
+            if let Some(bound) = value.get(key) {
+                form.push_str(&format!(" {operator} {bound}"));
+            }
+        }
+        vec![form]
     } else {
         let description = value
             .get("description")

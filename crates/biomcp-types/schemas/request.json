@@ -874,7 +874,33 @@
         "III",
         "IV"
       ],
-      "type": "string"
+      "type": "string",
+      "x-enum-by-field": {
+        "choices": {
+          "ctgov": [
+            "early-1",
+            "1",
+            "2",
+            "3",
+            "4",
+            "not-applicable",
+            "1/2",
+            "2/3"
+          ],
+          "nci": [
+            "NA",
+            "0",
+            "I",
+            "I_II",
+            "II",
+            "II_III",
+            "III",
+            "IV"
+          ]
+        },
+        "default": "ctgov",
+        "field": "source"
+      }
     },
     "TrialSection": {
       "description": "Available source protocol sections.",
@@ -951,7 +977,42 @@
         "Temporarily Closed to Accrual and Intervention",
         "Withdrawn"
       ],
-      "type": "string"
+      "type": "string",
+      "x-enum-by-field": {
+        "choices": {
+          "ctgov": [
+            "ACTIVE_NOT_RECRUITING",
+            "COMPLETED",
+            "ENROLLING_BY_INVITATION",
+            "NOT_YET_RECRUITING",
+            "RECRUITING",
+            "SUSPENDED",
+            "TERMINATED",
+            "WITHDRAWN",
+            "AVAILABLE",
+            "NO_LONGER_AVAILABLE",
+            "TEMPORARILY_NOT_AVAILABLE",
+            "APPROVED_FOR_MARKETING",
+            "WITHHELD",
+            "UNKNOWN"
+          ],
+          "nci": [
+            "Active",
+            "Administratively Complete",
+            "Approved",
+            "Closed to Accrual",
+            "Closed to Accrual and Intervention",
+            "Complete",
+            "INACTIVE",
+            "Enrolling by Invitation",
+            "Temporarily Closed to Accrual",
+            "Temporarily Closed to Accrual and Intervention",
+            "Withdrawn"
+          ]
+        },
+        "default": "ctgov",
+        "field": "source"
+      }
     },
     "UniProtIsoform": {
       "description": "A stated UniProt accession with an optional positive isoform number; never imputes -1.",
@@ -4173,7 +4234,7 @@
           "type": "boolean"
         },
         "country": {
-          "description": "Country label; biomcp_help search trial.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+          "description": "Country label.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
           "items": {
             "enum": [
               "Afghanistan",
@@ -4718,29 +4779,7 @@
     },
     {
       "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "part"
-          ]
-        },
-        {
-          "required": [
-            "find"
-          ]
-        },
-        {
-          "required": [
-            "variant"
-          ]
-        },
-        {
-          "required": [
-            "save"
-          ]
-        }
-      ],
-      "description": "Read research article full text.",
+      "description": "Get the abstract card by default, or explicitly read article body text.",
       "properties": {
         "command": {
           "const": "article-text",
@@ -4763,7 +4802,7 @@
           "type": "integer"
         },
         "part": {
-          "description": "One-based outline part number.",
+          "description": "One-based outline part; omit reader selectors for the abstract card.",
           "format": "uint32",
           "minimum": 1,
           "type": "integer"
@@ -4785,7 +4824,10 @@
         "command",
         "input"
       ],
-      "type": "object"
+      "type": "object",
+      "x-reply-query-titles": [
+        "ArticleGet"
+      ]
     },
     {
       "additionalProperties": false,

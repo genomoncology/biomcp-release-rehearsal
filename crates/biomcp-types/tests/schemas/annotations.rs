@@ -4,6 +4,7 @@ type Check<T> = Result<T, String>;
 
 pub(super) fn validate(object: &serde_json::Map<String, Value>) -> Check<()> {
     validate_cli_flags(object.get("x-cli-flags"))?;
+    validate_enum_scope(object)?;
     let source = |value: &Value| {
         value
             .as_str()
@@ -85,6 +86,41 @@ fn validate_cli_flags(flags: Option<&Value>) -> Check<()> {
     Ok(())
 }
 
+fn validate_enum_scope(object: &serde_json::Map<String, Value>) -> Check<()> {
+    let Some(scope) = object.get("x-enum-by-field") else {
+        return Ok(());
+    };
+    let scope = scope.as_object().ok_or("invalid enum field scope")?;
+    let field = scope
+        .get("field")
+        .and_then(Value::as_str)
+        .ok_or("enum scope field")?;
+    let default = scope
+        .get("default")
+        .and_then(Value::as_str)
+        .ok_or("enum scope default")?;
+    let choices = scope
+        .get("choices")
+        .and_then(Value::as_object)
+        .ok_or("enum scope choices")?;
+    let values = object
+        .get("enum")
+        .and_then(Value::as_array)
+        .ok_or("enum scope values")?;
+    if scope.len() != 3
+        || field.is_empty()
+        || !choices.contains_key(default)
+        || choices.iter().any(|(key, list)| {
+            key.is_empty()
+                || list.as_array().is_none_or(|list| {
+                    list.is_empty() || list.iter().any(|v| !v.is_string() || !values.contains(v))
+                })
+        })
+    {
+        return Err("invalid enum field scope".into());
+    }
+    Ok(())
+}
 pub(super) fn required_component_annotations_are_metadata_with_checked_sources() -> Check<()> {
     use serde_json::json;
     let old = json!({"$id":"biodata.example/1", "type":"object", "properties":{"name":{"type":"string"}},

@@ -32,6 +32,13 @@ pub enum UsageError {
     },
     /// A body position is invalid.
     TextPositionError,
+    /// A numeric body selector exceeds the available outline.
+    ArticlePartRange {
+        /// Checked article identity for outline discovery.
+        input: crate::ArticleInput,
+        /// Last available one-based body part; zero denotes an empty outline.
+        last: u32,
+    },
     /// Citation ordering exceeds its checked bound.
     TooManyPmids {
         /// Unique PMID count before enrichment.
