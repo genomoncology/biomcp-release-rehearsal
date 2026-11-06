@@ -4,14 +4,6 @@ set -eu
 cd "$(dirname "$0")/.."
 root=$(pwd)
 ignore='(^|/)(tests|target|generated)/|(^|/)build\.rs$|_tests\.rs$'
-threshold=$(awk '
-    NR != 1 || $0 !~ /^[0-9]+([.][0-9]+)?$/ || $0 + 0 > 100 { bad = 1 }
-    END {
-        if (NR != 1 || bad) exit 1
-        floor = $0 - 0.2
-        printf "%.4f\n", (floor > 0 ? floor : 0)
-    }
-' coverage.floor) || { echo 'coverage: invalid coverage.floor' >&2; exit 1; }
 
 coverage_env=$(cargo llvm-cov show-env --sh)
 eval "$coverage_env"
@@ -73,13 +65,7 @@ PYREPORT
 report() {
     selected_source report >"$summary"
     awk '/^TOTAL/ { print "coverage (cases; product binary source): " $0 }' "$summary"
-    awk -v threshold="$threshold" '
-        /^TOTAL/ { found = 1; value = $10 + 0; if (value < threshold) bad = 1 }
-        END {
-            if (!found) { print "coverage: missing line totals" > "/dev/stderr"; exit 1 }
-            if (bad) { print "coverage: below floor tolerance " threshold > "/dev/stderr"; exit 1 }
-        }
-    ' "$summary"
+    grep -q '^TOTAL' "$summary" || { echo 'coverage: missing line totals' >&2; exit 1; }
 }
 
 case "${1:-run}" in

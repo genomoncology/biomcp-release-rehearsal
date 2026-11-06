@@ -28,11 +28,17 @@ Reports include the YAML case count, total trial count and elapsed time. The fir
 
 The separate `tools` target contains opt-in schema and assertion boundary proofs, parity validation, synthetic adapter projections, generators and live checks. These library or tooling calls do not test the installed executable. Repository ratchets and library contracts remain separate targets. `make library-tests` runs the retained library and private boundary tests. The architecture's test-placement table records their reasons.
 
+## Check a change
+
+`make landing-gate` is the check every landing runs. It stops at the first failed stage and prints each stage's time. It runs `make rights`, `audit` and `secrets`, which take seconds and need no build, then `pre-job` (`check_docs.py`, shell, format, lint and structure ratchets), workflow lint, then `make cases`, the whole outside-in CLI and MCP suite on a plain build without coverage instrumentation.
+
+`make full-suite` is the one command for a final release. It adds the documentation and release tool checks, the tensor proto check, the complete secret history, the library tests and the coverage report. Run it through a job before starting the release workflow. That workflow covers installed packages and other platforms. The mutation run below is a separate release step and runs nowhere else.
+
 ## Measure command coverage
 
-`make coverage` runs `cases` against an instrumented product binary. The launcher gives every child a `bin-%m-%p.profraw` profile name. The script merges only those profiles and reports only the actual binary object through LLVM tools. The denominator contains linked product source lines and excludes generated protobuf code. Harness execution and in-process library contracts never count. `make library-tests` validates those libraries separately in the routine gate.
+`make coverage` runs `cases` against an instrumented product binary. The launcher gives every child a `bin-%m-%p.profraw` profile name. The script merges only those profiles and reports only the actual binary object through LLVM tools. The denominator contains linked product source lines and excludes generated protobuf code. Harness execution and in-process library contracts never count. `make library-tests` validates those libraries separately in the full suite.
 
-The release maintainer sets `coverage.floor` from the first binary-only measurement and owns subsequent increases. `make unreached` displays line execution counts from the last complete collection. Raw child and harness profiles remain in the coverage target directory for diagnosis until the next collection.
+Coverage is a report. It gates nothing, though a failed suite still fails the collection. `make unreached` displays line execution counts from the last complete collection. Raw child and harness profiles remain in the coverage target directory for diagnosis until the next collection.
 
 ## Inspect a candidate with mutation testing
 
@@ -48,7 +54,7 @@ Before compiling, each shard discovers its filtered scope using selected filenam
 
 The native command selects `biomcp` in its shared Cargo arguments as well as its test-package option. The pinned tool chooses baseline packages from mutated source packages, which may have no `cases` target. The shared Cargo argument includes the owning package in both baseline and mutation phases.
 
-Run `collect --plan DIRECTORY/plan.json` after the shard jobs finish. Attach `mutation-report.json` and the raw shard directories to the candidate. The report separates caught mutants, survivors, build failures, native timeouts and unrun mutants. It preserves native phase durations and reports the number that actually completed. Missing shards, baseline failures and tool errors fail collection. Survivors remain advisory. The release owner chooses at most ten survivors for new outside-in cases, starting with rule modules, and lists the rest.
+Run `collect --plan DIRECTORY/plan.json` after the shard jobs finish. Attach `mutation-report.json` and the raw shard directories to the candidate. The report separates caught mutants, survivors, build failures, native timeouts and unrun mutants. It preserves native phase durations and reports the number that actually completed. Missing shards, baseline failures and tool errors fail collection. On a candidate plan, survivors, native timeouts and selected mutants that never ran fail it too; a calibration plan only measures cost and passes with them. To clear a failure, the release owner adds outside-in cases for the survivors, starting with rule modules, and runs the plan again.
 
 The release rehearsal exposes each mutation action through `make release-mutations MUTATION_REPORT=REPORT MUTATION_ARGS='ACTION ARGUMENTS'`. Supply a job-owned stage report for each invocation. Submit each planned shard as a separate native job; after all shards finish, invoke `collect` through the same target. This entry point records the action's exit status and leaves its native logs and survivor report beside the plan.
 

@@ -66,6 +66,6 @@ See [hosted server configuration](docs/configuration.md#hosted-servers) for depl
 
 The documentation check does not run the exact `uv tool install biomcp-cli` or `uv tool upgrade biomcp-cli` shell instructions.
 
-Run `make docs-generate` after command changes and `make docs-check` to check generated documentation and execute documented examples against recordings. Run `make landing-gate` for the routine formatting, lint, coverage and dependency checks. See [ROADMAP.md](ROADMAP.md) for scope and source availability.
+Run `make docs-generate` after command changes and `make docs-check` to check generated documentation and execute documented examples against recordings. Run `make landing-gate` for the short landing check: formatting, lint, rights, dependency and secret checks, then the CLI and MCP cases. See [ROADMAP.md](ROADMAP.md) for scope and source availability.
 
 `make schema-release-check` compares generated schemas with the portable snapshot named in `release/schema-baseline.json`. It enforces schema major-version compatibility and rejects missing, malformed or incomplete baselines. Release artifact checks install and exercise the produced package in an isolated environment.

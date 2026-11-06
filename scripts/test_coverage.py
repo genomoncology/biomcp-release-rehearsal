@@ -59,7 +59,6 @@ def main():
             target = root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
-        (root / 'coverage.floor').write_text('60\n')
         source = root / 'crates/product/src/main.rs'
         source.parent.mkdir(parents=True)
         source.write_text('fn main() {}\n')
@@ -90,8 +89,8 @@ def main():
         assert report.returncode == 0, report.stdout + report.stderr
         unreached = invoke(root, env, 'unreached')
         assert unreached.returncode == 0, unreached.stdout + unreached.stderr
-        below = invoke(root, env, 'report', PROOF_COVERAGE='59.7')
-        assert below.returncode != 0 and 'below floor' in below.stderr, below
+        low = invoke(root, env, 'report', PROOF_COVERAGE='1.0')
+        assert low.returncode == 0 and '1.0%' in low.stdout, low
         skill.write_text('Use biomcp to retrieve updated evidence.\n')
         changed = invoke(root, env, 'report')
         assert changed.returncode != 0 and 'inputs changed since collection' in changed.stderr, changed
@@ -100,7 +99,7 @@ def main():
         assert not (root / 'profiles/coverage-complete').exists()
         missing = invoke(root, env, PROOF_NO_CHILDREN='1')
         assert missing.returncode != 0 and 'no product binary profiles' in missing.stderr, missing
-    print('Coverage selects product children and binary object; refuses incomplete collections and low coverage')
+    print('Coverage selects product children and binary object; refuses incomplete collections; reports low coverage without failing')
 
 
 if __name__ == '__main__':

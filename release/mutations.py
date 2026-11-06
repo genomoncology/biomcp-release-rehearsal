@@ -255,7 +255,10 @@ def collect(args):
     save(args.plan.parent / 'mutation-report.json', report)
     print(json.dumps({key: len(report[key]) for key in
                       ('caught', 'survivors', 'unviable', 'timeouts', 'unrun', 'errors')}))
-    return int(bool(report['errors']))
+    # A candidate fails on what it missed; a calibration only measures cost.
+    missed = not value['calibration'] and (report['survivors'] or report['timeouts']
+                                           or set(value['selected']) - seen)
+    return int(bool(report['errors'] or missed))
 
 
 def add_outcomes(outcomes, plan_value, report, seen):

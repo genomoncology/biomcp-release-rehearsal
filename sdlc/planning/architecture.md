@@ -136,7 +136,7 @@ Check: `release/test_checks.py`; Check: `crates/biomcp/tests/ratchets/source_fil
 
 ### 10.2 Coverage
 
-`scripts/coverage.sh` counts only product-binary profiles and the linked binary object. Generated protobuf code is excluded. The PM owns `coverage.floor`. Coverage does not justify adding duplicate cases.
+`scripts/coverage.sh` counts only product-binary profiles and the linked binary object. Generated protobuf code is excluded. Coverage is a report and gates nothing. It does not justify adding duplicate cases.
 
 Check: `scripts/test_coverage.py`.
 

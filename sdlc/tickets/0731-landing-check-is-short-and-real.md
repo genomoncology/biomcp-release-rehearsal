@@ -1,6 +1,7 @@
 # 0731 — Landing check is short and real
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: e4d33a318cf28a3e3b03e752e0e4629bf895f837
 
 Milestone: 5
 

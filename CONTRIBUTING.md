@@ -18,4 +18,4 @@ When you open an issue or discussion, include:
 
 ## Development checks
 
-Run `make fmt`, `make lint` and `make docs-check` for formatting, lint and documentation checks. Run `make landing-gate` for the routine suite. See [the development guide](docs/development.md) for recorded cases and installed artifact checks.
+Run `make fmt`, `make lint` and `make docs-check` for formatting, lint and documentation checks. Run `make landing-gate` for the short landing check. See [the development guide](docs/development.md) for recorded cases and installed artifact checks.

@@ -239,7 +239,7 @@ class MutationCommands(unittest.TestCase):
                                                '--root', str(self.root / 'setup' / 'tool')])
         self.assertEqual(calls[0]['cargo_home'], str(self.root / 'setup' / 'cargo-home'))
 
-    def test_survivors_do_not_fail_and_scope_preserves_all_unrun_mutants(self):
+    def test_calibration_survivors_do_not_fail_and_scope_preserves_all_unrun_mutants(self):
         value = self.prepare('--measure')
         self.assertEqual(len(value['selected']), 20)
         self.assertIn('mapped.rs', value['selected'][0])
@@ -263,6 +263,28 @@ class MutationCommands(unittest.TestCase):
         self.assertEqual((run['build'], run['tests']), ('2', '2'))
         self.assertEqual(run['revision'], value['candidate'])
 
+    def test_candidate_survivors_fail_collection_and_stay_in_the_report(self):
+        value = self.prepare('--measure')
+        self.call('shard', '--plan', self.plan, '--index', 0)
+        self.plan.write_text(json.dumps(dict(value, calibration=False)))
+        self.call('collect', '--plan', self.plan, ok=False)
+        self.assertTrue(self.report()['survivors'])
+        self.assertFalse(self.report()['errors'])
+
+    def test_candidate_cut_off_by_the_deadline_fails_collection(self):
+        value = self.prepare('--measure')
+        self.plan.write_text(json.dumps(dict(value, calibration=False)))
+        self.env['FAKE_MODE'] = 'interrupted'
+        command = self.deadline_runner(self.output / 'shard-0/mutants.out/outcomes.json')
+        subprocess.run([*command, 'shard', '--plan', str(self.plan), '--index', '0'],
+                       cwd=self.root, env=self.env, capture_output=True, text=True, timeout=15)
+        outcomes = self.output / 'shard-0/mutants.out/outcomes.json'
+        rows = json.loads(outcomes.read_text())['outcomes']
+        outcomes.write_text(json.dumps(dict(outcomes=[
+            row for row in rows if row['summary'] in ('Success', 'CaughtMutant')])))
+        self.call('collect', '--plan', self.plan, ok=False)
+        self.assertFalse(self.report()['errors'] or self.report()['survivors'])
+
     def test_native_exit_cannot_hide_missing_selected_outcomes(self):
         self.prepare('--measure')
         self.env['FAKE_MODE'] = 'omitted'
@@ -281,7 +303,7 @@ class MutationCommands(unittest.TestCase):
         self.assertEqual((check['expected'], check['observed'], check['exact']), (20, 24, False))
         self.assertIn('--file', check['argv'])
 
-    def test_rehearsal_records_advisory_survivors_and_collection_errors(self):
+    def test_rehearsal_records_calibration_survivors_and_collection_errors(self):
         self.prepare('--measure')
         self.call('shard', '--plan', self.plan, '--index', 0)
         stage = self.root / 'stage.json'
