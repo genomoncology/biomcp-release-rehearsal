@@ -31,3 +31,11 @@ Row W1 of `records/2026-11-06-pre-release-review.md`: `litsense/mod.rs:60-70` re
 ## Changes
 
 - Changes: `crates/biomcp-adapters/src/litsense/`, `crates/biomcp-query/src/article/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+Ian replaced the Outcome above, which dropped all sentence text: "if there's an article that solves a problem but we can't return the text due to the commercial limit, we have a way of doing that filtering in a safe way. We can still give the maximum return of papers to look at, but maybe that doesn't have the text." The hosted server is not touched for this, and there is no rush.
+
+New Outcome: at `restricted`, every paper a search finds stays in the results, in rank order. Its text appears only when that paper's own license allows commercial use (`pmc_oa/rights.rs`). Otherwise the paper comes back as far as its rights allow, with a stated reason and where to read it. An unknown or unreadable license means no text. This holds on every route that returns article text, including LitSense, PubTator passages, full-text reads, stored pools and the source reply cache: withheld text is dropped in memory and never written to disk at `restricted`. A full-text read of a paper we may not return gives the paper's identity and reason, not a failure.
+
+Proof adds: recorded replies with one permitted, one noncommercial and one unknown paper, showing three rows and one sentence; a store inspection showing no withheld text on disk; and a bound on license lookups, so a search stays within its deadline and fails toward no text. Still no live LitSense call.

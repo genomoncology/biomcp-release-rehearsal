@@ -11,4 +11,4 @@ The PM adopted these on 2026-11-06 from the weighing in `records/2026-11-06-pre-
 7. Captures from noncommercial or licensed sources in a public repo are synthetic. History stays as it is.
 8. When a later ruling of Ian's overrides older decision text, the PM marks the older record at once.
 
-The weighing's ninth call, whether "every known fix" includes hygiene that no person meets, is Ian's and stays open.
+The weighing's ninth call was Ian's: "if there are any cosmetic issues that we can get done, prioritize them and work on them. We have developer capacity, so get those done." Hygiene that no person meets is in scope. 0711 to 0716 carry it.

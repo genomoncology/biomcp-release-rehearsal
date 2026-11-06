@@ -117,6 +117,8 @@ The code fix (W1) goes ahead regardless, because your 2026-11-04 ruling already 
 
 Recommendation: A, because you said you don't want to invite any legal issues, and this is the one finding where a rule of yours is being broken on the live service. B is reasonable if the Amazon testing window is short.
 
+Ian answered 2026-11-06: neither urgency applies. The server is not touched, because current use is connectivity testing. The long-term fix keeps every paper and withholds only text the paper's license does not allow (0689 amendment).
+
 ### Q2. What should happen with cBioPortal studies that restrict commercial use?
 
 cBioPortal's terms say data is open "unless otherwise noted", and that some studies restrict commercial use in their study information. BioMCP does not read that, and hosting bakes in the study list.
@@ -151,6 +153,8 @@ The PM may adopt these except the last, which is Ian's.
 7. **Captures from noncommercial or licensed sources in a public repo are synthetic.** History stays as it is. (W11)
 8. **When a later ruling of Ian's overrides older decision text, the PM marks the older record at once.** Three stale records misled this review: the 2026-10-24 commercial config line, the 2026-10-28 blind comparison, and 0293's progress line. (W3, W7, W32)
 9. **For Ian: does "every known fix" include hygiene that no person meets?** W41, W42 and W54 are rejected on my judgment, not a stance, because nobody is harmed. Your 2026-10-27 words say "everything we know about", and your 2026-11-05 words put AWS first. If you want them in, each costs under an hour except W54.
+
+Ian answered 2026-11-06: do them. W41, W42, W54 and the deferred W26, W39 and W43 became 0711 to 0716. W20, W37, W45, W47, W52 and W55 stay rejected: each is by design or was wrong, so there is nothing to fix.
 
 ## Checks not made
 
