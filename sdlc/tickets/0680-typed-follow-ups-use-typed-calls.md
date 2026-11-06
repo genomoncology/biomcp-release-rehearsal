@@ -1,6 +1,7 @@
 # 0680 — Typed follow-ups are typed calls with sections in their own field
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7a0cab3c7f89fa673ce858821bd3962523bedf57
 
 Milestone: 5
 
