@@ -81,14 +81,32 @@ pub(super) fn input_with_limit(schema: &Value, enum_limit: usize) -> Value {
         .into_iter()
         .flatten()
         .flat_map(|(key, node)| {
-            let description = node.get("description").and_then(Value::as_str).map(|text| {
-                text.lines()
-                    .next()
-                    .unwrap_or_default()
-                    .chars()
-                    .take(80)
-                    .collect::<String>()
-            });
+            let description = node
+                .get("x-section-rule")
+                .or_else(|| node.get("description"))
+                .and_then(Value::as_str)
+                .map(|text| {
+                    let mut lines = text.lines();
+                    let first = lines.next().unwrap_or_default();
+                    // Generated schemas prepend a compact help pointer to the original prose.
+                    let text = if first.contains("biomcp_help") {
+                        lines
+                            .next()
+                            .unwrap_or(first)
+                            .split("; biomcp_help")
+                            .next()
+                            .unwrap_or(first)
+                            .to_owned()
+                    } else {
+                        first.to_owned()
+                    };
+                    text.split(". ")
+                        .next()
+                        .unwrap_or_default()
+                        .trim_end_matches('.')
+                        .to_owned()
+                        + "."
+                });
             if let Some(flags) = node.get("x-cli-flags").and_then(Value::as_object) {
                 flags
                     .keys()

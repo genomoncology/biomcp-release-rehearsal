@@ -69,31 +69,7 @@ pub(super) fn relevant(
 
 pub(super) fn schema(mut schema: Value, excluded: &BTreeSet<Source>) -> Value {
     filter(&mut schema, excluded);
-    if excluded.is_empty() {
-        return schema;
-    }
-    for key in ["source", "sources", "resolver"] {
-        let mut allowed = BTreeSet::new();
-        if let Some(node) = schema.pointer(&format!("/properties/{key}")) {
-            crate::help::coverage::source_words(node, &schema, &mut allowed);
-        }
-        if let Some(node) = schema.pointer_mut(&format!("/properties/{key}"))
-            && let Some(fields) = node.as_object_mut()
-        {
-            fields.insert(
-                "description".into(),
-                json!(
-                    format!(
-                        "Source: {}",
-                        allowed.into_iter().collect::<Vec<_>>().join(",")
-                    )
-                    .chars()
-                    .take(80)
-                    .collect::<String>()
-                ),
-            );
-        }
-    }
+
     schema
 }
 
@@ -303,13 +279,18 @@ fn filter_sections(node: &mut Value, verb: &str, entity: &str, excluded: &BTreeS
 fn filter(node: &mut Value, excluded: &BTreeSet<Source>) {
     match node {
         Value::Object(fields) => {
-            if let Some(text) = fields.get("description").and_then(Value::as_str)
-                && mentions_excluded(text, excluded)
-            {
-                fields.insert(
-                    "description".into(),
-                    json!("See biomcp_help for this option."),
-                );
+            for key in ["description", "x-section-rule"] {
+                if let Some(text) = fields.get(key).and_then(Value::as_str)
+                    && mentions_excluded(text, excluded)
+                {
+                    let mut text = text.to_owned();
+                    for name in names(excluded) {
+                        for index in matches(&text.to_lowercase(), &name).into_iter().rev() {
+                            text.replace_range(index..index + name.len(), "disabled source");
+                        }
+                    }
+                    fields.insert(key.into(), json!(text));
+                }
             }
             for key in ["enum", "x-extensible-enum"] {
                 if let Some(values) = fields.get_mut(key).and_then(Value::as_array_mut) {

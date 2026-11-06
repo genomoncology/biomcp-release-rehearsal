@@ -75,7 +75,7 @@ pub(super) fn getter_help() -> Result<(), String> {
 
 pub(super) fn description_contract() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
-    env.config(&json!({"mcp_tool_mode":"typed"}))
+    env.config(&json!({"mcp_tool_mode":"typed","mcp_typed_output_schema":true}))
         .map_err(|e| e.to_string())?;
     policy::check_descriptions(&env)
 }
@@ -165,7 +165,6 @@ fn discovery(env: &Environment, globals: &[String]) -> Result<Vec<Value>, String
                 description.chars().count()
             ));
         }
-        descriptions(&tool["inputSchema"])?;
     }
     writeln!(
         std::io::stdout(),
@@ -293,29 +292,6 @@ fn validation_parity(
         ));
     }
     Ok(stdio.clone())
-}
-fn descriptions(node: &Value) -> Result<(), String> {
-    if node
-        .get("description")
-        .and_then(Value::as_str)
-        .is_some_and(|s| s.chars().count() > 80)
-    {
-        return Err("argument description budget".into());
-    }
-    match node {
-        Value::Object(map) => {
-            for value in map.values() {
-                descriptions(value)?;
-            }
-        }
-        Value::Array(values) => {
-            for value in values {
-                descriptions(value)?;
-            }
-        }
-        _ => {}
-    }
-    Ok(())
 }
 
 tool_only! {

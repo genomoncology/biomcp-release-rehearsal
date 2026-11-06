@@ -22,10 +22,7 @@ pub(super) fn render(
         .find(|row| row.verb == verb && row.entity == entity)
         .map_or("", |row| row.summary.trim());
     let summary = super::catalog::summary(summary, excluded);
-    let prefix = format!("{summary} ");
     let input = input_description(schema);
-    let budget = 300_usize.saturating_sub(prefix.chars().count() + provenance.chars().count() + 2);
-    let input = input.chars().take(budget).collect::<String>();
     [summary.as_str(), input.as_str(), provenance.as_str()]
         .into_iter()
         .filter(|part| !part.is_empty())
@@ -135,7 +132,6 @@ fn input_description(schema: &Value) -> String {
         .unwrap_or_default();
     let description = description
         .replace("identifiers", "IDs")
-        .replace(" accession", "")
         .replace("reference-qualified ", "")
         .replace("VCF-style genomic coordinates", "VCF")
         .replace(", in input order", "")

@@ -609,6 +609,19 @@ help-recovery-check:
 	cargo test --locked -p biomcp --test cases mcp-parity/typed-hosted-catalog $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases mcp-parity/mcp-typed-tools $(TEST_THREADS)
 
+
+
+.PHONY: typed-description-check typed-description-contract-check
+typed-description-check:
+	+$(MAKE) --keep-going typed-description-contract-check typed-schema-check typed-hosted-check help-contract-check
+
+typed-description-contract-check:
+	cargo test --locked -p biomcp --test cases mcp-parity/typed-description-contract $(TEST_THREADS)
+
+.PHONY: typed-description-lint-check
+typed-description-lint-check:
+	+$(MAKE) --keep-going fmt lint-workspace lint-tools typed-description-contract-check
+
 .PHONY: population-reply-metadata-check
 population-reply-metadata-check:
 	+$(MAKE) hosted-surface-generate typed-schema-check

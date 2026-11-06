@@ -23,7 +23,7 @@ pub(super) fn tools(root: &crate::grammar::Root) -> io::Result<Vec<Value>> {
         Ok(json!({"name":name,
 "description":description,
 "inputSchema":{"$schema":super::protocol::SCHEMA_DIALECT,"type":"object",
-"properties":{key:{"type":"string"}},
+"properties":{key:{"type":"string","description":description}},
 "required":[key],
 "additionalProperties":false},
 "outputSchema":output,

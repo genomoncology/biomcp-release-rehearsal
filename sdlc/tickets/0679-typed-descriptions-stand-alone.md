@@ -1,6 +1,7 @@
 # 0679 — Typed tool descriptions stand alone
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c0a265e6f899b2b2dab932094acdceefce664eef
 
 Milestone: 5
 
