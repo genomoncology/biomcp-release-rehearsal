@@ -1,6 +1,7 @@
 # Sweep per-ticket proof sediment in tests (W39)
 
-Status: open.
+Status: closed.
+Promoted: 0715
 
 Kind: idea
 When: 1.0 is published
