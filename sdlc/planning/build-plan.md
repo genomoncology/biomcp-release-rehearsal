@@ -122,6 +122,8 @@ Everything here beyond the hosting commit can follow first hosted validation.
 
 ## Wave 4: Ian's gates, then release
 
+Ian, 2026-11-06, through Jarvis: tonight's goal is "getting through all the 1.0 tickets, batching up the landings so things are efficient, getting the practice release process of 1.0 fully working on GitHub without actually doing the release of 1.0." So the 0640 preflight and the 0293 practice run no longer wait for hosting or the source evaluation. They start once the release tooling tickets (0734, 0712, 0713, 0696, 0697), 0640's document and 0695 have landed, and run alongside the remaining tickets. The hosted deploy, the source evaluation, 0294 and the 1.0 release itself still wait for Ian.
+
 Ian and the PM evaluate sources. Ian decides whether 1.0 waits. Then 0640 preflight, 0293 rehearsal, 0294 public append, 0401 docs, in that order. No hosted deploy, preflight or cut happens without Ian.
 
 - 0640: rows change as 0696, 0697, 0712, 0713 and 0716 land. The preflight is their Windows and Intel proof.
