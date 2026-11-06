@@ -1,6 +1,6 @@
 # 0688 — Pre-release whole-project review of 2026-11-06
 
-Status: OPEN.
+Status: COMPLETE. Three reviews and the weighing are in records/2026-11-06-pre-release-review.md; every finding ruled and ticketed
 
 Milestone: 5
 
