@@ -85,3 +85,5 @@ Ian's direction of 2026-10-29 (relayed in m14819): BioMCP becomes the data and c
 - BioData's experiments 507 and 508 tested shared clinical records and found that they failed across backends; planning starts from 508's record findings (encounter kind, observation stay, microbiology shape, medication kind).
 - Licensed data stays private: GENIE, UMLS, TCGA, JAX-CKB and all other licensed material live only in private repositories, private experiments or our machines, and public ISCN tests share nothing with the ISCN book's examples.
 
+
+- Build order for the remaining 1.0 tickets: `planning/build-plan.md`, with per-ticket detail in `records/2026-11-06-ticket-review.md`.
