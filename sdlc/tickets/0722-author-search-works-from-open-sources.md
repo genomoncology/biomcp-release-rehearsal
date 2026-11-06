@@ -31,3 +31,11 @@ Finding key opinion leaders row: `search_author` fails on hosting because Semant
 ## Changes
 
 - Changes: `crates/biomcp-query/src/author/`, `crates/biomcp-types/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The product work is done and passed the routine gate. A script that re-checks its own build artifact does not land: no review tooling, host paths or pinned hashes in the repo. Land from the gated commit with main merged in.
+
+Europe PMC stays out of this landing. If the evaluation shows that a list of papers with author names does not answer the key opinion leader workflow, affiliations and ORCIDs from Europe PMC get their own ticket.

@@ -47,3 +47,19 @@ PM ruling (m28745): `License::Tdm` withholds the abstract at `restricted`, the s
 PM ruling (m28760): a controlled one-time scrub, not a sanitized import. The existing store-clean path deletes withheld rows and rebuilds the file so old free pages and WAL hold none of those bytes. It runs on a copy, and the copy replaces the store only after hosting's file checks and study lookup pass. This ticket builds and proves the step on a synthetic store. Running it on hosting belongs to the deploy Ian approves. If hosting's article cache is separate from the snapshot, hosting may start that cache empty instead.
 
 PM ruling (m28791): the scrub in the m28760 ruling is withdrawn. Hosting read its store: 0 reply rows and no article tables, only source bundles. Runtime replies live in each task's temporary copy, and a deploy starts fresh tasks from the image. So no scrub step and no store clean option ship. This ticket keeps the filter before anything is written, and every reply route.
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Before the final gate, make these changes and no others:
+
+- Look up PubMed licenses before the source call, or release the source permit first, so a text check never waits on a permit its own call holds.
+- Keep the withheld marker when a stored LitSense row is filtered again.
+- Add the PubMed withheld marker only when it is absent.
+- Write stored article rows only when the text changed.
+- When a license lookup fails, say so with a reason distinct from a refusal, do not store the reply, and do not publish the pool as whole.
+
+Stop widening Semantic Scholar stored routes. Keep what exists.
+
+The per-ticket check script and Makefile goals do not land. Run the gate commands directly.
+
+PM rulings on the review: when a license lookup fails or a paper is past the cap, the abstract stays, under the m28714 ruling; only body text is withheld. The bound of 20 records and 3 seconds is accepted, the reply states what went unchecked, and a timing job follows only if it hurts.

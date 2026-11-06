@@ -31,3 +31,13 @@ Row W54 of `records/2026-11-06-pre-release-review.md`, first rejected because it
 ## Changes
 
 - Changes: `release/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+All four pins are in the normal Debian archive today, so a build against it proves nothing about removed versions. The Proof changes: the build's package sources point only at the dated snapshot, and the build log shows every package fetched from it.
+
+`release/toolchain.json` holds no snapshot date yet. Add a `debian-snapshot` key next to the pins, pass it as a build argument from `release/linux.sh` and `release/matrix.sh`, and extend `release/toolchain.py` and its tests.
+
+Use plain `http://snapshot.debian.org/archive/debian/<date>/` for bookworm main only, with `Acquire::Check-Valid-Until=false`. The slim image has no CA certificates before this step, and the signed Release file provides trust. There is no fallback to the live archive: if the snapshot is unavailable, the build fails.

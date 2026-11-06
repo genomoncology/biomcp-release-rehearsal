@@ -31,3 +31,9 @@ Focused-artifact RCA (m28816): three tickets paid for five dependency-heavy buil
 ## Changes
 
 - Changes: `tools/`, `docs/development.md`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The ticket's `tools/` is not a folder. The change sits in `crates/biomcp/tests/tools.rs`, `crates/biomcp/tests/runner/case_main.rs`, `crates/biomcp/tests/runner/proof.rs`, `scripts/trials.py` and `scripts/test_trials.py`, plus `docs/development.md`.

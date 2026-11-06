@@ -31,3 +31,23 @@ Items 5 and 6: author tool schema allowed `semanticscholar` while help says `sem
 ## Changes
 
 - Changes: `crates/biomcp-types/`, `crates/biomcp-adapters/`, `crates/biomcp-query/`, `crates/biomcp/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Read in code, not run. All four items still exist on main.
+
+`product_code`: `fda_510k/` reads this field from replies, not as a search filter. Add it to `device_search.rs` `expression`, which PMA shares, and stop `validate_device` refusing it.
+
+Author source names: the hosted schema filter keeps any word that is not a source name, so it removes `semantic-scholar` and leaves the alias `semanticscholar`. Stop advertising the alias, keep accepting it, and check the hosted tool list. Land after 0722, which edits the same list.
+
+Open Targets: `get drug` takes one section per call for every source, and the error lists all of the source's sections without saying so. State the limit in the schema and in the error, for every source.
+
+NCI: state the input and do not resolve names. The field says an NCIt code is needed for NCI, and points to `--condition-id` for MONDO or DOID identifiers.
+
+The generated check is cut down. Extend the existing `query-validation/enumerated-letter-case` walker from one value per enum field to every value, sampling `country`, and add a pass over the hosted tool list. Build no new checker. It covers argument checking only. It does not reach adapters, so each named filter still has its own recorded case.
+
+"Every filter a command advertises is accepted by that command" moves to 0676, because it needs the per-field source facts that ticket adds.
+
+Land after the bench scored build, because this ticket shares files with 0693, 0717, 0720 and 0722.

@@ -33,3 +33,9 @@ These share the shape that broke two gates (0667) but have no recorded failure y
 ## Changes
 
 - Changes: `crates/biomcp-fetch/tests/`, `crates/biomcp/tests/runner/http_limits.rs`, `crates/biomcp/tests/runner/hgnc_sync.rs`. Test code only.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The fixes need only the table, so they can start before 0641. Only the Proof waits for 0641's goal. Line numbers have moved: `retries.rs:145`, `freshness.rs:7,98`, `transport.rs:365,395`, `grpc_worker.rs:317,427,508`, `download.rs:168` and `hgnc_sync.rs:29`. `scripts/deadline_setup_load.py` is not reused as it stands, because it names a fixed remote host.

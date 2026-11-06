@@ -31,3 +31,13 @@ Rows W6, W36 and W40 of `records/2026-11-06-pre-release-review.md`. Markdown hel
 ## Changes
 
 - Changes: `Makefile`, `release/`, `scripts/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+First step: one job running `cargo test --locked -p biomcp --test tools -- --proofs` on main, with the environment `release/smoke.py` sets. The last run of this form was before 0686 landed: 3 of 38 failed (`mcp-http/readiness-rejects-eof-and-hung-child`, `live-source-checks/retained-drift-witnesses`, `schema-discovery/rejects-bad-cases`). Each remaining failure is fixed or ticketed before the stage joins the gate.
+
+`release/toolchain.json` says Python 3.12, while `sdlc/pm.json` and 36 files say 3.13. Set the toolchain to 3.13, so the routine gate and open lanes stay unchanged and only the hosted side moves. Do the file sweep after the bench build.
+
+The bare asserts in `scripts/check_front_map.py` are now at lines 73, 74, 78 and 87.

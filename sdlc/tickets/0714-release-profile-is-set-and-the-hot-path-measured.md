@@ -31,3 +31,13 @@ Row W26 of `records/2026-11-06-pre-release-review.md`, first deferred. `Cargo.to
 ## Changes
 
 - Changes: `Cargo.toml`, and code only where the numbers point.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Keep `opt-level = 3` and unwinding. `release/artifacts.py inspect()` refuses any other opt level, and `catch_unwind` in `crates/biomcp/src/mcp/worker.rs`, `crates/biomcp-fetch/src/batch.rs` and `crates/biomcp-fetch/src/cache/contention.rs` needs unwinding.
+
+Each release section builds three binaries in this profile, so link-time optimization is paid three times per platform, and the Intel build has already used 119m44s of its 120 minute limit. Land this after 0697 raises the limit, and record the build time next to the size.
+
+Recorded replies open no connection, so they cannot measure connection setup. Measure it against a local TLS stub, or state it as unmeasured. This is one measurement: no harness stays behind.

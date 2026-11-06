@@ -35,3 +35,7 @@ Items 2 and 10: Open Targets listed sotorasib in colorectal cancer as max phase 
 ## Amendment, 2026-11-06
 
 PM ruling (m29065): the comparison shows Open Targets phase facts beside dated FDA approval events, and says their indications are not linked. Nothing is labeled as superseding a phase on the drug name alone. Unknown dates stay unknown. A same-indication lookup is not part of this ticket; if the evaluation shows the need, it gets its own ticket.
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Open Targets publishes its data version (`meta.dataVersion`, year and month), and the adapter does not read it yet, so the source named in Why shows no date. Read it the way `ctgov::version` does, as a separate cached call, and show it in the reply. Month precision shows the date with no age claim. This does not change the PM ruling on linking indications.

@@ -31,3 +31,13 @@ Rows W9, W29, W34 and W49 of `records/2026-11-06-pre-release-review.md`. Intel q
 ## Changes
 
 - Changes: `release/`, `.github/workflows/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The `recover-section.yml` limit is now at line 43. Both limits sit on a job shared by all five platforms, so one value applies to all.
+
+The installer byte check is a comparison in `release/published.py` between the fetched installer and the staged `install.sh`, which that check does not do today. Before the tag it runs against a locally served copy.
+
+The limits land first, because 0714 needs them. `twine check` runs after 0716 settles the wheel's shape.

@@ -21,3 +21,7 @@ Since the 1.0 candidate of 2026-11-04, qualification found nine problems, one ru
 ## Replaces
 
 Nothing. It adds to `decisions/2026-11-02-public-rehearsals.md` and to 0293's carry-over rules.
+
+## Amendment, 2026-11-06
+
+PM ruling: 0640 needs release tooling tickets landed before it can run, so a tooling ticket may land on proof from a local real host. The 0640 preflight is its Windows and Intel proof, and a failure there reopens the ticket that caused it. Defects are still found before the cut.

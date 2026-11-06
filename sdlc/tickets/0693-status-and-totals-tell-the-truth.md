@@ -31,3 +31,11 @@ Rows W12 to W16, W25 and W27 of `records/2026-11-06-pre-release-review.md`. Meas
 ## Changes
 
 - Changes: `crates/biomcp-query/src/`, `crates/biomcp-adapters/src/`, `crates/biomcp-fetch/src/bundle/`, `tests/`. Split by item if lanes collide.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Rebuild this branch from main by applying only this ticket's five commits. The older follow-up history already landed. Drop its Makefile goals, and do not add per-ticket goals. Split the adverse event query conversion to pass the length lint, then run one routine gate.
+
+Next-command work stays in its own ticket, which starts after this one lands.

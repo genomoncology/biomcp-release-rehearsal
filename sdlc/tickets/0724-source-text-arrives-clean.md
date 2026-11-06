@@ -31,3 +31,25 @@ Item 8: EMA `&nbsp;` and `?` for `≥`; trial results `\<` and `\^2`; FAERS outc
 ## Changes
 
 - Changes: `crates/biomcp-adapters/`, `crates/biomcp-types/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Checked by reading data, not by running. EMA's `?` is in the source: a copy of the publisher's medicines file is valid UTF-8, has no replacement characters, and holds both `?10 g/dl` in 69 indications and real `≥` elsewhere. Leave the value, as the Proof says. A `?` cannot be spotted without guessing from text, so nothing is marked in replies. Add one line to `docs/cautions.md`.
+
+Trial escapes such as `\<` are in the source's own values.
+
+"One shared text cleaner" means one module with two named functions, entity decoding and backslash unescaping, called only for EMA and ClinicalTrials.gov text. It is not applied in `NativeText` or to every source, because backslashes and entities are not markup everywhere. It stays in `biomcp-adapters`, with no change to BioData.
+
+All cleaning happens when a reply is read. Stored rows, word indexes and the bundle format do not change, so existing snapshots stay valid.
+
+Trial result text deserializes straight into public types with no mapping step. Clean it in `ctgov/detail/results.rs`.
+
+The Proof checks JSON for clean text. Markdown keeps the escaping that 0348 requires.
+
+FAERS: reaction outcome, patient sex, drug role, action taken and reporter qualification get words beside the code, copied from openFDA's published field reference.
+
+GWAS: `p_value` is left out only when it is zero and `exact_p_value` is present.
+
+Land after 0718, which edits nearby EMA and FAERS files.

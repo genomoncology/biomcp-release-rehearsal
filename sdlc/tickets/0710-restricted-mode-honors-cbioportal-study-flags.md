@@ -35,3 +35,11 @@ Ian, 2026-11-06, on the record's Q2: "I certainly want to support the idea that 
 ## Amendment, 2026-11-06
 
 Ian ruled on the ten studies with purpose limits (m28975): "A is fine thanks", meaning exclude all ten at `restricted`. They are the five TARGET studies limited to pediatric research (`all_phase2_target_2018_pub`, `aml_target_2018_pub`, `nbl_target_2018_pub`, `wt_target_2018_pub`, `rt_target_2018_pub`) and five research-only studies that bar clinical decision-making (`angs_painter_2020`, `angs_painter_2025`, `brca_mbcproject_wagle_2017`, `brca_mbcproject_2022`, `mpcproject_broad_2021`). A stated purpose limit sets the flag, the same as explicit noncommercial wording. Local and `academic` use keep them.
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+A study left out by policy is not a partial answer: the reply stays complete and carries the notice. Assert the status in the declared use test.
+
+At hosted validation, compare the hosted snapshot's study ids against the reviewed list once, read-only. Ids missing from the review are reported, not guessed.
+
+Per-ticket Makefile goals do not land.

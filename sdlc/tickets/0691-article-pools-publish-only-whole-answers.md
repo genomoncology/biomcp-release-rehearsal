@@ -31,3 +31,13 @@ Rows W2 and W19 of `records/2026-11-06-pre-release-review.md`. `article/mod.rs:7
 ## Changes
 
 - Changes: `crates/biomcp-query/src/article/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+This ticket merges after the licensed article text and search drug names tickets. Compute whether to publish after drug name reuse has run, so a rebuilt pool becomes current. Keep one term resolver, the one from search drug names.
+
+A pool is published as whole only when no license or drug name lookup failed.
+
+The mapping check script and per-ticket Makefile goals do not land.

@@ -31,3 +31,13 @@ Row W30 of `records/2026-11-06-pre-release-review.md`: `skills/SKILL.md:6` is co
 ## Changes
 
 - Changes: `release/workflow.py`, its test.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The plugin reaches users two ways: the release zip and the repository root, because `.claude-plugin/marketplace.json` uses `source: "./"`. Fixing only the zip leaves `{{front-map}}` raw for marketplace users.
+
+Keep the marker in an HTML comment in `skills/SKILL.md`, with one plain line beside it pointing to `biomcp skill install`. `crates/biomcp/build.rs` and `release/workflow.py plugin()` expand it for the binary and the zip.
+
+The Proof splits. A unit assertion in `release.test_workflow` shows the zip's skill holds no marker, and one native build with an unpacked plugin shows the skill loads. The five-platform staged check belongs to the plugin section in 0640.

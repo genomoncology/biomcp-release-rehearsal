@@ -31,3 +31,15 @@ Mutation frequency row of the test: the tool rejected every variant form tried, 
 ## Changes
 
 - Changes: `crates/biomcp-query/src/variant/`, `crates/biomcp-types/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Checked against the public API. A common variant cannot finish today: reading a real KRAS cohort takes 17 calls at our cap of 100 rows, while the source returned all 1,670 rows in one 0.3-second request. The reply holds counts, not rows, so a larger page costs the caller nothing. Raise the default and maximum `limit` to 5,000, so a common variant reads every page in one call and reports `all_pages_read: true`. Paging stays for anything larger.
+
+"Cohort mutation frequency" means the observed sample count beside the selected sample count once all pages are read. BioMCP computes no percentage, because the selected sample list is not always the set assayed for that gene.
+
+The page step names Cancer Hotspots as its source. It must name cBioPortal, or the step disappears wherever Cancer Hotspots is off. Ticket 0693 holds the same one-word fix; make it here too.
+
+Proof adds a multi-page cohort.

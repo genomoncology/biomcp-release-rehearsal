@@ -31,3 +31,11 @@ Pi's first smoke attempt sliced its namespace JSON to 2,000 characters before re
 ## Changes
 
 - Changes: typed smoke/discovery metadata fixtures and the smallest justified client-description or server-metadata adjustment after assessment; avoid a general discovery framework.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The 2026-11-06 amendment on 0293 puts this ticket before the final rehearsal, so the line saying it does not gate 1.0 no longer applies.
+
+The 2,000 character limit was a slice the model chose, not a protocol limit, so no server change is expected. The corrected harness is commit 9266ff73c on `ticket/0632-pi-codemode` and is not on main. Land it, run the smoke once, and close with the result.

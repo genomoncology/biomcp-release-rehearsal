@@ -17,3 +17,7 @@ These are allowed because they are mechanical or come from a source:
 - A sort the agent asks for, such as `--sort citations`.
 
 What 0.9 used heuristics for, 1.0 gets from sources: LitVar2 and Europe PMC full text for variant spellings, MONDO, MeSH or UMLS synonyms for diseases, and the drug sources for drug names. Ambiguity comes back as candidates, never as a guess.
+
+## Amendment, 2026-11-06
+
+A drug name search may run the other names that drug sources return for that exact name, and the reply lists the names searched (0717). The names come from the sources, not from a hand-made list, and nothing is guessed from free text. This narrows "no query rewriting" for that case only. Ian asked for it after the life sciences test.

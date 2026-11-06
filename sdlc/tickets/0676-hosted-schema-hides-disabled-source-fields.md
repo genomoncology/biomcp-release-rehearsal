@@ -31,3 +31,17 @@ In hosted mode, a typed tool's schema, help and `next` omit a query field or fil
 ## Changes
 
 - Changes: the query owners' source facts in `crates/biomcp-query/src/`, the shared projection in `crates/biomcp/src/mcp/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+Read in code, not run. The shared projection already exists: `argument_allowed` reads `x-required-component`, and it already drives the tool list, help and `next`. This ticket adds facts to it and builds no new projection. Today the fact names one component on 5 fields. Extend it to a list, hiding a field only when every listed source is off.
+
+Facts go on the query types in `crates/biomcp-types/src/`, so Changes covers that crate.
+
+By their terms labels, ChEMBL, FDA recalls, OLS and SEER stay on at `restricted`, so start from the sources `restricted` and the deployment really turn off, confirmed with hosting. Other owners follow only if the check below finds them.
+
+This ticket owns the check moved from 0723: with these facts, the enum walker sends each field with each source that declares it and fails if the command refuses it. One case per owner at `restricted`, not one per field.
+
+The ticket changes what is offered and never what is served, so it does not gate the hosting deployment. It lands before 0640. Order it after 0723. Split by owner when a lane starts it: the first slice extends the fact and covers drug and diagnostic.

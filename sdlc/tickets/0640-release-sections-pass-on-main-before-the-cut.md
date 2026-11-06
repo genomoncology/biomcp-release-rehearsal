@@ -14,3 +14,13 @@ Milestone: 5
 - Proof: a preflight at one main commit records each section's own pm job and exit, in the order the document gives, and every section passes. The next candidate cut cites that preflight.
 - Changes: `release/qualification.md`; the section list, commands and order.
 - Defers: a scheduled preflight. It runs by hand before each cut until a second release shows whether a schedule pays.
+
+## Amendment, 2026-11-06
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The document on this ticket's branch is stale. 0666 already made the recovery action take a main revision, and its candidate lines are superseded. Refresh it, take machine names out of it, and land the document now: only the preflight runs are held.
+
+Stage, the staged artifact scan, attestation and staged Homebrew are sections too, and the document lists them. Rows change as 0696, 0697, 0712, 0713 and 0716 land.
+
+Tooling tickets land on proof from a local real host. The preflight is their Windows and Intel proof, and a failure there reopens the ticket that caused it.

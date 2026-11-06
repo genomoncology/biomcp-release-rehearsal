@@ -35,3 +35,13 @@ Ian, 2026-11-06: "We have to get the hosting server to support API keys and pote
 ## Amendment, 2026-11-06
 
 Hosting agreed the contract (m28791). The header is `x-biomcp-exclude-sources`, comma-separated source names. Hosting's wrapper sets it from account settings and strips client copies. Core also rejects an unknown source name clearly, and gives a machine-readable list of source names users may leave out, in the style of `biomcp key list`.
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The seam exists: `Fetch::restrict_sources` only adds exclusions, so a request cannot widen what the deployment serves. Parse `x-biomcp-exclude-sources` beside the other per-request headers, carry it on the hosted call, and apply it where `hosted_use::restrict` applies the use limit. Feed the same list to `catalog::excluded`, so the tool list, help and `next` agree with the reply.
+
+Names are source names only, not groups. The list of names users may leave out is CLI JSON in the style of `biomcp key list`.
+
+Stored results: source snapshots already check disabled sources on read. Article pools need 0691's key, so this lands after 0691. Follow-up steps must not turn the header into a `--disable-sources` flag.
+
+Proof adds a case where two callers with different lists run the same article search and neither receives the other's stored pool.

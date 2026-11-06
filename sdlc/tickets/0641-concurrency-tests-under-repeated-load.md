@@ -18,3 +18,9 @@ One Make goal runs the multi-process cache checks, and every test that uses real
 ## Amendment, 2026-11-06
 
 Runs before the final rehearsal (W28 of `records/2026-11-06-pre-release-review.md`). Also owns W24: measure whether a large cache write stalls reads and `/health`. Include the `gencc-first-publisher-deadline` failure of j31824.
+
+From the ticket review, `records/2026-11-06-ticket-review.md`:
+
+The branch's four commits moved to 0728 and landed. Nothing else is on it, so release the lane and restart from main.
+
+The work splits into three parts, in order: one Make goal with the named test list, the W24 measurement, and the nightly entry. Load is 1.5 times the job's booked cores, not the machine's cores, because builders are shared. The wheel proof names where its wheel comes from before it runs.
