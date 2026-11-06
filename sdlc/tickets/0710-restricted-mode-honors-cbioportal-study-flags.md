@@ -31,3 +31,7 @@ Ian, 2026-11-06, on the record's Q2: "I certainly want to support the idea that 
 ## Changes
 
 - Changes: `crates/biomcp-adapters/src/cbioportal/`, `crates/biomcp-query/`, `docs/`, `tests/`. BioMCP applies the flag when it reads a study, so hosting's existing snapshot stays readable and needs no refetch.
+
+## Amendment, 2026-11-06
+
+Ian ruled on the ten studies with purpose limits (m28975): "A is fine thanks", meaning exclude all ten at `restricted`. They are the five TARGET studies limited to pediatric research (`all_phase2_target_2018_pub`, `aml_target_2018_pub`, `nbl_target_2018_pub`, `wt_target_2018_pub`, `rt_target_2018_pub`) and five research-only studies that bar clinical decision-making (`angs_painter_2020`, `angs_painter_2025`, `brca_mbcproject_wagle_2017`, `brca_mbcproject_2022`, `mpcproject_broad_2021`). A stated purpose limit sets the flag, the same as explicit noncommercial wording. Local and `academic` use keep them.
