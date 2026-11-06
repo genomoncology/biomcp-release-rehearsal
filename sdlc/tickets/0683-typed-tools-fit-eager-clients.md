@@ -31,3 +31,7 @@ Claude's retest of the live typed server on 2026-11-06 (pin 1bb97e64; hosting m2
 ## Changes
 
 - Changes: `crates/biomcp/src/mcp/`, typed cases, `tests/`.
+
+## Amendment, 2026-11-06
+
+PM ruling (m27799). Measured on main 6b1618cc2 (j31538): typed mode has 61 tools and 72,769 bytes of compact definitions, hosted typed 59 tools and 71,450 bytes, single mode 3 tools. The grouping follows Claude's 2026-11-05 design note, the only usage evidence we have; both evaluations used adverse events and devices. Direct tools: search and get for drug, trial, article, variant, disease and diagnostic; `get_gene`; `search_adverse_events`; help; research search and fetch; the `biomcp` escape hatch. One reference tool covers pgx, pathway, protein, gwas, cell line and study. Defaults: 20 tools and 48 KiB, both named and configurable. 0679's complete descriptions come before the byte budget. If the total exceeds it, report the measurement to the PM; do not group a clinical entity or truncate a description.
