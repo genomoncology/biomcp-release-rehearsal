@@ -1,6 +1,6 @@
 # 0716 — Wheel ships one copy of the binary
 
-Status: OPEN.
+Status: WITHDRAWN. The one-copy route can only be proved on hosted Windows and Intel and could break the first registry entry. The wheel keeps both copies for 1.0, about 16 MB per wheel.
 
 Milestone: 5
 
