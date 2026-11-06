@@ -22,7 +22,7 @@ Ian, 2026-11-06, on the record's Q2: "I certainly want to support the idea that 
 
 ## Keeps
 
-- Keeps: cBioPortal on in every mode, and its `attribution` label.
+- Keeps: cBioPortal on in every mode, and its `attribution` label. Hosting's startup check, a `search study` TCGA lookup that needs at least one result, keeps passing; if it cannot, tell hosting its replacement first.
 
 ## Defers
 

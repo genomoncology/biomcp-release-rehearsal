@@ -34,3 +34,11 @@ Relayed by Jarvis (m27130, m27221) from Ian's older notes.
 | AlphaFold DB | Predicted protein structures |
 | AlphaMissense | Predicted missense pathogenicity |
 | MaveDB | Deep mutational scanning sets |
+
+## From the life sciences test of 2026-11-06
+
+Candidates only. Rights are unchecked, and Ian decides after the evaluation.
+
+- Author and institution data with commercial-safe terms, such as OpenAlex, for key opinion leader work if PubMed and Europe PMC fall short (0722).
+- A drug name service such as RxNorm or the NCI Thesaurus, if names from current drug sources leave gaps (0717).
+- Cell line mutation data, such as DepMap, if Cellosaurus does not carry it (0726).
