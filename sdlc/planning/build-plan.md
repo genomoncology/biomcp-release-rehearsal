@@ -1,5 +1,7 @@
 # BioMCP 1.0 build plan, 2026-11-06
 
+**Rules changed the same day.** `skills/build-efficiency.md` wins over anything below. Ian ruled that the full suite runs only at final release. So: developers run targeted checks; a pre-review routine run only for risky tickets (0689, 0691, 0717, 0727); each batch lands through the short landing check (0731); at most two runs of the longest check per ticket. Jobs name no machine; the Linux builder is closed to BioMCP. The bench takes the macOS build. For Linux x86-64, hand-start the release workflow on GitHub. 0731 lands first; 0732 replaces the nightly live check.
+
 For the build coordinator. Read against main at 502de0e2c and the lane heads of that afternoon; main then moved to e196c73fe, where 0690 and 0692 landed. Per-ticket detail is in `records/2026-11-06-ticket-review.md`, and the amendments are on the tickets. Order and rulings already settled by Ian are not reopened here.
 
 Main already holds 0682, 0683 with the tool list, 0690 and 0692, so none of them needs work.
@@ -22,7 +24,7 @@ Main already holds 0682, 0683 with the tool list, 0690 and 0692, so none of them
 | 0722 | `scripts/check_author_artifact.py` | `author-search-*`, `author-credential-review`, `author-artifact-review` |
 
   This also removes most of the merge conflicts between lanes, and keeps machine names and internal paths out of the public tree. 0690 and 0692 landed with their goals, so 0715 sweeps those.
-- **Two routine runs per ticket, no more:** one before review on the branch merged with main, and the lander's batch gate. A lane does not repeat a passed routine because of a mechanical change. The reviewer's check is the review.
+- **At most two runs of the longest check per ticket.** A lane does not repeat a passed run because of a mechanical change. The reviewer's check is the review.
 - **Generated files:** do not hand-merge schemas or `docs/reference/commands.md`. The lander runs `schema-generate` and `docs-generate` once per batch.
 - **Fix general causes.** Nothing is tuned to the report's examples, and no new source is added.
 

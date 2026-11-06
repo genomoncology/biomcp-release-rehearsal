@@ -24,3 +24,5 @@ From the ticket review, `records/2026-11-06-ticket-review.md`:
 The branch's four commits moved to 0728 and landed. Nothing else is on it, so release the lane and restart from main.
 
 The work splits into three parts, in order: one Make goal with the named test list, the W24 measurement, and the nightly entry. Load is 1.5 times the job's booked cores, not the machine's cores, because builders are shared. The wheel proof names where its wheel comes from before it runs.
+
+Under Ian's 2026-11-06 ruling, these tests go in the long suite at final release, not on a schedule. The nightly entry is dropped. A test that fails on timing is fixed or deleted at once.

@@ -45,3 +45,5 @@ This ticket's evidence is Make goals and scripts. The source finding counted goa
 This runs last among cleanup, after the bench and hosting commits, because every lane adds tests.
 
 The Proof changes, because the current one cannot fail. The coverage floor sits about 4.7 points below measured coverage. The mutation run counts survivors and timeouts as passing, and a test-only change leaves only the rule files in its scope. New Proof: coverage after the sweep is no lower than on the commit before it, less 0.2 points; each removed test is listed with the case that covers the same behavior; and the routine gate passes. The mutation clause is dropped.
+
+Step 1 and step 3 start now, after the landing check ticket lands: Ian has approved deleting single-ticket Make goals and scripts. Step 2 stays last.

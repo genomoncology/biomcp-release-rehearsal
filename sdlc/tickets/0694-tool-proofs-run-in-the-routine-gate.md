@@ -41,3 +41,5 @@ First step: one job running `cargo test --locked -p biomcp --test tools -- --pro
 `release/toolchain.json` says Python 3.12, while `sdlc/pm.json` and 36 files say 3.13. Set the toolchain to 3.13, so the routine gate and open lanes stay unchanged and only the hosted side moves. Do the file sweep after the bench build.
 
 The bare asserts in `scripts/check_front_map.py` are now at lines 73, 74, 78 and 87.
+
+Ian's 2026-11-06 ruling replaces the Outcome's routine gate: tool proofs run in the final release suite, not at landing. This ticket fixes or deletes the red proofs, and nothing more.
