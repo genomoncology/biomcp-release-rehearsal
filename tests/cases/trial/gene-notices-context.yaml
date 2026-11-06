@@ -1,0 +1,89 @@
+{
+  "feature": "trial-search",
+  "live_check": "synthetic protocol rows, provider cursor/count and HGNC resolver subset",
+  "story": "Literal gene context keeps exclusion, inclusion and mixed trials in source order across native pages; substring genes do not match and count-only requests stay small.",
+  "verified": "All seven protocol rows and the provider cursor/count are explicitly synthetic. Existing gene resolver subset and version capture are reused; no actual eligibility claim.",
+  "replay": "trial/gene-notices",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--gene",
+        "BRAF",
+        "--limit",
+        "4"
+      ],
+      "mcp": [
+        "search",
+        "trial",
+        "--gene",
+        "BRAF",
+        "--limit",
+        "4"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 7,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT00010001",
+            "NCT00010002",
+            "NCT00010003",
+            "NCT00010004"
+          ]
+        },
+        "/sources/1/notices/*/message": {
+          "equals": [
+            "Trial NCT00010001: BRAF appears only under the registered exclusion-criteria heading in the returned protocol fields: \"* bRaF mutations.\". This is not an eligibility assessment.",
+            "Trial NCT00010004: BRAF is not mentioned as an exact word in the returned protocol fields. Registry text matching does not establish a gene link or eligibility."
+          ]
+        },
+        "/next/0/kind": "page"
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/status": "complete",
+        "/page/offset": 4,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT00010005",
+            "NCT00010006",
+            "NCT00010007"
+          ]
+        },
+        "/sources/1/notices/*/message": {
+          "equals": [
+            "Trial NCT00010007: the registered title contains \"Wild-type BRAF\". Gene-word matching does not establish eligibility."
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--gene",
+        "BRAF",
+        "--count-only"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 7,
+        "/page/returned": 0,
+        "/result": {
+          "omits": [
+            "items"
+          ]
+        },
+        "/sources/1": {
+          "omits": [
+            "notices"
+          ]
+        }
+      }
+    }
+  ]
+}

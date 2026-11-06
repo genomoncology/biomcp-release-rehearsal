@@ -7,6 +7,9 @@ pub(super) fn base_parameters(query: &TrialSearch) -> BTreeMap<String, String> {
     if !query.country().is_empty() {
         fields.push_str(",LocationCountry");
     }
+    if query.gene().is_some() && !query.count_only() {
+        fields.push_str(",EligibilityCriteria,BriefSummary,DetailedDescription,Keyword");
+    }
     BTreeMap::from([
         ("countTotal".into(), "true".into()),
         (

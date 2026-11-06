@@ -3,6 +3,7 @@ use biomcp_fetch::Input;
 pub mod detail;
 pub mod document;
 mod filters;
+mod gene;
 mod raw;
 mod refusals;
 mod version;
@@ -10,6 +11,7 @@ use biodata::Text;
 use biomcp_fetch::{Arg, Endpoint, Freshness, KeyUse, Leg, RequestError, SourceSpec};
 use biomcp_types::TrialHeader;
 use biomcp_types::TrialSearch;
+pub use gene::{GeneContext, GeneMention};
 use raw::{FirstPage, RawPage};
 use std::{collections::BTreeMap, time::Duration};
 pub use version::version;
@@ -44,6 +46,8 @@ pub struct SearchPage {
     pub problems: Vec<biomcp_types::Problem>,
     /// At least one complete native condition list lacks the searched words.
     pub condition_word_mismatch: bool,
+    /// Literal gene context in retained source records, without an eligibility assessment.
+    pub gene_contexts: Vec<GeneContext>,
     /// Exact native total.
     pub total: Option<u64>,
     /// Native count lookup failure while page rows remain usable.
@@ -144,6 +148,16 @@ pub fn search(
     conditions: &[Text],
     countries: &[Box<str>],
 ) -> Result<SearchPage, RequestError> {
+    search_with_gene(leg, params, conditions, countries, None)
+}
+
+pub(super) fn search_with_gene(
+    leg: &Leg<'_>,
+    params: &BTreeMap<String, String>,
+    conditions: &[Text],
+    countries: &[Box<str>],
+    gene: Option<&str>,
+) -> Result<SearchPage, RequestError> {
     let raw = fetch_page(leg, params)?;
     if !countries.is_empty()
         && raw
@@ -172,18 +186,7 @@ pub fn search(
         }
         count_request = Some(count);
     }
-    let condition_word_mismatch = raw
-        .studies
-        .as_deref()
-        .unwrap_or_default()
-        .iter()
-        .filter_map(crate::raw::Field::as_ref)
-        .any(|row| {
-            conditions.iter().any(|condition| {
-                !row.protocol_section
-                    .contains_condition_words(condition.as_str())
-            })
-        });
+    let (condition_word_mismatch, gene_contexts) = raw.search_contexts(conditions, gene);
     let mut rejected = Vec::new();
     let mut refusals = crate::Refusal::None;
     let mapped = raw
@@ -212,6 +215,7 @@ pub fn search(
         refusals,
         problems: rejected,
         condition_word_mismatch,
+        gene_contexts,
         items,
         total,
         count_error,

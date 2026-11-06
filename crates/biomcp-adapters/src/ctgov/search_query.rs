@@ -19,7 +19,9 @@ pub fn search_query(
     {
         params.insert("query.cond".into(), format!("({condition})"));
     }
-    let mut result = ctgov::search(leg, &params, conditions, query.country());
+    let context_gene = gene.filter(|_| !query.count_only());
+    let mut result =
+        ctgov::search_with_gene(leg, &params, conditions, query.country(), context_gene);
     let mut broader = query.broader_names();
     let notice = if query.next_page().is_none()
         && (query.sponsor().is_some() || query.facility().is_some())
@@ -38,7 +40,7 @@ pub fn search_query(
              BioMCP tried the registry's broader name request {fallback:?} once."
         );
         broader = true;
-        result = ctgov::search(leg, &fallback, conditions, query.country());
+        result = ctgov::search_with_gene(leg, &fallback, conditions, query.country(), context_gene);
         Some(guidance(message))
     } else if broader {
         Some(guidance(format!(

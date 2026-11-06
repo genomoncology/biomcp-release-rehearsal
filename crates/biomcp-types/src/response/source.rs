@@ -16,7 +16,7 @@ SourceState {
     Skipped => "skipped",
 }
 }
-/// One source's outcome, without provider text.
+/// One source's outcome with source notices and request guidance.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SourceOutcome {
@@ -106,9 +106,9 @@ impl std::ops::Deref for SourceOutcome {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum SourceNotice {
-    /// Local request limits and source-specific recovery guidance.
+    /// Local request limits, source observations and recovery guidance.
     RequestGuidance {
-        /// Reviewed guidance without provider response text.
+        /// Reviewed guidance; any quoted provider wording remains source data.
         message: Box<str>,
         /// Seconds left before another source request may be admitted.
         #[serde(skip_serializing_if = "Option::is_none")]

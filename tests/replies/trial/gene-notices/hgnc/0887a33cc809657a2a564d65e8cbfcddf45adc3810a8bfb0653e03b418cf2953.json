@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "hgnc",
+  "url": "https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "text/tab-separated-values",
+      "delay_ms": 3839,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "hgnc_id\tsymbol\tname\tlocus_group\tlocus_type\tstatus\tlocation\talias_symbol\talias_name\tprev_symbol\tprev_name\tgene_group\tgene_group_id\tdate_approved_reserved\tdate_symbol_changed\tdate_name_changed\tdate_modified\tentrez_id\tensembl_gene_id\tvega_id\tucsc_id\tena\trefseq_accession\tccds_id\tuniprot_ids\tpubmed_id\tmgd_id\trgd_id\tlsdb\tcosmic\tomim_id\tmirbase\thomeodb\tsnornabase\tbioparadigms_slc\torphanet\tpseudogene.org\thorde_id\tmerops\timgt\tiuphar\tkznf_gene_catalog\tmamit-trnadb\tcd\tlncrnadb\tenzyme_id\tintermediate_filament_db\trna_central_id\tlncipedia\tgtrnadb\tagr\tmane_select\tgencc\nHGNC:6407\tKRAS\tKRas proto-oncogene, GTPase\tprotein-coding gene\tgene with protein product\tApproved\t12p12.1\t\"KRAS1|K-Ras4B\"\t\tKRAS2\t\"KRAS proto-oncogene, GTPase|v-Ki-ras2 Kirsten rat sarcoma 2 viral oncogene homolog|v-Ki-ras2 Kirsten rat sarcoma viral oncogene homolog|Kirsten rat sarcoma viral oncogene homolog\"\tRAS type GTPase family\t389\t1988-06-02\t2005-01-24\t2026-06-10\t2026-06-10\t3845\tENSG00000133703\tOTTHUMG00000171193\tuc001rgp.3\tBC010502\tNM_033360\t\"CCDS8702|CCDS8703\"\tP01116\t\tMGI:96680\tRGD:2981\tLRG_344|http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_344.xml\tKRAS\t190070\t\t\t\t\t122879\t\t\t\t\tHGNC:6407\t\t\t\t\t\t\t\t\t\tHGNC:6407\t\"ENST00000311936.8|NM_004985.5\"\tHGNC:6407\nHGNC:1097\tBRAF\tB-Raf proto-oncogene, serine/threonine kinase\tprotein-coding gene\tgene with protein product\tApproved\t7q34\t\"BRAF1|BRAF-1\"\t\t\tv-raf murine sarcoma viral oncogene homolog B\t\"Mitogen-activated protein kinase kinase kinases|RAF family\"\t\"654|1157\"\t1991-07-16\t\t2014-06-26\t2023-01-20\t673\tENSG00000157764\tOTTHUMG00000157457\tuc003vwc.5\tM95712\tNM_004333\t\"CCDS5863|CCDS87555|CCDS94218|CCDS94219\"\tP15056\t\"2284096|1565476\"\tMGI:88190\tRGD:619908\tLRG_299|http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_299.xml\tBRAF\t164757\t\t\t\t\t119066\t\t\t\t\tHGNC:1097\t\t\t\t\t\t\t\t\t\tHGNC:1097\t\"ENST00000646891.2|NM_004333.6\"\tHGNC:1097\n"
+      }
+    }
+  ]
+}

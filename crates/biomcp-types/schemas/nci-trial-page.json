@@ -875,14 +875,14 @@
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "description": "Local request limits and source-specific recovery guidance.",
+          "description": "Local request limits, source observations and recovery guidance.",
           "properties": {
             "kind": {
               "const": "request-guidance",
               "type": "string"
             },
             "message": {
-              "description": "Reviewed guidance without provider response text.",
+              "description": "Reviewed guidance; any quoted provider wording remains source data.",
               "type": "string"
             },
             "retry_after_seconds": {
@@ -1021,7 +1021,7 @@
       ]
     },
     "Reply_SourceOutcome": {
-      "description": "One source's outcome, without provider text.",
+      "description": "One source's outcome with source notices and request guidance.",
       "properties": {
         "count": {
           "description": "Provider matching count.",

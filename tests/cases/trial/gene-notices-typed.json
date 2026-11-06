@@ -1,0 +1,41 @@
+{
+  "feature": "trial-search",
+  "live_check": "configured replay: retained public ClinicalTrials.gov bodies with a synthetic HGNC resolver subset",
+  "story": "A registry gene word match retains off-target and wild-type studies while stating the actual protocol text without assessing eligibility.",
+  "verified": "ClinicalTrials.gov public registry search bodies captured2026-11-05 for the evaluation command, old header projection SHA2569e112923a35b97f31953f05a0ae476d06ef6033678e092c22656089d03b83f08 and gene-context projection81f264cbdaec1333fbcdc0548c3df86f23a41b7940d51b50a4aa0612810dcf71. Native order/counts/text unchanged; version reply reuses existing capture and establishes no new processing date. HGNC uses an explicitly synthetic KRAS/BRAF row subset from the existing gene/main capture, not a whole registry download.",
+  "replay": "trial/gene-notices",
+  "config": {
+    "mcp_tool_mode": "typed"
+  },
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "search_trial",
+        "arguments": {
+          "condition": [
+            "pancreatic cancer"
+          ],
+          "gene": "KRAS",
+          "phase": "3",
+          "status": "RECRUITING"
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/page/total": 11,
+        "/result/items": {
+          "count": 10
+        },
+        "/result/items/0/nct_id": "NCT06943755",
+        "/result/items/4/nct_id": "NCT06998940",
+        "/sources/1/notices/0/kind": "condition-word-mismatch",
+        "/sources/1/notices/*/message": {
+          "includes_all_of": [
+            "Trial NCT06943755: KRAS is not mentioned as an exact word in the returned protocol fields. Registry text matching does not establish a gene link or eligibility.",
+            "Trial NCT06998940: the registered title contains \"Without KRAS Mutations\". Gene-word matching does not establish eligibility."
+          ]
+        }
+      }
+    }
+  ]
+}

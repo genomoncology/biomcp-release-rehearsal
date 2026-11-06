@@ -9,6 +9,8 @@ use biomcp_types::Source;
 use biomcp_fetch::{BadReply, Reply};
 use biomcp_types::TrialHeader;
 use serde::Deserialize;
+#[path = "raw_gene.rs"]
+mod gene_context;
 #[derive(Deserialize)]
 #[serde(transparent)]
 pub(super) struct FirstPage(pub(super) RawPage);
@@ -82,6 +84,8 @@ pub(super) struct Protocol {
     conditions_module: Option<Field<Conditions>>,
     arms_interventions_module: Option<Field<Interventions>>,
     contacts_locations_module: Option<Field<CountryLocations>>,
+    description_module: Option<Field<Description>>,
+    eligibility_module: Option<Field<Eligibility>>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -107,6 +111,18 @@ struct Design {
 #[derive(Deserialize)]
 struct Conditions {
     conditions: Option<Field<Vec<Field<Text>>>>,
+    keywords: Option<Field<Vec<Field<Box<str>>>>>,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Description {
+    brief_summary: Option<Field<Box<str>>>,
+    detailed_description: Option<Field<Box<str>>>,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Eligibility {
+    eligibility_criteria: Option<Field<Box<str>>>,
 }
 #[derive(Deserialize)]
 struct Interventions {

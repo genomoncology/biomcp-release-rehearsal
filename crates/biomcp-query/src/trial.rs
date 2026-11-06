@@ -2,6 +2,7 @@
 use biomcp_types::ReplyBody;
 mod condition;
 pub mod document;
+mod gene_notice;
 pub(crate) mod get;
 mod nci;
 use crate::{Action, Ctx, Outcome, status};
@@ -67,6 +68,9 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     if let Ok(page) = result {
         if page.condition_word_mismatch {
             condition::word_notice(query, cx.fresh, &mut source, &mut outcome);
+        }
+        if let Some(gene) = gene.as_deref() {
+            gene_notice::append(gene, &page.gene_contexts, &mut source);
         }
         source.count = page.total;
         source.retrieved_count = Some(page.items.len() as u32);

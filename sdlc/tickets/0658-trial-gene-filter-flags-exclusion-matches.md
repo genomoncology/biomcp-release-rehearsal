@@ -1,6 +1,7 @@
 # 0658 — Trial gene filter flags trials that only exclude the gene
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: f36bbacbf25b48274c1f54a96acd9f4f857790e2
 
 Milestone: 5
 

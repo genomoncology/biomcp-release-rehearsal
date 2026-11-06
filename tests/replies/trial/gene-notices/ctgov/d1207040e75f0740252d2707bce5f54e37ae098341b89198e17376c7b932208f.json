@@ -1,0 +1,60 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&pageSize=1&query.term=BRAF",
+  "exchanges": [
+    {
+      "fetched": 1793898000,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 7,
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT00010001",
+                  "briefTitle": "Synthetic exclusion record"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-11-01"
+                  }
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE2"
+                  ]
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Synthetic solid tumor"
+                  ],
+                  "keywords": []
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Synthetic treatment"
+                    }
+                  ]
+                },
+                "descriptionModule": {
+                  "briefSummary": "Synthetic source field for context checks."
+                },
+                "eligibilityModule": {
+                  "eligibilityCriteria": "Inclusion Criteria:\n* Adults with solid tumors.\nExclusion Criteria:\n* bRaF mutations."
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,482 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&filter.advanced=AREA%5BPhase%5DPHASE3&filter.overallStatus=RECRUITING&pageSize=10&query.cond=%28pancreatic%20cancer%29&query.term=KRAS",
+  "exchanges": [
+    {
+      "fetched": 1793898000,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 11,
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT06943755",
+                  "briefTitle": "Zanzalintinib Versus Everolimus in Participants With Locally Advanced or Metastatic Neuroendocrine Tumors"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-30"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Neuroendocrine Tumor (pNET)",
+                    "Extra-Pancreatic Neuroendocrine Tumor (epNET)"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE2",
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Zanzalintinib"
+                    },
+                    {
+                      "name": "Everolimus"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07491445",
+                  "briefTitle": "Study of Daraxonrasib and Daraxonrasib + GnP as First-line Treatment in Patients With Metastatic Pancreatic Adenocarcinoma"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-02"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Cancer",
+                    "Pancreatic Cancer Metastatic",
+                    "PDAC",
+                    "PDAC - Pancreatic Ductal Adenocarcinoma",
+                    "Pancreatic Ductal Adenocarcinoma (PDAC)",
+                    "Pancreatic Adenocarcinoma Metastatic",
+                    "Pancreatic Adenocarcinoma",
+                    "Pancreatic Adenosquamous Carcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "daraxonrasib"
+                    },
+                    {
+                      "name": "gemcitabine"
+                    },
+                    {
+                      "name": "nab-paclitaxel"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07522073",
+                  "briefTitle": "A Study to Evaluate Chemotherapy With or Without INCB161734 in Previously Untreated, KRAS G12D-Mutated Metastatic Pancreatic Ductal Adenocarcinoma"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-30"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Solid Tumors"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "INCB161734"
+                    },
+                    {
+                      "name": "Placebo"
+                    },
+                    {
+                      "name": "Investigator's choice of chemotherapy"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07621718",
+                  "briefTitle": "Study of Zoldonrasib + Chemo of Investigator's Choice vs Placebo + Chemo of Investigator's Choice as First-line Treatment in Metastatic KRAS G12D-mutated Pancreatic Adenocarcinoma ( RASolute 305 )"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-13"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Cancer",
+                    "Pancreatic Cancer Metastatic",
+                    "PDAC",
+                    "PDAC - Pancreatic Ductal Adenocarcinoma",
+                    "Pancreatic Ductal Adenocarcinoma (PDAC)",
+                    "Pancreatic Adenocarcinoma Metastatic",
+                    "Pancreatic Adenocarcinoma",
+                    "Pancreatic Adenosquamous Carcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Zoldonrasib"
+                    },
+                    {
+                      "name": "Placebo"
+                    },
+                    {
+                      "name": "Oxaliplatin"
+                    },
+                    {
+                      "name": "Leucovorin (Calcium Folinate)"
+                    },
+                    {
+                      "name": "5-Fluorouracil"
+                    },
+                    {
+                      "name": "Irinotecan"
+                    },
+                    {
+                      "name": "Gemcitabine (GEM)"
+                    },
+                    {
+                      "name": "Nab-paclitaxel"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT06998940",
+                  "briefTitle": "Studying Chemotherapy With or Without Panitumumab for Unresectable, Locally Advanced, or Metastatic Pancreatic Cancer Without KRAS Mutations"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-05-22"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Locally Advanced Pancreatic Adenocarcinoma",
+                    "Metastatic Pancreatic Adenocarcinoma",
+                    "Stage III Pancreatic Cancer AJCC v8",
+                    "Stage IV Pancreatic Cancer AJCC v8",
+                    "Unresectable Pancreatic Adenocarcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Biospecimen Collection"
+                    },
+                    {
+                      "name": "Computed Tomography"
+                    },
+                    {
+                      "name": "Fluorouracil"
+                    },
+                    {
+                      "name": "Gemcitabine"
+                    },
+                    {
+                      "name": "Irinotecan"
+                    },
+                    {
+                      "name": "Irinotecan Sucrosofate"
+                    },
+                    {
+                      "name": "Leucovorin"
+                    },
+                    {
+                      "name": "Nab-paclitaxel"
+                    },
+                    {
+                      "name": "Panitumumab"
+                    },
+                    {
+                      "name": "Questionnaire Administration"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07232875",
+                  "briefTitle": "HRS 4642 Injection Combined With AG Versus Placebo Combined With AG Therapy in First-Line Advanced or Metastatic Pancreatic Cancer"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-26"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "KRAS G12D-Mutant Advanced or Metastatic Pancreatic Cancer in the First-line Setting"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "HRS-4642 + AG"
+                    },
+                    {
+                      "name": "HRS-4642 placebo + AG"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07252232",
+                  "briefTitle": "Study of Daraxonrasib (RMC-6236) in Patients With Resected Pancreatic Ductal Adenocarcinoma (PDAC)"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-23"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Cancer",
+                    "PDAC",
+                    "PDAC - Pancreatic Ductal Adenocarcinoma",
+                    "Resectable Pancreatic Ductal Adenocarcinoma (PDAC)",
+                    "Resected Pancreatic Adenocarcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "daraxonrasib"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07562152",
+                  "briefTitle": "Atebimetinib + GnP as a First Line Treatment in Patients With Metastatic Pancreatic Adenocarcinoma"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-11-02"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Cancer",
+                    "Pancreatic Cancer Metastatic",
+                    "PDAC",
+                    "PDAC - Pancreatic Ductal Adenocarcinoma",
+                    "Pancreatic Ductal Adenocarcinoma",
+                    "Pancreatic Adenocarcinoma Metastatic",
+                    "Pancreatic Ductal Adenocarcinoma (PDAC)",
+                    "Pancreatic Adenocarcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Atebimetinib"
+                    },
+                    {
+                      "name": "GnP"
+                    },
+                    {
+                      "name": "mGnP"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07409272",
+                  "briefTitle": "A Study to Evaluate the Effectiveness and Safety of Setidegrasib, Given With Either mFOLFIRINOX or NALIRIFOX Chemotherapies, in People With Pancreatic Cancer"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-11-03"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Cancer",
+                    "Metastatic Pancreatic Cancer",
+                    "Metastatic Pancreatic Adenocarcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Setidegrasib"
+                    },
+                    {
+                      "name": "Oxaliplatin"
+                    },
+                    {
+                      "name": "Leucovorin"
+                    },
+                    {
+                      "name": "Irinotecan"
+                    },
+                    {
+                      "name": "fluorouracil"
+                    },
+                    {
+                      "name": "liposomal irinotecan"
+                    },
+                    {
+                      "name": "Placebo"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT07805954",
+                  "briefTitle": "Study of Zoldonrasib (RMC-9805) Plus Daraxonrasib (RMC-6236) Versus Gemcitabine and Nab-Paclitaxel as First-Line Treatment in Metastatic KRAS G12D-Mutated Pancreatic Adenocarcinoma"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-10-16"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Pancreatic Cancer",
+                    "Pancreatic Cancer Metastatic",
+                    "PDAC",
+                    "PDAC - Pancreatic Ductal Adenocarcinoma",
+                    "Pancreatic Ductal Adenocarcinoma (PDAC)",
+                    "Pancreatic Adenocarcinoma Metastatic",
+                    "Pancreatic Adenocarcinoma",
+                    "Pancreatic Adenosquamous Carcinoma"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "daraxonrasib"
+                    },
+                    {
+                      "name": "gemcitabine"
+                    },
+                    {
+                      "name": "nab-paclitaxel"
+                    },
+                    {
+                      "name": "zoldonrasib"
+                    }
+                  ]
+                }
+              },
+              "hasResults": false
+            }
+          ],
+          "nextPageToken": "ZVNj7o2Elu8o3lpyD92hpa72mpOQJJxsYvKs1fYfkA"
+        }
+      }
+    }
+  ]
+}
