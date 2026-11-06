@@ -1,6 +1,7 @@
 # W42: build paths in the binary
 
-Status: open.
+Status: closed.
+Declined: no private names found and no reproducible-build promise; no harm
 
 Kind: idea
 When: never unless the reason changes
