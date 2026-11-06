@@ -1,6 +1,7 @@
 # 0719 — Trial lists show every intervention
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a2d645d3f413caf1f8f96ee91b13e4d3daf32885
 
 Milestone: 5
 

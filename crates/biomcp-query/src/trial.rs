@@ -72,6 +72,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
         if let Some(gene) = gene.as_deref() {
             gene_notice::append(gene, &page.gene_contexts, &mut source);
         }
+        intervention_notices(query, &page.items, &mut source);
         source.count = page.total;
         source.retrieved_count = Some(page.items.len() as u32);
         apply_page(query, cx.fresh, gene.as_deref(), &mut outcome, page);
@@ -96,6 +97,32 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
 }
 fn request_rejected(error: Option<&biomcp_fetch::RequestError>) -> bool {
     matches!(error, Some(biomcp_fetch::RequestError::Source(error)) if error.status == Some(400))
+}
+
+fn intervention_notices(
+    query: &TrialSearch,
+    rows: &[biomcp_types::TrialHeader],
+    source: &mut biomcp_types::SourceOutcome,
+) {
+    if query.count_only() {
+        return;
+    }
+    for row in rows {
+        let omitted = row.interventions.total - row.interventions.items.len() as u64;
+        if omitted > 0 {
+            source
+                .notices
+                .push(biomcp_types::SourceNotice::RequestGuidance {
+                message: format!(
+                    "Trial {}: interventions omitted: {omitted}; read all registered interventions \
+                     with biomcp get trial {} arms.",
+                    row.nct_id, row.nct_id,
+                )
+                .into(),
+                retry_after_seconds: None,
+            });
+        }
+    }
 }
 
 fn apply_page(
