@@ -246,7 +246,9 @@ pub(super) fn check_markdown(
             for value in expected {
                 let required = value.as_str().ok_or("Markdown includes requires strings")?;
                 if !text.contains(required) {
-                    return Err(format!("stdout includes: expected text {required:?}"));
+                    return Err(format!(
+                        "stdout includes: expected text {required:?}, actual {text:?}"
+                    ));
                 }
             }
         }

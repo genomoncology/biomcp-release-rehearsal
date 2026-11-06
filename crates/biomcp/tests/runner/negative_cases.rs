@@ -8,7 +8,7 @@ pub(super) fn cases() -> Vec<(&'static str, &'static str, &'static str)> {
         (
             "markdown-content",
             "  - run: [help, author, --format, md]\n    expect: {'': {includes: nonexistent-review-text}}",
-            "stdout includes: expected text",
+            "stdout includes: expected text \"nonexistent-review-text\", actual \"# biomcp ",
         ),
         (
             "markdown-ceiling",

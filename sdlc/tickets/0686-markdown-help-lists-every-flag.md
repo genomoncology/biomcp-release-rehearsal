@@ -1,6 +1,7 @@
 # 0686 — Markdown help lists every flag the installed proof expects
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 18869bc49db22aded9c5a54e61f927e03ec1b461
 
 Milestone: 5
 

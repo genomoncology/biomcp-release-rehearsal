@@ -1,5 +1,20 @@
 .DEFAULT_GOAL := landing-gate
 
+.PHONY: markdown-help-installed-check markdown-help-check markdown-help-gate
+markdown-help-installed-check:
+	# Historical help is captured separately; strict schema proofs use the matching build.
+	python3 scripts/markdown_help_probe.py "$(MARKDOWN_HELP_BASELINE)" target/markdown-help-baseline-evidence
+	mkdir -p target/markdown-help
+	cargo build --locked -p biomcp --bin biomcp --test tools --message-format=json-render-diagnostics > target/markdown-help/build.jsonl
+	python3 -c 'import hashlib,json,subprocess,sys; from pathlib import Path; rows=[json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines()]; artifacts={row["target"]["name"]:row for row in rows if row.get("reason")=="compiler-artifact" and row.get("executable")}; executables={name:artifacts[name]["executable"] for name in ("biomcp","tools")}; binding={"revision":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),"artifacts":{name:{"sha256":hashlib.sha256(Path(path).read_bytes()).hexdigest(),"profile":artifacts[name]["profile"]} for name,path in executables.items()}}; Path("target/markdown-help/source-bindings.json").write_text(json.dumps(binding,indent=2)+"\n"); print(json.dumps(binding),flush=True); subprocess.run([sys.executable,"scripts/trials.py","--target","tools","--proofs","--runner",executables["tools"],"--executable",executables["biomcp"],"--installed","schema-discovery/rejects-bad-cases"],check=True)' target/markdown-help/build.jsonl
+
+markdown-help-check: markdown-help-installed-check
+	cargo test --locked -p biomcp --test cases help $(TEST_THREADS)
+	+$(MAKE) check-cheap
+
+markdown-help-gate: markdown-help-installed-check
+	+$(MAKE) landing-gate
+
 .PHONY: drug-alias-review-regressions drug-alias-review-tools
 drug-alias-review-regressions:
 	cargo test --locked -p biomcp --test cases drug/source-aliases-review
