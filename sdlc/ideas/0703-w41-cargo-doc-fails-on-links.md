@@ -1,6 +1,7 @@
 # W41: cargo doc fails on links
 
-Status: open.
+Status: closed.
+Declined: crates are not published, so no reader meets it
 
 Kind: idea
 When: never unless the reason changes
