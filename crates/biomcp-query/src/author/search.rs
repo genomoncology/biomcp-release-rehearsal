@@ -11,6 +11,13 @@ use biomcp_types::{
 type Saved = super::NativePages<(author::Page, bool)>;
 /// Preserve the source's exact query, candidate order and continuation.
 pub(crate) fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
+    if q.source() == biomcp_types::AuthorSearchSource::Pubmed
+        || q.source() == biomcp_types::AuthorSearchSource::Auto
+            && cx.fetch.disabled(Source::SemanticScholar)
+            && q.pool().is_none()
+    {
+        return super::literature::search(cx, q);
+    }
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let mut out = empty(biomcp_types::AuthorPage::into_reply(q.clone(), None));
@@ -164,6 +171,7 @@ fn present(
     out.body = (AuthorPage {
         items,
         matching_records: total,
+        literature: None,
     })
     .with_query(q.clone());
     Ok(())

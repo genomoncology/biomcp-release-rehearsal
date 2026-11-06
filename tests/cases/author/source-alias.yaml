@@ -31,7 +31,7 @@
       ],
       "expect": {
         "/status": "complete",
-        "/query/source": "semantic-scholar",
+        "/query/source": "auto",
         "/result/items/*/id": [
           "semantic-scholar:901",
           "semantic-scholar:902"

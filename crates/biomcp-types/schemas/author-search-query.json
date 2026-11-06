@@ -1,10 +1,12 @@
 {
   "$defs": {
     "AuthorSearchSource": {
-      "description": "Author search supports one provider and its legacy spelling.",
+      "description": "Author identity search or open citation-author discovery.",
       "enum": [
         "semantic-scholar",
-        "semanticscholar"
+        "semanticscholar",
+        "pubmed",
+        "auto"
       ],
       "type": "string"
     },
@@ -48,8 +50,8 @@
     },
     "source": {
       "$ref": "#/$defs/AuthorSearchSource",
-      "default": "semantic-scholar",
-      "description": "Native author source; biomcp_help search author\nNative author source."
+      "default": "auto",
+      "description": "Source; auto uses PubMed if Semantic Scholar is off; biomcp_help search author\nSource; auto uses PubMed if Semantic Scholar is off.\nPubMed accepts names or topics and returns unresolved names on papers."
     }
   },
   "required": [

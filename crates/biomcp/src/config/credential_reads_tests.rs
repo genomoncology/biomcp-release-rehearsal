@@ -268,13 +268,40 @@ fn disabled_author_sources_never_read_credentials() {
         for selector in [source, "noncommercial"] {
             let mut commands = vec![vec!["get", "author", id], vec!["author", "papers", id]];
             if source == "semantic-scholar" {
-                commands.push(vec!["search", "author", "name"]);
+                commands.push(vec!["search", "author", "name", "--source", source]);
             }
             for mut command in commands {
                 command.extend(["--disable-sources", selector]);
                 assert_eq!(execute(&command, None), 0);
             }
         }
+    }
+}
+
+#[test]
+fn author_search_reads_only_enabled_provider_credentials() {
+    for (source, disabled, allowed) in [
+        ("auto", "", Some(SecretName::SemanticScholarApiKey)),
+        (
+            "auto",
+            "semantic-scholar,orcid",
+            Some(SecretName::NcbiApiKey),
+        ),
+        ("auto", "noncommercial,orcid", Some(SecretName::NcbiApiKey)),
+        (
+            "pubmed",
+            "semantic-scholar,orcid",
+            Some(SecretName::NcbiApiKey),
+        ),
+        ("auto", "semantic-scholar,orcid,pubmed", None),
+        ("auto", "noncommercial,orcid,pubmed", None),
+        ("pubmed", "pubmed", None),
+    ] {
+        let mut command = vec!["search", "author", "name", "--source", source];
+        if !disabled.is_empty() {
+            command.extend(["--disable-sources", disabled]);
+        }
+        assert_eq!(execute(&command, allowed), usize::from(allowed.is_some()));
     }
 }
 

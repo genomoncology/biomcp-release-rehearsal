@@ -1,5 +1,6 @@
 //! Provider-record author search and independent exact cards.
 mod get;
+mod literature;
 mod next;
 mod orcid;
 mod papers;

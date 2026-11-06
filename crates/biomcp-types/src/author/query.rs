@@ -5,15 +5,24 @@ const MAX_INPUTS: usize = 20;
 fn default_limit() -> u32 {
     5
 }
-/// Author search supports one provider and its legacy spelling.
+/// Author identity search or open citation-author discovery.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "schema", schemars(with = "str", extend("enum" = ["semantic-scholar", "semanticscholar"])))]
+#[cfg_attr(
+    feature = "schema",
+    schemars(with = "str", extend("enum" = ["semantic-scholar", "semanticscholar", "pubmed", "auto"]))
+)]
 pub enum AuthorSearchSource {
-    /// Canonical Semantic Scholar source.
+    /// Prefer native Semantic Scholar identities; use PubMed citation names when it is disabled.
     #[default]
+    #[serde(rename = "auto")]
+    Auto,
+    /// Canonical Semantic Scholar source.
     #[serde(rename = "semantic-scholar", alias = "semanticscholar")]
     SemanticScholar,
+    /// Citation-scoped author names and papers from PubMed.
+    #[serde(rename = "pubmed")]
+    Pubmed,
 }
 biodata::wire_enum! { described
     /// Indexed-paper disclosure level.
@@ -35,7 +44,8 @@ struct SearchFields {
     /// Literal query from the positional argument.
     #[cfg_attr(feature = "schema", schemars(length(min = 1), extend("x-positional" = 0)))]
     query: Box<str>,
-    /// Native author source.
+    /// Source; auto uses PubMed if Semantic Scholar is off.
+    /// PubMed accepts names or topics and returns unresolved names on papers.
     #[serde(default)]
     source: AuthorSearchSource,
     /// Bounded source page size.
@@ -68,6 +78,13 @@ impl TryFrom<SearchFields> for AuthorSearch {
     }
 }
 impl AuthorSearch {
+    /// Select the provider without retaining another provider's snapshot.
+    pub fn with_source(&self, source: AuthorSearchSource) -> Self {
+        let mut q = self.clone();
+        q.0.source = source;
+        q.0.pool = None;
+        q
+    }
     /// Literal source query.
     pub fn query(&self) -> &str {
         &self.0.query

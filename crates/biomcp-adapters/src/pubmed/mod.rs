@@ -170,6 +170,22 @@ pub fn summaries(
     ids: &[Pmid],
     email: Option<&Secret>,
 ) -> Result<Mapped<Vec<ArticleHeader>>, RequestError> {
+    summaries_reply(leg, ids, email).map(|(reply, ids)| map::summaries(reply, &ids))
+}
+/// Citation author assertions, preserving each paper independently.
+pub fn author_summaries(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+    email: Option<&Secret>,
+) -> Result<Mapped<Vec<biomcp_types::AuthorPublication>>, RequestError> {
+    let (reply, ids) = summaries_reply(leg, ids, email)?;
+    Ok(map::author_summaries(reply, &ids))
+}
+fn summaries_reply(
+    leg: &Leg<'_>,
+    ids: &[Pmid],
+    email: Option<&Secret>,
+) -> Result<(raw::Summary, Vec<Box<str>>), RequestError> {
     let ids: Vec<_> = ids
         .iter()
         .map(|id| id.to_string().into_boxed_str())
@@ -190,7 +206,7 @@ pub fn summaries(
             Read::<raw::Summary>::json(),
         )?
         .value;
-    Ok(map::summaries(reply, &ids))
+    Ok((reply, ids))
 }
 
 mod query;

@@ -13,14 +13,14 @@
             "--pool"
           ]
         },
-        "/result/commands/0/description": "Search research paper authors. Sources: semantic-scholar.",
+        "/result/commands/0/description": "Search research paper authors. Sources: pubmed, semantic-scholar.",
         "/result/commands/0/examples": {
           "count": 1
         },
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 1830,
+      "max_bytes": 2300,
       "run": [
         "help",
         "search",

@@ -112,7 +112,7 @@ cell-line-identity: A caller searches Cellosaurus headers by literal text, nativ
 cell-line-chembl: A caller reads exact accession-linked ChEMBL metadata and requests native assay totals separately, with source terms and independent release provenance.
 cell-line-sections: A caller pages complete native Cellosaurus names, identities, cross-references and variation rows without inference.
 cell-line-all: A caller receives every bounded first section page with independent source failures, skips and provenance, while deferred routes return fixed guidance before provider requests.
-author-search: Literal Semantic Scholar author candidates retain provider identities and native order.
+author-search: Search native author identities or open PubMed citation authors and papers, keeping equal names unresolved.
 author-orcid: Read exact public ORCID names and locally page whole public work groups without identity joins.
 author-papers: Exact Semantic Scholar author papers preserve native order, IDs and details.
 cache-resilience: Checked provider replies and absences survive cache admission failures, and busy reads leave time for the source.

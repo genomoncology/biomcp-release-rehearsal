@@ -14,6 +14,27 @@ pub struct AuthorPage {
     /// Native matching-record total, if supplied.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matching_records: Option<u64>,
+    /// Citation-scoped authors and papers; names never establish a person identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub literature: Option<AuthorLiterature>,
+}
+/// Open citation evidence without inferred researcher identities or metrics.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct AuthorLiterature {
+    /// Names remain separate assertions on each paper, even when spelling matches.
+    pub identity_resolution: biodata::Text,
+    /// Observed citation records, in source order.
+    pub papers: Box<[AuthorPublication]>,
+}
+/// One paper and the author names asserted by its citation source.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct AuthorPublication {
+    /// Citation identity and metadata.
+    pub paper: crate::ArticleHeader,
+    /// All received author names, without linking equal names across papers.
+    pub authors: Box<[biodata::Text]>,
 }
 /// Exact source cards in input order; outer source outcomes retain failures.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

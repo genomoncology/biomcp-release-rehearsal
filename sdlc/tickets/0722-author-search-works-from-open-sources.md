@@ -1,6 +1,7 @@
 # 0722 — Author search works from open sources
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 0d764cab32c8fea0b6d6c4048dfb560154bd60b9
 
 Milestone: 5
 
