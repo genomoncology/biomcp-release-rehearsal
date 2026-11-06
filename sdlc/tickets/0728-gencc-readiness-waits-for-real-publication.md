@@ -1,6 +1,7 @@
 # 0728 — GenCC readiness waits for real publication
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7f776a177844873fc793160357f3b86af23eb3f4
 
 Milestone: 5
 

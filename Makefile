@@ -843,3 +843,15 @@ accepted-batch-unrun-negative:
 
 accepted-batch-unrun-profiles:
 	python3 scripts/measure_typed_catalog.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp" "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/accepted-batch-catalog"
+
+.PHONY: accepted-batch-article-finish
+accepted-batch-article-finish:
+	cargo clippy --keep-going --locked -p biomcp --test cases --test tools -- -D warnings
+	mkdir -p target/article-selector-finish
+	BIOMCP_TRANSCRIPT_DIR="$(CURDIR)/target/article-selector-finish" cargo test --locked -p biomcp --test tools -- --cases "$(CURDIR)/tests/tool-cases" article/selector-errors.yaml
+	cargo test --locked -p biomcp --test cases grammar/argument-description-guidance $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases grammar/numeric-description-guidance $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases trial/input-boundaries $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases variant/identity $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases article/fulltext/ $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases article/preprint/ $(TEST_THREADS)
