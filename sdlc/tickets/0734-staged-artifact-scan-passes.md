@@ -1,6 +1,6 @@
 # 0734 — Staged artifact scan passes on compiled packages
 
-Status: OPEN.
+Status: WITHDRAWN. Duplicate: 0293 already records these 12 findings as classified and fixed by 0665, with no credential. The practice release is the proof.
 
 Milestone: 5
 
