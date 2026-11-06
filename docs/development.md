@@ -4,6 +4,8 @@ Run `make schema-generate` after changing schema types. The command uses the sch
 
 Run `make schema-release-check` to compare the generated schemas with the recorded release baseline and check for drift. This command leaves the checked-in schemas and release baseline unchanged.
 
+A test that uses real time starts a short deadline only after the setup it is not testing has finished, such as a child starting or a connection opening, or makes the deadline end at a point the test controls. It accepts every valid result of the deadline ending earlier. A real-time limit the test expects to pass is at least 15 seconds or is a lower limit. A limit set from one earlier run has an absolute floor. See [the child-readiness fix (0667)](../release/test_mutations.py) and [the timing analysis](../sdlc/records/2026-11-05-timing-tests-under-load.md).
+
 ## Compare replies while restructuring
 
 Set `BIOMCP_TRANSCRIPT_DIR` to an empty output directory when running the case runner. It records exact stdout bytes, exit codes, surfaces and arguments before assertions or JSON parsing. Without the variable, tests run normally. Keep transcript directories outside Git.
@@ -22,7 +24,7 @@ Capture covers YAML steps and trial commands whose existing consumer obtains com
 
 The release rehearsal copies all of `tests/` outside the checkout and runs the complete `cases` target against each installed executable. `BIOMCP_TEST_EXECUTABLE` selects the installed executable and `BIOMCP_TEST_FIXTURES` selects the copied tree. Every case directory registers the same Rust trials. Use ordinary feature names to select the cache publication, HTTP and AlphaGenome trials.
 
-Reports include the YAML case count, total trial count and elapsed time. The first complete installed run measures the suite timeout; later installation channels use that measurement plus 15 percent. The platform job bounds the first measurement. Fixture path checks reject direct manifest-directory reads outside the launcher.
+Reports include the YAML case count, total trial count and elapsed time. The first complete installed run measures the suite timeout; later installation channels use the larger of that measurement plus 15 percent and `BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS` (60 seconds by default). The platform job bounds the first measurement. The installed smoke cleanup check uses `BIOMCP_INSTALLED_SMOKE_HANG_GUARD_SECONDS` (600 seconds by default) to catch hangs. Fixture path checks reject direct manifest-directory reads outside the launcher.
 
 The separate `tools` target contains opt-in schema and assertion boundary proofs, parity validation, synthetic adapter projections, generators and live checks. These library or tooling calls do not test the installed executable. Repository ratchets and library contracts remain separate targets. `make library-tests` runs the retained library and private boundary tests. The architecture's test-placement table records their reasons.
 

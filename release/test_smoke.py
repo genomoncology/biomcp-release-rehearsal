@@ -8,6 +8,11 @@ import sys
 import tempfile
 import unittest
 
+from release.smoke import configured_timeout_seconds
+
+
+INSTALLED_SMOKE_HANG_GUARD_SECONDS = configured_timeout_seconds("BIOMCP_INSTALLED_SMOKE_HANG_GUARD_SECONDS", "600")
+
 
 class InstalledTemporarySpace(unittest.TestCase):
     def test_actual_installed_cli_refuses_a_different_candidate_commit(self):
@@ -140,7 +145,7 @@ finally:
                     if configured:
                         env["TMPDIR"] = str(parent)
                     selected = installed / ("absent" if fail else binary.name)
-                    result = subprocess.run([sys.executable, "-c", script, str(selected), str(installed / ("case-runner" + runner.suffix)), str(fixtures), version], env=env, capture_output=True, text=True, timeout=300)
+                    result = subprocess.run([sys.executable, "-c", script, str(selected), str(installed / ("case-runner" + runner.suffix)), str(fixtures), version], env=env, capture_output=True, text=True, timeout=INSTALLED_SMOKE_HANG_GUARD_SECONDS)
                     print(result.stdout, end="", flush=True)
                     self.assertEqual(result.returncode == 0, not fail, result.stdout + result.stderr)
                     roots = json.loads(result.stdout.splitlines()[-1])["temporary_roots"]
@@ -154,39 +159,44 @@ finally:
 
     @unittest.skipIf(os.name == "nt", "the planted executable uses a POSIX shebang")
     def test_installed_schema_change_names_the_case(self):
+        from release.gate import stage_fixtures
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
             binary = Path(os.environ["BIOMCP_INSTALLED_BINARY"]).resolve()
             runner = Path(os.environ["BIOMCP_CASE_RUNNER"]).resolve()
+            # Discover the Help schema owned by the installed executable.
+            schema_id = json.loads(subprocess.check_output([str(binary), "help"]))["schema"]
             planted = root / "changed-schema"
             planted.write_text(f"#!{sys.executable}\nimport os, sys, json, subprocess\n"
-                               "if sys.argv[1:] == ['schema', 'biodata.source/1']:\n"
+                               f"if sys.argv[1:] == ['schema', {schema_id!r}]:\n"
                                f"    value = json.loads(subprocess.check_output([{str(binary)!r}] + sys.argv[1:]))\n"
                                "    value['$id'] = 'changed.source/1'\n"
                                "    print(json.dumps(value))\n"
                                f"else:\n    os.execv({str(binary)!r}, [{str(binary)!r}] + sys.argv[1:])\n")
             planted.chmod(0o755)
-            original_schema = json.loads(subprocess.check_output([str(binary), "schema", "biodata.source/1"]))
-            changed_schema = json.loads(subprocess.check_output([str(planted), "schema", "biodata.source/1"]))
-            self.assertEqual(original_schema["$id"], "biodata.source/1")
+            original_schema = json.loads(subprocess.check_output([str(binary), "schema", schema_id]))
+            changed_schema = json.loads(subprocess.check_output([str(planted), "schema", schema_id]))
+            self.assertEqual(original_schema["$id"], schema_id)
             self.assertEqual(changed_schema["$id"], "changed.source/1")
             restored_schema = {**changed_schema, "$id": original_schema["$id"]}
             self.assertEqual(restored_schema, original_schema)
             print(json.dumps({"planted_script": planted.read_text(), "original_schema": original_schema,
                               "changed_schema": changed_schema}), flush=True)
             fixtures = root / "fixtures"
-            shutil.copytree("tests", fixtures)
-            provenance = Path("sdlc/planning/slices/gene.md")
-            (fixtures / "support" / provenance).parent.mkdir(parents=True)
-            shutil.copy2(provenance, fixtures / "support" / provenance)
+            source = Path(__file__).resolve().parents[1]
+            stage_fixtures(source, fixtures)
             case = fixtures / "cases/installed-schema.yaml"
-            case.write_text("live_check: Local installed-schema mutation proof; excluded from provider live checks.\nfeature: schema-discovery\nstory: Installed schema identity\nsteps:\n  - run: [schema, biodata.source/1]\n    expect: {'/$id': biodata.source/1}\n")
-            script = "from release.smoke import smoke; import sys; smoke(*sys.argv[1:])"
-            result = subprocess.run([sys.executable, "-c", script, str(planted), str(runner), str(fixtures),
-                                     os.environ["BIOMCP_INSTALLED_VERSION"]], capture_output=True, text=True)
+            case.write_text(f"feature: schema-discovery\nstory: Installed schema identity\n"
+                            "live_check: Local installed-schema mutation proof; excluded from provider live checks.\n"
+                            f"steps:\n  - run: [schema, {schema_id}]\n    expect: {{'/$id': {schema_id}}}\n")
+            env = dict(os.environ, BIOMCP_TEST_FIXTURES=str(fixtures))
+            result = subprocess.run([sys.executable, str(source / "scripts/trials.py"),
+                                     "--runner", str(runner), "--executable", str(planted),
+                                     "--cases", str(fixtures / "cases"), "--case-file", "installed-schema.yaml"],
+                                    env=env, cwd=root, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("installed-schema.yaml", result.stdout + result.stderr)
-            diagnostic = "Installed schema identity; step 1: schema validation: raw artifact differs from requested biodata.source/1"
+            diagnostic = f"Installed schema identity; step 1: schema validation: raw artifact differs from requested {schema_id}"
             self.assertIn(diagnostic, result.stdout + result.stderr)
             print(json.dumps({"planted_schema_id": "changed.source/1", "rehearsal_rejected": True,
                               "case": "installed-schema.yaml", "diagnostic": diagnostic}), flush=True)

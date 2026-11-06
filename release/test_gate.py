@@ -61,8 +61,54 @@ else:
 '''
 
 
+class TimeoutConfiguration(unittest.TestCase):
+    def test_configured_guards_require_positive_finite_seconds(self):
+        for module, variable, constant in [
+            ('release.smoke', 'BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS', 'SUITE_TIMEOUT_FLOOR_SECONDS'),
+            ('release.test_smoke', 'BIOMCP_INSTALLED_SMOKE_HANG_GUARD_SECONDS', 'INSTALLED_SMOKE_HANG_GUARD_SECONDS'),
+        ]:
+            script = f'from {module} import {constant}; assert {constant} == 0.1'
+            for value in ('0', '-1', 'nan', 'inf', '-inf', 'invalid', '0.1'):
+                with self.subTest(variable=variable, value=value):
+                    env = dict(os.environ, **{variable: value})
+                    result = subprocess.run([sys.executable, '-c', script], env=env,
+                                            capture_output=True, text=True, timeout=15)
+                    if value == '0.1':
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                    else:
+                        self.assertNotEqual(result.returncode, 0)
+                        self.assertIn(f'{variable} must be a positive finite number', result.stderr)
+
+
 @unittest.skipIf(os.name == 'nt', 'synthetic executables use POSIX shebangs')
 class InstalledCli(unittest.TestCase):
+    def test_suite_timeout_floor_retains_margin_and_rejects_real_overrun(self):
+        script = """
+from pathlib import Path
+import subprocess, sys
+from release.smoke import case_suite, SUITE_TIMEOUT_FLOOR_SECONDS
+root = Path(sys.argv[1])
+command = [sys.executable, '-c', 'print("test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out")']
+first = case_suite(command, None, root, root)
+assert first['timeout_seconds'] == max(SUITE_TIMEOUT_FLOOR_SECONDS, first['elapsed_seconds'] * 1.15)
+if SUITE_TIMEOUT_FLOOR_SECONDS == 60:
+    assert first['timeout_seconds'] == 60
+else:
+    assert first['timeout_seconds'] >= SUITE_TIMEOUT_FLOOR_SECONDS
+    try:
+        case_suite([sys.executable, '-c', 'import time; time.sleep(60)'], None, root, root, first['timeout_seconds'])
+    except subprocess.TimeoutExpired:
+        pass
+    else:
+        raise AssertionError('real suite overrun passed')
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            for floor in ('60', '0.1'):
+                env = dict(os.environ, BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS=floor)
+                result = subprocess.run([sys.executable, '-c', script, directory], env=env,
+                                        capture_output=True, text=True, timeout=15)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_archive_bootstrap_preserves_tooling_and_product_identity(self):
         source_root = Path(__file__).resolve().parents[1]
         tooling = subprocess.check_output(['git', 'rev-parse', '--verify', 'HEAD^{commit}'],

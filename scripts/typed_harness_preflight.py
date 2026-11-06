@@ -15,6 +15,7 @@ from typed_harness_smoke import check_sources, cleanup_remote_scratch, copy_scri
 
 
 def server(both_errors=False):
+    Path(sys.argv[3]).touch()
     for line in sys.stdin.buffer:
         frame = json.loads(line)
         # Whitespace is intentional: forwarding must retain the original bytes.
@@ -30,12 +31,25 @@ def server(both_errors=False):
         sys.stdout.buffer.flush()
 
 
+def wait_started(child, path):
+    deadline = time.monotonic() + 15
+    while not path.exists():
+        if child.poll() is not None:
+            raise RuntimeError("synthetic child died before reporting startup")
+        if time.monotonic() >= deadline:
+            raise RuntimeError("synthetic child did not report startup")
+        time.sleep(0.02)
+
+
 def bridge(path, both_errors=False):
-    command = [sys.executable, __file__, "server"] + (["both-errors"] if both_errors else [])
+    root = Path(path)
+    command = [sys.executable, __file__, "server", "both-errors" if both_errors else "normal", str(root / "server-ready")]
     child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     try:
-        exchange(child, Path(path))
-        child.wait(timeout=3)
+        wait_started(child, root / "server-ready")
+        (root / "bridge-ready").touch()
+        exchange(child, root)
+        child.wait(timeout=15)
     finally:
         if child.poll() is None:
             child.kill()
@@ -51,14 +65,10 @@ def cancellation(root):
         pid_file = root / str(termination)
         owner = subprocess.Popen([sys.executable, __file__, "owner", str(pid_file)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         try:
-            deadline = time.monotonic() + 3
-            while not pid_file.exists() and time.monotonic() < deadline:
-                time.sleep(0.02)
-            if not pid_file.exists():
-                raise RuntimeError("synthetic owned child did not start")
+            wait_started(owner, pid_file)
             pid = int(pid_file.read_text())
             owner.send_signal(termination)
-            owner.communicate(timeout=12)
+            owner.communicate(timeout=15)
             try:
                 os.kill(pid, 0)
             except ProcessLookupError:
@@ -72,26 +82,50 @@ def cancellation(root):
                 owner.communicate()
 
 
+def run_bridge(root, inputs, both_errors=False):
+    command = [sys.executable, __file__, "bridge", str(root)]
+    if both_errors:
+        command.append("both-errors")
+    child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        wait_started(child, root / "bridge-ready")
+        stdout, stderr = child.communicate(inputs, timeout=15)
+        return subprocess.CompletedProcess(command, child.returncode, stdout, stderr)
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.communicate()
+
+
 def check():
     check_sources()
     with tempfile.TemporaryDirectory(prefix="typed-harness-preflight-") as temporary:
         root = Path(temporary)
+        dead = subprocess.Popen([sys.executable, "-c", "raise SystemExit(7)"])
+        dead.wait(timeout=15)
+        try:
+            wait_started(dead, root / "never-ready")
+        except RuntimeError as error:
+            if "died before reporting startup" not in str(error):
+                raise
+        else:
+            raise RuntimeError("dead child passed startup preflight")
         inputs = request(1, "NCT02563002") + request(2, "lung cancer")
         successful = root / "successful"
         successful.mkdir()
-        run = subprocess.run([sys.executable, __file__, "bridge", str(successful)], input=inputs, capture_output=True, timeout=5)
+        run = run_bridge(successful, inputs)
         if run.returncode or (successful / "requests.jsonl").read_bytes() != inputs:
             raise RuntimeError(f"synthetic forwarding failed: {run.stderr!r}")
         if (successful / "replies.jsonl").read_bytes() != run.stdout or run.stdout.count(b'"synthetic":true') != 2:
             raise RuntimeError("reply bytes changed or replies were lost")
         refused = root / "refused"
         refused.mkdir()
-        run = subprocess.run([sys.executable, __file__, "bridge", str(refused)], input=inputs + request(3, "lung cancer"), capture_output=True, timeout=5)
+        run = run_bridge(refused, inputs + request(3, "lung cancer"))
         if run.returncode == 0 or b"unexpected tools/call" not in run.stderr:
             raise RuntimeError("third-call bound failed")
         both_errors = root / "both-errors"
         both_errors.mkdir()
-        run = subprocess.run([sys.executable, __file__, "bridge", str(both_errors), "both-errors"], input=inputs, capture_output=True, timeout=5)
+        run = run_bridge(both_errors, inputs, both_errors=True)
         if run.returncode == 0 or b"expected complete success" not in run.stderr:
             raise RuntimeError("two-error pair silently passed")
         cancellation(root)
@@ -132,7 +166,10 @@ if __name__ == "__main__":
         signal.signal(signal.SIGHUP, interrupted)
         own_process([sys.executable, __file__, "sleeper", sys.argv[2]], 180)
     elif action == "sleeper":
-        Path(sys.argv[2]).write_text(str(os.getpid()))
+        ready = Path(sys.argv[2])
+        staging = ready.with_name(ready.name + ".starting")
+        staging.write_text(str(os.getpid()))
+        staging.replace(ready)
         time.sleep(180)
     elif action == "transport":
         transport(sys.argv[2])

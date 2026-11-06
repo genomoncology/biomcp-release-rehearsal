@@ -1,6 +1,7 @@
 # 0669 — Short test deadlines start after setup
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b303929aa5547cc0943b1652809d6d4f2ff69df7
 
 Milestone: 5
 

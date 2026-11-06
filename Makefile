@@ -466,6 +466,13 @@ source-status-check:
 source-status-pre-review:
 	+$(MAKE) source-status-check check-cheap current-schema-check schema-release-check
 
+.PHONY: deadline-setup-focused deadline-setup-load
+deadline-setup-focused: fmt lint-tools
+	python3 scripts/deadline_setup_load.py
+
+deadline-setup-load:
+	python3 scripts/deadline_setup_load.py load
+
 .PHONY: bench-honesty-repro
 bench-honesty-repro:
 	cargo build --locked -p biomcp --bin biomcp

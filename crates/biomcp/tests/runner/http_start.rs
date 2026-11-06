@@ -4,6 +4,8 @@ use serde_json::Value;
 #[cfg(unix)]
 use serde_json::json;
 use std::{net::SocketAddr, process::Stdio, time::Duration};
+// Bound child initialization before a trial begins sending HTTP requests.
+const HTTP_STARTUP_GUARD: Duration = Duration::from_secs(15);
 impl Server {
     pub(super) fn configured_key(
         bind: &str,
@@ -96,7 +98,7 @@ impl Server {
             }
         }));
         let event = receiver
-            .recv_timeout(Duration::from_secs(5))
+            .recv_timeout(HTTP_STARTUP_GUARD)
             .map_err(|_| "HTTP readiness event timed out")?
             .map_err(|e| e.to_string())?;
         let event: Value =
@@ -109,6 +111,39 @@ impl Server {
             .map_err(|_| "invalid listening address")?;
         Ok(server)
     }
+}
+
+tool_only! {
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The proof caller supplies its Python interpreter explicitly"
+)]
+pub(super) fn readiness_proof() -> super::Check {
+    let python = std::env::var_os("BIOMCP_TEST_PYTHON")
+        .filter(|value| !value.is_empty())
+        .ok_or("HTTP readiness proof requires BIOMCP_TEST_PYTHON from its caller")?;
+    let python = std::path::PathBuf::from(python);
+    for (script, expected) in [
+        ("pass", "HTTP readiness: EOF"),
+        (
+            "import threading; threading.Event().wait()",
+            "HTTP readiness event timed out",
+        ),
+    ] {
+        let result = Server::configured_launch(
+            "127.0.0.1:0", None, None, None, None, &[],
+            |env, _| env.command(&python, &["-c".into(), script.into()]),
+        );
+        let error = match result {
+            Ok(_) => return Err("HTTP startup accepted a child without readiness".into()),
+            Err(error) => error,
+        };
+        if !error.starts_with(expected) {
+            return Err(format!("HTTP child readiness: expected {expected}; actual {error}"));
+        }
+    }
+    Ok(())
+}
 }
 
 #[cfg(unix)]

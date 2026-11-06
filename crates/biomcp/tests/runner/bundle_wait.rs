@@ -128,6 +128,16 @@ fn reader(env: &Environment, publish: mpsc::Sender<()>, expires: bool) -> Result
             let _ = done.send(result);
         });
         let admission = if expires {
+            // Creating the observation sink is the reader’s startup report.
+            // Process creation and loading do not consume the short exit guard.
+            let end = std::time::Instant::now() + Duration::from_secs(15);
+            while !observations.exists() {
+                if std::time::Instant::now() >= end || completion.try_recv().is_ok() {
+                    publish.send(()).map_err(|e| e.to_string())?;
+                    return Err("reader did not report startup".into());
+                }
+                std::thread::yield_now();
+            }
             completion
                 .recv_timeout(Duration::from_secs(3))
                 .map(Some)

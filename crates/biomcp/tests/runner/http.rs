@@ -12,6 +12,11 @@ use std::{
 #[path = "http_start.rs"]
 mod start;
 type Check = Result<(), String>;
+tool_only! {
+pub(super) fn readiness_proof() -> Check {
+    start::readiness_proof()
+}
+}
 pub(super) fn trials() -> Vec<Trial> {
     vec![
         transcript_trial(crate::runner::pool_contract::HTTP_CAPACITY.0, || {
