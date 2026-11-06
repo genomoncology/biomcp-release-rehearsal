@@ -1,6 +1,7 @@
 # W54: apt pins may vanish
 
-Status: open.
+Status: closed.
+Declined: fails closed at rebuild before anything is published; fix when it happens
 
 Kind: idea
 When: never unless the reason changes
