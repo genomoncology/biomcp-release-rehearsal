@@ -13,3 +13,7 @@ Ian, 2026-11-05: "they're definitely after getting this stuff live on hosting, t
 ## Replaces
 
 The "wait for Ian's word" line on new sources in `decisions/2026-11-05-everything-in-1-0.md`, and the plan to cut as soon as the fixes and preflight finish.
+
+## Amendment, 2026-11-06
+
+Ian, 2026-11-05 (relayed by hosting m27741 via Jarvis m27744): no deploys until he approves. The hosted server stays on revision 4 while Amazon tests, and that covers any BioMCP release meant for hosting. So the hosting validation above waits for Ian's approval to deploy; BioMCP fixes keep landing on main meanwhile. Claude's retest of revision 4 added 0679 to 0684 to 1.0.
