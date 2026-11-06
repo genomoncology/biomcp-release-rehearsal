@@ -1,6 +1,7 @@
 # W45: --hosted with no config allows academic
 
-Status: open.
+Status: closed.
+Declined: by design in 0619; hosting's infra refuses anything else
 
 Kind: idea
 When: never unless the reason changes
