@@ -466,6 +466,42 @@ source-status-check:
 source-status-pre-review:
 	+$(MAKE) source-status-check check-cheap current-schema-check schema-release-check
 
+.PHONY: bench-honesty-repro
+bench-honesty-repro:
+	cargo build --locked -p biomcp --bin biomcp
+	python3 scripts/bench_honesty.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
+
+.PHONY: bench-honesty-focused bench-honesty-cases bench-honesty-tools bench-honesty-generate bench-honesty-mechanical bench-honesty-lint
+bench-honesty-focused:
+	+$(MAKE) --keep-going bench-honesty-cases bench-honesty-tools bench-honesty-mechanical
+bench-honesty-cases:
+	python3 scripts/trials.py --installed query-validation/argument-recovery --case-file adverse-event/drug-boolean-refusal.yaml --case-file adverse-event/faers-literals-and-cap.yaml --case-file adverse-event/faers-several-names.yaml --case-file variant/resolver-provenance.yaml --case-file variant/resolver-variantvalidator.yaml --case-file diagnostic/device-approvals.yaml --case-file gene/sections/clingen-validity.yaml
+bench-honesty-tools:
+	cargo test --locked -p biomcp --test tools -- --cases "$(CURDIR)/tests/tool-cases" adverse-event-search/adverse-event/drug-boolean-refusal.yaml --exact
+bench-honesty-generate:
+	cargo fmt --all
+	$(MAKE) schema-generate docs-generate
+bench-honesty-mechanical:
+	+$(MAKE) --keep-going fmt bench-honesty-lint ratchets docs-check current-schema-check
+bench-honesty-lint:
+	cargo clippy --keep-going --locked -p biomcp-types -p biomcp-query -p biomcp --all-targets --features biomcp-types/schema -- -D warnings
+
+.PHONY: bench-honesty-recheck bench-honesty-case-recheck
+bench-honesty-recheck:
+	+$(MAKE) --keep-going bench-honesty-case-recheck bench-honesty-tools fmt bench-honesty-lint ratchets
+bench-honesty-case-recheck:
+	cargo test --locked -p biomcp --test cases drug-boolean-refusal $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases resolver-provenance $(TEST_THREADS)
+
+.PHONY: bench-honesty-selector-focus bench-honesty-population-cases bench-honesty-provenance-cases
+bench-honesty-selector-focus:
+	+$(MAKE) --keep-going bench-honesty-population-cases bench-honesty-provenance-cases fmt bench-honesty-lint
+bench-honesty-population-cases:
+	cargo test --locked -p biomcp --test cases variant-population/ $(TEST_THREADS)
+bench-honesty-provenance-cases:
+	cargo test --locked -p biomcp --test cases resolver-provenance $(TEST_THREADS)
+	cargo test --locked -p biomcp --test cases resolver-variantvalidator $(TEST_THREADS)
+
 .PHONY: indel-population-check
 indel-population-check:
 	+$(MAKE) check-cheap
@@ -565,3 +601,8 @@ help-recovery-check:
 	cargo test --locked -p biomcp --test cases trial/input-boundaries $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases mcp-parity/typed-hosted-catalog $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases mcp-parity/mcp-typed-tools $(TEST_THREADS)
+
+.PHONY: population-reply-metadata-check
+population-reply-metadata-check:
+	+$(MAKE) hosted-surface-generate typed-schema-check
+	python3 scripts/trials.py mcp-parity/mcp-typed-tools --case-file variant/population/indel-invalid-crossref.yaml --case-file variant/population/indel-typed.yaml

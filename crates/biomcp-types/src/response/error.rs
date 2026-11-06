@@ -84,6 +84,12 @@ singleton! {
             [associations|ancestries]; bare numbers are unsupported; sections must match the resource kind; \
             --section-limit is 1..50 and --section-offset is a nonnegative integer; identities are never \
             repaired",
+        TrialSectionPool => "nonzero --offset requires --pool from the returned continuation; run the suggested \
+            first-page command, then follow its next command",
+        TrialSearchCursor => "nonzero --offset requires --next-page from the returned continuation; run the suggested \
+            first-page command, then follow its next command",
+        FaersDrugNames => "pass --drug once per literal name to search several names with OR; OR inside one --drug value \
+            is not supported",
         FaersQueryLength => "FAERS_QUERY_MAX_BYTES is 4096 bytes for the escaped native query including filters; use fewer or shorter --drug names",
         AdverseText => "use: search adverse-event <TEXT>; text stays literal",
         AdverseOutcome => "--outcome is retired; use --serious death or --serious hospitalization for report flags and \

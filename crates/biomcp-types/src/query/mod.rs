@@ -31,7 +31,7 @@ mod civic_filter;
 pub use civic_filter::{CivicEvidenceFilter, CivicEvidenceLevel, CivicEvidenceStatus};
 mod variant;
 mod variant_normalize;
-pub use variant::{CivicClaimKind, VariantGet, VariantResolver, VariantSection};
+pub use variant::{CivicClaimKind, VariantGet, VariantGetEcho, VariantResolver, VariantSection};
 pub use variant_normalize::{NormalizationSource, VariantNormalize};
 
 mod variant_input;
@@ -61,7 +61,7 @@ mod variant_assertions;
 pub use assertion_id::AssertionId;
 pub use variant_assertions::{AssertionSource, VariantAssertionsGet};
 mod variant_population;
-pub use variant_population::VariantPopulationQuery;
+pub use variant_population::{VariantPopulationQuery, VariantPopulationQueryEcho};
 
 mod gene_input;
 pub use gene_input::GeneInput;

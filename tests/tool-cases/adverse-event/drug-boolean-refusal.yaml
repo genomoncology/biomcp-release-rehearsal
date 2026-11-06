@@ -1,0 +1,28 @@
+{
+  "feature": "adverse-event-search",
+  "live_check": "exclude: local argument refusal only; no source request or clinical claim",
+  "story": "An explicit drug value cannot silently treat several OR-joined names as one literal name.",
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "search_adverse_event",
+        "arguments": {
+          "drug": [
+            "synthetic A OR synthetic B"
+          ]
+        }
+      },
+      "offline": true,
+      "is_error": true,
+      "expect": {
+        "/status": "usage",
+        "/error/option": "--drug",
+        "/error/message": "pass --drug once per literal name to search several names with OR; OR inside one --drug value is not supported"
+      }
+    }
+  ],
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  }
+}

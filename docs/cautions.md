@@ -18,6 +18,8 @@ The reply preserves the source URL, document metadata and license without granti
 
 ## Variant profiles, normalization and search
 
+In variant get and population replies, `query.resolver` names the identity resolver that answered. It is omitted when no named resolver answered. The source outcomes retain failures and identify direct identity services such as MyVariant. The executable request and its continuations retain the caller's resolver selection.
+
 A checked member match preserves the full compound profile and its source claim context. Name matches remain candidates. Claims that the common model cannot represent retain their native facts. Rows marked `candidate` with `no_join_id` have no established transcript and consequence join to the requested variant. These residue counts do not state an allele frequency or clinical actionability. Cancer Hotspots data reuse terms remain unverified. VariantValidator and `all` require `--build GRCh37|GRCh38`. Each service keeps its own outcome, source mappings, messages and available version metadata. A provider validation warning can reject an HTTP 200 reply. `all` returns independent results and never chooses a transcript or consensus. Mapping and message pages use `--limit` and `--offset`; typed next commands keep the remaining rows reachable. Gene and protein values are escaped as source literals. The reply echoes the exact source query and assembly and keeps native candidate order and totals. Protein and raw searches send no assembly unless `--build` supplies one. Returned coordinates retain only the assembly stated by the source. Page actions retain every selector; a warm page uses the ordinary checked cache. Broad queries disclose the command's result-window bound. No candidate becomes a chosen allele.
 
 ## Cohort recurrence
@@ -46,6 +48,8 @@ The population join requires one source-given GRCh38 single-nucleotide allele. M
 An exact rsID needs no allele-resolution request. Association pages retain the source study, trait and effect allele with the source's effect estimates. An empty result means the catalog returned no associations for that request. It supplies no clinical classification. Named source sections use `--section-limit` and `--section-offset` independently of identity candidate paging.
 
 ## CPIC and FAERS searches
+
+An explicit `--drug` value containing a standalone OR between names is refused regardless of letter case. Pass `--drug` once per name. Positional drug text stays literal.
 
 Named `recommendations` and `guidelines` sections preserve complete source rows and use `--section-limit` and `--section-offset`. An exact `--drug-id RxNorm:10324` on CYP2D6 recommendations selects the distinct native recommendation table. These commands preserve source labels and source-local empty replies. They calculate no phase, activity score, phenotype or treatment. Published website updates may precede the API tables; a retrieval date does not establish a dataset release. CPIC uses the registry's noncommercial policy ruling. The reply retains the exact source expression, native order and report total. A report total is not incidence, risk or causation. Publisher dates and retrieval dates have separate roles.
 

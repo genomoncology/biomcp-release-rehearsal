@@ -1,0 +1,122 @@
+{
+  "feature": "variant-identity",
+  "live_check": "exclude: synthetic identity-routing fixtures; no clinical-positive claim or new provider capture",
+  "replay": "variant/id-forms",
+  "story": "Reply resolver names the identity source that answered, preserving the requested input and assembly.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "CA123643",
+        "--resolver",
+        "variantvalidator",
+        "--build",
+        "GRCh38"
+      ],
+      "expect": {
+        "/query/resolver": "car",
+        "/query/input": "CA123643",
+        "/query/build": "GRCh38",
+        "/sources/0/source": "car",
+        "/sources/0/state": "ok"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "7-140753336-A-T",
+        "--resolver",
+        "variantvalidator"
+      ],
+      "expect": {
+        "/query/input": "7-140753336-A-T",
+        "/sources/0/source": "myvariant",
+        "/sources/0/state": "ok",
+        "/query": {
+          "omits": [
+            "resolver"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "CA123643",
+        "--resolver",
+        "variantvalidator",
+        "--build",
+        "GRCh38"
+      ],
+      "expect": {
+        "/query/resolver": "car",
+        "/query/input": "CA123643",
+        "/query/build": "GRCh38",
+        "/sources/0/source": "car",
+        "/sources/0/state": "ok"
+      }
+    },
+    {
+      "run": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "7-117559590-ATCT-A",
+        "--resolver",
+        "variantvalidator"
+      ],
+      "expect": {
+        "/query/resolver": "car",
+        "/query/input": "7-117559590-ATCT-A",
+        "/sources/0/source": "car",
+        "/sources/0/state": "ok"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "rs113488022",
+        "--resolver",
+        "variantvalidator",
+        "--build",
+        "GRCh38"
+      ],
+      "expect": {
+        "/query": {
+          "omits": [
+            "resolver"
+          ]
+        },
+        "/sources/0/source": "myvariant",
+        "/sources/0/state": "ok"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "variant",
+        "NM_004333.4:c.1799T>A",
+        "--resolver",
+        "variantvalidator",
+        "--build",
+        "GRCh38"
+      ],
+      "offline": true,
+      "exit": 4,
+      "expect": {
+        "/query": {
+          "omits": [
+            "resolver"
+          ]
+        },
+        "/sources/0/source": "variantvalidator",
+        "/sources/0/state": "failed"
+      }
+    }
+  ]
+}

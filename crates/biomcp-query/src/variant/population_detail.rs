@@ -54,7 +54,7 @@ pub(crate) fn get(cx: &Ctx<'_>, query: &VariantPopulationQuery) -> Outcome {
                 groups,
                 candidates: std::mem::take(&mut read.candidates).into(),
             })
-            .with_query(query.clone()),
+            .with_query(query.answered_query(read.sources.first())),
             page,
             sources: read.sources,
             problems: read.problems,

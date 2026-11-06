@@ -1,21 +1,32 @@
+use super::variant::ResolverChoice;
 use crate::{Build, VariantGet, VariantInput, VariantResolver};
 use serde::{Deserialize, Serialize};
 /// Read a bounded ancestry-detail page from the exact source-given GRCh38 allele.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "Fields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "schema", schemars(with = "Fields"))]
+#[cfg_attr(
+    feature = "schema",
+    schemars(with = "Fields", extend("x-reply-query-titles" = ["VariantPopulationQueryEcho"]))
+)]
 pub struct VariantPopulationQuery(Fields);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(
+    deny_unknown_fields,
+    bound(deserialize = "R: serde::Deserialize<'de> + ResolverChoice")
+)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-struct Fields {
+struct Fields<R: ResolverChoice = VariantResolver> {
     /// Exact published allele identity; ambiguous candidates must first be selected.
     #[cfg_attr(feature="schema",schemars(extend("x-positional"=0)))]
     input: VariantInput,
     /// Resolver for reference-qualified input.
-    #[serde(default = "resolver")]
-    resolver: VariantResolver,
+    #[serde(
+        default = "R::default_resolver",
+        skip_serializing_if = "ResolverChoice::unused"
+    )]
+    #[cfg_attr(feature = "schema", schemars(with = "VariantResolver"))]
+    resolver: R,
     /// Explicit source assembly when required by identity input.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     build: Option<Build>,
@@ -29,9 +40,6 @@ struct Fields {
     /// Native rows to skip.
     #[serde(default)]
     offset: u32,
-}
-fn resolver() -> VariantResolver {
-    VariantResolver::Car
 }
 fn limit() -> u32 {
     10
@@ -47,7 +55,28 @@ impl TryFrom<Fields> for VariantPopulationQuery {
         Ok(Self(fields))
     }
 }
+/// Reply selectors with the resolver that actually answered, omitted when no named resolver answered.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(with = "VariantPopulationQuery"))]
+pub struct VariantPopulationQueryEcho(Fields<Option<VariantResolver>>);
+
 impl VariantPopulationQuery {
+    /// Echo actual identity provenance without changing the request or its continuations.
+    pub fn answered_query(
+        &self,
+        outcome: Option<&crate::SourceOutcome>,
+    ) -> VariantPopulationQueryEcho {
+        VariantPopulationQueryEcho(Fields {
+            input: self.0.input.clone(),
+            resolver: VariantResolver::answered(outcome),
+            build: self.0.build,
+            detail: self.0.detail,
+            limit: self.0.limit,
+            offset: self.0.offset,
+        })
+    }
+
     /// Read checked identity selectors without changing their meaning.
     pub fn identity(&self) -> Result<VariantGet, super::gene::QueryInvalid> {
         VariantGet::new(self.0.input.clone(), self.0.resolver, self.0.build)

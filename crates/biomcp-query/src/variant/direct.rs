@@ -96,6 +96,7 @@ pub(super) fn get(
                     candidates: candidates.into(),
                     rejection: None,
                 },
+                &sources,
             ),
             page: None,
             sources: sources.clone(),

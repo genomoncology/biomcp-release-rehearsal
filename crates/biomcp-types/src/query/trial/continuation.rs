@@ -31,7 +31,8 @@ impl TrialSearch {
 pub(super) fn validate(fields: &Fields) -> Result<(), QueryInvalid> {
     let Some(token) = fields.next_page.as_ref() else {
         if fields.offset != 0 {
-            return Err(QueryInvalid::new(&["offset", "next_page"]));
+            return Err(QueryInvalid::new(&["offset", "next_page"])
+                .with_message(crate::ErrorMessage::TrialSearchCursor));
         }
         return Ok(());
     };

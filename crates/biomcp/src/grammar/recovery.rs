@@ -135,3 +135,26 @@ pub(super) fn guidance(next: Step, path: [&str; 2]) -> Vec<Step> {
     }
     steps
 }
+
+/// Restart an unbound trial page without discarding its selection or source filters.
+pub(super) fn trial_first_page(
+    via: Rewrite,
+    path: (&str, &str),
+    value: &Value,
+    cause: &biomcp_types::QueryInvalid,
+) -> Option<Step> {
+    if !matches!(
+        cause.message(),
+        Some(
+            biomcp_types::ErrorMessage::TrialSectionPool
+                | biomcp_types::ErrorMessage::TrialSearchCursor
+        )
+    ) {
+        return None;
+    }
+    let mut first = value.clone();
+    first
+        .as_object_mut()?
+        .insert("offset".into(), Value::from(0));
+    checked(via, path, first)
+}

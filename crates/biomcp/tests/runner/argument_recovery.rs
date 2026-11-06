@@ -14,6 +14,8 @@ struct Case {
     tool: String,
     fields: Value,
     option: String,
+    message: Option<String>,
+    corrected_query: Option<Value>,
 }
 
 pub(super) fn trials() -> Vec<Trial> {
@@ -95,6 +97,11 @@ fn cli(env: &Environment, args: &[String]) -> Result<(Option<i32>, Value), Strin
 }
 
 fn validate(env: &Environment, case: &Case, value: &Value) -> Result<(), String> {
+    if case.message.as_ref().is_some_and(|message| {
+        value.pointer("/error/message").and_then(Value::as_str) != Some(message)
+    }) {
+        return Err(format!("missing paging explanation: {value}"));
+    }
     let option = value
         .pointer("/error/option")
         .and_then(Value::as_str)
@@ -124,6 +131,13 @@ fn validate(env: &Environment, case: &Case, value: &Value) -> Result<(), String>
         return Err("expected a corrected request".into());
     }
     let (_, corrected) = cli(env, &args)?;
+    if let Some(fields) = case.corrected_query.as_ref().and_then(Value::as_object) {
+        for (name, expected) in fields {
+            if corrected.get("query").and_then(|query| query.get(name)) != Some(expected) {
+                return Err(format!("correction changed selector {name}: {corrected}"));
+            }
+        }
+    }
     if corrected.get("status") == Some(&json!("usage")) {
         return Err(format!("correction does not parse: {corrected}"));
     }

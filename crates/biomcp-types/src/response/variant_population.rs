@@ -155,7 +155,7 @@ pub struct VariantPopulationResult {
 }
 impl super::ResponseBody for VariantPopulationResult {
     const SCHEMA: &'static str = "biomcp.variant-population/13";
-    type Query = crate::VariantPopulationQuery;
+    type Query = crate::VariantPopulationQueryEcho;
 }
 
 /// Source ontology mapping as supplied by GWAS Catalog.

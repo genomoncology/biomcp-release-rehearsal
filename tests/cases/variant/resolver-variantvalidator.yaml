@@ -1,0 +1,24 @@
+{
+  "feature": "variant-identity",
+  "live_check": "exclude: synthetic VariantValidator routing fixture, not a clinical-positive claim",
+  "replay": "variant/normalization/variantvalidator",
+  "story": "A VariantValidator HGVS answer retains VariantValidator as the actual reply resolver.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "variant",
+        "NM_004333.4:c.1799T>A",
+        "--resolver",
+        "variantvalidator",
+        "--build",
+        "GRCh38"
+      ],
+      "expect": {
+        "/query/resolver": "variantvalidator",
+        "/sources/0/source": "variantvalidator",
+        "/sources/0/state": "ok"
+      }
+    }
+  ]
+}

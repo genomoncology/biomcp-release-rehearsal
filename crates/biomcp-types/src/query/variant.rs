@@ -15,9 +15,12 @@ use serde::{Deserialize, Serialize};
 )]
 pub struct VariantGet(Fields);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(
+    deny_unknown_fields,
+    bound(deserialize = "R: serde::Deserialize<'de> + ResolverChoice")
+)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-struct Fields {
+struct Fields<R: ResolverChoice = VariantResolver> {
     #[doc = "rs/CA/clinvar:N/VCV/HGVS/VCF\n\
         rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates."]
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
@@ -53,8 +56,12 @@ struct Fields {
     #[serde(flatten)]
     evidence_filter: crate::CivicEvidenceFilter,
     #[doc = "Resolver.\nResolver for reference-qualified notation; never repairs the input locally."]
-    #[serde(default = "resolver")]
-    resolver: VariantResolver,
+    #[serde(
+        default = "R::default_resolver",
+        skip_serializing_if = "ResolverChoice::unused"
+    )]
+    #[cfg_attr(feature = "schema", schemars(with = "VariantResolver"))]
+    resolver: R,
     #[doc = "Assembly\nMyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."]
     #[serde(
         default,
@@ -76,9 +83,55 @@ fn default_section_limit() -> u32 {
 fn default_limit() -> u32 {
     10
 }
-fn resolver() -> VariantResolver {
-    VariantResolver::Car
+
+/// Reply selectors retain request choices except that resolver names only an answering identity source.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", schemars(with = "VariantGet"))]
+pub struct VariantGetEcho(Fields<Option<VariantResolver>>);
+
+pub(crate) trait ResolverChoice: Serialize {
+    fn default_resolver() -> Self;
+    fn unused(&self) -> bool;
 }
+impl ResolverChoice for VariantResolver {
+    fn default_resolver() -> Self {
+        Self::Car
+    }
+    fn unused(&self) -> bool {
+        false
+    }
+}
+impl ResolverChoice for Option<VariantResolver> {
+    fn default_resolver() -> Self {
+        None
+    }
+    fn unused(&self) -> bool {
+        self.is_none()
+    }
+}
+impl VariantGet {
+    /// Build a reply-only query from the identity outcome, without changing the executable request.
+    pub fn answered_query(self, outcome: Option<&crate::SourceOutcome>) -> VariantGetEcho {
+        let v = self.0;
+        VariantGetEcho(Fields {
+            input: v.input,
+            section: v.section,
+            section_limit: v.section_limit,
+            section_offset: v.section_offset,
+            civic_profile: v.civic_profile,
+            tumor_type: v.tumor_type,
+            civic_kind: v.civic_kind,
+            civic_cursor: v.civic_cursor,
+            evidence_filter: v.evidence_filter,
+            resolver: VariantResolver::answered(outcome),
+            build: v.build,
+            limit: v.limit,
+            offset: v.offset,
+        })
+    }
+}
+
 crate::query::validation::checked_query!(VariantGet, Fields);
 impl TryFrom<Fields> for VariantGet {
     type Error = super::gene::QueryInvalid;
@@ -325,6 +378,17 @@ biodata::wire_enum! {
     }
 }
 impl VariantResolver {
+    /// An identity source that supplied a current or stale answer; failed or unused resolvers are omitted.
+    pub fn answered(outcome: Option<&crate::SourceOutcome>) -> Option<Self> {
+        let outcome = outcome
+            .filter(|v| matches!(v.state, crate::SourceState::Ok | crate::SourceState::Stale))?;
+        match outcome.source {
+            crate::Source::AlleleRegistry => Some(Self::Car),
+            crate::Source::Mutalyzer => Some(Self::Mutalyzer),
+            crate::Source::VariantValidator => Some(Self::Variantvalidator),
+            _ => None,
+        }
+    }
     /// Declared source policy for the selected service.
     pub fn source(self) -> crate::Source {
         match self {

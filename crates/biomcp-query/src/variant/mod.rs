@@ -97,6 +97,7 @@ pub(crate) fn get(cx: &Ctx<'_>, query: &VariantGet) -> Outcome {
                     candidates: candidates.into(),
                     rejection,
                 },
+                &sources,
             ),
             page,
             sources,
@@ -422,7 +423,15 @@ fn population_reason(
     }
 }
 
-fn reply(query: &VariantGet, body: VariantCard) -> biomcp_types::ReplyData {
-    let echo = biomcp_types::VariantGetQuery::new(query.clone(), body.source);
+fn reply(
+    query: &VariantGet,
+    body: VariantCard,
+    sources: &[biomcp_types::SourceOutcome],
+) -> biomcp_types::ReplyData {
+    let echo = biomcp_types::VariantGetQuery::new(
+        query.clone(),
+        body.source,
+        sources.iter().find(|v| v.source == body.source),
+    );
     body.with_query(echo)
 }

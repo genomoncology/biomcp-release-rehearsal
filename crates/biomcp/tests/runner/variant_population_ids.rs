@@ -31,15 +31,7 @@ fn ambiguous() -> Result<(), String> {
                 "2",
             ],
         )?;
-        for (field, expected) in [
-            ("resolver", json!("car")),
-            ("build", json!("GRCh37")),
-            ("limit", json!(2)),
-        ] {
-            if output.pointer(&format!("/query/{field}")) != Some(&expected) {
-                return Err(format!("population selector lost at {field}: {output}"));
-            }
-        }
+        selectors(&output)?;
         let rows = output
             .pointer("/result/candidates")
             .and_then(Value::as_array)
@@ -66,10 +58,11 @@ fn ambiguous() -> Result<(), String> {
             if args.get(..2) != Some(&["variant".to_owned(), "population".to_owned()])
                 || args.get(2).map(String::as_str)
                     != row.pointer("/record/id").and_then(Value::as_str)
-                || !args.iter().any(|s| s == "--build")
+                || !has_option(&args, "--build", "GRCh37")
+                || !has_option(&args, "--limit", "2")
             {
                 return Err(format!(
-                    "candidate next step lost identity or assembly: {step}"
+                    "candidate next step lost identity, assembly or limit: {step}"
                 ));
             }
         }
@@ -78,6 +71,26 @@ fn ambiguous() -> Result<(), String> {
         return Err("ambiguity made requests beyond the two source identity queries".into());
     }
     Ok(())
+}
+fn selectors(output: &Value) -> Result<(), String> {
+    for (field, expected) in [("build", json!("GRCh37")), ("limit", json!(2))] {
+        if output.pointer(&format!("/query/{field}")) != Some(&expected) {
+            return Err(format!("population selector lost at {field}: {output}"));
+        }
+    }
+    if output.pointer("/query/resolver").is_some()
+        || output.pointer("/sources/0/source") != Some(&json!("myvariant"))
+        || output.pointer("/sources/0/state") != Some(&json!("ok"))
+    {
+        return Err(format!(
+            "population reply misstates its identity resolver: {output}"
+        ));
+    }
+    Ok(())
+}
+fn has_option(args: &[String], name: &str, value: &str) -> bool {
+    args.windows(2)
+        .any(|pair| matches!(pair, [flag, selected] if flag == name && selected == value))
 }
 pub(super) fn candidates(_: &str) -> Result<String, String> {
     // Synthetic reply-only multiallelic control; no claim about these public IDs.

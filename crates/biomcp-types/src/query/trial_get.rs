@@ -66,7 +66,8 @@ impl TryFrom<Fields> for TrialGet {
             return Err(QueryInvalid::new(&["pool", "offset", "input", "section"]));
         }
         if v.offset != 0 && v.pool.is_none() {
-            return Err(QueryInvalid::new(&["offset", "pool"]));
+            return Err(QueryInvalid::new(&["offset", "pool"])
+                .with_message(crate::ErrorMessage::TrialSectionPool));
         }
         Ok(Self(v))
     }

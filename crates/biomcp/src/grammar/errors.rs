@@ -237,9 +237,19 @@ pub(super) fn checked_invalid(
     let usage = super::validation::checked(verb, entity, cause)
         .map(|mut arguments| {
             let names: Vec<_> = cause.arguments().iter().map(AsRef::as_ref).collect();
-            let corrected = super::validation::schema(verb, entity).and_then(|schema| {
-                super::recovery::corrected(via, (verb, entity), &schema, value, &names, false)
-            });
+            let corrected = super::recovery::trial_first_page(via, (verb, entity), value, cause)
+                .or_else(|| {
+                    super::validation::schema(verb, entity).and_then(|schema| {
+                        super::recovery::corrected(
+                            via,
+                            (verb, entity),
+                            &schema,
+                            value,
+                            &names,
+                            false,
+                        )
+                    })
+                });
             super::recovery::next(&mut arguments, corrected);
             arguments
         })

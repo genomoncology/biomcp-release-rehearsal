@@ -1,6 +1,7 @@
 # 0678 — Small honesty gaps from the bench recheck
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: fbcc6ad710d1227d249ca06a2b946116e60c775f
 
 Milestone: 5
 

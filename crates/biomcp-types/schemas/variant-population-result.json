@@ -7672,8 +7672,8 @@
       ],
       "type": "object"
     },
-    "Reply_VariantPopulationQuery": {
-      "description": "Read a bounded ancestry-detail page from the exact source-given GRCh38 allele.",
+    "Reply_VariantPopulationQueryEcho": {
+      "description": "Reply selectors with the resolver that actually answered, omitted when no named resolver answered.",
       "properties": {
         "build": {
           "anyOf": [
@@ -7719,7 +7719,10 @@
       "required": [
         "input"
       ],
-      "type": "object"
+      "type": "object",
+      "x-reply-query-titles": [
+        "VariantPopulationQueryEcho"
+      ]
     },
     "Reply_VariantPopulationResult": {
       "description": "Population summary and one explicitly requested ancestry-detail page.",
@@ -8583,7 +8586,7 @@
       "type": "array"
     },
     "query": {
-      "$ref": "#/$defs/Reply_VariantPopulationQuery",
+      "$ref": "#/$defs/Reply_VariantPopulationQueryEcho",
       "description": "Parsed query."
     },
     "result": {
