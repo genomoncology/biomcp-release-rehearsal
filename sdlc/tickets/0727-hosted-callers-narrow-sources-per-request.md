@@ -31,3 +31,7 @@ Ian, 2026-11-06: "We have to get the hosting server to support API keys and pote
 ## Changes
 
 - Changes: `crates/biomcp/src/mcp/`, `docs/configuration.md`, `tests/`.
+
+## Amendment, 2026-11-06
+
+Hosting agreed the contract (m28791). The header is `x-biomcp-exclude-sources`, comma-separated source names. Hosting's wrapper sets it from account settings and strips client copies. Core also rejects an unknown source name clearly, and gives a machine-readable list of source names users may leave out, in the style of `biomcp key list`.
