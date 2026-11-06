@@ -1,7 +1,7 @@
 {
   "feature": "variant-identity",
   "replay": "variant/id-forms",
-  "live_check": "recorded",
+  "live_check": "recorded identity matrix with synthetic unrelated-source routing; exclude from live calls",
   "story": "deletion VCF coordinates retain their complete reference for CAR validation and reach each variant command or its named-forms refusal.",
   "steps": [
     {
@@ -23,15 +23,17 @@
         "population",
         "7-117559590-ATCT-A"
       ],
-      "exit": 4,
       "expect": {
-        "/status": "failed",
-        "/problems/*/field": {
-          "includes_all_of": [
-            "input: requires one source-qualified GRCh38 SNV (CAid or reference-qualified genomic HGVS); indels need a padded source representation; convert with get variant <ID> and select an exact candidate"
-          ]
-        }
-      }
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "7-117559590-ATCT-A",
+        "/result/population/data/build": "GRCh38"
+      },
+      "mcp": [
+        "variant",
+        "population",
+        "7-117559590-ATCT-A"
+      ]
     },
     {
       "run": [

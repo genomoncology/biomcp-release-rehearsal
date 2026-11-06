@@ -1,0 +1,80 @@
+{
+  "feature": "variant-population",
+  "live_check": "recorded public native indel replies; excludes live calls because the shared identity matrix contains synthetic unrelated-source routing",
+  "story": "Source-native gnomAD indel keys join validated coordinates and registry HGVS without inventing padding or changing native counts.",
+  "replay": "variant/id-forms",
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "7-117559590-ATCT-A"
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "7-117559590-ATCT-A",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 18037,
+        "/result/population/data/genome/ac": 1200,
+        "/result/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "NC_000007.14:g.117559592_117559594del"
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "7-117559590-ATCT-A",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 18037,
+        "/result/population/data/genome/ac": 1200,
+        "/result/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "17-43057065-G-GG"
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "17-43057062-T-TG",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 101,
+        "/result/population/data/genome/ac": 8,
+        "/result/population/data/joint/data/ac": 109
+      }
+    },
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "NC_000017.11:g.43057065dup"
+        }
+      },
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "17-43057062-T-TG",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 101,
+        "/result/population/data/genome/ac": 8,
+        "/result/population/data/joint/data/ac": 109
+      }
+    }
+  ],
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  }
+}

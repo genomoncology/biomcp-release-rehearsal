@@ -25,12 +25,18 @@ pub(super) fn section(
             false,
         );
     }
-    let Some(id) = join(candidates) else {
-        return missing();
+    let joined = super::population_identity::read(cx, candidates, deadline);
+    let Some(id) = joined.id else {
+        let mut result = missing(joined.reason.unwrap_or(Reason::NoJoinId));
+        result.1 = joined.sources;
+        result.2.extend(joined.problems);
+        result.3 = joined.local;
+        return result;
     };
+    let deadline = deadline.after_stage(joined.elapsed);
     let leg = cx.fetch.leg(&gnomad::SPEC, deadline).fresh(cx.fresh);
     let mut dropped = false;
-    let mut problems = Vec::new();
+    let mut problems = joined.problems;
     let result = gnomad::variant::population(&leg, &id).and_then(|raw| {
         dropped |= raw.refusals == biomcp_adapters::Refusal::Refused;
         problems.extend(raw.problems);
@@ -60,13 +66,13 @@ pub(super) fn section(
     };
     (
         value,
-        vec![source],
+        joined.sources.into_iter().chain([source]).collect(),
         problems,
-        error.and_then(status::local),
+        joined.local.or(error.and_then(status::local)),
         dropped,
     )
 }
-/// Keep only source-qualified SNVs; indels need an explicit padded source representation.
+/// Derive an exact SNV key without a second registry request.
 pub(super) fn join(candidates: &[VariantHeader]) -> Option<String> {
     let [row] = candidates else {
         return None;
@@ -247,7 +253,9 @@ fn stratum(id: &Text) -> (Option<Text>, Option<PopulationSex>) {
     }
 }
 
-fn missing() -> (
+fn missing(
+    reason: Reason,
+) -> (
     Section<VariantPopulation>,
     Vec<SourceOutcome>,
     Vec<Problem>,
@@ -257,15 +265,19 @@ fn missing() -> (
     (
         Section::Unavailable {
             source: Source::Gnomad,
-            reason: Reason::NoJoinId,
+            reason,
         },
         Vec::new(),
-        vec![Problem {
-            source: Source::Gnomad,
-            record: None,
-            field: "GRCh38_allele".into(),
-            code: ProblemCode::ValueUnknown,
-        }],
+        if reason == Reason::NoJoinId {
+            vec![Problem {
+                source: Source::Gnomad,
+                record: None,
+                field: "GRCh38_allele".into(),
+                code: ProblemCode::ValueUnknown,
+            }]
+        } else {
+            Vec::new()
+        },
         None,
         false,
     )

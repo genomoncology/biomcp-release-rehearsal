@@ -1,0 +1,32 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele/CA180574?fields=none%2B%40id%2BexternalRecords.gnomAD_4",
+  "exchanges": [
+    {
+      "fetched": 1793913298,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA180574",
+          "externalRecords": {
+            "gnomAD_2": [
+              {
+                "id": "7-55174774-AATTAAGAGAAGCAACATC-T"
+              }
+            ],
+            "gnomAD_4": [
+              {
+                "id": "CA180574"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "feature": "variant-identity",
   "replay": "variant/id-forms",
-  "live_check": "recorded",
+  "live_check": "recorded identity matrix with synthetic unrelated-source routing; exclude from live calls",
   "story": "delins VCF coordinates retain their complete reference for CAR validation and reach each variant command or its named-forms refusal.",
   "steps": [
     {
@@ -26,12 +26,19 @@
       "exit": 4,
       "expect": {
         "/status": "failed",
-        "/problems/*/field": {
-          "includes_all_of": [
-            "input: requires one source-qualified GRCh38 SNV (CAid or reference-qualified genomic HGVS); indels need a padded source representation; convert with get variant <ID> and select an exact candidate"
+        "": {
+          "omits": [
+            "result",
+            "next"
           ]
         }
-      }
+      },
+      "mcp": [
+        "variant",
+        "population",
+        "7-55174774-AATTAAGAGAAGCAACATC-T"
+      ],
+      "is_error": true
     },
     {
       "run": [

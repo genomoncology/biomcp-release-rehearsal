@@ -1,0 +1,1 @@
+Synthetic response-only source error. The initial unchanged public CA180574 validation resolves the input. Only the second registry response's @id is changed to another public CAid, so its population cross-reference is refused as a bad reply while the valid original identity stays available.

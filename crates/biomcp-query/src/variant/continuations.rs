@@ -114,19 +114,6 @@ pub(super) fn next(
         || resolution == VariantResolution::Resolved
             && candidates.iter().any(|row| {
                 row.source == Source::MyVariant && row.record.id.as_str() != query.input().as_str()
-                    || row
-                        .sections
-                        .as_ref()
-                        .and_then(|s| s.population.as_ref())
-                        .is_some_and(|s| {
-                            matches!(
-                                s,
-                                Section::Unavailable {
-                                    reason: biomcp_types::Reason::NoJoinId,
-                                    ..
-                                }
-                            )
-                        })
             })
     {
         for row in candidates {

@@ -3,11 +3,13 @@ use biomcp_fetch::Input;
 mod annotations;
 mod map;
 mod normalization;
+mod population;
 mod raw;
 use crate::quotas;
 use biodata::Text;
 use biomcp_fetch::{Arg, Endpoint, KeyUse, Leg, PathSegment, RequestError, SourceSpec};
 use biomcp_types::{Source, VariantHeader};
+pub use population::population_id;
 use std::time::Duration;
 /// Public GET access; raw output redistribution rights remain unverified.
 pub static SPEC: SourceSpec = SourceSpec {
@@ -48,12 +50,20 @@ pub fn by_id(leg: &Leg<'_>, input: &str) -> Result<Resolution, RequestError> {
     Ok(map::allele(read(leg, input, true)?, Some(input)))
 }
 fn read(leg: &Leg<'_>, input: &str, by_id: bool) -> Result<raw::Allele, RequestError> {
+    read_fields(leg, input, by_id, FIELDS)
+}
+fn read_fields(
+    leg: &Leg<'_>,
+    input: &str,
+    by_id: bool,
+    fields: &str,
+) -> Result<raw::Allele, RequestError> {
     let endpoint = if by_id {
         ALLELE.clone().with_segments(&[PathSegment::new(input)?])
     } else {
         ALLELE.clone()
     };
-    let mut params = vec![("fields", Arg::Text(FIELDS))];
+    let mut params = vec![("fields", Arg::Text(fields))];
     if !by_id {
         params.insert(0, ("hgvs", Arg::Text(input)));
     }

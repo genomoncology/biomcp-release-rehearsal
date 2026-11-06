@@ -1,0 +1,142 @@
+{
+  "feature": "variant-population",
+  "live_check": "recorded public native indel replies; excludes live calls because the shared identity matrix contains synthetic unrelated-source routing",
+  "story": "Source-native gnomAD indel keys join validated coordinates and registry HGVS without inventing padding or changing native counts.",
+  "replay": "variant/id-forms",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "population",
+        "7-117559590-ATCT-A"
+      ],
+      "mcp": [
+        "variant",
+        "population",
+        "7-117559590-ATCT-A"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "7-117559590-ATCT-A",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 18037,
+        "/result/population/data/genome/ac": 1200,
+        "/result/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "NC_000007.14:g.117559592_117559594del"
+      ],
+      "mcp": [
+        "variant",
+        "population",
+        "NC_000007.14:g.117559592_117559594del"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "7-117559590-ATCT-A",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 18037,
+        "/result/population/data/genome/ac": 1200,
+        "/result/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "run": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "NC_000007.14:g.117559592_117559594del",
+        "population"
+      ],
+      "mcp": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "NC_000007.14:g.117559592_117559594del",
+        "population"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/population/state": "data",
+        "/result/candidates/0/sections/population/data/variant": "7-117559590-ATCT-A",
+        "/result/candidates/0/sections/population/data/exome/ac": 18037,
+        "/result/candidates/0/sections/population/data/genome/ac": 1200,
+        "/result/candidates/0/sections/population/data/joint/data/ac": 19237
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "17-43057065-G-GG"
+      ],
+      "mcp": [
+        "variant",
+        "population",
+        "17-43057065-G-GG"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "17-43057062-T-TG",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 101,
+        "/result/population/data/genome/ac": 8,
+        "/result/population/data/joint/data/ac": 109
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "population",
+        "NC_000017.11:g.43057065dup"
+      ],
+      "mcp": [
+        "variant",
+        "population",
+        "NC_000017.11:g.43057065dup"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/population/state": "data",
+        "/result/population/data/variant": "17-43057062-T-TG",
+        "/result/population/data/build": "GRCh38",
+        "/result/population/data/exome/ac": 101,
+        "/result/population/data/genome/ac": 8,
+        "/result/population/data/joint/data/ac": 109
+      }
+    },
+    {
+      "run": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "NC_000017.11:g.43057065dup",
+        "population"
+      ],
+      "mcp": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "NC_000017.11:g.43057065dup",
+        "population"
+      ],
+      "expect": {
+        "/result/candidates/0/sections/population/state": "data",
+        "/result/candidates/0/sections/population/data/variant": "17-43057062-T-TG",
+        "/result/candidates/0/sections/population/data/exome/ac": 101,
+        "/result/candidates/0/sections/population/data/genome/ac": 8,
+        "/result/candidates/0/sections/population/data/joint/data/ac": 109
+      }
+    }
+  ]
+}

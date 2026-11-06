@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele/CA003404?fields=none%2B%40id%2BexternalRecords.gnomAD_4",
+  "exchanges": [
+    {
+      "fetched": 1793913296,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA003404",
+          "externalRecords": {
+            "gnomAD_4": [
+              {
+                "@id": "http://gnomad.broadinstitute.org/variant/17-43057062-T-TG?dataset=gnomad_r4",
+                "id": "17-43057062-T-TG",
+                "variant": "17:43057062 T / TG"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

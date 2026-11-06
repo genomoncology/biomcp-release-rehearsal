@@ -77,7 +77,7 @@ struct PopulationRead {
 fn read(
     cx: &Ctx<'_>,
     query: &VariantPopulationQuery,
-    deadline: biomcp_fetch::Deadline<'_>,
+    mut deadline: biomcp_fetch::Deadline<'_>,
 ) -> PopulationRead {
     let mut read = PopulationRead {
         dropped: false,
@@ -94,6 +94,7 @@ fn read(
     }
     if let Ok(identity) = query.identity() {
         let found = super::identity::read(cx, &identity, deadline);
+        deadline = deadline.after_stage(found.elapsed);
         read.dropped = found.dropped;
         read.sources = found.sources;
         read.problems = found.problems;
@@ -104,7 +105,16 @@ fn read(
             return read;
         }
     }
-    let Some(id) = super::population::join(&read.candidates) else {
+    let joined = super::population_identity::read(cx, &read.candidates, deadline);
+    deadline = deadline.after_stage(joined.elapsed);
+    read.sources.extend(joined.sources);
+    read.problems.extend(joined.problems);
+    read.local = read.local.or(joined.local);
+    if let Some(reason) = joined.reason {
+        read.population = Section::unavailable(Source::Gnomad, reason);
+        return read;
+    }
+    let Some(id) = joined.id else {
         if read.candidates.len() < 2 {
             read.problems.push(biomcp_types::Problem {
                 source: Source::Gnomad,
@@ -140,6 +150,7 @@ fn choices(
 ) -> Vec<crate::next::Step> {
     candidates
         .iter()
+        .filter(|_| candidates.len() > 1)
         .filter_map(|row| {
             let (request, source) = super::identity::choice(row, problems)?;
             let (request, sources) = match request {

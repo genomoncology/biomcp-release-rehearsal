@@ -1,0 +1,1 @@
+Synthetic response-only malformed cross-reference case. The identity reply reuses the unchanged public CA180574 coordinate validation. The separate cross-reference reply deliberately supplies a CAid where gnomAD v4 requires chrom-pos-ref-alt, alongside an older-assembly gnomAD v2 key. It tests admission and terminal guidance, and states no population or clinical facts.

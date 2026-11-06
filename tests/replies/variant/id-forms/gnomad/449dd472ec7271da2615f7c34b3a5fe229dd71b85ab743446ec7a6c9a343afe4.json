@@ -1,0 +1,990 @@
+{
+  "method": "POST",
+  "source": "gnomad",
+  "url": "https://gnomad.broadinstitute.org/api",
+  "post": {
+    "request_body_sha256": "b685380f50994032fd69931df91f7ec41c0c1a23b7cd280b0d504d87fe1139db",
+    "request_content_type": "application/json"
+  },
+  "exchanges": [
+    {
+      "fetched": 1793913317,
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "variant": {
+              "variant_id": "17-43057062-T-TG",
+              "exome": {
+                "ac": 101,
+                "an": 1461732,
+                "homozygote_count": 0,
+                "filters": [],
+                "populations": [
+                  {
+                    "id": "remaining",
+                    "ac": 9,
+                    "an": 60388
+                  },
+                  {
+                    "id": "remaining_XX",
+                    "ac": 6,
+                    "an": 31798
+                  },
+                  {
+                    "id": "remaining_XY",
+                    "ac": 3,
+                    "an": 28590
+                  },
+                  {
+                    "id": "amr",
+                    "ac": 0,
+                    "an": 44722
+                  },
+                  {
+                    "id": "amr_XX",
+                    "ac": 0,
+                    "an": 25688
+                  },
+                  {
+                    "id": "amr_XY",
+                    "ac": 0,
+                    "an": 19034
+                  },
+                  {
+                    "id": "fin",
+                    "ac": 0,
+                    "an": 53414
+                  },
+                  {
+                    "id": "fin_XX",
+                    "ac": 0,
+                    "an": 27646
+                  },
+                  {
+                    "id": "fin_XY",
+                    "ac": 0,
+                    "an": 25768
+                  },
+                  {
+                    "id": "mid",
+                    "ac": 0,
+                    "an": 5768
+                  },
+                  {
+                    "id": "mid_XX",
+                    "ac": 0,
+                    "an": 2506
+                  },
+                  {
+                    "id": "mid_XY",
+                    "ac": 0,
+                    "an": 3262
+                  },
+                  {
+                    "id": "nfe",
+                    "ac": 60,
+                    "an": 1111888
+                  },
+                  {
+                    "id": "nfe_XX",
+                    "ac": 17,
+                    "an": 572218
+                  },
+                  {
+                    "id": "nfe_XY",
+                    "ac": 43,
+                    "an": 539670
+                  },
+                  {
+                    "id": "sas",
+                    "ac": 0,
+                    "an": 86254
+                  },
+                  {
+                    "id": "sas_XX",
+                    "ac": 0,
+                    "an": 22038
+                  },
+                  {
+                    "id": "sas_XY",
+                    "ac": 0,
+                    "an": 64216
+                  },
+                  {
+                    "id": "asj",
+                    "ac": 31,
+                    "an": 26128
+                  },
+                  {
+                    "id": "asj_XX",
+                    "ac": 15,
+                    "an": 12630
+                  },
+                  {
+                    "id": "asj_XY",
+                    "ac": 16,
+                    "an": 13498
+                  },
+                  {
+                    "id": "eas",
+                    "ac": 0,
+                    "an": 39696
+                  },
+                  {
+                    "id": "eas_XX",
+                    "ac": 0,
+                    "an": 20710
+                  },
+                  {
+                    "id": "eas_XY",
+                    "ac": 0,
+                    "an": 18986
+                  },
+                  {
+                    "id": "afr",
+                    "ac": 1,
+                    "an": 33474
+                  },
+                  {
+                    "id": "afr_XX",
+                    "ac": 1,
+                    "an": 19322
+                  },
+                  {
+                    "id": "afr_XY",
+                    "ac": 0,
+                    "an": 14152
+                  },
+                  {
+                    "id": "XX",
+                    "ac": 39,
+                    "an": 734556
+                  },
+                  {
+                    "id": "XY",
+                    "ac": 62,
+                    "an": 727176
+                  }
+                ]
+              },
+              "genome": {
+                "ac": 8,
+                "an": 152180,
+                "homozygote_count": 0,
+                "filters": [],
+                "populations": [
+                  {
+                    "id": "remaining",
+                    "ac": 0,
+                    "an": 2092
+                  },
+                  {
+                    "id": "remaining_XX",
+                    "ac": 0,
+                    "an": 1032
+                  },
+                  {
+                    "id": "remaining_XY",
+                    "ac": 0,
+                    "an": 1060
+                  },
+                  {
+                    "id": "amr",
+                    "ac": 0,
+                    "an": 15270
+                  },
+                  {
+                    "id": "amr_XX",
+                    "ac": 0,
+                    "an": 6782
+                  },
+                  {
+                    "id": "amr_XY",
+                    "ac": 0,
+                    "an": 8488
+                  },
+                  {
+                    "id": "fin",
+                    "ac": 0,
+                    "an": 10614
+                  },
+                  {
+                    "id": "fin_XX",
+                    "ac": 0,
+                    "an": 2574
+                  },
+                  {
+                    "id": "fin_XY",
+                    "ac": 0,
+                    "an": 8040
+                  },
+                  {
+                    "id": "ami",
+                    "ac": 0,
+                    "an": 912
+                  },
+                  {
+                    "id": "ami_XX",
+                    "ac": 0,
+                    "an": 470
+                  },
+                  {
+                    "id": "ami_XY",
+                    "ac": 0,
+                    "an": 442
+                  },
+                  {
+                    "id": "eas",
+                    "ac": 0,
+                    "an": 5192
+                  },
+                  {
+                    "id": "eas_XX",
+                    "ac": 0,
+                    "an": 2278
+                  },
+                  {
+                    "id": "eas_XY",
+                    "ac": 0,
+                    "an": 2914
+                  },
+                  {
+                    "id": "mid",
+                    "ac": 0,
+                    "an": 316
+                  },
+                  {
+                    "id": "mid_XX",
+                    "ac": 0,
+                    "an": 164
+                  },
+                  {
+                    "id": "mid_XY",
+                    "ac": 0,
+                    "an": 152
+                  },
+                  {
+                    "id": "sas",
+                    "ac": 0,
+                    "an": 4826
+                  },
+                  {
+                    "id": "sas_XX",
+                    "ac": 0,
+                    "an": 1162
+                  },
+                  {
+                    "id": "sas_XY",
+                    "ac": 0,
+                    "an": 3664
+                  },
+                  {
+                    "id": "asj",
+                    "ac": 4,
+                    "an": 3464
+                  },
+                  {
+                    "id": "asj_XX",
+                    "ac": 4,
+                    "an": 1862
+                  },
+                  {
+                    "id": "asj_XY",
+                    "ac": 0,
+                    "an": 1602
+                  },
+                  {
+                    "id": "afr",
+                    "ac": 0,
+                    "an": 41456
+                  },
+                  {
+                    "id": "afr_XX",
+                    "ac": 0,
+                    "an": 22154
+                  },
+                  {
+                    "id": "afr_XY",
+                    "ac": 0,
+                    "an": 19302
+                  },
+                  {
+                    "id": "nfe",
+                    "ac": 4,
+                    "an": 68038
+                  },
+                  {
+                    "id": "nfe_XX",
+                    "ac": 3,
+                    "an": 39358
+                  },
+                  {
+                    "id": "nfe_XY",
+                    "ac": 1,
+                    "an": 28680
+                  },
+                  {
+                    "id": "XX",
+                    "ac": 7,
+                    "an": 77836
+                  },
+                  {
+                    "id": "XY",
+                    "ac": 1,
+                    "an": 74344
+                  }
+                ]
+              },
+              "joint": {
+                "ac": 109,
+                "an": 1613912,
+                "homozygote_count": 0
+              },
+              "va": {
+                "exome": [
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 6,
+                    "locusAlleleCount": 31798,
+                    "cohort": {
+                      "id": "remaining_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 3,
+                    "locusAlleleCount": 28590,
+                    "cohort": {
+                      "id": "remaining_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 9,
+                    "locusAlleleCount": 60388,
+                    "cohort": {
+                      "id": "remaining"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 25688,
+                    "cohort": {
+                      "id": "amr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 19034,
+                    "cohort": {
+                      "id": "amr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 44722,
+                    "cohort": {
+                      "id": "amr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 27646,
+                    "cohort": {
+                      "id": "fin_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 25768,
+                    "cohort": {
+                      "id": "fin_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 53414,
+                    "cohort": {
+                      "id": "fin"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2506,
+                    "cohort": {
+                      "id": "mid_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 3262,
+                    "cohort": {
+                      "id": "mid_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 5768,
+                    "cohort": {
+                      "id": "mid"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 17,
+                    "locusAlleleCount": 572218,
+                    "cohort": {
+                      "id": "nfe_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 43,
+                    "locusAlleleCount": 539670,
+                    "cohort": {
+                      "id": "nfe_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 60,
+                    "locusAlleleCount": 1111888,
+                    "cohort": {
+                      "id": "nfe"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 22038,
+                    "cohort": {
+                      "id": "sas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 64216,
+                    "cohort": {
+                      "id": "sas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 86254,
+                    "cohort": {
+                      "id": "sas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 15,
+                    "locusAlleleCount": 12630,
+                    "cohort": {
+                      "id": "asj_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 16,
+                    "locusAlleleCount": 13498,
+                    "cohort": {
+                      "id": "asj_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 31,
+                    "locusAlleleCount": 26128,
+                    "cohort": {
+                      "id": "asj"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 20710,
+                    "cohort": {
+                      "id": "eas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 18986,
+                    "cohort": {
+                      "id": "eas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 39696,
+                    "cohort": {
+                      "id": "eas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 19322,
+                    "cohort": {
+                      "id": "afr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 14152,
+                    "cohort": {
+                      "id": "afr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 33474,
+                    "cohort": {
+                      "id": "afr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 39,
+                    "locusAlleleCount": 734556,
+                    "cohort": {
+                      "id": "XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 62,
+                    "locusAlleleCount": 727176,
+                    "cohort": {
+                      "id": "XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 101,
+                    "locusAlleleCount": 1461732,
+                    "cohort": {
+                      "id": "ALL"
+                    }
+                  }
+                ],
+                "genome": [
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 1032,
+                    "cohort": {
+                      "id": "remaining_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 1060,
+                    "cohort": {
+                      "id": "remaining_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2092,
+                    "cohort": {
+                      "id": "remaining"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 6782,
+                    "cohort": {
+                      "id": "amr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 8488,
+                    "cohort": {
+                      "id": "amr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 15270,
+                    "cohort": {
+                      "id": "amr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2574,
+                    "cohort": {
+                      "id": "fin_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 8040,
+                    "cohort": {
+                      "id": "fin_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 10614,
+                    "cohort": {
+                      "id": "fin"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 470,
+                    "cohort": {
+                      "id": "ami_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 442,
+                    "cohort": {
+                      "id": "ami_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 912,
+                    "cohort": {
+                      "id": "ami"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2278,
+                    "cohort": {
+                      "id": "eas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2914,
+                    "cohort": {
+                      "id": "eas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 5192,
+                    "cohort": {
+                      "id": "eas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 164,
+                    "cohort": {
+                      "id": "mid_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 152,
+                    "cohort": {
+                      "id": "mid_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 316,
+                    "cohort": {
+                      "id": "mid"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 1162,
+                    "cohort": {
+                      "id": "sas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 3664,
+                    "cohort": {
+                      "id": "sas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 4826,
+                    "cohort": {
+                      "id": "sas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 4,
+                    "locusAlleleCount": 1862,
+                    "cohort": {
+                      "id": "asj_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 1602,
+                    "cohort": {
+                      "id": "asj_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 4,
+                    "locusAlleleCount": 3464,
+                    "cohort": {
+                      "id": "asj"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 22154,
+                    "cohort": {
+                      "id": "afr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 19302,
+                    "cohort": {
+                      "id": "afr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 41456,
+                    "cohort": {
+                      "id": "afr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 3,
+                    "locusAlleleCount": 39358,
+                    "cohort": {
+                      "id": "nfe_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 28680,
+                    "cohort": {
+                      "id": "nfe_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 4,
+                    "locusAlleleCount": 68038,
+                    "cohort": {
+                      "id": "nfe"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 7,
+                    "locusAlleleCount": 77836,
+                    "cohort": {
+                      "id": "XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 74344,
+                    "cohort": {
+                      "id": "XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 8,
+                    "locusAlleleCount": 152180,
+                    "cohort": {
+                      "id": "ALL"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

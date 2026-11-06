@@ -1,6 +1,7 @@
 # 0677 — Variant population answers indels
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 337676fe3071268dcd66c83cb157d0781e9a6470
 
 Milestone: 5
 

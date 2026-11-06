@@ -1,0 +1,58 @@
+{
+  "feature": "variant-population",
+  "live_check": "synthetic authored wrong canonical identity on second CAR read; exclude from live calls",
+  "story": "A bad population cross-reference response keeps the initial resolved allele, reports the source failure, and offers no conversion loop.",
+  "replay": "variant/population-source-error",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "population",
+        "7-55174774-AATTAAGAGAAGCAACATC-T"
+      ],
+      "mcp": [
+        "variant",
+        "population",
+        "7-55174774-AATTAAGAGAAGCAACATC-T"
+      ],
+      "exit": 4,
+      "is_error": true,
+      "expect": {
+        "/status": "failed",
+        "/problems/*/field": {
+          "excludes": "GRCh38_allele"
+        },
+        "": {
+          "omits": [
+            "result",
+            "next"
+          ]
+        },
+        "/sources/1/reason": "bad-reply"
+      }
+    },
+    {
+      "run": [
+        "--disable-sources",
+        "myvariant",
+        "get",
+        "variant",
+        "7-55174774-AATTAAGAGAAGCAACATC-T",
+        "population"
+      ],
+      "expect": {
+        "/result/resolution": "resolved",
+        "/result/candidates/0/identity/ids/0": "CA180574",
+        "/result/candidates/0/sections/population/reason": "bad-reply",
+        "/problems/*/field": {
+          "excludes": "GRCh38_allele"
+        },
+        "": {
+          "omits": [
+            "next"
+          ]
+        }
+      }
+    }
+  ]
+}

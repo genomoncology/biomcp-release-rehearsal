@@ -1,0 +1,35 @@
+{
+  "feature": "variant-population",
+  "live_check": "synthetic authored wrong-assembly gnomAD v2 cross-reference and malformed gnomAD v4 identifier; exclude from live calls",
+  "story": "A canonical CAid in the gnomAD key field is not a coordinate and an older assembly key cannot substitute for gnomAD v4; refusal offers no unchanged retry.",
+  "replay": "variant/invalid-population-join",
+  "config": {
+    "mcp_tool_mode": "typed",
+    "mcp_typed_output_schema": true
+  },
+  "steps": [
+    {
+      "mcp_call": {
+        "name": "variant_population",
+        "arguments": {
+          "input": "7-55174774-AATTAAGAGAAGCAACATC-T"
+        }
+      },
+      "is_error": true,
+      "expect": {
+        "/status": "failed",
+        "/problems/*/field": {
+          "includes_all_of": [
+            "externalRecords.gnomAD_4.id"
+          ]
+        },
+        "": {
+          "omits": [
+            "result",
+            "next"
+          ]
+        }
+      }
+    }
+  ]
+}

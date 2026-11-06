@@ -1,0 +1,2210 @@
+{
+  "method": "POST",
+  "source": "gnomad",
+  "url": "https://gnomad.broadinstitute.org/api",
+  "post": {
+    "request_body_sha256": "bda8259055ed16297028afe404822b90407f664c67915f26ab9a0bdf8d557f01",
+    "request_content_type": "application/json"
+  },
+  "exchanges": [
+    {
+      "fetched": 1793913309,
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "variant": {
+              "variant_id": "7-117559590-ATCT-A",
+              "exome": {
+                "ac": 18037,
+                "an": 1460114,
+                "homozygote_count": 57,
+                "filters": [],
+                "populations": [
+                  {
+                    "id": "remaining",
+                    "ac": 609,
+                    "an": 60344
+                  },
+                  {
+                    "id": "remaining_XX",
+                    "ac": 315,
+                    "an": 31762
+                  },
+                  {
+                    "id": "remaining_XY",
+                    "ac": 294,
+                    "an": 28582
+                  },
+                  {
+                    "id": "amr",
+                    "ac": 177,
+                    "an": 44718
+                  },
+                  {
+                    "id": "amr_XX",
+                    "ac": 94,
+                    "an": 25690
+                  },
+                  {
+                    "id": "amr_XY",
+                    "ac": 83,
+                    "an": 19028
+                  },
+                  {
+                    "id": "fin",
+                    "ac": 147,
+                    "an": 53322
+                  },
+                  {
+                    "id": "fin_XX",
+                    "ac": 70,
+                    "an": 27598
+                  },
+                  {
+                    "id": "fin_XY",
+                    "ac": 77,
+                    "an": 25724
+                  },
+                  {
+                    "id": "mid",
+                    "ac": 10,
+                    "an": 5764
+                  },
+                  {
+                    "id": "mid_XX",
+                    "ac": 3,
+                    "an": 2506
+                  },
+                  {
+                    "id": "mid_XY",
+                    "ac": 7,
+                    "an": 3258
+                  },
+                  {
+                    "id": "nfe",
+                    "ac": 16638,
+                    "an": 1110560
+                  },
+                  {
+                    "id": "nfe_XX",
+                    "ac": 8585,
+                    "an": 571456
+                  },
+                  {
+                    "id": "nfe_XY",
+                    "ac": 8053,
+                    "an": 539104
+                  },
+                  {
+                    "id": "sas",
+                    "ac": 213,
+                    "an": 86228
+                  },
+                  {
+                    "id": "sas_XX",
+                    "ac": 46,
+                    "an": 22028
+                  },
+                  {
+                    "id": "sas_XY",
+                    "ac": 167,
+                    "an": 64200
+                  },
+                  {
+                    "id": "asj",
+                    "ac": 165,
+                    "an": 26112
+                  },
+                  {
+                    "id": "asj_XX",
+                    "ac": 82,
+                    "an": 12626
+                  },
+                  {
+                    "id": "asj_XY",
+                    "ac": 83,
+                    "an": 13486
+                  },
+                  {
+                    "id": "eas",
+                    "ac": 1,
+                    "an": 39622
+                  },
+                  {
+                    "id": "eas_XX",
+                    "ac": 1,
+                    "an": 20672
+                  },
+                  {
+                    "id": "eas_XY",
+                    "ac": 0,
+                    "an": 18950
+                  },
+                  {
+                    "id": "afr",
+                    "ac": 77,
+                    "an": 33444
+                  },
+                  {
+                    "id": "afr_XX",
+                    "ac": 47,
+                    "an": 19306
+                  },
+                  {
+                    "id": "afr_XY",
+                    "ac": 30,
+                    "an": 14138
+                  },
+                  {
+                    "id": "XX",
+                    "ac": 9243,
+                    "an": 733644
+                  },
+                  {
+                    "id": "XY",
+                    "ac": 8794,
+                    "an": 726470
+                  }
+                ]
+              },
+              "genome": {
+                "ac": 1200,
+                "an": 152206,
+                "homozygote_count": 1,
+                "filters": [],
+                "populations": [
+                  {
+                    "id": "remaining",
+                    "ac": 16,
+                    "an": 2110
+                  },
+                  {
+                    "id": "remaining_XX",
+                    "ac": 7,
+                    "an": 1044
+                  },
+                  {
+                    "id": "remaining_XY",
+                    "ac": 9,
+                    "an": 1066
+                  },
+                  {
+                    "id": "amr",
+                    "ac": 57,
+                    "an": 15290
+                  },
+                  {
+                    "id": "amr_XX",
+                    "ac": 27,
+                    "an": 6786
+                  },
+                  {
+                    "id": "amr_XY",
+                    "ac": 30,
+                    "an": 8504
+                  },
+                  {
+                    "id": "fin",
+                    "ac": 16,
+                    "an": 10612
+                  },
+                  {
+                    "id": "fin_XX",
+                    "ac": 6,
+                    "an": 2572
+                  },
+                  {
+                    "id": "fin_XY",
+                    "ac": 10,
+                    "an": 8040
+                  },
+                  {
+                    "id": "ami",
+                    "ac": 1,
+                    "an": 912
+                  },
+                  {
+                    "id": "ami_XX",
+                    "ac": 1,
+                    "an": 470
+                  },
+                  {
+                    "id": "ami_XY",
+                    "ac": 0,
+                    "an": 442
+                  },
+                  {
+                    "id": "eas",
+                    "ac": 0,
+                    "an": 5180
+                  },
+                  {
+                    "id": "eas_XX",
+                    "ac": 0,
+                    "an": 2268
+                  },
+                  {
+                    "id": "eas_XY",
+                    "ac": 0,
+                    "an": 2912
+                  },
+                  {
+                    "id": "mid",
+                    "ac": 1,
+                    "an": 294
+                  },
+                  {
+                    "id": "mid_XX",
+                    "ac": 1,
+                    "an": 144
+                  },
+                  {
+                    "id": "mid_XY",
+                    "ac": 0,
+                    "an": 150
+                  },
+                  {
+                    "id": "sas",
+                    "ac": 15,
+                    "an": 4826
+                  },
+                  {
+                    "id": "sas_XX",
+                    "ac": 4,
+                    "an": 1152
+                  },
+                  {
+                    "id": "sas_XY",
+                    "ac": 11,
+                    "an": 3674
+                  },
+                  {
+                    "id": "asj",
+                    "ac": 14,
+                    "an": 3472
+                  },
+                  {
+                    "id": "asj_XX",
+                    "ac": 11,
+                    "an": 1868
+                  },
+                  {
+                    "id": "asj_XY",
+                    "ac": 3,
+                    "an": 1604
+                  },
+                  {
+                    "id": "afr",
+                    "ac": 108,
+                    "an": 41556
+                  },
+                  {
+                    "id": "afr_XX",
+                    "ac": 45,
+                    "an": 22156
+                  },
+                  {
+                    "id": "afr_XY",
+                    "ac": 63,
+                    "an": 19400
+                  },
+                  {
+                    "id": "nfe",
+                    "ac": 972,
+                    "an": 67954
+                  },
+                  {
+                    "id": "nfe_XX",
+                    "ac": 561,
+                    "an": 39326
+                  },
+                  {
+                    "id": "nfe_XY",
+                    "ac": 411,
+                    "an": 28628
+                  },
+                  {
+                    "id": "XX",
+                    "ac": 663,
+                    "an": 77786
+                  },
+                  {
+                    "id": "XY",
+                    "ac": 537,
+                    "an": 74420
+                  },
+                  {
+                    "id": "hgdp:japanese",
+                    "ac": 0,
+                    "an": 56
+                  },
+                  {
+                    "id": "hgdp:japanese_XX",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:japanese_XY",
+                    "ac": 0,
+                    "an": 40
+                  },
+                  {
+                    "id": "hgdp:adygei",
+                    "ac": 0,
+                    "an": 34
+                  },
+                  {
+                    "id": "hgdp:adygei_XX",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:adygei_XY",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:orcadian",
+                    "ac": 1,
+                    "an": 28
+                  },
+                  {
+                    "id": "hgdp:orcadian_XX",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:orcadian_XY",
+                    "ac": 1,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:bantusouthafrica",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:bantusouthafrica_XX",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:bantusouthafrica_XY",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:yakut",
+                    "ac": 0,
+                    "an": 50
+                  },
+                  {
+                    "id": "hgdp:yakut_XX",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:yakut_XY",
+                    "ac": 0,
+                    "an": 36
+                  },
+                  {
+                    "id": "hgdp:han",
+                    "ac": 0,
+                    "an": 66
+                  },
+                  {
+                    "id": "hgdp:han_XX",
+                    "ac": 0,
+                    "an": 36
+                  },
+                  {
+                    "id": "hgdp:han_XY",
+                    "ac": 0,
+                    "an": 30
+                  },
+                  {
+                    "id": "hgdp:uygur",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:uygur_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:uygur_XY",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:balochi",
+                    "ac": 1,
+                    "an": 46
+                  },
+                  {
+                    "id": "hgdp:balochi_XX",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:balochi_XY",
+                    "ac": 1,
+                    "an": 46
+                  },
+                  {
+                    "id": "hgdp:bedouin",
+                    "ac": 0,
+                    "an": 84
+                  },
+                  {
+                    "id": "hgdp:bedouin_XX",
+                    "ac": 0,
+                    "an": 34
+                  },
+                  {
+                    "id": "hgdp:bedouin_XY",
+                    "ac": 0,
+                    "an": 50
+                  },
+                  {
+                    "id": "hgdp:russian",
+                    "ac": 0,
+                    "an": 50
+                  },
+                  {
+                    "id": "hgdp:russian_XX",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:russian_XY",
+                    "ac": 0,
+                    "an": 32
+                  },
+                  {
+                    "id": "hgdp:daur",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:daur_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:daur_XY",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:pima",
+                    "ac": 0,
+                    "an": 22
+                  },
+                  {
+                    "id": "hgdp:pima_XX",
+                    "ac": 0,
+                    "an": 10
+                  },
+                  {
+                    "id": "hgdp:pima_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:hezhen",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:hezhen_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:hezhen_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:biaka",
+                    "ac": 0,
+                    "an": 44
+                  },
+                  {
+                    "id": "hgdp:biaka_XX",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:biaka_XY",
+                    "ac": 0,
+                    "an": 44
+                  },
+                  {
+                    "id": "hgdp:miao",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:miao_XX",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:miao_XY",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:sindhi",
+                    "ac": 0,
+                    "an": 44
+                  },
+                  {
+                    "id": "hgdp:sindhi_XX",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:sindhi_XY",
+                    "ac": 0,
+                    "an": 36
+                  },
+                  {
+                    "id": "hgdp:northernhan",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:northernhan_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:northernhan_XY",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:oroqen",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:oroqen_XX",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:oroqen_XY",
+                    "ac": 0,
+                    "an": 10
+                  },
+                  {
+                    "id": "hgdp:san",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:san_XX",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:san_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:tu",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:tu_XX",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:tu_XY",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:tuscan",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:tuscan_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:tuscan_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:mbuti",
+                    "ac": 0,
+                    "an": 24
+                  },
+                  {
+                    "id": "hgdp:mbuti_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:mbuti_XY",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:palestinian",
+                    "ac": 0,
+                    "an": 76
+                  },
+                  {
+                    "id": "hgdp:palestinian_XX",
+                    "ac": 0,
+                    "an": 50
+                  },
+                  {
+                    "id": "hgdp:palestinian_XY",
+                    "ac": 0,
+                    "an": 26
+                  },
+                  {
+                    "id": "hgdp:tujia",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:tujia_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:tujia_XY",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:druze",
+                    "ac": 1,
+                    "an": 70
+                  },
+                  {
+                    "id": "hgdp:druze_XX",
+                    "ac": 1,
+                    "an": 48
+                  },
+                  {
+                    "id": "hgdp:druze_XY",
+                    "ac": 0,
+                    "an": 22
+                  },
+                  {
+                    "id": "hgdp:pathan",
+                    "ac": 0,
+                    "an": 48
+                  },
+                  {
+                    "id": "hgdp:pathan_XX",
+                    "ac": 0,
+                    "an": 10
+                  },
+                  {
+                    "id": "hgdp:pathan_XY",
+                    "ac": 0,
+                    "an": 38
+                  },
+                  {
+                    "id": "hgdp:basque",
+                    "ac": 0,
+                    "an": 44
+                  },
+                  {
+                    "id": "hgdp:basque_XX",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:basque_XY",
+                    "ac": 0,
+                    "an": 30
+                  },
+                  {
+                    "id": "hgdp:makrani",
+                    "ac": 0,
+                    "an": 44
+                  },
+                  {
+                    "id": "hgdp:makrani_XX",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:makrani_XY",
+                    "ac": 0,
+                    "an": 36
+                  },
+                  {
+                    "id": "hgdp:burusho",
+                    "ac": 0,
+                    "an": 48
+                  },
+                  {
+                    "id": "hgdp:burusho_XX",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:burusho_XY",
+                    "ac": 0,
+                    "an": 40
+                  },
+                  {
+                    "id": "hgdp:mongolian",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:mongolian_XX",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:mongolian_XY",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:bougainville",
+                    "ac": 0,
+                    "an": 22
+                  },
+                  {
+                    "id": "hgdp:bougainville_XX",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:bougainville_XY",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:papuansepik",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:papuansepik_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:papuansepik_XY",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:yi",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:yi_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:yi_XY",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:naxi",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:naxi_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:naxi_XY",
+                    "ac": 0,
+                    "an": 10
+                  },
+                  {
+                    "id": "hgdp:lahu",
+                    "ac": 0,
+                    "an": 10
+                  },
+                  {
+                    "id": "hgdp:lahu_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:lahu_XY",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:sardinian",
+                    "ac": 0,
+                    "an": 54
+                  },
+                  {
+                    "id": "hgdp:sardinian_XX",
+                    "ac": 0,
+                    "an": 24
+                  },
+                  {
+                    "id": "hgdp:sardinian_XY",
+                    "ac": 0,
+                    "an": 30
+                  },
+                  {
+                    "id": "hgdp:karitiana",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:karitiana_XX",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:karitiana_XY",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:mozabite",
+                    "ac": 0,
+                    "an": 50
+                  },
+                  {
+                    "id": "hgdp:mozabite_XX",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:mozabite_XY",
+                    "ac": 0,
+                    "an": 36
+                  },
+                  {
+                    "id": "hgdp:yoruba",
+                    "ac": 0,
+                    "an": 42
+                  },
+                  {
+                    "id": "hgdp:yoruba_XX",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:yoruba_XY",
+                    "ac": 0,
+                    "an": 22
+                  },
+                  {
+                    "id": "hgdp:dai",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:dai_XX",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:dai_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:bergamoitalian",
+                    "ac": 1,
+                    "an": 22
+                  },
+                  {
+                    "id": "hgdp:bergamoitalian_XX",
+                    "ac": 1,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:bergamoitalian_XY",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:cambodian",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:cambodian_XX",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:cambodian_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:french",
+                    "ac": 2,
+                    "an": 54
+                  },
+                  {
+                    "id": "hgdp:french_XX",
+                    "ac": 0,
+                    "an": 32
+                  },
+                  {
+                    "id": "hgdp:french_XY",
+                    "ac": 2,
+                    "an": 22
+                  },
+                  {
+                    "id": "hgdp:mandenka",
+                    "ac": 0,
+                    "an": 40
+                  },
+                  {
+                    "id": "hgdp:mandenka_XX",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:mandenka_XY",
+                    "ac": 0,
+                    "an": 26
+                  },
+                  {
+                    "id": "hgdp:surui",
+                    "ac": 0,
+                    "an": 14
+                  },
+                  {
+                    "id": "hgdp:surui_XX",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:surui_XY",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:brahui",
+                    "ac": 0,
+                    "an": 46
+                  },
+                  {
+                    "id": "hgdp:brahui_XX",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:brahui_XY",
+                    "ac": 0,
+                    "an": 46
+                  },
+                  {
+                    "id": "hgdp:hazara",
+                    "ac": 0,
+                    "an": 32
+                  },
+                  {
+                    "id": "hgdp:hazara_XX",
+                    "ac": 0,
+                    "an": 0
+                  },
+                  {
+                    "id": "hgdp:hazara_XY",
+                    "ac": 0,
+                    "an": 32
+                  },
+                  {
+                    "id": "hgdp:kalash",
+                    "ac": 0,
+                    "an": 42
+                  },
+                  {
+                    "id": "hgdp:kalash_XX",
+                    "ac": 0,
+                    "an": 8
+                  },
+                  {
+                    "id": "hgdp:kalash_XY",
+                    "ac": 0,
+                    "an": 34
+                  },
+                  {
+                    "id": "hgdp:papuanhighlands",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:papuanhighlands_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:papuanhighlands_XY",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:xibo",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:xibo_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:xibo_XY",
+                    "ac": 0,
+                    "an": 16
+                  },
+                  {
+                    "id": "hgdp:colombian",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:colombian_XX",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:colombian_XY",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:bantukenya",
+                    "ac": 0,
+                    "an": 20
+                  },
+                  {
+                    "id": "hgdp:bantukenya_XX",
+                    "ac": 0,
+                    "an": 2
+                  },
+                  {
+                    "id": "hgdp:bantukenya_XY",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:she",
+                    "ac": 0,
+                    "an": 18
+                  },
+                  {
+                    "id": "hgdp:she_XX",
+                    "ac": 0,
+                    "an": 6
+                  },
+                  {
+                    "id": "hgdp:she_XY",
+                    "ac": 0,
+                    "an": 12
+                  },
+                  {
+                    "id": "hgdp:maya",
+                    "ac": 0,
+                    "an": 38
+                  },
+                  {
+                    "id": "hgdp:maya_XX",
+                    "ac": 0,
+                    "an": 34
+                  },
+                  {
+                    "id": "hgdp:maya_XY",
+                    "ac": 0,
+                    "an": 4
+                  },
+                  {
+                    "id": "hgdp:XX",
+                    "ac": 2,
+                    "an": 588
+                  },
+                  {
+                    "id": "hgdp:XY",
+                    "ac": 4,
+                    "an": 1122
+                  },
+                  {
+                    "id": "1kg:esn",
+                    "ac": 0,
+                    "an": 206
+                  },
+                  {
+                    "id": "1kg:esn_XX",
+                    "ac": 0,
+                    "an": 94
+                  },
+                  {
+                    "id": "1kg:esn_XY",
+                    "ac": 0,
+                    "an": 112
+                  },
+                  {
+                    "id": "1kg:pur",
+                    "ac": 1,
+                    "an": 198
+                  },
+                  {
+                    "id": "1kg:pur_XX",
+                    "ac": 1,
+                    "an": 94
+                  },
+                  {
+                    "id": "1kg:pur_XY",
+                    "ac": 0,
+                    "an": 104
+                  },
+                  {
+                    "id": "1kg:pjl",
+                    "ac": 0,
+                    "an": 192
+                  },
+                  {
+                    "id": "1kg:pjl_XX",
+                    "ac": 0,
+                    "an": 92
+                  },
+                  {
+                    "id": "1kg:pjl_XY",
+                    "ac": 0,
+                    "an": 100
+                  },
+                  {
+                    "id": "1kg:clm",
+                    "ac": 3,
+                    "an": 188
+                  },
+                  {
+                    "id": "1kg:clm_XX",
+                    "ac": 1,
+                    "an": 102
+                  },
+                  {
+                    "id": "1kg:clm_XY",
+                    "ac": 2,
+                    "an": 86
+                  },
+                  {
+                    "id": "1kg:jpt",
+                    "ac": 0,
+                    "an": 204
+                  },
+                  {
+                    "id": "1kg:jpt_XX",
+                    "ac": 0,
+                    "an": 92
+                  },
+                  {
+                    "id": "1kg:jpt_XY",
+                    "ac": 0,
+                    "an": 112
+                  },
+                  {
+                    "id": "1kg:chb",
+                    "ac": 0,
+                    "an": 204
+                  },
+                  {
+                    "id": "1kg:chb_XX",
+                    "ac": 0,
+                    "an": 114
+                  },
+                  {
+                    "id": "1kg:chb_XY",
+                    "ac": 0,
+                    "an": 90
+                  },
+                  {
+                    "id": "1kg:stu",
+                    "ac": 0,
+                    "an": 196
+                  },
+                  {
+                    "id": "1kg:stu_XX",
+                    "ac": 0,
+                    "an": 84
+                  },
+                  {
+                    "id": "1kg:stu_XY",
+                    "ac": 0,
+                    "an": 112
+                  },
+                  {
+                    "id": "1kg:itu",
+                    "ac": 0,
+                    "an": 204
+                  },
+                  {
+                    "id": "1kg:itu_XX",
+                    "ac": 0,
+                    "an": 84
+                  },
+                  {
+                    "id": "1kg:itu_XY",
+                    "ac": 0,
+                    "an": 120
+                  },
+                  {
+                    "id": "1kg:tsi",
+                    "ac": 2,
+                    "an": 206
+                  },
+                  {
+                    "id": "1kg:tsi_XX",
+                    "ac": 1,
+                    "an": 100
+                  },
+                  {
+                    "id": "1kg:tsi_XY",
+                    "ac": 1,
+                    "an": 106
+                  },
+                  {
+                    "id": "1kg:mxl",
+                    "ac": 2,
+                    "an": 124
+                  },
+                  {
+                    "id": "1kg:mxl_XX",
+                    "ac": 1,
+                    "an": 60
+                  },
+                  {
+                    "id": "1kg:mxl_XY",
+                    "ac": 1,
+                    "an": 64
+                  },
+                  {
+                    "id": "1kg:ceu",
+                    "ac": 5,
+                    "an": 238
+                  },
+                  {
+                    "id": "1kg:ceu_XX",
+                    "ac": 2,
+                    "an": 118
+                  },
+                  {
+                    "id": "1kg:ceu_XY",
+                    "ac": 3,
+                    "an": 120
+                  },
+                  {
+                    "id": "1kg:msl",
+                    "ac": 0,
+                    "an": 160
+                  },
+                  {
+                    "id": "1kg:msl_XX",
+                    "ac": 0,
+                    "an": 80
+                  },
+                  {
+                    "id": "1kg:msl_XY",
+                    "ac": 0,
+                    "an": 80
+                  },
+                  {
+                    "id": "1kg:beb",
+                    "ac": 3,
+                    "an": 198
+                  },
+                  {
+                    "id": "1kg:beb_XX",
+                    "ac": 2,
+                    "an": 102
+                  },
+                  {
+                    "id": "1kg:beb_XY",
+                    "ac": 1,
+                    "an": 96
+                  },
+                  {
+                    "id": "1kg:yri",
+                    "ac": 0,
+                    "an": 232
+                  },
+                  {
+                    "id": "1kg:yri_XX",
+                    "ac": 0,
+                    "an": 114
+                  },
+                  {
+                    "id": "1kg:yri_XY",
+                    "ac": 0,
+                    "an": 118
+                  },
+                  {
+                    "id": "1kg:fin",
+                    "ac": 0,
+                    "an": 196
+                  },
+                  {
+                    "id": "1kg:fin_XX",
+                    "ac": 0,
+                    "an": 120
+                  },
+                  {
+                    "id": "1kg:fin_XY",
+                    "ac": 0,
+                    "an": 76
+                  },
+                  {
+                    "id": "1kg:khv",
+                    "ac": 0,
+                    "an": 202
+                  },
+                  {
+                    "id": "1kg:khv_XX",
+                    "ac": 0,
+                    "an": 108
+                  },
+                  {
+                    "id": "1kg:khv_XY",
+                    "ac": 0,
+                    "an": 94
+                  },
+                  {
+                    "id": "1kg:cdx",
+                    "ac": 0,
+                    "an": 176
+                  },
+                  {
+                    "id": "1kg:cdx_XX",
+                    "ac": 0,
+                    "an": 92
+                  },
+                  {
+                    "id": "1kg:cdx_XY",
+                    "ac": 0,
+                    "an": 84
+                  },
+                  {
+                    "id": "1kg:lwk",
+                    "ac": 0,
+                    "an": 172
+                  },
+                  {
+                    "id": "1kg:lwk_XX",
+                    "ac": 0,
+                    "an": 92
+                  },
+                  {
+                    "id": "1kg:lwk_XY",
+                    "ac": 0,
+                    "an": 80
+                  },
+                  {
+                    "id": "1kg:acb",
+                    "ac": 0,
+                    "an": 184
+                  },
+                  {
+                    "id": "1kg:acb_XX",
+                    "ac": 0,
+                    "an": 94
+                  },
+                  {
+                    "id": "1kg:acb_XY",
+                    "ac": 0,
+                    "an": 90
+                  },
+                  {
+                    "id": "1kg:asw",
+                    "ac": 0,
+                    "an": 102
+                  },
+                  {
+                    "id": "1kg:asw_XX",
+                    "ac": 0,
+                    "an": 56
+                  },
+                  {
+                    "id": "1kg:asw_XY",
+                    "ac": 0,
+                    "an": 46
+                  },
+                  {
+                    "id": "1kg:ibs",
+                    "ac": 1,
+                    "an": 208
+                  },
+                  {
+                    "id": "1kg:ibs_XX",
+                    "ac": 0,
+                    "an": 104
+                  },
+                  {
+                    "id": "1kg:ibs_XY",
+                    "ac": 1,
+                    "an": 104
+                  },
+                  {
+                    "id": "1kg:gbr",
+                    "ac": 2,
+                    "an": 174
+                  },
+                  {
+                    "id": "1kg:gbr_XX",
+                    "ac": 1,
+                    "an": 84
+                  },
+                  {
+                    "id": "1kg:gbr_XY",
+                    "ac": 1,
+                    "an": 90
+                  },
+                  {
+                    "id": "1kg:pel",
+                    "ac": 0,
+                    "an": 170
+                  },
+                  {
+                    "id": "1kg:pel_XX",
+                    "ac": 0,
+                    "an": 86
+                  },
+                  {
+                    "id": "1kg:pel_XY",
+                    "ac": 0,
+                    "an": 84
+                  },
+                  {
+                    "id": "1kg:gih",
+                    "ac": 1,
+                    "an": 200
+                  },
+                  {
+                    "id": "1kg:gih_XX",
+                    "ac": 0,
+                    "an": 92
+                  },
+                  {
+                    "id": "1kg:gih_XY",
+                    "ac": 1,
+                    "an": 108
+                  },
+                  {
+                    "id": "1kg:chs",
+                    "ac": 0,
+                    "an": 204
+                  },
+                  {
+                    "id": "1kg:chs_XX",
+                    "ac": 0,
+                    "an": 102
+                  },
+                  {
+                    "id": "1kg:chs_XY",
+                    "ac": 0,
+                    "an": 102
+                  },
+                  {
+                    "id": "1kg:gwd",
+                    "ac": 0,
+                    "an": 230
+                  },
+                  {
+                    "id": "1kg:gwd_XX",
+                    "ac": 0,
+                    "an": 116
+                  },
+                  {
+                    "id": "1kg:gwd_XY",
+                    "ac": 0,
+                    "an": 114
+                  },
+                  {
+                    "id": "1kg:XX",
+                    "ac": 9,
+                    "an": 2476
+                  },
+                  {
+                    "id": "1kg:XY",
+                    "ac": 11,
+                    "an": 2492
+                  }
+                ]
+              },
+              "joint": {
+                "ac": 19237,
+                "an": 1612320,
+                "homozygote_count": 58
+              },
+              "va": {
+                "exome": [
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 315,
+                    "locusAlleleCount": 31762,
+                    "cohort": {
+                      "id": "remaining_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 294,
+                    "locusAlleleCount": 28582,
+                    "cohort": {
+                      "id": "remaining_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 609,
+                    "locusAlleleCount": 60344,
+                    "cohort": {
+                      "id": "remaining"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 94,
+                    "locusAlleleCount": 25690,
+                    "cohort": {
+                      "id": "amr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 83,
+                    "locusAlleleCount": 19028,
+                    "cohort": {
+                      "id": "amr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 177,
+                    "locusAlleleCount": 44718,
+                    "cohort": {
+                      "id": "amr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 70,
+                    "locusAlleleCount": 27598,
+                    "cohort": {
+                      "id": "fin_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 77,
+                    "locusAlleleCount": 25724,
+                    "cohort": {
+                      "id": "fin_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 147,
+                    "locusAlleleCount": 53322,
+                    "cohort": {
+                      "id": "fin"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 3,
+                    "locusAlleleCount": 2506,
+                    "cohort": {
+                      "id": "mid_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 7,
+                    "locusAlleleCount": 3258,
+                    "cohort": {
+                      "id": "mid_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 10,
+                    "locusAlleleCount": 5764,
+                    "cohort": {
+                      "id": "mid"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 8585,
+                    "locusAlleleCount": 571456,
+                    "cohort": {
+                      "id": "nfe_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 8053,
+                    "locusAlleleCount": 539104,
+                    "cohort": {
+                      "id": "nfe_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 16638,
+                    "locusAlleleCount": 1110560,
+                    "cohort": {
+                      "id": "nfe"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 46,
+                    "locusAlleleCount": 22028,
+                    "cohort": {
+                      "id": "sas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 167,
+                    "locusAlleleCount": 64200,
+                    "cohort": {
+                      "id": "sas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 213,
+                    "locusAlleleCount": 86228,
+                    "cohort": {
+                      "id": "sas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 82,
+                    "locusAlleleCount": 12626,
+                    "cohort": {
+                      "id": "asj_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 83,
+                    "locusAlleleCount": 13486,
+                    "cohort": {
+                      "id": "asj_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 165,
+                    "locusAlleleCount": 26112,
+                    "cohort": {
+                      "id": "asj"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 20672,
+                    "cohort": {
+                      "id": "eas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 18950,
+                    "cohort": {
+                      "id": "eas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 39622,
+                    "cohort": {
+                      "id": "eas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 47,
+                    "locusAlleleCount": 19306,
+                    "cohort": {
+                      "id": "afr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 30,
+                    "locusAlleleCount": 14138,
+                    "cohort": {
+                      "id": "afr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 77,
+                    "locusAlleleCount": 33444,
+                    "cohort": {
+                      "id": "afr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 9243,
+                    "locusAlleleCount": 733644,
+                    "cohort": {
+                      "id": "XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 8794,
+                    "locusAlleleCount": 726470,
+                    "cohort": {
+                      "id": "XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 18037,
+                    "locusAlleleCount": 1460114,
+                    "cohort": {
+                      "id": "ALL"
+                    }
+                  }
+                ],
+                "genome": [
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 7,
+                    "locusAlleleCount": 1044,
+                    "cohort": {
+                      "id": "remaining_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 9,
+                    "locusAlleleCount": 1066,
+                    "cohort": {
+                      "id": "remaining_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 16,
+                    "locusAlleleCount": 2110,
+                    "cohort": {
+                      "id": "remaining"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 27,
+                    "locusAlleleCount": 6786,
+                    "cohort": {
+                      "id": "amr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 30,
+                    "locusAlleleCount": 8504,
+                    "cohort": {
+                      "id": "amr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 57,
+                    "locusAlleleCount": 15290,
+                    "cohort": {
+                      "id": "amr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 6,
+                    "locusAlleleCount": 2572,
+                    "cohort": {
+                      "id": "fin_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 10,
+                    "locusAlleleCount": 8040,
+                    "cohort": {
+                      "id": "fin_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 16,
+                    "locusAlleleCount": 10612,
+                    "cohort": {
+                      "id": "fin"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 470,
+                    "cohort": {
+                      "id": "ami_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 442,
+                    "cohort": {
+                      "id": "ami_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 912,
+                    "cohort": {
+                      "id": "ami"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2268,
+                    "cohort": {
+                      "id": "eas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 2912,
+                    "cohort": {
+                      "id": "eas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 5180,
+                    "cohort": {
+                      "id": "eas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 144,
+                    "cohort": {
+                      "id": "mid_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 0,
+                    "locusAlleleCount": 150,
+                    "cohort": {
+                      "id": "mid_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1,
+                    "locusAlleleCount": 294,
+                    "cohort": {
+                      "id": "mid"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 4,
+                    "locusAlleleCount": 1152,
+                    "cohort": {
+                      "id": "sas_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 11,
+                    "locusAlleleCount": 3674,
+                    "cohort": {
+                      "id": "sas_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 15,
+                    "locusAlleleCount": 4826,
+                    "cohort": {
+                      "id": "sas"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 11,
+                    "locusAlleleCount": 1868,
+                    "cohort": {
+                      "id": "asj_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 3,
+                    "locusAlleleCount": 1604,
+                    "cohort": {
+                      "id": "asj_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 14,
+                    "locusAlleleCount": 3472,
+                    "cohort": {
+                      "id": "asj"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 45,
+                    "locusAlleleCount": 22156,
+                    "cohort": {
+                      "id": "afr_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 63,
+                    "locusAlleleCount": 19400,
+                    "cohort": {
+                      "id": "afr_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 108,
+                    "locusAlleleCount": 41556,
+                    "cohort": {
+                      "id": "afr"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 561,
+                    "locusAlleleCount": 39326,
+                    "cohort": {
+                      "id": "nfe_XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 411,
+                    "locusAlleleCount": 28628,
+                    "cohort": {
+                      "id": "nfe_XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 972,
+                    "locusAlleleCount": 67954,
+                    "cohort": {
+                      "id": "nfe"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 663,
+                    "locusAlleleCount": 77786,
+                    "cohort": {
+                      "id": "XX"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 537,
+                    "locusAlleleCount": 74420,
+                    "cohort": {
+                      "id": "XY"
+                    }
+                  },
+                  {
+                    "derivedFrom": {
+                      "version": "4.1.0"
+                    },
+                    "focusAlleleCount": 1200,
+                    "locusAlleleCount": 152206,
+                    "cohort": {
+                      "id": "ALL"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

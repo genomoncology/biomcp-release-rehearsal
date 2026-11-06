@@ -382,6 +382,7 @@ mod gwas;
 mod identity;
 mod population;
 pub(crate) mod population_detail;
+mod population_identity;
 mod population_release;
 
 fn myvariant_identity(

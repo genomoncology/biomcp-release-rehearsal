@@ -25,10 +25,16 @@ pub(super) struct Allele {
 }
 #[derive(Deserialize)]
 pub(super) struct External {
+    #[serde(rename = "gnomAD_4")]
+    pub gnomad: Option<Field<Vec<Field<Gnomad>>>>,
     #[serde(rename = "dbSNP")]
     pub rs: Option<Field<Vec<Field<Rs>>>>,
     #[serde(rename = "ClinVarVariations")]
     pub clinvar: Option<Field<Vec<Field<Clinvar>>>>,
+}
+#[derive(Deserialize)]
+pub(super) struct Gnomad {
+    pub id: Field<Text>,
 }
 #[derive(Deserialize)]
 pub(super) struct Rs {
