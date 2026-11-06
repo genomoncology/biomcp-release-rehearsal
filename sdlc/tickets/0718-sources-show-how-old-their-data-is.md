@@ -31,3 +31,7 @@ Items 2 and 10: Open Targets listed sotorasib in colorectal cancer as max phase 
 ## Changes
 
 - Changes: `crates/biomcp-adapters/`, `crates/biomcp-query/`, `crates/biomcp-types/`, `docs/`, `tests/`.
+
+## Amendment, 2026-11-06
+
+PM ruling (m29065): the comparison shows Open Targets phase facts beside dated FDA approval events, and says their indications are not linked. Nothing is labeled as superseding a phase on the drug name alone. Unknown dates stay unknown. A same-indication lookup is not part of this ticket; if the evaluation shows the need, it gets its own ticket.
