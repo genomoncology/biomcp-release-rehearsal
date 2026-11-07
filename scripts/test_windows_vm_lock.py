@@ -17,7 +17,7 @@ class WindowsVmLock(unittest.TestCase):
         self.lock = self.root / ".windows-vm-lock"
         labels = self.root / "t/j987/container-labels"
         labels.parent.mkdir(parents=True)
-        labels.write_text("pm.repo=biomcp-redux\npm.ticket=0573\n")
+        labels.write_text("pm.repo=example-repo\npm.ticket=0573\n")
         binary = self.root / "bin"
         binary.mkdir()
         docker = binary / "docker"
@@ -40,7 +40,7 @@ class WindowsVmLock(unittest.TestCase):
 started=0
 trap 'result=$?; windows_vm_release "$started" || result=1; exit "$result"' EXIT
 windows_vm_claim
-test "$(cat ~/.windows-vm-lock/owner)" = 'biomcp-redux j987'
+test "$(cat ~/.windows-vm-lock/owner)" = 'example-repo j987'
 started=1
 exit 9
 ''')
@@ -55,7 +55,7 @@ exit 9
         result = self.run_shell('''
 windows_vm_wait() { mv ~/.windows-vm-lock ~/.released-owner; }
 windows_vm_claim
-test "$(cat ~/.windows-vm-lock/owner)" = 'biomcp-redux j987'
+test "$(cat ~/.windows-vm-lock/owner)" = 'example-repo j987'
 windows_vm_release 0
 ''')
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -76,7 +76,7 @@ windows_vm_release 1
 
     def test_current_ticket_must_match_expected_ticket_before_claim(self):
         labels = Path(self.env['JOB_LABEL_FILE'])
-        labels.write_text('pm.repo=biomcp-redux\npm.ticket=0293\n')
+        labels.write_text('pm.repo=example-repo\npm.ticket=0293\n')
         result = self.run_shell('windows_vm_claim 0621\n')
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(self.lock.exists())

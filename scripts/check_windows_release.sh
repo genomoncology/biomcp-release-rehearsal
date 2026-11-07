@@ -15,7 +15,7 @@ tooling_revision=$(python3 release/source_revision.py --revision "$tooling_revis
 python3 -c 'from pathlib import Path; import sys; from release.artifacts import candidate_record; candidate_record(Path(sys.argv[1]), sys.argv[2])' "$artifacts" "$revision"
 printf 'Tooling revision: %s\nProduct revision: %s\n' "$tooling_revision" "$revision"
 . scripts/windows_vm_lock.sh
-# This wrapper runs on Gator, which already owns the VM and lock directory.
+# This wrapper runs on the VM host, which already owns the VM and lock directory.
 windows_vm_ssh() { sh -c "$1"; }
 scratch=$(mktemp -d)
 started=0

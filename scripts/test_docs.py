@@ -163,8 +163,17 @@ def main():
         )
         result = check(root)
         assert result.returncode != 0 and "invalid or duplicate feature line" in result.stderr, result
+        features.write_text(original_features)
+        folder = "work" + "space"  # split so this file passes the check it tests
+        for planted in (f"cd ~/{folder}/biomcp\n", f"cp $HOME/{folder}/t/x .\n"):
+            readme.write_text(original_readme + planted)
+            result = check(root)
+            assert result.returncode != 0 and "README.md:" in result.stderr and "workspace path" in result.stderr, result
+        readme.write_text(original_readme + "See https://example.org/home/about and /home/runner/work.\n")
+        assert check(root).returncode == 0, check(root).stderr
+        readme.write_text(original_readme)
     print(
-        "Documentation contracts reject missing architecture checks, phantom leaves, unknown options, missing leaf accounting, drift and invalid feature declarations"
+        "Documentation contracts reject missing architecture checks, phantom leaves, unknown options, missing leaf accounting, drift, invalid feature declarations and internal workspace paths"
     )
 
 

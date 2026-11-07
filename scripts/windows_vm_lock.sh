@@ -2,7 +2,8 @@
 # pm's runner sets JOB_LABEL_FILE to <temporary root>/j<actual job ID>/container-labels.
 windows_lock_owned=0
 windows_lock_owner=
-windows_vm_ssh() { ssh -o BatchMode=yes -o ConnectTimeout=15 gator "$@"; }
+# WINDOWS_VM_HOST names the SSH host that owns the shared Windows VM.
+windows_vm_ssh() { ssh -o BatchMode=yes -o ConnectTimeout=15 "${WINDOWS_VM_HOST:?set WINDOWS_VM_HOST to the Windows VM host}" "$@"; }
 windows_vm_wait() { sleep 2; }
 windows_vm_traps() {
     trap cleanup EXIT
@@ -18,9 +19,11 @@ windows_vm_claim() {
     case "$windows_job_id" in j*) ;; *) return 1 ;; esac
     # Validate only our own label fields; never print or copy the control file.
     [ -f "${JOB_LABEL_FILE:-}" ] &&
-        grep -qx 'pm.repo=biomcp-redux' "$JOB_LABEL_FILE" &&
+        [ "$(grep -c '^pm\.repo=' "$JOB_LABEL_FILE")" -eq 1 ] &&
         grep -qx "pm.ticket=$windows_expected_ticket" "$JOB_LABEL_FILE" || return 1
-    windows_lock_owner="biomcp-redux $windows_job_id"
+    windows_repo=$(sed -n 's/^pm\.repo=//p' "$JOB_LABEL_FILE")
+    case "$windows_repo" in ''|*[!A-Za-z0-9._-]*) return 1 ;; esac
+    windows_lock_owner="$windows_repo $windows_job_id"
     while :; do
         if windows_vm_ssh "if mkdir ~/.windows-vm-lock 2>/dev/null; then
             if printf '%s\\n' '$windows_lock_owner' > ~/.windows-vm-lock/owner; then exit 0; fi

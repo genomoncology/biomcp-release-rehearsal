@@ -1,6 +1,8 @@
 """Check documentation declarations against the checked-out tree."""
 import argparse
+import hashlib
 import re
+import subprocess
 import sys
 import json
 import shlex
@@ -24,8 +26,51 @@ def architecture(root):
                 raise ValueError(f"architecture names a missing check file: {check}")
 
 
+# Internal machine, account and repository names must stay out of public files.
+# They are stored as SHA-256 prefixes of the lowercase word so this check does not publish them.
+INTERNAL_WORDS = {"e712a02b83a65ca2", "2572e799420e05c9", "a1fb86a4c024c04c", "080baa17c90b5e97"}
+# Common words that name an internal machine only as an SSH or copy host, such as HOST:/path.
+INTERNAL_HOSTS = INTERNAL_WORDS | {"b5f2031eb62e37c6", "c685a2c9bab235cc", "16477688c0e00699", "1b4c9133da73a711"}
+INTERNAL_USERS = {"b54a95127a4b573f", "a1fb86a4c024c04c"}
+# Third-party source data and planning records are reviewed separately.
+INTERNAL_SKIP = ("sdlc/", "tests/replies/", "tests/fixtures/")
+
+
+def digest(word):
+    return hashlib.sha256(word.lower().encode()).hexdigest()[:16]
+
+
+def public_files(root):
+    listing = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=False)
+    if listing.returncode == 0:
+        names = [name for name in listing.stdout.decode().split("\0") if name]
+    else:
+        names = [path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file()]
+    return [name for name in names if not name.startswith(INTERNAL_SKIP)]
+
+
+def internal_names(root):
+    for name in public_files(root):
+        try:
+            text = (root / name).read_text()
+        except (UnicodeDecodeError, OSError):
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            found = (
+                any(digest(word) in INTERNAL_WORDS for word in re.findall(r"[A-Za-z0-9]+", line))
+                or any(digest(host) in INTERNAL_HOSTS
+                       for host in re.findall(r"(?<![\w./-])([A-Za-z0-9-]+)(?:\.local)?:[/~$]", line))
+                or any(digest(user) in INTERNAL_USERS
+                       for user in re.findall(r"(?<![\w.])/(?:home|Users)/([A-Za-z0-9._-]+)", line))
+                or re.search(r"(?:~|\$HOME|\$\{HOME\})/workspace/", line)
+            )
+            if found:
+                raise ValueError(f"{name}:{number}: internal machine name or workspace path in a public file")
+
+
 def check(root):
     architecture(root)
+    internal_names(root)
     readme = (root / "README.md").read_text()
     examples = [shlex.split(line)[1:] for block in re.findall(r"```sh\n(.*?)```", readme, re.S)
                 for line in block.splitlines() if line.startswith("biomcp ")]
@@ -87,4 +132,4 @@ if __name__ == "__main__":
     except (ValueError, OSError) as error:
         print(str(error), file=sys.stderr)
         sys.exit(1)
-    print("Parity, feature declarations and architecture check references agree")
+    print("Parity, feature declarations and architecture check references agree; public files name no internal machine or workspace path")

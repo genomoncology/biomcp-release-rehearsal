@@ -1,7 +1,7 @@
 {
-  "live_check": "Tool-specific local replay; excluded from provider live checks.",
+  "live_check": "local replay of the recorded public registry bodies that the public name-fallback case checks",
   "feature": "trial-search",
-  "story": "An exact sponsor phrase that finds a native trial never runs a broader search.",
+  "story": "An exact sponsor phrase that finds a native trial never runs a broader search, so the registry's dataset date is its only notice.",
   "replay": "trial/name-fallback",
   "steps": [
     {
@@ -21,11 +21,10 @@
             "NCT05273554"
           ]
         },
-        "/sources/0": {
-          "omits": [
-            "notices"
-          ]
-        }
+        "/sources/0/notices": {
+          "count": 1
+        },
+        "/sources/0/notices/0/data_date": "2026-10-29T09:00:05Z"
       },
       "max_bytes": 2000
     }

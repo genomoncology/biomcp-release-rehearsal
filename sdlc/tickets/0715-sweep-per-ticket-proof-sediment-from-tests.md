@@ -1,6 +1,7 @@
 # 0715 — Sweep per-ticket proof sediment from tests
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 4beaad1b89d5248e683b75b4cdc32b511302ed06
 
 Milestone: 5
 
