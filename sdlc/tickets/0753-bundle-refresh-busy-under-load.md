@@ -41,3 +41,4 @@ The load test j34423 at d0f18a16c, with the first-open lock fix in, failed this 
 - Evidence: j34423: 12 checks passed, 112 runs, first-open passed all 50 rounds; then this case failed.
 
 ## Progress
+- 2026-11-07 next: Allowance stop. Two branches name this ticket; the work is on ticket/0753-diag at 9f41ef6d3. Next: name the wait that returned Busy with a Yellow-only stress run, then fix; then run the unreached load checks once.

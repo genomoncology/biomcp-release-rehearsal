@@ -35,3 +35,4 @@ Milestone: 5
 ## Depends on
 
 - Depends on: 0736.
+- 2026-11-07 next: Allowance stop. Branch ticket/0740-uniprot-stalls-get-one-more-try at 3f279bf68; j34537 passed. Next: 12 live tries each way, keeping the first request open; close with the measurement if no gain. Remove the other 0740 branch on origin before landing; land refuses two.
