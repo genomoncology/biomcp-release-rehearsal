@@ -335,9 +335,11 @@ fn public() -> Check {
     let recorded: Value = serde_json::from_str(&super::launch::fixture_text(
         "replies/author/synthetic/semantic-scholar/90d8b5261ee71845c924edbc2407040f440b73da2ab1fd8e51159839ba6ca612.json",
     )?).map_err(|e| e.to_string())?;
-    let body = recorded
+    recorded
         .pointer("/exchanges/0/body/value")
-        .ok_or("missing recorded source reply")?
+        .ok_or("missing recorded source reply")?;
+    // A found author keeps this case on Semantic Scholar alone; an empty page now also asks PubMed.
+    let body = json!({"offset":0,"total":1,"data":[{"authorId":"901","name":"Louis Williams"}]})
         .to_string();
     let stub = super::network_stub::Stub::for_source(
         "api.semanticscholar.org",

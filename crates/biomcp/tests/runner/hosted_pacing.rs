@@ -100,6 +100,11 @@ fn recordings(assets: &Environment) -> Check<std::path::PathBuf> {
             .iter()
             .map(|byte| format!("{byte:02x}"))
             .collect::<String>();
+        // A found author keeps the case on Semantic Scholar; an empty page now also asks PubMed.
+        *record
+            .pointer_mut("/exchanges/0/body/value")
+            .ok_or("recorded source reply missing")? =
+            json!({"offset":0,"total":1,"data":[{"authorId":"901","name":"Louis Williams"}]});
         record
             .as_object_mut()
             .ok_or("recorded request is not an object")?

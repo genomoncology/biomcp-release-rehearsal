@@ -16,9 +16,12 @@
         "/error/code": "usage.arguments",
         "/error/option": "--label-section",
         "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
-        "/error/valid_values": [
-          "Bounded nonempty text with surrounding Unicode whitespace removed. Minimum length: 1. Maximum length: 1048576."
-        ],
+        "/error/valid_values/*": {
+          "includes_all_of": [
+            "boxed_warning",
+            "indications_and_usage"
+          ]
+        },
         "/next/*/args": {
           "includes": [
             "help",

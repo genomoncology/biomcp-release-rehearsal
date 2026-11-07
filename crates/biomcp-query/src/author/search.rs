@@ -21,7 +21,15 @@ pub(crate) fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
     let mut out = empty(biomcp_types::AuthorPage::into_reply(q.clone(), None));
-    if let Err(error) = execute(cx, q, deadline, &mut out) {
+    let executed = execute(cx, q, deadline, &mut out);
+    if executed.is_ok() && found_none(q, &out) {
+        // The open source gets a turn; both sources stay listed so the answer names who found it.
+        let mut next = super::literature::search(cx, q);
+        next.sources.splice(0..0, out.sources);
+        command.finish(deadline.remaining());
+        return next;
+    }
+    if let Err(error) = executed {
         out.local = status::local(error);
         if out.sources.is_empty() {
             out.sources.push(biomcp_adapters::registry::outcome(
@@ -41,6 +49,14 @@ pub(crate) fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
     }
     command.finish(deadline.remaining());
     out
+}
+/// An empty first page from the only automatic source says nothing about the open sources.
+fn found_none(q: &AuthorSearch, out: &Outcome) -> bool {
+    q.source() == biomcp_types::AuthorSearchSource::Auto
+        && q.pool().is_none()
+        && q.offset() == 0
+        && out.local.is_none()
+        && out.page.as_ref().is_some_and(|page| page.total == 0)
 }
 fn execute(
     cx: &Ctx<'_>,

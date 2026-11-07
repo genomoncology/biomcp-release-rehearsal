@@ -1,0 +1,34 @@
+{
+  "feature": "author-search",
+  "live_check": "synthetic control",
+  "story": "A topic Semantic Scholar finds no author for gives the open source a turn under default settings, and the reply names both sources.",
+  "replay": "author/empty-first-source",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "author",
+        "KRAS G12C"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/*/source": {
+          "includes_all_of": [
+            "semantic-scholar",
+            "pubmed"
+          ]
+        },
+        "/result/literature/papers/*/paper/pmid": [
+          "10002",
+          "10001"
+        ]
+      },
+      "max_bytes": 6000,
+      "mcp": [
+        "search",
+        "author",
+        "KRAS G12C"
+      ]
+    }
+  ]
+}

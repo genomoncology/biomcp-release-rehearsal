@@ -1,6 +1,7 @@
 # 0750 — Author search finds papers when the first source finds none
 
-Status: READY.
+Status: COMPLETE.
+Landed: 380f47d396a8c3ffedcb357574fc9ae922a0b698
 
 Milestone: 5
 
