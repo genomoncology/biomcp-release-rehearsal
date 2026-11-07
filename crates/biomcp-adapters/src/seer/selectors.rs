@@ -57,24 +57,35 @@ impl Selector {
         });
         let code = code
             .filter(|code| self.valid_codes().contains(code))
-            .ok_or(SelectorError { selector: self })?;
-        code.parse().map_err(|_| SelectorError { selector: self })
+            .ok_or(SelectorError {
+                selectors: vec![self],
+            })?;
+        code.parse().map_err(|_| SelectorError {
+            selectors: vec![self],
+        })
     }
 }
 /// A missing or unknown source selector, without retaining user input.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SelectorError {
     /// Native selector whose required or valid value is missing.
-    pub selector: Selector,
+    pub selectors: Vec<Selector>,
 }
 impl fmt::Display for SelectorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "seer.selector: {} requires one of {}",
-            self.selector.flag(),
-            self.selector.valid_codes().join(", ")
-        )
+        f.write_str("seer.selector: ")?;
+        for (index, selector) in self.selectors.iter().enumerate() {
+            if index != 0 {
+                f.write_str("; ")?;
+            }
+            write!(
+                f,
+                "{} requires one of {}",
+                selector.flag(),
+                selector.valid_codes().join(", ")
+            )?;
+        }
+        Ok(())
     }
 }
 impl std::error::Error for SelectorError {}

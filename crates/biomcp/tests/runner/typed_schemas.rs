@@ -196,6 +196,18 @@ fn settings(env: &Environment, default: &[Value]) -> Result<(), String> {
     )?;
     report(&enabled)?;
     for tool in enabled {
+        if field(&tool, "name").as_str() == Some("get_disease")
+            && !tool
+                .pointer("/outputSchema/anyOf/0/properties/schema/enum")
+                .and_then(Value::as_array)
+                .is_some_and(|ids| {
+                    ids.contains(&json!(
+                        <biomcp_types::DiseaseSites as biomcp_types::ResponseBody>::SCHEMA
+                    ))
+                })
+        {
+            return Err("get_disease output schema omits site disambiguation".into());
+        }
         if matches!(
             field(&tool, "name").as_str(),
             Some("biomcp_help" | "biomcp" | "search" | "fetch")

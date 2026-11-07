@@ -19,7 +19,21 @@
             "survival_interval": [
               "Diagnosis",
               "1 year"
-            ]
+            ],
+            "year_range": {
+              "5": "2019–2023",
+              "31": "1975–2022"
+            },
+            "stage": {
+              "101": "All Stages",
+              "104": "Localized"
+            },
+            "data_model": {
+              "4": "Example publisher dataset"
+            },
+            "relative_survival_interval": {
+              "5": "5-year Relative Survival"
+            }
           },
           "CancerSites": [
             {

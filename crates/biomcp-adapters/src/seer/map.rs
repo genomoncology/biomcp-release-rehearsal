@@ -109,8 +109,10 @@ fn observed(
 pub(super) fn rows(
     document: raw::Document,
     query: &Selection,
+    labels: &raw::Formats,
 ) -> Result<(Vec<Option<DiseaseStatistic>>, Vec<Problem>), BadReply> {
-    let requested = requested(query)?;
+    let mut requested = requested(query)?;
+    label_selectors(&mut requested, labels);
     let mut problems = vec![
         problem(Source::Seer, None, "dataset_membership"),
         problem(Source::Seer, None, "registry_membership"),
@@ -137,6 +139,7 @@ pub(super) fn rows(
             .map(|(name, code)| selector(name, code))
             .collect::<Result<Vec<_>, _>>()?;
         returned.push(selector("year_range", &series.year_range.to_string())?);
+        label_selectors(&mut returned, labels);
         mismatches(&requested, &returned, &mut problems);
         for row in series.data_series {
             let mut fields = crate::mapped::Problems {
@@ -226,4 +229,43 @@ pub(super) fn identities_admitted(document: &raw::Document) -> bool {
         }
     }
     refusals.identities_admitted(accepted, received)
+}
+
+fn label_selectors(selectors: &mut [StatisticSelector], formats: &raw::Formats) {
+    for selector in selectors {
+        let labels = if selector.name.as_str() == "site" {
+            formats.site.as_ref()
+        } else {
+            formats.labels.get(selector.name.as_str())
+        };
+        selector.label = labels
+            .and_then(crate::raw::Field::as_ref)
+            .and_then(|labels| labels.get(selector.code.as_str()))
+            .and_then(crate::raw::Field::as_ref)
+            .cloned()
+            .map(Into::into);
+    }
+}
+
+pub(super) fn choices(formats: &raw::Formats) -> Result<Box<[StatisticSelector]>, BadReply> {
+    let mut rows = Vec::new();
+    for selector in [
+        super::Selector::Dataset,
+        super::Selector::Period,
+        super::Selector::Interval,
+    ] {
+        let name = match selector {
+            super::Selector::Dataset => "data_model",
+            super::Selector::Period => "year_range",
+            _ => "relative_survival_interval",
+        };
+        for code in selector.valid_codes() {
+            let mut row = self::selector(name, code)?;
+            label_selectors(std::slice::from_mut(&mut row), formats);
+            if row.label.is_some() {
+                rows.push(row);
+            }
+        }
+    }
+    Ok(rows.into())
 }

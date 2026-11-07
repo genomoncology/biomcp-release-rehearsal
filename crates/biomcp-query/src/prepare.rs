@@ -66,7 +66,7 @@ fn prepare_disease(action: Action) -> Result<Action, biomcp_adapters::seer::Sele
         let query = query
             .with_demographics(selection.sex, selection.race, selection.age_range)
             .map_err(|_| biomcp_adapters::seer::SelectorError {
-                selector: biomcp_adapters::seer::Selector::Sex,
+                selectors: vec![biomcp_adapters::seer::Selector::Sex],
             })?;
         return Ok(Action::Run {
             request: Request::GetDisease(query),
@@ -75,11 +75,19 @@ fn prepare_disease(action: Action) -> Result<Action, biomcp_adapters::seer::Sele
     }
     Ok(action)
 }
-fn selector_error(error: biomcp_adapters::seer::SelectorError) -> UsageError {
+pub(crate) fn selector_error(error: biomcp_adapters::seer::SelectorError) -> UsageError {
     let values = error
-        .selector
-        .valid_codes()
+        .selectors
         .iter()
+        .flat_map(|selector| {
+            selector.valid_codes().iter().map(|code| {
+                if error.selectors.len() == 1 {
+                    (*code).to_string()
+                } else {
+                    format!("{} {}", selector.flag(), code)
+                }
+            })
+        })
         .map(|code| code.parse())
         .collect::<Result<Vec<biodata::Text>, _>>();
     let Ok(values) = values else {
@@ -87,7 +95,13 @@ fn selector_error(error: biomcp_adapters::seer::SelectorError) -> UsageError {
     };
     UsageError::SourceSelector {
         source: biomcp_types::Source::Seer,
-        option: error.selector.flag().into(),
+        option: error
+            .selectors
+            .iter()
+            .map(|s| s.flag())
+            .collect::<Vec<_>>()
+            .join(", ")
+            .into(),
         valid_values: values.into(),
         next: vec![biomcp_types::Step {
             kind: biomcp_types::StepKind::Disambiguate,

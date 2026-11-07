@@ -1,0 +1,53 @@
+{
+  "method": "GET",
+  "source": "seer",
+  "url": "https://seer.cancer.gov/statistics-network/explorer/source/content_writers/get_var_formats.php",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "VariableFormats": {
+            "site": {
+              "55": "Example site",
+              "47": "Other example"
+            },
+            "survival_interval": [
+              "Diagnosis",
+              "1 year"
+            ],
+            "year_range": {
+              "5": "2019–2023",
+              "31": "1975–2022"
+            },
+            "stage": {
+              "101": "All Stages",
+              "104": "Localized"
+            },
+            "data_model": {
+              "4": "Example publisher dataset"
+            },
+            "relative_survival_interval": {
+              "5": "5-year Relative Survival"
+            }
+          },
+          "CancerSites": [
+            {
+              "value": 55,
+              "active": true
+            },
+            {
+              "value": 47,
+              "active": false
+            }
+          ]
+        }
+      },
+      "fetched": 1234
+    }
+  ]
+}

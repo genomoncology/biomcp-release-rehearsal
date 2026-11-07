@@ -17,6 +17,11 @@ pub(super) struct Formats {
     pub site: Option<
         crate::raw::Field<BTreeMap<String, crate::raw::Field<crate::native_text::NativeText>>>,
     >,
+    #[serde(flatten)]
+    pub labels: BTreeMap<
+        String,
+        crate::raw::Field<BTreeMap<String, crate::raw::Field<crate::native_text::NativeText>>>,
+    >,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Site {

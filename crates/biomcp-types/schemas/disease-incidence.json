@@ -185,7 +185,7 @@
         },
         "id": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Exact ontology CURIE or an explicit SEER catalog site ID.",
+          "description": "Exact ontology CURIE or a SEER site code or name.",
           "x-positional": 0
         },
         "interval": {
@@ -272,7 +272,10 @@
       "required": [
         "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-reply-query-titles": [
+        "DiseaseSearch"
+      ]
     },
     "Reply_DiseaseIncidence": {
       "description": "Native incidence rows preserving requested and returned dimensions.",

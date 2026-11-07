@@ -1,0 +1,218 @@
+{
+  "feature": "disease-seer",
+  "live_check": "Synthetic publisher catalog replay; no provider requests.",
+  "story": "Find sites by words and report every missing required selector together.",
+  "replay": "disease/seer-synthetic",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "disease",
+        "example",
+        "--source",
+        "seer"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/code": "55",
+        "/result/selectors/*/label": {
+          "includes": "2019–2023"
+        },
+        "/result/selectors/0/name": "data_model",
+        "/result/selectors/0/label": "Example publisher dataset"
+      },
+      "max_bytes": 2000
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "47",
+        "incidence",
+        "--source",
+        "seer"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--dataset, --period"
+      },
+      "max_bytes": 2000
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "other example",
+        "incidence",
+        "--source",
+        "seer",
+        "--dataset",
+        "4",
+        "--period",
+        "5",
+        "--section-limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/requested_site": "47",
+        "/result/items/0/requested_selectors/4/label": "2019–2023",
+        "/result/items/0/returned_selectors/3/label": "Localized",
+        "/problems/*/code": {
+          "includes": "value.unknown"
+        },
+        "/problems/*/field": {
+          "includes": "observed_or_delay_adjusted_rate"
+        }
+      },
+      "max_bytes": 3500
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "example",
+        "survival",
+        "--source",
+        "seer",
+        "--dataset",
+        "4",
+        "--interval",
+        "5"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/code": "55",
+        "/result/items/1/code": "47",
+        "/next/0/args/2": "55",
+        "/next/1/args/2": "47"
+      },
+      "max_bytes": 3500
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "Example site",
+        "survival",
+        "--source",
+        "seer",
+        "--sex",
+        "3",
+        "--dataset",
+        "4",
+        "--interval",
+        "5"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/requested_site": "55",
+        "/result/items/0/requested_selectors/4/label": "5-year Relative Survival",
+        "/problems/*/code": {
+          "includes": "value.unknown"
+        },
+        "/problems/*/field": {
+          "includes": "modeling_method"
+        }
+      },
+      "max_bytes": 4200
+    },
+    {
+      "run": [
+        "search",
+        "disease",
+        "no such site",
+        "--source",
+        "seer"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 0,
+        "/next/0/kind": "disambiguate",
+        "/next/0/args": ["search", "disease", "--limit", "50", "--source", "seer"]
+      },
+      "max_bytes": 2000
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "no such site",
+        "incidence",
+        "--source",
+        "seer",
+        "--dataset",
+        "4",
+        "--period",
+        "5"
+      ],
+      "exit": 1,
+      "expect": {
+        "/status": "absent",
+        "/page/total": 0,
+        "/next/0/kind": "disambiguate",
+        "/next/0/args": ["search", "disease", "--limit", "50", "--source", "seer"]
+      },
+      "max_bytes": 2000
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "ther",
+        "incidence",
+        "--source",
+        "seer",
+        "--dataset",
+        "4",
+        "--period",
+        "5"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/result/items/0/code": "47",
+        "/next/0/args/2": "47"
+      },
+      "max_bytes": 3500
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "site",
+        "survival",
+        "--source",
+        "seer",
+        "--sex",
+        "3",
+        "--dataset",
+        "4",
+        "--interval",
+        "5"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/requested_site": "55"
+      },
+      "max_bytes": 4200
+    },
+    {
+      "run": [
+        "get",
+        "disease",
+        "47",
+        "survival",
+        "--source",
+        "seer"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/option": "--dataset, --interval"
+      },
+      "max_bytes": 2200
+    }
+  ]
+}

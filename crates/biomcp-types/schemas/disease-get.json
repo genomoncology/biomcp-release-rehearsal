@@ -78,7 +78,7 @@
     },
     "id": {
       "$ref": "#/$defs/Text",
-      "description": "Exact ontology CURIE or an explicit SEER catalog site ID.",
+      "description": "Exact ontology CURIE or a SEER site code or name.",
       "x-positional": 0
     },
     "interval": {
@@ -167,5 +167,8 @@
     "id"
   ],
   "title": "DiseaseGet",
-  "type": "object"
+  "type": "object",
+  "x-reply-query-titles": [
+    "DiseaseSearch"
+  ]
 }

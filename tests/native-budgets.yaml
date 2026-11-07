@@ -66,8 +66,8 @@ phenotype/36-P24-hpo-absent.raw: 203
 phenotype/37-P02-middle.raw: 2248
 phenotype/38-P16-middle.raw: 2207
 phenotype/39-P02-terminal.raw: 1040
-seer/catalog: 1012
-seer/catalog-tail: 663
+seer/catalog: 6000
+seer/catalog-tail: 6000
 seer/incidence: 5001
 seer/incidence-terminal: 862
 seer/survival: 5719

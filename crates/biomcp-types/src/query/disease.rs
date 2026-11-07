@@ -40,7 +40,7 @@ pub struct DiseaseSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Literal source search text; absent for the SEER site catalog.
+    /// Literal source search text; optional site-name filter for SEER.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(length(min=1),extend("x-positional" = 0)))]
     text: Option<Box<str>>,
@@ -76,7 +76,9 @@ impl TryFrom<SearchFields> for DiseaseSearch {
         if v.source == DiseaseSource::Ols && v.text.as_ref().is_none_or(|t| t.trim().is_empty()) {
             return Err(QueryInvalid::new(&["source", "text"]));
         }
-        if v.source == DiseaseSource::Seer && (v.text.is_some() || v.ontology.is_some()) {
+        if v.source == DiseaseSource::Seer
+            && (v.text.as_ref().is_some_and(|t| t.trim().is_empty()) || v.ontology.is_some())
+        {
             return Err(QueryInvalid::new(&["source", "text", "ontology"]));
         }
         if v.source == DiseaseSource::Ols {
@@ -89,7 +91,10 @@ impl TryFrom<SearchFields> for DiseaseSearch {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "GetFields")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "schema", schemars(with = "GetFields"))]
+#[cfg_attr(
+    feature = "schema",
+    schemars(with = "GetFields", extend("x-reply-query-titles" = ["DiseaseSearch"]))
+)]
 pub struct DiseaseGet {
     #[serde(flatten)]
     fields: GetFields<DiseaseId>,
@@ -101,7 +106,7 @@ pub struct DiseaseGet {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "schema", schemars(rename = "GetFields"))]
 struct GetFields<I = Text> {
-    /// Exact ontology CURIE or an explicit SEER catalog site ID.
+    /// Exact ontology CURIE or a SEER site code or name.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
     id: I,
     /// Default MyDisease; no automatic fallback.
@@ -163,7 +168,7 @@ impl TryFrom<GetFields> for DiseaseGet {
             return Err(QueryInvalid::new(&["section_limit"]));
         }
         let id = if v.source == DiseaseSource::Seer {
-            if !statistic || !v.id.as_str().bytes().all(|b| b.is_ascii_digit()) {
+            if !statistic || v.id.as_str().trim().is_empty() || v.id.as_str().contains(':') {
                 return Err(QueryInvalid::new(&["source", "id", "section"]));
             }
             DiseaseId::SeerSite(v.id.clone())
@@ -245,6 +250,24 @@ impl DiseaseSearch {
             ontology: None,
             limit: default_limit(),
             offset: 0,
+        })
+    }
+
+    /// Select the SEER site catalog in the largest accepted pages.
+    pub fn seer_widest() -> Result<Self, QueryInvalid> {
+        let query = Self::seer()?;
+        Self::try_from(SearchFields {
+            limit: 50,
+            ..query.0
+        })
+    }
+
+    /// Select a name-filtered SEER catalog.
+    pub fn seer_named(text: &str) -> Result<Self, QueryInvalid> {
+        let query = Self::seer()?;
+        Self::try_from(SearchFields {
+            text: Some(text.into()),
+            ..query.0
         })
     }
 
@@ -376,6 +399,18 @@ impl DiseaseGet {
             fields,
             record: self.record.clone(),
         })
+    }
+    /// Continue SEER discovery using a publisher-issued native site code.
+    pub fn with_seer_site(&self, site: Text) -> Result<Self, QueryInvalid> {
+        if self.source() != DiseaseSource::Seer
+            || !site.as_str().bytes().all(|b| b.is_ascii_digit())
+        {
+            return Err(QueryInvalid::new(&["source", "id"]));
+        }
+        let mut query = self.clone();
+        query.record = site.clone();
+        query.fields.id = DiseaseId::SeerSite(site);
+        Ok(query)
     }
     /// Native sex selector.
     pub fn sex(&self) -> Option<&Text> {

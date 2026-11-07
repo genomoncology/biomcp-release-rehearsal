@@ -1,0 +1,31 @@
+{
+  "feature": "disease-seer",
+  "live_check": "Synthetic replay advances the source clock beyond its existing 15-second deadline.",
+  "story": "A slow SEER reply reports a source deadline and never a zero statistic.",
+  "replay": "disease/seer-slow",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "disease",
+        "47",
+        "incidence",
+        "--source",
+        "seer",
+        "--dataset",
+        "4",
+        "--period",
+        "5"
+      ],
+      "exit": 4,
+      "is_error": true,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/source": "seer",
+        "/sources/0/state": "failed",
+        "/sources/0/reason": "deadline-exceeded"
+      },
+      "max_bytes": 1600
+    }
+  ]
+}

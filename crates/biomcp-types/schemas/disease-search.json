@@ -51,7 +51,7 @@
       "description": "One explicit source, default OLS; biomcp_help search disease\nOne explicit source, default OLS."
     },
     "text": {
-      "description": "Literal source search text; absent for the SEER site catalog.",
+      "description": "Literal source search text; optional site-name filter for SEER.",
       "minLength": 1,
       "type": [
         "string",

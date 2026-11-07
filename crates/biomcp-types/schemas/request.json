@@ -3194,7 +3194,7 @@
           "description": "One explicit source, default OLS."
         },
         "text": {
-          "description": "Literal source search text; absent for the SEER site catalog.",
+          "description": "Literal source search text; optional site-name filter for SEER.",
           "minLength": 1,
           "type": [
             "string",
@@ -3240,7 +3240,7 @@
         },
         "id": {
           "$ref": "#/$defs/Text",
-          "description": "Exact ontology CURIE or an explicit SEER catalog site ID.",
+          "description": "Exact ontology CURIE or a SEER site code or name.",
           "x-positional": 0
         },
         "interval": {
@@ -3328,7 +3328,10 @@
         "command",
         "id"
       ],
-      "type": "object"
+      "type": "object",
+      "x-reply-query-titles": [
+        "DiseaseSearch"
+      ]
     },
     {
       "additionalProperties": false,

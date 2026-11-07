@@ -7,7 +7,7 @@ use serde::Serialize;
 pub enum DiseaseId {
     /// Ontology identity retained from checked input.
     Concept(Curie),
-    /// Native digit string, including its leading zeros.
+    /// Native site code or publisher site name, in caller spelling.
     SeerSite(Text),
 }
 impl DiseaseId {

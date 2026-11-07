@@ -1,0 +1,18 @@
+{
+  "method": "GET",
+  "source": "seer",
+  "url": "https://seer.cancer.gov/statistics-network/explorer/source/content_writers/render_region_5.php?site=47&data_type=1&graph_type=10&compareBy=sex&sex=1&race=1&age_range=1&year_range=5&data_model=4",
+  "exchanges": [
+    {
+      "fetched": 1234,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 60000,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": "{\"info\": {\"y-axis\": \"rate\", \"secondary_series\": null, \"x-axis\": \"stage\", \"key-order\": [\"sex\", \"race\", \"age_range\", \"stage\", \"subtype\", \"site\"], \"data-fields\": [\"rate\", \"rate_se\", \"rate_lower_ci\", \"rate_upper_ci\", \"count\"]}, \"data\": {\"1_1_1_104_47_47\": {\"data_series\": [[\"13.0\", \"0.1\", \"12.0\", \"14.0\", 100]], \"year_range\": 5}, \"1_1_1_101_47_47\": {\"data_series\": [[\"47.0\", \"0.2\", \"46.0\", \"48.0\", 400]], \"year_range\": 5}}}"
+      }
+    }
+  ]
+}

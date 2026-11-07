@@ -94,7 +94,7 @@
           "description": "One explicit source, default OLS."
         },
         "text": {
-          "description": "Literal source search text; absent for the SEER site catalog.",
+          "description": "Literal source search text; optional site-name filter for SEER.",
           "minLength": 1,
           "type": [
             "string",
@@ -159,6 +159,13 @@
           "description": "Native source rows; totals in the envelope count rows, not distinct entities.",
           "items": {
             "$ref": "#/$defs/Reply_DiseaseSite"
+          },
+          "type": "array"
+        },
+        "selectors": {
+          "description": "Publisher labels for required dataset, incidence-period and survival-interval choices.",
+          "items": {
+            "$ref": "#/$defs/Reply_StatisticSelector"
           },
           "type": "array"
         }
@@ -745,6 +752,35 @@
       ],
       "type": "string"
     },
+    "Reply_StatisticSelector": {
+      "description": "One source-native selector without a local interpretation.",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Source selector code."
+        },
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Publisher label when supplied."
+        },
+        "name": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Source field name."
+        }
+      },
+      "required": [
+        "name",
+        "code"
+      ],
+      "type": "object"
+    },
     "Reply_Status": {
       "description": "Overall command outcome.",
       "enum": [
@@ -810,7 +846,7 @@
       "type": "string"
     }
   },
-  "$id": "biomcp.disease-sites/5",
+  "$id": "biomcp.disease-sites/6",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "One versioned command response; schema identity comes only from its body type.\nJSON readers ignore unknown fields and unknown growable enum values within a major.",
   "properties": {
@@ -866,7 +902,7 @@
       "description": "Answer when available."
     },
     "schema": {
-      "const": "biomcp.disease-sites/5",
+      "const": "biomcp.disease-sites/6",
       "type": "string"
     },
     "sources": {

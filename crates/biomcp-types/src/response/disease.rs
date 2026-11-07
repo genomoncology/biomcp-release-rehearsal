@@ -157,12 +157,15 @@ disease,
 DiseaseSites,
 DiseaseSite,
 DiseaseSearch,
-"biomcp.disease-sites/5",
+"biomcp.disease-sites/6",
 "Publisher site catalog without an ontology-to-site mapping.",
 [
         /// Original response retrieval time in Unix seconds, distinct from publisher version/date.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fetched: Option<u64>,
+        /// Publisher labels for required dataset, incidence-period and survival-interval choices.
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub selectors: Box<[biodata::StatisticSelector]>,
     ]
 );
 page!(
