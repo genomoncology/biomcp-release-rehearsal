@@ -35,3 +35,7 @@ Practice release run 42314814887 stopped on Linux Intel, Linux arm64, Mac Intel 
 ## Depends on
 
 - Depends on: nothing.
+
+## Amendment, 2026-11-06
+
+PM ruling: this ticket removes the local path from `scripts/deadline_setup_load.py` only. The other local paths and machine names in `scripts/`, the `Makefile` and `tests/cases/view-empty/check.sh` belong to step 3 of 0715, and none affects the practice release.
