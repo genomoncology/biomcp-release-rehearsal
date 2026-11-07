@@ -1,6 +1,7 @@
 # 0738 — Research proof starts one observer
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 0fb071ea9f5c4a0d4b46d6e22088519b14fb684a
 
 Milestone: 5
 

@@ -19,13 +19,7 @@ def retain(root):
             if path.suffix in ('.log', '.jsonl'):
                 output.add(path, arcname=path.name)
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-    destination = '/home/ian/workspace/data/biomcp-redux-evidence/0669'
-    subprocess.run(['ssh', 'yellow', 'mkdir', '-p', destination], check=True)
-    subprocess.run(['scp', str(archive), f'yellow:{destination}/'], check=True)
-    received = subprocess.check_output(['ssh', 'yellow', 'sha256sum', f'{destination}/{archive.name}'], text=True).split()[0]
-    if received != digest:
-        raise ValueError('receiving evidence hash differs')
-    print(json.dumps({'evidence': f'yellow:{destination}/{archive.name}', 'sha256': digest}), flush=True)
+    print(json.dumps({'evidence': str(archive), 'sha256': digest}), flush=True)
 
 
 def main():
@@ -69,7 +63,7 @@ def main():
     cores = float(os.environ.get('PM_JOB_CORES', os.cpu_count() or 1))
     affinity = None
     if loaded:
-        # Gator reserves physical CPUs 10–11 for Windows; keep this proof on
+        # The Windows VM host reserves physical CPUs 10–11; keep this proof on
         # its booked allocation, including all burner and test descendants.
         available = sorted(os.sched_getaffinity(0) - {10, 11})
         affinity = available[-max(1, math.floor(cores)):]

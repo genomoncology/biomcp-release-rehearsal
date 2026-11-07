@@ -94,10 +94,20 @@ pub(super) fn call_checked(
     Ok(value.clone())
 }
 fn catalog(env: &Environment, globals: &[String]) -> Result<Vec<Value>, String> {
+    // The call's server creates the observation file, which opens only once.
+    let mut catalog_globals = Vec::with_capacity(globals.len());
+    let mut remaining = globals.iter();
+    while let Some(global) = remaining.next() {
+        if global == "--observe" {
+            remaining.next();
+        } else {
+            catalog_globals.push(global.clone());
+        }
+    }
     let replies = super::mcp::exchange_with_globals(
         env,
         &[request(json!(0), "tools/list", json!({}))],
-        globals,
+        &catalog_globals,
     )?;
     replies
         .first()
