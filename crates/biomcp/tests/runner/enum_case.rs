@@ -9,10 +9,109 @@ use serde_json::{Map, Value, json};
 use std::io::Write;
 
 pub(super) fn trials() -> Vec<Trial> {
-    vec![crate::runner::transcript::trial(
-        "query-validation/enumerated-letter-case",
-        || check().map_err(Into::into),
-    )]
+    vec![
+        crate::runner::transcript::trial("query-validation/enumerated-letter-case", || {
+            check().map_err(Into::into)
+        }),
+        crate::runner::transcript::trial("query-validation/declared-field-sources", || {
+            declared_sources().map_err(Into::into)
+        }),
+    ]
+}
+
+// A source fact is a promise: the command takes that field with that source.
+fn declared_sources() -> Result<(), String> {
+    let env = Environment::new().map_err(|e| e.to_string())?;
+    let mut failures = Vec::new();
+    let mut count = 0;
+    for (verb, entity, id) in biomcp_types::command_paths() {
+        let schema = cli(&env, &["schema".into(), id.into()])?;
+        let properties = field(&schema, "properties")
+            .as_object()
+            .ok_or("properties")?;
+        let choices = choice_node(field(field(&schema, "properties"), "source"), &schema)
+            .get("enum")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        for (key, property) in properties {
+            let fact = property.get("x-required-component");
+            let sources = fact
+                .and_then(Value::as_array)
+                .cloned()
+                .or_else(|| fact.map(|word| vec![word.clone()]))
+                .unwrap_or_default();
+            for source in sources.iter().filter(|source| choices.contains(source)) {
+                let word = source.as_str().ok_or("source word")?;
+                let mut values = seed(verb, entity, &schema)?;
+                values.insert("source".into(), source.clone());
+                values.extend(
+                    fact_context(entity, key)
+                        .as_object()
+                        .ok_or("context")?
+                        .clone(),
+                );
+                if (entity, key.as_str()) == ("pgx", "annotation_id") {
+                    values.remove("gene"); // The annotation form takes its ID in place of a gene.
+                }
+                let sample = sample(key, property, &schema);
+                values.insert(key.into(), sample);
+                count += 1;
+                let reply = cli(&env, &argv(verb, entity, &schema, &values))?;
+                // Only an argument refusal breaks the promise; a later answer such as an
+                // expired retained pool means the command took the field.
+                if reply.get("status") == Some(&json!("usage")) {
+                    failures.push(format!("{verb} {entity}.{key} with {word}: {reply}"));
+                }
+            }
+        }
+    }
+    writeln!(
+        std::io::stdout(),
+        "FIELD_SOURCES pairs={count} failures={}",
+        failures.len()
+    )
+    .map_err(|e| e.to_string())?;
+    if failures.is_empty() && count > 0 {
+        Ok(())
+    } else {
+        Err(failures.join("\n"))
+    }
+}
+
+fn fact_context(entity: &str, key: &str) -> Value {
+    match (entity, key) {
+        ("pgx", "kind" | "snapshot") => json!({"section":"annotations"}),
+        ("pgx", "diplotype") => json!({"section":"diplotype"}),
+        ("pgx", "drug_id") => json!({"section":"recommendations"}),
+        ("variant", "tumor_type") => json!({"build":"GRCh38"}),
+        _ => json!({}),
+    }
+}
+
+fn sample(key: &str, property: &Value, schema: &Value) -> Value {
+    let node = choice_node(property, schema);
+    if let Some(choice) = node
+        .get("enum")
+        .and_then(Value::as_array)
+        .and_then(|v| v.first())
+    {
+        return choice.clone();
+    }
+    match key {
+        "condition_id" => json!("MedGen:C0025202"),
+        "device_id" => json!("P000001"),
+        "drug_application" => json!("NDA012345"),
+        "gene" => json!("BRAF"),
+        "gene_id" => json!(673),
+        "diplotype" => json!("*1/*2"),
+        "drug_id" => json!("RxNorm:1234"),
+        "annotation_id" => json!("PA166104949"),
+        key if key.ends_with("_from") || key.ends_with("_to") => json!("2020-01-01"),
+        "since" | "until" => json!("2020"),
+        _ if node.get("type") == Some(&json!("boolean")) => json!(true),
+        _ => json!("melanoma"),
+    }
 }
 
 fn check() -> Result<(), String> {

@@ -75,18 +75,57 @@ pub(crate) fn validate(text: &str) -> Result<Audit, Box<dyn std::error::Error>> 
     }
     Ok(audit)
 }
-// These two reviewed policy absences are not additions to the frozen migration debt.
-// Their errors cannot grant text rights or discard the paper/refusal.
+// These reviewed absences are not additions to the frozen migration debt. Each one's
+// audit entry states why the dropped error cannot make a partial answer read as complete.
 fn reviewed_absence(entry: &Site) -> bool {
     entry.class == "legitimate_absence"
         && entry.maximum == 1
-        && entry.path == "crates/biomcp-adapters/src/article_rights/policy.rs"
-        && matches!(
-            entry.site.as_str(),
-            "parse_pmid: - > Option < Pmid > { value . parse ( ) . ok ( )"
-                | "read_url: > { biodata : : Text : : new ( value ) . ok ( )"
-        )
+        && REVIEWED_ABSENCES
+            .iter()
+            .any(|(path, site)| *path == entry.path && *site == entry.site)
 }
+const REVIEWED_ABSENCES: &[(&str, &str)] = &[
+    (
+        "crates/biomcp-adapters/src/article_rights/policy.rs",
+        "parse_pmid: - > Option < Pmid > { value . parse ( ) . ok ( )",
+    ),
+    (
+        "crates/biomcp-adapters/src/article_rights/policy.rs",
+        "read_url: > { biodata : : Text : : new ( value ) . ok ( )",
+    ),
+    (
+        "crates/biomcp-query/src/article/semantic_edges.rs",
+        "resolve_input: . is_some ( ) = > return Err ( error ) , Err ( _ ) = > None ,",
+    ),
+    (
+        "crates/biomcp-query/src/pathway/get.rs",
+        "get: out . problems = mapped . problems ; mapped . value } Err ( _ ) = > None ,",
+    ),
+    (
+        "crates/biomcp-query/src/trial/condition.rs",
+        "resolve: ( ) , mapped . value , & mut resolution ) } Err ( _ ) = > None ,",
+    ),
+    (
+        "crates/biomcp-query/src/variant/gwas.rs",
+        "continuation: ( ) ) { Ok ( input ) = > input , Err ( _ ) = > return None",
+    ),
+    (
+        "crates/biomcp-query/src/variant/gwas.rs",
+        "continuation: ( input ) { Ok ( candidate ) = > candidate , Err ( _ ) = > return None",
+    ),
+    (
+        "crates/biomcp-query/src/variant/mod.rs",
+        "join_for_build: , build ) { Ok ( chromosome ) = > chromosome , Err ( _ ) = > return None",
+    ),
+    (
+        "crates/biomcp-adapters/src/oncokb/variant.rs",
+        "release_date: ) = > Some ( date . to_string ( ) ) , Err ( _ ) = > None ,",
+    ),
+    (
+        "crates/biomcp-adapters/src/gnomad/map.rs",
+        "constraint: ) > ( field , None ) ; return None ; } Err ( _ ) = > return None",
+    ),
+];
 fn initial_entry(entry: &Site) -> bool {
     let identity = format!("{}\n{}", entry.path, entry.site);
     let hash: String = Sha256::digest(identity.as_bytes())
@@ -196,9 +235,12 @@ fn fingerprints(root: &Path, tokens: &[String], path: &str) -> BTreeMap<String, 
                         "parse" | "from_str" | "from_slice" | "from_value" | "from_reader"
                     )
                 }));
-        if ok || default || pattern {
+        let dropped = dropped_error(tail);
+        if ok || default || pattern || dropped {
             let end = if pattern {
                 (index + 16).min(tokens.len())
+            } else if dropped {
+                (index + 8).min(tokens.len())
             } else {
                 index + 4
             };
@@ -210,6 +252,67 @@ fn fingerprints(root: &Path, tokens: &[String], path: &str) -> BTreeMap<String, 
         }
     }
     result
+}
+// An `Err` arm whose body is only `None` drops a failure the same way `.ok()` does:
+// any pattern or guard, braced or not, and `return None` or `return Ok(None)`.
+fn dropped_error(tail: &[String]) -> bool {
+    let is = |at: usize, word: &str| tail.get(at).is_some_and(|token| token == word);
+    if !is(0, "Err") || !is(1, "(") {
+        return false;
+    }
+    let Some(mut at) = close(tail, 1) else {
+        return false;
+    };
+    at += 1;
+    if is(at, "if") {
+        let Some(arrow) = (at..tail.len().min(at + 64)).find(|&i| is(i, "=") && is(i + 1, ">"))
+        else {
+            return false;
+        };
+        at = arrow;
+    }
+    if !(is(at, "=") && is(at + 1, ">")) {
+        return false;
+    }
+    at += 2;
+    let braced = is(at, "{");
+    at += usize::from(braced);
+    if is(at, "return") {
+        at += 1;
+        if is(at, "Ok") && is(at + 1, "(") && is(at + 2, "None") && is(at + 3, ")") {
+            at += 4;
+        } else if is(at, "None") {
+            at += 1;
+        } else {
+            return false;
+        }
+    } else if is(at, "None") {
+        at += 1;
+    } else {
+        return false;
+    }
+    if braced {
+        at += usize::from(is(at, ";"));
+        is(at, "}")
+    } else {
+        is(at, ",") || is(at, "}") || is(at, ";")
+    }
+}
+fn close(tail: &[String], open: usize) -> Option<usize> {
+    let mut depth = 0usize;
+    for (index, token) in tail.iter().enumerate().skip(open) {
+        match token.as_str() {
+            "(" => depth += 1,
+            ")" => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(index);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
 }
 pub(super) fn attribute_site(tokens: &[String], index: usize) -> Option<String> {
     if tokens.get(index)? != "#" {

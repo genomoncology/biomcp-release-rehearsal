@@ -50,6 +50,7 @@ struct Fields<R: ResolverChoice = VariantResolver> {
     civic_profile: Option<u64>,
     #[doc = "Tumor\nExplicit tumor context for keyed OncoKB annotation."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Oncokb)))]
     tumor_type: Option<crate::Text>,
     #[doc = "Claims\nNative CIViC claim collection within the selected profile."]
     #[serde(default, skip_serializing_if = "Option::is_none")]

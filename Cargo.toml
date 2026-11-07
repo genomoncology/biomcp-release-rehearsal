@@ -8,6 +8,19 @@ edition = "2024"
 rust-version = "1.95.0"
 license = "MIT"
 
+# Release settings stated outright. Keep opt-level 3, which the wheel check requires, and
+# unwinding, which catch_unwind needs. Thin LTO with one codegen unit was measured: 22% smaller,
+# twice the build time, 1 to 2 ms per call.
+[profile.release]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+lto = false
+panic = "unwind"
+codegen-units = 16
+incremental = false
+
 [profile.dev]
 debug = "line-tables-only"
 

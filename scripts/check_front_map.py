@@ -9,9 +9,15 @@ import subprocess
 import tempfile
 
 
+def require(condition, reason):
+    # A bare assert prints no reason and disappears under python -O.
+    if not condition:
+        raise SystemExit(f"front map check failed: {reason}")
+
+
 def run(binary, args, env):
     result = subprocess.run([str(binary), *args], env=env, capture_output=True, text=True, timeout=30)
-    assert result.returncode == 0, (args, result.stdout, result.stderr)
+    require(result.returncode == 0, f"{args} exited {result.returncode}: {result.stderr or result.stdout}")
     return result.stdout
 
 
@@ -57,39 +63,48 @@ def main():
         shutil.copy2(args.binary, binary)
         help_reply = run(binary, ["help"], env)
         front = json.loads(help_reply)["result"]["commands"][0]["description"]
-        assert run(binary, ["--format", "md", "help"], env).startswith(front + "\n\n")
-        assert len(front) <= int(os.environ.get("BIOMCP_FRONT_MAP_CHARACTER_LIMIT", 4000))
-        assert "--" not in front
+        require(run(binary, ["--format", "md", "help"], env).startswith(front + "\n\n"),
+                "Markdown help does not open with the front map")
+        limit = int(os.environ.get("BIOMCP_FRONT_MAP_CHARACTER_LIMIT", 4000))
+        require(len(front) <= limit, f"front map is {len(front)} characters, over the limit of {limit}")
+        require("--" not in front, "front map names a flag, and it must name commands only")
         rendered = run(binary, ["skill", "render"], env)
-        assert rendered.startswith(front + "\n\n")
+        require(rendered.startswith(front + "\n\n"), "rendered skill does not open with the front map")
         source_help = json.loads(run(binary, ["help", "sources"], env))["result"]["commands"][0]["description"]
-        assert source_help.startswith("Services:") and "Components:" in source_help
+        require(source_help.startswith("Services:") and "Components:" in source_help,
+                "help sources lacks its Services and Components lists")
         trial_help = json.loads(run(binary, ["help", "search", "trial"], env))["result"]["commands"][0]
-        country = next(argument for argument in trial_help["arguments"] if argument["name"] == "--country")
-        assert "Exact ClinicalTrials.gov country label" in country["description"]
+        country = next((argument for argument in trial_help["arguments"] if argument["name"] == "--country"), None)
+        require(country is not None, "search trial help has no --country argument")
+        require("Exact ClinicalTrials.gov country label" in country["description"],
+                "search trial --country help lost its label description")
+        require("biomcp schema " in country["description"], "search trial --country help names no schema to read")
         schema_id = country["description"].rsplit("biomcp schema ", 1)[1].rstrip(".")
         query_schema = json.loads(run(binary, ["schema", schema_id], env))
         complete_choices = query_schema["properties"]["country"]["items"]["enum"]
-        assert f"{len(complete_choices)} allowed values." in country["description"]
-        assert "United States" in complete_choices
+        require(f"{len(complete_choices)} allowed values." in country["description"],
+                f"search trial --country help does not state its {len(complete_choices)} allowed values")
+        require("United States" in complete_choices, "country schema lacks United States")
         install = root / "installed"
         run(binary, ["skill", "install", str(install)], env)
         skill = (install / "skills/biomcp/SKILL.md").read_text()
-        assert skill.split("\n---\n", 1)[1].lstrip().startswith(front + "\n\n")
+        require(skill.split("\n---\n", 1)[1].lstrip().startswith(front + "\n\n"),
+                "installed skill does not open with the front map")
         request = {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
             "protocolVersion": "2025-11-25", "capabilities": {},
             "clientInfo": {"name": "front-map-proof", "version": "1"}}}
         process = subprocess.run([str(binary), "serve"], input=json.dumps(request) + "\n",
                                  env=env, capture_output=True, text=True, timeout=30)
-        assert process.returncode == 0 and not process.stderr, process.stderr
+        require(process.returncode == 0 and not process.stderr, f"serve failed: {process.stderr}")
         reply = json.loads(process.stdout.splitlines()[0])
         guidance = "Listed choices accept any letter case; replies use their listed spelling."
-        assert reply["result"]["instructions"] == front + "\n" + guidance
+        require(reply["result"]["instructions"] == front + "\n" + guidance,
+                "server instructions differ from the front map and its guidance line")
         (args.output / "help.json").write_text(help_reply)
         (args.output / "front-map.txt").write_text(front)
         (args.output / "initialize.json").write_text(process.stdout)
         version = run(binary, ["version", "--verbose"], env)
-        assert not args.revision or args.revision in version, version
+        require(not args.revision or args.revision in version, f"binary is not {args.revision}: {version}")
         (args.output / "version.txt").write_text(version)
         (args.output / "SKILL.md").write_text(skill)
         retained = args.output / "installed/bin/biomcp"
@@ -103,10 +118,11 @@ def main():
                     "io.modelcontextprotocol/clientCapabilities": {}}}}
                 process = subprocess.run([str(executable), "serve", "--offline"], input=json.dumps(frame) + "\n",
                                          env=env, capture_output=True, text=True, timeout=30)
-                assert process.returncode == 0 and not process.stderr, process.stderr
+                require(process.returncode == 0 and not process.stderr, f"{label} serve failed: {process.stderr}")
                 tools = json.loads(process.stdout)["result"]["tools"]
                 (args.output / f"mcp-{label}.json").write_text(process.stdout)
-                tool = next(tool for tool in tools if tool["name"] == "biomcp")
+                tool = next((tool for tool in tools if tool["name"] == "biomcp"), None)
+                require(tool is not None, f"{label} tools/list has no biomcp tool")
                 mcp_measurements[label] = {}
                 for field in ("description", "inputSchema", "outputSchema"):
                     value = tool[field] if field == "description" else json.dumps(tool[field], ensure_ascii=False, separators=(",", ":"))
@@ -122,10 +138,12 @@ def main():
             inventory = {"candidate": sorted(current_paths), "baseline": sorted(baseline_paths),
                          "added_help_topics": sorted(current_paths - baseline_paths),
                          "removed": sorted(baseline_paths - current_paths)}
-            assert not inventory["removed"], inventory
-            assert all(path[0] == "help" for path in inventory["added_help_topics"]), inventory
+            require(not inventory["removed"], f"commands left help: {inventory['removed']}")
+            require(all(path[0] == "help" for path in inventory["added_help_topics"]),
+                    f"new paths outside help: {inventory['added_help_topics']}")
             baseline_version = run(args.baseline, ["version", "--verbose"], env)
-            assert not args.baseline_revision or args.baseline_revision in baseline_version, baseline_version
+            require(not args.baseline_revision or args.baseline_revision in baseline_version,
+                    f"baseline is not {args.baseline_revision}: {baseline_version}")
             (args.output / "baseline-version.txt").write_text(baseline_version)
         else:
             current_paths, baseline_paths = set(), set()
@@ -146,7 +164,8 @@ def main():
                   "inventory": inventory, "measurements": measurements}
         if args.baseline:
             report["baseline_sha256"] = hashlib.sha256(args.baseline.read_bytes()).hexdigest()
-            assert not args.baseline_sha256 or args.baseline_sha256 == report["baseline_sha256"]
+            require(not args.baseline_sha256 or args.baseline_sha256 == report["baseline_sha256"],
+                    f"baseline hash is {report['baseline_sha256']}, not {args.baseline_sha256}")
             for fmt in ("json", "md"):
                 rows = [row for row in measurements if row["format"] == fmt]
                 before = max(row["baseline_characters"] for row in rows if "baseline_characters" in row)
@@ -155,8 +174,8 @@ def main():
         (args.output / "proof.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps({key: value for key, value in report.items() if key not in {"measurements", "inventory"}}))
         if args.baseline:
-            assert report["json"]["reduction"] >= 0.40, report["json"]
-            assert report["md"]["reduction"] >= 0.40, report["md"]
+            for fmt in ("json", "md"):
+                require(report[fmt]["reduction"] >= 0.40, f"{fmt} help shrank less than 40%: {report[fmt]}")
 
 
 if __name__ == "__main__":

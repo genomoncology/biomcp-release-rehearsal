@@ -2647,6 +2647,70 @@
       "class": "legitimate_absence",
       "owner": "article_rights",
       "reason": "A rejected reading URL constructed from checked article identity leaves the existing text refusal intact. This optional destination cannot grant any text rights or discard the paper; the recorded rights cases verify refusal identities and reading links."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/gnomad/map.rs",
+      "site": "constraint: ) > ( field , None ) ; return None ; } Err ( _ ) = > return None",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "gnomad",
+      "reason": "No transcript and no constraint block means gnomAD published no constraint for this gene; the arm above refuses when a constraint is present."
+    },
+    {
+      "path": "crates/biomcp-query/src/article/semantic_edges.rs",
+      "site": "resolve_input: . is_some ( ) = > return Err ( error ) , Err ( _ ) = > None ,",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article",
+      "reason": "The pubmed source row already carries this failure as its status, and failure() then records the unresolved input in the reply."
+    },
+    {
+      "path": "crates/biomcp-query/src/pathway/get.rs",
+      "site": "get: out . problems = mapped . problems ; mapped . value } Err ( _ ) = > None ,",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "pathway",
+      "reason": "The error stays in the error variable and reaches the Reactome source row with status::source, so the reply shows the failed source."
+    },
+    {
+      "path": "crates/biomcp-query/src/trial/condition.rs",
+      "site": "resolve: ( ) , mapped . value , & mut resolution ) } Err ( _ ) = > None ,",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "The error is kept above and reaches the MyDisease source row and out.local, so the reply shows the failed resolution."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "continuation: ( ) ) { Ok ( input ) = > input , Err ( _ ) = > return None",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The rsID and the query were both checked before this rebuild, so it cannot fail on real input, and the page still reports its total beside its rows."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/gwas.rs",
+      "site": "continuation: ( input ) { Ok ( candidate ) = > candidate , Err ( _ ) = > return None",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "The rsID and the query were both checked before this rebuild, so it cannot fail on real input, and the page still reports its total beside its rows."
+    },
+    {
+      "path": "crates/biomcp-query/src/variant/mod.rs",
+      "site": "join_for_build: , build ) { Ok ( chromosome ) = > chromosome , Err ( _ ) = > return None",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "variant",
+      "reason": "An accession outside the primary chromosomes has no MyVariant join key, so the candidate stays with its own representations and nothing failed."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/oncokb/variant.rs",
+      "site": "release_date: ) = > Some ( date . to_string ( ) ) , Err ( _ ) = > None ,",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "oncokb",
+      "reason": "This date only feeds the source-age field; mapping keeps lastUpdate unchanged in the reply, so an unreadable date loses no source value."
     }
   ],
   "fields": [

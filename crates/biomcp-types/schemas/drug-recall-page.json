@@ -173,7 +173,8 @@
               "type": "null"
             }
           ],
-          "description": "Native FDA classification; drug recalls only."
+          "description": "Native FDA classification; drug recalls only.",
+          "x-required-component": "fda-drug-recall"
         },
         "firm": {
           "anyOf": [
@@ -184,11 +185,13 @@
               "type": "null"
             }
           ],
-          "description": "Literal published recalling firm phrase; drug recalls only."
+          "description": "Literal published recalling firm phrase; drug recalls only.",
+          "x-required-component": "fda-drug-recall"
         },
         "indication": {
           "$ref": "#/$defs/Reply_Text",
-          "description": "Literal label indication; openFDA labels only.\nSearch the native Indications and Usage field without disease synonym expansion.\nAn optional name query further narrows the same source search."
+          "description": "Literal label indication; openFDA labels only.\nSearch the native Indications and Usage field without disease synonym expansion.\nAn optional name query further narrows the same source search.",
+          "x-required-component": "openfda-label"
         },
         "initiated_from": {
           "anyOf": [
@@ -199,7 +202,8 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only."
+          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only.",
+          "x-required-component": "fda-drug-recall"
         },
         "initiated_to": {
           "anyOf": [
@@ -210,7 +214,8 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only."
+          "description": "Inclusive initiation day, YYYY-MM-DD; drug recalls only.",
+          "x-required-component": "fda-drug-recall"
         },
         "limit": {
           "default": 10,
@@ -222,7 +227,8 @@
         },
         "name_selector": {
           "$ref": "#/$defs/Reply_DrugNameSelector",
-          "description": "Explicit ChEMBL native name selector; omitted means preferred name."
+          "description": "Explicit ChEMBL native name selector; omitted means preferred name.",
+          "x-required-component": "chembl"
         },
         "offset": {
           "default": 0,
@@ -240,7 +246,8 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only."
+          "description": "Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.",
+          "x-required-component": "who-pq"
         },
         "prequalified_to": {
           "anyOf": [
@@ -251,7 +258,8 @@
               "type": "null"
             }
           ],
-          "description": "Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only."
+          "description": "Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.",
+          "x-required-component": "who-pq"
         },
         "query": {
           "$ref": "#/$defs/Reply_Text",
@@ -267,7 +275,8 @@
               "type": "null"
             }
           ],
-          "description": "Phrase in the published recall reason; drug recalls only."
+          "description": "Phrase in the published recall reason; drug recalls only.",
+          "x-required-component": "fda-drug-recall"
         },
         "source": {
           "$ref": "#/$defs/Reply_DrugSource",
@@ -283,7 +292,8 @@
               "type": "null"
             }
           ],
-          "description": "Literal native recall status; drug recalls only."
+          "description": "Literal native recall status; drug recalls only.",
+          "x-required-component": "fda-drug-recall"
         }
       },
       "type": "object"

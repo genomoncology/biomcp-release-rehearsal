@@ -11,7 +11,29 @@ import tempfile
 import time
 
 from typed_harness_capture import exchange
-from typed_harness_smoke import check_sources, cleanup_remote_scratch, copy_script, interrupted, own_process, remote_scratch, ssh
+from typed_harness_smoke import PI_CODE, check_sources, cleanup_remote_scratch, copy_script, interrupted, own_process, remote_scratch, ssh
+
+
+def pi_prompt_contract():
+    # Execute only the prompt's JavaScript against a synthetic, exact-name API.
+    # Neither Pi, BioMCP, authentication nor a provider is loaded.
+    code = """const calls = [], output = [];
+const tools = {mcp__typed_smoke__get_trial: async (args) => {
+  calls.push(args);
+  return calls.length === 1
+    ? {structuredContent: {status: 'complete', result: {items: [{card: {sponsor: 'synthetic sponsor'}}]}}}
+    : {isError: true, structuredContent: {status: 'usage', error: {code: 'usage.arguments', valid_values: ['synthetic canonical identifier']}}};
+}};
+const text = (value) => output.push(value);
+""" + PI_CODE + "\nconsole.log(JSON.stringify({calls, output}));"
+    result = subprocess.run(["node", "--input-type=module", "-e", code], check=True, capture_output=True, text=True, timeout=5)
+    observed = json.loads(result.stdout)
+    assert observed["calls"] == [{"input": ["NCT02563002"]}, {"input": ["lung cancer"]}]
+    first, second = observed["output"]
+    assert first["structuredContent"]["result"]["items"][0]["card"]["sponsor"] == "synthetic sponsor"
+    assert second["isError"] is True
+    assert second["structuredContent"]["error"] == {"code": "usage.arguments", "valid_values": ["synthetic canonical identifier"]}
+    print("Pi prompt exact-name API, sequential two-call inputs and complete success/error forwarding pass; synthetic only")
 
 
 def server(both_errors=False):
@@ -99,6 +121,7 @@ def run_bridge(root, inputs, both_errors=False):
 
 def check():
     check_sources()
+    pi_prompt_contract()
     with tempfile.TemporaryDirectory(prefix="typed-harness-preflight-") as temporary:
         root = Path(temporary)
         dead = subprocess.Popen([sys.executable, "-c", "raise SystemExit(7)"])

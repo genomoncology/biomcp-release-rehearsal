@@ -27,6 +27,21 @@ with JSON paths and exact values. Use only the actual replies; if data is hidden
 or missing, report that limitation. Stop after reporting these two replies.
 """
 
+# Pi's default codemode uses the registered identifier, not namespace.tool.
+PI_CODE = """const first = await tools.mcp__typed_smoke__get_trial({input: ["NCT02563002"]});
+text(first);
+const second = await tools.mcp__typed_smoke__get_trial({input: ["lung cancer"]});
+text(second);"""
+PI_PROMPT = PROMPT + """
+Pi exposes this MCP server through codemode. Its exact registered tool identifier
+is mcp__typed_smoke__get_trial (double underscores, never a dot). In one codemode
+invocation, run this sequential script and read both actual replies:
+""" + PI_CODE + """
+Then report the requested success and error quotes. Discovery is unnecessary.
+If you use describeNamespace/searchTools, use returned tool names unchanged;
+do not truncate namespace JSON or its tools array. Do not guess dotted names.
+"""
+
 
 def ssh(host, command, **kwargs):
     return subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", host, shlex.join(command)], check=True, **kwargs)
@@ -127,7 +142,7 @@ def client(args):
         directory = scratch / ".pi"
         directory.mkdir()
         (directory / "mcp.json").write_text(json.dumps(config))
-        command = [args.pi_node, args.pi_bundle, "--approve", "--offline", "--mode", "json", "--print", "--no-session", "--no-extensions", "--extension", "builtin:mcp", "--extension", "builtin:codemode", "--extension", str(scratch / "typed_harness_turn_limit.ts"), "--no-builtin-tools", "--no-skills", "--no-prompt-templates", "--no-context-files", PROMPT]
+        command = [args.pi_node, args.pi_bundle, "--approve", "--offline", "--mode", "json", "--print", "--no-session", "--no-extensions", "--extension", "builtin:mcp", "--extension", "builtin:codemode", "--extension", str(scratch / "typed_harness_turn_limit.ts"), "--no-builtin-tools", "--no-skills", "--no-prompt-templates", "--no-context-files", PI_PROMPT]
     else:
         config_path = scratch / "mcp.json"
         config_path.write_text(json.dumps(config))

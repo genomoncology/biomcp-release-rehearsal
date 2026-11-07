@@ -165,13 +165,24 @@ pub(in crate::mcp) fn argument_allowed(
     name: &str,
     excluded: &BTreeSet<Source>,
 ) -> bool {
-    schema
+    let sources = argument_sources(schema, name);
+    sources.is_empty() || sources.iter().any(|source| !excluded.contains(source))
+}
+
+/// One source or a list; a list field stays offered while any listed source is on.
+pub(in crate::mcp) fn argument_sources(schema: &Value, name: &str) -> Vec<Source> {
+    let fact = schema
         .get("properties")
         .and_then(|fields| fields.get(name.trim_start_matches('-').replace('-', "_")))
-        .and_then(|property| property.get("x-required-component"))
-        .and_then(Value::as_str)
-        .and_then(|word| word.parse::<Source>().ok())
-        .is_none_or(|source| !excluded.contains(&source))
+        .and_then(|property| property.get("x-required-component"));
+    fact.and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .or_else(|| fact.map(std::slice::from_ref))
+        .unwrap_or_default()
+        .iter()
+        .filter_map(Value::as_str)
+        .filter_map(|word| word.parse().ok())
+        .collect()
 }
 
 pub(in crate::mcp) fn request_allowed(

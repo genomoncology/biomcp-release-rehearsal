@@ -45,31 +45,40 @@ struct SearchFields {
         skip_serializing_if = "Option::is_none"
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::OpenfdaLabel)))]
     indication: Option<Text>,
     /// Literal published recalling firm phrase; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     firm: Option<Text>,
     /// Native FDA classification; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     classification: Option<super::DrugRecallClassification>,
     /// Literal native recall status; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     status: Option<Text>,
     /// Phrase in the published recall reason; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     reason: Option<Text>,
     /// Inclusive initiation day, YYYY-MM-DD; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     initiated_from: Option<biodata::PartialDate>,
     /// Inclusive initiation day, YYYY-MM-DD; drug recalls only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     initiated_to: Option<biodata::PartialDate>,
 
     /// Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::WhoPq)))]
     prequalified_from: Option<biodata::PartialDate>,
     /// Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::WhoPq)))]
     prequalified_to: Option<biodata::PartialDate>,
 
     /// Selected source.
@@ -84,6 +93,7 @@ struct SearchFields {
         skip_serializing_if = "Option::is_none"
     )]
     #[cfg_attr(feature = "schema", schemars(with = "super::DrugNameSelector"))]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Chembl)))]
     name_selector: Option<super::DrugNameSelector>,
     /// Native candidate rows per page.
     #[serde(default = "default_limit")]

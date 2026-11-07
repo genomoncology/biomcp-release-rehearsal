@@ -295,7 +295,8 @@
               "type": "null"
             }
           ],
-          "description": "Exact table-0 cell.\nExact table-0 biomarker cell; unsupported in the group table."
+          "description": "Exact table-0 cell.\nExact table-0 biomarker cell; unsupported in the group table.",
+          "x-required-component": "fda-cdx"
         },
         "bundle_revision": {
           "anyOf": [
@@ -317,7 +318,8 @@
               "type": "null"
             }
           ],
-          "description": "Exact MedGen:CUI.\nExact MedGen:CUI identifier only."
+          "description": "Exact MedGen:CUI.\nExact MedGen:CUI identifier only.",
+          "x-required-component": "gtr"
         },
         "decision_from": {
           "anyOf": [
@@ -328,7 +330,11 @@
               "type": "null"
             }
           ],
-          "description": "First date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
+          "description": "First date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.",
+          "x-required-component": [
+            "fda-pma",
+            "fda-510k"
+          ]
         },
         "decision_to": {
           "anyOf": [
@@ -339,7 +345,11 @@
               "type": "null"
             }
           ],
-          "description": "Last date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."
+          "description": "Last date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only.",
+          "x-required-component": [
+            "fda-pma",
+            "fda-510k"
+          ]
         },
         "device_id": {
           "anyOf": [
@@ -350,7 +360,8 @@
               "type": "null"
             }
           ],
-          "description": "PMA or K identifier.\nExact PMA application, application/supplement or native K identity."
+          "description": "PMA or K identifier.\nExact PMA application, application/supplement or native K identity.",
+          "x-required-component": "fda-cdx"
         },
         "drug_application": {
           "anyOf": [
@@ -361,7 +372,8 @@
               "type": "null"
             }
           ],
-          "description": "NDA/BLA application.\nCell-owned typed NDA/BLA application."
+          "description": "NDA/BLA application.\nCell-owned typed NDA/BLA application.",
+          "x-required-component": "fda-cdx"
         },
         "gene": {
           "anyOf": [
@@ -372,7 +384,8 @@
               "type": "null"
             }
           ],
-          "description": "Exact gene symbol.\nExact source gene_symbol field, without alias expansion."
+          "description": "Exact gene symbol.\nExact source gene_symbol field, without alias expansion.",
+          "x-required-component": "gtr"
         },
         "gene_id": {
           "anyOf": [
@@ -383,7 +396,8 @@
               "type": "null"
             }
           ],
-          "description": "Exact NCBI GeneID.\nExact source GeneID, exclusive with gene symbol."
+          "description": "Exact NCBI GeneID.\nExact source GeneID, exclusive with gene symbol.",
+          "x-required-component": "gtr"
         },
         "initiated_from": {
           "anyOf": [
@@ -394,7 +408,8 @@
               "type": "null"
             }
           ],
-          "description": "First date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."
+          "description": "First date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only.",
+          "x-required-component": "fda-device-recall"
         },
         "initiated_to": {
           "anyOf": [
@@ -405,7 +420,8 @@
               "type": "null"
             }
           ],
-          "description": "Last date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."
+          "description": "Last date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only.",
+          "x-required-component": "fda-device-recall"
         },
         "limit": {
           "default": 5,
@@ -424,7 +440,13 @@
               "type": "null"
             }
           ],
-          "description": "Manufacturer phrase.\nWHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."
+          "description": "Manufacturer phrase.\nWHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase.",
+          "x-required-component": [
+            "who-ivd",
+            "fda-pma",
+            "fda-510k",
+            "fda-device-recall"
+          ]
         },
         "marker": {
           "anyOf": [
@@ -435,7 +457,8 @@
               "type": "null"
             }
           ],
-          "description": "WHO marker phrase.\nLiteral whole-word phrase in WHO's Pathogen/Disease/Marker cell."
+          "description": "WHO marker phrase.\nLiteral whole-word phrase in WHO's Pathogen/Disease/Marker cell.",
+          "x-required-component": "who-ivd"
         },
         "name": {
           "anyOf": [
@@ -446,7 +469,11 @@
               "type": "null"
             }
           ],
-          "description": "Native device name.\nNative trade_name (PMA) or device_name (510(k)) phrase."
+          "description": "Native device name.\nNative trade_name (PMA) or device_name (510(k)) phrase.",
+          "x-required-component": [
+            "fda-pma",
+            "fda-510k"
+          ]
         },
         "offset": {
           "default": 0,
@@ -464,7 +491,12 @@
               "type": "null"
             }
           ],
-          "description": "FDA product code.\nExact native FDA product code; PMA, 510(k) and device recalls only."
+          "description": "FDA product code.\nExact native FDA product code; PMA, 510(k) and device recalls only.",
+          "x-required-component": [
+            "fda-pma",
+            "fda-510k",
+            "fda-device-recall"
+          ]
         },
         "source": {
           "$ref": "#/$defs/Reply_DiagnosticSearchSource",
@@ -479,7 +511,8 @@
               "type": "null"
             }
           ],
-          "description": "Native test_type.\nExact native test_type value."
+          "description": "Native test_type.\nExact native test_type value.",
+          "x-required-component": "gtr"
         }
       },
       "required": [

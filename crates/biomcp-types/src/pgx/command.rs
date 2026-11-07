@@ -14,7 +14,14 @@ impl schemars::JsonSchema for PgxGetCommand {
         if let Some(properties) = schema.get_mut("properties").and_then(|v| v.as_object_mut())
             && let Some(id) = annotation.pointer("/properties/id")
         {
-            properties.insert("annotation_id".into(), id.clone());
+            let mut id = id.clone();
+            if let Some(fields) = id.as_object_mut() {
+                fields.insert(
+                    "x-required-component".into(),
+                    crate::Source::ClinPgx.to_string().into(),
+                );
+            }
+            properties.insert("annotation_id".into(), id);
         }
         if let Some(required) = schema.get_mut("required").and_then(|v| v.as_array_mut()) {
             required.retain(|value| value.as_str() != Some("gene"));

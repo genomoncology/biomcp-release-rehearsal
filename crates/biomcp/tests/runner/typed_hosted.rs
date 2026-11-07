@@ -51,7 +51,10 @@ fn hosted(budgets: &mut Vec<String>) -> Result<(), String> {
     let hosted = catalog(&server, None, budgets)?;
     capture("restricted", &hosted, budgets)?;
     assert_hosted(&hosted)?;
+    source_fields(&hosted)?;
+    source_help(&server)?;
     refused_source(&server)?;
+    same_refusal(&server)?;
     for usage in ["commercial", "academic"] {
         let reply = catalog(&server, Some(usage), budgets)?;
         capture(usage, &reply, budgets)?;
@@ -83,6 +86,116 @@ fn hosted(budgets: &mut Vec<String>) -> Result<(), String> {
         != Some(&json!("usage.mcp_unavailable"))
     {
         return Err(format!("omitted tool escaped execution policy: {reply}"));
+    }
+    Ok(())
+}
+
+// One case per owner: a field goes only when every source that answers it is off.
+fn source_fields(hosted: &Value) -> Result<(), String> {
+    let owners: [(&str, &[&str], &[&str]); 4] = [
+        (
+            "search_drug",
+            &["prequalified_from", "prequalified_to"],
+            &["query", "indication", "firm"],
+        ),
+        (
+            "search_diagnostic",
+            &["marker"],
+            &["manufacturer", "name", "gene", "product_code"],
+        ),
+        ("get_variant", &["tumor_type"], &["input", "build"]),
+        (
+            "search_article",
+            &[],
+            &["since", "until", "open_access", "author"],
+        ),
+    ];
+    let tools = hosted
+        .pointer("/result/tools")
+        .and_then(Value::as_array)
+        .ok_or("hosted tools")?;
+    for (name, hidden, kept) in owners {
+        let fields = tools
+            .iter()
+            .find(|tool| tool.get("name") == Some(&json!(name)))
+            .and_then(|tool| tool.pointer("/inputSchema/properties"))
+            .and_then(Value::as_object)
+            .ok_or_else(|| format!("{name} fields"))?;
+        if let Some(field) = hidden.iter().find(|field| fields.contains_key(**field)) {
+            return Err(format!("{name} offers {field}, whose sources are all off"));
+        }
+        if let Some(field) = kept.iter().find(|field| !fields.contains_key(**field)) {
+            return Err(format!("{name} hid {field}, which a served source answers"));
+        }
+    }
+    Ok(())
+}
+
+fn source_help(server: &Server) -> Result<(), String> {
+    let arguments = |command: &str| -> Result<Vec<Value>, String> {
+        let call = request(
+            json!(5),
+            "tools/call",
+            json!({"name":"biomcp_help","arguments":{"command":command}}),
+        );
+        let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
+        reply
+            .pointer("/result/structuredContent/result/commands/0/arguments")
+            .and_then(Value::as_array)
+            .cloned()
+            .ok_or_else(|| format!("{command} help: {reply}"))
+    };
+    let named = |rows: &[Value], name: &str| {
+        rows.iter()
+            .find(|row| row.get("name") == Some(&json!(name)))
+            .cloned()
+    };
+    let pgx = arguments("get pgx")?;
+    for field in ["--kind", "--snapshot", "--annotation-id"] {
+        if named(&pgx, field).is_some() {
+            return Err(format!("get pgx help offers {field}"));
+        }
+    }
+    let drug_id = named(&pgx, "--drug-id").ok_or("get pgx help hid --drug-id")?;
+    if !drug_id
+        .get("description")
+        .and_then(Value::as_str)
+        .is_some_and(|text| text.ends_with("Answered by: cpic."))
+    {
+        return Err(format!("help does not say what answers: {drug_id}"));
+    }
+    let diagnostic = arguments("search diagnostic")?;
+    if named(&diagnostic, "--marker").is_some() {
+        return Err("search diagnostic help offers --marker".into());
+    }
+    for field in ["--manufacturer", "--product-code"] {
+        let argument = named(&diagnostic, field).ok_or_else(|| format!("help hid {field}"))?;
+        if !argument
+            .get("description")
+            .and_then(Value::as_str)
+            .is_some_and(|text| {
+                text.ends_with("Answered by: fda-pma, fda-510k, fda-device-recall.")
+            })
+        {
+            return Err(format!("help names the wrong sources: {argument}"));
+        }
+    }
+    Ok(())
+}
+
+// A hidden field stays accepted input, so a caller who sends it meets today's refusal.
+fn same_refusal(server: &Server) -> Result<(), String> {
+    let call = request(
+        json!(6),
+        "tools/call",
+        json!({"name":"search_diagnostic","arguments":{"source":"gtr","marker":"HIV"}}),
+    );
+    let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
+    let error = reply.pointer("/result/structuredContent/error");
+    if error.and_then(|error| error.get("code")) != Some(&json!("usage.arguments"))
+        || error.and_then(|error| error.get("option")) != Some(&json!("--marker"))
+    {
+        return Err(format!("hidden field changed its refusal: {reply}"));
     }
     Ok(())
 }

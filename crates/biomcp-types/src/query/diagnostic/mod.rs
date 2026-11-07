@@ -40,6 +40,21 @@ biodata::wire_enum! {
 fn limit() -> u32 {
     5
 }
+// Sources that answer this field; it stays offered while any of them is on.
+#[cfg(feature = "schema")]
+const MANUFACTURER_SOURCES: [crate::Source; 4] = [
+    crate::Source::WhoIvd,
+    crate::Source::FdaPma,
+    crate::Source::Fda510k,
+    crate::Source::FdaDeviceRecall,
+];
+// Sources that answer this field; it stays offered while any of them is on.
+#[cfg(feature = "schema")]
+const PRODUCT_CODE_SOURCES: [crate::Source; 3] = [
+    crate::Source::FdaPma,
+    crate::Source::Fda510k,
+    crate::Source::FdaDeviceRecall,
+];
 /// Search five source records by default. FDA device recalls cover every medical device; totals count recall records, without harm inference.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "SearchFields")]
@@ -54,49 +69,64 @@ struct SearchFields {
     source: DiagnosticSearchSource,
     #[doc = "Exact NCBI GeneID.\nExact source GeneID, exclusive with gene symbol."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Gtr)))]
     gene_id: Option<NcbiGeneId>,
     #[doc = "Exact gene symbol.\nExact source gene_symbol field, without alias expansion."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Gtr)))]
     gene: Option<GeneSymbol>,
     #[doc = "Exact MedGen:CUI.\nExact MedGen:CUI identifier only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(regex(pattern = "^MedGen:C[0-9]+$")))]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Gtr)))]
     condition_id: Option<Text>,
     #[doc = "Native test_type.\nExact native test_type value."]
     #[serde(default, rename = "type", skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Gtr)))]
     test_type: Option<biodata::GtrTestType>,
     #[doc = "PMA or K identifier.\nExact PMA application, application/supplement or native K identity."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaCdx)))]
     device_id: Option<DiagnosticDeviceId>,
     #[doc = "NDA/BLA application.\nCell-owned typed NDA/BLA application."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaCdx)))]
     drug_application: Option<FdaDrugApplication>,
     #[doc = "Exact table-0 cell.\nExact table-0 biomarker cell; unsupported in the group table."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaCdx)))]
     biomarker: Option<Text>,
     #[doc = "WHO marker phrase.\nLiteral whole-word phrase in WHO's Pathogen/Disease/Marker cell."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::WhoIvd)))]
     marker: Option<Text>,
     #[doc = "Manufacturer phrase.\nWHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = MANUFACTURER_SOURCES)))]
     manufacturer: Option<Text>,
     #[doc = "FDA product code.\nExact native FDA product code; PMA, 510(k) and device recalls only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = PRODUCT_CODE_SOURCES)))]
     product_code: Option<Text>,
     #[doc = "First date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDeviceRecall)))]
     initiated_from: Option<PartialDate>,
     #[doc = "Last date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDeviceRecall)))]
     initiated_to: Option<PartialDate>,
     #[doc = "Native device name.\nNative trade_name (PMA) or device_name (510(k)) phrase."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = [crate::Source::FdaPma, crate::Source::Fda510k])))]
     name: Option<Text>,
     #[doc = "First date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = [crate::Source::FdaPma, crate::Source::Fda510k])))]
     decision_from: Option<PartialDate>,
     #[doc = "Last date, YYYY-MM-DD.\nInclusive native decision date, YYYY-MM-DD; PMA and 510(k) only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = [crate::Source::FdaPma, crate::Source::Fda510k])))]
     decision_to: Option<PartialDate>,
     /// Five results by default; at most fifty source rows or product headers.
     #[serde(default = "limit")]
@@ -260,7 +290,7 @@ impl DiagnosticSearch {
     pub fn manufacturer(&self) -> Option<&Text> {
         self.0.manufacturer.as_ref()
     }
-    /// Exact native recall device category code.
+    /// Exact native FDA product code.
     pub fn product_code(&self) -> Option<&Text> {
         self.0.product_code.as_ref()
     }

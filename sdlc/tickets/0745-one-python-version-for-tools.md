@@ -30,7 +30,7 @@ Release tooling and development use one Python version, 3.13, and `scripts/check
 
 ## Defers
 
-- Defers: nothing.
+- Defers: bare `python3` in the Makefile stays for 1.0, because the ticket gate pins Python 3.13 first on PATH.
 
 ## Depends on
 

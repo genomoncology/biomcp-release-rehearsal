@@ -111,12 +111,15 @@ struct GetFields {
     section: Option<PgxSection>,
     /// Unchanged declared expression required for the diplotype section only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Cpic)))]
     diplotype: Option<PgxDiplotypeExpression>,
     /// Exact published CPIC drug key; recommendations only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::Cpic)))]
     drug_id: Option<Curie>,
     /// One ClinPGx collection; clinical is the default only on annotations.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::ClinPgx)))]
     kind: Option<PgxAnnotationKind>,
     /// Rows per page: three clinical, five elsewhere.
     #[serde(
@@ -131,6 +134,7 @@ struct GetFields {
     section_offset: u32,
     /// Retained collection for local continuation.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::ClinPgx)))]
     snapshot: Option<Text>,
 }
 crate::query::validation::checked_query!(PgxGet, GetFields);

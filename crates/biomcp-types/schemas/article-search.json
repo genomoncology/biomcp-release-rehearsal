@@ -162,7 +162,12 @@
     },
     "open_access": {
       "description": "Native open access.\nPubMed, Europe PMC and Semantic Scholar only: require native open access; Semantic Scholar means a public PDF.",
-      "type": "boolean"
+      "type": "boolean",
+      "x-required-component": [
+        "pubmed",
+        "europepmc",
+        "semantic-scholar"
+      ]
     },
     "pool": {
       "$ref": "#/$defs/Text",
@@ -178,7 +183,12 @@
     },
     "since": {
       "$ref": "#/$defs/PartialDate",
-      "description": "First publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive lower publication-date bound; PubMed matches electronic or print date."
+      "description": "First publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive lower publication-date bound; PubMed matches electronic or print date.",
+      "x-required-component": [
+        "pubmed",
+        "europepmc",
+        "semantic-scholar"
+      ]
     },
     "sort": {
       "$ref": "#/$defs/ArticleSort",
@@ -208,7 +218,12 @@
     },
     "until": {
       "$ref": "#/$defs/PartialDate",
-      "description": "Last publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive upper publication-date bound; PubMed matches electronic or print date."
+      "description": "Last publication date.\nPubMed, Europe PMC and Semantic Scholar only: inclusive upper publication-date bound; PubMed matches electronic or print date.",
+      "x-required-component": [
+        "pubmed",
+        "europepmc",
+        "semantic-scholar"
+      ]
     },
     "variant": {
       "$ref": "#/$defs/Text",

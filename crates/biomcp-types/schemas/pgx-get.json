@@ -79,7 +79,8 @@
           "type": "null"
         }
       ],
-      "description": "Unchanged declared expression required for the diplotype section only."
+      "description": "Unchanged declared expression required for the diplotype section only.",
+      "x-required-component": "cpic"
     },
     "drug_id": {
       "anyOf": [
@@ -90,7 +91,8 @@
           "type": "null"
         }
       ],
-      "description": "Exact published CPIC drug key; recommendations only."
+      "description": "Exact published CPIC drug key; recommendations only.",
+      "x-required-component": "cpic"
     },
     "gene": {
       "$ref": "#/$defs/GeneSymbol",
@@ -105,7 +107,8 @@
           "type": "null"
         }
       ],
-      "description": "One ClinPGx collection; clinical is the default only on annotations."
+      "description": "One ClinPGx collection; clinical is the default only on annotations.",
+      "x-required-component": "clinpgx"
     },
     "section": {
       "anyOf": [
@@ -142,7 +145,8 @@
           "type": "null"
         }
       ],
-      "description": "Retained collection for local continuation."
+      "description": "Retained collection for local continuation.",
+      "x-required-component": "clinpgx"
     },
     "source": {
       "$ref": "#/$defs/PgxSource",

@@ -10,10 +10,12 @@ pub(super) fn validate(object: &serde_json::Map<String, Value>) -> Check<()> {
             .as_str()
             .is_some_and(|word| word.parse::<biomcp_types::Source>().is_ok())
     };
-    if object
-        .get("x-required-component")
-        .is_some_and(|value| !source(value))
-    {
+    if object.get("x-required-component").is_some_and(|value| {
+        !source(value)
+            && !value
+                .as_array()
+                .is_some_and(|words| !words.is_empty() && words.iter().all(source))
+    }) {
         return Err("invalid required-component annotation".into());
     }
     if object.get("x-required-components").is_some_and(|value| {
@@ -127,6 +129,7 @@ pub(super) fn required_component_annotations_are_metadata_with_checked_sources()
         "required":["name"], "additionalProperties":false});
     for annotation in [
         json!({"x-required-component":"meddra"}),
+        json!({"x-required-component":["fda-pma","fda-510k"]}),
         json!({"x-required-components":{"maude":"gmdn"}}),
     ] {
         let new = annotated(&old, &annotation)?;
@@ -138,6 +141,8 @@ pub(super) fn required_component_annotations_are_metadata_with_checked_sources()
     for annotation in [
         json!({"x-required-component":null}),
         json!({"x-required-component":"unknown-component"}),
+        json!({"x-required-component":[]}),
+        json!({"x-required-component":["fda-pma","unknown-component"]}),
         json!({"x-required-components":[]}),
         json!({"x-required-components":{}}),
         json!({"x-required-components":{"maude":false}}),
