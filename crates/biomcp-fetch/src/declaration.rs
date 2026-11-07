@@ -32,6 +32,7 @@ impl SourceSpec {
             method: Method::Get,
             idempotent: true,
             identity_encoding: false,
+            double_gzip: false,
             octet_stream: None,
             publisher: false,
             byte_limit: None,
@@ -90,6 +91,7 @@ pub struct Endpoint {
     pub(crate) method: Method,
     pub(crate) idempotent: bool,
     pub(crate) identity_encoding: bool,
+    pub(crate) double_gzip: bool,
     pub(crate) octet_stream: Option<&'static str>,
     pub(crate) publisher: bool,
     pub(crate) byte_limit: Option<u64>,
@@ -238,6 +240,11 @@ impl Endpoint {
     /// Request an uncompressed representation from a source with broken compression.
     pub const fn identity_encoding(mut self) -> Self {
         self.identity_encoding = true;
+        self
+    }
+    /// Take a compressed reply from a source that gzips its body twice; a plain body passes.
+    pub const fn double_gzip(mut self) -> Self {
+        self.double_gzip = true;
         self
     }
     /// Attempt this endpoint once, without retries for status or transport failures.

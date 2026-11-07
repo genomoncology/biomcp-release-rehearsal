@@ -45,4 +45,27 @@ impl Leg<'_> {
             .downloaded_bytes += body.len() as u64;
         Ok(body)
     }
+    /// Open the second gzip layer under the same bound as the first.
+    pub(crate) fn inner_gzip(
+        &self,
+        body: Vec<u8>,
+        status: u16,
+        limit: u64,
+        overflow_reason: Reason,
+    ) -> Result<Vec<u8>, Failure> {
+        if !body.starts_with(&[0x1f, 0x8b]) {
+            return Ok(body);
+        }
+        let mut plain = Vec::new();
+        flate2::read::MultiGzDecoder::new(body.as_slice())
+            .take(limit + 1)
+            .read_to_end(&mut plain)
+            .map_err(|_| Failure::Local(self.failure(Reason::BadReply, Some(status)).into()))?;
+        if plain.len() as u64 > limit {
+            return Err(Failure::Local(
+                self.failure(overflow_reason, Some(status)).into(),
+            ));
+        }
+        Ok(plain)
+    }
 }

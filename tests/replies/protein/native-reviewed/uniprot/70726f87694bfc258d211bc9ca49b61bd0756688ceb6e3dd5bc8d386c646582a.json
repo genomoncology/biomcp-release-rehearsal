@@ -1,0 +1,105 @@
+{
+  "method": "GET",
+  "source": "uniprot",
+  "url": "https://rest.uniprot.org/uniprotkb/search?query=%28gene_exact%3AEGFR%29%20AND%20%28organism_id%3A9606%29%20AND%20%28reviewed%3Atrue%29&format=json&size=5&fields=accession%2Cid%2Cprotein_name%2Cgene_names%2Corganism_id%2Creviewed%2Clength",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "results": [
+            {
+              "entryType": "UniProtKB reviewed (Swiss-Prot)",
+              "primaryAccession": "P00533",
+              "uniProtkbId": "EGFR_HUMAN",
+              "organism": {
+                "taxonId": 9606
+              },
+              "proteinDescription": {
+                "recommendedName": {
+                  "fullName": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000305"
+                      }
+                    ],
+                    "value": "Epidermal growth factor receptor"
+                  },
+                  "ecNumbers": [
+                    {
+                      "evidences": [
+                        {
+                          "evidenceCode": "ECO:0000269",
+                          "source": "PubMed",
+                          "id": "32926474"
+                        }
+                      ],
+                      "value": "2.7.10.1"
+                    }
+                  ]
+                },
+                "alternativeNames": [
+                  {
+                    "fullName": {
+                      "value": "Proto-oncogene c-ErbB-1"
+                    }
+                  },
+                  {
+                    "fullName": {
+                      "value": "Receptor tyrosine-protein kinase erbB-1"
+                    }
+                  }
+                ],
+                "flag": "Precursor"
+              },
+              "genes": [
+                {
+                  "geneName": {
+                    "evidences": [
+                      {
+                        "evidenceCode": "ECO:0000303",
+                        "source": "PubMed",
+                        "id": "32926474"
+                      },
+                      {
+                        "evidenceCode": "ECO:0000312",
+                        "source": "HGNC",
+                        "id": "HGNC:3236"
+                      }
+                    ],
+                    "value": "EGFR"
+                  },
+                  "synonyms": [
+                    {
+                      "value": "ERBB"
+                    },
+                    {
+                      "value": "ERBB1"
+                    },
+                    {
+                      "value": "HER1"
+                    }
+                  ]
+                }
+              ],
+              "sequence": {
+                "length": 1210
+              },
+              "extraAttributes": {
+                "uniParcId": "UPI000003E750"
+              }
+            }
+          ]
+        }
+      },
+      "pagination": {
+        "total": 1,
+        "next": null
+      }
+    }
+  ]
+}

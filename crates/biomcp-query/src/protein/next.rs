@@ -1,7 +1,10 @@
 use crate::next::Step;
-use biodata::ProteinHeader;
+use biodata::{ProteinHeader, UniProtIsoform};
 use biomcp_types::Paged;
-use biomcp_types::{ProteinCardItem, ProteinGet, ProteinInput, ProteinSearch, Request, StepKind};
+use biomcp_types::{
+    ProteinCardItem, ProteinDomainsQuery, ProteinGet, ProteinInput, ProteinRelationQuery,
+    ProteinSearch, Request, Source, StepKind,
+};
 pub(super) fn accession(
     header: &ProteinHeader,
     problems: &mut Vec<biomcp_types::Problem>,
@@ -80,6 +83,43 @@ pub(super) fn cards(
                     }
                     break;
                 }
+            }
+        }
+    }
+    steps
+}
+/// Offer the standalone commands that answer without the failed UniProt entry.
+pub(super) fn unread(
+    cx: &crate::Ctx<'_>,
+    q: &ProteinGet,
+    unread: &[UniProtIsoform],
+    problems: &mut Vec<biomcp_types::Problem>,
+) -> Vec<Step> {
+    let mut steps = Vec::new();
+    for id in unread {
+        let limit = q.section_limit();
+        for (source, request) in [
+            (
+                Source::InterPro,
+                crate::next::checked(
+                    ProteinDomainsQuery::new(id.clone(), limit),
+                    Source::InterPro,
+                    problems,
+                )
+                .map(Request::ProteinDomains),
+            ),
+            (
+                Source::ComplexPortal,
+                crate::next::checked(
+                    ProteinRelationQuery::new(id.clone(), limit),
+                    Source::ComplexPortal,
+                    problems,
+                )
+                .map(Request::ProteinComplexes),
+            ),
+        ] {
+            if let Some(request) = request.filter(|_| !cx.fetch.disabled(source)) {
+                steps.push(Step::run(StepKind::Section, &[source], request, false));
             }
         }
     }

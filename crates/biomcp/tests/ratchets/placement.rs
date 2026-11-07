@@ -328,6 +328,10 @@ const ALLOWED: &[(&str, &str)] = &[
         "Exercise blocking streaming RPC admission, local TLS HTTP/2, proxy routing, deadlines and cancellation through the public transport API.",
     ),
     (
+        "crates/biomcp-fetch/tests/double_gzip.rs",
+        "Exercise double-compressed replies and body limits on each layer through the public transport API.",
+    ),
+    (
         "crates/biomcp-fetch/tests/offline.rs",
         "Exercise transport ownership, local server behavior and cache/record failures through its public API.",
     ),

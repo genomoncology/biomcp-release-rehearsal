@@ -1,0 +1,32 @@
+{
+  "live_check": "synthetic deadline; the 16-second UniProt reply is past its 15-second limit",
+  "feature": "protein-search",
+  "story": "A slow UniProt entry reads as failed, names the deadline and offers the sections other sources can still give.",
+  "replay": "protein/timeout",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533"
+      ],
+      "exit": 4,
+      "is_error": true,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/source": "uniprot",
+        "/sources/0/reason": "deadline-exceeded",
+        "/next/0/args": [
+          "protein",
+          "domains",
+          "P00533"
+        ],
+        "/next/1/args": [
+          "protein",
+          "complexes",
+          "P00533"
+        ]
+      }
+    }
+  ]
+}

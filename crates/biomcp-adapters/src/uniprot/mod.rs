@@ -26,7 +26,7 @@ pub static SPEC: SourceSpec = SourceSpec {
     base: "https://rest.uniprot.org",
     key: KeyUse::None,
     quota: &quotas::UNIPROT,
-    deadline: Duration::from_secs(8),
+    deadline: Duration::from_secs(15),
 };
 const PROTEINS: Endpoint = SPEC
     .get("/uniprotkb/accessions")

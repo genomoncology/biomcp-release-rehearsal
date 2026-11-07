@@ -6,7 +6,7 @@
     {
       "status": 200,
       "content_type": "application/json",
-      "delay_ms": 9000,
+      "delay_ms": 16000,
       "retry_after_ms": null,
       "body": {
         "kind": "json",
@@ -44,7 +44,7 @@
     {
       "status": 200,
       "content_type": "application/json",
-      "delay_ms": 9000,
+      "delay_ms": 16000,
       "retry_after_ms": null,
       "body": {
         "kind": "json",
@@ -82,7 +82,7 @@
     {
       "status": 200,
       "content_type": "application/json",
-      "delay_ms": 9000,
+      "delay_ms": 16000,
       "retry_after_ms": null,
       "body": {
         "kind": "json",

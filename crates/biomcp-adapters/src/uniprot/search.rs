@@ -41,10 +41,8 @@ pub fn search(
         ("query", Arg::Text(&query)),
         ("format", Arg::Text("json")),
         ("size", Arg::Num(5)),
+        ("fields", Arg::Text(FIELDS)),
     ];
-    if q.query().is_some() {
-        args.push(("fields", Arg::Text(FIELDS)));
-    }
     if let Some(cursor) = cursor {
         args.push(("cursor", Arg::Text(cursor.as_str())));
     }

@@ -24,6 +24,7 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &ProteinGet) -> Outcome {
     let mut protein_error = None;
     let mut items = Vec::new();
     let mut asked = false;
+    let mut unread = Vec::new();
     for input in q.input() {
         let result = ids(&hgnc_leg, input, &mut out);
         if let Err(e) = result {
@@ -33,7 +34,14 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &ProteinGet) -> Outcome {
         let mut item = empty_item(input.clone());
         if let Ok(ids) = result {
             asked |= !ids.is_empty();
-            hydrate(&leg, ids, q, &mut item, &mut out, &mut protein_error);
+            unread.extend(hydrate(
+                &leg,
+                ids,
+                q,
+                &mut item,
+                &mut out,
+                &mut protein_error,
+            ));
         }
         items.push(item);
     }
@@ -61,6 +69,8 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &ProteinGet) -> Outcome {
     if out.next.is_empty() {
         out.next = next::cards(&items, &mut out.problems);
     }
+    let steps = next::unread(cx, q, &unread, &mut out.problems);
+    out.next.extend(steps);
     recovery(q, &mut out);
     out.body = (ProteinCard {
         items: items.into(),
@@ -109,6 +119,7 @@ fn ids(
     }
     Ok(ids)
 }
+/// Return the accessions whose entries failed; their other sources can still answer.
 fn hydrate(
     leg: &Leg<'_>,
     ids: Vec<UniProtIsoform>,
@@ -116,8 +127,9 @@ fn hydrate(
     item: &mut ProteinCardItem,
     out: &mut Outcome,
     error: &mut Option<RequestError>,
-) {
+) -> Vec<UniProtIsoform> {
     let ambiguous = ids.len() > 1;
+    let mut missed = Vec::new();
     item.status = crate::status::item_status(false, false, false);
     let mut failed = false;
     for id in ids {
@@ -177,6 +189,7 @@ fn hydrate(
                         crate::status::reason(e).unwrap_or(biomcp_types::Reason::Unavailable),
                     ));
                 }
+                missed.push(id);
                 *error = Some(e);
                 out.local = out.local.or(status::local(e));
             }
@@ -189,6 +202,7 @@ fn hydrate(
             crate::status::item_status(false, true, false)
         };
     }
+    missed
 }
 
 fn recovery(q: &ProteinGet, out: &mut Outcome) {

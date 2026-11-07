@@ -19,6 +19,7 @@ pub(crate) struct Prepared {
     pub(crate) method: Method,
     pub(crate) idempotent: bool,
     pub(crate) identity_encoding: bool,
+    pub(crate) double_gzip: bool,
     pub(crate) publisher: bool,
     pub(crate) exact_count: bool,
 }
@@ -64,6 +65,7 @@ impl Prepared {
             method,
             idempotent,
             identity_encoding: false,
+            double_gzip: false,
             publisher: false,
             exact_count: false,
         }

@@ -32,7 +32,7 @@ pub fn entry(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<Mapped<Option<Entry>>
     let ep = SPEC
         .get("")
         .with_path(format!("/uniprotkb/{id}.json"))?
-        .identity_encoding()
+        .double_gzip()
         .fresh(Freshness::Days(7));
     match leg
         .call(

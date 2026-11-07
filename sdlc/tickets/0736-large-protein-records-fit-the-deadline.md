@@ -1,6 +1,7 @@
 # 0736 — Large protein records fit the deadline
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a6ab0b5ad012c70955fc3ba0737c60b59016bb76
 
 Milestone: 5
 
