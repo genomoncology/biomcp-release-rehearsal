@@ -1,6 +1,7 @@
 # 0694 — Tool proofs run in the routine gate
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 86658b922
 
 Milestone: 5
 
@@ -43,3 +44,4 @@ First step: one job running `cargo test --locked -p biomcp --test tools -- --pro
 The bare asserts in `scripts/check_front_map.py` are now at lines 73, 74, 78 and 87.
 
 Ian's 2026-11-06 ruling replaces the Outcome's routine gate: tool proofs run in the final release suite, not at landing. This ticket fixes or deletes the red proofs, and nothing more.
+- 2026-11-07 Closed by PM. All tool proofs pass in the smoke environment (j34179), and the installed gate passed on all five platforms in practice run 42364969543 at 160521f5d, including `staged-payload` and staged Homebrew. The Python pin and `check_front_map.py` items moved to 0745.
