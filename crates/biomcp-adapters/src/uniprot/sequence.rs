@@ -11,6 +11,7 @@ pub fn sequence(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<ProteinSequence, R
         .with_path(format!("/uniprotkb/{id}.fasta"))?
         .bytes(1024 * 1024)
         .identity_encoding()
+        .stall_retry(super::STALL_LIMIT)
         .fresh(Freshness::Days(7));
     let bytes = leg
         .call(

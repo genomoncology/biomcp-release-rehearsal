@@ -29,6 +29,18 @@ pub(crate) enum Failure {
     Local(RequestError),
 }
 
+/// A body read that runs out of time is already a source failure; a send is still a transport one.
+/// Live stalls overlap inside `hedged_call`; a replayed stall arrives here as a first try that timed out.
+fn timed_out(exchange: &Result<Wire, Failure>) -> bool {
+    match exchange {
+        Err(Failure::Transport(ureq::Error::Timeout(_))) => true,
+        Err(Failure::Local(RequestError::Source(error))) => {
+            error.reason == Reason::DeadlineExceeded
+        }
+        _ => false,
+    }
+}
+
 impl Leg<'_> {
     /// Probe declared reachability through the same bounded transport, quota and replay policy.
     /// Probe replies never enter the checked data cache.
@@ -146,6 +158,7 @@ impl Leg<'_> {
         self.spec.admit(&prepared.url, ep.publisher)?;
         prepared.identity_encoding = ep.identity_encoding;
         prepared.double_gzip = ep.double_gzip;
+        prepared.stall_limit = ep.stall_limit.filter(|_| prepared.idempotent);
         prepared.exact_count = ep.exact_count;
         if ep.exact_count {
             use sha2::Digest;
@@ -192,8 +205,12 @@ impl Leg<'_> {
                 .map_err(|delay| self.quota_failure(delay))?
                 .ok_or_else(|| self.failure(Reason::DeadlineExceeded, None))?;
             let started = Instant::now();
-            let exchange = self.exchange(prepared, codec);
+            let limit = prepared.stall_limit.filter(|_| attempt == 0);
+            let exchange = self.exchange(prepared, codec, limit);
             self.observe_exchange::<T>(prepared, &exchange, started.elapsed(), codec);
+            if limit.is_some() && timed_out(&exchange) && !self.budget().expired() {
+                continue;
+            }
             let (mut error, retryable, delay) = match exchange {
                 Ok(response) => {
                     let status = response.status;
@@ -281,17 +298,26 @@ impl Leg<'_> {
         }
     }
 
-    fn exchange<T: Reply>(&self, prepared: &Prepared, codec: &Read<T>) -> Result<Wire, Failure> {
+    fn exchange<T: Reply>(
+        &self,
+        prepared: &Prepared,
+        codec: &Read<T>,
+        limit: Option<Duration>,
+    ) -> Result<Wire, Failure> {
         let local = |error| Failure::Local(RequestError::Recording(error));
-        if let Some(wire) = self.replay_exchange(prepared, codec)? {
+        if let Some(wire) = self.replay_exchange(prepared, codec, limit)? {
             return Ok(wire);
         }
         let started = Instant::now();
         let mut response = if prepared.publisher {
             self.publisher_call(&prepared.url, codec.name())?
         } else {
-            self.wire_call(prepared, codec.name(), &[])
-                .map_err(Failure::Transport)?
+            let max_body = codec.limit.unwrap_or(self.fetch.config.max_body);
+            match limit {
+                Some(limit) => self.hedged_call(prepared, codec.name(), limit, max_body),
+                None => self.wire_call(prepared, codec.name(), &[]),
+            }
+            .map_err(Failure::Transport)?
         };
         let status = response.status().as_u16();
         let content_type = response
@@ -336,6 +362,7 @@ impl Leg<'_> {
         &self,
         prepared: &Prepared,
         codec: &Read<T>,
+        limit: Option<Duration>,
     ) -> Result<Option<Wire>, Failure> {
         let Some(exchange) = self
             .fetch
@@ -357,7 +384,7 @@ impl Leg<'_> {
         else {
             return Ok(None);
         };
-        let mut wire = self.replayed_wire(prepared, exchange)?;
+        let mut wire = self.replayed_wire(prepared, exchange, limit)?;
         self.filter_wire(&mut wire, codec)?;
         Ok(Some(wire))
     }
@@ -400,15 +427,24 @@ impl Leg<'_> {
         }
         Ok(body)
     }
-    fn replayed_wire(&self, prepared: &Prepared, mut exchange: Exchange) -> Result<Wire, Failure> {
-        if !self
-            .budget()
-            .advance(Duration::from_millis(exchange.delay_ms))
-        {
+    fn replayed_wire(
+        &self,
+        prepared: &Prepared,
+        mut exchange: Exchange,
+        limit: Option<Duration>,
+    ) -> Result<Wire, Failure> {
+        let delay = Duration::from_millis(exchange.delay_ms);
+        let stalled = limit.filter(|limit| delay >= *limit);
+        if !self.budget().advance(stalled.unwrap_or(delay)) {
             return Err(Failure::Local(
                 self.failure(Reason::DeadlineExceeded, Some(exchange.status))
                     .into(),
             ));
+        }
+        if stalled.is_some() {
+            return Err(Failure::Transport(ureq::Error::Timeout(
+                ureq::Timeout::Global,
+            )));
         }
         // Sidecars become non-serializable Bytes on read. Scan their raw body
         // separately while deriving metadata from every remaining exchange field.

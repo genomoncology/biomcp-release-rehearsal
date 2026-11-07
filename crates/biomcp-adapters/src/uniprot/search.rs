@@ -46,7 +46,11 @@ pub fn search(
     if let Some(cursor) = cursor {
         args.push(("cursor", Arg::Text(cursor.as_str())));
     }
-    let ep = SPEC.get(PATH).identity_encoding().fresh(Freshness::Days(1));
+    let ep = SPEC
+        .get(PATH)
+        .identity_encoding()
+        .stall_retry(super::STALL_LIMIT)
+        .fresh(Freshness::Days(1));
     let (raw, meta) = leg
         .call(&ep, Input::Params(&args), Read::<Rows>::json())
         .map(|received| (received.value, received.meta))?;

@@ -33,6 +33,7 @@ pub fn entry(leg: &Leg<'_>, id: &UniProtIsoform) -> Result<Mapped<Option<Entry>>
         .get("")
         .with_path(format!("/uniprotkb/{id}.json"))?
         .double_gzip()
+        .stall_retry(super::STALL_LIMIT)
         .fresh(Freshness::Days(7));
     match leg
         .call(

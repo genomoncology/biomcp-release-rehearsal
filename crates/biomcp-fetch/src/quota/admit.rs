@@ -5,6 +5,13 @@ use std::time::Duration;
 
 impl Leg<'_> {
     pub(crate) fn acquire_quota(&self) -> Result<Option<Permit<'_>>, Duration> {
+        self.acquire_quota_by(self.budget())
+    }
+    /// Wait for a slot no longer than `deadline`, which may be shorter than the leg's budget.
+    pub(crate) fn acquire_quota_by<'a>(
+        &'a self,
+        deadline: crate::Deadline<'a>,
+    ) -> Result<Option<Permit<'a>>, Duration> {
         let caller = if self.fetch.hosted {
             Caller::Hosted(match self.spec.key {
                 KeyUse::Optional(key) | KeyUse::Required(key) => {
@@ -20,7 +27,7 @@ impl Leg<'_> {
             self.keyed(),
             caller,
             self.fetch.config.rate_share,
-            self.budget(),
+            deadline,
         )
     }
 }

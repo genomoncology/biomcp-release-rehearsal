@@ -23,6 +23,7 @@ impl Leg<'_> {
                         self.failure(
                             if error.kind() == std::io::ErrorKind::TimedOut
                                 || self.budget().expired()
+                                || matches!(ureq::Error::from(error), ureq::Error::Timeout(_))
                             {
                                 Reason::DeadlineExceeded
                             } else {

@@ -1,0 +1,19 @@
+{
+  "live_check": "synthetic stall; the first UniProt reply is past the stall limit and the second is quick",
+  "feature": "protein-search",
+  "story": "A stalled UniProt entry gets exactly one more request inside its deadline, and that request answers.",
+  "replay": "protein/stall",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533"
+      ],
+      "exit": 0,
+      "expect": {
+        "/sources/0/source": "uniprot"
+      }
+    }
+  ]
+}
