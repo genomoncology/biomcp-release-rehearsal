@@ -71,6 +71,8 @@ singleton! {
  SchemaUsage => "use biomcp schema to list known artifact IDs",
  Arguments => "expected a supported command with checked arguments",
  ArgumentGuidance => "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+ LabelSectionMissing => "add --label-section NAME with NAME from valid_values; example: biomcp get drug imatinib label \
+ --label-section indications_and_usage",
  McpSync => "sync is unavailable over MCP; run it from the command line",
  McpStoreClean => "store clean is unavailable over MCP; run it from the command line",
  McpKey => "key is unavailable over MCP; run it from the command line",

@@ -38,6 +38,15 @@ fn bare_label() -> Check {
         {
             return Err(format!("section names missing: {value}"));
         }
+        let message = value
+            .pointer("/error/message")
+            .and_then(Value::as_str)
+            .ok_or("no message")?;
+        if !message.contains("--label-section NAME")
+            || !message.contains("biomcp get drug imatinib label --label-section ")
+        {
+            return Err(format!("message lacks the option or example: {message}"));
+        }
     }
     Ok(())
 }

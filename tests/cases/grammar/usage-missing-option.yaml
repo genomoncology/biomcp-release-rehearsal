@@ -15,7 +15,7 @@
       "expect": {
         "/error/code": "usage.arguments",
         "/error/option": "--label-section",
-        "/error/message": "option is missing or invalid; choose an accepted value or form and use the suggested help command",
+        "/error/message": "add --label-section NAME with NAME from valid_values; example: biomcp get drug imatinib label --label-section indications_and_usage",
         "/error/valid_values/*": {
           "includes_all_of": [
             "boxed_warning",

@@ -152,7 +152,12 @@ fn validate_sections(fields: &GetFields) -> Result<(), QueryInvalid> {
         ]));
     }
     if fields.section.contains(&DrugSection::Label) != fields.label_section.is_some() {
-        return Err(QueryInvalid::new(&["label_section", "section"]));
+        let cause = QueryInvalid::new(&["label_section", "section"]);
+        return Err(if fields.label_section.is_none() {
+            cause.with_message(crate::ErrorMessage::LabelSectionMissing)
+        } else {
+            cause
+        });
     }
     if fields.product_number.is_some() && !fields.section.contains(&DrugSection::Approvals) {
         return Err(QueryInvalid::new(&["product_number", "section"]));
