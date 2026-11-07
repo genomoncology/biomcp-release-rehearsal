@@ -48,7 +48,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text", extend("x-positional" = 0)))]
     query: Option<Text>,
-    #[doc = "Disease or NCIt.\nCondition alternatives joined with OR; NCI requires NCIt codes."]
+    #[doc = "Disease; NCI needs NCIt.\nCondition alternatives joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers."]
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(length(max = MAX_ALTERNATIVES)))]
     condition: Box<[Text]>,

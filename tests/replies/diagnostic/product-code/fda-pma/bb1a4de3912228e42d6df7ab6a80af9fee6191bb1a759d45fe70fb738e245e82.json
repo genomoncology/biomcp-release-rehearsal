@@ -1,0 +1,152 @@
+{
+  "method": "GET",
+  "source": "fda-pma",
+  "url": "https://api.fda.gov/device/pma.json?limit=5&skip=0&sort=decision_date%3Adesc&search=product_code%3A%22PQP%22",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+            "terms": "https://open.fda.gov/terms/",
+            "license": "https://open.fda.gov/license/",
+            "last_updated": "2026-10-26",
+            "results": {
+              "skip": 0,
+              "limit": 5,
+              "total": 2
+            }
+          },
+          "results": [
+            {
+              "pma_number": "P190032",
+              "supplement_number": "S032",
+              "applicant": "Foundation Medicine, Inc.",
+              "street_1": "400 Summer St.",
+              "street_2": "",
+              "city": "Boston",
+              "state": "MA",
+              "zip": "02210",
+              "zip_ext": "",
+              "generic_name": "Next generation sequencing oncology panel, somatic or germline variant detection system",
+              "trade_name": "FoundationOne Liquid CDx (F1LCDx)",
+              "product_code": "PQP",
+              "advisory_committee": "PA",
+              "advisory_committee_description": "Pathology",
+              "supplement_type": "30-Day Notice",
+              "supplement_reason": "Process Change - Manufacturer/Sterilizer/Packager/Supplier",
+              "expedited_review_flag": "N",
+              "date_received": "2026-08-19",
+              "decision_date": "2026-09-18",
+              "docket_number": "",
+              "decision_code": "OK30",
+              "ao_statement": "approval of a manufacturing process change",
+              "openfda": {
+                "registration_number": [
+                  "3007287152",
+                  "3017020141",
+                  "3010679023",
+                  "3011104381",
+                  "3012090384",
+                  "3020703032",
+                  "3011805506",
+                  "3003335080",
+                  "3013200421",
+                  "3031598391",
+                  "3030654068",
+                  "3003218906",
+                  "3010889807"
+                ],
+                "fei_number": [
+                  "3016560486",
+                  "3007287152",
+                  "3010679023",
+                  "3011104381",
+                  "3012090384",
+                  "3008335090",
+                  "3011805506",
+                  "3003335080",
+                  "3013200421",
+                  "3031598391",
+                  "3030654068",
+                  "3003218906",
+                  "3010889807"
+                ],
+                "device_name": "Next Generation Sequencing Oncology Panel, Somatic Or Germline Variant Detection System",
+                "medical_specialty_description": "Unknown",
+                "regulation_number": "",
+                "device_class": "3"
+              }
+            },
+            {
+              "pma_number": "P170019",
+              "supplement_number": "S069",
+              "applicant": "Foundation Medicine, Inc.",
+              "street_1": "400 Summer St.",
+              "street_2": "",
+              "city": "Boston",
+              "state": "MA",
+              "zip": "02210",
+              "zip_ext": "",
+              "generic_name": "Next generation sequencing oncology panel, somatic or germline variant detection system",
+              "trade_name": "FoundationOne CDx",
+              "product_code": "PQP",
+              "advisory_committee": "PA",
+              "advisory_committee_description": "Pathology",
+              "supplement_type": "Normal 180 Day Track No User Fee",
+              "supplement_reason": "Labeling Change - PAS",
+              "expedited_review_flag": "N",
+              "date_received": "2026-03-20",
+              "decision_date": "2026-09-16",
+              "docket_number": "",
+              "decision_code": "APPR",
+              "ao_statement": "Approval to update the F1CDx labeling to include the results of the supplemental clinical data submitted in the Post-Approval Study (PAS) Report",
+              "openfda": {
+                "registration_number": [
+                  "3007287152",
+                  "3017020141",
+                  "3010679023",
+                  "3011104381",
+                  "3012090384",
+                  "3020703032",
+                  "3011805506",
+                  "3003335080",
+                  "3013200421",
+                  "3031598391",
+                  "3030654068",
+                  "3003218906",
+                  "3010889807"
+                ],
+                "fei_number": [
+                  "3016560486",
+                  "3007287152",
+                  "3010679023",
+                  "3011104381",
+                  "3012090384",
+                  "3008335090",
+                  "3011805506",
+                  "3003335080",
+                  "3013200421",
+                  "3031598391",
+                  "3030654068",
+                  "3003218906",
+                  "3010889807"
+                ],
+                "device_name": "Next Generation Sequencing Oncology Panel, Somatic Or Germline Variant Detection System",
+                "medical_specialty_description": "Unknown",
+                "regulation_number": "",
+                "device_class": "3"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1847,6 +1847,43 @@
         "summary"
       ],
       "review": "0607: the approved posted-trial-results exception adds only results to the shared section vocabulary; NCI retains its explicit unsupported-section behavior. Existing values retain their meaning."
+    },
+    {
+      "schemas": [
+        "biomcp.author-search-query/3",
+        "biomcp.request/32"
+      ],
+      "path": "/$defs/AuthorSearchSource/enum",
+      "from": [
+        "semantic-scholar",
+        "semanticscholar",
+        "pubmed",
+        "auto"
+      ],
+      "to": [
+        "semantic-scholar",
+        "pubmed",
+        "auto"
+      ],
+      "review": "Ticket 0723 amendment, 2026-11-06: stop advertising the semanticscholar alias and keep accepting it; the hosted filter kept the alias after removing the canonical name."
+    },
+    {
+      "schemas": [
+        "biomcp.author-page/5"
+      ],
+      "path": "/$defs/Reply_AuthorSearchSource/enum",
+      "from": [
+        "semantic-scholar",
+        "semanticscholar",
+        "pubmed",
+        "auto"
+      ],
+      "to": [
+        "semantic-scholar",
+        "pubmed",
+        "auto"
+      ],
+      "review": "Ticket 0723 amendment, 2026-11-06: stop advertising the semanticscholar alias and keep accepting it; the hosted filter kept the alias after removing the canonical name."
     }
   ]
 }

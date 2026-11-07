@@ -1,0 +1,82 @@
+{
+  "live_check": "local-only validation; no source requests",
+  "feature": "query-validation",
+  "story": "Schemas and errors state what each filter takes: one drug section per call for every source, NCI disease input as NCIt codes, and one advertised Semantic Scholar spelling.",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "imatinib",
+        "targets",
+        "indications",
+        "--source",
+        "opentargets"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/code": "usage.arguments",
+        "/error/option": "section",
+        "/error/source": "opentargets",
+        "/error/message": "choose one section per call from valid_values; call again for another section",
+        "/error/valid_values/*": {
+          "includes_all_of": [
+            "targets",
+            "indications"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "imatinib",
+        "xrefs",
+        "targets",
+        "--source",
+        "chembl"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "expect": {
+        "/error/message": "choose one section per call from valid_values; call again for another section"
+      }
+    },
+    {
+      "run": [
+        "schema",
+        "biomcp.drug-get-command/2"
+      ],
+      "expect": {
+        "/properties/section/x-section-rule": "One named disclosure per call for every source; empty means identity only."
+      }
+    },
+    {
+      "run": [
+        "schema",
+        "biomcp.trial-search/6"
+      ],
+      "expect": {
+        "/properties/condition/description": "Disease; NCI needs NCIt.\nCondition alternatives joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers."
+      }
+    },
+    {
+      "run": [
+        "schema",
+        "biomcp.author-search-query/3"
+      ],
+      "expect": {
+        "/$defs/AuthorSearchSource/enum/*": {
+          "includes_all_of": [
+            "semantic-scholar",
+            "pubmed",
+            "auto"
+          ],
+          "excludes": "semanticscholar"
+        }
+      }
+    }
+  ]
+}

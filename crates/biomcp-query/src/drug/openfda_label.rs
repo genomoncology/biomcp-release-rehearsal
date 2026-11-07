@@ -241,6 +241,7 @@ fn page(offset: u32, returned: u32, total: u64) -> PageInfo {
 fn invalid_heading(record: &source::Record) -> Result<biomcp_types::UsageError, RequestError> {
     Ok(biomcp_types::UsageError::SourceSelector {
         source: SOURCE,
+        message: biomcp_types::ErrorMessage::SourceSelector,
         option: "--label-section".into(),
         valid_values: source::HEADINGS
             .iter()

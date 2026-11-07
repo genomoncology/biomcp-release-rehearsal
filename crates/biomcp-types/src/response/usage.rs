@@ -68,6 +68,8 @@ pub enum UsageError {
     SourceSelector {
         /// Explicit provider that refused the request.
         source: crate::Source,
+        /// Fixed guidance for this selector.
+        message: crate::ErrorMessage,
         /// Grammar-owned selector flag.
         option: Box<str>,
         /// Native selector vocabulary.

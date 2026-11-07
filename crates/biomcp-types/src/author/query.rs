@@ -10,7 +10,7 @@ fn default_limit() -> u32 {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
     feature = "schema",
-    schemars(with = "str", extend("enum" = ["semantic-scholar", "semanticscholar", "pubmed", "auto"]))
+    schemars(with = "str", extend("enum" = ["semantic-scholar", "pubmed", "auto"]))
 )]
 pub enum AuthorSearchSource {
     /// Prefer native Semantic Scholar identities; use PubMed citation names when it is disabled.

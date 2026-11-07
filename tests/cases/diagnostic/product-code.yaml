@@ -1,0 +1,60 @@
+{
+  "feature": "device-approval-search",
+  "live_check": "synthetic request-mapping controls on public FDA rows; tests/replies/diagnostic/product-code/README.md",
+  "story": "An exact FDA product code filters PMA and 510(k) searches as the schema says, and stays refused for sources that cannot apply it.",
+  "replay": "diagnostic/product-code",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-510k",
+        "--product-code",
+        "NBW"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 2,
+        "/result/items": {
+          "count": 2
+        },
+        "/query/product_code": "NBW"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-pma",
+        "--product-code",
+        "PQP"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 2,
+        "/result/items": {
+          "count": 2
+        },
+        "/query/product_code": "PQP"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "gtr",
+        "--product-code",
+        "NBW"
+      ],
+      "exit": 2,
+      "is_error": true,
+      "offline": true,
+      "expect": {
+        "/error/code": "usage.arguments"
+      }
+    }
+  ]
+}

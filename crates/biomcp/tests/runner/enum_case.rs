@@ -1,5 +1,6 @@
 //! Every published query choice keeps its meaning across letter case and adapters.
 use crate::runner::{
+    http::Server,
     launch::Environment,
     mcp::{exchange_with_globals, request},
 };
@@ -21,6 +22,7 @@ fn check() -> Result<(), String> {
     local_choices(&env)?;
     let mut failures = Vec::new();
     let mut count = 0;
+    let mut added = 0;
     for (verb, entity, id) in biomcp_types::command_paths() {
         let schema = cli(&env, &["schema".into(), id.into()])?;
         let properties = field(&schema, "properties")
@@ -30,34 +32,38 @@ fn check() -> Result<(), String> {
             if property.get("x-cli-flags").is_some() {
                 continue; // These are separate boolean flags on both public adapters.
             }
-            let Some(choice) = choice_node(property, &schema)
-                .get("enum")
-                .and_then(Value::as_array)
-                .and_then(|v| {
-                    property
-                        .get("default")
-                        .filter(|value| v.contains(value))
-                        .and_then(Value::as_str)
-                        .or_else(|| v.iter().filter_map(Value::as_str).find(|s| !s.is_ascii()))
-                        .or_else(|| {
-                            v.iter()
-                                .filter_map(Value::as_str)
-                                .find(|s| s.to_lowercase() != s.to_uppercase())
-                        })
-                        .or_else(|| v.iter().find_map(Value::as_str))
-                })
-            else {
+            let choices = choice_node(property, &schema).get("enum");
+            let Some(choice) = choices.and_then(Value::as_array).and_then(|v| {
+                property
+                    .get("default")
+                    .filter(|value| v.contains(value))
+                    .and_then(Value::as_str)
+                    .or_else(|| v.iter().filter_map(Value::as_str).find(|s| !s.is_ascii()))
+                    .or_else(|| {
+                        v.iter()
+                            .filter_map(Value::as_str)
+                            .find(|s| s.to_lowercase() != s.to_uppercase())
+                    })
+                    .or_else(|| v.iter().find_map(Value::as_str))
+            }) else {
                 continue;
             };
             count += 1;
             if let Err(error) = parameter(&env, verb, entity, &schema, key, choice) {
                 failures.push(format!("{verb} {entity}.{key}: {error}"));
             }
+            for word in listed(key, choices).filter(|word| *word != choice) {
+                added += 1;
+                if let Err(error) = listed_value(&env, (verb, entity), &schema, key, word) {
+                    failures.push(format!("{verb} {entity}.{key}={word}: {error}"));
+                }
+            }
         }
     }
+    hosted_sources(&env, &mut failures)?;
     writeln!(
         std::io::stdout(),
-        "ENUM_CASE parameters={count} failures={}",
+        "ENUM_CASE parameters={count} values={added} failures={}",
         failures.len()
     )
     .map_err(|e| e.to_string())?;
@@ -122,6 +128,136 @@ fn parameter(
         }
     }
     Ok(())
+}
+
+// Country holds about 230 names from one generated list, so a sample covers it.
+fn listed<'a>(key: &str, choices: Option<&'a Value>) -> impl Iterator<Item = &'a str> {
+    let step = if key == "country" { 25 } else { 1 };
+    choices
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .step_by(step)
+        .filter_map(Value::as_str)
+}
+
+// A rule about other fields may still refuse; only a refusal of this field is a false listing.
+fn listed_value(
+    env: &Environment,
+    (verb, entity): (&str, &str),
+    schema: &Value,
+    key: &str,
+    word: &str,
+) -> Result<(), String> {
+    let mut values = seed(verb, entity, schema)?;
+    context(verb, entity, key, &mut values)?;
+    let property = field(field(schema, "properties"), key);
+    if let Some(scope) = choice_node(property, schema).get("x-enum-by-field") {
+        scope_for(scope, word, &mut values);
+    }
+    let array = resolved(property, schema).get("type") == Some(&json!("array"));
+    values.insert(key.into(), if array { json!([word]) } else { json!(word) });
+    let reply = cli(env, &argv(verb, entity, schema, &values))?;
+    if refuses(&reply, key, word) {
+        return Err(format!("CLI refused a listed value: {reply}"));
+    }
+    let frame = request(
+        json!(1),
+        "tools/call",
+        json!({"name":format!("{verb}_{entity}").replace('-', "_"), "arguments":values}),
+    );
+    let replies = exchange_with_globals(env, &[frame], &["--offline".into()])?;
+    match replies
+        .first()
+        .and_then(|reply| reply.pointer("/result/structuredContent"))
+    {
+        Some(typed) if !refuses(typed, key, word) => Ok(()),
+        typed => Err(format!("typed tool refused a listed value: {typed:?}")),
+    }
+}
+
+fn scope_for(scope: &Value, word: &str, values: &mut Map<String, Value>) {
+    let owner = field(scope, "choices").as_object().and_then(|choices| {
+        choices
+            .iter()
+            .find(|(_, words)| words.as_array().is_some_and(|v| v.contains(&json!(word))))
+    });
+    if let (Some((owner, _)), Some(name)) = (owner, field(scope, "field").as_str()) {
+        values.insert(name.into(), json!(owner));
+    }
+}
+
+// A refusal that lists the word, names a source or offers other sources is a rule about
+// other fields; only a refusal of this field that omits the word is a false listing.
+fn refuses(reply: &Value, key: &str, word: &str) -> bool {
+    let error = field(reply, "error");
+    let option = error.get("option").and_then(Value::as_str);
+    let listed = field(error, "valid_values")
+        .as_array()
+        .is_some_and(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .any(|value| value.eq_ignore_ascii_case(word))
+        });
+    error.get("code") == Some(&json!("usage.arguments"))
+        && option.is_some_and(|option| option.trim_start_matches('-').replace('-', "_") == key)
+        && !listed
+        && error.get("source").is_none()
+        && error.get("message")
+            != Some(&json!(
+                "a selected source does not support the requested filters"
+            ))
+}
+
+// The hosted list must never offer a word that only reaches a source hosting has switched off.
+fn hosted_sources(env: &Environment, failures: &mut Vec<String>) -> Result<(), String> {
+    let server = Server::configured_globals(
+        "127.0.0.1:0",
+        Some(json!({"mcp_tool_mode":"typed"})),
+        None,
+        None,
+        None,
+        &["--offline".into(), "--hosted".into()],
+    )?;
+    let frame = request(json!(1), "tools/list", json!({}));
+    let (_, catalog) = server.request("POST", "/mcp", &frame.to_string())?;
+    let tools = catalog
+        .pointer("/result/tools")
+        .and_then(Value::as_array)
+        .ok_or("hosted tools")?;
+    for (verb, entity, id) in biomcp_types::command_paths() {
+        let name = format!("{verb}_{entity}").replace('-', "_");
+        let Some(tool) = tools.iter().find(|tool| tool["name"] == name.as_str()) else {
+            continue;
+        };
+        let schema = cli(env, &["schema".into(), id.into()])?;
+        for word in listed(
+            "source",
+            tool.pointer("/inputSchema/properties/source/enum"),
+        ) {
+            let mut values = seed(verb, entity, &schema)?;
+            context(verb, entity, "source", &mut values)?;
+            values.insert("source".into(), json!(word));
+            let call = request(
+                json!(2),
+                "tools/call",
+                json!({"name":name, "arguments":values}),
+            );
+            let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
+            if only_disabled(reply.pointer("/result/structuredContent/sources")) {
+                failures.push(format!("hosted {name} offers refused source {word}"));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn only_disabled(sources: Option<&Value>) -> bool {
+    sources
+        .and_then(Value::as_array)
+        .filter(|sources| !sources.is_empty())
+        .is_some_and(|sources| sources.iter().all(|s| s["reason"] == "disabled"))
 }
 
 fn choice_node<'a>(node: &'a Value, root: &'a Value) -> &'a Value {

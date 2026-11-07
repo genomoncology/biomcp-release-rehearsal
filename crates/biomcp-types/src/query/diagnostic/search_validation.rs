@@ -1,12 +1,16 @@
 //! Source-owned FDA device search and document access.
 use super::{DiagnosticSearchSource, QueryInvalid, SearchFields};
-pub(super) fn validate_recall(
-    v: &SearchFields,
-    other: bool,
-    filters: bool,
-) -> Result<(), QueryInvalid> {
+fn device_source(v: &SearchFields) -> bool {
+    matches!(
+        v.source,
+        DiagnosticSearchSource::FdaPma | DiagnosticSearchSource::Fda510k
+    )
+}
+
+pub(super) fn validate_recall(v: &SearchFields, other: bool) -> Result<(), QueryInvalid> {
     if v.source != DiagnosticSearchSource::FdaDeviceRecall {
-        if filters {
+        let code = v.product_code.is_some() && !device_source(v);
+        if code || v.initiated_from.is_some() || v.initiated_to.is_some() {
             return Err(QueryInvalid::new(&[
                 "source",
                 "product_code",
@@ -48,11 +52,7 @@ pub(super) fn validate_recall(
 }
 
 pub(super) fn validate_device(v: &SearchFields, other: bool) -> Result<(), QueryInvalid> {
-    let device = matches!(
-        v.source,
-        DiagnosticSearchSource::FdaPma | DiagnosticSearchSource::Fda510k
-    );
-    if !device {
+    if !device_source(v) {
         if v.name.is_some() || v.decision_from.is_some() || v.decision_to.is_some() {
             return Err(QueryInvalid::new(&[
                 "source",
@@ -74,7 +74,6 @@ pub(super) fn validate_device(v: &SearchFields, other: bool) -> Result<(), Query
             "drug_application",
             "biomarker",
             "marker",
-            "product_code",
             "initiated_from",
             "initiated_to",
             "bundle_revision",

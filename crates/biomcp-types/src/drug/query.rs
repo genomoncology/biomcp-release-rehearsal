@@ -52,7 +52,7 @@ struct GetFields {
     #[serde(default, deserialize_with = "selected_source")]
     #[cfg_attr(feature = "schema", schemars(with = "DrugSource", extend("default" = "mychem")))]
     source: Option<DrugSource>,
-    /// Explicit named disclosures; empty means identity only.
+    /// One named disclosure per call for every source; empty means identity only.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     #[cfg_attr(feature = "schema", schemars(title = "Source sections.", extend("x-positional" = 1)))]
     section: Box<[DrugSection]>,

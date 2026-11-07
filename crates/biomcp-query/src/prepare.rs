@@ -95,6 +95,7 @@ pub(crate) fn selector_error(error: biomcp_adapters::seer::SelectorError) -> Usa
     };
     UsageError::SourceSelector {
         source: biomcp_types::Source::Seer,
+        message: biomcp_types::ErrorMessage::SourceSelector,
         option: error
             .selectors
             .iter()
@@ -187,6 +188,11 @@ fn drug_selector(action: &Action) -> Result<(), UsageError> {
     let values = values.map_err(|_| UsageError::arguments())?;
     Err(UsageError::SourceSelector {
         source: query.source().source(),
+        message: if query.sections().len() > 1 {
+            biomcp_types::ErrorMessage::OneSection
+        } else {
+            biomcp_types::ErrorMessage::SourceSelector
+        },
         option: option.into(),
         valid_values: values.into(),
         next: vec![biomcp_types::Step {

@@ -1,6 +1,7 @@
 # 0723 — Schemas state each filter truthfully
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 1bcc68d5b24f921e49fe68422eda8b361f116799
 
 Milestone: 5
 

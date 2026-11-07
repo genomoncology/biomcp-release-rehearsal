@@ -80,7 +80,7 @@ struct SearchFields {
     #[doc = "Manufacturer phrase.\nWHO manufacturer words, native FDA applicant (PMA/510(k)) or recalling_firm phrase."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     manufacturer: Option<Text>,
-    #[doc = "FDA product code.\nExact native FDA device recall product code."]
+    #[doc = "FDA product code.\nExact native FDA product code; PMA, 510(k) and device recalls only."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     product_code: Option<Text>,
     #[doc = "First date, YYYY-MM-DD.\nInclusive initiation date, YYYY-MM-DD; FDA device recalls only."]
@@ -119,10 +119,9 @@ impl TryFrom<SearchFields> for DiagnosticSearch {
             || v.test_type.is_some();
         let cdx = v.device_id.is_some() || v.drug_application.is_some() || v.biomarker.is_some();
         let who = v.marker.is_some() || v.manufacturer.is_some();
-        let recall =
-            v.product_code.is_some() || v.initiated_from.is_some() || v.initiated_to.is_some();
-        validate_device(&v, gtr || cdx || v.marker.is_some() || recall)?;
-        validate_recall(&v, gtr || cdx, recall)?;
+        let dates = v.initiated_from.is_some() || v.initiated_to.is_some();
+        validate_device(&v, gtr || cdx || v.marker.is_some() || dates)?;
+        validate_recall(&v, gtr || cdx)?;
         if !(1..=50).contains(&v.limit) {
             return Err(QueryInvalid::new(&["limit"]));
         }

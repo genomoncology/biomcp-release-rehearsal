@@ -26,6 +26,9 @@ fn expression(q: &DiagnosticSearch, name: &str) -> String {
     if let Some(value) = q.manufacturer() {
         terms.push(format!("applicant:{}", literal(value)));
     }
+    if let Some(value) = q.product_code() {
+        terms.push(format!("product_code:{}", literal(value)));
+    }
     if q.decision_from().is_some() || q.decision_to().is_some() {
         let from = q
             .decision_from()
