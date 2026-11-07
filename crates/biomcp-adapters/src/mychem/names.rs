@@ -75,6 +75,7 @@ pub(super) fn name_records(
             continue;
         }
         let (id, _, rows) = super::map::components(hit, leg, &mut problems);
+        let rows = speaking(rows);
         if matching(&rows, query).is_some()
             || stated(&rows)
                 .iter()
@@ -99,16 +100,52 @@ pub(super) fn name_records(
         problems: problems.list,
     })
 }
+/// A product row describes a product, not the drug whose document holds it.
+fn product(component: &str) -> bool {
+    matches!(component, "ndc" | "openfda")
+}
+/// Whether a record states a drug of its own, not only products.
+pub(super) fn has_drug_rows(rows: &[(&str, Component)]) -> bool {
+    rows.iter().any(|(component, _)| !product(component))
+}
 /// The names of the drug itself. A product row can be a combination or a store brand, and even
 /// its generic name cannot show one ingredient, so it speaks only when no drug row exists.
 fn drug_names(rows: &[(&str, Component)]) -> Vec<String> {
-    let product = |component: &str| matches!(component, "ndc" | "openfda");
     if rows.iter().all(|(component, _)| product(component)) {
         return stated(rows);
     }
     rows.iter()
         .filter(|(component, _)| !product(component))
         .flat_map(|row| stated(std::slice::from_ref(row)))
+        .collect()
+}
+/// Keep the rows that may say which drug a document is. The source files each ingredient row of a
+/// combination product under every ingredient's document, so on a document with drug rows of its
+/// own, a product row speaks only when its generic name is that drug's.
+pub(super) fn speaking(rows: Vec<(&'static str, Component)>) -> Vec<(&'static str, Component)> {
+    let drug: Vec<String> = rows
+        .iter()
+        .filter(|(component, _)| !product(component))
+        .flat_map(|row| stated(std::slice::from_ref(row)))
+        .collect();
+    if drug.is_empty() {
+        return rows;
+    }
+    rows.into_iter()
+        .filter(|(component, c)| {
+            !product(component)
+                || c.nonproprietaryname
+                    .as_deref()
+                    .into_iter()
+                    .chain(c.generic_name.as_ref().map(strings).unwrap_or_default())
+                    .flat_map(split)
+                    .any(|generic| {
+                        drug.iter().any(|name| {
+                            DrugNameMatch::same_identity(generic, name)
+                                || DrugNameMatch::generic_name(generic, name)
+                        })
+                    })
+        })
         .collect()
 }
 /// The main name each source gives the row.

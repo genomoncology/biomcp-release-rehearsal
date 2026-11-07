@@ -1,0 +1,73 @@
+{
+  "feature": "drug-name-get",
+  "story": "MyChem free text can rank a drug's exact name behind looser matches and product-only records, so a name get reads further pages until one holds a drug record of that name, answers with the drug before any product-only record, and says how far it read when a page cap stops it first.",
+  "live_check": "Synthetic names in real MyChem reply shapes; no live provider observation.",
+  "replay": "drug/name-get-pages",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "Late therapy",
+        "--source",
+        "mychem"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/query/input": "LATETHERAPYAAA-UHFFFAOYSA-N",
+        "/result/header/id": "LATETHERAPYAAA-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Shelf therapy",
+        "--source",
+        "mychem"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "SHELFTHERAPYAA-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Aisle therapy",
+        "--source",
+        "mychem"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/result/header/id": "AISLETHERAPYAA-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Buried therapy",
+        "--source",
+        "mychem"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/source": "mychem",
+        "/sources/0/notices/0/message": "Read the first 250 of 1000 matches without a drug record of that exact name; later matches were not examined."
+      },
+      "max_bytes": 9000
+    }
+  ]
+}

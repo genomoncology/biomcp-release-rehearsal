@@ -1,0 +1,57 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real MyChem reply shapes; no clinical or live completeness claim",
+  "story": "A drug's generic name and its synonym resolve to the same MyChem record and search the same names, though the source files a kit's ingredient row under another drug's record, and get drug answers by name.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Common therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "mychem",
+        "/sources/0/notices/0/names": [
+          "Common therapy",
+          "Commonol"
+        ],
+        "/page/total": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Commonol"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "mychem",
+        "/sources/0/notices/0/names": [
+          "Common therapy",
+          "Commonol"
+        ],
+        "/page/total": 2
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Common therapy",
+        "--source",
+        "mychem"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/query/input": "COMMONTHERAPYA-UHFFFAOYSA-N",
+        "/result/header/id": "COMMONTHERAPYA-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1
+      },
+      "max_bytes": 9000
+    }
+  ]
+}

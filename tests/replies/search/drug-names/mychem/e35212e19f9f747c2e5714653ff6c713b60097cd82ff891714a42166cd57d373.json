@@ -1,0 +1,79 @@
+{
+  "method": "GET",
+  "source": "mychem",
+  "url": "https://mychem.info/v1/chem/COMMONTHERAPYA-UHFFFAOYSA-N?fields=drugbank.id%2Cdrugbank.name%2Cchembl.molecule_chembl_id%2Cchembl.pref_name%2Cchembl.molecule_type%2Cgtopdb.ligand_id%2Cgtopdb.name%2Cgtopdb.type%2Cunii.unii%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.product_id%2Cndc.productndc%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname%2Cdrugbank.synonyms%2Cchembl.molecule_hierarchy%2Cchembl.molecule_synonyms%2Cdrugcentral.id%2Cdrugcentral.synonyms%2Cdrugcentral.xrefs%2Cgtopdb.synonyms%2Cgtopdb.chembl_id%2Cgtopdb.xrefs%2Cunii.rxcui%2Cunii.ncit%2Cndc.applicationnumber%2Cndc.dosageformname%2Cndc.package%2Copenfda.generic_name%2Copenfda.brand_name%2Copenfda.spl_set_id%2Copenfda.application_number",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "_id": "COMMONTHERAPYA-UHFFFAOYSA-N",
+          "chembl": {
+            "_license": "http://bit.ly/2KAUCAm",
+            "molecule_type": "Small molecule",
+            "pref_name": "Common therapy",
+            "molecule_synonyms": [
+              {
+                "molecule_synonym": "Common therapy",
+                "syn_type": "FDA",
+                "synonyms": "COMMON THERAPY"
+              },
+              {
+                "molecule_synonym": "Commonol",
+                "syn_type": "OTHER",
+                "synonyms": "COMMONOL"
+              }
+            ],
+            "molecule_chembl_id": "CHEMBL900101"
+          },
+          "drugbank": {
+            "_license": "https://bit.ly/3Hikpvm",
+            "name": "Common therapy",
+            "synonyms": [
+              "Commonol"
+            ],
+            "id": "DB90001"
+          },
+          "drugcentral": {
+            "_license": "http://bit.ly/2SeEhUy",
+            "synonyms": [
+              "Common therapy",
+              "Commonol"
+            ]
+          },
+          "gtopdb": {
+            "_license": "https://www.guidetopharmacology.org/download.jsp",
+            "name": "Commonol",
+            "synonyms": "Common therapy",
+            "type": "Synthetic organic"
+          },
+          "unii": {
+            "_license": "http://bit.ly/2Pg8Oo9",
+            "display_name": "Common therapy",
+            "ingredient_type": "INGREDIENT SUBSTANCE"
+          },
+          "ndc": [
+            {
+              "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+              "nonproprietaryname": "Common therapy, Partner agent",
+              "producttypename": "HUMAN OTC DRUG",
+              "proprietaryname": "Synthetic cold kit"
+            },
+            {
+              "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+              "nonproprietaryname": "Common therapy",
+              "producttypename": "HUMAN OTC DRUG",
+              "proprietaryname": "Synthetic pain relief"
+            }
+          ],
+          "_version": 1
+        }
+      }
+    }
+  ]
+}

@@ -37,6 +37,12 @@ const CARD_FIELDS: &str = concat!(
                     gtopdb.synonyms,gtopdb.chembl_id,gtopdb.xrefs,unii.rxcui,unii.ncit,ndc.applicationnumber,ndc.dosageformname,\
                     ndc.package,openfda.generic_name,openfda.brand_name,openfda.spl_set_id,openfda.application_number"
 );
+/// The fields a name lookup reads: names, synonyms and types, without the card's packages and
+/// cross-references, which for a drug sold in thousands of products overflow the reply limit.
+const NAME_READ_FIELDS: &str = "drugbank.name,drugbank.synonyms,chembl.pref_name,chembl.molecule_type,\
+                    chembl.molecule_synonyms,drugcentral.synonyms,gtopdb.name,gtopdb.type,gtopdb.synonyms,\
+                    unii.display_name,unii.ingredient_type,ndc.producttypename,ndc.nonproprietaryname,\
+                    ndc.proprietaryname,openfda.generic_name,openfda.brand_name";
 /// Synonym fields the source's free-text search does not reach, such as a development code.
 const NAME_FIELDS: &str = "drugbank.synonyms,gtopdb.synonyms,drugcentral.synonyms,\
                     chembl.molecule_synonyms.molecule_synonym";
@@ -51,14 +57,19 @@ pub fn search(
 ) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
     search_fields(leg, query, limit, offset, SEARCH_FIELDS)
 }
-/// Search the same source with its complete native brand and generic name fields for exact resolution.
+/// Search the same source with its complete native brand and generic name fields for exact
+/// resolution. Each item comes with whether its record has drug rows, not only product rows.
 pub fn search_names(
     leg: &Leg<'_>,
     query: &str,
     limit: u32,
     offset: u32,
-) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
-    search_fields(leg, query, limit, offset, CARD_FIELDS)
+) -> Result<(crate::Mapped<DrugPage>, u32, Vec<bool>), RequestError> {
+    let reply = search_reply(leg, query, limit, offset, NAME_READ_FIELDS)?;
+    let received = reply.hits.len() as u32;
+    map::page(reply, leg, query)
+        .map(|(page, drug)| (page, received, drug))
+        .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))
 }
 /// One source row stating a name, with the structure that row describes.
 #[derive(Debug)]
@@ -92,7 +103,7 @@ pub fn name_records(
         )
         .collect::<Vec<_>>()
         .join(" OR ");
-    let fields = crate::drug_sources::components::allowed_fields(leg, CARD_FIELDS);
+    let fields = crate::drug_sources::components::allowed_fields(leg, NAME_READ_FIELDS);
     let reply = leg
         .call(
             &SEARCH,
@@ -116,8 +127,21 @@ fn search_fields(
     offset: u32,
     requested: &str,
 ) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
+    let reply = search_reply(leg, query, limit, offset, requested)?;
+    let received = reply.hits.len() as u32;
+    map::page(reply, leg, query)
+        .map(|(page, _)| (page, received))
+        .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))
+}
+fn search_reply(
+    leg: &Leg<'_>,
+    query: &str,
+    limit: u32,
+    offset: u32,
+    requested: &str,
+) -> Result<raw::Page, RequestError> {
     let fields = crate::drug_sources::components::allowed_fields(leg, requested);
-    let reply = leg
+    Ok(leg
         .call(
             &SEARCH,
             biomcp_fetch::Input::Params(&[
@@ -130,11 +154,7 @@ fn search_fields(
                 .check(&|_| Ok(()))
                 .cache_if(&raw::Page::identities_admitted),
         )?
-        .value;
-    let received = reply.hits.len() as u32;
-    map::page(reply, leg, query)
-        .map(|page| (page, received))
-        .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))
+        .value)
 }
 /// Retrieve an exact native document and verify the returned identity, never searching by name.
 pub fn get(leg: &Leg<'_>, id: &str) -> Result<crate::Mapped<DrugDocument>, RequestError> {

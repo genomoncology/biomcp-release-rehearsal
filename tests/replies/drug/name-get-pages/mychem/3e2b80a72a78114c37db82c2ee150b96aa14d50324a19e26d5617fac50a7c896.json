@@ -1,0 +1,198 @@
+{
+  "method": "GET",
+  "source": "mychem",
+  "url": "https://mychem.info/v1/query?q=Late%20therapy&size=50&from=50&fields=drugbank.name%2Cdrugbank.synonyms%2Cchembl.pref_name%2Cchembl.molecule_type%2Cchembl.molecule_synonyms%2Cdrugcentral.synonyms%2Cgtopdb.name%2Cgtopdb.type%2Cgtopdb.synonyms%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname%2Copenfda.generic_name%2Copenfda.brand_name",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "took": 9,
+          "total": 60,
+          "max_score": 30.0,
+          "hits": [
+            {
+              "_id": "LATEPBYAAAAAAA-UHFFFAOYSA-N",
+              "_score": 15.0,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 50"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 50, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 50"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPBZAAAAAAA-UHFFFAOYSA-N",
+              "_score": 14.899999999999999,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 51"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 51, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 51"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPCAAAAAAAA-UHFFFAOYSA-N",
+              "_score": 14.8,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 52"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 52, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 52"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPCBAAAAAAA-UHFFFAOYSA-N",
+              "_score": 14.7,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 53"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 53, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 53"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPCCAAAAAAA-UHFFFAOYSA-N",
+              "_score": 14.6,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 54"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 54, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 54"
+                }
+              ]
+            },
+            {
+              "_id": "LATETHERAPYAAA-UHFFFAOYSA-N",
+              "_score": 7.5,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Late therapy",
+                "molecule_synonyms": [
+                  {
+                    "molecule_synonym": "Late therapy",
+                    "syn_type": "INN",
+                    "synonyms": "LATE THERAPY"
+                  }
+                ]
+              },
+              "unii": {
+                "_license": "http://bit.ly/2Pg8Oo9",
+                "display_name": "LATE THERAPY",
+                "ingredient_type": "INGREDIENT SUBSTANCE"
+              }
+            },
+            {
+              "_id": "LATEPCDAAAAAAA-UHFFFAOYSA-N",
+              "_score": 5.45,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 55"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 55, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 55"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPCEAAAAAAA-UHFFFAOYSA-N",
+              "_score": 5.4399999999999995,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 56"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 56, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 56"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPCFAAAAAAA-UHFFFAOYSA-N",
+              "_score": 5.43,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 57"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 57, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 57"
+                }
+              ]
+            },
+            {
+              "_id": "LATEPCGAAAAAAA-UHFFFAOYSA-N",
+              "_score": 5.42,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 58"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 58, Late therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Late therapy plus 58"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

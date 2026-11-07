@@ -7,8 +7,9 @@ use biomcp_types::{
     SourceState, SourceStatus,
 };
 
-/// Source rows read for one name; exact names rank first.
-const NAME_ROWS: u32 = 50;
+/// MyChem rows read per page for one name. The trial-name lookup reads one page of its scoped
+/// phrase query; a name get pages free text until a page holds an exact name.
+pub(crate) const NAME_ROWS: u32 = 50;
 /// Lookups may spend one part in this many of what is left, so the search always keeps the rest.
 const LOOKUP_SHARE: u32 = 3;
 /// Most names sent to a provider that takes one request per name, under its request pacing.

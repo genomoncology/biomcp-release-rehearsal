@@ -63,17 +63,19 @@ fn header(id: &str, rows: &[(&str, Component)]) -> Result<DrugHeader, BadReply> 
         url: Some(text(&format!("https://mychem.info/v1/chem/{id}"))?),
     })
 }
+/// One page, with whether each item's record has drug rows of its own, not only product rows.
 pub(super) fn page(
     page: Page,
     leg: &Leg<'_>,
     query: &str,
-) -> Result<crate::Mapped<DrugPage>, BadReply> {
+) -> Result<(crate::Mapped<DrugPage>, Vec<bool>), BadReply> {
     let mut problems = crate::mapped::Problems {
         source: biomcp_types::Source::Mychem,
         record: None,
         list: Vec::new(),
     };
     let mut items = Vec::new();
+    let mut drug = Vec::new();
     let mut refusals = crate::Refusal::None;
     for hit in page.hits {
         problems.record = None;
@@ -87,18 +89,21 @@ pub(super) fn page(
             continue;
         }
         let (id, _, rows) = components(hit, leg, &mut problems);
+        let rows = super::names::speaking(rows);
         let mut item = header(&id, &rows)?;
         item.matched_name = super::names::matching(&rows, query);
         items.push(item);
+        drug.push(super::names::has_drug_rows(&rows));
     }
-    Ok(crate::Mapped {
+    let page = crate::Mapped {
         refusals,
         value: DrugPage {
             items: items.into(),
             total: Some(page.total),
         },
         problems: problems.list,
-    })
+    };
+    Ok((page, drug))
 }
 pub(super) fn card(
     hit: Hit,

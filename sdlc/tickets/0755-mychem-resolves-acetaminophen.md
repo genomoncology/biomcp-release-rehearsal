@@ -1,6 +1,7 @@
 # 0755 — MyChem resolves acetaminophen
 
-Status: READY.
+Status: COMPLETE.
+Landed: eb360369e19b611a548530357bf126b156fabedf
 
 Milestone: 5
 

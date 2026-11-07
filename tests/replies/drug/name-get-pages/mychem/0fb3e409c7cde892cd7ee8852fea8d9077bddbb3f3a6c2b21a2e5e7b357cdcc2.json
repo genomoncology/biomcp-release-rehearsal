@@ -1,0 +1,874 @@
+{
+  "method": "GET",
+  "source": "mychem",
+  "url": "https://mychem.info/v1/query?q=Buried%20therapy&size=50&from=0&fields=drugbank.name%2Cdrugbank.synonyms%2Cchembl.pref_name%2Cchembl.molecule_type%2Cchembl.molecule_synonyms%2Cdrugcentral.synonyms%2Cgtopdb.name%2Cgtopdb.type%2Cgtopdb.synonyms%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname%2Copenfda.generic_name%2Copenfda.brand_name",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "took": 9,
+          "total": 1000,
+          "max_score": 30.0,
+          "hits": [
+            {
+              "_id": "BURIEDPAAAAAAA-UHFFFAOYSA-N",
+              "_score": 30.0,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 0"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 0, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 0"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPABAAAAA-UHFFFAOYSA-N",
+              "_score": 29.99,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 1"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 1, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 1"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPACAAAAA-UHFFFAOYSA-N",
+              "_score": 29.98,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 2"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 2, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 2"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPADAAAAA-UHFFFAOYSA-N",
+              "_score": 29.97,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 3"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 3, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 3"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAEAAAAA-UHFFFAOYSA-N",
+              "_score": 29.96,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 4"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 4, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 4"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAFAAAAA-UHFFFAOYSA-N",
+              "_score": 29.95,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 5"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 5, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 5"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAGAAAAA-UHFFFAOYSA-N",
+              "_score": 29.94,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 6"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 6, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 6"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAHAAAAA-UHFFFAOYSA-N",
+              "_score": 29.93,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 7"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 7, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 7"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAIAAAAA-UHFFFAOYSA-N",
+              "_score": 29.92,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 8"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 8, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 8"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAJAAAAA-UHFFFAOYSA-N",
+              "_score": 29.91,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 9"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 9, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 9"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAKAAAAA-UHFFFAOYSA-N",
+              "_score": 29.9,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 10"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 10, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 10"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPALAAAAA-UHFFFAOYSA-N",
+              "_score": 29.89,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 11"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 11, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 11"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAMAAAAA-UHFFFAOYSA-N",
+              "_score": 29.88,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 12"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 12, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 12"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPANAAAAA-UHFFFAOYSA-N",
+              "_score": 29.87,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 13"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 13, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 13"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAOAAAAA-UHFFFAOYSA-N",
+              "_score": 29.86,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 14"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 14, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 14"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAPAAAAA-UHFFFAOYSA-N",
+              "_score": 29.85,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 15"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 15, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 15"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAQAAAAA-UHFFFAOYSA-N",
+              "_score": 29.84,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 16"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 16, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 16"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPARAAAAA-UHFFFAOYSA-N",
+              "_score": 29.83,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 17"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 17, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 17"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPASAAAAA-UHFFFAOYSA-N",
+              "_score": 29.82,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 18"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 18, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 18"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPATAAAAA-UHFFFAOYSA-N",
+              "_score": 29.81,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 19"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 19, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 19"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAUAAAAA-UHFFFAOYSA-N",
+              "_score": 29.8,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 20"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 20, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 20"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAVAAAAA-UHFFFAOYSA-N",
+              "_score": 29.79,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 21"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 21, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 21"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAWAAAAA-UHFFFAOYSA-N",
+              "_score": 29.78,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 22"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 22, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 22"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAXAAAAA-UHFFFAOYSA-N",
+              "_score": 29.77,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 23"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 23, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 23"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAYAAAAA-UHFFFAOYSA-N",
+              "_score": 29.76,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 24"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 24, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 24"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPAZAAAAA-UHFFFAOYSA-N",
+              "_score": 29.75,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 25"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 25, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 25"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBAAAAAA-UHFFFAOYSA-N",
+              "_score": 29.74,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 26"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 26, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 26"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBBAAAAA-UHFFFAOYSA-N",
+              "_score": 29.73,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 27"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 27, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 27"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBCAAAAA-UHFFFAOYSA-N",
+              "_score": 29.72,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 28"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 28, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 28"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBDAAAAA-UHFFFAOYSA-N",
+              "_score": 29.71,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 29"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 29, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 29"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBEAAAAA-UHFFFAOYSA-N",
+              "_score": 29.7,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 30"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 30, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 30"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBFAAAAA-UHFFFAOYSA-N",
+              "_score": 29.69,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 31"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 31, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 31"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBGAAAAA-UHFFFAOYSA-N",
+              "_score": 29.68,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 32"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 32, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 32"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBHAAAAA-UHFFFAOYSA-N",
+              "_score": 29.67,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 33"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 33, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 33"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBIAAAAA-UHFFFAOYSA-N",
+              "_score": 29.66,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 34"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 34, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 34"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBJAAAAA-UHFFFAOYSA-N",
+              "_score": 29.65,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 35"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 35, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 35"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBKAAAAA-UHFFFAOYSA-N",
+              "_score": 29.64,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 36"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 36, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 36"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBLAAAAA-UHFFFAOYSA-N",
+              "_score": 29.63,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 37"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 37, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 37"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBMAAAAA-UHFFFAOYSA-N",
+              "_score": 29.62,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 38"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 38, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 38"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBNAAAAA-UHFFFAOYSA-N",
+              "_score": 29.61,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 39"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 39, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 39"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBOAAAAA-UHFFFAOYSA-N",
+              "_score": 29.6,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 40"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 40, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 40"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBPAAAAA-UHFFFAOYSA-N",
+              "_score": 29.59,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 41"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 41, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 41"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBQAAAAA-UHFFFAOYSA-N",
+              "_score": 29.58,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 42"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 42, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 42"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBRAAAAA-UHFFFAOYSA-N",
+              "_score": 29.57,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 43"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 43, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 43"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBSAAAAA-UHFFFAOYSA-N",
+              "_score": 29.56,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 44"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 44, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 44"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBTAAAAA-UHFFFAOYSA-N",
+              "_score": 29.55,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 45"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 45, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 45"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBUAAAAA-UHFFFAOYSA-N",
+              "_score": 29.54,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 46"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 46, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 46"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBVAAAAA-UHFFFAOYSA-N",
+              "_score": 29.53,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 47"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 47, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 47"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBWAAAAA-UHFFFAOYSA-N",
+              "_score": 29.52,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 48"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 48, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 48"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPBXAAAAA-UHFFFAOYSA-N",
+              "_score": 29.51,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 49"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 49, Buried therapy",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Buried therapy plus 49"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
