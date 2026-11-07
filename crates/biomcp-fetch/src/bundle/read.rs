@@ -61,6 +61,9 @@ impl Leg<'_> {
             .is_some_and(|names| !names.contains(bundle.name));
         let forced = replay || force_fresh || matches!(self.fetch.mode, Mode::Record { .. });
         let background = old.is_some() && !fresh && !forced && self.background_read(bundle);
+        if background {
+            self.past_refresh(old.as_ref().and_then(|meta| meta.retrieved_at));
+        }
         if !offline && !background && (!fresh || forced) {
             match self.sync_for_read(bundle) {
                 Ok(_) => {
@@ -95,10 +98,7 @@ impl Leg<'_> {
             );
         }
         if offline && !fresh {
-            self.report
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .stale = true;
+            self.past_refresh(old.as_ref().and_then(|meta| meta.retrieved_at));
         }
         let rows = cache.bundle_rows(bundle.name, find, self.budget())?;
         let rows = decode(rows)?;
@@ -122,10 +122,7 @@ impl Leg<'_> {
                     && (!self.fresh || meta.fresh_until > crate::cache::now())
                 {
                     if meta.fresh_until <= crate::cache::now() {
-                        self.report
-                            .lock()
-                            .unwrap_or_else(std::sync::PoisonError::into_inner)
-                            .stale = true;
+                        self.past_refresh(meta.retrieved_at);
                     }
                     return Ok(store::info(bundle, &meta));
                 }
@@ -205,10 +202,7 @@ impl Leg<'_> {
             snapshot.ok_or_else(|| self.failure(biomcp_types::Reason::Syncing, None))?;
         let rows = decode(rows)?;
         if meta.fresh_until <= crate::cache::now() {
-            self.report
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .stale = true;
+            self.past_refresh(meta.retrieved_at);
         }
         let mut info = store::info(bundle, &meta);
         info.data_date = data_date::<R>(sample)?;

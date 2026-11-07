@@ -20,5 +20,8 @@
         "/page/returned": 1
       }
     }
-  ]
+  ],
+  "config": {
+    "source_data_max_age_days": 365
+  }
 }

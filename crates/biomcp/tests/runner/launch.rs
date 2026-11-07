@@ -40,6 +40,10 @@ impl Environment {
         fs::create_dir_all(&directory)?;
         fs::write(directory.join("config.json"), serde_json::to_vec(value)?)
     }
+    /// Write a case's configuration with its publisher dataset age limit pinned.
+    pub(super) fn case_config(&self, case: &super::case_data::Case) -> io::Result<()> {
+        self.config(&case_config(case))
+    }
     pub(super) fn globals(&self, replay: Option<&Path>, offline: bool) -> Vec<String> {
         if offline {
             vec![
@@ -192,4 +196,15 @@ tool_only! {
 pub(super) fn typed_baseline() -> Option<std::path::PathBuf> {
     std::env::var_os("BIOMCP_TYPED_BASELINE").map(std::path::PathBuf::from)
 }
+}
+
+/// A case's configuration with the publisher dataset age limit pinned, so a
+/// fixture's date never turns old as the calendar moves. Age cases set their own.
+pub(super) fn case_config(case: &super::case_data::Case) -> serde_json::Value {
+    let mut config = case.config.clone().unwrap_or_else(|| serde_json::json!({}));
+    if let Some(map) = config.as_object_mut() {
+        map.entry("source_data_max_age_days")
+            .or_insert_with(|| serde_json::Value::from(1_000_000));
+    }
+    config
 }

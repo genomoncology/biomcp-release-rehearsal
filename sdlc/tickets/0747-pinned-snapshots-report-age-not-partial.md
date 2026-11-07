@@ -1,6 +1,7 @@
 # 0747 — Pinned snapshots report age, not partial
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a4c1508a45edc760d2a97fc968b17da0ea7fe6ef
 
 Milestone: 5
 

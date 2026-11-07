@@ -24,6 +24,7 @@ pub(super) fn trials() -> Vec<Trial> {
                 read(missing).map_err(Into::into)
             })
         })
+        .chain(super::bundle_pinned::trials())
         .collect()
 }
 fn read(missing: bool) -> Result<(), String> {

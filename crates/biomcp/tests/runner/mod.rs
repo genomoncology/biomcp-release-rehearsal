@@ -32,6 +32,7 @@ use crate::runner::transcript::trial as transcript_trial;
 use execution::run_step;
 mod alphagenome;
 mod alphagenome_tls;
+mod bundle_pinned;
 mod bundle_refresh;
 mod bundle_sync;
 mod bundle_wait;
@@ -230,11 +231,9 @@ fn run_case_owned(
     if let Some(owner) = replay_owner {
         environment = environment.with_replay_owner(owner);
     }
-    if let Some(config) = &case.config {
-        environment
-            .config(config)
-            .map_err(|error| error.to_string())?;
-    }
+    environment
+        .case_config(&case)
+        .map_err(|error| error.to_string())?;
     let replay = response_cases::replay(&environment, case.replay.as_deref(), case.cache_acquired)?;
     let mut previous = None;
     for (index, (step, expectations)) in case.steps.iter().zip(&expectations).enumerate() {

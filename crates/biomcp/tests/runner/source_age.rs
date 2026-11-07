@@ -106,7 +106,11 @@ fn hosted() -> Check {
         false,
         &globals,
     )?;
-    recovery(&reply)?;
+    // A hosted pinned snapshot answers complete and states the local copy's date.
+    recovery(&reply, "ok")?;
+    if !reply.to_string().contains("Local copy retrieved ") {
+        return Err(format!("hosted reply omits the local copy date: {reply}"));
+    }
     globals.pop();
     let server = Server::configured_globals("127.0.0.1:0", None, None, None, None, &globals)?;
     let frame = mcp::request(
@@ -119,11 +123,12 @@ fn hosted() -> Check {
         ordinary
             .pointer("/result/structuredContent")
             .ok_or("HTTP source reply missing")?,
+        "stale",
     )
 }
-fn recovery(reply: &Value) -> Check {
-    if reply.pointer("/sources/0/state") != Some(&json!("stale")) {
-        return Err(format!("expected stale retained EMA: {reply}"));
+fn recovery(reply: &Value, state: &str) -> Check {
+    if reply.pointer("/sources/0/state") != Some(&json!(state)) {
+        return Err(format!("expected {state} retained EMA: {reply}"));
     }
     dated_notice(reply)?;
     if reply

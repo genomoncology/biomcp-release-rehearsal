@@ -10,10 +10,6 @@ impl Leg<'_> {
         {
             return false;
         }
-        self.report
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .stale = true;
         self.refresh_in_background(bundle);
         true
     }

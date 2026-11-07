@@ -15,6 +15,33 @@ impl Leg<'_> {
             report.data_notices.push(notice);
         }
     }
+    /// Report a validated local copy past its refresh date.
+    /// A hosted server serves a pinned snapshot its callers cannot refresh, so the
+    /// reply stays complete and states the copy's date. Elsewhere it stays partial.
+    pub(crate) fn past_refresh(&self, retrieved_at: Option<i64>) {
+        let mut report = self
+            .report
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if !self.fetch.hosted {
+            report.stale = true;
+            return;
+        }
+        let retrieved = retrieved_at
+            .and_then(utc_date)
+            .unwrap_or_else(|| "on an unknown date".into());
+        let notice = SourceNotice::RequestGuidance {
+            data_date: None,
+            message: format!(
+                "Local copy retrieved {retrieved}, past its refresh date. This hosted server answers from that copy."
+            )
+            .into(),
+            retry_after_seconds: None,
+        };
+        if !report.data_notices.contains(&notice) {
+            report.data_notices.push(notice);
+        }
+    }
 }
 
 impl Fetch {
@@ -86,6 +113,23 @@ fn day(value: &str) -> Option<i64> {
         era * 146_097 + year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year
             - 719_468,
     )
+}
+
+// Unix days to a Gregorian civil date, the inverse of `day`.
+fn utc_date(seconds: i64) -> Option<String> {
+    let days = seconds.div_euclid(86_400) + 719_468;
+    let era = days.div_euclid(146_097);
+    let day_of_era = days - era * 146_097;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let month = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * month + 2) / 5 + 1;
+    let month = if month < 10 { month + 3 } else { month - 9 };
+    let year = year_of_era + era * 400 + i64::from(month <= 2);
+    (0..=9999)
+        .contains(&year)
+        .then(|| format!("{year:04}-{month:02}-{day:02}"))
 }
 
 #[cfg(test)]
