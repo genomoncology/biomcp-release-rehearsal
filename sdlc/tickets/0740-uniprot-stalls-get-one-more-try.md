@@ -36,3 +36,7 @@ Milestone: 5
 
 - Depends on: 0736.
 - 2026-11-07 next: Allowance stop. Branch ticket/0740-uniprot-stalls-get-one-more-try at 3f279bf68; j34537 passed. Next: 12 live tries each way, keeping the first request open; close with the measurement if no gain. Remove the other 0740 branch on origin before landing; land refuses two.
+
+## Amendment, 2026-11-07
+
+Review note: a losing request may keep its connection open after the winner returns, for at most the time left in the 15-second budget, and its quota slot is already released. On a long-lived server the number of requests in flight to UniProt can briefly exceed its quota of two. The one-shot CLI is unaffected. Accepted for 1.0 as bounded.
