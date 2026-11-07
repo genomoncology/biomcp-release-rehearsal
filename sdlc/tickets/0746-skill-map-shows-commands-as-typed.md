@@ -35,3 +35,7 @@ An outside agent test read the map's `article: ...get,search` entry as entity fi
 ## Depends on
 
 - Depends on: nothing.
+
+## Amendment, 2026-11-07
+
+Word order is now the CLI's most common failure in an outside agent test, with three failed `biomcp variant get` calls in one run. The refusal for an entity-first command also names the right command, such as `biomcp get variant`, in one line, on both the CLI and MCP. The grammar still accepts one order. Proof adds a case for each entity-first form the map could suggest.
