@@ -174,3 +174,15 @@ Open with Ian: whether "support API keys" keeps OncoKB and AlphaGenome off at `r
 - Run Make goals as `sh scripts/make_goal.sh`, because the file is not executable.
 - Merges with source age need `data_date: None` in new `RequestGuidance` and `SyncResult`, and `regulatory_context: None` in new `DrugIndications` constructors.
 - 0722's committed probe is unrun, and it goes away with the tooling drop.
+
+## Order from here, 2026-11-07
+
+Any agent on any harness can resume from this list and `pm lanes`.
+
+1. Hosting batch: `pm ticket land 0722 0710 0689 0717 0691 0727`, in that order. Each is accepted at its branch tip. Then send hosting, through Jarvis, the commit, the final tool list and these notes: the new `x-biomcp-exclude-sources` header and its 400 refusal, the new `drug-name-search` notice, `exact_term`, `drug_search_name_limit`, an error `option` field that may hold a list, a blocked study read that is not `isError`, and a partial search that writes a new pool on each call. Deployment waits for Ian, who tests on AWS himself.
+2. Practice release: read the result of run 42336186380. On a failure, fix only that part. Start the next run only after 0696 and 0697 land, because 0697 raises the limits to 180 minutes and adds the `staged-payload` job.
+3. Small batch, each with a fresh review, then one landing: 0696, 0697, 0711, 0744, 0740, 0641, 0670, 0746.
+4. Stack B: merge 0718, 0693 and 0726 on the landed hosting batch, run one combined job, review each, land.
+5. Bench scored build, after step 1: check no store, namespace or pin change, then tell the bench through Jarvis, naming the commit.
+6. The rest: 0649, 0725, 0724, 0723, 0676, 0714, 0735, 0737, 0739, 0741, 0743, 0745, then 0715 last.
+7. 0640 preflight on one main commit, and 0694 closes with the installed result from a practice run. Then source evaluation with Ian. Ian decides on 0294 and 0401.
