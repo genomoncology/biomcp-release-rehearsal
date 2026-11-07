@@ -88,10 +88,7 @@ macro_rules! reply {
 #[derive(Deserialize)]
 #[serde(transparent)]
 pub(super) struct Mutations(pub Vec<super::scope::Row<Mutation, super::scope::Mutation>>);
-#[derive(Deserialize)]
-#[serde(transparent)]
-pub(super) struct SampleLists(pub Vec<SampleList>);
-reply!(Study, Profile, SampleLists, Mutations);
+reply!(Study, Profile, SampleList, Mutations);
 
 impl Mutations {
     pub(super) fn identities_admitted(&self) -> bool {

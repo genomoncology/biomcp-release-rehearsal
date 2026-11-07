@@ -14,6 +14,10 @@ pub struct VariantAssertionsGet(Fields<AssertionId>);
 struct Fields<I = Text> {
     /// Supported variant ID; resolves one ClinVar Variation ID or ERepo CAid through the shared resolver.
     #[cfg_attr(feature="schema",schemars(extend("x-positional"=0)))]
+    #[cfg_attr(
+        feature = "schema",
+        schemars(with = "super::variant_input::LookupInput")
+    )]
     input: VariantInput,
     /// One native assertion source; shared identity conversion precedes source access when needed.
     source: AssertionSource,

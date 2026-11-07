@@ -24,6 +24,10 @@ struct Fields<R: ResolverChoice = VariantResolver> {
     #[doc = "rs/CA/clinvar:N/VCV/HGVS/VCF\n\
         rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS or VCF-style genomic coordinates."]
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
+    #[cfg_attr(
+        feature = "schema",
+        schemars(with = "super::variant_input::LookupInput")
+    )]
     input: VariantInput,
     /// Named source sections; omitted by default. Each calls its own source. all keeps bounded pages and source skips; it never enables a missing key.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]

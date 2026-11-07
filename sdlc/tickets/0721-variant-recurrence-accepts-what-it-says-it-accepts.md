@@ -1,6 +1,7 @@
 # 0721 — Variant recurrence accepts what it says it accepts
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: e6d1549c30a75a26973019fd222b43c7ca122539
 
 Milestone: 5
 

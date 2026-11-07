@@ -26,7 +26,7 @@ A checked member match preserves the full compound profile and its source claim 
 
 ## Cohort recurrence
 
-The result counts distinct matched samples on that page. `selected_sample_count` is the source sample-list size and supplies no assayed denominator. The source may omit that count from its summary metadata. Missing genome builds and uncertain insertion or deletion representations remain problems. The reply preserves study metadata and the reviewed ODbL terms, including the warning that individual studies may restrict commercial use.
+The result counts distinct matched samples on that page. The default page of 5,000 source rows reads a common variant's whole cohort in one call. When `all_pages_read` is true, `observed_sample_count` beside `selected_sample_count` is the cohort mutation frequency. BioMCP computes no percentage, because `selected_sample_count` is the source sample-list size and that list is not always the set assayed for the gene. A larger cohort reports `more` and a next step; add the counts across pages yourself. A missing source count stays missing and is reported as a problem. Missing genome builds and uncertain insertion or deletion representations remain problems. The reply preserves study metadata and the reviewed ODbL terms, including the warning that individual studies may restrict commercial use.
 
 ## Historical COSMIC fragments
 

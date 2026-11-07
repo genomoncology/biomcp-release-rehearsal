@@ -58,7 +58,7 @@
         "/status": "failed",
         "/problems/*/field": {
           "includes_all_of": [
-            "input: requires one exact source-qualified allele (CAid or reference-qualified genomic HGVS) with the source's required annotations; convert with get variant <ID> and select an exact candidate"
+            "input: requires one unique source-qualified genomic replacement with nonempty reference and alternate alleles (pure insertions and deletions are unavailable); convert with get variant <ID> and select an exact candidate"
           ]
         }
       }

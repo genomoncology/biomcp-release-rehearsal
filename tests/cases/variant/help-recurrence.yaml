@@ -33,7 +33,7 @@
         "/result/terms/unverified": false,
         "/result/study/description": "Synthetic notice: commercial reuse requires separate permission",
         "/result/matching_granularity": "exact-genomic-allele",
-        "/problems/0/field": "sample_set.selected_sample_count"
+        "/result/selected_sample_count": 1234
       }
     }
   ]

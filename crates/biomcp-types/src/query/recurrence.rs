@@ -10,8 +10,13 @@ pub struct VariantRecurrenceQuery(Fields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct Fields {
-    /// Published variant identity; ambiguous identities are never selected silently.
+    /// Variant identity accepted by the recurrence comparison.
     #[cfg_attr(feature = "schema", schemars(extend("x-positional" = 0)))]
+    #[cfg_attr(
+        feature = "schema",
+        schemars(with = "super::variant_input::RecurrenceInput")
+    )]
+    #[cfg_attr(feature = "schema", schemars(extend("description" = format!("Variant identity resolving to {}.", VariantRecurrenceQuery::INPUT_REQUIREMENT))))]
     input: VariantInput,
     /// Explicit cohort source.
     source: RecurrenceSource,
@@ -28,21 +33,25 @@ struct Fields {
     sample_set: Text,
     /// Source mutation rows per page, including excluded alleles.
     #[serde(default = "limit")]
-    #[cfg_attr(feature = "schema", schemars(range(min = 1, max = 100)))]
+    #[cfg_attr(feature = "schema", schemars(range(min = 1, max = VariantRecurrenceQuery::MAX_LIMIT)))]
     limit: u32,
     /// Zero-based native source page.
     #[serde(default)]
     page: u32,
 }
 fn limit() -> u32 {
-    10
+    VariantRecurrenceQuery::MAX_LIMIT
 }
 crate::query::validation::checked_query!(VariantRecurrenceQuery, Fields);
 impl TryFrom<Fields> for VariantRecurrenceQuery {
     type Error = super::gene::QueryInvalid;
     fn try_from(v: Fields) -> Result<Self, Self::Error> {
-        crate::VariantGet::new(v.input.clone(), crate::VariantResolver::Car, v.build)?;
-        if !(1..=100).contains(&v.limit) {
+        crate::VariantGet::new(
+            v.input.clone(),
+            crate::VariantResolver::Car,
+            Some(identity_build(v.build)),
+        )?;
+        if !(1..=Self::MAX_LIMIT).contains(&v.limit) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
         }
         if v.page.checked_mul(v.limit).is_none() {
@@ -63,13 +72,20 @@ impl TryFrom<Fields> for VariantRecurrenceQuery {
     }
 }
 impl VariantRecurrenceQuery {
+    /// Default and largest source page: one call reads a common variant's whole cohort.
+    pub const MAX_LIMIT: u32 = 5_000;
+    /// Source evidence required for exact recurrence matching and its public guidance.
+    pub const INPUT_REQUIREMENT: &str = concat!(
+        "one unique source-qualified genomic replacement with nonempty reference and alternate alleles ",
+        "(pure insertions and deletions are unavailable)"
+    );
     /// Unchanged variant identifier.
     pub fn input(&self) -> &VariantInput {
         &self.0.input
     }
-    /// Caller assembly for identity resolution.
+    /// Effective identity assembly, including the shared default.
     pub fn build(&self) -> Option<crate::Build> {
-        self.0.build
+        Some(identity_build(self.0.build))
     }
     /// Caller-selected gene symbol.
     pub fn gene(&self) -> &GeneSymbol {
@@ -109,4 +125,8 @@ biodata::wire_enum! {
         /// Public cBioPortal mutation rows.
         Cbioportal => "cbioportal",
     }
+}
+
+fn identity_build(build: Option<crate::Build>) -> crate::Build {
+    build.unwrap_or(crate::VariantGet::DEFAULT_BUILD)
 }

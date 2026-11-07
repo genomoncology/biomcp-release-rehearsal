@@ -39,6 +39,13 @@ impl VariantInput {
 
     /// Maximum bytes in one published identifier.
     pub const MAX_BYTES: usize = 2048;
+    /// Resolver forms shared by schema descriptions and recurrence guidance.
+    pub const FORMS: &str = concat!(
+        "Accepted forms: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS, ",
+        "chromosome genomic HGVS, or VCF-style chromosome-position-reference-alternate coordinates"
+    );
+    /// Shared assembly and reference-validation guidance for variant input schemas.
+    pub const ASSEMBLY: &str = "defaulting to GRCh38. Reference bases are validated by the source.";
     /// Check the identifier spelling and canonicalize the ClinVar namespace prefix.
     pub fn new(value: &str) -> Result<Self, Error> {
         let value = if value
@@ -301,16 +308,81 @@ impl fmt::Display for VariantInput {
 text_value!(
     VariantInput,
     "VariantInput",
-    format!(
-        "^(?=[\\x21-\\x7e]{{1,{}}}$)({}|{}|{}|{}|{})",
-        Self::MAX_BYTES,
-        crate::VariantId::pattern().replace("clinvar:", "[cC][lL][iI][nN][vV][aA][rR]:"),
+    Self::schema_pattern(
+        crate::VariantId::pattern(),
         crate::HgvsText::pattern(),
-        biodata::ClinVarVariationId::pattern().replace("clinvar:", ""),
-        Self::CHROMOSOME_PATTERN,
-        Self::COORDINATE_PATTERN
+        biodata::ClinVarVariationId::pattern()
     ),
-    "Accepted forms: rsID, CAid, clinvar:N, VCV accession, reference-qualified HGVS, chromosome genomic HGVS, \
-    or VCF-style chromosome-position-reference-alternate coordinates (SNVs, deletions, insertions and delins), \
-    defaulting to GRCh38. Reference bases are validated by the source."
+    format!(
+        "{} (SNVs, deletions, insertions and delins), {}",
+        Self::FORMS,
+        Self::ASSEMBLY
+    )
 );
+
+impl VariantInput {
+    /// Combine source-owned schema domains with the shared spelling and length bounds.
+    pub fn schema_pattern(identifiers: String, hgvs: String, variation: String) -> String {
+        format!(
+            "^(?=[\\x21-\\x7e]{{1,{}}}$)({}|{}|{}|{}|{})",
+            Self::MAX_BYTES,
+            identifiers.replace("clinvar:", "[cC][lL][iI][nN][vV][aA][rR]:"),
+            hgvs,
+            variation.replace("clinvar:", ""),
+            Self::CHROMOSOME_PATTERN,
+            Self::COORDINATE_PATTERN
+        )
+    }
+}
+/// Command input domains routed by the shared variant resolver. Source identities retain their full vocabulary.
+#[cfg(feature = "schema")]
+pub(super) struct LookupInput;
+#[cfg(feature = "schema")]
+impl schemars::JsonSchema for LookupInput {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "VariantLookupInput".into()
+    }
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let mut schema = VariantInput::json_schema(generator);
+        schema.insert(
+            "pattern".into(),
+            VariantInput::schema_pattern(
+                format!(
+                    "({}|{}|{}|{})",
+                    biodata::RsId::pattern(),
+                    biodata::CaId::pattern(),
+                    biodata::ClinVarVariationId::pattern(),
+                    biodata::VcvId::pattern()
+                ),
+                crate::HgvsText::pattern(),
+                biodata::ClinVarVariationId::pattern(),
+            )
+            .into(),
+        );
+        schema
+    }
+}
+
+/// Recurrence shares routed forms and advertises only its supported allele comparison.
+#[cfg(feature = "schema")]
+pub(super) struct RecurrenceInput;
+#[cfg(feature = "schema")]
+impl schemars::JsonSchema for RecurrenceInput {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "RecurrenceInput".into()
+    }
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let mut schema = LookupInput::json_schema(generator);
+        schema.insert(
+            "description".into(),
+            format!(
+                "{}, {} Requires {}.",
+                VariantInput::FORMS,
+                VariantInput::ASSEMBLY,
+                crate::VariantRecurrenceQuery::INPUT_REQUIREMENT
+            )
+            .into(),
+        );
+        schema
+    }
+}

@@ -190,6 +190,7 @@ pub(super) fn missing(source: Source) -> Problem {
         Source::ClinVar => "one clinvar:N or VCV accession",
         Source::Erepo | Source::Civic => "one CAid",
         Source::Gwas => "one rsID",
+        Source::Cbioportal => biomcp_types::VariantRecurrenceQuery::INPUT_REQUIREMENT,
         Source::Gnomad => {
             return Problem {
                 source,

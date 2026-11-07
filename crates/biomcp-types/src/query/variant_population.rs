@@ -19,6 +19,10 @@ pub struct VariantPopulationQuery(Fields);
 struct Fields<R: ResolverChoice = VariantResolver> {
     /// Exact published allele identity; ambiguous candidates must first be selected.
     #[cfg_attr(feature="schema",schemars(extend("x-positional"=0)))]
+    #[cfg_attr(
+        feature = "schema",
+        schemars(with = "super::variant_input::LookupInput")
+    )]
     input: VariantInput,
     /// Resolver for reference-qualified input.
     #[serde(

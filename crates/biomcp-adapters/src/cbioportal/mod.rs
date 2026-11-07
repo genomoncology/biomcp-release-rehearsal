@@ -181,73 +181,43 @@ pub fn mutations(
     })
 }
 
-// This bounds metadata discovery, never mutation-cohort traversal.
-const LIST_PAGE_SIZE: u64 = 50;
-const LIST_PAGES: u64 = 3;
+/// Largest public list measured, 1,086,826 bytes for 54,331 members, plus fifteen percent, rounded upward.
+const MAX_SAMPLE_LIST_BYTES: u64 = 1_249_850;
+/// The source states a list's size only on its detailed record, whose member IDs are dropped at parse.
+/// A study's lists together outgrow any fixed bound on large studies, so this reads the selected list alone.
 fn sample_count(
     leg: &Leg<'_>,
     query: &VariantRecurrenceQuery,
 ) -> Result<crate::Mapped<Option<u64>>, RequestError> {
     let endpoint = SPEC
-        .get("/studies")
-        .with_segments(&[
-            PathSegment::new(query.study().as_str())?,
-            PathSegment::new("sample-lists")?,
-        ])
-        .fresh(Freshness::Days(1));
-    for page in 0..LIST_PAGES {
-        let params = [
-            ("projection", Arg::Text("SUMMARY")),
-            ("pageSize", Arg::Num(LIST_PAGE_SIZE)),
-            ("pageNumber", Arg::Num(page)),
-            ("sortBy", Arg::Text("sampleListId")),
-            ("direction", Arg::Text("ASC")),
-        ];
-        let (lists, _) = leg
-            .call(
-                &endpoint,
-                Input::Params(&params),
-                Read::<raw::SampleLists>::json().check(&|v| {
-                    if v.0.len() <= LIST_PAGE_SIZE as usize
-                        && v.0.iter().all(|l| l.study_id == *query.study())
-                    {
-                        Ok(())
-                    } else {
-                        Err(BadReply)
-                    }
-                }),
-            )
-            .map(|received| (received.value, received.meta))?;
-        let count = lists.0.len();
-        if let Some(list) = lists
-            .0
-            .into_iter()
-            .find(|l| l.sample_list_id == *query.sample_set())
-        {
-            let mut problems = crate::mapped::Problems {
-                source: Source::Cbioportal,
-                record: Some(list.sample_list_id),
-                list: Vec::new(),
-            };
-            let value = problems.field("sampleCount", list.sample_count);
-            return Ok(crate::Mapped {
-                refusals: crate::Refusal::None,
-                value,
-                problems: problems.list,
-            });
-        }
-        if count < LIST_PAGE_SIZE as usize {
-            break;
-        }
-    }
-    Err(biomcp_fetch::SourceError {
+        .get("/sample-lists")
+        .with_segments(&[PathSegment::new(query.sample_set().as_str())?])
+        .fresh(Freshness::Days(1))
+        .bytes(MAX_SAMPLE_LIST_BYTES);
+    let (list, _) = leg
+        .call(
+            &endpoint,
+            Input::Params(&[]),
+            Read::<raw::SampleList>::json().check(&|v| {
+                if v.study_id == *query.study() && v.sample_list_id == *query.sample_set() {
+                    Ok(())
+                } else {
+                    Err(BadReply)
+                }
+            }),
+        )
+        .map(|received| (received.value, received.meta))?;
+    let mut problems = crate::mapped::Problems {
         source: Source::Cbioportal,
-        reason: biomcp_types::Reason::Unavailable,
-        status: None,
-        tls_cause: None,
-        retry_after: None,
-    }
-    .into())
+        record: Some(list.sample_list_id),
+        list: Vec::new(),
+    };
+    let value = problems.field("sampleCount", list.sample_count);
+    Ok(crate::Mapped {
+        refusals: crate::Refusal::None,
+        value,
+        problems: problems.list,
+    })
 }
 
 /// Stored public catalog metadata.

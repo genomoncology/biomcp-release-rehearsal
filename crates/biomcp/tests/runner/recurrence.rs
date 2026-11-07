@@ -1,5 +1,7 @@
 //! Explicit cohort bounds cross the executable and TLS; no clinical interpretation.
 mod admission;
+mod cohort;
+mod forms;
 use super::{launch::Environment, network_stub::Stub};
 use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
@@ -13,6 +15,14 @@ pub(super) fn trials() -> Vec<Trial> {
     trials.push(transcript_trial(
         "variant-recurrence/mutations-cache-admission",
         || admission::check().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "variant-recurrence/accepted-forms-across-surfaces",
+        || forms::check().map_err(Into::into),
+    ));
+    trials.push(transcript_trial(
+        "variant-recurrence/whole-cohort-counts",
+        || cohort::check().map_err(Into::into),
     ));
     trials
 }
@@ -158,8 +168,8 @@ pub(super) fn cbio(request: &str) -> Result<String, String> {
     if request.contains("hgnc_complete_set") {
         return hgnc(request);
     }
-    Ok(if request.contains("/sample-lists?") {
-        json!([{"studyId":"msk_impact_2017","sampleListId":"msk_impact_2017_all","sampleCount":100}])
+    Ok(if request.starts_with("GET /api/sample-lists/") {
+        json!({"studyId":"msk_impact_2017","sampleListId":"msk_impact_2017_all","sampleCount":100})
     } else if request.starts_with("GET /api/studies/") {
         json!({"studyId":"msk_impact_2017",
 "name":"Synthetic cohort",

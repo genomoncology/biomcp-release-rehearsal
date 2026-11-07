@@ -1,0 +1,26 @@
+{
+  "method": "GET",
+  "source": "cbioportal",
+  "url": "https://www.cbioportal.org/api/sample-lists/msk_impact_2017_all",
+  "exchanges": [
+    {
+      "fetched": 1792870987,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 138,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "sampleListId": "msk_impact_2017_all",
+          "studyId": "msk_impact_2017",
+          "category": "all_cases_in_study",
+          "name": "Synthetic list",
+          "description": "Synthetic list",
+          "sampleCount": 1234,
+          "sampleIds": []
+        }
+      }
+    }
+  ]
+}
