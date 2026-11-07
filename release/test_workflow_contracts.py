@@ -87,6 +87,20 @@ class HostedWorkflow(unittest.TestCase):
         self.assertIn('os: macos-15\n            platform: macosx_11_0_arm64', workflow)
         self.assertIn('channel: homebrew\n            os: macos-15\n', workflow)
 
+    def test_every_python_check_follows_setup_python_under_the_same_condition(self):
+        for path in sorted(Path('.github/workflows').glob('*.yml')):
+            jobs = re.split(r'\n  (?=[a-z][a-z-]*:\n)', path.read_text().split('\njobs:\n')[1])
+            for job in jobs:
+                steps = job.split('\n      - ')
+                for i, step in enumerate(steps):
+                    if 'toolchain.py python-check' not in step:
+                        continue
+                    setups = [s for s in steps[:i] if s.startswith('uses: actions/setup-python@')]
+                    self.assertTrue(setups, f'{path} job {job.splitlines()[0]} runs python-check without setup-python')
+                    condition = lambda text: re.findall(r'^\s+if: (.*)$', text, re.M)
+                    self.assertEqual(condition(setups[-1]), condition(step),
+                                     f'{path} job {job.splitlines()[0]} setup-python condition differs from python-check')
+
     def test_release_has_no_environment_inspection_or_manual_pause(self):
         workflow = Path('.github/workflows/release.yml').read_text()
         self.assertNotIn('release/workflow.py protection', workflow)

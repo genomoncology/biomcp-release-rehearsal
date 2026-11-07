@@ -1,6 +1,7 @@
 # 0762 — Release Linux job installs pinned Python
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a9e03838c9699fff5730b2ee6fd9cfbd991040fa
 
 Milestone: 5
 

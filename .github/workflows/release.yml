@@ -107,7 +107,7 @@ jobs:
           BOOTSTRAP_PYTHON: ${{ runner.os == 'Windows' && 'python' || 'python3' }}
         run: '"$BOOTSTRAP_PYTHON" release/toolchain.py outputs >> "$GITHUB_OUTPUT"'
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
-        if: runner.os != 'Linux'
+        if: runner.os != 'Linux' || matrix.platform == 'manylinux_2_28_x86_64'
         with:
           python-version: ${{ steps.tools.outputs.python }}
       - name: Install the pinned Rust toolchain
