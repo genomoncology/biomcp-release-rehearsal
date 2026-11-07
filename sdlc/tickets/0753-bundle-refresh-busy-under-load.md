@@ -1,6 +1,7 @@
 # 0753 — Bundle refresh stays out of busy under load
 
-Status: READY.
+Status: COMPLETE.
+Landed: 6ca09e4feff0327d78641b7c5af66ef9e95e4d19
 
 Milestone: 5
 

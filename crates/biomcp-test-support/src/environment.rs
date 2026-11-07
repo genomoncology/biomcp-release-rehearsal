@@ -30,7 +30,12 @@ pub fn command(program: &Path, root: &Path, args: &[String]) -> Command {
         .envs(ENV_PATHS.iter().map(|(key, path)| (key, root.join(path))))
         .current_dir(root);
     // Winsock needs SystemRoot. Child-only product coverage uses the parent's profile pattern.
-    for name in ["SystemRoot", "LLVM_PROFILE_FILE"] {
+    // The load test's SQLite notes come from the product child, not the test runner.
+    for name in [
+        "SystemRoot",
+        "LLVM_PROFILE_FILE",
+        "BIOMCP_SQLITE_DIAGNOSTICS",
+    ] {
         if let Some(value) = std::env::var_os(name) {
             command.env(name, value);
         }
