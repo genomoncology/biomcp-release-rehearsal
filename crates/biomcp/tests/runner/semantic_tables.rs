@@ -204,7 +204,7 @@ fn titleless_dois() -> Check {
                 }
             }
         },
-        json!({"/result/items/2/pmid":"32955176", "/result/items/2/contexts/total":0}),
+        json!({"/result/items/2/pmid":"99100144", "/result/items/2/contexts/total":0}),
         0,
     )
 }

@@ -1,0 +1,1316 @@
+{
+  "method": "POST",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+  "post": {
+    "request_content_type": "application/x-www-form-urlencoded",
+    "request_body_sha256": "d161ff46b6c96e9af2c1239273209107f361bb5ef35c979b5d75aa3789da737a"
+  },
+  "exchanges": [
+    {
+      "fetched": 1792854326,
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "delay_ms": 218,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "header": {
+            "type": "esummary",
+            "version": "0.3"
+          },
+          "result": {
+            "uids": [
+              "99100017",
+              "99100018",
+              "99100020",
+              "99100021",
+              "99100022",
+              "99100023",
+              "99100024",
+              "99100025",
+              "99100026",
+              "99100027"
+            ],
+            "99100017": {
+              "uid": "99100017",
+              "pubdate": "2004 May 14",
+              "epubdate": "2004 Mar 1",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A2",
+              "title": "Synthetic edge summary 99100017.",
+              "sorttitle": "synthetic edge summary 99100017",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, Non-U.S. Gov't",
+                "Research Support, U.S. Gov't, P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100017"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.88"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100017"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2004/03/03 05:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2004/07/22 05:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2004/03/03 05:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2004/05/14 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100018": {
+              "uid": "99100018",
+              "pubdate": "2004 Mar",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A3",
+              "title": "Synthetic edge summary 99100018.",
+              "sorttitle": "synthetic edge summary 99100018",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Review"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100018"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100018"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100018;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.90"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100018"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2004/04/20 05:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2004/05/01 05:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2004/04/20 05:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2005/03/05 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 54,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2004/03/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100020": {
+              "uid": "99100020",
+              "pubdate": "2004 May 1",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A5",
+              "title": "Synthetic edge summary 99100020.",
+              "sorttitle": "synthetic edge summary 99100020",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, Non-U.S. Gov't",
+                "Research Support, U.S. Gov't, P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100020"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.89"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2004/05/06 05:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2004/06/24 05:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2004/05/06 05:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2004/05/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100021": {
+              "uid": "99100021",
+              "pubdate": "2004 Aug",
+              "epubdate": "2004 Aug 7",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A5",
+              "title": "Synthetic edge summary 99100021.",
+              "sorttitle": "synthetic edge summary 99100021",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, Non-U.S. Gov't"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100021"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100021"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2004/07/29 05:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2005/10/05 09:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2004/07/29 05:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2004/08/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100022": {
+              "uid": "99100022",
+              "pubdate": "2004 Aug",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A5",
+              "title": "Synthetic edge summary 99100022.",
+              "sorttitle": "synthetic edge summary 99100022",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, U.S. Gov't, P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100022"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.86"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100022"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2004/08/18 05:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2004/09/11 05:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2004/08/18 05:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2004/08/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100023": {
+              "uid": "99100023",
+              "pubdate": "2005 Apr 1",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A13",
+              "title": "Synthetic edge summary 99100023.",
+              "sorttitle": "synthetic edge summary 99100023",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, Non-U.S. Gov't",
+                "Research Support, U.S. Gov't, P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100023"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.85"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100023"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2005/04/05 09:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2005/05/27 09:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2005/04/05 09:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2005/04/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100024": {
+              "uid": "99100024",
+              "pubdate": "2005 Jul 18",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A6",
+              "title": "Synthetic edge summary 99100024.",
+              "sorttitle": "synthetic edge summary 99100024",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, N.I.H., Extramural",
+                "Research Support, Non-U.S. Gov't",
+                "Research Support, U.S. Gov't, P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100024"
+                },
+                {
+                  "idtype": "mid",
+                  "idtypen": 8,
+                  "value": "synthetic-99100024"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100024"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100024;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.84"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100024"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2005/03/25 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2005/06/03 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2005/06/05 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2005/07/06 09:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2005/09/01 09:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2005/07/06 09:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2008/01/25 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 53,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2005/07/18 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100025": {
+              "uid": "99100025",
+              "pubdate": "2005 Aug 4",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A12",
+              "title": "Synthetic edge summary 99100025.",
+              "sorttitle": "synthetic edge summary 99100025",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, N.I.H., Extramural",
+                "Research Support, U.S. Gov't, P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100025"
+                },
+                {
+                  "idtype": "mid",
+                  "idtypen": 8,
+                  "value": "synthetic-99100025"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100025"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100025;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.83"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100025"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2005/02/23 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2005/06/15 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2005/08/05 09:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2005/08/23 09:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2005/08/05 09:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2007/08/06 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 30,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2005/08/04 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100026": {
+              "uid": "99100026",
+              "pubdate": "2005 Nov",
+              "epubdate": "2005 Aug 9",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A17",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A17",
+              "title": "Synthetic edge summary 99100026.",
+              "sorttitle": "synthetic edge summary 99100026",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Consensus Statement",
+                "Journal Article",
+                "Research Support, N.I.H., Extramural",
+                "Research Support, Non-U.S. Gov't"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100026"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.82"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2005/05/17 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2005/06/24 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2005/08/10 09:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2006/04/21 09:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2005/08/10 09:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2005/11/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100027": {
+              "uid": "99100027",
+              "pubdate": "2005 Nov 23",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A6",
+              "title": "Synthetic edge summary 99100027.",
+              "sorttitle": "synthetic edge summary 99100027",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, N.I.H., Extramural"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100027"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.a.81"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100027"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2005/04/26 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2005/09/22 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2005/10/28 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2005/11/26 09:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2006/01/06 09:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2005/11/26 09:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2005/11/23 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
-  "live_check": "public",
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "article-recommendations",
   "story": "single",
-  "verified": "Actual keyless command capture; preserve native order and whole bibliographic metadata. The existing verification records the actual keyless command capture; the nightly run executes the public recommendation request.",
+  "verified": "Synthetic Semantic Scholar recommendations and PubMed summaries in the shape of the source replies; proves native order, whole bibliographic metadata and the DOI fallback.",
   "replay": "article/recommendations/single",
   "steps": [
     {
@@ -16,8 +16,8 @@
       "expect": {
         "/status": "complete",
         "/page/total": 5,
-        "/result/items/0/pmid": "42745055",
-        "/result/items/1/pmid": "42685317",
+        "/result/items/0/pmid": "99200002",
+        "/result/items/1/pmid": "99200001",
         "/result/scope": "Semantic Scholar recommends from its pool of recent papers"
       },
       "max_bytes": 5200
@@ -35,7 +35,7 @@
       "expect": {
         "/page/offset": 1,
         "/page/returned": 4,
-        "/result/items/0/pmid": "42685317"
+        "/result/items/0/pmid": "99200001"
       }
     }
   ]

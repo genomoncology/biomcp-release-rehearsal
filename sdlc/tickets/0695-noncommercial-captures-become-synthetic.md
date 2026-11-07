@@ -1,6 +1,7 @@
 # 0695 — Noncommercial captures become synthetic
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7d50f6858d32ce70ff7186558ac6296ee0b280da
 
 Milestone: 5
 

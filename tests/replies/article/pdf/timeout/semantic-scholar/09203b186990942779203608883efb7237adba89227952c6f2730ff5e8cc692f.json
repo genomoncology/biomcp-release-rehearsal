@@ -1,7 +1,7 @@
 {
   "method": "GET",
   "source": "semantic-scholar",
-  "url": "https://storage.imrpress.com/IMR/1996124527273283600/application/2768-6698-30-11-39100.pdf",
+  "url": "https://example.org/synthetic/open-access.pdf",
   "exchanges": [
     {
       "fetched": 1792858362,
@@ -11,7 +11,7 @@
       "retry_after_ms": null,
       "body": {
         "kind": "sidecar",
-        "value": "0e4c6627e9a47ffe7aa8ad4caee7846838977da402ca279d1d34fbe2b02efcaf-0.bin"
+        "value": "09203b186990942779203608883efb7237adba89227952c6f2730ff5e8cc692f-0.bin"
       }
     }
   ]

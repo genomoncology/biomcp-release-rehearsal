@@ -1,0 +1,2105 @@
+{
+  "method": "POST",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+  "post": {
+    "request_content_type": "application/x-www-form-urlencoded",
+    "request_body_sha256": "0a202eb986de5647e9953fcddb587796ed2c0457ba148c1036c1afcce7443c3b"
+  },
+  "exchanges": [
+    {
+      "fetched": 1792854328,
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "delay_ms": 273,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "header": {
+            "type": "esummary",
+            "version": "0.3"
+          },
+          "result": {
+            "uids": [
+              "99100110",
+              "99100112",
+              "99100117",
+              "99100120",
+              "99100123",
+              "99100124",
+              "99100128",
+              "99100130",
+              "99100132"
+            ],
+            "99100110": {
+              "uid": "99100110",
+              "pubdate": "2016 Nov",
+              "epubdate": "2016 Jul 29",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A2",
+              "title": "Synthetic edge summary 99100110.",
+              "sorttitle": "synthetic edge summary 99100110",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Review"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100110"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.136"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100110"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2016/11/04 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2017/02/16 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2016/07/30 06:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.136",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2016/11/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100112": {
+              "uid": "99100112",
+              "pubdate": "2017 Jan 21",
+              "epubdate": "2016 Dec 13",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A17",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A18",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A19",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A20",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A21",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A22",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A23",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A24",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A25",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A26",
+                  "authtype": "CollectiveName",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A26",
+              "title": "Synthetic edge summary 99100112.",
+              "sorttitle": "synthetic edge summary 99100112",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Clinical Trial, Phase III",
+                "Comparative Study",
+                "Journal Article",
+                "Multicenter Study",
+                "Randomized Controlled Trial"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100112"
+                },
+                {
+                  "idtype": "mid",
+                  "idtypen": 8,
+                  "value": "synthetic-99100112"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100112"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100112;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.135"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100112"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2016/10/07 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2016/11/14 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2016/11/15 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2016/12/17 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2018/01/18 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2016/12/17 06:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2019/12/02 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 22,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.135",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2017/01/21 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100117": {
+              "uid": "99100117",
+              "pubdate": "2017 May 9",
+              "epubdate": "",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A17",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A18",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A19",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A20",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A20",
+              "title": "Synthetic edge summary 99100117.",
+              "sorttitle": "synthetic edge summary 99100117",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Multicenter Study",
+                "Randomized Controlled Trial"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "4",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100117"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100117"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100117;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.134"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100117"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "entrez",
+                  "date": "2017/05/12 06:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2017/05/12 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2017/07/18 06:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2017/11/09 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 23,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.134",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2017/05/09 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100120": {
+              "uid": "99100120",
+              "pubdate": "2018 Jan 15",
+              "epubdate": "2017 Oct 31",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A16",
+              "title": "Synthetic edge summary 99100120.",
+              "sorttitle": "synthetic edge summary 99100120",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, N.I.H., Extramural",
+                "Research Support, Non-U.S. Gov't"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100120"
+                },
+                {
+                  "idtype": "mid",
+                  "idtypen": 8,
+                  "value": "synthetic-99100120"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100120"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100120;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.132"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100120"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2017/06/30 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2017/09/26 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2017/10/26 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2017/11/02 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2019/07/25 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2017/11/02 06:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2019/01/15 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 35,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.132",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2018/01/15 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100123": {
+              "uid": "99100123",
+              "pubdate": "2018 May 31",
+              "epubdate": "2018 Apr 16",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A17",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A18",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A19",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A20",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A21",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A22",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A23",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A24",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A25",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A26",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A27",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A28",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A29",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A30",
+                  "authtype": "CollectiveName",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A30",
+              "title": "Synthetic edge summary 99100123.",
+              "sorttitle": "synthetic edge summary 99100123",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Clinical Trial, Phase III",
+                "Journal Article",
+                "Multicenter Study",
+                "Randomized Controlled Trial",
+                "Research Support, Non-U.S. Gov't"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100123"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.131"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2018/04/17 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2018/06/09 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2018/04/17 06:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.131",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2018/05/31 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100124": {
+              "uid": "99100124",
+              "pubdate": "2018 Jul",
+              "epubdate": "2018 May 17",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A17",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A18",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A19",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A20",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A21",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A22",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A23",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A24",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A25",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A26",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A27",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A28",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A29",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A30",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A31",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A32",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A33",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A34",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A35",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A36",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A37",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A38",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A39",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A40",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A41",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A42",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A43",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A44",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A45",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A46",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A47",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A48",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A49",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A50",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A51",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A52",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A53",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A54",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A55",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A56",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A57",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A58",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A59",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A60",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A61",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A62",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A63",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A64",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A65",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A66",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A67",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A68",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A69",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A69",
+              "title": "Synthetic edge summary 99100124.",
+              "sorttitle": "synthetic edge summary 99100124",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Clinical Trial, Phase III",
+                "Journal Article",
+                "Randomized Controlled Trial",
+                "Research Support, N.I.H., Extramural",
+                "Research Support, Non-U.S. Gov't",
+                "Research Support, U.S. Gov't, Non-P.H.S."
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100124"
+                },
+                {
+                  "idtype": "mid",
+                  "idtypen": 8,
+                  "value": "synthetic-99100124"
+                },
+                {
+                  "idtype": "pmc",
+                  "idtypen": 8,
+                  "value": "PMC99100124"
+                },
+                {
+                  "idtype": "pmcid",
+                  "idtypen": 5,
+                  "value": "pmc-id: PMC99100124;"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.130"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100124"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2018/01/29 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2018/03/29 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2018/05/08 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2018/05/19 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2019/12/21 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2018/05/19 06:00"
+                },
+                {
+                  "pubstatus": "pmc-release",
+                  "date": "2019/07/01 00:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": 54,
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.130",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2018/07/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100128": {
+              "uid": "99100128",
+              "pubdate": "2019 Apr",
+              "epubdate": "2018 Dec 31",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A17",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A18",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A19",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A20",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A21",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A22",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A23",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A24",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A25",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A26",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A27",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A28",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A29",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A30",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A31",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A32",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A33",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A34",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A35",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A36",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A37",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A38",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A39",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A40",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A41",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A42",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A42",
+              "title": "Synthetic edge summary 99100128.",
+              "sorttitle": "synthetic edge summary 99100128",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, Non-U.S. Gov't"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100128"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.128"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100128"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2018/06/12 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2018/10/31 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2018/12/10 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2019/01/04 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2020/04/28 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2019/01/04 06:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.128",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2019/04/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100130": {
+              "uid": "99100130",
+              "pubdate": "2019 Apr",
+              "epubdate": "2019 Jan 9",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A14",
+              "title": "Synthetic edge summary 99100130.",
+              "sorttitle": "synthetic edge summary 99100130",
+              "volume": "1",
+              "issue": "",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Journal Article",
+                "Research Support, Non-U.S. Gov't"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100130"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.129"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100130"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2018/08/21 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2019/01/03 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2019/01/08 00:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2019/03/20 06:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2019/03/20 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2020/03/07 06:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.129",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2019/04/01 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            },
+            "99100132": {
+              "uid": "99100132",
+              "pubdate": "2019 May 4",
+              "epubdate": "2019 Apr 4",
+              "source": "Synthetic J",
+              "authors": [
+                {
+                  "name": "Synthetic A1",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A2",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A3",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A4",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A5",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A6",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A7",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A8",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A9",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A10",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A11",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A12",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A13",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A14",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A15",
+                  "authtype": "Author",
+                  "clusterid": ""
+                },
+                {
+                  "name": "Synthetic A16",
+                  "authtype": "CollectiveName",
+                  "clusterid": ""
+                }
+              ],
+              "lastauthor": "Synthetic A16",
+              "title": "Synthetic edge summary 99100132.",
+              "sorttitle": "synthetic edge summary 99100132",
+              "volume": "1",
+              "issue": "1",
+              "pages": "1-2",
+              "lang": [
+                "eng"
+              ],
+              "nlmuniqueid": "0000000",
+              "issn": "0000-0000",
+              "essn": "0000-0001",
+              "pubtype": [
+                "Clinical Trial, Phase III",
+                "Comparative Study",
+                "Journal Article",
+                "Randomized Controlled Trial"
+              ],
+              "recordstatus": "PubMed - indexed for MEDLINE",
+              "pubstatus": "256",
+              "articleids": [
+                {
+                  "idtype": "pubmed",
+                  "idtypen": 1,
+                  "value": "99100132"
+                },
+                {
+                  "idtype": "doi",
+                  "idtypen": 3,
+                  "value": "10.1234/synthetic.b.127"
+                },
+                {
+                  "idtype": "pii",
+                  "idtypen": 4,
+                  "value": "synthetic-99100132"
+                }
+              ],
+              "history": [
+                {
+                  "pubstatus": "received",
+                  "date": "2018/08/07 00:00"
+                },
+                {
+                  "pubstatus": "revised",
+                  "date": "2018/09/19 00:00"
+                },
+                {
+                  "pubstatus": "accepted",
+                  "date": "2018/09/25 00:00"
+                },
+                {
+                  "pubstatus": "pubmed",
+                  "date": "2019/04/09 06:00"
+                },
+                {
+                  "pubstatus": "medline",
+                  "date": "2019/05/23 06:00"
+                },
+                {
+                  "pubstatus": "entrez",
+                  "date": "2019/04/09 06:00"
+                }
+              ],
+              "references": [],
+              "attributes": [
+                "Has Abstract"
+              ],
+              "pmcrefcount": "",
+              "fulljournalname": "Synthetic journal",
+              "elocationid": "doi: 10.1234/synthetic.b.127",
+              "doctype": "citation",
+              "srccontriblist": [],
+              "booktitle": "",
+              "medium": "",
+              "edition": "",
+              "publisherlocation": "",
+              "publishername": "",
+              "srcdate": "",
+              "reportnumber": "",
+              "availablefromurl": "",
+              "locationlabel": "",
+              "doccontriblist": [],
+              "docdate": "",
+              "bookname": "",
+              "chapter": "",
+              "sortpubdate": "2019/05/04 00:00",
+              "sortfirstauthor": "Synthetic A1",
+              "vernaculartitle": ""
+            }
+          }
+        }
+      }
+    }
+  ]
+}

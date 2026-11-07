@@ -14,8 +14,8 @@
         "/status": "complete",
         "/schema": "biomcp.author-page/5",
         "/result/items/*/id": [
-          "semantic-scholar:2162869982",
-          "semantic-scholar:113751091"
+          "semantic-scholar:901",
+          "semantic-scholar:902"
         ],
         "/next/0/kind": "disambiguate"
       },

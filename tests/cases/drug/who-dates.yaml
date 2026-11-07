@@ -1,5 +1,5 @@
 {
-  "live_check": "public",
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "drug-who-medicines",
   "story": "WHO date-only ranges include every 2020 product newest first; names and inclusive year, month and day bounds filter the same local bundle, retaining native date cells.",
   "replay": "drug/who-dates",
@@ -33,56 +33,56 @@
         "/page/total": 51,
         "/page/returned": 50,
         "/result/items/*/reference": [
-          "BT-ON016",
-          "HP027",
-          "HP028",
-          "MA157",
-          "TB386",
-          "CV004",
-          "HA734",
-          "HA694",
-          "HP025",
-          "HP026",
-          "RH066",
-          "RH067",
-          "BT-ON006",
-          "BT-ON007",
-          "MA151",
-          "NT009",
-          "TB361",
-          "TB362",
-          "HA708",
-          "RH087",
-          "BT-ON009",
-          "BT-ON010",
-          "BT-ON011",
-          "BT-ON012",
-          "RH054",
-          "BT-ON002",
-          "BT-ON003",
-          "IN018",
-          "IN019",
-          "IN020",
-          "HA709",
-          "HA710",
-          "HA711",
-          "HA727",
-          "HA729",
-          "BT-ON008",
-          "BT-ON004",
-          "BT-ON005",
-          "DI011",
-          "HA713",
-          "HA726",
-          "RH070",
-          "RH071",
-          "HA732",
-          "RH086",
-          "TB348",
-          "TB365",
-          "HA701",
-          "TB384",
-          "HA715"
+          "SYN-0088",
+          "SYN-0300",
+          "SYN-0301",
+          "SYN-0375",
+          "SYN-0625",
+          "SYN-0093",
+          "SYN-0241",
+          "SYN-0208",
+          "SYN-0298",
+          "SYN-0299",
+          "SYN-0493",
+          "SYN-0494",
+          "SYN-0079",
+          "SYN-0080",
+          "SYN-0373",
+          "SYN-0451",
+          "SYN-0611",
+          "SYN-0612",
+          "SYN-0219",
+          "SYN-0509",
+          "SYN-0082",
+          "SYN-0083",
+          "SYN-0084",
+          "SYN-0085",
+          "SYN-0485",
+          "SYN-0075",
+          "SYN-0076",
+          "SYN-0315",
+          "SYN-0316",
+          "SYN-0317",
+          "SYN-0220",
+          "SYN-0221",
+          "SYN-0222",
+          "SYN-0237",
+          "SYN-0238",
+          "SYN-0081",
+          "SYN-0077",
+          "SYN-0078",
+          "SYN-0112",
+          "SYN-0223",
+          "SYN-0236",
+          "SYN-0497",
+          "SYN-0498",
+          "SYN-0240",
+          "SYN-0508",
+          "SYN-0603",
+          "SYN-0614",
+          "SYN-0212",
+          "SYN-0623",
+          "SYN-0225"
         ],
         "/result/items/*/date_of_prequalification": [
           "21  Dec,  2020",
@@ -158,7 +158,7 @@
         "/page/total": 51,
         "/page/returned": 1,
         "/result/items/*/reference": [
-          "RH084"
+          "SYN-0507"
         ],
         "/result/items/*/date_of_prequalification": [
           "5  Feb,  2020"
@@ -181,12 +181,12 @@
       "expect": {
         "/page/total": 6,
         "/result/items/*/reference": [
-          "BT-ON002",
-          "BT-ON003",
-          "BT-ON008",
-          "BT-ON009",
-          "BT-ON010",
-          "BT-ON016"
+          "SYN-0075",
+          "SYN-0076",
+          "SYN-0081",
+          "SYN-0082",
+          "SYN-0083",
+          "SYN-0088"
         ],
         "/result/items/*/date_of_prequalification": [
           "14  Jul,  2020",
@@ -214,10 +214,10 @@
       "expect": {
         "/page/total": 4,
         "/result/items/*/reference": [
-          "BT-ON002",
-          "BT-ON003",
-          "BT-ON009",
-          "BT-ON010"
+          "SYN-0075",
+          "SYN-0076",
+          "SYN-0082",
+          "SYN-0083"
         ],
         "/result/items/*/date_of_prequalification": [
           "14  Jul,  2020",
@@ -243,8 +243,8 @@
       "expect": {
         "/page/total": 2,
         "/result/items/*/reference": [
-          "BT-ON002",
-          "BT-ON003"
+          "SYN-0075",
+          "SYN-0076"
         ],
         "/result/items/*/date_of_prequalification": [
           "14  Jul,  2020",
@@ -285,5 +285,5 @@
       "exit": 2
     }
   ],
-  "verified": "Complete unedited finished-product CSV captured from https://extranet.who.int/prequal/medicines/prequalified/finished-pharmaceutical-products/export?page&_format=csv on 2026-11-04; expected 2020 products and native date cells projected from that capture."
+  "verified": "Synthetic finished-product CSV in the shape of the WHO export: same columns, quoting, row count, blank cells and date cell format, with every reference, name, applicant and category invented. Date cells keep the bare dates of the export, and dosage forms use five common terms. Expected 2020 products are projected from that synthetic file."
 }

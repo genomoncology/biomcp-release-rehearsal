@@ -1,1 +1,1 @@
-The openAccessPdf reply is a synthetic null response recorded through the actual CLI and a local TLS source fixture. The transport produced its request URL and identity. Other replies retain their original source captures.
+The openAccessPdf reply is a synthetic null response recorded through the actual CLI and a local TLS source fixture. The transport produced its request URL and identity. The Semantic Scholar tldr and citation-count reply is synthetic too. Other replies retain their original source captures.

@@ -1,0 +1,41 @@
+{
+  "method": "GET",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%2210.1234%2Fsynthetic.b.119%22%5Bdoi%5D%20OR%20%2210.1234%2Fsynthetic.b.133%22%5Bdoi%5D%20OR%20%2210.1234%2Fsynthetic.b.147%22%5Bdoi%5D&sort=relevance&retmax=9999&retmode=json&tool=biomcp",
+  "exchanges": [
+    {
+      "fetched": 1792853287,
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "delay_ms": 325,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "header": {
+            "type": "esearch",
+            "version": "0.3"
+          },
+          "esearchresult": {
+            "count": "1",
+            "retmax": "1",
+            "retstart": "0",
+            "idlist": [
+              "99100144"
+            ],
+            "translationset": [],
+            "querytranslation": "\"10.1234/synthetic.b.119\"[Publisher ID]",
+            "warninglist": {
+              "phrasesignored": [],
+              "quotedphrasesnotfound": [
+                "\"10.1234/synthetic.b.133\"[doi]",
+                "\"10.1234/synthetic.b.147\"[doi]"
+              ],
+              "outputmessages": []
+            }
+          }
+        }
+      }
+    }
+  ]
+}

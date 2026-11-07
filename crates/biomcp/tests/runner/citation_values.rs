@@ -22,7 +22,7 @@ fn run() -> Check {
         "semantic-scholar",
         "/exchanges/0/body/value/data/0/isInfluential",
         "influential",
-        json!({"/result/items/0/pmid":"32597970"}),
+        json!({"/result/items/0/pmid":"99100142"}),
         "/result/items/0/influential",
     )?;
     retained_citations()

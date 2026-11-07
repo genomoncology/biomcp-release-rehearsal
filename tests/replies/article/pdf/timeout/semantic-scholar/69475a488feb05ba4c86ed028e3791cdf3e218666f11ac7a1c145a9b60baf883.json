@@ -12,9 +12,9 @@
       "body": {
         "kind": "json",
         "value": {
-          "paperId": "8174edf1a565382ec10a7301112312513f492511",
+          "paperId": "0000000000000000000000000000000000000009",
           "openAccessPdf": {
-            "url": "https://storage.imrpress.com/IMR/1996124527273283600/application/2768-6698-30-11-39100.pdf",
+            "url": "https://example.org/synthetic/open-access.pdf",
             "status": "GOLD",
             "license": "CCBY"
           }

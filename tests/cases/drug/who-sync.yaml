@@ -43,7 +43,7 @@
       ],
       "expect": {
         "/page/total": 2,
-        "/result/items/1/reference": "BT-ON002",
+        "/result/items/1/reference": "SYN-0002",
         "/result/items/1/date_of_prequalification": ""
       },
       "max_bytes": 4000
@@ -62,7 +62,7 @@
       ],
       "expect": {
         "/page/total": 1,
-        "/result/items/0/reference": "BT-ON001",
+        "/result/items/0/reference": "SYN-0001",
         "/result/items/0/date_of_prequalification": "18  Dec,  2019"
       },
       "max_bytes": 3000

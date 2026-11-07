@@ -1,7 +1,7 @@
 {
   "feature": "article-semantic-sections",
   "story": "Semantic Scholar native references retain every source row and distinguish reported empty contexts from missing fields.",
-  "verified": "Exact keyless command capture2026-10-24;33123537 reference contexts are itsCCBY text,34096690 contexts are empty. Missing source records remain independently typed. Bounds will use actual replay plus15percent; no comparable0.9 source-edge command is recorded.",
+  "verified": "Synthetic Semantic Scholar rows in the shape of the source reply: one anonymous row with no identifiers among typed rows, and reported empty contexts on the second paper.",
   "replay": "article/edges/live",
   "steps": [
     {
@@ -22,7 +22,7 @@
         "/page/offset": 112,
         "/result/items/0/header": {
           "equals": {
-            "title": "AKT1 E17K pleckstrin",
+            "title": "Synthetic a reference 113",
             "date": "2009",
             "types_unknown": true,
             "author_count": 0
@@ -39,5 +39,5 @@
       }
     }
   ],
-  "live_check": "public"
+  "live_check": "synthetic authored or response-edited replies; no live provider observation"
 }

@@ -1,7 +1,7 @@
 {
   "feature": "article-semantic-sections",
   "story": "Semantic Scholar native references retain every source row and distinguish reported empty contexts from missing fields.",
-  "verified": "Exact keyless2026-10-24 capture;116 rows preserve native source order, including anonymous row113 and a PubMed summary hole. Maximum page7689bytes/1922tokens; bounds add15percent. Whole headers and first contexts exceed the initial1800token estimate; no comparable0.9 Semantic Scholar edge command is recorded. Contexts are33123537 CCBY text.",
+  "verified": "Synthetic Semantic Scholar rows in the shape of the source reply: 116 rows in one source order, with anonymous row 113 and a PubMed summary hole. PubMed summaries for those rows are synthetic and keyed by their synthetic PMIDs. Context lengths match the earlier capture, so the page bounds still measure a full page.",
   "replay": "article/edges/live",
   "steps": [
     {
@@ -19,8 +19,8 @@
         "/result/items": {
           "count": 116
         },
-        "/result/items/0/pmid": "32597970",
-        "/result/items/73/pmid": "17611497",
+        "/result/items/0/pmid": "99100142",
+        "/result/items/73/pmid": "99100032",
         "/result/items/73/intents": [
           "background"
         ],
@@ -29,7 +29,7 @@
         "/result/items/73/contexts/items": {
           "count": 1
         },
-        "/result/items/112/header/title": "AKT1 E17K pleckstrin",
+        "/result/items/112/header/title": "Synthetic a reference 113",
         "/result/items/112/contexts/total": 3
       },
       "walk": {
@@ -39,5 +39,5 @@
       "max_bytes": 8843
     }
   ],
-  "live_check": "public"
+  "live_check": "synthetic authored or response-edited replies; no live provider observation"
 }

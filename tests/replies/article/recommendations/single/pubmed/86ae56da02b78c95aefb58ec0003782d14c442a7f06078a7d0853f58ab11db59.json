@@ -1,0 +1,40 @@
+{
+  "method": "GET",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%2210.1234%2Fsynthetic.recommendation.92005%22%5Bdoi%5D&sort=relevance&retmax=9999&retmode=json&tool=biomcp",
+  "exchanges": [
+    {
+      "fetched": 1792858133,
+      "status": 200,
+      "content_type": "application/json; charset=UTF-8",
+      "delay_ms": 225,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "header": {
+            "type": "esearch",
+            "version": "0.3"
+          },
+          "esearchresult": {
+            "count": "0",
+            "retmax": "0",
+            "retstart": "0",
+            "idlist": [],
+            "translationset": [],
+            "querytranslation": "\"10.1234/synthetic.recommendation.92005\"[doi]",
+            "warninglist": {
+              "phrasesignored": [],
+              "quotedphrasesnotfound": [
+                "\"10.1234/synthetic.recommendation.92005\"[doi]"
+              ],
+              "outputmessages": [
+                "No items found."
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

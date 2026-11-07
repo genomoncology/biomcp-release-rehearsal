@@ -371,11 +371,11 @@ fn long_walk_shapes() -> Result<(), String> {
 fn scholar_context() -> Result<(), Box<dyn std::error::Error>> {
     for (case, args, pmids, doi) in [
         ("single", vec!["article", "recommendations", "34096690", "--limit", "5"],
-         vec!["42745055", "42685317", "42846599", "42891951"],
-         "10.1158/1538-7445.pancreatic26-b074"),
+         vec!["99200002", "99200001", "99200003", "99200004"],
+         "10.1234/synthetic.recommendation.92005"),
         ("multi", vec!["article", "recommendations", "34096690", "32955176", "--negative", "33433946", "--limit", "5"],
-         vec!["42745055", "42685317", "42748921", "42830785"],
-         "10.64898/2026.09.28.26364204"),
+         vec!["99300002", "99300001", "99300003", "99300004"],
+         "10.1234/synthetic.recommendation.93005"),
     ] {
         let env = Environment::new()?;
         let replay = super::super::launch::fixtures().join(format!("replies/article/recommendations/{case}"));

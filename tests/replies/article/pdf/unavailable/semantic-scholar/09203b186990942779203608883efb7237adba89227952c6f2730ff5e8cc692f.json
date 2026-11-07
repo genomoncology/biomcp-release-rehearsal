@@ -1,7 +1,7 @@
 {
   "method": "GET",
   "source": "semantic-scholar",
-  "url": "https://storage.imrpress.com/IMR/1996124527273283600/application/2768-6698-30-11-39100.pdf",
+  "url": "https://example.org/synthetic/open-access.pdf",
   "exchanges": [
     {
       "fetched": 1792858362,

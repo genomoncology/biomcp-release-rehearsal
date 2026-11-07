@@ -1,8 +1,8 @@
 {
-  "live_check": "public",
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
   "feature": "article-evidence",
   "story": "Read source citation evidence without local ranking.",
-  "verified": "Reuse accepted actual CC BY graph/JATS and actual keyless PubMed locator captures from command j10188. Every request identity remains unchanged. The existing verification records actual CC BY graph/JATS and keyless PubMed locator captures; the nightly run executes article citation-evidence.",
+  "verified": "Synthetic Semantic Scholar rows in the shape of the source reply; the row for the cited input keeps that input PMID, as its CC BY full text names it. The PubMed locators and CC BY graph/JATS are unchanged captures, and every request identity for them is unchanged.",
   "replay": "article/evidence/source",
   "steps": [
     {

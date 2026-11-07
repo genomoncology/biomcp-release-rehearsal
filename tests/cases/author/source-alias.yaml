@@ -16,8 +16,8 @@
         "/status": "complete",
         "/query/source": "semantic-scholar",
         "/result/items/*/id": [
-          "semantic-scholar:2162869982",
-          "semantic-scholar:113751091"
+          "semantic-scholar:901",
+          "semantic-scholar:902"
         ]
       },
       "full_output_bytes": true,
@@ -33,8 +33,8 @@
         "/status": "complete",
         "/query/source": "semantic-scholar",
         "/result/items/*/id": [
-          "semantic-scholar:2162869982",
-          "semantic-scholar:113751091"
+          "semantic-scholar:901",
+          "semantic-scholar:902"
         ]
       },
       "full_output_bytes": true,

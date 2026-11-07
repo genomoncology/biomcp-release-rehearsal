@@ -11,7 +11,60 @@
       "retry_after_ms": null,
       "body": {
         "kind": "json",
-        "value": {"recommendedPapers": [{"paperId": "5c0e515a8e0396c46f5bf0d4d2643f037a750b7d", "externalIds": {"DOI": "10.1038/s41591-026-04559-4", "CorpusId": 292036787, "PubMed": "42745055"}, "title": "Oral KRAS G12D inhibitor GFH375 for previously treated advanced solid tumors with KRASG12D mutations: a phase 1 trial", "year": 2026}, {"paperId": "bdd058da893febbd48bfca40ab33879a8ce14dac", "externalIds": {"DOI": "10.1056/NEJMoa2504059", "CorpusId": 291680535, "PubMed": "42685317"}, "title": "Daraxonrasib for Previously Treated RAS-Mutant Non-Small-Cell Lung Cancer.", "year": 2026}, {"paperId": "d63b54dacda8563e21caf0ecbffbc36a3c9dd320", "externalIds": {"PubMedCentral": "13642809", "DOI": "10.3389/fonc.2026.1956344", "CorpusId": 292313389, "PubMed": "42846599"}, "title": "Glecirasib treatment in KRAS G12C-positive non-small cell lung cancer with leptomeningeal metastasis", "year": 2026}, {"paperId": "3f0ee679f594e170aa7ccefa4dcd12c69913ff5c", "externalIds": {"DOI": "10.1159/ort/aecag005", "CorpusId": 293456303, "PubMed": "42891951"}, "title": "Case Report: Dose dependent intracranial response to sotorasib in KRASG12C-mutated lung cancer brain metastases.", "year": 2026}, {"paperId": "6a346fea77059218a410d4413ffbdf5001ad9a9e", "externalIds": {"DOI": "10.1158/1538-7445.pancreatic26-b074", "CorpusId": 292428489}, "title": "Abstract B074: Comparative analysis of next-generation KRAS inhibitors in patient derived pancreatic cancer organoids", "year": 2026}]}
+        "value": {
+          "recommendedPapers": [
+            {
+              "paperId": "0000000000000000000000000000000000016761",
+              "externalIds": {
+                "DOI": "10.1234/synthetic.recommendation.92001",
+                "CorpusId": 900092001,
+                "PubMed": "99200002"
+              },
+              "title": "Synthetic recommendation reference 92001",
+              "year": 2026
+            },
+            {
+              "paperId": "0000000000000000000000000000000000016762",
+              "externalIds": {
+                "DOI": "10.1234/SYNTHETIC.RECOMMENDATION.92002",
+                "CorpusId": 900092002,
+                "PubMed": "99200001"
+              },
+              "title": "Synthetic recommendation reference 92002",
+              "year": 2026
+            },
+            {
+              "paperId": "0000000000000000000000000000000000016763",
+              "externalIds": {
+                "PubMedCentral": "9992003",
+                "DOI": "10.1234/synthetic.recommendation.92003",
+                "CorpusId": 900092003,
+                "PubMed": "99200003"
+              },
+              "title": "Synthetic recommendation reference 92003",
+              "year": 2026
+            },
+            {
+              "paperId": "0000000000000000000000000000000000016764",
+              "externalIds": {
+                "DOI": "10.1234/synthetic.recommendation.92004",
+                "CorpusId": 900092004,
+                "PubMed": "99200004"
+              },
+              "title": "Synthetic recommendation reference 92004",
+              "year": 2026
+            },
+            {
+              "paperId": "0000000000000000000000000000000000016765",
+              "externalIds": {
+                "DOI": "10.1234/synthetic.recommendation.92005",
+                "CorpusId": 900092005
+              },
+              "title": "Synthetic recommendation reference 92005",
+              "year": 2026
+            }
+          ]
+        }
       }
     }
   ]
