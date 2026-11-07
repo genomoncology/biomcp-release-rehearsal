@@ -1,6 +1,7 @@
 # 0739 — Article rows keep titles on failed lookups
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 15ec46fcf3a8bb8c25700284fdb5bb9aec205886
 
 Milestone: 5
 

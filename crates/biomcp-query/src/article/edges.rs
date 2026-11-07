@@ -86,7 +86,13 @@ fn execute<'a>(
             )? {
                 Some(pool) => pool,
                 None => {
-                    page::fetched(page::Cursor::Edges(query, references), items, out);
+                    page::fetched(
+                        cx,
+                        deadline,
+                        page::Cursor::Edges(query, references),
+                        items,
+                        out,
+                    );
                     return Ok(());
                 }
             }

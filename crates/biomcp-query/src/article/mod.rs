@@ -160,7 +160,7 @@ fn fetch_pool<'a>(
     )?
     else {
         biomcp_adapters::article_rights::return_unchecked(&mut items, &held);
-        page::fetched(page::Cursor::Search(query), items, out);
+        page::fetched(cx, deadline, page::Cursor::Search(query), items, out);
         return Ok(None);
     };
     // Names may be missing, so the pool serves this search's pages and never a new search.

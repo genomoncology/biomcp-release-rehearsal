@@ -89,7 +89,13 @@ fn execute<'a>(
             )? {
                 Some(pool) => pool,
                 None => {
-                    super::page::fetched(super::page::Cursor::Recommend(query), items, out);
+                    super::page::fetched(
+                        cx,
+                        deadline,
+                        super::page::Cursor::Recommend(query),
+                        items,
+                        out,
+                    );
                     return Ok(());
                 }
             }

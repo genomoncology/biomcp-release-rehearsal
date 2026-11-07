@@ -196,6 +196,7 @@ fn failed_names() -> Result<(), String> {
     if first.get("status").and_then(Value::as_str) != Some("partial")
         || first.pointer("/page/returned") != Some(&json!(1))
         || total < 2
+        || first.pointer("/result/items/0/header/title").is_none()
     {
         return Err(format!(
             "failed lookup did not page a partial pool: {first}"
@@ -221,6 +222,7 @@ fn failed_names() -> Result<(), String> {
         || second.pointer("/page/offset") != Some(&json!(1))
         || second.pointer("/page/returned") != Some(&json!(1))
         || second.pointer("/result/items/0/pmid") == first.pointer("/result/items/0/pmid")
+        || second.pointer("/result/items/0/header/title").is_none()
     {
         return Err(format!("failed lookup's next page was lost: {second}"));
     }

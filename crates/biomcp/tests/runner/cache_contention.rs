@@ -64,6 +64,26 @@ pub(super) fn trials() -> Vec<Trial> {
         "article-search/late-store-lock-keeps-fetched-items",
         || article_publish::check().map_err(Into::into),
     ));
+    trials.push(transcript_trial(
+        "article-search/failed-pool-store-keeps-pubmed-titles",
+        || {
+            article_publish::pubmed_titles(
+                "esearch.fcgi",
+                "CREATE TRIGGER refuse BEFORE INSERT ON pool BEGIN SELECT RAISE(ABORT,'refused'); END",
+            )
+            .map_err(Into::into)
+        },
+    ));
+    trials.push(transcript_trial(
+        "article-search/failed-title-store-keeps-pubmed-titles",
+        || {
+            article_publish::pubmed_titles(
+                "esummary.fcgi",
+                "CREATE TRIGGER refuse BEFORE UPDATE ON pool_item BEGIN SELECT RAISE(ABORT,'refused'); END",
+            )
+            .map_err(Into::into)
+        },
+    ));
     trials
 }
 

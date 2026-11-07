@@ -83,3 +83,53 @@ pub(super) fn check() -> Result<(), String> {
     }
     Ok(())
 }
+
+/// PubMed rows arrive without titles, so a store that refuses them must not cost the titles.
+/// During the `failing_on` request, `trigger` makes the store refuse the write that follows.
+pub(super) fn pubmed_titles(failing_on: &'static str, trigger: &'static str) -> Result<(), String> {
+    let env = Environment::new().map_err(|e| e.to_string())?;
+    let path = env.root().join(format!(
+        "cache/biomcp/cache-{}-{}.sqlite",
+        biomcp_fetch::CACHE_NAMESPACE_VERSION,
+        biomcp_query::store::CACHE_NAMESPACE_VERSION
+    ));
+    let stub = Stub::for_source(
+        "eutils.ncbi.nlm.nih.gov",
+        "application/json",
+        move |request| {
+            if request.contains(failing_on) {
+                rusqlite::Connection::open(&path)
+                    .and_then(|db| db.execute_batch(trigger))
+                    .map_err(|e| e.to_string())?;
+            }
+            Ok(if request.contains("esearch.fcgi") {
+                json!({"esearchresult":{"count":"1","idlist":["99000001"]}})
+            } else {
+                json!({"result":{"uids":["99000001"],"99000001":{
+                    "uid":"99000001","title":"Synthetic stored title","fulljournalname":"Synthetic journal",
+                    "pubdate":"2026","authors":[],"pubtype":["Journal Article"],"articleids":[]
+                }}})
+            }
+            .to_string())
+        },
+    )?;
+    stub.retain(env.shared_root());
+    let ca = env.root().join("source-ca.pem");
+    fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
+    env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
+        .map_err(|e| e.to_string())?;
+    let args = ["search", "article", "synthetic stored", "--exact-term"].map(str::to_owned);
+    let output = env
+        .command(env!("CARGO_BIN_EXE_biomcp"), &args)
+        .output()
+        .map_err(|e| e.to_string())?;
+    stub.finish()?;
+    let answer: Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
+    if answer.pointer("/result/items/0/header/title") != Some(&json!("Synthetic stored title"))
+        || answer.get("status") != Some(&json!("complete"))
+        || answer.pointer("/sources/0/notices/0/kind") != Some(&json!("cache-problem"))
+    {
+        return Err(format!("store failure cost the PubMed title: {answer}"));
+    }
+    Ok(())
+}

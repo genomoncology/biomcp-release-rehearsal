@@ -6,7 +6,7 @@ use crate::{
 };
 use biodata::Text;
 use biomcp_adapters::pubmed;
-use biomcp_fetch::RequestError;
+use biomcp_fetch::{Deadline, RequestError};
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     ArticleEdgePage, ArticleEdges, ArticlePage, ArticleSearch, ArticleSort, PageInfo, ReplyData,
@@ -93,33 +93,33 @@ pub(super) fn read<'a>(
             Ok(mapped) => {
                 out.include_refusals(mapped.refusals);
                 let source = status::source(Source::PubMed, leg.finish(), None);
-                if let Some(current) = out.sources.iter_mut().find(|s| s.source == Source::PubMed) {
-                    status::retain_source_state(current, &source);
-                } else {
-                    out.sources.push(source.clone());
-                }
-                store.hydrate(
-                    id,
-                    &missing,
-                    &mapped.value,
-                    &mapped.problems,
-                    Some(&source),
-                    out.dropped,
+                keep_source(out, &source);
+                let saved = crate::publish::keep(
+                    store
+                        .hydrate(
+                            id,
+                            &missing,
+                            &mapped.value,
+                            &mapped.problems,
+                            Some(&source),
+                            out.dropped,
+                        )
+                        .map_err(Into::into),
+                    out,
                 )?;
-                rows = store.page(id, query.offset(), query.limit())?;
+                if saved.is_some() {
+                    rows = store.page(id, query.offset(), query.limit())?;
+                } else {
+                    for row in &mut rows {
+                        give_title(&mut row.item, &mapped.value);
+                    }
+                    status::append(&mut out.problems, mapped.problems);
+                }
             }
             Err(error) => {
-                let mut source = status::source(Source::PubMed, leg.finish(), Some(error));
-                if let Some(original) = pool.sources.iter().find(|s| s.source == Source::PubMed) {
-                    source.term = original.term.clone();
-                    source.count = original.count;
-                    source.retrieved_count = original.retrieved_count;
-                    source.notices.extend(original.notices.clone());
-                }
-                out.sources.retain(|s| s.source != Source::PubMed);
-                out.sources.push(source);
-                if !matches!(error, RequestError::Source(e) if e.reason == biomcp_types::Reason::Disabled)
-                {
+                let source = status::source(Source::PubMed, leg.finish(), Some(error));
+                replace_source(out, source, &pool.sources);
+                if !disabled(error) {
                     crate::status::item(out, false, true, false);
                     query.retry(Some(pool.info.id.clone()), out);
                     return Err(error);
@@ -130,6 +130,36 @@ pub(super) fn read<'a>(
     filter_stored_text(cx, store, id, &mut rows, out)?;
     finish(query, pool, rows, out);
     Ok(())
+}
+fn disabled(error: RequestError) -> bool {
+    matches!(error, RequestError::Source(e) if e.reason == biomcp_types::Reason::Disabled)
+}
+fn keep_source(out: &mut Outcome, source: &biomcp_types::SourceOutcome) {
+    if let Some(current) = out.sources.iter_mut().find(|s| s.source == Source::PubMed) {
+        status::retain_source_state(current, source);
+    } else {
+        out.sources.push(source.clone());
+    }
+}
+/// A failed title read replaces PubMed's row and keeps what its search reported.
+fn replace_source(
+    out: &mut Outcome,
+    mut source: biomcp_types::SourceOutcome,
+    searched: &[biomcp_types::SourceOutcome],
+) {
+    if let Some(original) = searched.iter().find(|s| s.source == Source::PubMed) {
+        source.term = original.term.clone();
+        source.count = original.count;
+        source.retrieved_count = original.retrieved_count;
+        source.notices.extend(original.notices.clone());
+    }
+    out.sources.retain(|s| s.source != Source::PubMed);
+    out.sources.push(source);
+}
+fn give_title(item: &mut biomcp_types::ArticleItem, headers: &[biomcp_types::ArticleHeader]) {
+    if item.header.is_none() {
+        item.header = headers.iter().find(|h| h.pmid == item.pmid).cloned();
+    }
 }
 /// Recheck and rewrite retained article text before returning a stored page.
 fn filter_stored_text<'a>(
@@ -334,14 +364,58 @@ fn actions(query: Cursor<'_>, pool: &Pool, returned: u32, total: u64, out: &mut 
     super::next::authors(out);
 }
 
+/// Read the titles a live window lacks, as `read` does for a stored page.
+fn live_titles<'a>(
+    cx: &Ctx<'a>,
+    deadline: &mut Deadline<'a>,
+    items: &mut [biomcp_types::ArticleItem],
+    out: &mut Outcome,
+) {
+    let missing: Vec<_> = items
+        .iter()
+        .filter(|item| item.header.is_none())
+        .filter_map(|item| item.pmid)
+        .collect();
+    if missing.is_empty() || cx.fetch.disabled(Source::PubMed) {
+        return;
+    }
+    let leg = cx.fetch.leg(&pubmed::SPEC, *deadline).fresh(cx.fresh);
+    let started = leg.remaining();
+    let result = pubmed::summaries(&leg, &missing, cx.ncbi_email.as_ref());
+    *deadline = consume(*deadline, started, leg.remaining());
+    match result {
+        Ok(mapped) => {
+            out.include_refusals(mapped.refusals);
+            keep_source(out, &status::source(Source::PubMed, leg.finish(), None));
+            for item in items.iter_mut() {
+                give_title(item, &mapped.value);
+            }
+            status::append(&mut out.problems, mapped.problems);
+        }
+        Err(error) => {
+            let source = status::source(Source::PubMed, leg.finish(), Some(error));
+            let searched = out.sources.clone();
+            replace_source(out, source, &searched);
+        }
+    }
+}
+
 /// Return the checked live window when no retained collection could be written.
-pub(super) fn fetched(query: Cursor<'_>, items: Vec<biomcp_types::ArticleItem>, out: &mut Outcome) {
+pub(super) fn fetched<'a>(
+    cx: &Ctx<'a>,
+    deadline: &mut Deadline<'a>,
+    query: Cursor<'_>,
+    items: Vec<biomcp_types::ArticleItem>,
+    out: &mut Outcome,
+) {
     let total = items.len() as u64;
-    let items: Box<[_]> = items
+    let mut items: Box<[_]> = items
         .into_iter()
         .skip(query.offset() as usize)
         .take(query.limit() as usize)
         .collect();
+    live_titles(cx, deadline, &mut items, out);
+    let untitled = items.iter().any(|item| item.header.is_none());
     out.page = Some(PageInfo {
         offset: query.offset(),
         returned: items.len() as u32,
@@ -358,5 +432,5 @@ pub(super) fn fetched(query: Cursor<'_>, items: Vec<biomcp_types::ArticleItem>, 
         Cursor::Edges(q, _) => ArticleEdgePage { items }.with_query(q.clone()),
         Cursor::Recommend(q) => super::recommend::body(items, total == 0).with_query(q.clone()),
     };
-    status::item(out, true, false, false);
+    status::item(out, true, false, untitled);
 }
