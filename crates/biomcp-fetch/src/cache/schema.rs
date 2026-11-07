@@ -149,7 +149,7 @@ impl Cache {
                     row.get::<_, u32>(0)
                 })
                 .optional()
-                .map_err(|_| CacheError::Version)?
+                .map_err(|error| version_error(error))?
                 == Some(VERSION)
         {
             return Ok(());
@@ -169,7 +169,7 @@ impl Cache {
                 r.get(0)
             })
             .optional()
-            .map_err(|_| CacheError::Version)?
+            .map_err(|error| version_error(error))?
         } else {
             None
         };

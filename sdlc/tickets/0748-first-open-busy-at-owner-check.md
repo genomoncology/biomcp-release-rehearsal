@@ -1,6 +1,7 @@
 # 0748 — First open waits out busy at the owner check
 
-Status: READY.
+Status: COMPLETE.
+Landed: 1162eae8a24ecf46869e76da04bb3bcd8a8ad6ff
 
 Milestone: 5
 
@@ -21,10 +22,12 @@ Under load, 7 of 8 concurrent first opens exited 5 with `local_error: busy` in r
 
 - Keeps: the five-second open limit, shared across every step of the open, the store format, the cache namespace and the schema version.
 - Keeps: a caller's open transaction, as `check_owners` says.
+- Keeps: the `open.<step>` failure note and the first-open script's duration print.
 
 ## Changes
 
-- Changes: the owner check retries Busy under the same deadline, as `enable_wal` does, with its read snapshot closed before each wait. Apply it at any other step of the open with the same gap.
+- Changes: `open_with_owners` serializes setup across processes with an OS file lock on a sibling `open-lock` file, polled under the same five-second deadline and then Busy. It is held only for the owner check, initialize and WAL switch. Every open takes it, with no unlocked shortcut, because that is simpler. A file system without locks proceeds unlocked. The one new file is the lock file. The Busy retry loops are removed.
+- Changes: the `quotas` spacing bounds allow arrival jitter (150 ms, and 750/1500 ms).
 
 ## Proof
 
@@ -41,5 +44,7 @@ Under load, 7 of 8 concurrent first opens exited 5 with `local_error: busy` in r
 ## Evidence
 
 - Evidence: j34269 log, round 28: `exits [5, 0, 5, 5, 5, 5, 5, 5]`, host load about 9.6, 2 pinned cores, 3 burners.
+
+- Finding: j34329 (2f165897d), round 13: seven openers failed at `open.owners` after 5005 to 5014 ms with 0 retries, so one read sat in SQLite's busy handler for the whole five seconds. The eighth won at 5531 ms, about 100 ms after the others quit at about 5430 ms. Waiting openers appear to hold up the one doing setup. The mechanism inside SQLite is unproven.
 
 ## Progress

@@ -349,3 +349,19 @@ pub fn record_sqlite_error(component: &'static str, error: &rusqlite::Error) {
     let operation = format!("{component}::{source}:{}", caller.line());
     crate::sqlite_diagnostic::append(Path::new(&path), &operation, error);
 }
+
+/// Opt-in note that an open step returned Busy to the caller, with its retry count.
+#[expect(
+    clippy::disallowed_methods,
+    reason = "The proof diagnostic boundary alone reads its opt-in destination"
+)]
+pub(crate) fn record_open_failure(step: &str, retries: u32, started: std::time::Instant) {
+    if let Some(path) = std::env::var_os(crate::SQLITE_DIAGNOSTICS) {
+        crate::sqlite_diagnostic::append_open_failure(
+            Path::new(&path),
+            step,
+            retries,
+            started.elapsed().as_millis(),
+        );
+    }
+}

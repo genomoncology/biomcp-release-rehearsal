@@ -110,13 +110,18 @@ impl Cache {
             }
         }
         let mut connection = Connection::open(path).map_err(|error| db_error(error))?;
-        check_owners(&connection, owners)?;
-        connection
-            .busy_timeout(OPEN_WAIT)
-            .map_err(|error| db_error(error))?;
-        Self::initialize(&mut connection)?;
+        // One deadline covers the lock and every step. Setup is serialized across
+        // processes, so waiting openers never hold up the one doing setup.
+        let deadline = Deadline::start(OPEN_WAIT, None);
+        let _setup = setup_lock(path, deadline)?;
+        step("owners", &mut connection, deadline, |connection| {
+            check_owners(connection, owners)
+        })?;
+        step("initialize", &mut connection, deadline, Self::initialize)?;
         // Ownership is validated before changing the file's journal mode.
-        enable_wal(&connection)?;
+        step("wal", &mut connection, deadline, |connection| {
+            enable_wal(connection)
+        })?;
         Ok(Self(
             Mutex::new(connection),
             path.with_extension("parts"),
@@ -319,32 +324,54 @@ impl Cache {
     }
 }
 
-// SQLite may refuse a read-to-exclusive journal-mode upgrade without invoking
-// its busy handler. Finalize that attempt before waiting, so another opener can
-// finish its upgrade; every attempt shares the original five-second wait.
-fn enable_wal(connection: &Connection) -> Result<(), CacheError> {
-    let deadline = Deadline::start(OPEN_WAIT, None);
+// Hold the sibling lock only while the file is set up. A file system without
+// locks proceeds unlocked, and SQLite's own wait then applies.
+fn setup_lock(path: &Path, deadline: Deadline<'_>) -> Result<Option<std::fs::File>, CacheError> {
+    let mut options = std::fs::OpenOptions::new();
+    options.read(true).write(true).create(true);
+    #[cfg(unix)]
+    std::os::unix::fs::OpenOptionsExt::mode(&mut options, 0o600);
+    let Ok(file) = options.open(path.with_extension("open-lock")) else {
+        return Ok(None);
+    };
     loop {
-        sql_deadline(connection, deadline)?;
-        let result = (|| {
-            let journal: String = connection
-                .pragma_query_value(None, "journal_mode", |row| row.get(0))
-                .map_err(|error| db_error(error))?;
-            if !journal.eq_ignore_ascii_case("wal") {
-                sql_deadline(connection, deadline)?;
-                connection
-                    .pragma_update(None, "journal_mode", "WAL")
-                    .map_err(|error| db_error(error))?;
-            }
-            Ok(())
-        })();
-        match result {
-            Err(CacheError::Busy) if !deadline.expired() => {
+        match file.try_lock() {
+            Ok(()) => return Ok(Some(file)),
+            Err(std::fs::TryLockError::WouldBlock) if !deadline.expired() => {
                 std::thread::park_timeout(Duration::from_millis(1).min(deadline.remaining()));
             }
-            result => return result,
+            Err(std::fs::TryLockError::WouldBlock) => return Err(CacheError::Busy),
+            Err(std::fs::TryLockError::Error(_)) => return Ok(None),
         }
     }
+}
+
+// Run one open step under the shared deadline; a Busy result is noted for proof runs.
+fn step(
+    name: &str,
+    connection: &mut Connection,
+    deadline: Deadline<'_>,
+    operation: impl FnOnce(&mut Connection) -> Result<(), CacheError>,
+) -> Result<(), CacheError> {
+    let started = std::time::Instant::now();
+    sql_deadline(connection, deadline)?;
+    let result = operation(connection);
+    if result == Err(CacheError::Busy) {
+        crate::observe::record_open_failure(name, 0, started);
+    }
+    result
+}
+
+fn enable_wal(connection: &Connection) -> Result<(), CacheError> {
+    let journal: String = connection
+        .pragma_query_value(None, "journal_mode", |row| row.get(0))
+        .map_err(|error| db_error(error))?;
+    if !journal.eq_ignore_ascii_case("wal") {
+        connection
+            .pragma_update(None, "journal_mode", "WAL")
+            .map_err(|error| db_error(error))?;
+    }
+    Ok(())
 }
 
 // Required writers reserve admission before reading a snapshot they will mutate.

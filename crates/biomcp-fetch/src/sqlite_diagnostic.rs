@@ -24,3 +24,22 @@ pub(crate) fn append(path: &Path, operation: &str, error: &rusqlite::Error) {
         let _ = file.write_all(&bytes);
     }
 }
+
+/// Failure-only note of which open step stayed busy, after how many retries and how long.
+pub(crate) fn append_open_failure(path: &Path, step: &str, retries: u32, elapsed_ms: u128) {
+    let Ok(mut file) = File::options().append(true).open(path) else {
+        return;
+    };
+    let Ok(metadata) = file.metadata() else {
+        return;
+    };
+    let value = serde_json::json!({"operation": format!("open.{step}"),
+        "retries": retries, "elapsed_ms": elapsed_ms});
+    let Ok(mut bytes) = serde_json::to_vec(&value) else {
+        return;
+    };
+    bytes.push(b'\n');
+    if metadata.len().saturating_add(bytes.len() as u64) <= MAX_BYTES {
+        let _ = file.write_all(&bytes);
+    }
+}

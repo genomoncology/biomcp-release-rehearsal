@@ -199,3 +199,31 @@ fn sqlite_diagnostic_records_exclude_error_text_and_ignore_unavailable_files() {
     );
     crate::sqlite_diagnostic::append(root.path(), "fixture.insert", &error);
 }
+
+#[test]
+fn first_open_waits_for_the_setup_lock_then_succeeds() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("cache.sqlite");
+    let holder = std::fs::File::create(path.with_extension("open-lock")).unwrap();
+    holder.lock().unwrap();
+    let release = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(200));
+        drop(holder);
+    });
+    let started = std::time::Instant::now();
+    Cache::open_with_owners(&path, &[]).expect("open must wait for the setup lock");
+    assert!(started.elapsed() >= Duration::from_millis(100));
+    release.join().unwrap();
+}
+
+#[test]
+fn first_open_refuses_busy_when_the_setup_lock_outlasts_the_deadline() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("cache.sqlite");
+    let holder = std::fs::File::create(path.with_extension("open-lock")).unwrap();
+    holder.lock().unwrap();
+    let lock = super::setup_lock(&path, Deadline::start(Duration::from_millis(50), None));
+    assert!(matches!(lock, Err(CacheError::Busy)));
+    drop(holder);
+    assert!(Cache::open_with_owners(&path, &[]).is_ok());
+}

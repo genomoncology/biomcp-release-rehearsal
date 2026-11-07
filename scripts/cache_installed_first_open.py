@@ -53,6 +53,9 @@ def main():
         (root / 'summary.json').write_text(json.dumps(record, indent=2) + '\n')
         print(json.dumps(record), flush=True)
         if not record['empty_cache_before_release'] or not databases or record['exits'] != [0] * 8:
+            durations = [json.loads((root / f'{worker:02}-exec.json').read_text())['duration_ms']
+                         for worker in range(8)]
+            print(f'round {round_index} duration_ms {durations}', flush=True)
             for worker, status in enumerate(record['exits']):
                 if status:
                     for stream in ('stdout', 'stderr'):

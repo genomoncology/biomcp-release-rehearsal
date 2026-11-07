@@ -111,7 +111,10 @@ def sqlite_steps(log, diagnostics):
     steps = set()
     for record in re.findall(r'\{[^{}]*"operation"[^{}]*\}', text):
         row = json.loads(record)
-        steps.add((row['operation'], row['primary_code'], row['extended_code']))
+        if 'primary_code' in row:
+            steps.add((row['operation'], row['primary_code'], row['extended_code']))
+        else:
+            steps.add((row['operation'], row['retries'], row['elapsed_ms']))
     return sorted(steps, key=str)
 
 
