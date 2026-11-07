@@ -1942,7 +1942,7 @@
           "description": "NCI criterion.\nFilter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
         },
         "condition": {
-          "description": "Disease or NCIt.\nCondition alternatives joined with OR; NCI requires NCIt codes.",
+          "description": "Disease; NCI needs NCIt.\nConditions joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },

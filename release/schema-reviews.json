@@ -1856,9 +1856,7 @@
       "path": "/$defs/AuthorSearchSource/enum",
       "from": [
         "semantic-scholar",
-        "semanticscholar",
-        "pubmed",
-        "auto"
+        "semanticscholar"
       ],
       "to": [
         "semantic-scholar",
@@ -1874,9 +1872,7 @@
       "path": "/$defs/Reply_AuthorSearchSource/enum",
       "from": [
         "semantic-scholar",
-        "semanticscholar",
-        "pubmed",
-        "auto"
+        "semanticscholar"
       ],
       "to": [
         "semantic-scholar",

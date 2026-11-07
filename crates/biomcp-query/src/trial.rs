@@ -208,14 +208,14 @@ fn apply_page(
         pool: None,
         truncated: None,
     });
-    if let Some(token) = page.next.filter(|_| !query.count_only()) {
+    // The registry sends a token on a full last page; only a known total can show that.
+    let read = query.offset().saturating_add(page.items.len() as u32);
+    let more = page.total.is_none_or(|total| u64::from(read) < total);
+    if let Some(token) = page.next.filter(|_| more && !query.count_only()) {
         outcome.next.push(crate::next::Step::run(
             StepKind::Page,
             &[query.source().source()],
-            Request::SearchTrial(sent.at_page(
-                token,
-                query.offset().saturating_add(page.items.len() as u32),
-            )),
+            Request::SearchTrial(sent.at_page(token, read)),
             fresh,
         ));
     }

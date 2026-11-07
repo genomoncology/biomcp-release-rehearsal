@@ -1,0 +1,69 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&pageSize=2&query.term=%28%22Canonical%20therapy%22%20OR%20%22EX-66%22%20OR%20%22Example%20brand%22%29",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 3,
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT03000001",
+                  "briefTitle": "Synthetic trial 1"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING"
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Synthetic condition"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Canonical therapy"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT03000002",
+                  "briefTitle": "Synthetic trial 2"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING"
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Synthetic condition"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "EX-66"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "nextPageToken": "next-page-1"
+        }
+      }
+    }
+  ]
+}

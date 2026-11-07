@@ -137,3 +137,4 @@ drug-name-get: Resolve source names with the fixed single-term salt/ester rule i
 trial-results: A caller pages posted outcome measures, source group values, dispersion and analyses, and adverse-event tables from the same registry record, with its first posting date.
 source-data-age: Replies disclose supplied publisher dataset dates separately from acquisition and flag old data using a configurable age limit.
 drug-name-search: Trial and article searches expand a uniquely resolved drug to source-stated names, disclose the searched names and preserve exact-term search and article pools.
+search-paging: A search reply offers a next page only when one exists; a known total ends paging at exactly the total, and an unknown total keeps the source's token.

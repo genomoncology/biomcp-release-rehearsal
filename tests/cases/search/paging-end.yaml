@@ -1,0 +1,102 @@
+{
+  "feature": "search-paging",
+  "live_check": "synthetic paging controls in real reply shapes; tests/replies/search/paging-end/README.md lists them",
+  "story": "A reply offers a next page only when one exists: a source token and a known-total window stop at exactly the total, one row short still pages, and a later page whose count request fails keeps the token.",
+  "replay": "search/paging-end",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--sponsor",
+        "Paging exact",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/page/total": 2,
+        "/page/returned": 2,
+        "": {
+          "omits": [
+            "next"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--sponsor",
+        "Paging short",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "includes": "page"
+        },
+        "/page/total": 3,
+        "/page/returned": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--sponsor",
+        "Paging unknown",
+        "--limit",
+        "2",
+        "--offset",
+        "2",
+        "--next-page",
+        "synthetic-next"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "includes": "page"
+        },
+        "/status": "partial"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-pma",
+        "--manufacturer",
+        "Paging control",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "excludes": "page"
+        },
+        "/page/total": 2,
+        "/page/returned": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "diagnostic",
+        "--source",
+        "fda-pma",
+        "--manufacturer",
+        "Paging control",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "includes": "page"
+        },
+        "/page/total": 2,
+        "/page/returned": 1
+      }
+    }
+  ]
+}

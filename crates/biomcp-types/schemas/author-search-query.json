@@ -4,7 +4,6 @@
       "description": "Author identity search or open citation-author discovery.",
       "enum": [
         "semantic-scholar",
-        "semanticscholar",
         "pubmed",
         "auto"
       ],

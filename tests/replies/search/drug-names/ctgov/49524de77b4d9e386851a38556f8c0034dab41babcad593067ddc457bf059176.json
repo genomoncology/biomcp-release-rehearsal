@@ -36,52 +36,6 @@
                   ]
                 }
               }
-            },
-            {
-              "protocolSection": {
-                "identificationModule": {
-                  "nctId": "NCT03000002",
-                  "briefTitle": "Synthetic trial 2"
-                },
-                "statusModule": {
-                  "overallStatus": "RECRUITING"
-                },
-                "conditionsModule": {
-                  "conditions": [
-                    "Synthetic condition"
-                  ]
-                },
-                "armsInterventionsModule": {
-                  "interventions": [
-                    {
-                      "name": "EX-66"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "protocolSection": {
-                "identificationModule": {
-                  "nctId": "NCT03000003",
-                  "briefTitle": "Synthetic trial 3"
-                },
-                "statusModule": {
-                  "overallStatus": "RECRUITING"
-                },
-                "conditionsModule": {
-                  "conditions": [
-                    "Synthetic condition"
-                  ]
-                },
-                "armsInterventionsModule": {
-                  "interventions": [
-                    {
-                      "name": "Example brand"
-                    }
-                  ]
-                }
-              }
             }
           ],
           "nextPageToken": "next-page-1"

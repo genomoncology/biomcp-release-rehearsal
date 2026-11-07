@@ -182,7 +182,7 @@
       "title": "Source sections.",
       "type": "array",
       "x-positional": 1,
-      "x-section-rule": "Explicit named disclosures; empty means identity only."
+      "x-section-rule": "One named disclosure per call for every source; empty means identity only."
     },
     "section_limit": {
       "description": "Named section page size, refused on an identity-only card.",

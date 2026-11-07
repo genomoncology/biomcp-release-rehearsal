@@ -464,7 +464,7 @@
               "type": "null"
             }
           ],
-          "description": "FDA product code.\nExact native FDA device recall product code."
+          "description": "FDA product code.\nExact native FDA product code; PMA, 510(k) and device recalls only."
         },
         "source": {
           "$ref": "#/$defs/Reply_DiagnosticSearchSource",

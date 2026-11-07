@@ -166,7 +166,6 @@
       "description": "Author identity search or open citation-author discovery.",
       "enum": [
         "semantic-scholar",
-        "semanticscholar",
         "pubmed",
         "auto"
       ],
@@ -2856,7 +2855,7 @@
               "type": "null"
             }
           ],
-          "description": "FDA product code.\nExact native FDA device recall product code."
+          "description": "FDA product code.\nExact native FDA product code; PMA, 510(k) and device recalls only."
         },
         "source": {
           "$ref": "#/$defs/DiagnosticSearchSource",
@@ -3596,7 +3595,7 @@
           "description": "FDA product number.\nExplicit native application product number, only for approvals."
         },
         "section": {
-          "description": "Explicit named disclosures; empty means identity only.",
+          "description": "One named disclosure per call for every source; empty means identity only.",
           "items": {
             "$ref": "#/$defs/DrugSection"
           },
@@ -4259,7 +4258,7 @@
           "type": "string"
         },
         "condition": {
-          "description": "Disease or NCIt.\nCondition alternatives joined with OR; NCI requires NCIt codes.",
+          "description": "Disease; NCI needs NCIt.\nConditions joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers.",
           "items": {
             "$ref": "#/$defs/Text"
           },

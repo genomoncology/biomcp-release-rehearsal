@@ -59,7 +59,7 @@
         "biomcp.trial-search/6"
       ],
       "expect": {
-        "/properties/condition/description": "Disease; NCI needs NCIt.\nCondition alternatives joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers."
+        "/properties/condition/description": "Disease; NCI needs NCIt.\nConditions joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers."
       }
     },
     {

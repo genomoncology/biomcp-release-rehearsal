@@ -457,7 +457,7 @@ Search cell lines by name or identifier. Sources: cellosaurus.
 - `--disease`: Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224). Value form: string. Example: --disease Melanoma. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--exclude-derived`: Leave out lines derived from a parent line; needs another search term. Value form: boolean. Example: --exclude-derived. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--gene`: Cellosaurus variation gene, as the source writes it (for example KRAS). Value form: string. Example: --gene KRAS. Command sources: cellosaurus; source restrictions in the field description apply.
-- `--limit`: Source page size. Value form: integer. Example: --limit 1. Command sources: cellosaurus; source restrictions in the field description apply.
+- `--limit`: Source page size. Value form: integer. Example: --limit 25. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--mutation`: Cellosaurus variation text, as the source writes it (for example p.Gly12Asp). Value form: string. Example: --mutation p.Gly12Asp. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--offset`: Source start offset. Value form: integer. Example: --offset 0. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--protein`: Protein change, sent in the source's spelling (G12D is sent as p.Gly12Asp). Value form: string. Example: --protein G12D. Command sources: cellosaurus; source restrictions in the field description apply.
@@ -998,7 +998,7 @@ Options:
 
       --product-code <product_code>
           FDA product code.
-          Exact native FDA device recall product code.
+          Exact native FDA product code; PMA, 510(k) and device recalls only.
 
       --source <source>
           Native diagnostic source; biomcp_help search diagnostic
@@ -1045,7 +1045,7 @@ Exact whole-word phrase in WHO's Pathogen/Disease/Marker cell. Value form: strin
 Source trade_name (PMA) or device_name (510(k)) phrase. Value form: string. Example: --name 'FoundationOne CDx'. Command sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd; source restrictions in the field description apply.
 - `--offset`: Zero-based source result offset. Value form: integer. Example: --offset 5. Command sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd; source restrictions in the field description apply.
 - `--product-code`: FDA product code.
-Exact source FDA device recall product code. Value form: string. Example: --product-code ABC. Command sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd; source restrictions in the field description apply.
+Exact source FDA product code; PMA, 510(k) and device recalls only. Value form: string. Example: --product-code ABC. Command sources: fda-510k, fda-cdx, fda-device-recall, fda-pma, gtr, who-ivd; source restrictions in the field description apply.
 - `--source`: Source diagnostic source; biomcp_help search diagnostic
 Source diagnostic source.
 Explicit source GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery.
@@ -1685,8 +1685,8 @@ Options:
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
 
       --condition <condition>...
-          Disease or NCIt.
-          Condition alternatives joined with OR; NCI requires NCIt codes.
+          Disease; NCI needs NCIt.
+          Conditions joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers.
 
       --config <config>
           Read configuration from this file. Example: --config config.json.
@@ -1844,8 +1844,8 @@ Exact NCIt biomarker concept listed by NCI in trial criteria; NCI source only. T
 NCI criterion.
 Filter by NCI's source inclusion or exclusion criterion. Check each result's biomarker entry and reported problems.
 Listed choices accept any letter case; replies use their listed spelling. Value form: string. Example: --biomarker-use inclusion. Command sources: ctgov, nci; source restrictions in the field description apply.
-- `--condition`: Disease or NCIt.
-Condition alternatives joined with OR; NCI requires NCIt codes. Value form: repeatable values (repeat the flag). Example: --condition melanoma. Command sources: ctgov, nci; source restrictions in the field description apply.
+- `--condition`: Disease; NCI needs NCIt.
+Conditions joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers. Value form: repeatable values (repeat the flag). Example: --condition melanoma. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--condition-id`: MONDO/DOID/NCIT:C.
 Exact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes. Value form: string. Example: --condition-id NCIT:C3224. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--count-only`: Total.
@@ -1866,7 +1866,7 @@ Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI match
 - `--gene`: Gene symbol/ID.
 ClinicalTrials.gov only: resolve one checked gene for registry text discovery; no eligibility judgment. Value form: string. Example: --gene BRAF. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--has-results`: Posted results.
-ClinicalTrials.gov only: require posted source results. Value form: boolean. Example: --has-results true. Command sources: ctgov, nci; source restrictions in the field description apply.
+ClinicalTrials.gov only: require posted source results. Value form: boolean. Example: --has-results. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--id`: NCT identifier.
 ClinicalTrials.gov only: exact NCT identity in a conjunction with other filters. Value form: string. Example: --id NCT05273554. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--intervention`: Treatment terms; OR.
@@ -3087,13 +3087,13 @@ Exact published openFDA SPL section field, including table fields; required for 
 Explicit source application product number, only for approvals. Value form: string. Example: --product-number 001. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
 - `section`: Source sections; biomcp_help get drug
 Listed choices accept any letter case; replies use their listed spelling.
-- `--section-limit`: Named section page size, refused on an identity-only card. Value form: integer. Example: --section-limit 1. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
+- `--section-limit`: Named section page size, refused on an identity-only card. Value form: integer. Example: --section-limit 2. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
 - `--section-offset`: Named section continuation, refused on an identity-only card. Value form: integer. Example: --section-offset 1. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
 - `--source`: Omit to infer the source of an unambiguous section;; biomcp_help get drug
 Omit to infer the source of an unambiguous section; identity or mixed sections use MyChem.
 Listed choices accept any letter case; replies use their listed spelling. Value form: string. Example: --source ema. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
 
-Explicit named disclosures; empty means identity only.
+One named disclosure per call for every source; empty means identity only.
 
 - `xrefs`: All source identity cross-references and product links, mechanically paged.
 - `targets`: Source target and mechanism relations.

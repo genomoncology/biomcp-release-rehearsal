@@ -1,0 +1,74 @@
+{
+  "feature": "search-paging",
+  "live_check": "synthetic names in real source reply shapes; no live completeness claim",
+  "story": "An expanded drug name stops paging at exactly the total on the registry's token and on a stored article pool, and one row short still pages.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Canonical therapy",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/page/total": 3,
+        "/page/returned": 3,
+        "": {
+          "omits": [
+            "next"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Canonical therapy",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "includes": "page"
+        },
+        "/page/total": 3,
+        "/page/returned": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "EX-66",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "excludes": "page"
+        },
+        "/page/total": 3,
+        "/page/returned": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "EX-66",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/next/*/kind": {
+          "includes": "page"
+        },
+        "/page/total": 3,
+        "/page/returned": 2
+      }
+    }
+  ]
+}
