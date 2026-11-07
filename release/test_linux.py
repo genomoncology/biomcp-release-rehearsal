@@ -198,6 +198,7 @@ class LinuxContainers(unittest.TestCase):
         build, = [row for row in baseline if row[0] == 'build']
         self.assertIn('runtime_image=' + pins['images']['runtime'], build)
         self.assertIn('runtime_packages=' + ' '.join(pins['runtime-packages']), build)
+        self.assertIn('debian_snapshot=' + pins['debian-snapshot'], build)
         for plain, labeled in zip(baseline, supplied):
             with self.subTest(command=plain):
                 self.assertNotIn('--label', plain)

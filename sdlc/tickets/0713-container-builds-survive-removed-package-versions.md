@@ -1,6 +1,7 @@
 # 0713 — Container builds survive removed package versions
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 48a343d34b501ec4f5f91c69c5a63b8a45d35c69
 
 Milestone: 5
 

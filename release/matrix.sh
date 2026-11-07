@@ -61,7 +61,8 @@ for arch in amd64 arm64; do
   cp -R "$scratch/proof-$arch/fixtures" "$scratch/container-$arch/fixtures"
   cp release/Dockerfile "$scratch/container-$arch/Dockerfile"
   docker build --build-arg "runtime_image=$(python3 release/toolchain.py image runtime)" \
-    --build-arg "runtime_packages=$(python3 release/toolchain.py get runtime-packages)" --platform "linux/$arch" -t "$image_name:$arch" "$scratch/container-$arch"
+    --build-arg "runtime_packages=$(python3 release/toolchain.py get runtime-packages)" \
+    --build-arg "debian_snapshot=$(python3 release/toolchain.py get debian-snapshot)" --platform "linux/$arch" -t "$image_name:$arch" "$scratch/container-$arch"
   python3 release/container_check.py "$image_name:$arch" "$arch" "$scratch/container-$arch" "$version" "$@"
   docker image rm "$image_name:$arch"
 done

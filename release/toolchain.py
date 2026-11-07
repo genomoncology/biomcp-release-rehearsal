@@ -27,6 +27,8 @@ def check():
     for package in pins['runtime-packages']:
         if not re.fullmatch(r'[a-z0-9+.-]+=[a-zA-Z0-9+:.~_-]+', package):
             raise ValueError('toolchain.json runtime package requires a version')
+    if not re.fullmatch(r'\d{8}T\d{6}Z', pins['debian-snapshot']):
+        raise ValueError('toolchain.json debian-snapshot requires a dated snapshot')
     for digest in pins['rustup-sha256'].values():
         if not re.fullmatch(r'[0-9a-f]{64}', digest):
             raise ValueError('toolchain.json rustup requires a sha256 digest')
@@ -47,13 +49,19 @@ def check():
         if re.search(r'(?:quay\.io/pypa/manylinux|debian:bookworm|@sha256:)', text):
             raise ValueError(name + ' duplicates an image pin')
         if name.endswith('.sh') and ('toolchain.py image runtime' not in text
-                or 'toolchain.py get runtime-packages' not in text):
+                or 'toolchain.py get runtime-packages' not in text
+                or 'toolchain.py get debian-snapshot' not in text):
             raise ValueError(name + ' must consume runtime pins')
     dockerfile = (ROOT / 'release/Dockerfile').read_text()
     if ('FROM ${runtime_image}' not in dockerfile
             or '--no-install-recommends ${runtime_packages}' not in dockerfile
-            or re.search(r'^ARG runtime_(?:image|packages)=', dockerfile, re.M)):
+            or 'snapshot.debian.org/archive/debian/${debian_snapshot}/ bookworm main' not in dockerfile
+            or re.search(r'^ARG (?:runtime_image|runtime_packages|debian_snapshot)=', dockerfile, re.M)):
         raise ValueError('Dockerfile must consume runtime pins without defaults')
+    if re.findall(r'[a-z+]+://[^\s"]+', dockerfile) != ['http://snapshot.debian.org/archive/debian/${debian_snapshot}/']:
+        raise ValueError('Dockerfile must install only from the dated snapshot')
+    if re.search(r'trusted|insecure|unauthenticated', dockerfile, re.I):
+        raise ValueError('Dockerfile must keep apt signature checks')
     scanner = (ROOT / 'release/secrets.py').read_text()
     if re.search(r'^VERSION\s*=\s*[\"\']', scanner, re.M):
         raise ValueError('secrets.py duplicates the scanner pin')
