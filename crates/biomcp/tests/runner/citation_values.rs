@@ -25,7 +25,53 @@ fn run() -> Check {
         json!({"/result/items/0/pmid":"99100142"}),
         "/result/items/0/influential",
     )?;
+    doi_fallback_context()?;
     retained_citations()
+}
+
+/// A PubMed search built from graph DOIs reports those DOIs as its inputs.
+fn doi_fallback_context() -> Check {
+    let env = crate::runner::launch::Environment::new()?;
+    let replay = crate::runner::launch::fixtures().join("replies/article/edges/live");
+    let report = env.root().join("doi-fallback.jsonl");
+    let mut args = [
+        "article",
+        "references",
+        "34096690",
+        "--source",
+        "semantic-scholar",
+    ]
+    .map(str::to_owned)
+    .to_vec();
+    args.extend(env.globals(Some(&replay), false));
+    args.extend(["--observe".into(), report.to_string_lossy().into()]);
+    crate::runner::configuration::invoke(&env, args, 0)?;
+    let rows = std::fs::read_to_string(report)?
+        .lines()
+        .map(serde_json::from_str::<biomcp_fetch::Observation>)
+        .collect::<Result<Vec<_>, _>>()?;
+    let discovered = rows
+        .iter()
+        .filter_map(|row| row.provenance.discoveries.as_ref())
+        .flatten()
+        .find(|ids| ids.namespace == "doi")
+        .ok_or("graph reply lost its DOI discovery")?;
+    let searches = rows
+        .iter()
+        .filter(|row| row.url.contains("esearch.fcgi"))
+        .collect::<Vec<_>>();
+    let complete = |row: &&biomcp_fetch::Observation| {
+        row.provenance.input_context.is_some()
+            && row.provenance.inputs.as_ref().is_some_and(|ids| {
+                ids.namespace == "doi"
+                    && !ids.ids.is_empty()
+                    && ids.ids.iter().all(|id| discovered.ids.contains(id))
+            })
+    };
+    if searches.is_empty() || !searches.iter().all(complete) {
+        return Err("DOI fallback search lost its discovery inputs or context".into());
+    }
+    Ok(())
 }
 
 fn retained_citations() -> Check {

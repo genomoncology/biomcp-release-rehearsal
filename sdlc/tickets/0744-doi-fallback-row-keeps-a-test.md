@@ -1,6 +1,7 @@
 # 0744 — DOI fallback row keeps a test
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 156577b466d551ee4431b47ee05c909987bf15e7
 
 Milestone: 5
 
