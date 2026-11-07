@@ -9,6 +9,10 @@ If no command map appears above, run `biomcp skill install DIR` to write the ful
 
 Use `biomcp help COMMAND ENTITY` for syntax and `biomcp skill list` for examples. Follow returned next commands for pages and sections. Preserve source identifiers, dates, terms and uncertainty. BioMCP retrieves source records and does not choose treatments or run bioinformatics tools.
 
+## MCP typed tools
+
+In typed mode each entity tool takes `action` and one object named after it. The tools are `gene`, `variant`, `disease`, `drug`, `trial`, `article`, `protein`, `pathway`, `phenotype`, `adverse_event`, `diagnostic`, `cell_line` and `study`, plus `biomcp` (the CLI arguments), `help`, `search` and `fetch`. Use `search` to find records and `get` to read one. Other actions are facets, pivots and links to related records, such as `gwas` or `pgx`. A tool's description lists its actions. To read BRAF, call `gene` with `{"action":"get","get":{"input":["BRAF"]}}`. Call `help` with a command path for options.
+
 ## Exit codes and errors
 
 <!-- exit-reference:start -->

@@ -33,7 +33,7 @@
     },
     "section": {
       "$ref": "#/$defs/GwasCommandSection",
-      "description": "Association loci or study associations and ancestries; biomcp_help get gwas",
+      "description": "Association loci or study associations and ancestries; help get gwas",
       "x-positional": 1,
       "x-section-rule": "Association loci or study associations and ancestries."
     },

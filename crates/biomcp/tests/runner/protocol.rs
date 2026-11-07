@@ -15,6 +15,8 @@ mod typed;
 mod typed_bridge;
 #[path = "typed_catalog.rs"]
 pub(super) mod typed_catalog;
+#[path = "typed_entity.rs"]
+mod typed_entity;
 #[path = "typed_followups.rs"]
 pub(super) mod typed_followups;
 #[path = "typed_help.rs"]

@@ -25,14 +25,14 @@ fn check() -> Result<(), String> {
                 args.extend(path.split_whitespace());
                 ("biomcp", json!({"args":args}))
             } else {
-                ("biomcp_help", json!({"command":path}))
+                ("help", json!({"command":path}))
             };
             let replies = mcp::exchange_with_globals(
                 &env,
                 &[mcp::request(
                     json!(1),
                     "tools/call",
-                    json!({"name":name,"arguments":arguments}),
+                    crate::runner::protocol::typed_catalog::entity(name, arguments),
                 )],
                 &["--offline".into()],
             )?;

@@ -12,10 +12,13 @@
         "/page/total": 1
       },
       "mcp_call": {
-        "name": "search_drug",
+        "name": "drug",
         "arguments": {
-          "query": "Experimental synonym",
-          "source": "chembl"
+          "action": "search",
+          "search": {
+            "query": "Experimental synonym",
+            "source": "chembl"
+          }
         }
       }
     },
@@ -27,10 +30,13 @@
         "/page/total": 1
       },
       "mcp_call": {
-        "name": "search_drug",
+        "name": "drug",
         "arguments": {
-          "query": "EX-66",
-          "source": "chembl"
+          "action": "search",
+          "search": {
+            "query": "EX-66",
+            "source": "chembl"
+          }
         }
       }
     },
@@ -42,11 +48,14 @@
         "/page/total": 2
       },
       "mcp_call": {
-        "name": "search_drug",
+        "name": "drug",
         "arguments": {
-          "query": "EX-66",
-          "source": "opentargets",
-          "limit": 1
+          "action": "search",
+          "search": {
+            "query": "EX-66",
+            "source": "opentargets",
+            "limit": 1
+          }
         }
       }
     },
@@ -67,20 +76,26 @@
         "/page/returned": 0,
         "/sources/0/notices/0/kind": "request-guidance",
         "/sources/1/source": "mychem",
-        "/next/0/name": "get_drug",
+        "/next/0/name": "drug",
         "/next/0/arguments": {
           "equals": {
-            "input": "KTUFNOKKBVMGRW-UHFFFAOYSA-M",
-            "source": "mychem"
+            "action": "get",
+            "get": {
+              "input": "KTUFNOKKBVMGRW-UHFFFAOYSA-M",
+              "source": "mychem"
+            }
           }
         }
       },
       "mcp_call": {
-        "name": "search_drug",
+        "name": "drug",
         "arguments": {
-          "query": "Orphan code",
-          "source": "opentargets",
-          "limit": 1
+          "action": "search",
+          "search": {
+            "query": "Orphan code",
+            "source": "opentargets",
+            "limit": 1
+          }
         }
       }
     },
@@ -92,10 +107,13 @@
         "/sources/0/notices/0/kind": "request-guidance"
       },
       "mcp_call": {
-        "name": "get_drug",
+        "name": "drug",
         "arguments": {
-          "input": "EX-66",
-          "source": "chembl"
+          "action": "get",
+          "get": {
+            "input": "EX-66",
+            "source": "chembl"
+          }
         }
       }
     }

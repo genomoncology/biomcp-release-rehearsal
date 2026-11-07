@@ -6,9 +6,9 @@ BioMCP 1.0 retrieves source records for cancer care and human health research th
 
 JSON replaces Markdown as the default CLI output. Select `--format md` or set `"format": "md"` in configuration for Markdown. MCP always returns JSON. Scripts must read the new response envelopes and entity schemas instead of parsing 0.9 output.
 
-MCP uses `single` mode by default: the `biomcp` tool accepts a CLI argument array, alongside the research `search` and `fetch` tools. Opt into typed tools with `"mcp_tool_mode": "typed"` in configuration or `biomcp serve --tool-mode typed`. The command-line setting overrides configuration. Typed mode exposes tools generated from the command registry, such as `search_gene` and `get_variant`, plus `biomcp_help`, `search` and `fetch`. Available tools and source choices follow the server's policy; use its `tools/list` response for the current catalog.
+MCP uses `single` mode by default: the `biomcp` tool accepts a CLI argument array, alongside the research `search` and `fetch` tools. Opt into typed tools with `"mcp_tool_mode": "typed"` in configuration or `biomcp serve --tool-mode typed`. The command-line setting overrides configuration. Typed mode offers 17 tools: 13 entity tools (`gene`, `variant`, `disease`, `drug`, `trial`, `article`, `protein`, `pathway`, `phenotype`, `adverse_event`, `diagnostic`, `cell_line` and `study`) plus `biomcp`, `help`, `search` and `fetch`. An entity tool takes `action` and one object named after the action, for example `gene` with `{"action":"get","get":{"input":["BRAF"]}}`. Every registry command is reachable through a typed schema, and nothing takes a free-form object. Available tools and source choices follow the server's policy; use its `tools/list` response for the current catalog.
 
-Command help now includes summaries from shared command metadata, and typed tool descriptions use those summaries. `biomcp_help` accepts a command path and returns the existing command help. For `get` errors, follow the returned `next` action: an identifier with the accepted shape but no source record keeps its existing help advice.
+Command help now includes summaries from shared command metadata, and typed tool descriptions use those summaries. `help` accepts a command path and returns the existing command help. For `get` errors, follow the returned `next` action: an identifier with the accepted shape but no source record keeps its existing help advice.
 
 Run `biomcp mcp-config` to generate stdio wiring for the installed executable. The client starts `biomcp serve` with the selected tool mode. HTTP uses `biomcp serve --http [ADDR]` with `/mcp`; it refuses browser origins and requires allowed hosts for non-loopback listeners. Hosted deployments need caller credential isolation and source pacing configuration. See the [MCP setup](https://github.com/genomoncology/biomcp/blob/main/README.md#connect-an-mcp-client).
 
@@ -120,3 +120,77 @@ ClinVar VCV, RCV and SCV equality and hashing include the version. Rust callers 
 The schema identity changes below compare this release's schemas with the preserved `release/migration-schema-baseline.tar.gz` history. The [schema directory](https://github.com/genomoncology/biomcp/tree/main/crates/biomcp-types/schemas) defines output fields and required values. In particular, adverse-event snapshot fields become optional when a cache write fails; callers must handle their absence. A major bump permits an intentional breaking schema change. The schema check does not prohibit all breaking changes.
 
 Posted trial results are an explicit exception to the 1.0 command freeze. `get trial ID results` adds the ClinicalTrials.gov results section, including native group values, units, parameter and dispersion labels, analyses and adverse-event tables. The trial-cards reply schema adds `card.results_first_posted` and `sections.results`; the trial-get schema adds the `results` section. The card date is the first public posting date, not submission or last update. Values are reported source values, with no clinical calculations.
+
+## Typed tool names for 0.x and hosted users
+
+The typed tools of earlier builds, including the hosted server's tools, are gone. The reference tool is removed, the help tool is now `help`, and every other typed tool name is replaced by an entity tool and an action. Move a call's arguments into the object named after the action. A reference call that named the protein-get command with its arguments now calls `protein` with `{"action":"get","get":{"input":["P04637"]}}`. A `biomcp`, `search` or `fetch` call is unchanged. Agents that cache tool names must refresh their tool list. This table maps each old name to its new tool and action. Where one old command appears twice, both tools carry it.
+
+<!-- retired-tools:start -->
+| Old tool or reference command | New tool | Action |
+| --- | --- | --- |
+| `biomcp_reference` | the entity tool for the thing | the action in the rows below |
+| `biomcp_help` | `help` | none |
+| `search_gene` | `gene` | `search` |
+| `get_gene` | `gene` | `get` |
+| `search_pgx` | `gene` | `pgx` |
+| `get_pgx` | `gene` | `pgx_get` |
+| `search_gwas` | `gene` | `gwas` |
+| `search_variant` | `variant` | `search` |
+| `get_variant` | `variant` | `get` |
+| `variant_normalize` | `variant` | `normalize` |
+| `variant_assertions` | `variant` | `assertions` |
+| `variant_population` | `variant` | `population` |
+| `variant_recurrence` | `variant` | `recurrence` |
+| `search_gwas` | `variant` | `gwas` |
+| `get_gwas` | `variant` | `gwas_get` |
+| `search_disease` | `disease` | `search` |
+| `get_disease` | `disease` | `get` |
+| `search_gwas` | `disease` | `gwas` |
+| `search_drug` | `drug` | `search` |
+| `get_drug` | `drug` | `get` |
+| `get_pgx` | `drug` | `pgx_get` |
+| `search_trial` | `trial` | `search` |
+| `get_trial` | `trial` | `get` |
+| `trial_document` | `trial` | `document` |
+| `search_organization` | `trial` | `organization_search` |
+| `search_biomarker` | `trial` | `biomarker_search` |
+| `get_biomarker` | `trial` | `biomarker_get` |
+| `search_article` | `article` | `search` |
+| `get_article` | `article` | `get` |
+| `article_text` | `article` | `text` |
+| `article_pdf` | `article` | `pdf` |
+| `article_supplement` | `article` | `supplement` |
+| `article_citations` | `article` | `citations` |
+| `article_references` | `article` | `references` |
+| `article_citation_evidence` | `article` | `citation_evidence` |
+| `article_recommendations` | `article` | `recommendations` |
+| `search_author` | `article` | `author_search` |
+| `get_author` | `article` | `author_get` |
+| `author_papers` | `article` | `author_papers` |
+| `search_protein` | `protein` | `search` |
+| `get_protein` | `protein` | `get` |
+| `protein_features` | `protein` | `features` |
+| `protein_isoforms` | `protein` | `isoforms` |
+| `protein_domains` | `protein` | `domains` |
+| `protein_complexes` | `protein` | `complexes` |
+| `protein_complex_members` | `protein` | `complex_members` |
+| `protein_structures` | `protein` | `structures` |
+| `protein_sequence` | `protein` | `sequence` |
+| `search_pathway` | `pathway` | `search` |
+| `get_pathway` | `pathway` | `get` |
+| `pathway_genes` | `pathway` | `genes` |
+| `pathway_events` | `pathway` | `events` |
+| `search_phenotype` | `phenotype` | `search` |
+| `get_phenotype` | `phenotype` | `get` |
+| `search_adverse_event` | `adverse_event` | `search` |
+| `get_adverse_event` | `adverse_event` | `get` |
+| `search_diagnostic` | `diagnostic` | `search` |
+| `get_diagnostic` | `diagnostic` | `get` |
+| `search_cell_line` | `cell_line` | `search` |
+| `get_cell_line` | `cell_line` | `get` |
+| `cell_line_assay_count` | `cell_line` | `assays` |
+| `search_study` | `study` | `search` |
+| `get_study` | `study` | `get` |
+| `search_gwas` | `study` | `gwas` |
+| `get_gwas` | `study` | `gwas_get` |
+<!-- retired-tools:end -->

@@ -45,7 +45,7 @@
     },
     "section": {
       "$ref": "#/$defs/PathwaySection",
-      "description": "Omit for the card; WikiPathways has summary and genes; biomcp_help get pathway",
+      "description": "Omit for the card; WikiPathways has summary and genes; help get pathway",
       "x-positional": 1,
       "x-section-rule": "Omit for the card; WikiPathways has summary and genes sections."
     },

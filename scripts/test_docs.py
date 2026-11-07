@@ -7,6 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from check_docs import ENTITY_TOOLS, SHARED_TOOLS, mapping
 from parity import LEDGER_END, LEDGER_START, UPGRADE_END, UPGRADE_START, table, upgrade
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,54 @@ def replace_block(text, start, end, generated):
     return text.split(start, 1)[0] + generated + text.split(end, 1)[1]
 
 
+FAKE_SERVER = """#!/usr/bin/env python3
+import json, sys
+ACTIONS = %s
+tools = []
+for name in %s:
+    schema = {"type": "object", "required": ["action"], "additionalProperties": False,
+              "properties": {"action": {"enum": ACTIONS},
+                             "get": {"type": "object", "properties": {"input": {"type": ["array", "string"]}}},
+                             "search": {"type": "object"}}}
+    tools.append({"name": name, "inputSchema": schema})
+for line in sys.stdin:
+    message = json.loads(line)
+    if message.get("id") == 2:
+        print(json.dumps({"jsonrpc": "2.0", "id": 2, "result": {"tools": tools}}), flush=True)
+"""
+
+
+def tools_check(root, readme, original_readme):
+    """A retired tool name, a bad example and a missing example each fail the checker."""
+    notes = root / "release/notes.md"
+    original_notes = notes.read_text()
+    for path, text in ((readme, original_readme), (notes, original_notes)):
+        path.write_text(text + "\nCall get_gene for a gene.\n")
+        result = check(root)
+        assert result.returncode != 0 and "retired tool name get_gene" in result.stderr, result
+        path.write_text(text)
+    notes.write_text(original_notes.replace("| `search_gene` | `gene` | `search` |\n", "", 1))
+    result = check(root)
+    assert result.returncode != 0 and "does not list every retired tool name" in result.stderr, result
+    notes.write_text(original_notes)
+    readme.write_text(original_readme.replace('`{"action":"get","get":{"input":["BRAF"]}}`', '`{"action":"get","input":["BRAF"]}`'))
+    result = check(root)
+    assert result.returncode != 0 and "not an action with one object" in result.stderr, result
+    readme.write_text(original_readme)
+    server = root / "fake-biomcp"
+    actions = sorted({row[2] for row in mapping(root)} - {"none"})
+    server.write_text(FAKE_SERVER % (repr(actions), repr(sorted(ENTITY_TOOLS | SHARED_TOOLS))))
+    server.chmod(0o755)
+    run = lambda: subprocess.run([sys.executable, str(ROOT / "scripts/check_docs.py"), "--root", str(root), "--executable", str(server)],
+                                 capture_output=True, text=True, check=False)
+    result = run()
+    assert result.returncode == 0, result.stderr
+    readme.write_text(original_readme.replace('`{"action":"get","get":{"input":["BRAF"]}}`', '`{"action":"get","get":{"input":5}}`'))
+    result = run()
+    assert result.returncode != 0 and "fails its schema" in result.stderr, result
+    readme.write_text(original_readme)
+
+
 def main():
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
@@ -33,6 +82,8 @@ def main():
             "README.md",
             "skills/SKILL.md",
             "docs/reference/commands.md",
+            "docs/configuration.md",
+            "release/notes.md",
             "sdlc/features.md",
             "sdlc/planning/upgrade.md",
             "sdlc/planning/architecture.md",
@@ -56,6 +107,8 @@ def main():
             target = root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
+        reference = root / "docs/reference/commands.md"
+        reference.write_text(reference.read_text().replace("biomcp_help", "help"))  # as 0763's regeneration does
         result = check(root)
         assert result.returncode == 0, result.stderr
         readme = root / "README.md"
@@ -172,6 +225,7 @@ def main():
         readme.write_text(original_readme + "See https://example.org/home/about and /home/runner/work.\n")
         assert check(root).returncode == 0, check(root).stderr
         readme.write_text(original_readme)
+        tools_check(root, readme, original_readme)
     print(
         "Documentation contracts reject missing architecture checks, phantom leaves, unknown options, missing leaf accounting, drift, invalid feature declarations and internal workspace paths"
     )

@@ -74,7 +74,7 @@ pub(super) fn call_checked(
         .ok_or("missing text")?;
     let typed = tools
         .iter()
-        .any(|tool| tool.get("name") == Some(&json!("biomcp_reference")));
+        .any(|tool| tool.get("name") == Some(&json!("help")));
     let payload = if typed {
         text.lines().last().unwrap_or_default()
     } else {
@@ -125,7 +125,7 @@ fn validate_reply_schema(tools: &[Value], name: &str, value: &Value) -> Result<(
     let Some(schema) = tool.get("outputSchema") else {
         // Shared help intentionally omits an advertised output schema; its reply
         // must still satisfy its complete canonical artifact schema.
-        if name == "biomcp_help" {
+        if name == "help" {
             return super::schema::Registry::embedded()?.validate(value, &[], false);
         }
         return Err("output schema missing".into());

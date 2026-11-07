@@ -103,7 +103,7 @@ docs-check:
 	python3 -m unittest release.test_toolchain
 	python3 release/tools.py
 	python3 -m unittest release.test_tools release.test_linux release.test_mutations
-	python3 scripts/check_docs.py
+	python3 scripts/check_docs.py --executable "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
 	python3 scripts/check_front_map.py "$(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/debug/biomcp"
 	+$(MAKE) --no-print-directory rights
 	python3 scripts/test_docs.py

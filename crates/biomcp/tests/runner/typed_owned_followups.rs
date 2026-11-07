@@ -77,10 +77,14 @@ fn organization() -> Result<(), String> {
     }
     Ok(())
 }
-fn call(step: &Value, name: &str, arguments: Value, tools: &[Value]) -> Result<(), String> {
+fn call(step: &Value, command: &str, arguments: Value, tools: &[Value]) -> Result<(), String> {
+    let expected = crate::runner::protocol::typed_catalog::entity(command, arguments);
+    let (Some(name), Some(arguments)) = (expected.get("name"), expected.get("arguments")) else {
+        return Err(format!("no entity call for {command}"));
+    };
     if step.get("args").is_some()
-        || step.get("name") != Some(&json!(name))
-        || step.get("arguments") != Some(&arguments)
+        || step.get("name") != Some(name)
+        || step.get("arguments") != Some(arguments)
     {
         return Err(format!(
             "CLI follow-up survived or typed call changed: {step}"
@@ -88,11 +92,11 @@ fn call(step: &Value, name: &str, arguments: Value, tools: &[Value]) -> Result<(
     }
     let tool = tools
         .iter()
-        .find(|tool| tool["name"] == name)
+        .find(|tool| tool["name"] == *name)
         .ok_or("unadvertised nested call")?;
     jsonschema::validator_for(&tool["inputSchema"])
         .map_err(|e| e.to_string())?
-        .validate(&arguments)
+        .validate(arguments)
         .map_err(|e| e.to_string())
 }
 fn responses(
@@ -170,7 +174,8 @@ fn research_text() -> Result<(), String> {
             .ok_or_else(|| format!("missing research text: {value}"))?;
         if !text.contains("BRAF")
             || !text.contains("HGNC:1097")
-            || !text.contains("\"name\":\"get_gene\"")
+            || !text.contains("\"name\":\"gene\"")
+            || !text.contains("\"action\":\"get\"")
             || text.contains("biomcp get gene")
             || text.contains("biomcp help")
         {
@@ -206,7 +211,7 @@ fn fresh() -> Result<(), String> {
         &[request(
             json!(1),
             "tools/call",
-            json!({"name":"get_gene","arguments":{"input":["BRAF"]}}),
+            crate::runner::protocol::typed_catalog::entity("get_gene", json!({"input":["BRAF"]})),
         )],
         &["--offline".into()],
     )?;

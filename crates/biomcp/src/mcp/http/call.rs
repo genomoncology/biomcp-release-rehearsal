@@ -243,8 +243,7 @@ mod tests {
     }
     #[test]
     fn call_diagnostic_keeps_only_safe_fields() {
-        let params =
-            json!({"name":"get_gene", "arguments":{"id":"private-query", "key":"private-key"}});
+        let params = json!({"name":"gene", "arguments":{"action":"get","get":{"id":"private-query", "key":"private-key"}}});
         let reply = json!({"result":{"structuredContent":{
             "status":"partial", "query":"private-query", "sources":[
                 {"source":"mygene", "state":"failed", "term":"private-key"},
@@ -255,7 +254,7 @@ mod tests {
             super::super::logging::line(&params, Duration::from_millis(7), 200, Some(&reply));
         assert_eq!(
             line,
-            json!({"event":"mcp_call", "tool":"get_gene", "duration_ms":7, "status":"partial", "failed_sources":["mygene"]})
+            json!({"event":"mcp_call", "tool":"gene", "duration_ms":7, "status":"partial", "failed_sources":["mygene"]})
         );
         let envelope = &reply["result"]["structuredContent"];
         for content in [
@@ -285,21 +284,22 @@ mod tests {
             &service.settings,
         );
         let tools = crate::mcp::typed::tools(context, false).unwrap();
-        let reference = tools
-            .iter()
-            .find(|tool| tool["name"] == "biomcp_reference")
-            .unwrap();
-        let grouped = reference["inputSchema"]["properties"]["command"]["enum"]
-            .as_array()
-            .unwrap();
-        assert!(!grouped.is_empty());
+        assert_eq!(tools.len(), 17);
         let log = |name: &serde_json::Value| {
             super::super::logging::line(&json!({"name":name}), Duration::ZERO, 200, None)
         };
-        for name in tools.iter().map(|tool| &tool["name"]).chain(grouped) {
+        for name in tools.iter().map(|tool| &tool["name"]) {
             assert_eq!(&log(name)["tool"], name);
         }
-        for name in ["biomcp_private", "get_private", "reference", "BIOMCP", ""] {
+        for name in [
+            "biomcp_private",
+            "get_private",
+            "get_gene",
+            "biomcp_reference",
+            "biomcp_help",
+            "BIOMCP",
+            "",
+        ] {
             assert_eq!(log(&json!(name))["tool"], "unknown");
         }
     }

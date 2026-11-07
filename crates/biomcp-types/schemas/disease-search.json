@@ -43,12 +43,12 @@
     "ontology": {
       "$ref": "#/$defs/DiseaseOntology",
       "default": "mondo",
-      "description": "Exactly one ontology, default MONDO; biomcp_help search disease\nExactly one ontology, default MONDO."
+      "description": "Exactly one ontology, default MONDO; help search disease\nExactly one ontology, default MONDO."
     },
     "source": {
       "$ref": "#/$defs/DiseaseSource",
       "default": "ols",
-      "description": "One explicit source, default OLS; biomcp_help search disease\nOne explicit source, default OLS."
+      "description": "One explicit source, default OLS; help search disease\nOne explicit source, default OLS."
     },
     "text": {
       "description": "Literal source search text; optional site-name filter for SEER.",

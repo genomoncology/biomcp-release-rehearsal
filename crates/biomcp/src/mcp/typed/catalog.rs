@@ -1,6 +1,6 @@
 //! Advertised capabilities are projections of command and execution policy.
 #[path = "../../../typed_front_map.rs"]
-mod front_map;
+pub(super) mod front_map;
 use biomcp_types::Source;
 use serde_json::{Value, json};
 use std::{

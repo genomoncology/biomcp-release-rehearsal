@@ -28,11 +28,13 @@ pub(super) fn check() -> Result<(), String> {
     }
     check_form("both", false, true)?;
     check_form("both", true, true)?;
-    reference_admission()?;
+    entity_admission()?;
     Ok(())
 }
 
-fn reference_admission() -> Result<(), String> {
+/// Old names and malformed entity calls are refused; a wrong action or a field beside
+/// it is a usage reply naming the advertised choices.
+fn entity_admission() -> Result<(), String> {
     let config = json!({"mcp_tool_mode":"typed","mcp_typed_enum_limit":1,
         "disable_sources":["civic","gmdn"]});
     let env = Environment::new().map_err(|error| error.to_string())?;
@@ -45,31 +47,47 @@ fn reference_admission() -> Result<(), String> {
         None,
         &["--offline".into()],
     )?;
-    for (index, arguments) in [
-        json!({"command":"biomcp","arguments":{"args":["help"]}}),
-        json!({"command":"biomcp_help","arguments":{"command":"get gene"}}),
-        json!({"command":"get_gene","arguments":{"input":["BRAF"]}}),
-        json!({"command":"unknown","arguments":{}}),
-        json!({"command":"get_pathway","arguments":{"id":"hsa04151"},"extra":true}),
+    for (index, (call, valid)) in [
+        (
+            json!({"name":"biomcp_reference","arguments":{"command":"get_gene","arguments":{"input":["BRAF"]}}}),
+            None,
+        ),
+        (json!({"name":"biomcp_help","arguments":{"command":"get gene"}}), None),
+        (json!({"name":"get_gene","arguments":{"input":["BRAF"]}}), None),
+        (json!({"name":"gene","arguments":"get"}), None),
+        (
+            json!({"name":"gene","arguments":{"action":"unknown"}}),
+            Some(json!(["search", "get", "pgx", "pgx_get", "gwas"])),
+        ),
+        (
+            json!({"name":"gene","arguments":{"get":{"input":["BRAF"]}}}),
+            Some(json!(["search", "get", "pgx", "pgx_get", "gwas"])),
+        ),
+        (
+            json!({"name":"gene","arguments":{"action":"get","input":["BRAF"]}}),
+            Some(json!(["action", "get"])),
+        ),
     ]
     .into_iter()
     .enumerate()
     {
-        let frame = request(
-            json!(index),
-            "tools/call",
-            json!({"name":"biomcp_reference","arguments":arguments}),
-        );
+        let frame = request(json!(index), "tools/call", call);
         let stdio =
             exchange_with_globals(&env, std::slice::from_ref(&frame), &["--offline".into()])?;
+        let stdio = stdio.first().ok_or("stdio reply")?;
         let (status, http) = server.request("POST", "/mcp", &frame.to_string())?;
-        if status != 200
-            || stdio.first().and_then(|reply| reply.pointer("/error/code")) != Some(&json!(-32602))
-            || http.pointer("/error/code") != Some(&json!(-32602))
-        {
-            return Err(format!(
-                "reference accepted an unadvertised or malformed route: {stdio:?} {http}"
-            ));
+        let accepted = match &valid {
+            None => {
+                stdio.pointer("/error/code") == Some(&json!(-32602))
+                    && http.pointer("/error/code") == Some(&json!(-32602))
+            }
+            Some(valid) => [stdio, &http].iter().all(|reply| {
+                reply.pointer("/result/structuredContent/status") == Some(&json!("usage"))
+                    && reply.pointer("/result/structuredContent/error/valid_values") == Some(valid)
+            }),
+        };
+        if status != 200 || !accepted {
+            return Err(format!("entity call shape not refused as expected: {stdio} {http}"));
         }
     }
     Ok(())
@@ -105,12 +123,12 @@ fn check_form(form: &str, hosted: bool, restricted: bool) -> Result<(), String> 
         request(
             json!(2),
             "tools/call",
-            json!({"name":"get_gene","arguments":{"input":["BRAF"]}}),
+            crate::runner::protocol::typed_catalog::entity("get_gene", json!({"input":["BRAF"]})),
         ),
         request(
             json!(3),
             "tools/call",
-            json!({"name":"get_gene","arguments":{}}),
+            crate::runner::protocol::typed_catalog::entity("get_gene", json!({})),
         ),
     ];
     let replies = exchange_with_globals(&env, &frames, &globals)?;
@@ -167,7 +185,10 @@ fn check_reply(
             .and_then(Value::as_array)
             .into_iter()
             .flatten()
-            .filter_map(|call| call.pointer("/arguments/section"))
+            .filter_map(|call| {
+                let action = call.pointer("/arguments/action")?.as_str()?;
+                call.pointer(&format!("/arguments/{action}/section"))
+            })
             .any(|section| {
                 section == "civic"
                     || section
@@ -185,8 +206,8 @@ fn check_reply(
     }
     let owner = tools
         .iter()
-        .find(|tool| tool["name"] == "get_gene")
-        .ok_or("get_gene")?;
+        .find(|tool| tool["name"] == "gene")
+        .ok_or("gene")?;
     jsonschema::validator_for(&owner["outputSchema"])
         .map_err(|e| e.to_string())?
         .validate(&value)
@@ -216,9 +237,13 @@ pub(in crate::runner) fn check_next(
             .validate(&call["arguments"])
             .map_err(|e| format!("{call}: {e}"))?;
         if call.get("kind") == Some(&json!("section")) {
+            let action = call
+                .pointer("/arguments/action")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
             if call
                 .pointer("/arguments/section")
-                .or_else(|| call.pointer("/arguments/arguments/section"))
+                .or_else(|| call.pointer(&format!("/arguments/{action}/section")))
                 .is_none()
             {
                 return Err(format!("section stayed in input: {call}"));

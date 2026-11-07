@@ -10,9 +10,12 @@
   "steps": [
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "7-55174774-AATTAAGAGAAGCAACATC-T"
+          "action": "population",
+          "population": {
+            "input": "7-55174774-AATTAAGAGAAGCAACATC-T"
+          }
         }
       },
       "is_error": true,

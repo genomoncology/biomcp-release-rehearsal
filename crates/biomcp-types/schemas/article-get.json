@@ -46,7 +46,7 @@
       "x-positional": 0
     },
     "section": {
-      "description": "Requested section words; trailing words and --section; biomcp_help get article",
+      "description": "Requested section words; trailing words and --section share; help get article",
       "items": {
         "$ref": "#/$defs/ArticleSectionWord"
       },

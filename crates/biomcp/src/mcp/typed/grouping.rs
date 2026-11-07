@@ -1,13 +1,16 @@
 //! One clinical catalog policy shared by discovery and executable follow-ups.
+use super::catalog::front_map::{ENTITY_TOOLS, Kind};
 use serde_json::{Value, json};
-use std::io;
+use std::{collections::BTreeSet, io};
 
 pub(in crate::mcp) struct Catalog {
     pub(super) tools: Vec<Value>,
     commands: Vec<Value>,
     globals: crate::grammar::Globals,
     read_only: bool,
-    excluded: std::collections::BTreeSet<biomcp_types::Source>,
+    excluded: BTreeSet<biomcp_types::Source>,
+    /// The entity tool being called; a next call names it when it carries the command.
+    pub(super) current: Option<String>,
 }
 
 impl Catalog {
@@ -22,51 +25,46 @@ impl Catalog {
                 _ => true,
             })
     }
+
+    /// The advertised actions of an entity tool.
+    pub(super) fn actions(&self, tool: &str) -> Vec<String> {
+        self.tools
+            .iter()
+            .find(|advertised| advertised["name"] == tool)
+            .and_then(|advertised| advertised.pointer("/inputSchema/properties/action/enum"))
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .map(Into::into)
+            .collect()
+    }
 }
 
-fn direct(name: &str) -> bool {
-    name.split_once('_').is_some_and(|(verb, entity)| {
-        matches!(verb, "search" | "get")
-            && matches!(
-                entity,
-                "drug" | "trial" | "article" | "variant" | "disease" | "diagnostic"
-            )
-            || verb == "get" && entity == "gene"
-            || verb == "search" && entity == "adverse_event"
-    })
+/// One advertised registry command, before it is placed on its entity tools.
+pub(super) struct Command {
+    pub(super) path: (&'static str, &'static str, &'static str),
+    pub(super) description: String,
+    pub(super) input: Value,
+    pub(super) read_only: bool,
+    pub(super) sources: BTreeSet<String>,
+    /// The caller schema the follow-up check reads, keyed by the command name.
+    pub(super) canonical: Value,
 }
 
 pub(super) fn catalog(
     context: crate::command::Context<'_>,
     read_only: bool,
-    definitions: Vec<(Value, Value)>,
-    excluded: std::collections::BTreeSet<biomcp_types::Source>,
+    commands: Vec<Command>,
+    excluded: BTreeSet<biomcp_types::Source>,
 ) -> io::Result<Catalog> {
-    let (commands, canonical): (Vec<_>, Vec<_>) = definitions.into_iter().unzip();
-    let (mut tools, grouped): (Vec<_>, Vec<_>) = commands
+    let output_schema = crate::config::mcp_typed_schema_options(context.settings).0;
+    let mut tools = ENTITY_TOOLS
         .iter()
-        .cloned()
-        .partition(|tool| tool["name"].as_str().is_some_and(direct));
-    let shared = super::super::protocol::tools(context.root, read_only)?;
-    let mut reference = reference(&grouped);
-    if commands
-        .iter()
-        .any(|tool| tool.get("outputSchema").is_some())
-    {
-        let output = shared
-            .iter()
-            .find(|tool| tool["name"] == "biomcp")
-            .and_then(|tool| tool.get("outputSchema"))
-            .cloned()
-            .ok_or_else(|| io::Error::other("missing reference output schema"))?;
-        reference
-            .as_object_mut()
-            .ok_or_else(|| io::Error::other("missing reference tool"))?
-            .insert("outputSchema".into(), output);
-    }
-    tools.push(reference);
+        .filter_map(|tool| entity(tool, &commands, output_schema, &excluded).transpose())
+        .collect::<io::Result<Vec<_>>>()?;
     tools.push(super::help::tool());
-    tools.extend(shared);
+    tools.extend(super::super::protocol::tools(context.root, read_only)?);
     let (tool_limit, byte_limit) = crate::config::mcp_typed_budget(context.settings);
     let bytes = serde_json::to_vec(&tools)?.len();
     if tools.len() > tool_limit || bytes > byte_limit {
@@ -82,43 +80,86 @@ pub(super) fn catalog(
     }
     Ok(Catalog {
         tools,
-        commands: canonical,
+        commands: commands
+            .into_iter()
+            .map(|command| command.canonical)
+            .collect(),
         globals: context.globals.clone(),
         read_only,
         excluded,
+        current: None,
     })
 }
 
-fn reference(commands: &[Value]) -> Value {
-    let names = commands
+/// An entity tool: `action` picks one command, whose own schema is the object named after it.
+fn entity(
+    &(name, label, placed): &super::catalog::front_map::EntityTool,
+    commands: &[Command],
+    output_schema: bool,
+    excluded: &BTreeSet<biomcp_types::Source>,
+) -> io::Result<Option<Value>> {
+    let actions = placed
         .iter()
-        .map(|tool| tool["name"].clone())
+        .filter_map(|&(action, command, kind)| {
+            commands
+                .iter()
+                .find(|found| super::name(found.path.0, found.path.1) == command)
+                .map(|found| (action, kind, found))
+        })
         .collect::<Vec<_>>();
-    let read_only = commands
-        .iter()
-        .all(|tool| tool.pointer("/annotations/readOnlyHint") == Some(&json!(true)));
-    json!({"name":"biomcp_reference",
-        "description":"Run specialist reference commands and additional entity operations with their typed arguments. \
-        IDs and options follow the selected command's schema. \
-        Example: {\"command\":\"get_protein\",\"arguments\":{\"input\":[\"P04637\"]}}.",
-        "inputSchema":{"$schema":super::super::protocol::SCHEMA_DIALECT,"type":"object",
-            "properties":{
-                "command":{"type":"string","enum":names,"description":"Registered typed command name, such as get_protein."},
-                "arguments":{"type":"object","additionalProperties":true,
-                    "description":"The selected command's typed arguments, keyed by that command's input property names."}},
-            "required":["command","arguments"],"additionalProperties":false},
-        "annotations":{"readOnlyHint":read_only,"destructiveHint":false,"openWorldHint":true}})
-}
-
-// Unwrap without introducing another validator or argument-to-CLI converter.
-pub(super) fn unwrap(params: &Value) -> Option<Value> {
-    let fields = params.get("arguments")?.as_object()?;
-    if fields.len() != 2 || !fields.get("arguments")?.is_object() {
-        return None;
+    if actions.is_empty() {
+        return Ok(None);
     }
-    Some(json!({"name":fields.get("command")?.as_str()?,"arguments":fields.get("arguments")?}))
+    let mut properties = serde_json::Map::new();
+    properties.insert(
+        "action".into(),
+        json!({"type":"string","enum":actions.iter().map(|(action, _, _)| *action).collect::<Vec<_>>(),
+            "description":"Which operation; its arguments go in the object of the same name."}),
+    );
+    for (action, _, command) in &actions {
+        let mut input = command.input.clone();
+        if let Some(fields) = input.as_object_mut() {
+            fields.remove("$schema");
+            fields.insert(
+                "description".into(),
+                json!(super::description::action(action, &command.description)),
+            );
+        }
+        properties.insert((*action).into(), input);
+    }
+    let sources = actions
+        .iter()
+        .flat_map(|(_, _, command)| command.sources.iter().cloned())
+        .collect::<BTreeSet<_>>();
+    let names = actions
+        .iter()
+        .map(|(action, _, _)| *action)
+        .collect::<Vec<_>>();
+    let facets = actions
+        .iter()
+        .filter(|(_, kind, _)| *kind == Kind::Facet)
+        .map(|(action, _, _)| *action)
+        .collect::<Vec<_>>();
+    let mut tool = json!({"name":name,
+        "description":super::description::tool(label, &sources, &names, &facets, excluded),
+        "inputSchema":{"$schema":super::super::protocol::SCHEMA_DIALECT,"type":"object",
+            "properties":properties,"required":["action"],"additionalProperties":false},
+        "annotations":{"readOnlyHint":actions.iter().all(|(_, _, command)| command.read_only),
+            "destructiveHint":false,"openWorldHint":true}});
+    if output_schema && let Some(fields) = tool.as_object_mut() {
+        let paths = actions
+            .iter()
+            .map(|(_, _, command)| command.path)
+            .collect::<Vec<_>>();
+        fields.insert(
+            "outputSchema".into(),
+            super::super::output_schema::for_commands(&paths)?,
+        );
+    }
+    Ok(Some(tool))
 }
 
+/// Write a canonical `{name: command, arguments}` call in its advertised entity form.
 pub(super) fn call(canonical: Value, catalog: &Catalog) -> Option<Value> {
     let tools = &catalog.tools;
     let name = canonical.get("name")?.as_str()?;
@@ -132,16 +173,20 @@ pub(super) fn call(canonical: Value, catalog: &Catalog) -> Option<Value> {
         return super::followups::allowed(&canonical, tools).then_some(canonical);
     }
     command?;
-    let reference = tools
+    let arguments = canonical.get("arguments")?;
+    let mut placements = ENTITY_TOOLS
         .iter()
-        .find(|tool| tool["name"] == "biomcp_reference")?;
-    if !reference
-        .pointer("/inputSchema/properties/command/enum")?
-        .as_array()?
-        .contains(&json!(name))
-    {
-        return None;
-    }
-    let call = json!({"name":"biomcp_reference","arguments":{"command":name,"arguments":canonical.get("arguments")?}});
-    super::followups::allowed(&call, tools).then_some(call)
+        .flat_map(|(tool, _, actions)| {
+            actions
+                .iter()
+                .filter(|(_, placed, _)| *placed == name)
+                .map(move |(action, _, _)| (*tool, *action))
+        })
+        .collect::<Vec<_>>();
+    // Prefer the tool already in use, so a disease reply's GWAS step stays on disease.
+    placements.sort_by_key(|(tool, _)| catalog.current.as_deref() != Some(*tool));
+    placements.into_iter().find_map(|(tool, action)| {
+        let call = json!({"name":tool,"arguments":{"action":action,action:arguments}});
+        super::followups::allowed(&call, tools).then_some(call)
+    })
 }

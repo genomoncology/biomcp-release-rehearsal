@@ -62,7 +62,7 @@
     },
     "locus_group": {
       "$ref": "#/$defs/LocusGroup",
-      "description": "Optional HGNC locus group intersected with the; biomcp_help search gene\nOptional HGNC locus group intersected with the selector."
+      "description": "Optional HGNC locus group intersected with the selector; help search gene\nOptional HGNC locus group intersected with the selector."
     },
     "offset": {
       "default": 0,

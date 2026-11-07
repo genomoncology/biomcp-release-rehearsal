@@ -74,7 +74,7 @@
           "type": "null"
         }
       ],
-      "description": "GTR: genes, conditions, methods. PMA: regulatory,; biomcp_help get diagnostic",
+      "description": "GTR: genes, conditions, methods. PMA: regulatory,; help get diagnostic",
       "x-positional": 1,
       "x-section-rule": "GTR: genes, conditions, methods. PMA: regulatory, supplements, summary.\nWHO, 510(k) and device recalls have no sections; omit for the card."
     },
@@ -94,7 +94,7 @@
     },
     "source": {
       "$ref": "#/$defs/DiagnosticGetSource",
-      "description": "Explicit source: GTR accession/version, WHO Product; biomcp_help get diagnostic\nExplicit source: GTR accession/version, WHO Product ID, PMA P number,\n510(k) K number or device recall Z-NNNN-YYYY."
+      "description": "Explicit source: GTR accession/version, WHO Product ID,; help get diagnostic\nExplicit source: GTR accession/version, WHO Product ID, PMA P number,\n510(k) K number or device recall Z-NNNN-YYYY."
     },
     "supplement": {
       "anyOf": [

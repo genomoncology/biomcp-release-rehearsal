@@ -95,7 +95,7 @@
     "ontology": {
       "$ref": "#/$defs/DiseaseOntology",
       "default": "mondo",
-      "description": "One OLS ontology; biomcp_help get disease\nOne OLS ontology."
+      "description": "One OLS ontology; help get disease\nOne OLS ontology."
     },
     "period": {
       "anyOf": [
@@ -128,7 +128,7 @@
           "type": "null"
         }
       ],
-      "description": "One named section; absent means identity card only; biomcp_help get disease",
+      "description": "One named section; absent means identity card only; help get disease",
       "x-positional": 1,
       "x-section-rule": "One named section; absent means identity card only."
     },
@@ -160,7 +160,7 @@
     "source": {
       "$ref": "#/$defs/DiseaseSource",
       "default": "mydisease",
-      "description": "Default MyDisease; no automatic fallback; biomcp_help get disease\nDefault MyDisease; no automatic fallback."
+      "description": "Default MyDisease; no automatic fallback; help get disease\nDefault MyDisease; no automatic fallback."
     }
   },
   "required": [

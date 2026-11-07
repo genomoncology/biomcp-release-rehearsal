@@ -10,7 +10,7 @@ pub(super) fn instructions(
 ) -> String {
     let mut instructions = if mode == crate::config::ToolMode::Typed {
         super::typed::instructions(context)
-            .unwrap_or_else(|_| "Use biomcp_help for command arguments.".into())
+            .unwrap_or_else(|_| "Use help for command arguments.".into())
     } else if context.globals.hosted {
         super::hosted::instructions(context)
             .unwrap_or_else(|_| "Use help for command arguments.".into())

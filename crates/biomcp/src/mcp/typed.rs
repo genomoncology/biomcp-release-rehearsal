@@ -96,22 +96,16 @@ use serde_json::{Value, json};
 use std::io;
 
 fn name(verb: &str, entity: &str) -> String {
-    format!("{verb}_{entity}").replace('-', "_")
+    catalog::front_map::command_name(verb, entity)
 }
-/// Catalog tools that no command path names. A test walks the real catalog against this list.
-const FIXED_TOOLS: [&str; 5] = [
-    "biomcp",
-    "biomcp_help",
-    "biomcp_reference",
-    "search",
-    "fetch",
-];
+/// Catalog tools that are not entity tools. A test walks the real catalog against this list.
+const FIXED_TOOLS: [&str; 4] = ["biomcp", "help", "search", "fetch"];
 /// Whether a caller-supplied tool name is one this build can serve, so it is safe to log.
 pub(in crate::mcp) fn served(tool: &str) -> bool {
     FIXED_TOOLS.contains(&tool)
-        || crate::grammar::command_paths()
+        || catalog::front_map::ENTITY_TOOLS
             .iter()
-            .any(|(verb, entity, _)| name(verb, entity) == tool)
+            .any(|(name, _, _)| *name == tool)
 }
 pub(in crate::mcp) fn schema(id: &str) -> io::Result<Value> {
     serde_json::from_str(
@@ -126,11 +120,11 @@ pub(super) fn tools(
     Ok(catalog(context, read_only)?.tools)
 }
 fn catalog(context: crate::command::Context<'_>, read_only: bool) -> io::Result<grouping::Catalog> {
-    let (output_schema, enum_limit) = crate::config::mcp_typed_schema_options(context.settings);
+    let enum_limit = crate::config::mcp_typed_schema_options(context.settings).1;
     let excluded = catalog::excluded(context)?;
-    let tools = crate::grammar::command_paths()
-        .iter()
-        .map(|&(verb, entity, id)| {
+    let commands = crate::grammar::command_paths()
+        .into_iter()
+        .map(|(verb, entity, id)| {
             let schema = schema(id)?;
             if !catalog::available(verb, entity, &schema, &excluded, context.globals.hosted) {
                 return Ok(None);
@@ -141,26 +135,32 @@ fn catalog(context: crate::command::Context<'_>, read_only: bool) -> io::Result<
             if context.globals.hosted {
                 schema = catalog::hosted_schema(schema, verb, entity, &excluded);
             }
-            let mut tool = json!({"name":name(verb, entity),
-            "description":description::render(verb, entity, &schema, &excluded),
-            "inputSchema":arguments::input_with_limit(&schema, enum_limit),
-            "annotations":{"readOnlyHint":read_only,"destructiveHint":false,"openWorldHint":true}});
-            if output_schema && let Some(fields) = tool.as_object_mut() {
-                fields.insert(
-                    "outputSchema".into(),
-                    super::output_schema::for_command(verb, entity, id)?,
-                );
-            }
+            let sources = crate::help::coverage::command_sources(verb, entity, &schema)
+                .into_iter()
+                .filter(|word| {
+                    word.parse::<biomcp_types::Source>()
+                        .is_ok_and(|source| !excluded.contains(&source))
+                })
+                .collect();
+            let description = description::render(verb, entity, &schema, &excluded);
+            let input = arguments::input_with_limit(&schema, enum_limit);
             let caller_schema = catalog::caller_schema(schema, verb, entity, &excluded);
             let canonical = json!({"name":name(verb, entity),
                 "inputSchema":arguments::input_with_limit(&caller_schema, usize::MAX)});
-            Ok(Some((tool, canonical)))
+            Ok(Some(grouping::Command {
+                path: (verb, entity, id),
+                description,
+                input,
+                read_only,
+                sources,
+                canonical,
+            }))
         })
         .collect::<io::Result<Vec<_>>>()?
         .into_iter()
         .flatten()
         .collect::<Vec<_>>();
-    grouping::catalog(context, read_only, tools, excluded)
+    grouping::catalog(context, read_only, commands, excluded)
 }
 pub(super) fn parse(
     context: crate::command::Context<'_>,
@@ -173,18 +173,9 @@ pub(super) fn parse(
         return super::research::parse(params).map(Ok);
     }
     let root = context.root;
-    let catalog = catalog(context, read_only).ok()?;
-    let reference = if params.get("name")?.as_str()? == "biomcp_reference" {
-        if !followups::allowed(params, &catalog.tools) {
-            return None;
-        }
-        Some(grouping::unwrap(params)?)
-    } else {
-        None
-    };
-    let params = reference.as_ref().unwrap_or(params);
+    let mut catalog = catalog(context, read_only).ok()?;
     let called = params.get("name")?.as_str()?;
-    if called == "biomcp_help" {
+    if called == "help" {
         let mut call = help::parse(params)?;
         call.catalog = Some(catalog);
         return Some(Ok(call));
@@ -194,19 +185,53 @@ pub(super) fn parse(
         call.catalog = Some(catalog);
         return Some(Ok(call));
     }
-    let &(verb, entity, id) = crate::grammar::command_paths()
+    let (tool, _, placed) = catalog::front_map::ENTITY_TOOLS
         .iter()
-        .find(|&&(verb, entity, _)| name(verb, entity) == called)?;
+        .find(|(tool, _, _)| *tool == called)?;
+    catalog.current = Some((*tool).into());
+    let fields = match params.get("arguments") {
+        Some(Value::Object(fields)) => fields.clone(),
+        Some(Value::Null) | None => serde_json::Map::new(),
+        Some(_) => return None,
+    };
+    let action = fields.get("action").and_then(Value::as_str);
+    let Some(&(action, command, _)) = placed.iter().find(|(placed, _, _)| Some(*placed) == action)
+    else {
+        let actions = catalog.actions(tool);
+        return Some(Err(rejected("action", &actions, catalog)));
+    };
+    if let Some(key) = fields.keys().find(|key| *key != "action" && *key != action) {
+        return Some(Err(rejected(
+            key,
+            &["action".into(), action.into()],
+            catalog,
+        )));
+    }
+    let path = crate::grammar::command_paths()
+        .into_iter()
+        .find(|&(verb, entity, _)| name(verb, entity) == command)?;
+    let values = fields.get(action).cloned().unwrap_or_else(|| json!({}));
+    command_call(root, path, action, &values, fresh, catalog)
+}
+
+/// Check one action's object against its command's schema and spell its CLI call.
+fn command_call(
+    root: &crate::grammar::Root,
+    (verb, entity, id): (&'static str, &'static str, &'static str),
+    action: &str,
+    values: &Value,
+    fresh: bool,
+    catalog: Catalog,
+) -> Option<Result<super::research::Call, Rejected>> {
     let schema = schema(id).ok()?;
     let input = arguments::input(&schema);
-    let values = params.get("arguments").unwrap_or(&Value::Null);
     if !validation::valid(&input, values) {
         let properties = input.get("properties")?.as_object()?;
         let fields = values.as_object();
         let key =
             fields.and_then(|fields| fields.keys().find(|key| !properties.contains_key(*key)));
         let error = biomcp_types::UsageError::Arguments(biomcp_types::UsageArguments {
-            argument: Some(key.map_or_else(|| "arguments".into(), |key| key.clone().into())),
+            argument: Some(key.map_or_else(|| action.into(), |key| key.clone().into())),
             valid_values: Some(
                 properties
                     .keys()
@@ -235,6 +260,7 @@ pub(super) fn parse(
         return Some(Err(Rejected {
             error,
             args,
+            command: Some((verb, entity, id)),
             catalog: Some(catalog),
         }));
     }
@@ -249,9 +275,34 @@ pub(super) fn parse(
     }))
 }
 
+/// Refuse an entity call's own shape: a missing or unknown action, or a field beside it.
+fn rejected(argument: &str, valid: &[String], catalog: Catalog) -> Rejected {
+    let error = biomcp_types::UsageError::Arguments(biomcp_types::UsageArguments {
+        argument: Some(argument.into()),
+        valid_values: valid
+            .iter()
+            .map(|value| biodata::Text::new(value).ok())
+            .collect::<Option<Vec<_>>>()
+            .map(Into::into),
+        next: vec![biomcp_types::Step {
+            kind: biomcp_types::StepKind::Configure,
+            args: ["help".into()].into(),
+        }],
+        ..Default::default()
+    });
+    Rejected {
+        error,
+        args: vec!["help".into()],
+        command: None,
+        catalog: Some(catalog),
+    }
+}
+
 pub(super) struct Rejected {
     error: biomcp_types::UsageError,
     args: Vec<std::ffi::OsString>,
+    /// The command whose arguments were refused; none when the entity call's shape was.
+    command: Option<(&'static str, &'static str, &'static str)>,
     catalog: Option<Catalog>,
 }
 pub(super) fn rejection(
@@ -261,14 +312,9 @@ pub(super) fn rejection(
     context: crate::command::Context<'_>,
     read_only: bool,
 ) -> io::Result<Value> {
-    if context.globals.hosted {
-        let &(verb, entity, id) = crate::grammar::command_paths()
-            .iter()
-            .find(|(verb, entity, _)| {
-                rejected.args.first().is_some_and(|word| word == *verb)
-                    && rejected.args.get(1).is_some_and(|word| word == *entity)
-            })
-            .ok_or_else(|| io::Error::other("typed command path"))?;
+    if context.globals.hosted
+        && let Some((verb, entity, id)) = rejected.command
+    {
         let excluded = catalog::excluded(context)?;
         let schema = catalog::hosted_schema(schema(id)?, verb, entity, &excluded);
         if let biomcp_types::UsageError::Arguments(arguments) = &mut rejected.error

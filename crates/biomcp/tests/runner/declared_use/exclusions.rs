@@ -213,9 +213,7 @@ fn reaction_filter(server: &Server, extra: &str) -> Check<bool> {
         .and_then(Value::as_array)
         .filter(|_| status == 200)
         .ok_or_else(|| format!("catalog {status}: {reply}"))?;
-    let search = tools
-        .iter()
-        .find(|tool| tool["name"] == "search_adverse_event")
+    let search = crate::runner::protocol::typed_catalog::command(tools, "search_adverse_event")
         .ok_or("search adverse event")?;
     Ok(search.pointer("/inputSchema/properties/reaction").is_some())
 }

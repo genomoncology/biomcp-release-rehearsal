@@ -5,11 +5,14 @@
   "steps": [
     {
       "mcp_call": {
-        "name": "search_adverse_event",
+        "name": "adverse_event",
         "arguments": {
-          "drug": [
-            "synthetic A OR synthetic B"
-          ]
+          "action": "search",
+          "search": {
+            "drug": [
+              "synthetic A OR synthetic B"
+            ]
+          }
         }
       },
       "offline": true,

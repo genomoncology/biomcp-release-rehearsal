@@ -10,14 +10,17 @@
   "steps": [
     {
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "condition": [
-            "pancreatic cancer"
-          ],
-          "gene": "KRAS",
-          "phase": "3",
-          "status": "RECRUITING"
+          "action": "search",
+          "search": {
+            "condition": [
+              "pancreatic cancer"
+            ],
+            "gene": "KRAS",
+            "phase": "3",
+            "status": "RECRUITING"
+          }
         }
       },
       "expect": {

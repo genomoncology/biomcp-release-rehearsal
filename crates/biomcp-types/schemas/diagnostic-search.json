@@ -273,7 +273,7 @@
     },
     "source": {
       "$ref": "#/$defs/DiagnosticSearchSource",
-      "description": "Native diagnostic source; biomcp_help search diagnostic\nNative diagnostic source.\nExplicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery."
+      "description": "Native diagnostic source; help search diagnostic\nNative diagnostic source.\nExplicit native GTR, WHO IVD, FDA PMA, 510(k), companion or medical device recall discovery."
     },
     "type": {
       "anyOf": [
@@ -284,7 +284,7 @@
           "type": "null"
         }
       ],
-      "description": "Native test_type; biomcp_help search diagnostic\nNative test_type.\nExact native test_type value.",
+      "description": "Native test_type; help search diagnostic\nNative test_type.\nExact native test_type value.",
       "x-required-component": "gtr"
     }
   },

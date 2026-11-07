@@ -6,12 +6,15 @@
   "steps": [
     {
       "mcp_call": {
-        "name": "get_variant",
+        "name": "variant",
         "arguments": {
-          "input": "CA123643",
-          "section": [
-            "population"
-          ]
+          "action": "get",
+          "get": {
+            "input": "CA123643",
+            "section": [
+              "population"
+            ]
+          }
         }
       },
       "expect": {
@@ -23,9 +26,12 @@
     },
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "CA123643"
+          "action": "population",
+          "population": {
+            "input": "CA123643"
+          }
         }
       },
       "expect": {
@@ -37,12 +43,15 @@
     },
     {
       "mcp_call": {
-        "name": "get_variant",
+        "name": "variant",
         "arguments": {
-          "input": "CA118639",
-          "section": [
-            "population"
-          ]
+          "action": "get",
+          "get": {
+            "input": "CA118639",
+            "section": [
+              "population"
+            ]
+          }
         }
       },
       "expect": {
@@ -54,9 +63,12 @@
     },
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "CA118639"
+          "action": "population",
+          "population": {
+            "input": "CA118639"
+          }
         }
       },
       "expect": {
@@ -68,9 +80,12 @@
     },
     {
       "mcp_call": {
-        "name": "get_variant",
+        "name": "variant",
         "arguments": {
-          "input": "CA999999999999"
+          "action": "get",
+          "get": {
+            "input": "CA999999999999"
+          }
         }
       },
       "exit": 1,
@@ -81,9 +96,12 @@
     },
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "CA999999999999"
+          "action": "population",
+          "population": {
+            "input": "CA999999999999"
+          }
         }
       },
       "exit": 1,

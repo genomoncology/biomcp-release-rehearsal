@@ -40,11 +40,14 @@
     },
     {
       "mcp_call": {
-        "name": "article_text",
+        "name": "article",
         "arguments": {
-          "input": "39214094",
-          "part": 1,
-          "find": "needle"
+          "action": "text",
+          "text": {
+            "input": "39214094",
+            "part": 1,
+            "find": "needle"
+          }
         }
       },
       "offline": true,
@@ -63,7 +66,7 @@
         "/next/0": {
           "equals": {
             "kind": "configure",
-            "name": "biomcp_help",
+            "name": "help",
             "arguments": {
               "command": "article text"
             }

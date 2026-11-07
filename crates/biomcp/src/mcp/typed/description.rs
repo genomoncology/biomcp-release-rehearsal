@@ -138,3 +138,48 @@ fn input_description(schema: &Value) -> String {
         .replace(", in caller order", "");
     format!("{name}:{description}")
 }
+
+/// One line naming the entity, its sources and every action, then how to call it.
+pub(super) fn tool(
+    label: &str,
+    sources: &BTreeSet<String>,
+    actions: &[&str],
+    facets: &[&str],
+    excluded: &BTreeSet<biomcp_types::Source>,
+) -> String {
+    let label = super::catalog::summary(label, excluded);
+    let lead = if sources.is_empty() {
+        label
+    } else {
+        format!(
+            "{label} ({})",
+            sources.iter().cloned().collect::<Vec<_>>().join(", ")
+        )
+    };
+    let example = if actions.contains(&"get") {
+        "get"
+    } else {
+        actions.first().copied().unwrap_or("get")
+    };
+    let pages = if actions.contains(&"get") && !facets.is_empty() {
+        format!(
+            " get returns the first page of a section; {} return all of it.",
+            facets.join(", ")
+        )
+    } else {
+        String::new()
+    };
+    format!(
+        "{lead}. Actions: {}.{pages} Call {{\"action\":\"{example}\",\"{example}\":{{...}}}}.",
+        actions.join(", ")
+    )
+}
+
+/// An action's object keeps its command's description; citations says what it lists.
+pub(super) fn action(action: &str, description: &str) -> String {
+    if action == "citations" {
+        format!("{description} Lists citing papers, not counts.")
+    } else {
+        description.to_owned()
+    }
+}

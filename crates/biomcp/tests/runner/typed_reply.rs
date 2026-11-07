@@ -33,17 +33,26 @@ fn forms() -> Result<(), String> {
             request(
                 json!(1),
                 "tools/call",
-                json!({"name":"search_trial","arguments":{"condition":["melanoma"]}}),
+                crate::runner::protocol::typed_catalog::entity(
+                    "search_trial",
+                    json!({"condition":["melanoma"]}),
+                ),
             ),
             request(
                 json!(2),
                 "tools/call",
-                json!({"name":"get_trial","arguments":{"input":["not-an-nct"]}}),
+                crate::runner::protocol::typed_catalog::entity(
+                    "get_trial",
+                    json!({"input":["not-an-nct"]}),
+                ),
             ),
             request(
                 json!(3),
                 "tools/call",
-                json!({"name":"get_trial","arguments":{"input":["NCT07491445"],"section":["summary","eligibility"],"source":"ctgov"}}),
+                crate::runner::protocol::typed_catalog::entity(
+                    "get_trial",
+                    json!({"input":["NCT07491445"],"section":["summary","eligibility"],"source":"ctgov"}),
+                ),
             ),
         ];
         let replies = exchange_with_globals(&env, &frames, &env.globals(Some(&capture), false))?;
@@ -95,12 +104,15 @@ fn notes() -> Result<(), String> {
             request(
                 json!(1),
                 "tools/call",
-                json!({"name":"biomcp_help","arguments":{"command":"get trial"}}),
+                json!({"name":"help","arguments":{"command":"get trial"}}),
             ),
             request(
                 json!(2),
                 "tools/call",
-                json!({"name":"get_gene","arguments":{"input":["BRAF"]}}),
+                crate::runner::protocol::typed_catalog::entity(
+                    "get_gene",
+                    json!({"input":["BRAF"]}),
+                ),
             ),
         ];
         let replies = exchange_with_globals(&env, &frames, &env.globals(Some(&recordings), false))?;
@@ -181,8 +193,8 @@ fn checked(result: &Value, form: &str, index: usize) -> Result<Value, String> {
     if index == 2
         && value.get("next")
             != Some(&json!([
-                {"kind":"configure","name":"get_trial","arguments":{"input":["NCT07491445"],"section":["eligibility"]}},
-                {"kind":"configure","name":"biomcp_help","arguments":{"command":"get trial"}}
+                {"kind":"configure","name":"trial","arguments":{"action":"get","get":{"input":["NCT07491445"],"section":["eligibility"]}}},
+                {"kind":"configure","name":"help","arguments":{"command":"get trial"}}
             ]))
     {
         return Err(format!("typed reply lost ordered recovery steps: {value}"));
@@ -245,7 +257,10 @@ fn cap() -> Result<(), String> {
             let params = if mode == "single" {
                 json!({"name":"biomcp","arguments":{"args":["get","gene","BRAF"]}})
             } else {
-                json!({"name":"get_gene","arguments":{"input":["BRAF"]}})
+                crate::runner::protocol::typed_catalog::entity(
+                    "get_gene",
+                    json!({"input":["BRAF"]}),
+                )
             };
             let replies = exchange_with_globals(
                 &env,
@@ -264,7 +279,7 @@ fn cap() -> Result<(), String> {
                     .and_then(|reply| reply.pointer("/result/content/0/text"))
                     .and_then(Value::as_str)
                     .and_then(|text| text.lines().next())
-                    .is_some_and(|text| text.contains("search_"))
+                    .is_some_and(|text| text.contains("\"action\":\"search\""))
             {
                 return Err("too-broad reply acquired a search suggestion".into());
             }

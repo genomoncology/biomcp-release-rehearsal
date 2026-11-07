@@ -2,9 +2,11 @@
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, io};
 
-pub(super) fn for_command(verb: &str, entity: &str, id: &str) -> io::Result<Value> {
-    let ids = crate::schema::replies(id, verb, entity)
-        .into_iter()
+/// One reply shape for an entity tool: the union of its actions' command replies.
+pub(super) fn for_commands(paths: &[(&str, &str, &str)]) -> io::Result<Value> {
+    let ids = paths
+        .iter()
+        .flat_map(|&(verb, entity, id)| crate::schema::replies(id, verb, entity))
         .collect();
     let mut branches = [envelope(ids)?, shape(&canonical("biomcp.error/4")?)?];
     for branch in &mut branches {

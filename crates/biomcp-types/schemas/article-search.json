@@ -175,7 +175,7 @@
     },
     "retracted": {
       "$ref": "#/$defs/RetractionFilter",
-      "description": "Retraction filter; biomcp_help search article\nRetraction filter.\nInclude retracted papers by default. Exclusion is supported only by PubMed and Europe PMC.",
+      "description": "Retraction filter; help search article\nRetraction filter.\nInclude retracted papers by default. Exclusion is supported only by PubMed and Europe PMC.",
       "x-cli-flags": {
         "exclude-retracted": "exclude",
         "include-retracted": "include"
@@ -193,13 +193,13 @@
     "sort": {
       "$ref": "#/$defs/ArticleSort",
       "default": "rank",
-      "description": "rank, date or citations; biomcp_help search article\nrank, date or citations.\nrank (default): native provider order; several sources take turns; native search cost.\ndate: native search cost; PubMed means date added and Europe PMC means newest first; other sources refuse it.\ncitations: most cited first across the whole pool; adds iCite calls, about 1 s per 1,000 PMIDs.\nAll sources support citations."
+      "description": "rank, date or citations; help search article\nrank, date or citations.\nrank (default): native provider order; several sources take turns; native search cost.\ndate: native search cost; PubMed means date added and Europe PMC means newest first; other sources refuse it.\ncitations: most cited first across the whole pool; adds iCite calls, about 1 s per 1,000 PMIDs.\nAll sources support citations."
     },
     "source": {
       "default": [
         "pubmed"
       ],
-      "description": "Sources; default pubmed; biomcp_help search article\nSources; default pubmed.\nSources to search in caller order, comma separated. Default: pubmed.\nSeveral sources take turns, remove duplicates and show every native rank.\npubmed: keywords with PubMed MeSH mapping; dropped words appear as notices.\neuropepmc: words in open full text and preprints; incidental mentions are possible.\nlitvar: exact variant publications; requires --variant and a protein change needs --gene; unresolved inputs return candidates.\nsemantic-scholar: broad discovery; a shared keyless pool may return 429; an optional free key raises the limit.\nlitsense: sentence resemblance, not a match; unrelated hits and timeouts are possible.\npubtator: entity and word search including full text; needs the right entity ID; --gene uses HGNC Entrez identity and cannot run without that join.",
+      "description": "Sources; default pubmed; help search article\nSources; default pubmed.\nSources to search in caller order, comma separated. Default: pubmed.\nSeveral sources take turns, remove duplicates and show every native rank.\npubmed: keywords with PubMed MeSH mapping; dropped words appear as notices.\neuropepmc: words in open full text and preprints; incidental mentions are possible.\nlitvar: exact variant publications; requires --variant and a protein change needs --gene; unresolved inputs return candidates.\nsemantic-scholar: broad discovery; a shared keyless pool may return 429; an optional free key raises the limit.\nlitsense: sentence resemblance, not a match; unrelated hits and timeouts are possible.\npubtator: entity and word search including full text; needs the right entity ID; --gene uses HGNC Entrez identity and cannot run without that join.",
       "items": {
         "$ref": "#/$defs/ArticleSource"
       },
@@ -214,7 +214,7 @@
     },
     "type": {
       "$ref": "#/$defs/ArticleType",
-      "description": "Publication type; biomcp_help search article\nPublication type.\nPubMed and Europe PMC only: native publication-type filter."
+      "description": "Publication type; help search article\nPublication type.\nPubMed and Europe PMC only: native publication-type filter."
     },
     "until": {
       "$ref": "#/$defs/PartialDate",

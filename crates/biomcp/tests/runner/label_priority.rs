@@ -74,7 +74,10 @@ fn search(env: &Environment, mode: &str, query: &str, offset: u32) -> Result<Val
     let params = if mode == "single" {
         json!({"name":"biomcp","arguments":{"args":["search","drug",query,"--source","openfda-label","--limit","2","--offset",offset.to_string()]}})
     } else {
-        json!({"name":"search_drug","arguments":{"query":query,"source":"openfda-label","limit":2,"offset":offset}})
+        crate::runner::protocol::typed_catalog::entity(
+            "search_drug",
+            json!({"query":query,"source":"openfda-label","limit":2,"offset":offset}),
+        )
     };
     let replay = fixtures().join("replies/drug/label-priority");
     let replies = exchange_with_globals(
@@ -102,7 +105,10 @@ fn display_names() -> Check {
         let params = if mode == "single" {
             json!({"name":"biomcp","arguments":{"args":["search","drug","chronic myeloid leukemia","--source","openfda-label"]}})
         } else {
-            json!({"name":"search_drug","arguments":{"query":"chronic myeloid leukemia","source":"openfda-label"}})
+            crate::runner::protocol::typed_catalog::entity(
+                "search_drug",
+                json!({"query":"chronic myeloid leukemia","source":"openfda-label"}),
+            )
         };
         let replay = fixtures().join("replies/drug/label-display");
         let replies = exchange_with_globals(

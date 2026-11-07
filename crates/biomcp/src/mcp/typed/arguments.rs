@@ -88,11 +88,11 @@ pub(super) fn input_with_limit(schema: &Value, enum_limit: usize) -> Value {
                     let mut lines = text.lines();
                     let first = lines.next().unwrap_or_default();
                     // Generated schemas prepend a compact help pointer to the original prose.
-                    let text = if first.contains("biomcp_help") {
+                    let text = if first.contains("; help ") {
                         lines
                             .next()
                             .unwrap_or(first)
-                            .split("; biomcp_help")
+                            .split("; help ")
                             .next()
                             .unwrap_or(first)
                             .to_owned()

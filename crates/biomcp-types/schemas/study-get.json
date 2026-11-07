@@ -79,7 +79,7 @@
           "type": "null"
         }
       ],
-      "description": "Omit for the card; all returns bounded first pages only; biomcp_help get study",
+      "description": "Omit for the card; all returns bounded first pages only; help get study",
       "x-positional": 1,
       "x-section-rule": "Omit for the card; all returns bounded first pages only."
     },

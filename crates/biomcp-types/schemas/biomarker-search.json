@@ -52,7 +52,7 @@
     },
     "source": {
       "$ref": "#/$defs/BiomarkerSource",
-      "description": "Explicit keyed NCI source; biomcp_help search biomarker\nExplicit keyed NCI source."
+      "description": "Explicit keyed NCI source; help search biomarker\nExplicit keyed NCI source."
     }
   },
   "required": [

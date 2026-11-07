@@ -19,6 +19,9 @@ use std::io::Write;
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
+        transcript_trial("mcp-parity/typed-entity-every-action", || {
+            super::typed_entity::check().map_err(Into::into)
+        }),
         transcript_trial("mcp-parity/typed-cli-bridge", || {
             super::typed_bridge::check().map_err(Into::into)
         }),
@@ -148,11 +151,13 @@ fn discovery(env: &Environment, globals: &[String]) -> Result<Vec<Value>, String
     if instructions.chars().count() > 4096 {
         return Err("instruction budget exceeded".into());
     }
+    let views = super::typed_catalog::commands(tools);
     for (verb, entity, _) in paths {
         let name = format!("{verb}_{entity}").replace('-', "_");
-        let Some(tool) = tools.iter().find(|tool| tool["name"] == name) else {
-            continue;
-        };
+        let tool = views
+            .iter()
+            .find(|tool| tool["name"] == name)
+            .ok_or_else(|| format!("{name}: no advertised action"))?;
         let description = tool["description"].as_str().ok_or("description")?;
         if description.chars().count() > 300 {
             return Err(format!(
@@ -198,7 +203,7 @@ fn rejections(env: &Environment, globals: &[String]) -> Result<(), String> {
         let frame = request(
             json!(3),
             "tools/call",
-            json!({"name":"search_trial","arguments":arguments}),
+            super::typed_catalog::entity("search_trial", arguments),
         );
         let stdio = validation_parity(env, globals, &server, &frame)?;
         let envelope = stdio
@@ -245,7 +250,7 @@ fn integer_spelling(env: &Environment, globals: &[String], server: &Server) -> R
         let frame = request(
             json!(5),
             "tools/call",
-            json!({"name":"search_trial","arguments":{"limit":limit}}),
+            crate::runner::protocol::typed_catalog::entity("search_trial", json!({"limit":limit})),
         );
         let reply = validation_parity(env, globals, server, &frame)?;
         let envelope = reply

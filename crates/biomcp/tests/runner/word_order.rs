@@ -174,7 +174,7 @@ fn typed_help() -> Check {
         &[mcp::request(
             json!(1),
             "tools/call",
-            json!({"name":"biomcp_help","arguments":{"command":"variant get"}}),
+            json!({"name":"help","arguments":{"command":"variant get"}}),
         )],
         &["--offline".into()],
     )?;
@@ -182,7 +182,7 @@ fn typed_help() -> Check {
         .first()
         .and_then(|reply| reply.pointer("/result/structuredContent"))
         .ok_or("missing typed help reply")?;
-    if reply.pointer("/next/0/name") == Some(&json!("biomcp_help"))
+    if reply.pointer("/next/0/name") == Some(&json!("help"))
         && reply.pointer("/next/0/arguments/command") == Some(&json!("get variant"))
     {
         return Ok(());

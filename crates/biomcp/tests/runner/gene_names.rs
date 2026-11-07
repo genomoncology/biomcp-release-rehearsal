@@ -25,7 +25,10 @@ fn check() -> Result<(), String> {
         &[request(
             json!(1),
             "tools/call",
-            json!({"name":"search_gene","arguments":{"query":"kirsten rat sarcoma"}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "search_gene",
+                json!({"query":"kirsten rat sarcoma"}),
+            ),
         )],
         &env.globals(Some(&replay), false),
     )?;

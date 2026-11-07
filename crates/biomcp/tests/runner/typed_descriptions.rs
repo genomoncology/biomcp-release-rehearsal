@@ -7,22 +7,34 @@ use serde_json::{Value, json};
 use std::collections::BTreeSet;
 
 pub(super) fn check(env: &Environment) -> Result<(), String> {
-    let tools = catalog(env, false)?;
+    let entities = catalog(env, false)?;
+    let tools = crate::runner::protocol::typed_catalog::commands(&entities);
+    standalone(&entities)?;
     standalone(&tools)?;
-    examples(env, &tools)?;
+    examples(&entities)?;
     let hosted = catalog(env, true)?;
     standalone(&hosted)?;
-    examples(env, &hosted)?;
+    standalone(&crate::runner::protocol::typed_catalog::commands(&hosted))?;
+    examples(&hosted)?;
     faers_drug(&tools)?;
     for (verb, entity, id) in biomcp_types::command_paths() {
         let name = format!("{verb}_{entity}").replace('-', "_");
-        let Some(tool) = tools.iter().find(|tool| tool["name"] == name) else {
-            continue; // Grouped command contracts remain available through canonical help.
-        };
+        let tool = tools
+            .iter()
+            .find(|tool| tool["name"] == name)
+            .ok_or_else(|| format!("{name}: no advertised action"))?;
         let description = tool
             .get("description")
             .and_then(Value::as_str)
             .ok_or("description")?;
+        // The tool map's ruling: citations says it lists citing papers, not counts.
+        let description = if name == "article_citations" {
+            description
+                .strip_suffix(" Lists citing papers, not counts.")
+                .ok_or_else(|| format!("{name}: citations note missing: {description}"))?
+        } else {
+            description
+        };
         let summary = biomcp_types::COMMANDS
             .iter()
             .find(|row| row.verb == verb && row.entity == entity)
@@ -53,6 +65,24 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
         primary(&schema, description, &name)?;
         publishers(verb, entity, &schema, description)?;
     }
+    spot_words(&tools)?;
+    let help = cli(env, &["help".into(), "get".into(), "drug".into()])?;
+    let description = help
+        .pointer("/result/commands/0/description")
+        .and_then(Value::as_str)
+        .ok_or("drug help")?;
+    let summary = biomcp_types::COMMANDS
+        .iter()
+        .find(|row| row.verb == "get" && row.entity == "drug")
+        .ok_or("drug registry")?
+        .summary
+        .trim();
+    if !description.starts_with(summary) {
+        return Err("CLI help lost the command summary".into());
+    }
+    Ok(())
+}
+fn spot_words(tools: &[Value]) -> Result<(), String> {
     for (name, words) in [
         ("get_drug", ["drug", "medicine"]),
         ("search_adverse_event", ["adverse", "events"]),
@@ -67,20 +97,6 @@ pub(super) fn check(env: &Environment) -> Result<(), String> {
         if !words.into_iter().all(|word| description.contains(word)) {
             return Err(format!("{name}: missing search words"));
         }
-    }
-    let help = cli(env, &["help".into(), "get".into(), "drug".into()])?;
-    let description = help
-        .pointer("/result/commands/0/description")
-        .and_then(Value::as_str)
-        .ok_or("drug help")?;
-    let summary = biomcp_types::COMMANDS
-        .iter()
-        .find(|row| row.verb == "get" && row.entity == "drug")
-        .ok_or("drug registry")?
-        .summary
-        .trim();
-    if !description.starts_with(summary) {
-        return Err("CLI help lost the command summary".into());
     }
     Ok(())
 }
@@ -194,7 +210,7 @@ fn standalone(tools: &[Value]) -> Result<(), String> {
         );
         for (path, value) in descriptions {
             let text = value.as_str().unwrap_or_default();
-            if text.is_empty() || text.contains("biomcp_help") {
+            if text.is_empty() || text.contains("; help ") {
                 failures.push(format!("{path}: incomplete description: {text}"));
             }
         }
@@ -206,48 +222,29 @@ fn standalone(tools: &[Value]) -> Result<(), String> {
     }
 }
 
-// A model copies a description's example call verbatim, so each must satisfy the named command's schema.
-fn examples(env: &Environment, tools: &[Value]) -> Result<(), String> {
+// A model copies a description's example call, so each names an action its tool advertises.
+fn examples(tools: &[Value]) -> Result<(), String> {
     let mut found = 0;
     for tool in tools {
-        let texts = std::iter::once(&tool["description"]).chain(
-            tool.pointer("/inputSchema/properties")
-                .and_then(Value::as_object)
-                .into_iter()
-                .flatten()
-                .map(|(_, property)| &property["description"]),
-        );
-        for text in texts.filter_map(Value::as_str) {
-            for (start, _) in text.match_indices("{\"command\":") {
-                let example = serde_json::Deserializer::from_str(&text[start..])
-                    .into_iter::<Value>()
-                    .next()
-                    .ok_or("example call")?
-                    .map_err(|e| format!("{}: unparsable example: {e}", tool["name"]))?;
-                let command = example
-                    .get("command")
-                    .and_then(Value::as_str)
-                    .ok_or("example command")?;
-                crate::runner::protocol::typed_catalog::command(tools, command).ok_or_else(
-                    || format!("{}: example names unadvertised {command}", tool["name"]),
-                )?;
-                let (_, _, id) = biomcp_types::command_paths()
-                    .into_iter()
-                    .find(|(verb, entity, _)| {
-                        format!("{verb}_{entity}").replace('-', "_") == command
-                    })
-                    .ok_or_else(|| {
-                        format!("{}: example names unknown command {command}", tool["name"])
-                    })?;
-                let schema = cli(env, &["schema".into(), id.into()])?;
-                jsonschema::validator_for(&schema)
-                    .map_err(|e| e.to_string())?
-                    .validate(example.get("arguments").ok_or("example arguments")?)
-                    .map_err(|e| {
-                        format!("{}: example {example} fails {command}: {e}", tool["name"])
-                    })?;
-                found += 1;
+        let text = tool["description"].as_str().unwrap_or_default();
+        let actions = tool
+            .pointer("/inputSchema/properties/action/enum")
+            .and_then(Value::as_array);
+        for (start, _) in text.match_indices("{\"action\":\"") {
+            let action = text[start + 11..]
+                .split('"')
+                .next()
+                .ok_or("example action")?;
+            let object = format!("{{\"action\":\"{action}\",\"{action}\":{{");
+            if !text[start..].starts_with(&object)
+                || !actions.is_some_and(|actions| actions.contains(&json!(action)))
+            {
+                return Err(format!(
+                    "{}: example names unadvertised {action}",
+                    tool["name"]
+                ));
             }
+            found += 1;
         }
     }
     if found == 0 {

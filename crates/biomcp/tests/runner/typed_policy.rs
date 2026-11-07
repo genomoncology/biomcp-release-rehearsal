@@ -56,14 +56,14 @@ fn hosted(env: &Environment) -> Result<(), String> {
             exact_next(
                 env,
                 text,
-                json!({"name":"biomcp_help","arguments":{"command":command}}),
+                json!({"name":"help","arguments":{"command":command}}),
             )?;
         }
         if index >= 5
             && text
                 .lines()
                 .next()
-                .is_some_and(|line| line.contains("search_"))
+                .is_some_and(|line| line.contains("\"action\":\"search\""))
         {
             return Err(format!(
                 "hosted refusal acquired a search suggestion: {text}"
@@ -103,11 +103,11 @@ pub(super) fn get_help(env: &Environment) -> Result<(), String> {
         let frame = request(
             json!(10),
             "tools/call",
-            json!({"name":name,"arguments":arguments}),
+            crate::runner::protocol::typed_catalog::entity(name, arguments),
         );
         let replies = exchange_with_globals(env, &[frame], &["--offline".into()])?;
         let reply = replies.first().ok_or("invalid getter reply")?;
-        if reply.pointer("/result/structuredContent/next/0/name") != Some(&json!("biomcp_help"))
+        if reply.pointer("/result/structuredContent/next/0/name") != Some(&json!("help"))
             || reply.pointer("/result/structuredContent/next/0/arguments/command")
                 != Some(&json!(command))
         {
@@ -120,7 +120,7 @@ pub(super) fn get_help(env: &Environment) -> Result<(), String> {
         exact_next(
             env,
             text,
-            json!({"name":"biomcp_help","arguments":{"command":command}}),
+            json!({"name":"help","arguments":{"command":command}}),
         )?;
     }
     Ok(())
@@ -129,7 +129,7 @@ fn fresh_refusal(env: &Environment) -> Result<(), String> {
     let frame = request(
         json!(9),
         "tools/call",
-        json!({"name":"get_gene","arguments":{"input":["BRAF"]}}),
+        crate::runner::protocol::typed_catalog::entity("get_gene", json!({"input":["BRAF"]})),
     );
     let replies = exchange_with_globals(env, &[frame], &["--hosted".into(), "--fresh".into()])?;
     let reply = replies.first().ok_or("hosted fresh reply")?;
@@ -142,7 +142,7 @@ fn fresh_refusal(env: &Environment) -> Result<(), String> {
         || text
             .lines()
             .next()
-            .is_some_and(|line| line.contains("search_"))
+            .is_some_and(|line| line.contains("\"action\":\"search\""))
     {
         return Err(format!("hosted get refusal changed guidance: {reply}"));
     }
@@ -152,7 +152,7 @@ fn boundaries(env: &Environment) -> Result<(), String> {
     let hostile = request(
         json!(8),
         "tools/call",
-        json!({"name":"get_gene","arguments":{"input":["--help"]}}),
+        crate::runner::protocol::typed_catalog::entity("get_gene", json!({"input":["--help"]})),
     );
     let reply = exchange_with_globals(env, &[hostile], &["--offline".into()])?;
     if reply
@@ -212,32 +212,50 @@ fn frames() -> [Value; 6] {
         request(
             json!(1),
             "tools/call",
-            json!({"name":"get_variant","arguments":{"input":"BRAF V600E"}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_variant",
+                json!({"input":"BRAF V600E"}),
+            ),
         ),
         request(
             json!(2),
             "tools/call",
-            json!({"name":"get_trial","arguments":{"input":["melanoma"]}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_trial",
+                json!({"input":["melanoma"]}),
+            ),
         ),
         request(
             json!(5),
             "tools/call",
-            json!({"name":"get_trial","arguments":{"input":["lung cancer"]}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_trial",
+                json!({"input":["lung cancer"]}),
+            ),
         ),
         request(
             json!(6),
             "tools/call",
-            json!({"name":"get_variant","arguments":{"input":"beta thalassemia"}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_variant",
+                json!({"input":"beta thalassemia"}),
+            ),
         ),
         request(
             json!(7),
             "tools/call",
-            json!({"name":"get_variant","arguments":{"input":"unrecognized"}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_variant",
+                json!({"input":"unrecognized"}),
+            ),
         ),
         request(
             json!(3),
             "tools/call",
-            json!({"name":"article_pdf","arguments":{"input":"28944238","save":"saved.pdf"}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "article_pdf",
+                json!({"input":"28944238","save":"saved.pdf"}),
+            ),
         ),
     ]
 }

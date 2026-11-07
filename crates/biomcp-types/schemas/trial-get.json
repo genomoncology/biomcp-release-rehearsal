@@ -86,7 +86,7 @@
       "description": "Checked stored source record, supplied by a continuation."
     },
     "section": {
-      "description": "Optional intact source sections. Default cards only;; biomcp_help get trial",
+      "description": "Optional intact source sections. Default cards only; diseases; help get trial",
       "items": {
         "$ref": "#/$defs/TrialSection"
       },
@@ -96,7 +96,7 @@
     },
     "source": {
       "$ref": "#/$defs/TrialSource",
-      "description": "Explicit provider; defaults to ClinicalTrials.gov and; biomcp_help get trial\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
+      "description": "Explicit provider; defaults to ClinicalTrials.gov and never; help get trial\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
     }
   },
   "required": [

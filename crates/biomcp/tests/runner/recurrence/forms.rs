@@ -223,7 +223,7 @@ fn typed(env: &Environment, tool: &str, arguments: Value) -> Result<Value, Strin
     let frame = mcp::request(
         json!(1),
         "tools/call",
-        json!({"name":tool,"arguments":arguments}),
+        crate::runner::protocol::typed_catalog::entity(tool, arguments),
     );
     let replies =
         mcp::exchange_with_globals(env, &[frame], &["--tool-mode".into(), "typed".into()])?;

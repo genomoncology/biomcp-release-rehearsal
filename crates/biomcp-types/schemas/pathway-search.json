@@ -62,7 +62,7 @@
       "default": [
         "reactome"
       ],
-      "description": "Sources in caller order; repeated sources take; biomcp_help search pathway\nSources in caller order; repeated sources take turns without title joins.",
+      "description": "Sources in caller order; repeated sources take turns; help search pathway\nSources in caller order; repeated sources take turns without title joins.",
       "items": {
         "$ref": "#/$defs/PathwaySource"
       },

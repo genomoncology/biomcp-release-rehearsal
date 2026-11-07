@@ -48,7 +48,7 @@
       "x-positional": 0
     },
     "section": {
-      "description": "Requested section words, preserving caller order and; biomcp_help get gene",
+      "description": "Requested section words, preserving caller order and repetitions; help get gene",
       "items": {
         "$ref": "#/$defs/GeneSectionWord"
       },

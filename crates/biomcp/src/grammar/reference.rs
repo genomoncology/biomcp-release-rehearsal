@@ -265,7 +265,7 @@ fn every_section_rule_keeps_its_complete_source_text() -> Check {
             .ok_or_else(|| format!("{id}: missing canonical section rule"))?;
         assert_eq!(actual, &crate::help::source_prose(original), "{id}");
         assert!(
-            !actual.contains("biomcp_help"),
+            !actual.contains("; help "),
             "{id}: compact guidance leaked into rule"
         );
     }

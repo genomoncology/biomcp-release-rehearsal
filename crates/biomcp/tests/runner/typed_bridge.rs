@@ -12,11 +12,11 @@ pub(super) fn check() -> Check {
     for (argv, call) in [
         (
             vec!["get", "pathway", "hsa04151"],
-            json!({"name":"biomcp_reference","arguments":{"command":"get_pathway","arguments":{"id":"hsa04151"}}}),
+            json!({"name":"pathway","arguments":{"action":"get","get":{"id":"hsa04151"}}}),
         ),
         (
             vec!["get", "pathway", "R-HSA-109581", "enrichment"],
-            json!({"name":"biomcp_reference","arguments":{"command":"get_pathway","arguments":{"id":"R-HSA-109581","section":"enrichment"}}}),
+            json!({"name":"pathway","arguments":{"action":"get","get":{"id":"R-HSA-109581","section":"enrichment"}}}),
         ),
         (
             vec![
@@ -27,7 +27,10 @@ pub(super) fn check() -> Check {
                 "--source",
                 "opentargets",
             ],
-            json!({"name":"get_disease","arguments":{"id":"MONDO:0007254","section":"genes","source":"opentargets"}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_disease",
+                json!({"id":"MONDO:0007254","section":"genes","source":"opentargets"}),
+            ),
         ),
     ] {
         let env = environment()?;
@@ -47,7 +50,7 @@ pub(super) fn check() -> Check {
     parity(
         &env,
         &globals,
-        json!({"name":"get_gene","arguments":{"input":["--help"]}}),
+        crate::runner::protocol::typed_catalog::entity("get_gene", json!({"input":["--help"]})),
         &literal,
     )?;
     reference_record()?;
@@ -79,7 +82,10 @@ fn indication() -> Check {
     parity(
         &env,
         &globals,
-        json!({"name":"search_drug","arguments":{"indication":"melanoma","source":"openfda-label","limit":1}}),
+        crate::runner::protocol::typed_catalog::entity(
+            "search_drug",
+            json!({"indication":"melanoma","source":"openfda-label","limit":1}),
+        ),
         &expected,
     )
 }
@@ -128,8 +134,7 @@ fn reference_record() -> Check {
     parity(
         &env,
         &globals,
-        json!({"name":"biomcp_reference","arguments":{
-        "command":"get_pathway","arguments":{"id":"R-HSA-5673001"}}}),
+        json!({"name":"pathway","arguments":{"action":"get","get":{"id":"R-HSA-5673001"}}}),
         &expected,
     )
 }
@@ -141,7 +146,10 @@ fn fresh_cases() -> Check {
             vec![
                 "search", "drug", "Tibsovo", "--source", "ema", "--limit", "1", "--offset", "1",
             ],
-            json!({"name":"search_drug","arguments":{"query":"Tibsovo","source":"ema","limit":1,"offset":1}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "search_drug",
+                json!({"query":"Tibsovo","source":"ema","limit":1,"offset":1}),
+            ),
         ),
         (
             "ddinter",
@@ -157,7 +165,10 @@ fn fresh_cases() -> Check {
                 "--section-offset",
                 "1",
             ],
-            json!({"name":"get_drug","arguments":{"input":"DDInter1","section":["interactions"],"source":"ddinter","section_limit":1,"section_offset":1}}),
+            crate::runner::protocol::typed_catalog::entity(
+                "get_drug",
+                json!({"input":"DDInter1","section":["interactions"],"source":"ddinter","section_limit":1,"section_offset":1}),
+            ),
         ),
     ] {
         fresh(source, &argv, call)?;

@@ -13,11 +13,14 @@
         "/query/query": "Canonical therapy"
       },
       "mcp_call": {
-        "name": "search_drug",
+        "name": "drug",
         "arguments": {
-          "query": "EX-66",
-          "source": "opentargets",
-          "limit": 1
+          "action": "search",
+          "search": {
+            "query": "EX-66",
+            "source": "opentargets",
+            "limit": 1
+          }
         }
       }
     },
@@ -30,10 +33,13 @@
         "/query/input": "CHEMBL941"
       },
       "mcp_call": {
-        "name": "get_drug",
+        "name": "drug",
         "arguments": {
-          "input": "EX-66",
-          "source": "opentargets"
+          "action": "get",
+          "get": {
+            "input": "EX-66",
+            "source": "opentargets"
+          }
         }
       }
     }

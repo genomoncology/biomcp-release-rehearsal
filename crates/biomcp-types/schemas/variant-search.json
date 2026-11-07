@@ -92,7 +92,7 @@
   "properties": {
     "build": {
       "$ref": "#/$defs/Build",
-      "description": "Optional caller assembly sent to MyVariant; regions; biomcp_help search variant\nOptional caller assembly sent to MyVariant; regions require it explicitly."
+      "description": "Optional caller assembly sent to MyVariant; regions; help search variant\nOptional caller assembly sent to MyVariant; regions require it explicitly."
     },
     "coding": {
       "$ref": "#/$defs/CodingChange",
@@ -108,7 +108,7 @@
     },
     "has": {
       "$ref": "#/$defs/VariantSearchField",
-      "description": "Require the selected component's identifier field; biomcp_help search variant\nRequire the selected component's identifier field. Only source-proven mappings are offered."
+      "description": "Require the selected component's identifier field. Only; help search variant\nRequire the selected component's identifier field. Only source-proven mappings are offered."
     },
     "limit": {
       "default": 10,
@@ -144,7 +144,7 @@
     },
     "source": {
       "$ref": "#/$defs/VariantSearchSource",
-      "description": "Explicit source language; required for a raw query; biomcp_help search variant\nExplicit source language; required for a raw query."
+      "description": "Explicit source language; required for a raw query; help search variant\nExplicit source language; required for a raw query."
     }
   },
   "title": "VariantSearch",

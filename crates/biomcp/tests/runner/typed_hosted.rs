@@ -25,7 +25,7 @@ pub(super) fn check() -> Result<(), String> {
             .get("name")
             .and_then(Value::as_str)
             .ok_or("tool name")?;
-        let writes = matches!(name, "biomcp" | "biomcp_reference");
+        let writes = matches!(name, "biomcp" | "article" | "trial");
         if tool.pointer("/annotations/readOnlyHint") != Some(&json!(!writes)) {
             return Err(format!("wrong file capability hint: {name}"));
         }
@@ -62,14 +62,10 @@ fn hosted(budgets: &mut Vec<String>) -> Result<(), String> {
         let choices = reply
             .pointer("/result/tools")
             .and_then(Value::as_array)
-            .and_then(|tools| {
-                tools
-                    .iter()
-                    .find(|tool| tool.get("name") == Some(&json!("search_drug")))
-            })
-            .and_then(|tool| tool.pointer("/inputSchema/properties/source/enum"))
-            .and_then(Value::as_array)
+            .and_then(|tools| crate::runner::protocol::typed_catalog::command(tools, "search_drug"))
+            .and_then(|tool| tool.pointer("/inputSchema/properties/source/enum").cloned())
             .ok_or("drug source choices")?;
+        let choices = choices.as_array().ok_or("drug source choices")?;
         if choices.contains(&json!("who-pq")) != expected {
             return Err(format!(
                 "{usage} source choices disagree with WHO source policy"
@@ -79,7 +75,10 @@ fn hosted(budgets: &mut Vec<String>) -> Result<(), String> {
     let call = request(
         json!(2),
         "tools/call",
-        json!({"name":"article_pdf","arguments":{"input":"28944238","save":"saved.pdf"}}),
+        crate::runner::protocol::typed_catalog::entity(
+            "article_pdf",
+            json!({"input":"28944238","save":"saved.pdf"}),
+        ),
     );
     let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
     if reply.pointer("/result/structuredContent/error/code")
@@ -114,6 +113,7 @@ fn source_fields(hosted: &Value) -> Result<(), String> {
         .pointer("/result/tools")
         .and_then(Value::as_array)
         .ok_or("hosted tools")?;
+    let tools = crate::runner::protocol::typed_catalog::commands(tools);
     for (name, hidden, kept) in owners {
         let fields = tools
             .iter()
@@ -136,7 +136,7 @@ fn source_help(server: &Server) -> Result<(), String> {
         let call = request(
             json!(5),
             "tools/call",
-            json!({"name":"biomcp_help","arguments":{"command":command}}),
+            json!({"name":"help","arguments":{"command":command}}),
         );
         let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
         reply
@@ -188,7 +188,10 @@ fn same_refusal(server: &Server) -> Result<(), String> {
     let call = request(
         json!(6),
         "tools/call",
-        json!({"name":"search_diagnostic","arguments":{"source":"gtr","marker":"HIV"}}),
+        crate::runner::protocol::typed_catalog::entity(
+            "search_diagnostic",
+            json!({"source":"gtr","marker":"HIV"}),
+        ),
     );
     let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
     let error = reply.pointer("/result/structuredContent/error");
@@ -205,13 +208,18 @@ fn assert_hosted(hosted: &Value) -> Result<(), String> {
         .pointer("/result/tools")
         .and_then(Value::as_array)
         .ok_or("hosted tools")?;
+    if crate::runner::protocol::typed_catalog::commands(tools)
+        .iter()
+        .any(|tool| {
+            matches!(
+                tool["name"].as_str(),
+                Some("article_pdf" | "trial_document")
+            )
+        })
+    {
+        return Err("hosted catalog advertises mandatory save".into());
+    }
     for tool in tools {
-        if matches!(
-            tool.get("name").and_then(Value::as_str),
-            Some("article_pdf" | "trial_document")
-        ) {
-            return Err("hosted catalog advertises mandatory save".into());
-        }
         if tool.pointer("/annotations/readOnlyHint") != Some(&json!(true)) {
             return Err("hosted catalog marks a refused write as writable".into());
         }
@@ -273,8 +281,9 @@ fn catalog(
     if instructions.chars().count() > 4096
         || usage.is_empty()
             && (instructions.contains("oncokb")
-                || instructions.contains("article_pdf")
-                || instructions.contains("trial_document"))
+                || instructions
+                    .split(|c: char| !c.is_alphanumeric() && c != '_')
+                    .any(|word| matches!(word, "pdf" | "document")))
     {
         return Err("hosted instructions advertise refused tools/sources or exceed budget".into());
     }
@@ -297,7 +306,9 @@ fn capture(label: &str, reply: &Value, budgets: &mut Vec<String>) -> Result<(), 
                 super::typed_schemas::size(tool)
             )
             .map_err(|e| e.to_string())?;
-            if let Err(error) = super::typed_schemas::budget(tool) {
+        }
+        for view in crate::runner::protocol::typed_catalog::commands(tools) {
+            if let Err(error) = super::typed_schemas::budget(&view) {
                 budgets.push(format!("{label}: {error}"));
             }
         }
@@ -312,7 +323,10 @@ fn refused_source(server: &Server) -> Result<(), String> {
     let call = request(
         json!(4),
         "tools/call",
-        json!({"name":"search_drug","arguments":{"query":"aspirin","source":"who-pq"}}),
+        crate::runner::protocol::typed_catalog::entity(
+            "search_drug",
+            json!({"query":"aspirin","source":"who-pq"}),
+        ),
     );
     let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
     let disabled = reply
@@ -352,26 +366,19 @@ fn configured_exclusions(env: &Environment, budgets: &mut Vec<String>) -> Result
     {
         return Err("excluded source display name remains in argument prose".into());
     }
-    let marker = reply
+    let tools = reply
         .pointer("/result/tools")
         .and_then(Value::as_array)
-        .and_then(|tools| {
-            tools
-                .iter()
-                .find(|tool| tool.get("name") == Some(&json!("search_diagnostic")))
-        })
-        .and_then(|tool| tool.pointer("/inputSchema/properties/marker/description"));
-    let reference = reply
-        .pointer("/result/tools")
-        .and_then(Value::as_array)
-        .and_then(|tools| tools.iter().find(|tool| tool["name"] == "biomcp_reference"))
-        .and_then(|tool| tool.pointer("/inputSchema/properties/command/enum"))
-        .and_then(Value::as_array)
-        .ok_or("reference commands")?;
-    if !reference.contains(&json!("search_gwas")) {
-        return Err("source exclusion removed the reference command".into());
+        .ok_or("configured tools")?;
+    let marker = crate::runner::protocol::typed_catalog::command(tools, "search_diagnostic")
+        .and_then(|tool| {
+            tool.pointer("/inputSchema/properties/marker/description")
+                .cloned()
+        });
+    if crate::runner::protocol::typed_catalog::command(tools, "search_gwas").is_none() {
+        return Err("source exclusion removed the GWAS action".into());
     }
-    if marker != Some(&json!("WHO marker phrase.")) {
+    if marker != Some(json!("WHO marker phrase.")) {
         return Err("unrelated publisher exclusion hid allowed WHO diagnostic prose".into());
     }
     Ok(())

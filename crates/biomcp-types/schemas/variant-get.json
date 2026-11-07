@@ -108,7 +108,7 @@
           "type": "null"
         }
       ],
-      "description": "Assembly; biomcp_help get variant\nAssembly\nMyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
+      "description": "Assembly; help get variant\nAssembly\nMyVariant identity assembly defaults to GRCh38; chromosome genomic HGVS requires an explicit build."
     },
     "civic_cursor": {
       "anyOf": [
@@ -130,7 +130,7 @@
           "type": "null"
         }
       ],
-      "description": "Claims; biomcp_help get variant\nClaims\nNative CIViC claim collection within the selected profile."
+      "description": "Claims; help get variant\nClaims\nNative CIViC claim collection within the selected profile."
     },
     "civic_profile": {
       "description": "Selected CIViC molecular profile for native claim paging.",
@@ -143,7 +143,7 @@
       ]
     },
     "evidence_level": {
-      "description": "A–E; biomcp_help get variant\nA–E\nNative CIViC evidence levels; repeat to include several levels.",
+      "description": "A–E; help get variant\nA–E\nNative CIViC evidence levels; repeat to include several levels.",
       "items": {
         "$ref": "#/$defs/CivicEvidenceLevel"
       },
@@ -158,7 +158,7 @@
           "type": "null"
         }
       ],
-      "description": "Status; biomcp_help get variant\nStatus\nNative CIViC evidence status; omitted preserves the source's existing default."
+      "description": "Status; help get variant\nStatus\nNative CIViC evidence status; omitted preserves the source's existing default."
     },
     "input": {
       "$ref": "#/$defs/VariantLookupInput",
@@ -183,10 +183,10 @@
     "resolver": {
       "$ref": "#/$defs/VariantResolver",
       "default": "car",
-      "description": "Resolver; biomcp_help get variant\nResolver.\nResolver for reference-qualified notation; never repairs the input locally."
+      "description": "Resolver; help get variant\nResolver.\nResolver for reference-qualified notation; never repairs the input locally."
     },
     "section": {
-      "description": "Sections; biomcp_help get variant",
+      "description": "Sections; help get variant",
       "items": {
         "$ref": "#/$defs/VariantSection"
       },

@@ -41,7 +41,7 @@
           "type": "null"
         }
       ],
-      "description": "Explicit source assembly when required by; biomcp_help variant population\nExplicit source assembly when required by identity input."
+      "description": "Explicit source assembly when required by identity; help variant population\nExplicit source assembly when required by identity input."
     },
     "detail": {
       "description": "Read source ancestry groups, preserving overlapping groups individually.",
@@ -70,7 +70,7 @@
     "resolver": {
       "$ref": "#/$defs/VariantResolver",
       "default": "car",
-      "description": "Resolver for reference-qualified input; biomcp_help variant population\nResolver for reference-qualified input."
+      "description": "Resolver for reference-qualified input; help variant population\nResolver for reference-qualified input."
     }
   },
   "required": [

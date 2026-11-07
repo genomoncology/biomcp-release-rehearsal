@@ -36,7 +36,7 @@
     "source": {
       "$ref": "#/$defs/PhenotypeSource",
       "default": "monarch",
-      "description": "Monarch only; HPO search is unsupported; biomcp_help search phenotype\nMonarch only; HPO search is unsupported."
+      "description": "Monarch only; HPO search is unsupported; help search phenotype\nMonarch only; HPO search is unsupported."
     },
     "text": {
       "description": "Unchanged literal term search text.",

@@ -80,7 +80,7 @@
     },
     "source": {
       "$ref": "#/$defs/OrganizationSource",
-      "description": "Explicit keyed NCI source; biomcp_help search organization\nExplicit keyed NCI source."
+      "description": "Explicit keyed NCI source; help search organization\nExplicit keyed NCI source."
     },
     "state": {
       "$ref": "#/$defs/Text",

@@ -58,7 +58,7 @@
           "type": "null"
         }
       ],
-      "description": "Identity lookup assembly; omitted uses the; biomcp_help variant assertions\nIdentity lookup assembly; omitted uses the shared GRCh38 default."
+      "description": "Identity lookup assembly; omitted uses the shared; help variant assertions\nIdentity lookup assembly; omitted uses the shared GRCh38 default."
     },
     "input": {
       "$ref": "#/$defs/VariantLookupInput",
@@ -81,7 +81,7 @@
     },
     "source": {
       "$ref": "#/$defs/AssertionSource",
-      "description": "One native assertion source; shared identity; biomcp_help variant assertions\nOne native assertion source; shared identity conversion precedes source access when needed."
+      "description": "One native assertion source; shared identity; help variant assertions\nOne native assertion source; shared identity conversion precedes source access when needed."
     },
     "version": {
       "anyOf": [

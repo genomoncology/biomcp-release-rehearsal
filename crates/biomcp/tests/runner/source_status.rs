@@ -33,7 +33,7 @@ fn call(
         &[mcp::request(
             json!(1),
             "tools/call",
-            json!({"name":name,"arguments":arguments}),
+            crate::runner::protocol::typed_catalog::entity(name, arguments),
         )],
         globals,
     )?;

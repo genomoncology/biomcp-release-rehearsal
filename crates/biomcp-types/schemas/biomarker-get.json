@@ -26,7 +26,7 @@
     "source": {
       "$ref": "#/$defs/BiomarkerSource",
       "default": "nci",
-      "description": "NCI is the biomarker concept source; biomcp_help get biomarker\nNCI is the biomarker concept source."
+      "description": "NCI is the biomarker concept source; help get biomarker\nNCI is the biomarker concept source."
     }
   },
   "required": [

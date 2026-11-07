@@ -53,7 +53,7 @@
     "source": {
       "$ref": "#/$defs/EdgeSource",
       "default": "icite",
-      "description": "Graph provider; iCite remains the default; biomcp_help article citations\nGraph provider; iCite remains the default."
+      "description": "Graph provider; iCite remains the default; help article citations\nGraph provider; iCite remains the default."
     }
   },
   "required": [

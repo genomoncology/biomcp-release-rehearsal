@@ -77,11 +77,11 @@ pub(super) fn command_descriptions(schema: &mut Value, id: &str) {
                 .then(|| property.get("title").and_then(Value::as_str))
                 .flatten()
                 .unwrap_or_else(|| original.lines().next().unwrap_or_default());
-            if first.contains("biomcp_help") {
+            if first.contains("; help ") {
                 continue;
             }
             let suffix = if form.is_some() {
-                format!("; biomcp_help {} {}", command.verb, command.entity)
+                format!("; help {} {}", command.verb, command.entity)
             } else {
                 String::new()
             };

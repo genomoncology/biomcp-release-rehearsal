@@ -51,7 +51,7 @@
           "type": "null"
         }
       ],
-      "description": "Identity lookup assembly; omitted uses the; biomcp_help variant recurrence\nIdentity lookup assembly; omitted uses the shared GRCh38 default."
+      "description": "Identity lookup assembly; omitted uses the shared; help variant recurrence\nIdentity lookup assembly; omitted uses the shared GRCh38 default."
     },
     "gene": {
       "$ref": "#/$defs/GeneSymbol",
@@ -87,7 +87,7 @@
     },
     "source": {
       "$ref": "#/$defs/RecurrenceSource",
-      "description": "Explicit cohort source; biomcp_help variant recurrence\nExplicit cohort source."
+      "description": "Explicit cohort source; help variant recurrence\nExplicit cohort source."
     },
     "study": {
       "$ref": "#/$defs/Text",

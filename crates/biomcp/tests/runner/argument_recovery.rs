@@ -122,7 +122,7 @@ fn typed_correction(env: &Environment, value: &Value, tools: &[Value]) -> Result
     let next = value
         .pointer("/next/0")
         .ok_or("missing typed corrected call")?;
-    if next.get("name") == Some(&json!("biomcp_help")) {
+    if next.get("name") == Some(&json!("help")) {
         return Err("expected a corrected request".into());
     }
     let replies = exchange_with_globals(

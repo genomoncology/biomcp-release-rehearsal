@@ -87,7 +87,7 @@
           "type": "null"
         }
       ],
-      "description": "FAERS reaction counts; biomcp_help search adverse-event\nFAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero.",
+      "description": "FAERS reaction counts; help search adverse-event\nFAERS reaction counts.\nUse reactions for source-native count buckets across matching reports. Counts are not rates or causal associations; a report may contribute to several terms. Requires MedDRA and offset zero.",
       "x-required-component": "meddra"
     },
     "drug": {
@@ -187,7 +187,7 @@
           "type": "null"
         }
       ],
-      "description": "VAERS table; biomcp_help search adverse-event",
+      "description": "VAERS table; help search adverse-event",
       "title": "VAERS table.",
       "x-positional": 1,
       "x-section-rule": "Independent VAERS table; omitted means reported symptoms."
@@ -201,7 +201,7 @@
           "type": "null"
         }
       ],
-      "description": "FAERS seriousness flag; biomcp_help search adverse-event\nFAERS seriousness flag.\nFAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
+      "description": "FAERS seriousness flag; help search adverse-event\nFAERS seriousness flag.\nFAERS report flag: any uses the source seriousness flag; the specific flags can overlap. Never a reaction outcome."
     },
     "snapshot": {
       "anyOf": [
@@ -217,7 +217,7 @@
     "source": {
       "$ref": "#/$defs/AdverseEventSource",
       "default": "faers",
-      "description": "Source; default FAERS; biomcp_help search adverse-event\nSource; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names.",
+      "description": "Source; default FAERS; help search adverse-event\nSource; default FAERS.\nFAERS by default; VAERS accepts only exact supported vaccine names.",
       "x-required-components": {
         "maude": "gmdn"
       }

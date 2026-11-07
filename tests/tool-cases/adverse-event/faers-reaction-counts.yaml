@@ -10,12 +10,15 @@
   "steps": [
     {
       "mcp_call": {
-        "name": "search_adverse_event",
+        "name": "adverse_event",
         "arguments": {
-          "text": "Synthetic medicine",
-          "source": "faers",
-          "aggregate": "reactions",
-          "limit": 2
+          "action": "search",
+          "search": {
+            "text": "Synthetic medicine",
+            "source": "faers",
+            "aggregate": "reactions",
+            "limit": 2
+          }
         }
       },
       "expect": {

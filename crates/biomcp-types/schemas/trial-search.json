@@ -206,7 +206,7 @@
     },
     "biomarker_use": {
       "$ref": "#/$defs/NciBiomarkerUse",
-      "description": "NCI criterion; biomcp_help search trial\nNCI criterion.\nFilter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
+      "description": "NCI criterion; help search trial\nNCI criterion.\nFilter by NCI's native inclusion or exclusion criterion. Check each result's biomarker entry and reported problems."
     },
     "condition": {
       "description": "Disease; NCI needs NCIt.\nConditions joined with OR. NCI needs NCIt codes such as C3224; use --condition-id for MONDO or DOID identifiers.",
@@ -225,7 +225,7 @@
       "type": "boolean"
     },
     "country": {
-      "description": "Country label; biomcp_help search trial\nCountry label.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
+      "description": "Country label; help search trial\nCountry label.\nExact ClinicalTrials.gov country label; repeat for OR. Trials must list a site in a named country. NCI uses its native country filter.",
       "items": {
         "enum": [
           "Afghanistan",
@@ -537,7 +537,7 @@
     },
     "phase": {
       "$ref": "#/$defs/TrialPhaseFilter",
-      "description": "Native phase; biomcp_help search trial\nNative phase.\nExact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
+      "description": "Native phase; help search trial\nNative phase.\nExact source phase. ClinicalTrials.gov: 1, 2, 3, 4, early-1, not-applicable, 1/2, 2/3. NCI: NA, 0, I, I_II, II, II_III, III, IV."
     },
     "query": {
       "$ref": "#/$defs/Text",
@@ -546,11 +546,11 @@
     },
     "sex": {
       "$ref": "#/$defs/TrialSex",
-      "description": "ClinicalTrials.gov only: registry sex facet; biomcp_help search trial\nClinicalTrials.gov only: registry sex facet."
+      "description": "ClinicalTrials.gov only: registry sex facet; help search trial\nClinicalTrials.gov only: registry sex facet."
     },
     "source": {
       "$ref": "#/$defs/TrialSource",
-      "description": "clinicaltrials/nci; biomcp_help search trial\nclinicaltrials/nci.\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
+      "description": "clinicaltrials/nci; help search trial\nclinicaltrials/nci.\nExplicit provider; defaults to ClinicalTrials.gov and never falls back."
     },
     "sponsor": {
       "$ref": "#/$defs/Text",
@@ -558,15 +558,15 @@
     },
     "sponsor_type": {
       "$ref": "#/$defs/SponsorType",
-      "description": "Funding class; biomcp_help search trial\nFunding class.\nClinicalTrials.gov only: registry sponsor funding category; use --sponsor for a sponsor name."
+      "description": "Funding class; help search trial\nFunding class.\nClinicalTrials.gov only: registry sponsor funding category; use --sponsor for a sponsor name."
     },
     "status": {
       "$ref": "#/$defs/TrialStatusFilter",
-      "description": "Native status; biomcp_help search trial\nNative status.\nExact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
+      "description": "Native status; help search trial\nNative status.\nExact source status. NCI: Active, Administratively Complete, Approved, Closed to Accrual, Closed to Accrual and Intervention, Complete, INACTIVE, Enrolling by Invitation, Temporarily Closed to Accrual, Temporarily Closed to Accrual and Intervention, Withdrawn. ClinicalTrials.gov uses registry labels."
     },
     "study_type": {
       "$ref": "#/$defs/StudyType",
-      "description": "Study type; biomcp_help search trial\nStudy type.\nClinicalTrials.gov only: exact registry study type."
+      "description": "Study type; help search trial\nStudy type.\nClinicalTrials.gov only: exact registry study type."
     },
     "updated_since": {
       "$ref": "#/$defs/PartialDate",

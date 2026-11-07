@@ -6,9 +6,12 @@
   "steps": [
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "7-117559590-ATCT-A"
+          "action": "population",
+          "population": {
+            "input": "7-117559590-ATCT-A"
+          }
         }
       },
       "expect": {
@@ -23,9 +26,12 @@
     },
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "NC_000007.14:g.117559592_117559594del"
+          "action": "population",
+          "population": {
+            "input": "NC_000007.14:g.117559592_117559594del"
+          }
         }
       },
       "expect": {
@@ -40,9 +46,12 @@
     },
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "17-43057065-G-GG"
+          "action": "population",
+          "population": {
+            "input": "17-43057065-G-GG"
+          }
         }
       },
       "expect": {
@@ -57,9 +66,12 @@
     },
     {
       "mcp_call": {
-        "name": "variant_population",
+        "name": "variant",
         "arguments": {
-          "input": "NC_000017.11:g.43057065dup"
+          "action": "population",
+          "population": {
+            "input": "NC_000017.11:g.43057065dup"
+          }
         }
       },
       "expect": {

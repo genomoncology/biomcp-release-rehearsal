@@ -197,9 +197,10 @@ fn parameter(
         let frame = request(
             json!(1),
             "tools/call",
-            json!({
-                "name":format!("{verb}_{entity}").replace('-', "_"), "arguments":values
-            }),
+            crate::runner::protocol::typed_catalog::entity(
+                &format!("{verb}_{entity}").replace('-', "_"),
+                json!(values),
+            ),
         );
         exchange_with_globals(env, &[frame], &["--offline".into()])
     };
@@ -263,7 +264,10 @@ fn listed_value(
     let frame = request(
         json!(1),
         "tools/call",
-        json!({"name":format!("{verb}_{entity}").replace('-', "_"), "arguments":values}),
+        crate::runner::protocol::typed_catalog::entity(
+            &format!("{verb}_{entity}").replace('-', "_"),
+            json!(values),
+        ),
     );
     let replies = exchange_with_globals(env, &[frame], &["--offline".into()])?;
     match replies
@@ -325,6 +329,7 @@ fn hosted_sources(env: &Environment, failures: &mut Vec<String>) -> Result<(), S
         .pointer("/result/tools")
         .and_then(Value::as_array)
         .ok_or("hosted tools")?;
+    let tools = crate::runner::protocol::typed_catalog::commands(tools);
     for (verb, entity, id) in biomcp_types::command_paths() {
         let name = format!("{verb}_{entity}").replace('-', "_");
         let Some(tool) = tools.iter().find(|tool| tool["name"] == name.as_str()) else {
@@ -341,7 +346,7 @@ fn hosted_sources(env: &Environment, failures: &mut Vec<String>) -> Result<(), S
             let call = request(
                 json!(2),
                 "tools/call",
-                json!({"name":name, "arguments":values}),
+                crate::runner::protocol::typed_catalog::entity(&name, json!(values)),
             );
             let (_, reply) = server.request("POST", "/mcp", &call.to_string())?;
             if only_disabled(reply.pointer("/result/structuredContent/sources")) {
@@ -383,7 +388,11 @@ fn resolved<'a>(node: &'a Value, root: &'a Value) -> &'a Value {
     node
 }
 
-fn seed(verb: &str, entity: &str, schema: &Value) -> Result<Map<String, Value>, String> {
+pub(in crate::runner) fn seed(
+    verb: &str,
+    entity: &str,
+    schema: &Value,
+) -> Result<Map<String, Value>, String> {
     let mut values = Map::new();
     for key in schema
         .get("required")
@@ -459,7 +468,12 @@ fn operand<'a>(entity: &str, key: &'a str) -> &'a str {
     }
 }
 
-fn argv(verb: &str, entity: &str, schema: &Value, values: &Map<String, Value>) -> Vec<String> {
+pub(in crate::runner) fn argv(
+    verb: &str,
+    entity: &str,
+    schema: &Value,
+    values: &Map<String, Value>,
+) -> Vec<String> {
     let mut args = vec!["--offline".into(), verb.into(), entity.into()];
     let mut positional = Vec::new();
     for (key, value) in values {

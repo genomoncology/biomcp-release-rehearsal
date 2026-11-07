@@ -22,7 +22,7 @@
   "properties": {
     "details": {
       "$ref": "#/$defs/Details",
-      "description": "Include every physical entity context for these; biomcp_help pathway genes\nInclude every physical entity context for these references; never clips source text.",
+      "description": "Include every physical entity context for these references;; help pathway genes\nInclude every physical entity context for these references; never clips source text.",
       "x-positional": 1
     },
     "id": {

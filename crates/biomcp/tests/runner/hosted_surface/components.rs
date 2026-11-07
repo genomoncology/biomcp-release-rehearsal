@@ -20,33 +20,30 @@ pub(super) fn check(mode: &str) -> Check {
 fn component_catalog(server: &Server) -> Check {
     let tools = catalog(server)?;
     let route = super::super::typed_catalog::command(&tools, "get_adverse_event")
-        .ok_or("get adverse event reference route")?;
-    let reference = tools
+        .ok_or("get adverse event action")?;
+    let entity = tools
         .iter()
-        .find(|tool| tool["name"] == "biomcp_reference")
-        .ok_or("reference tool")?;
-    let schema = reference.get("inputSchema").ok_or("reference schema")?;
+        .find(|tool| tool["name"] == "adverse_event")
+        .ok_or("adverse event tool")?;
+    let schema = entity.get("inputSchema").ok_or("adverse event schema")?;
     let validator = jsonschema::validator_for(schema).map_err(|error| error.to_string())?;
     for input in [
         json!({"id":"100","source":"faers","section":"drugs"}),
         json!({"id":"123","source":"maude","section":"narrative"}),
     ] {
         let call = super::super::typed_catalog::call(&route, &input);
-        if !validator.is_valid(call.get("arguments").ok_or("reference arguments")?) {
-            return Err("component-free report reference call disappeared".into());
+        if !validator.is_valid(call.get("arguments").ok_or("entity arguments")?) {
+            return Err("component-free report call disappeared".into());
         }
     }
-    // Per-command component admission is proved by canonical help and execution below.
-    // The generic reference schema must not enumerate a refused section as a choice.
+    // Each action's schema filters component-disabled sections.
     if ["reactions", "devices"]
         .iter()
         .any(|section| schema.to_string().contains(&format!("\"{section}\"")))
     {
-        return Err("reference schema advertises a component-disabled section".into());
+        return Err("adverse event schema advertises a component-disabled section".into());
     }
-    let search = tools
-        .iter()
-        .find(|tool| tool.get("name") == Some(&json!("search_adverse_event")))
+    let search = super::super::typed_catalog::command(&tools, "search_adverse_event")
         .ok_or("search adverse event")?;
     let validator = jsonschema::validator_for(search.get("inputSchema").ok_or("search schema")?)
         .map_err(|e| e.to_string())?;
@@ -206,7 +203,7 @@ fn component_card(server: &Server, mode: &str) -> Check {
                 .and_then(Value::as_array)
                 .is_some_and(|args| args.contains(&json!("reactions")))
                 || step.pointer("/arguments/section") == Some(&json!("reactions"))
-                || step.pointer("/arguments/arguments/section") == Some(&json!("reactions"))
+                || step.pointer("/arguments/get/section") == Some(&json!("reactions"))
         })
     {
         return Err("disabled reaction section offered by next".into());

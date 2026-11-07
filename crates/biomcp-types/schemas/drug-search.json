@@ -69,7 +69,7 @@
           "type": "null"
         }
       ],
-      "description": "Native FDA classification; drug recalls only; biomcp_help search drug\nNative FDA classification; drug recalls only.",
+      "description": "Native FDA classification; drug recalls only; help search drug\nNative FDA classification; drug recalls only.",
       "x-required-component": "fda-drug-recall"
     },
     "firm": {
@@ -123,7 +123,7 @@
     },
     "name_selector": {
       "$ref": "#/$defs/DrugNameSelector",
-      "description": "Explicit ChEMBL native name selector; omitted means; biomcp_help search drug\nExplicit ChEMBL native name selector; omitted means preferred name.",
+      "description": "Explicit ChEMBL native name selector; omitted means preferred; help search drug\nExplicit ChEMBL native name selector; omitted means preferred name.",
       "x-required-component": "chembl"
     },
     "offset": {
@@ -177,7 +177,7 @@
     "source": {
       "$ref": "#/$defs/DrugSource",
       "default": "mychem",
-      "description": "Selected source; biomcp_help search drug\nSelected source.\n\nAfter an empty name lookup, existing sources may supply aliases."
+      "description": "Selected source; help search drug\nSelected source.\n\nAfter an empty name lookup, existing sources may supply aliases."
     },
     "status": {
       "anyOf": [

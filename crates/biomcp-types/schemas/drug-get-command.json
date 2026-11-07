@@ -106,7 +106,7 @@
           "type": "null"
         }
       ],
-      "description": "CIViC collection; biomcp_help get drug\nCIViC collection.\nIndependent native evidence or assertion collection within the selected profile."
+      "description": "CIViC collection; help get drug\nCIViC collection.\nIndependent native evidence or assertion collection within the selected profile."
     },
     "civic_profile": {
       "description": "Selected native CIViC molecular profile for a drug-scoped claim stream.",
@@ -130,7 +130,7 @@
       "description": "FDA letter document ID.\nExact native Drugs@FDA approval letter document ID. Text is bounded to 25 MiB, 100 pages\nand 6144 escaped bytes per fragment. No-text scans are explicit."
     },
     "evidence_level": {
-      "description": "A–E; biomcp_help get drug\nA–E\nNative CIViC evidence levels; repeat to include several levels.",
+      "description": "A–E; help get drug\nA–E\nNative CIViC evidence levels; repeat to include several levels.",
       "items": {
         "$ref": "#/$defs/CivicEvidenceLevel"
       },
@@ -145,7 +145,7 @@
           "type": "null"
         }
       ],
-      "description": "Status; biomcp_help get drug\nStatus\nNative CIViC evidence status; omitted preserves the source's existing default."
+      "description": "Status; help get drug\nStatus\nNative CIViC evidence status; omitted preserves the source's existing default."
     },
     "input": {
       "$ref": "#/$defs/Text",
@@ -175,7 +175,7 @@
       "description": "FDA product number.\nExplicit native application product number, only for approvals."
     },
     "section": {
-      "description": "Source sections; biomcp_help get drug",
+      "description": "Source sections; help get drug",
       "items": {
         "$ref": "#/$defs/DrugSection"
       },
@@ -205,7 +205,7 @@
     },
     "source": {
       "$ref": "#/$defs/DrugSource",
-      "description": "Omit to infer the source of an unambiguous section;; biomcp_help get drug\nOmit to infer the source of an unambiguous section; identity or mixed sections use MyChem."
+      "description": "Omit to infer the source of an unambiguous section; identity or; help get drug\nOmit to infer the source of an unambiguous section; identity or mixed sections use MyChem."
     }
   },
   "required": [

@@ -68,9 +68,191 @@ def internal_names(root):
                 raise ValueError(f"{name}:{number}: internal machine name or workspace path in a public file")
 
 
-def check(root):
+# MCP tools through 0.9 and the 1.0 candidates, before the entity tools. Each name appears in public text
+# only inside the release notes' mapping table, which tells 0.x and hosted users where it went.
+RETIRED_TOOLS = set("""
+biomcp_reference biomcp_help article_citation_evidence article_citations article_pdf article_recommendations
+article_references article_supplement article_text author_papers cell_line_assay_count get_adverse_event
+get_article get_author get_biomarker get_cell_line get_diagnostic get_disease get_drug get_gene get_gwas
+get_pathway get_pgx get_phenotype get_protein get_study get_trial get_variant pathway_events pathway_genes
+protein_complex_members protein_complexes protein_domains protein_features protein_isoforms protein_sequence
+protein_structures search_adverse_event search_article search_author search_biomarker search_cell_line
+search_diagnostic search_disease search_drug search_gene search_gwas search_organization search_pathway
+search_pgx search_phenotype search_protein search_study search_trial search_variant trial_document
+variant_assertions variant_normalize variant_population variant_recurrence
+""".split())
+REUSED_AS_ACTION = {"author_papers"}  # an old command name that is also a new action name
+SHARED_TOOLS = {"biomcp", "help", "search", "fetch"}
+ENTITY_TOOLS = {"gene", "variant", "disease", "drug", "trial", "article", "protein", "pathway", "phenotype",
+                "adverse_event", "diagnostic", "cell_line", "study"}
+TABLE = re.compile(r"<!-- retired-tools:start -->\n(.*?)<!-- retired-tools:end -->\n", re.S)
+EXAMPLE = re.compile(r"`(\{\"action\":.*?\})`(?=[\s,.;:)|]|$)")
+
+
+def doc_files(root):
+    return [name for name in public_files(root)
+            if name.endswith((".md", ".json")) and not name.startswith(("crates/", "tests/", "scripts/"))
+            and (not name.startswith("release/") or name == "release/notes.md")]
+
+
+def mapping(root):
+    """Return the notes' mapping rows as (old name, tool, action), or raise."""
+    match = TABLE.search((root / "release/notes.md").read_text())
+    if not match:
+        raise ValueError("release notes lack the retired tool mapping table")
+    rows = [[cell.strip().strip("`") for cell in line.strip("|").split("|")] for line in match[1].splitlines()[2:]]
+    if any(len(row) != 3 for row in rows):
+        raise ValueError("release notes mapping table rows need three cells")
+    return [tuple(row) for row in rows]
+
+
+def retired(root):
+    """A retired tool name is public text only inside the notes' mapping table."""
+    for name in doc_files(root):
+        text = (root / name).read_text()
+        if name == "release/notes.md":
+            text = TABLE.sub("", text)
+        for number, line in enumerate(text.splitlines(), 1):
+            for word in re.findall(r"(?<![\w-])[a-z][a-z_]*[a-z](?![\w-])", line):
+                if word in RETIRED_TOOLS - REUSED_AS_ACTION:
+                    raise ValueError(f"{name}:{number}: retired tool name {word} outside the release notes mapping table")
+    rows = mapping(root)
+    if {row[0] for row in rows} != RETIRED_TOOLS:
+        raise ValueError("release notes mapping table does not list every retired tool name exactly")
+    for old, tool, action in rows:
+        if old != "biomcp_reference" and tool not in ENTITY_TOOLS | SHARED_TOOLS:
+            raise ValueError(f"release notes map {old} to unknown tool {tool}")
+
+
+def example_calls(root):
+    """Return (file, tool, call) for each example call: a backticked call after the tool's backticked name."""
+    found = []
+    for name in doc_files(root):
+        for number, line in enumerate((root / name).read_text().splitlines(), 1):
+            for match in EXAMPLE.finditer(line):
+                tools = [word for word in re.findall(r"`([a-z_]+)`", line[:match.start()]) if word in ENTITY_TOOLS]
+                if not tools:
+                    raise ValueError(f"{name}:{number}: example call names no entity tool before it")
+                try:
+                    call = json.loads(match[1])
+                except json.JSONDecodeError as error:
+                    raise ValueError(f"{name}:{number}: example call is not JSON: {error}") from error
+                action = call.get("action")
+                if sorted(call) != sorted(["action", action]) or not isinstance(call.get(action), dict):
+                    raise ValueError(f"{name}:{number}: example call is not an action with one object named after it")
+                found.append((f"{name}:{number}", tools[-1], call))
+    return found
+
+
+def catalog(executable):
+    """Ask the installed server for the typed tool list, as an MCP client does."""
+    frames = [{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+                  "protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "docs", "version": "1"}}},
+              {"jsonrpc": "2.0", "method": "notifications/initialized"},
+              {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}]
+    reply = subprocess.run([str(executable), "serve", "--tool-mode", "typed", "--offline"], check=False,
+                           input="".join(json.dumps(frame) + "\n" for frame in frames),
+                           capture_output=True, text=True, timeout=60)
+    for line in reply.stdout.splitlines():
+        message = json.loads(line)
+        if message.get("id") == 2:
+            return {tool["name"]: tool for tool in message["result"]["tools"]}
+    raise ValueError(f"typed server returned no tool list: {reply.stderr}")
+
+ANNOTATIONS = {"$schema", "$id", "$defs", "title", "description", "default", "examples", "deprecated", "readOnly",
+               "format"}
+
+
+def schema_errors(schema, value, root, path="$"):
+    """Check a value against the JSON Schema keywords MCP tool schemas use; refuse keywords it cannot check."""
+    if schema is True:
+        return []
+    if schema is False:
+        return [f"{path}: not allowed"]
+    errors = []
+    for key, rule in schema.items():
+        if key == "$ref":
+            target = root
+            for part in rule.removeprefix("#/").split("/") if rule != "#" else []:
+                target = target[part.replace("~1", "/").replace("~0", "~")]
+            errors += schema_errors(target, value, root, path)
+        elif key == "type":
+            kinds = rule if isinstance(rule, list) else [rule]
+            checks = {"object": dict, "array": list, "string": str, "boolean": bool, "null": type(None)}
+            ok = any(isinstance(value, checks[k]) if k in checks else
+                     (isinstance(value, int) and not isinstance(value, bool)) if k == "integer" else
+                     (isinstance(value, (int, float)) and not isinstance(value, bool)) for k in kinds)
+            if not ok:
+                errors.append(f"{path}: {value!r} is not of type {kinds}")
+        elif key == "enum" and value not in rule:
+            errors.append(f"{path}: {value!r} is not one of {rule}")
+        elif key == "const" and value != rule:
+            errors.append(f"{path}: {value!r} is not {rule!r}")
+        elif key == "required" and isinstance(value, dict):
+            errors += [f"{path}: {name!r} is required" for name in rule if name not in value]
+        elif key == "properties" and isinstance(value, dict):
+            for name, sub in rule.items():
+                if name in value:
+                    errors += schema_errors(sub, value[name], root, f"{path}.{name}")
+        elif key == "additionalProperties" and isinstance(value, dict):
+            extra = [name for name in value if name not in schema.get("properties", {})]
+            if rule is False:
+                errors += [f"{path}: {name!r} is not allowed" for name in extra]
+            elif rule is not True:
+                for name in extra:
+                    errors += schema_errors(rule, value[name], root, f"{path}.{name}")
+        elif key == "items" and isinstance(value, list):
+            for index, item in enumerate(value):
+                errors += schema_errors(rule, item, root, f"{path}[{index}]")
+        elif key in ("minItems", "maxItems") and isinstance(value, list):
+            if (len(value) < rule) if key == "minItems" else (len(value) > rule):
+                errors.append(f"{path}: {len(value)} items violates {key} {rule}")
+        elif key in ("minLength", "maxLength") and isinstance(value, str):
+            if (len(value) < rule) if key == "minLength" else (len(value) > rule):
+                errors.append(f"{path}: length violates {key} {rule}")
+        elif key == "pattern" and isinstance(value, str) and not re.search(rule, value):
+            errors.append(f"{path}: {value!r} does not match {rule}")
+        elif key in ("minimum", "maximum") and isinstance(value, (int, float)) and not isinstance(value, bool):
+            if (value < rule) if key == "minimum" else (value > rule):
+                errors.append(f"{path}: {value} violates {key} {rule}")
+        elif key in ("oneOf", "anyOf", "allOf"):
+            results = [schema_errors(sub, value, root, path) for sub in rule]
+            passed = sum(not found for found in results)
+            if (key == "allOf" and passed != len(rule)) or (key == "anyOf" and not passed) or (key == "oneOf" and passed != 1):
+                errors.append(f"{path}: {value!r} does not satisfy {key}: {[found[:1] for found in results]}")
+        elif key in {"properties", "items", "additionalProperties", "required", "minItems", "maxItems", "minLength",
+                     "maxLength", "pattern", "minimum", "maximum", "enum", "const"}:
+            continue  # a keyword aimed at another kind of value
+        elif key not in ANNOTATIONS and not key.startswith("x-"):
+            raise ValueError(f"{path}: schema keyword {key} is not supported by the docs check")
+    return errors
+
+
+def validate_examples(root, executable):
+    """Each example must pass its tool's input schema, as 0758 requires of tool descriptions."""
+    tools = catalog(executable)
+    if set(tools) != ENTITY_TOOLS | SHARED_TOOLS:
+        raise ValueError(f"typed server offers {sorted(tools)}, not the 17 entity and shared tools")
+    seen = set()
+    for where, tool, call in example_calls(root):
+        errors = schema_errors(tools[tool]["inputSchema"], call, tools[tool]["inputSchema"])
+        if errors:
+            raise ValueError(f"{where}: example call for {tool} fails its schema: {errors[0]}")
+        seen.add(tool)
+    if seen != ENTITY_TOOLS:
+        raise ValueError(f"no example call for tools: {sorted(ENTITY_TOOLS - seen)}")
+    for old, tool, action in mapping(root):
+        if tool in tools and f'"{action}"' not in json.dumps(tools[tool]["inputSchema"]) and action != "none":
+            raise ValueError(f"release notes map {old} to {tool} {action}, which the server does not offer")
+
+
+def check(root, executable=None):
     architecture(root)
     internal_names(root)
+    retired(root)
+    example_calls(root)
+    if executable:
+        validate_examples(root, executable)
     readme = (root / "README.md").read_text()
     examples = [shlex.split(line)[1:] for block in re.findall(r"```sh\n(.*?)```", readme, re.S)
                 for line in block.splitlines() if line.startswith("biomcp ")]
@@ -126,9 +308,10 @@ def check(root):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--executable", type=Path, help="biomcp executable; validates example calls against its tool schemas")
     args = parser.parse_args()
     try:
-        check(args.root)
+        check(args.root, args.executable)
     except (ValueError, OSError) as error:
         print(str(error), file=sys.stderr)
         sys.exit(1)

@@ -38,9 +38,12 @@
         "/query/status": "RECRUITING"
       },
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "status": "recruiting"
+          "action": "search",
+          "search": {
+            "status": "recruiting"
+          }
         }
       },
       "is_error": true
@@ -69,10 +72,13 @@
         "/query/source": "nci"
       },
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "source": "NCI",
-          "status": "WITHDRAWN"
+          "action": "search",
+          "search": {
+            "source": "NCI",
+            "status": "WITHDRAWN"
+          }
         }
       },
       "is_error": true
@@ -154,9 +160,12 @@
         ]
       },
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "status": "not-a-choice"
+          "action": "search",
+          "search": {
+            "status": "not-a-choice"
+          }
         }
       }
     },
@@ -182,10 +191,13 @@
         "/query/status": "WITHDRAWN"
       },
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "source": "CTGOV",
-          "status": "Withdrawn"
+          "action": "search",
+          "search": {
+            "source": "CTGOV",
+            "status": "Withdrawn"
+          }
         }
       },
       "is_error": true
@@ -221,9 +233,12 @@
       },
       "is_error": true,
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "source": "unknown-provider"
+          "action": "search",
+          "search": {
+            "source": "unknown-provider"
+          }
         }
       }
     },
@@ -253,11 +268,14 @@
         "/query/source": "cpic"
       },
       "mcp_call": {
-        "name": "get_pgx",
+        "name": "gene",
         "arguments": {
-          "section": "RECOMMENDATIONS",
-          "gene": "CYP2D6",
-          "source": "CPIC"
+          "action": "pgx_get",
+          "pgx_get": {
+            "section": "RECOMMENDATIONS",
+            "gene": "CYP2D6",
+            "source": "CPIC"
+          }
         }
       }
     },
@@ -283,10 +301,13 @@
         "/error/code": "usage.retired"
       },
       "mcp_call": {
-        "name": "search_phenotype",
+        "name": "phenotype",
         "arguments": {
-          "text": "headache",
-          "source": "HPO"
+          "action": "search",
+          "search": {
+            "text": "headache",
+            "source": "HPO"
+          }
         }
       }
     },
@@ -321,10 +342,13 @@
         }
       },
       "mcp_call": {
-        "name": "search_trial",
+        "name": "trial",
         "arguments": {
-          "source": "NCI",
-          "status": "recruiting"
+          "action": "search",
+          "search": {
+            "source": "NCI",
+            "status": "recruiting"
+          }
         }
       }
     }

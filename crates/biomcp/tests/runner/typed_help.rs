@@ -49,7 +49,7 @@ pub(super) fn discovery() -> Result<(), String> {
             request(
                 json!(4),
                 "tools/call",
-                json!({"name":"biomcp_help","arguments":{"command":"search trial"}}),
+                json!({"name":"help","arguments":{"command":"search trial"}}),
             ),
             request(json!(5), "server/discover", json!({})),
         ],
@@ -113,18 +113,19 @@ fn discovery_contract(single: &[Value], typed: &[Value]) -> Result<(), String> {
         || !instructions
             .lines()
             .next()
-            .is_some_and(|line| line.contains("biomcp_help"))
+            .is_some_and(|line| line.contains("help"))
         || instructions.contains("help sources")
     {
         return Err("typed instructions lack useful help or exceed budget".into());
     }
-    for (verb, entity, _) in biomcp_types::command_paths() {
-        let name = format!("{verb}_{entity}").replace('-', "_");
-        if !instructions
-            .split(|c: char| !c.is_alphanumeric() && c != '_')
-            .any(|word| word == name)
-        {
-            return Err(format!("map missing {name}"));
+    for (tool, action, _) in super::typed_catalog::MAP {
+        if !instructions.lines().any(|line| {
+            line.strip_prefix(&format!("{tool}: ")).is_some_and(|rest| {
+                rest.split(|c: char| !c.is_alphanumeric() && c != '_')
+                    .any(|word| word == *action)
+            })
+        }) {
+            return Err(format!("map missing {tool} {action}"));
         }
     }
     Ok(())
@@ -164,7 +165,7 @@ pub(super) fn recovery() -> Result<(), String> {
         let initial = request(
             json!(1),
             "tools/call",
-            json!({"name":name,"arguments":arguments}),
+            crate::runner::protocol::typed_catalog::entity(name, arguments),
         );
         for http in [false, true] {
             let result = call(&env, &server, &initial, http)?;
@@ -184,7 +185,7 @@ pub(super) fn recovery() -> Result<(), String> {
                 .map(|(_, next)| next)
                 .ok_or_else(|| format!("no typed help next: {text}"))?;
             let next: Value = serde_json::from_str(next).map_err(|e| e.to_string())?;
-            let expected = json!({"name":"biomcp_help","arguments":{"command":command}});
+            let expected = json!({"name":"help","arguments":{"command":command}});
             if next != expected {
                 return Err(format!("wrong help next: {next}, expected {expected}"));
             }

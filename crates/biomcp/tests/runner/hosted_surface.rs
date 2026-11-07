@@ -48,10 +48,7 @@ fn surface(mode: &str) -> Check {
     parser_recovery(&server, &config, mode)?;
     if mode == "typed" {
         let tools = catalog(&server)?;
-        let gene = tools
-            .iter()
-            .find(|tool| tool.get("name") == Some(&json!("get_gene")))
-            .ok_or("get_gene")?;
+        let gene = super::typed_catalog::command(&tools, "get_gene").ok_or("get_gene")?;
         let validator = jsonschema::validator_for(gene.get("inputSchema").ok_or("gene schema")?)
             .map_err(|e| e.to_string())?;
         if !validator.is_valid(&json!({"input":["BRAF"]}))
@@ -261,8 +258,12 @@ fn offered_next(server: &Server, mode: &str, reply: &Value) -> Check {
         .flatten()
     {
         if mode == "typed" {
+            let action = step
+                .pointer("/arguments/action")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
             let fields = step
-                .pointer("/arguments/arguments")
+                .pointer(&format!("/arguments/{action}"))
                 .or_else(|| step.get("arguments"))
                 .and_then(Value::as_object)
                 .ok_or("typed next arguments")?;
@@ -382,12 +383,12 @@ fn help(server: &Server, mode: &str, path: &str) -> Result<Value, String> {
     let words = std::iter::once("help")
         .chain(path.split_whitespace())
         .collect::<Vec<_>>();
-    query(server, mode, "biomcp_help", &words, json!({"command":path}))
+    query(server, mode, "help", &words, json!({"command":path}))
 }
 
 fn params(mode: &str, tool: &str, words: &[&str], input: Value) -> Value {
     if mode == "typed" {
-        json!({"name":tool,"arguments":input})
+        super::typed_catalog::entity(tool, input)
     } else {
         json!({"name":"biomcp","arguments":{"args":words}})
     }

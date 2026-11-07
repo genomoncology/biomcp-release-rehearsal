@@ -37,7 +37,7 @@
           "type": "null"
         }
       ],
-      "description": "Caller assembly; required when VariantValidator; biomcp_help variant normalize\nCaller assembly; required when VariantValidator is selected."
+      "description": "Caller assembly; required when VariantValidator is; help variant normalize\nCaller assembly; required when VariantValidator is selected."
     },
     "hgvs": {
       "description": "Reference-qualified HGVS, or chromosome genomic HGVS with an explicit build for CAR.\nChecked for reference and syntax only; no full HGVS parser.",
@@ -61,7 +61,7 @@
     },
     "source": {
       "$ref": "#/$defs/NormalizationSource",
-      "description": "Explicit service; all preserves independent; biomcp_help variant normalize\nExplicit service; all preserves independent results without consensus."
+      "description": "Explicit service; all preserves independent results; help variant normalize\nExplicit service; all preserves independent results without consensus."
     }
   },
   "required": [
