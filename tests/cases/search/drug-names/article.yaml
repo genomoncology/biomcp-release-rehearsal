@@ -1,0 +1,205 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
+  "story": "A generic, brand and development code search the same source-stated names in trial and article discovery. Exact, ambiguous and unknown terms retain literal search.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "Canonical therapy"
+      ],
+      "mcp": [
+        "search",
+        "article",
+        "Canonical therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ],
+        "/query/text": "Canonical therapy",
+        "/page/total": 3,
+        "/result/items/*/pmid": {
+          "equals": [
+            "99000001",
+            "99000002",
+            "99000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "EX-66"
+      ],
+      "mcp": [
+        "search",
+        "article",
+        "EX-66"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ],
+        "/query/text": "EX-66",
+        "/page/total": 3,
+        "/result/items/*/pmid": {
+          "equals": [
+            "99000001",
+            "99000002",
+            "99000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Example brand"
+      ],
+      "mcp": [
+        "search",
+        "article",
+        "Example brand"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ],
+        "/query/text": "Example brand",
+        "/page/total": 3,
+        "/result/items/*/pmid": {
+          "equals": [
+            "99000001",
+            "99000002",
+            "99000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Unlisted medicine"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/text": "Unlisted medicine"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Canonical therapy",
+        "--exact-term"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/exact_term": true,
+        "/sources/0/count": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "EX-66",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/page/total": 3,
+        "/result/items/0/pmid": "99000001"
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/query/text": "EX-66",
+        "/page/offset": 1,
+        "/result/items/0/pmid": "99000002",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ]
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Canonical therapy",
+        "--source",
+        "semantic-scholar"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 3,
+        "/result/items/*/pmid": {
+          "equals": [
+            "99000001",
+            "99000002",
+            "99000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "EX-66",
+        "--source",
+        "semantic-scholar"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 3,
+        "/result/items/*/pmid": {
+          "equals": [
+            "99000001",
+            "99000002",
+            "99000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Example brand",
+        "--source",
+        "semantic-scholar"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 3,
+        "/result/items/*/pmid": {
+          "equals": [
+            "99000001",
+            "99000002",
+            "99000003"
+          ]
+        }
+      }
+    }
+  ]
+}

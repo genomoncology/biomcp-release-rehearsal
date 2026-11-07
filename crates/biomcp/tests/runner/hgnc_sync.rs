@@ -316,6 +316,7 @@ tool_only! {
                 budget: Duration::from_millis(30),
                 ncbi_email: None,
                 fresh: false,
+                drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
             },
             &request,
         );

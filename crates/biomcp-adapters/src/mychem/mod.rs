@@ -37,6 +37,9 @@ const CARD_FIELDS: &str = concat!(
                     gtopdb.synonyms,gtopdb.chembl_id,gtopdb.xrefs,unii.rxcui,unii.ncit,ndc.applicationnumber,ndc.dosageformname,\
                     ndc.package,openfda.generic_name,openfda.brand_name,openfda.spl_set_id,openfda.application_number"
 );
+/// Synonym fields the source's free-text search does not reach, such as a development code.
+const NAME_FIELDS: &str = "drugbank.synonyms,gtopdb.synonyms,drugcentral.synonyms,\
+                    chembl.molecule_synonyms.molecule_synonym";
 const SEARCH: Endpoint = SPEC.get("/query").fresh(Freshness::Days(7));
 const GET: Endpoint = SPEC.get("/chem").fresh(Freshness::Days(7));
 /// Fetch one literal native page with policy applied before cache and transport identity.
@@ -56,6 +59,51 @@ pub fn search_names(
     offset: u32,
 ) -> Result<(crate::Mapped<DrugPage>, u32), RequestError> {
     search_fields(leg, query, limit, offset, CARD_FIELDS)
+}
+/// One source row stating a name, with the structure that row describes.
+#[derive(Debug)]
+pub struct NameRecord {
+    /// Native row identifier.
+    pub id: String,
+    /// Structure identity; product rows have none and never count as another drug.
+    pub structure: Option<String>,
+    /// Every name the row states, one name per value.
+    pub names: Vec<biodata::Text>,
+}
+/// Read the first rows stating one name, across free text and the synonym fields.
+/// Exact names rank first, so further pages only add product rows and looser matches.
+pub fn name_records(
+    leg: &Leg<'_>,
+    query: &str,
+    limit: u32,
+) -> Result<crate::Mapped<Vec<NameRecord>>, RequestError> {
+    let phrase = format!("\"{}\"", query.replace('\\', "\\\\").replace('"', "\\\""));
+    let scoped = crate::drug_sources::components::allowed_fields(leg, NAME_FIELDS);
+    let q = std::iter::once(phrase.clone())
+        .chain(
+            scoped
+                .split(',')
+                .filter(|field| !field.is_empty())
+                .map(|field| format!("{field}:{phrase}")),
+        )
+        .collect::<Vec<_>>()
+        .join(" OR ");
+    let fields = crate::drug_sources::components::allowed_fields(leg, CARD_FIELDS);
+    let reply = leg
+        .call(
+            &SEARCH,
+            biomcp_fetch::Input::Params(&[
+                ("q", Arg::Text(&q)),
+                ("size", Arg::Num(limit as u64)),
+                ("fields", Arg::Text(&fields)),
+            ]),
+            Read::<raw::Page>::json()
+                .check(&|_| Ok(()))
+                .cache_if(&raw::Page::identities_admitted),
+        )?
+        .value;
+    names::name_records(reply, leg, query)
+        .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))
 }
 fn search_fields(
     leg: &Leg<'_>,

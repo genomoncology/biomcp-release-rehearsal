@@ -75,6 +75,7 @@ pub(crate) struct ConfigFile {
     pub(super) auto_sync_max_bytes: Option<u64>,
     pub(super) command_timeout_seconds: Option<std::num::NonZeroU32>,
     pub(super) drug_approvals_limit: Option<u32>,
+    pub(super) drug_search_name_limit: Option<std::num::NonZeroUsize>,
     pub(super) source_pacing: Option<BTreeMap<String, biomcp_fetch::PacingOverride>>,
     pub(super) http_max_calls: Option<std::num::NonZeroUsize>,
     pub(super) http_max_connections: Option<std::num::NonZeroUsize>,
@@ -195,6 +196,7 @@ fn diagnose(bytes: &[u8]) -> Result<ConfigFile, ConfigError> {
         auto_sync_max_bytes: take(&mut map, "auto_sync_max_bytes")?,
         command_timeout_seconds: take(&mut map, "command_timeout_seconds")?,
         drug_approvals_limit: take(&mut map, "drug_approvals_limit")?,
+        drug_search_name_limit: take(&mut map, "drug_search_name_limit")?,
         source_pacing: map
             .remove("source_pacing")
             .filter(|v| !v.is_null())

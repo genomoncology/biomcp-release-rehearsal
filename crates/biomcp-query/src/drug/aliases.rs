@@ -192,20 +192,20 @@ fn with_aliases(
     (None, alternatives, evidence)
 }
 
-fn ambiguous(card: &DrugCard) -> bool {
+pub(super) fn ambiguous(card: &DrugCard) -> bool {
     card.header
         .name_resolution
         .as_ref()
         .is_none_or(|r| r.total != 1)
 }
 
-fn literal_name(card: &DrugCard, input: &Text) -> bool {
+pub(super) fn literal_name(card: &DrugCard, input: &Text) -> bool {
     names(card)
         .iter()
         .any(|name| biomcp_types::DrugNameMatch::same_name(name.as_str(), input.as_str()))
 }
 
-fn names(card: &DrugCard) -> Vec<&Text> {
+pub(super) fn names(card: &DrugCard) -> Vec<&Text> {
     let mut seen = std::collections::BTreeSet::new();
     card.header
         .name

@@ -1470,6 +1470,12 @@ Options:
       --config <config>
           Read configuration from this file. Example: --config config.json.
 
+      --exact-term[=<exact_term>]
+          Search the typed drug term without resolving its other names.
+
+          [default: false]
+          [possible values: true, false]
+
       --gene <gene>
           Gene symbol or ID.
           Gene input; PubMed resolves it through HGNC.
@@ -1488,11 +1494,17 @@ Options:
           [default: false]
           [possible values: true, false]
 
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
       --offset <offset>
           Number of pool items to skip.
 
-      --offline[=<offline>]
-          Read local data without source requests.
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
@@ -1500,12 +1512,6 @@ Options:
       --open-access[=<open_access>]
           Native open access.
           PubMed, Europe PMC and Semantic Scholar only: require native open access; Semantic Scholar means a public PDF.
-
-          [default: false]
-          [possible values: true, false]
-
-      --fresh[=<fresh>]
-          Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
@@ -1569,6 +1575,7 @@ PubMed and Europe PMC only: author words sent to the source's author field. Valu
 Available for command sources except LitVar. Value form: string. Example: --disease meningioma. Command sources: europepmc, litsense, litvar, pubmed, pubtator, semantic-scholar; source restrictions in the field description apply.
 - `--drug`: Drug words.
 Available for command sources except LitVar. Value form: string. Example: --drug 'drug words'. Command sources: europepmc, litsense, litvar, pubmed, pubtator, semantic-scholar; source restrictions in the field description apply.
+- `--exact-term`: Search the typed drug term without resolving its other names. Value form: boolean. Example: --exact-term. Command sources: europepmc, litsense, litvar, pubmed, pubtator, semantic-scholar; source restrictions in the field description apply.
 - `--gene`: Gene symbol or ID.
 Gene input; PubMed resolves it through HGNC. Value form: string. Example: --gene NF2. Command sources: europepmc, litsense, litvar, pubmed, pubtator, semantic-scholar; source restrictions in the field description apply.
 - `--journal`: PubMed/Europe PMC journal words.
@@ -1706,6 +1713,12 @@ Options:
           [default: false]
           [possible values: true, false]
 
+      --exact-term[=<exact_term>]
+          Search typed treatment terms without resolving their other names.
+
+          [default: false]
+          [possible values: true, false]
+
       --facility <facility>
           Facility.
           Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius.
@@ -1826,6 +1839,7 @@ ClinicalTrials.gov only: search exact registry eligibility text for discovery; n
 ClinicalTrials.gov only: source distance with explicit mi or km units. Value form: string. Example: --distance 50mi. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--exact-condition`: Exact condition.
 Ask ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial. Value form: boolean. Example: --exact-condition. Command sources: ctgov, nci; source restrictions in the field description apply.
+- `--exact-term`: Search typed treatment terms without resolving their other names. Value form: boolean. Example: --exact-term. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--facility`: Facility.
 Facility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius. Value form: string. Example: --facility 'Dana-Farber Cancer Institute'. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--gene`: Gene symbol/ID.

@@ -1,0 +1,167 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
+  "story": "A generic, brand and development code search the same source-stated names in trial and article discovery. Exact, ambiguous and unknown terms retain literal search.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Canonical therapy"
+      ],
+      "mcp": [
+        "search",
+        "trial",
+        "Canonical therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ],
+        "/query/query": "Canonical therapy",
+        "/page/total": 3,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT03000001",
+            "NCT03000002",
+            "NCT03000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "EX-66"
+      ],
+      "mcp": [
+        "search",
+        "trial",
+        "EX-66"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ],
+        "/query/query": "EX-66",
+        "/page/total": 3,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT03000001",
+            "NCT03000002",
+            "NCT03000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Example brand"
+      ],
+      "mcp": [
+        "search",
+        "trial",
+        "Example brand"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ],
+        "/query/query": "Example brand",
+        "/page/total": 3,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT03000001",
+            "NCT03000002",
+            "NCT03000003"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Unlisted medicine"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/query": "Unlisted medicine"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Canonical therapy",
+        "--exact-term"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/exact_term": true,
+        "/sources/0/count": 1
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "--intervention",
+        "Example brand"
+      ],
+      "expect": {
+        "/page/total": 3,
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX-66",
+          "Example brand"
+        ]
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "EX 66"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "EX 66",
+          "EX-66",
+          "Example brand"
+        ],
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Canonical therapy",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/next/0/args": {
+          "includes": "--exact-term"
+        }
+      }
+    }
+  ]
+}

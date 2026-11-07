@@ -1,0 +1,45 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&pageSize=10&query.intr=%28Canonical%20therapy%29",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 1,
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT03000001",
+                  "briefTitle": "Synthetic trial 1"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING"
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Synthetic condition"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Canonical therapy"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

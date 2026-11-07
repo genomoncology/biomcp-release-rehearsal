@@ -1,5 +1,6 @@
 //! PubMed snapshots and stable pages through one checked command consumer.
 use biomcp_types::ReplyBody;
+mod drug_names;
 mod edges;
 mod empty_litvar;
 pub(crate) mod evidence;
@@ -81,6 +82,7 @@ fn execute<'a>(
     let restricted = cx.fetch.disabled_use(biomcp_types::Use::PerRecord);
     let stored = stored.filter(|pool| explicit.is_some() || !(restricted && pool.dropped));
     let mut held = Vec::new();
+    let (stored, looked_up) = drug_names::reuse(cx, query, stored, out, deadline);
     let pool = match stored {
         Some(pool) if pool.key != key.as_slice() => {
             pool_error(query, true, out);
@@ -92,36 +94,20 @@ fn execute<'a>(
             return Ok(());
         }
         None => {
-            let resolved = if query
-                .sources()
-                .contains(&biomcp_types::ArticleSource::Pubmed)
-                || query
-                    .sources()
-                    .contains(&biomcp_types::ArticleSource::Litvar)
-                || query
-                    .sources()
-                    .contains(&biomcp_types::ArticleSource::Pubtator)
-                    && !cx.fetch.disabled(biomcp_types::Source::PubTator)
-            {
-                let Some(term) = term::resolve(cx, query, deadline, out)? else {
-                    return Ok(());
+            let Some(resolved) = term::search(cx, query, deadline, out)? else {
+                return Ok(());
+            };
+            let drug_names = looked_up
+                .unwrap_or_else(|| crate::drug::search_names::article(cx, query, out, deadline));
+            let mut items =
+                match sources::search(cx, query, &resolved, &drug_names.names, deadline, out)? {
+                    sources::SearchResult::Items(items) => items,
+                    sources::SearchResult::Answer => return Ok(()),
+                    sources::SearchResult::Unavailable => {
+                        retry(query, None, out);
+                        return Ok(());
+                    }
                 };
-                term
-            } else {
-                term::Resolved {
-                    names: Vec::new(),
-                    symbol: None,
-                    entrez: None,
-                }
-            };
-            let mut items = match sources::search(cx, query, &resolved, deadline, out)? {
-                sources::SearchResult::Items(items) => items,
-                sources::SearchResult::Answer => return Ok(()),
-                sources::SearchResult::Unavailable => {
-                    retry(query, None, out);
-                    return Ok(());
-                }
-            };
             if query.sort() == biomcp_types::ArticleSort::Citations
                 && !order::apply(cx, deadline, &mut items, out)?
             {
@@ -129,6 +115,11 @@ fn execute<'a>(
                 return Ok(());
             }
             filter_text(cx, deadline, &mut items, out);
+            // Names may be missing, so these rows are this reply's, not the whole pool's.
+            if drug_names.failed {
+                page::fetched(page::Cursor::Search(query), items, out);
+                return Ok(());
+            }
             held = biomcp_adapters::article_rights::take_unchecked(&mut items);
             store.set_deadline(*deadline);
             match crate::publish::keep(

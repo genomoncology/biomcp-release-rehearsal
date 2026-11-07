@@ -10,6 +10,7 @@ mod next;
 mod openfda_label;
 mod recall;
 mod resolve;
+pub(crate) mod search_names;
 pub(crate) mod who;
 use crate::{Ctx, Outcome, status};
 /// Search selected-source records, consulting source-stated names only after an empty lookup.
@@ -60,6 +61,7 @@ fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     let result = mychem::search(&leg, name.as_str(), query.limit(), query.offset());
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
+    let remaining = leg.remaining();
     out.sources
         .push(status::source(Source::Mychem, leg.finish(), error));
     if let Ok((page, received)) = result {
@@ -68,7 +70,7 @@ fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         search_results(query, cx.fresh, page.value, &mut out, received);
     }
     component_outcomes(cx, &mut out, true);
-    command.finish(deadline.remaining());
+    command.finish(remaining);
     out
 }
 /// Get one exact native document, without fallback or automatic section expansion.
@@ -128,6 +130,7 @@ fn selected_get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     let result = mychem::get(&leg, &query.input().to_string());
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
+    let remaining = leg.remaining();
     out.sources
         .push(status::source(Source::Mychem, leg.finish(), error));
     if let Ok(document) = result {
@@ -167,7 +170,7 @@ fn selected_get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
         }
     }
     component_outcomes(cx, &mut out, false);
-    command.finish(deadline.remaining());
+    command.finish(remaining);
     out
 }
 fn link_page(
@@ -245,20 +248,29 @@ fn component_outcomes(cx: &Ctx<'_>, out: &mut Outcome, search: bool) {
     let Some(parent) = out.sources.first().cloned() else {
         return;
     };
-    for component in mychem::requested_components(search) {
-        let Some(source) = component.native_source else {
-            continue;
-        };
-        let disabled = component.disabled(cx.fetch);
-        out.sources.push(biomcp_adapters::registry::outcome(
-            source,
-            if disabled {
-                biomcp_types::SourceStatus::Skipped(Some(biomcp_types::Reason::Disabled))
-            } else {
-                parent.status()
-            },
-        ));
-    }
+    out.sources.extend(components(cx, &parent, search));
+}
+
+/// The sources a MyChem reply carries, so a later disabled source can withhold stored names.
+fn components(
+    cx: &Ctx<'_>,
+    parent: &biomcp_types::SourceOutcome,
+    search: bool,
+) -> Vec<biomcp_types::SourceOutcome> {
+    mychem::requested_components(search)
+        .into_iter()
+        .filter_map(|component| {
+            let source = component.native_source?;
+            Some(biomcp_adapters::registry::outcome(
+                source,
+                if component.disabled(cx.fetch) {
+                    biomcp_types::SourceStatus::Skipped(Some(biomcp_types::Reason::Disabled))
+                } else {
+                    parent.status()
+                },
+            ))
+        })
+        .collect()
 }
 
 mod native;

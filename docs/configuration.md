@@ -84,6 +84,8 @@ Flag fields override file fields for that source. Other fields and sources remai
 
 `drug_approvals_limit` sets the number of Drugs@FDA submissions returned by the approvals section, from 1 through 50. Omit it to use the [built-in submission page size](../crates/biomcp-types/src/drug/mod.rs). An explicit `--section-limit` overrides this setting. Continue with the returned page action when more submissions remain.
 
+`drug_search_name_limit` sets the most names one trial or article search sends for a drug, as a positive whole number. Omit it to use the [built-in limit](../crates/biomcp-query/src/context.rs). A capped search keeps the typed name and the shortest other names, and its reply says how many it left out.
+
 ## MCP reply form
 
 `mcp_reply_form` accepts `both` (JSON text plus `structuredContent`), `structured-only` (JSON in `structuredContent` plus a one-line text note), or `text-only` (JSON text). It applies to all MCP tools over stdio and HTTP, including error replies. The default is `both` for local and hosted servers. Choose `structured-only` only for clients that read `structuredContent`. When included, the output schema describes that JSON value regardless of reply form.

@@ -1,0 +1,41 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule.json?pref_name__iexact=Salted%20therapy&limit=50&offset=0",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecules": [
+            {
+              "molecule_chembl_id": "CHEMBL900001",
+              "pref_name": "Salted therapy",
+              "molecule_type": "Small molecule",
+              "molecule_synonyms": [
+                {
+                  "molecule_synonym": "ST-1",
+                  "syn_type": "RESEARCH_CODE"
+                },
+                {
+                  "molecule_synonym": "Salt brand",
+                  "syn_type": "TRADE_NAME"
+                }
+              ]
+            }
+          ],
+          "page_meta": {
+            "total_count": 1,
+            "offset": 0,
+            "limit": 50
+          }
+        }
+      }
+    }
+  ]
+}

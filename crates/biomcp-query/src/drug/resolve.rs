@@ -217,10 +217,11 @@ fn native_names(
         }
     }
     out.local = error.and_then(status::local);
+    let remaining = leg.remaining();
     out.sources
         .push(status::source(query.source().source(), leg.finish(), error));
     status::search(&mut out);
-    command.finish(deadline.remaining());
+    command.finish(remaining);
     (out, candidates)
 }
 fn fda(cx: &Ctx<'_>, get: &DrugGet, query: &DrugSearch) -> (Outcome, Vec<(Rank, DrugHeader)>) {
@@ -455,5 +456,6 @@ pub(super) fn within<'a>(cx: &Ctx<'a>, budget: std::time::Duration) -> Ctx<'a> {
         ncbi_email: None,
         budget,
         fresh: cx.fresh,
+        drug_name_limit: cx.drug_name_limit,
     }
 }

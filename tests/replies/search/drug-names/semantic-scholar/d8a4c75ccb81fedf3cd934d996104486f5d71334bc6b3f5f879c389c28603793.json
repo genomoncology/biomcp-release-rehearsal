@@ -1,0 +1,42 @@
+{
+  "method": "GET",
+  "source": "semantic-scholar",
+  "url": "https://api.semanticscholar.org/graph/v1/paper/search?query=Example%20brand&limit=100&fields=externalIds%2Ctitle%2Cvenue%2Cyear%2CpublicationDate%2Cauthors",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "total": 2,
+          "data": [
+            {
+              "paperId": "0000000000000000000000000000000000000002",
+              "externalIds": {
+                "PubMed": "99000002"
+              },
+              "title": "Synthetic article 2",
+              "venue": "Synthetic journal",
+              "year": 2026,
+              "authors": []
+            },
+            {
+              "paperId": "0000000000000000000000000000000000000003",
+              "externalIds": {
+                "PubMed": "99000003"
+              },
+              "title": "Synthetic article 3",
+              "venue": "Synthetic journal",
+              "year": 2026,
+              "authors": []
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

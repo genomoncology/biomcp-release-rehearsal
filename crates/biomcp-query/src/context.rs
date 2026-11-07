@@ -11,4 +11,8 @@ pub struct Ctx<'a> {
     pub budget: Duration,
     /// Bypass cached reads on this request only.
     pub fresh: bool,
+    /// Most names one search may send for a drug.
+    pub drug_name_limit: usize,
 }
+/// Default for [`Ctx::drug_name_limit`].
+pub const DRUG_NAME_LIMIT: usize = 30;

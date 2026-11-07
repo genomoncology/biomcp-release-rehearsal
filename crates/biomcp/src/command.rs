@@ -414,6 +414,7 @@ fn run_request(
         fetch,
         budget: crate::config::budget(settings),
         fresh,
+        drug_name_limit: crate::config::drug_name_limit(settings),
     };
     Ok(match request {
         Request::TrialDocument(query) => crate::save::trial::document(&cx, query, allow_save),

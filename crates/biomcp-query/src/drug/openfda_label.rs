@@ -43,6 +43,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     });
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
+    let remaining = leg.remaining();
     out.sources
         .push(status::source(SOURCE, leg.finish(), error));
     disclosure(&mut out, discovery.free_text);
@@ -86,7 +87,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         .with_query(query.clone());
     }
     status::search(&mut out);
-    command.finish(deadline.remaining());
+    command.finish(remaining);
     out
 }
 fn disclosure(out: &mut Outcome, selector: Option<biodata::Text>) {
@@ -124,6 +125,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     let result = source::get(&leg, &id);
     let error = result.as_ref().err().copied();
     out.local = error.and_then(status::local);
+    let remaining = leg.remaining();
     out.sources
         .push(status::source(SOURCE, leg.finish(), error));
     if let Ok(page) = result {
@@ -143,7 +145,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
             crate::status::item(&mut out, false, false, false);
         }
     }
-    command.finish(deadline.remaining());
+    command.finish(remaining);
     out
 }
 fn select(

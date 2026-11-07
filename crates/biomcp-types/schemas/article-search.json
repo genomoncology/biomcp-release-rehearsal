@@ -129,6 +129,10 @@
       "$ref": "#/$defs/Text",
       "description": "Drug words.\nAvailable for command sources except LitVar."
     },
+    "exact_term": {
+      "description": "Search the typed drug term without resolving its other names.",
+      "type": "boolean"
+    },
     "gene": {
       "$ref": "#/$defs/GeneInput",
       "description": "Gene symbol or ID.\nGene input; PubMed resolves it through HGNC."

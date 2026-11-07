@@ -1,0 +1,116 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
+  "story": "A generic, brand and development code search the same source-stated names in trial and article discovery. Exact, ambiguous and unknown terms retain literal search.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Ambiguous medicine"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/query": "Ambiguous medicine",
+        "/sources/0/notices/0/names": [
+          "Ambiguous medicine"
+        ]
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Ambiguous medicine"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/text": "Ambiguous medicine",
+        "/sources/0/notices/0/names": [
+          "Ambiguous medicine"
+        ]
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Salted therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "chembl",
+        "/sources/0/notices/0/names": [
+          "Salt brand",
+          "Salted therapy",
+          "ST-1"
+        ],
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Failing medicine"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/query/query": "Failing medicine",
+        "/sources/0/source": "mychem",
+        "/sources/0/state": "failed",
+        "/sources/0/notices/0/names": [
+          "Failing medicine"
+        ],
+        "/sources/1/source": "ctgov"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Failing medicine"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/sources/0/notices/0/names": [
+          "Failing medicine"
+        ],
+        "/page": {
+          "omits": [
+            "pool"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Refused therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Refused therapy"
+        ],
+        "/query/query": "Refused therapy",
+        "/sources/0/notices/0/message": "The provider rejected the expanded request; searched the typed term."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Refused therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Refused therapy"
+        ]
+      }
+    }
+  ]
+}

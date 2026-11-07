@@ -1,6 +1,7 @@
 # 0717 — Drug names expand across trial and article search
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: ae70c51a9460833fbb78bab05a220f20f0e5287d
 
 Milestone: 5
 

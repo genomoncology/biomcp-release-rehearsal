@@ -1,0 +1,25 @@
+{
+  "method": "GET",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=Failing%20medicine&sort=relevance&retmax=9999&retmode=json&tool=biomcp",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "esearchresult": {
+            "count": "0",
+            "retmax": "9999",
+            "retstart": "0",
+            "idlist": []
+          }
+        }
+      }
+    }
+  ]
+}

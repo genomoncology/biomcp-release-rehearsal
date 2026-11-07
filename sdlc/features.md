@@ -135,3 +135,5 @@ device-approval-search: Search native FDA PMA and 510(k) submission records by n
 fda-document-text: Read FDA-published PMA SSED and selected drug approval letter text in bounded continuable fragments, with explicit no-text and oversized states.
 drug-name-get: Resolve source names with the fixed single-term salt/ester rule in one get call, infer an unambiguous section source, report bounded alternatives and direct unresolved names to source search.
 trial-results: A caller pages posted outcome measures, source group values, dispersion and analyses, and adverse-event tables from the same registry record, with its first posting date.
+
+drug-name-search: Trial and article searches expand a uniquely resolved drug to source-stated names, disclose the searched names and preserve exact-term search and article pools.

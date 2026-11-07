@@ -9,6 +9,32 @@ pub(super) struct Resolved {
     pub symbol: Option<String>,
     pub entrez: Option<biodata::NcbiGeneId>,
 }
+/// Resolve gene identity only for search providers that consume the checked join.
+pub(super) fn search<'a>(
+    cx: &Ctx<'a>,
+    query: &ArticleSearch,
+    deadline: &mut Deadline<'a>,
+    out: &mut Outcome,
+) -> Result<Option<Resolved>, RequestError> {
+    if query
+        .sources()
+        .contains(&biomcp_types::ArticleSource::Pubmed)
+        || query
+            .sources()
+            .contains(&biomcp_types::ArticleSource::Litvar)
+        || query
+            .sources()
+            .contains(&biomcp_types::ArticleSource::Pubtator)
+            && !cx.fetch.disabled(biomcp_types::Source::PubTator)
+    {
+        return resolve(cx, query, deadline, out);
+    }
+    Ok(Some(Resolved {
+        names: Vec::new(),
+        symbol: None,
+        entrez: None,
+    }))
+}
 pub(super) fn resolve<'a>(
     cx: &Ctx<'a>,
     query: &ArticleSearch,

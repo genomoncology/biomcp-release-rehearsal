@@ -95,6 +95,9 @@ struct Fields {
     #[doc = "Native open access.\nPubMed, Europe PMC and Semantic Scholar only: require native open access; Semantic Scholar means a public PDF."]
     #[serde(default, skip_serializing_if = "is_false")]
     open_access: bool,
+    /// Search the typed drug term without resolving its other names.
+    #[serde(default, skip_serializing_if = "is_false")]
+    exact_term: bool,
     #[doc = "Exclude preprints.\nPubMed and Europe PMC only: exclude preprints using the source's native filter."]
     #[serde(default, skip_serializing_if = "is_false")]
     no_preprints: bool,
@@ -341,6 +344,24 @@ impl ArticleSearch {
             .collect::<Vec<_>>()
             .join(" ")
     }
+    /// Whether drug-name expansion is disabled.
+    pub fn exact_term(&self) -> bool {
+        self.0.exact_term
+    }
+    /// Resolve a whole drug selector, or the whole positional term.
+    pub fn drug_name_input(&self) -> Option<&Text> {
+        self.0.drug.as_ref().or(self.0.text.as_ref())
+    }
+    /// Replace only the selector that supplied the whole drug name.
+    pub fn with_drug_term(&self, term: Text) -> Self {
+        let mut next = self.clone();
+        if next.0.drug.is_some() {
+            next.0.drug = Some(term);
+        } else {
+            next.0.text = Some(term);
+        }
+        next
+    }
     /// Optional gene identity selector.
     pub fn gene(&self) -> Option<&GeneInput> {
         self.0.gene.as_ref()
@@ -404,6 +425,7 @@ impl ArticleSearch {
             offset: 0,
             pool: None,
             open_access: false,
+            exact_term: false,
             no_preprints: false,
             retracted: RetractionFilter::default(),
         })

@@ -4491,6 +4491,10 @@
           "description": "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
           "type": "boolean"
         },
+        "exact_term": {
+          "description": "Search typed treatment terms without resolving their other names.",
+          "type": "boolean"
+        },
         "facility": {
           "$ref": "#/$defs/Text",
           "description": "Facility.\nFacility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."
@@ -5031,6 +5035,10 @@
         "drug": {
           "$ref": "#/$defs/Text",
           "description": "Drug words.\nAvailable for command sources except LitVar."
+        },
+        "exact_term": {
+          "description": "Search the typed drug term without resolving its other names.",
+          "type": "boolean"
         },
         "gene": {
           "$ref": "#/$defs/GeneInput",

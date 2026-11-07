@@ -6,7 +6,7 @@ use biodata::{DrugIdentityLevel, DrugIdentityRelation};
 use biomcp_fetch::{BadReply, Leg};
 use biomcp_types::{DrugCard, DrugHeader, DrugPage, DrugSource};
 
-fn components(
+pub(super) fn components(
     hit: Hit,
     leg: &Leg<'_>,
     problems: &mut crate::mapped::Problems,
@@ -160,7 +160,7 @@ pub(super) fn card(
     })
 }
 
-fn aliases_for(c: &Component) -> Vec<String> {
+pub(super) fn aliases_for(c: &Component) -> Vec<String> {
     let mut aliases = Vec::new();
     aliases.extend(
         c.synonyms
@@ -168,6 +168,7 @@ fn aliases_for(c: &Component) -> Vec<String> {
             .map(strings)
             .unwrap_or_default()
             .into_iter()
+            .flat_map(super::names::split)
             .map(str::to_owned),
     );
     aliases.extend(
@@ -175,7 +176,9 @@ fn aliases_for(c: &Component) -> Vec<String> {
             .as_ref()
             .into_iter()
             .flatten()
-            .filter_map(|s| s.molecule_synonym.clone()),
+            .filter_map(|s| s.molecule_synonym.as_deref())
+            .flat_map(super::names::split)
+            .map(str::to_owned),
     );
     for values in [&c.generic_name, &c.brand_name] {
         aliases.extend(
@@ -184,6 +187,7 @@ fn aliases_for(c: &Component) -> Vec<String> {
                 .map(strings)
                 .unwrap_or_default()
                 .into_iter()
+                .flat_map(super::names::split)
                 .map(str::to_owned),
         );
     }

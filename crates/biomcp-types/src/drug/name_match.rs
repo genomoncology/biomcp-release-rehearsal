@@ -16,6 +16,17 @@ impl DrugNameMatch {
     pub fn same_name(value: &str, input: &str) -> bool {
         value.to_lowercase() == input.to_lowercase()
     }
+    /// Compare one source-stated name with the input, ignoring case, spaces and hyphens.
+    /// Use only on candidates the source returned: this confirms identity, never finds it.
+    pub fn same_identity(value: &str, input: &str) -> bool {
+        let key = |text: &str| {
+            text.chars()
+                .filter(|c| !c.is_whitespace() && *c != '-')
+                .flat_map(char::to_lowercase)
+                .collect::<String>()
+        };
+        key(value) == key(input)
+    }
     /// Retain the source fields establishing equality.
     pub fn from_fields(brand: bool, generic: bool) -> Option<Self> {
         match (brand, generic) {

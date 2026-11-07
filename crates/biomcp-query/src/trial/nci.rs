@@ -72,6 +72,7 @@ pub(super) fn search(cx: &Ctx<'_>, q: &TrialSearch) -> Outcome {
     if let Ok(page) = result {
         apply(q, cx.fresh, &mut out, &mut source, page);
     }
+    source.notices.extend(super::drug_names::literal_notices(q));
     finish(&mut out, source, error);
     status::search_for(&mut out, &[Source::Nci]);
     command.finish(deadline.remaining());

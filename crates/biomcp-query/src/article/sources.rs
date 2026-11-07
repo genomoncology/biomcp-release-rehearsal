@@ -1,4 +1,4 @@
-use crate::{Ctx, Outcome, fan_out, status};
+use crate::{Ctx, Outcome, drug::search_names, fan_out, status};
 use biodata::Text;
 use biomcp_adapters::{europepmc, litvar, pubmed};
 use biomcp_fetch::{Deadline, RequestError};
@@ -30,6 +30,7 @@ pub(super) fn search<'a>(
     cx: &Ctx<'a>,
     query: &ArticleSearch,
     resolved: &super::term::Resolved,
+    drug_names: &[Text],
     deadline: &mut Deadline<'a>,
     out: &mut Outcome,
 ) -> Result<SearchResult, RequestError> {
@@ -37,11 +38,130 @@ pub(super) fn search<'a>(
         Preparation::Ready(prepared) => prepared,
         Preparation::Answer => return Ok(SearchResult::Answer),
     };
-    let start = *deadline;
-    let jobs: Vec<Box<dyn FnOnce() -> ResultLeg + Send + '_>> = query
-        .sources()
+    let queries = drug_queries(query, drug_names);
+    let mut results = Vec::new();
+    // Keep the worker count bounded by the existing source list, even for many aliases.
+    for batch in queries.chunks(query.sources().len()) {
+        let start = *deadline;
+        let mut batch_results = fetch_batch(cx, batch, resolved, start, &mut prepared);
+        let elapsed = batch_results
+            .iter()
+            .map(|r| r.elapsed)
+            .max()
+            .unwrap_or_default();
+        *deadline = deadline.after_stage(elapsed);
+        results.append(&mut batch_results);
+    }
+    let retried = retry_typed(
+        cx,
+        query,
+        resolved,
+        drug_names,
+        &mut results,
+        deadline,
+        &mut prepared,
+    );
+    if retried && query.sources().iter().all(|source| grouped(*source)) {
+        search_names::retract(out);
+    }
+    resolve_rows(cx, query, &mut results, deadline, out)?;
+    let answered = results
         .iter()
-        .filter_map(|selector| {
+        .any(|r| r.error.is_none() || !r.items.is_empty());
+    let error = results
+        .iter()
+        .filter_map(|r| r.error)
+        .find(|e| status::local(*e).is_some());
+    append_results(out, &results);
+    note_request_limit(query, drug_names, out);
+    if let Some(error) = error {
+        return Err(error);
+    }
+    if !answered {
+        crate::status::item(out, false, true, false);
+        return Ok(SearchResult::Unavailable);
+    }
+    Ok(SearchResult::Items(super::fold::fold(
+        results.into_iter().map(|r| (r.source, r.items)).collect(),
+        query.sources().len() > 1,
+    )))
+}
+/// Search the typed term where a provider refused the name group, and say so on that provider.
+fn retry_typed<'a>(
+    cx: &Ctx<'a>,
+    query: &ArticleSearch,
+    resolved: &super::term::Resolved,
+    names: &[Text],
+    results: &mut [ResultLeg],
+    deadline: &mut Deadline<'a>,
+    prepared: &mut Option<PreparedLitvar<'a>>,
+) -> bool {
+    let Some(input) = query.drug_name_input().filter(|_| names.len() > 1) else {
+        return false;
+    };
+    let mut retried = false;
+    for result in results
+        .iter_mut()
+        .filter(|r| grouped(r.source) && search_names::rejected(r.error.as_ref()))
+    {
+        let batch = [(result.source, query.clone())];
+        if let Some(mut typed) = fetch_batch(cx, &batch, resolved, *deadline, prepared).pop() {
+            *deadline = deadline.after_stage(typed.elapsed);
+            typed
+                .outcome
+                .notices
+                .push(search_names::typed_only(input, typed.outcome.source));
+            *result = typed;
+            retried = true;
+        }
+    }
+    retried
+}
+/// A provider taking one request per name reports which names it had time for.
+fn note_request_limit(query: &ArticleSearch, names: &[Text], out: &mut Outcome) {
+    let Some(input) = query.drug_name_input() else {
+        return;
+    };
+    let picked = search_names::one_request_each(Some(input), names);
+    if picked.len() == names.len() {
+        return;
+    }
+    for source in out
+        .sources
+        .iter_mut()
+        .filter(|s| matches!(s.source, Source::SemanticScholar | Source::LitSense))
+    {
+        source
+            .notices
+            .push(biomcp_types::SourceNotice::DrugNameSearch {
+                input: input.clone(),
+                names: picked.clone().into(),
+                message: format!(
+                    "{} takes one request per name, so it searched {} of {} names.",
+                    source.source,
+                    picked.len(),
+                    names.len()
+                )
+                .into(),
+            });
+    }
+}
+fn grouped(source: ArticleSource) -> bool {
+    matches!(
+        source,
+        ArticleSource::Pubmed | ArticleSource::Europepmc | ArticleSource::Pubtator
+    )
+}
+fn fetch_batch<'a>(
+    cx: &Ctx<'a>,
+    batch: &[(ArticleSource, ArticleSearch)],
+    resolved: &super::term::Resolved,
+    start: Deadline<'a>,
+    prepared: &mut Option<PreparedLitvar<'a>>,
+) -> Vec<ResultLeg> {
+    let jobs: Vec<Box<dyn FnOnce() -> ResultLeg + Send + '_>> = batch
+        .iter()
+        .filter_map(|(selector, query)| {
             let job: Box<dyn FnOnce() -> ResultLeg + Send + '_> = match selector {
                 ArticleSource::Pubmed => {
                     Box::new(move || pubmed_search(cx, query, &resolved.names, start))
@@ -64,33 +184,61 @@ pub(super) fn search<'a>(
             Some(job)
         })
         .collect();
-    let mut results = fan_out::run(jobs);
-    let elapsed = results.iter().map(|r| r.elapsed).max().unwrap_or_default();
-    *deadline = deadline.after_stage(elapsed);
-    resolve_rows(cx, query, &mut results, deadline, out)?;
-    let answered = results
-        .iter()
-        .any(|r| r.error.is_none() || !r.items.is_empty());
-    let error = results
-        .iter()
-        .filter_map(|r| r.error)
-        .find(|e| status::local(*e).is_some());
-    for result in &results {
+    fan_out::run(jobs)
+}
+fn append_results(out: &mut Outcome, results: &[ResultLeg]) {
+    for result in results {
+        let repeated = results
+            .iter()
+            .filter(|other| other.source == result.source)
+            .count()
+            > 1;
         out.dropped |= result.dropped;
-        out.sources.push(result.outcome.clone());
+        if repeated
+            && let Some(existing) = out
+                .sources
+                .iter_mut()
+                .find(|s| s.source == result.outcome.source)
+        {
+            status::retain_source_state(existing, &result.outcome);
+            existing.count = None;
+            existing.retrieved_count = None;
+            existing.term = None;
+            existing.notices.extend(result.outcome.notices.clone());
+        } else {
+            out.sources.push(result.outcome.clone());
+        }
         status::append(&mut out.problems, result.problems.clone());
     }
-    if let Some(error) = error {
-        return Err(error);
-    }
-    if !answered {
-        crate::status::item(out, false, true, false);
-        return Ok(SearchResult::Unavailable);
-    }
-    Ok(SearchResult::Items(super::fold::fold(
-        results.into_iter().map(|r| (r.source, r.items)).collect(),
-        query.sources().len() > 1,
-    )))
+}
+// Boolean providers receive one literal OR group. Sentence/ranked providers run each
+// source-stated name separately, then the existing pool fold removes duplicate identities.
+fn drug_queries(query: &ArticleSearch, names: &[Text]) -> Vec<(ArticleSource, ArticleSearch)> {
+    query
+        .sources()
+        .iter()
+        .flat_map(|source| {
+            if names.len() < 2 {
+                return vec![(*source, query.clone())];
+            }
+            match source {
+                ArticleSource::Pubmed | ArticleSource::Europepmc | ArticleSource::Pubtator => {
+                    let expanded = query.drug_name_input().map_or_else(
+                        || query.clone(),
+                        |input| query.with_drug_term(search_names::alternatives(names, input)),
+                    );
+                    vec![(*source, expanded)]
+                }
+                ArticleSource::Litvar => vec![(*source, query.clone())],
+                ArticleSource::SemanticScholar | ArticleSource::Litsense => {
+                    search_names::one_request_each(query.drug_name_input(), names)
+                        .into_iter()
+                        .map(|name| (*source, query.with_drug_term(name)))
+                        .collect()
+                }
+            }
+        })
+        .collect()
 }
 fn resolve_rows<'a>(
     cx: &Ctx<'a>,

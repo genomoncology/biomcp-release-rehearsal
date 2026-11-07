@@ -106,6 +106,15 @@ impl std::ops::Deref for SourceOutcome {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub enum SourceNotice {
+    /// Source-stated names used in a trial or article search.
+    DrugNameSearch {
+        /// Whole caller-supplied name.
+        input: crate::Text,
+        /// Names actually searched; ambiguous identities retain the typed name only.
+        names: Box<[crate::Text]>,
+        /// Why the names were expanded or retained.
+        message: Box<str>,
+    },
     /// Local request limits, source observations and recovery guidance.
     RequestGuidance {
         /// Reviewed guidance; any quoted provider wording remains source data.

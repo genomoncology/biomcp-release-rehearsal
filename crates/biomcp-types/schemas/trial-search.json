@@ -472,6 +472,10 @@
       "description": "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial.",
       "type": "boolean"
     },
+    "exact_term": {
+      "description": "Search typed treatment terms without resolving their other names.",
+      "type": "boolean"
+    },
     "facility": {
       "$ref": "#/$defs/Text",
       "description": "Facility.\nFacility phrase; ClinicalTrials.gov broadens after zero exact matches. NCI matches exact names. Cannot combine with radius."

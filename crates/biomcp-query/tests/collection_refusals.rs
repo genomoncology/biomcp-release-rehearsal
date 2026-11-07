@@ -85,6 +85,7 @@ fn query_page(
             fetch: &fetch,
             budget: Duration::from_secs(20),
             fresh: false,
+            drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
             ncbi_email: None,
         },
         &biomcp_types::Request::GetDrug(query),

@@ -2,6 +2,7 @@ mod biomarker;
 mod condition;
 mod continuation;
 mod country;
+mod drug_terms;
 mod filters;
 use crate::{GeneInput, NctId, PartialDate, StudyType, Text, TrialSex, TrialStatus};
 pub use biomarker::NciBiomarkerUse;
@@ -54,6 +55,9 @@ struct Fields {
     #[doc = "Exact condition.\nAsk ClinicalTrials.gov to restrict matching to the registered condition phrase; its support is partial."]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     exact_condition: bool,
+    /// Search typed treatment terms without resolving their other names.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    exact_term: bool,
     #[doc = "MONDO/DOID/NCIT:C.\nExact MONDO or DOID CURIE resolved by MyDisease; NCI also accepts explicit NCIT:C codes."]
     #[serde(
         default,
@@ -289,7 +293,6 @@ impl TrialSearch {
     pub fn keyword(&self) -> &[Text] {
         &self.0.keyword
     }
-
     /// General registry discovery text.
     pub fn query(&self) -> Option<&Text> {
         self.0.query.as_ref()
@@ -449,7 +452,6 @@ impl TrialSearch {
         next
     }
 }
-
 biodata::wire_enum! {
     /// Explicit source phase selection, including the registry's combined phases.
     PhaseFilter {
@@ -487,7 +489,6 @@ impl PhaseFilter {
         }
     }
 }
-
 biodata::wire_enum! {
     /// Independent trial providers; results are never folded or used as fallbacks.
     #[derive(Default)]
