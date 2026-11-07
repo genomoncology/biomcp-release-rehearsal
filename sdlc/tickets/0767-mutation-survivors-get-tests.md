@@ -1,6 +1,7 @@
 # 0767 — Mutation survivors get tests
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a2635192c33495c81601fa85858204fcde22a52a
 
 Milestone: 5
 
@@ -38,3 +39,7 @@ The three mutants that survived the release mutation section are caught by outsi
 ## Depends on
 
 - Depends on: nothing.
+
+## Notes
+
+- Each source carries one terminology, so the test for survivor 3 pins the mismatched owner and terminology pair, the only case where the mutant differs.
