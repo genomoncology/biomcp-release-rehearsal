@@ -19,11 +19,11 @@ mod view;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    let args = config::arguments();
     let root = match grammar::root() {
         Ok(root) => std::sync::Arc::new(root),
         Err(_) => return exit::failure(std::io::Error::other("command grammar unavailable")),
     };
+    let args = grammar::entity_first(&root, config::arguments());
     let parsed = grammar::parse(&root, &args);
     if let Ok(parsed) = &parsed
         && let Some(command) = &parsed.housekeeping

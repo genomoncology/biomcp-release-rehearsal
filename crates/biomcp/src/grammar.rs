@@ -71,11 +71,14 @@ pub(crate) struct Parsed {
     pub(crate) help: Option<Vec<String>>,
     pub(crate) http: Option<(String, Vec<String>)>,
 }
+const ENTITY_FIRST_HELP: &str =
+    "Entity-first order also runs on the command line: gene get BRAF runs get gene BRAF.";
 fn global_arguments() -> Command {
     process_arguments::command().after_help(
         entry_aliases()
             .iter()
             .map(|alias| format!("{}: {}", alias.flags().join(", "), alias.description()))
+            .chain(std::iter::once(ENTITY_FIRST_HELP.to_owned()))
             .collect::<Vec<_>>()
             .join("\n"),
     )
@@ -107,10 +110,18 @@ fn scan_command_words<'a>(
     args: &'a [OsString],
     tolerate_unknown: bool,
 ) -> impl Iterator<Item = &'a str> {
-    let mut words = args.iter().peekable();
-    while let Some(word) = words.peek().and_then(|word| word.to_str()) {
+    args.get(command_start(globals, args, tolerate_unknown)..)
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|arg| arg.to_str())
+}
+
+// The index of the first command word after leading global options.
+fn command_start(globals: &Command, args: &[OsString], tolerate_unknown: bool) -> usize {
+    let mut index = 0;
+    while let Some(word) = args.get(index).and_then(|word| word.to_str()) {
         if word == "--" {
-            words.next();
+            index += 1;
             break;
         }
         let Some(flag) = word.strip_prefix('-') else {
@@ -127,17 +138,38 @@ fn scan_command_words<'a>(
             break;
         }
         let takes_value = argument.is_some_and(|arg| arg.get_action().takes_values());
-        words.next();
+        index += 1;
         if !inline
             && (takes_value
-                || argument.is_some_and(|argument| {
-                    arguments::boolean_value(argument, words.peek().copied())
-                }))
+                || argument
+                    .is_some_and(|argument| arguments::boolean_value(argument, args.get(index))))
         {
-            words.next();
+            index += 1;
         }
     }
-    words.filter_map(|arg| arg.to_str())
+    index.min(args.len())
+}
+
+/// Entity-first words of a verb-first registry command run as that command.
+/// A path the parser already knows keeps its meaning, and other words are left for today's errors.
+pub(crate) fn entity_first(root: &Command, mut args: Vec<OsString>) -> Vec<OsString> {
+    let start = command_start(root, &args, false);
+    let words = args
+        .get(start..)
+        .and_then(|rest| Some((rest.first()?.to_str()?, rest.get(1)?.to_str()?)));
+    let Some((entity, verb)) = words else {
+        return args;
+    };
+    let paths = command_paths();
+    let verb_first = paths.iter().any(|path| (path.0, path.1) == (verb, entity))
+        && !paths.iter().any(|path| path.1 == verb);
+    let known = root
+        .find_subcommand(entity)
+        .is_some_and(|command| command.find_subcommand(verb).is_some());
+    if verb_first && !known {
+        args.swap(start, start + 1);
+    }
+    args
 }
 
 pub(crate) fn root() -> Result<Root, ParseInvalid> {

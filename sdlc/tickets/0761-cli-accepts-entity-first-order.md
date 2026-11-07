@@ -1,6 +1,7 @@
 # 0761 — CLI accepts entity-first order
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: be7c3799d364a374a960f1d4a647403862a01e62
 
 Milestone: 5
 

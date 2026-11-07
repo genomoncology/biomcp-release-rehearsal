@@ -65,6 +65,7 @@ Options:
 
 -h, --help: Print scoped command help without source requests.
 --version: Print the installed version without source requests.
+Entity-first order also runs on the command line: gene get BRAF runs get gene BRAF.
 
 ```
 
