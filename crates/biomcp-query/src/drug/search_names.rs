@@ -13,6 +13,8 @@ const NAME_ROWS: u32 = 50;
 const LOOKUP_SHARE: u32 = 3;
 /// Most names sent to a provider that takes one request per name, under its request pacing.
 const NAME_REQUESTS: usize = 4;
+/// Most official names one search keeps past the name limit, so one OR group stays bounded.
+const OFFICIAL_NAME_CEILING: usize = 10;
 
 /// What one lookup settled about a typed name.
 #[derive(Debug, Default)]
@@ -27,6 +29,7 @@ enum Found {
     Names {
         names: Vec<Text>,
         preferred: Vec<String>,
+        official: Vec<String>,
         record: String,
         evidence: Vec<SourceOutcome>,
         problems: Vec<biomcp_types::Problem>,
@@ -89,11 +92,13 @@ pub(crate) fn resolve<'a>(
             Found::Names {
                 names,
                 preferred,
+                official,
                 record,
                 evidence,
                 problems,
             } => {
-                let kept = capped(names, &preferred, input, cx.drug_name_limit, fits);
+                let ranked = (preferred.as_slice(), official.as_slice());
+                let kept = capped(names, ranked, input, cx.drug_name_limit, fits);
                 let message = kept.message(source.source(), &record);
                 let mut listed = kept.names.clone();
                 listed.sort_by_key(lowered);
@@ -172,7 +177,16 @@ fn mychem(cx: &Ctx<'_>, input: &Text) -> Found {
     let preferred = drug_rows()
         .flat_map(|row| row.preferred.iter().cloned())
         .collect();
-    with_other_names((names, preferred), input, record, evidence, mapped.problems)
+    let official = drug_rows()
+        .flat_map(|row| row.official.iter().cloned())
+        .collect();
+    with_other_names(
+        (names, preferred, official),
+        input,
+        record,
+        evidence,
+        mapped.problems,
+    )
 }
 
 /// Read one exact source record through the get drug path.
@@ -219,9 +233,10 @@ fn card(cx: &Ctx<'_>, source: DrugSource, input: &Text, out: &mut Outcome) -> Fo
         .into_iter()
         .collect();
     let names = names.into_iter().cloned().collect();
+    let official = card.official_names.iter().map(Text::to_string).collect();
     let record = card.header.id.to_string();
     with_other_names(
-        (names, preferred),
+        (names, preferred, official),
         input,
         record,
         found.sources,
@@ -230,7 +245,7 @@ fn card(cx: &Ctx<'_>, source: DrugSource, input: &Text, out: &mut Outcome) -> Fo
 }
 
 fn with_other_names(
-    (names, preferred): (Vec<Text>, Vec<String>),
+    (names, preferred, official): (Vec<Text>, Vec<String>, Vec<String>),
     input: &Text,
     record: String,
     evidence: Vec<SourceOutcome>,
@@ -245,6 +260,7 @@ fn with_other_names(
     Found::Names {
         names,
         preferred,
+        official,
         record,
         evidence,
         problems,
@@ -272,6 +288,8 @@ struct Capped {
     names: Vec<Text>,
     left_out: usize,
     too_long: usize,
+    /// Official names past [`OFFICIAL_NAME_CEILING`], named in the notice.
+    official_left_out: Vec<Text>,
 }
 
 impl Capped {
@@ -290,16 +308,23 @@ impl Capped {
                 self.left_out
             ));
         }
+        if !self.official_left_out.is_empty() {
+            let names: Vec<_> = self.official_left_out.iter().map(Text::as_str).collect();
+            message.push_str(&format!(
+                " Left out official names past the ceiling of {OFFICIAL_NAME_CEILING}: {}.",
+                names.join(", ")
+            ));
+        }
         message
     }
 }
 
-/// One spelling per name, the typed one kept when the provider can take it. The record's
-/// preferred names rank first and then the shortest, so the same drug keeps the same names
-/// whichever of them was typed.
+/// One spelling per name, the typed one kept when the provider can take it. Official names
+/// pass the limit up to [`OFFICIAL_NAME_CEILING`]; the record's preferred names rank next and then the shortest, so the same
+/// drug keeps the same names whichever of them was typed.
 fn capped(
     names: Vec<Text>,
-    preferred: &[String],
+    (preferred, official): (&[String], &[String]),
     input: &Text,
     limit: usize,
     fits: fn(&str) -> bool,
@@ -315,27 +340,46 @@ fn capped(
         .filter(|name| fits(name.as_str()))
         .collect();
     let too_long = stated_count - names.len();
-    let preferred: std::collections::BTreeSet<_> =
-        preferred.iter().map(|name| name.to_lowercase()).collect();
+    let lowered_set = |names: &[String]| -> std::collections::BTreeSet<_> {
+        names.iter().map(|name| name.to_lowercase()).collect()
+    };
+    let preferred = lowered_set(preferred);
+    let official = lowered_set(official);
     names.sort_by_key(|name| {
         (
+            !official.contains(&lowered(name)),
             !preferred.contains(&lowered(name)),
             name.as_str().chars().count(),
             lowered(name),
         )
     });
+    let kept_official = names
+        .iter()
+        .filter(|name| official.contains(&lowered(name)))
+        .count();
+    let limit = limit.max(kept_official.min(OFFICIAL_NAME_CEILING));
     let left_out = names.len().saturating_sub(limit);
-    if left_out > 0 {
-        let typed_cut = names.iter().skip(limit).any(|name| name == input);
-        names.truncate(limit);
-        if typed_cut && let Some(last) = names.last_mut() {
-            *last = input.clone();
+    let mut cut = names.split_off(limit.min(names.len()));
+    // The typed name stays, in place of the last name that is not official, else the last one.
+    if let Some(at) = cut.iter().position(|name| name == input) {
+        let typed = cut.remove(at);
+        let slot = names
+            .iter()
+            .rposition(|name| !official.contains(&lowered(name)))
+            .or(names.len().checked_sub(1));
+        if let Some(kept) = slot.and_then(|slot| names.get_mut(slot)) {
+            cut.push(std::mem::replace(kept, typed));
         }
     }
+    let official_left_out = cut
+        .into_iter()
+        .filter(|name| official.contains(&lowered(name)))
+        .collect();
     Capped {
         names,
         left_out,
         too_long,
+        official_left_out,
     }
 }
 

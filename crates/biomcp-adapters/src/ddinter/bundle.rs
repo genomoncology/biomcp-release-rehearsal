@@ -87,6 +87,7 @@ pub fn card(leg: &Leg<'_>, id: &DrugId) -> Result<crate::Mapped<Option<DrugCard>
     let value = selected.map(|header| DrugCard {
         header,
         alternate_names: Box::default(),
+        official_names: Box::default(),
         cross_references: Box::default(),
         parents: Box::default(),
         products: Box::default(),

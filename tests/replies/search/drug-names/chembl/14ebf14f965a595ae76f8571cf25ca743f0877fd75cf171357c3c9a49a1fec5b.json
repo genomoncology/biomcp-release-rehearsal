@@ -1,0 +1,78 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule.json?molecule_synonyms__molecule_synonym__iexact=Official%20therapy&limit=50&offset=0",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecules": [
+            {
+              "molecule_chembl_id": "CHEMBL900002",
+              "pref_name": "OFFICIAL THERAPY",
+              "molecule_type": "Small molecule",
+              "molecule_synonyms": [
+                {
+                  "molecule_synonym": "Ab",
+                  "syn_type": "TRADE_NAME",
+                  "synonyms": "AB"
+                },
+                {
+                  "molecule_synonym": "Bc",
+                  "syn_type": "TRADE_NAME",
+                  "synonyms": "BC"
+                },
+                {
+                  "molecule_synonym": "Cd",
+                  "syn_type": "TRADE_NAME",
+                  "synonyms": "CD"
+                },
+                {
+                  "molecule_synonym": "Official therapy",
+                  "syn_type": "FDA",
+                  "synonyms": "OFFICIAL THERAPY"
+                },
+                {
+                  "molecule_synonym": "Official therapy",
+                  "syn_type": "MERCK_INDEX",
+                  "synonyms": "OFFICIAL THERAPY"
+                },
+                {
+                  "molecule_synonym": "Worldname",
+                  "syn_type": "ATC",
+                  "synonyms": "WORLDNAME"
+                },
+                {
+                  "molecule_synonym": "Worldname",
+                  "syn_type": "BNF",
+                  "synonyms": "WORLDNAME"
+                },
+                {
+                  "molecule_synonym": "Worldname",
+                  "syn_type": "INN",
+                  "synonyms": "WORLDNAME"
+                },
+                {
+                  "molecule_synonym": "Mundonombre",
+                  "syn_type": "INN_SPANISH",
+                  "synonyms": "MUNDONOMBRE"
+                }
+              ]
+            }
+          ],
+          "page_meta": {
+            "total_count": 1,
+            "offset": 0,
+            "limit": 50
+          }
+        }
+      }
+    }
+  ]
+}

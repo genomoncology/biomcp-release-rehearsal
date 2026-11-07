@@ -120,6 +120,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
                 out.body = (DrugCard {
                     header: row.header(),
                     alternate_names: Box::default(),
+                    official_names: Box::default(),
                     cross_references: Box::default(),
                     parents: Box::default(),
                     products: Box::default(),

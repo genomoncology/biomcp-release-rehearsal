@@ -82,6 +82,7 @@ impl RawRecord {
         Ok(DrugCard {
             header: self.header()?,
             alternate_names,
+            official_names: Box::default(),
             cross_references: Box::default(),
             parents: Box::default(),
             products: Box::default(),

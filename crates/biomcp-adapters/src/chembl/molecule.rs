@@ -50,7 +50,7 @@ pub(super) fn card(row: Molecule, fetched: Option<i64>) -> Result<crate::Mapped<
         url: header.value.url.clone(),
     };
     let mut refusals = header.refusals;
-    let names = names(row.molecule_synonyms, &mut problems, &mut refusals);
+    let (names, official) = names(row.molecule_synonyms, &mut problems, &mut refusals);
     let references = cross_references(
         row.cross_references,
         &attribution,
@@ -86,6 +86,7 @@ pub(super) fn card(row: Molecule, fetched: Option<i64>) -> Result<crate::Mapped<
     let value = DrugCard {
         header: header.value,
         alternate_names: names.into(),
+        official_names: official.into(),
         cross_references: references.into(),
         parents: parents.into(),
         products: Box::default(),
@@ -146,8 +147,9 @@ fn names(
     rows: Vec<super::raw::Synonym>,
     problems: &mut Problems,
     refusals: &mut crate::Refusal,
-) -> Vec<Text> {
+) -> (Vec<Text>, Vec<Text>) {
     let mut names = Vec::new();
+    let mut official = Vec::new();
     for synonym in rows {
         for issue in synonym.problems {
             crate::mapped::push_problem(
@@ -161,6 +163,11 @@ fn names(
             "molecule_synonyms.molecule_synonym",
             synonym.molecule_synonym.as_deref(),
         ) {
+            if crate::drug_sources::official_name(synonym.syn_type.as_deref())
+                && !official.contains(&name)
+            {
+                official.push(name.clone());
+            }
             if !names.contains(&name) {
                 names.push(name);
             }
@@ -168,5 +175,5 @@ fn names(
             *refusals = crate::Refusal::Refused;
         }
     }
-    names
+    (names, official)
 }

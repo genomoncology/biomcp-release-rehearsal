@@ -45,6 +45,9 @@ pub struct DrugCard {
     /// Source-native alternate names, without local alias expansion.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     pub alternate_names: Box<[Text]>,
+    /// The alternate names the source types as official: INN, USAN, BAN, JAN or FDA.
+    #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
+    pub official_names: Box<[Text]>,
     /// Explicit source cross-references with their native relation and provenance.
     #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
     pub cross_references: Box<[DrugIdentityRelation]>,

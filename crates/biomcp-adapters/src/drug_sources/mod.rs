@@ -64,3 +64,7 @@ pub fn identity(
         url: header.url.clone(),
     })
 }
+/// Whether a ChEMBL synonym type names an official drug name.
+pub(crate) fn official_name(syn_type: Option<&str>) -> bool {
+    matches!(syn_type, Some("INN" | "USAN" | "BAN" | "JAN" | "FDA"))
+}

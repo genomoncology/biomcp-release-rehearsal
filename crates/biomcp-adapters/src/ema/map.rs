@@ -32,6 +32,7 @@ pub(super) fn card(row: &raw::Medicine, problems: &mut crate::mapped::Problems) 
     DrugCard {
         header: header(row, problems),
         alternate_names: Box::default(),
+        official_names: Box::default(),
         cross_references: Box::default(),
         parents: Box::default(),
         products: Box::default(),

@@ -1,6 +1,7 @@
 # 0741 — Drug card keeps official names
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d2857a5887f954958e2d04622649d196dfaa604b
 
 Milestone: 5
 

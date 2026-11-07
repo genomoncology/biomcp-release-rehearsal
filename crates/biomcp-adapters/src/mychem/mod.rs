@@ -71,6 +71,8 @@ pub struct NameRecord {
     pub names: Vec<biodata::Text>,
     /// The main name each of the row's sources gives it, not its synonyms or products.
     pub preferred: Vec<String>,
+    /// The synonyms the source types as official, which a name cap always keeps.
+    pub official: Vec<String>,
 }
 /// Read the first rows stating one name, across free text and the synonym fields.
 /// Exact names rank first, so further pages only add product rows and looser matches.

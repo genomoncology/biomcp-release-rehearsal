@@ -1,0 +1,123 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real ChEMBL and MyChem synonym shapes; no clinical or live completeness claim",
+  "story": "Names the source types as official survive the name cap past shorter trade names, up to a fixed ceiling that the notice names, whichever name was typed and whichever source answers.",
+  "replay": "search/drug-names",
+  "config": {
+    "drug_search_name_limit": 2
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Official therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "chembl",
+        "/sources/0/notices/0/names": [
+          "Official therapy",
+          "Worldname"
+        ],
+        "/sources/0/notices/0/message": "Searched the names stated by chembl record CHEMBL900002. Left out 4 of 6 names, past the drug_search_name_limit setting.",
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Worldname"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "OFFICIAL THERAPY",
+          "Worldname"
+        ],
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Rowed therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "mychem",
+        "/sources/0/notices/0/names": [
+          "Rowed therapy",
+          "Rowname"
+        ],
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Many therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "chembl",
+        "/sources/0/notices/0/names": [
+          "Many therapy",
+          "O-01",
+          "O-02",
+          "O-03",
+          "O-04",
+          "O-05",
+          "O-06",
+          "O-07",
+          "O-08",
+          "O-09"
+        ],
+        "/sources/0/notices/0/message": "Searched the names stated by chembl record CHEMBL900004. Left out 4 of 14 names, past the drug_search_name_limit setting. Left out official names past the ceiling of 10: O-10, O-11.",
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "O-11"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "MANY THERAPY",
+          "O-01",
+          "O-02",
+          "O-03",
+          "O-04",
+          "O-05",
+          "O-06",
+          "O-07",
+          "O-08",
+          "O-11"
+        ],
+        "/sources/0/notices/0/message": "Searched the names stated by chembl record CHEMBL900004. Left out 4 of 14 names, past the drug_search_name_limit setting. Left out official names past the ceiling of 10: O-10, O-09.",
+        "/page/total": 3
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Worldname",
+        "--source",
+        "chembl"
+      ],
+      "expect": {
+        "/result/official_names": [
+          "Official therapy",
+          "Worldname"
+        ]
+      }
+    }
+  ]
+}

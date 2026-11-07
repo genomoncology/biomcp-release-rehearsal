@@ -90,6 +90,7 @@ pub(super) struct Component {
 #[derive(Debug)]
 pub(super) struct Synonym {
     pub molecule_synonym: Option<String>,
+    pub syn_type: Option<String>,
 }
 #[derive(Debug)]
 pub(super) struct Hierarchy {
@@ -132,6 +133,7 @@ pub(super) struct ReceivedComponent {
 #[derive(Debug, Deserialize)]
 pub(super) struct ReceivedSynonym {
     pub molecule_synonym: Option<crate::raw::Field<String>>,
+    pub syn_type: Option<crate::raw::Field<String>>,
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct ReceivedHierarchy {

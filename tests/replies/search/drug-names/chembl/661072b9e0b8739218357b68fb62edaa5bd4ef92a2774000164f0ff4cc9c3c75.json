@@ -1,0 +1,99 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL900004.json",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecule_chembl_id": "CHEMBL900004",
+          "pref_name": "MANY THERAPY",
+          "molecule_type": "Small molecule",
+          "molecule_synonyms": [
+            {
+              "molecule_synonym": "Many therapy",
+              "syn_type": "FDA",
+              "synonyms": "MANY THERAPY"
+            },
+            {
+              "molecule_synonym": "Many therapy",
+              "syn_type": "MERCK_INDEX",
+              "synonyms": "MANY THERAPY"
+            },
+            {
+              "molecule_synonym": "O-01",
+              "syn_type": "INN",
+              "synonyms": "O-01"
+            },
+            {
+              "molecule_synonym": "O-02",
+              "syn_type": "USAN",
+              "synonyms": "O-02"
+            },
+            {
+              "molecule_synonym": "O-03",
+              "syn_type": "BAN",
+              "synonyms": "O-03"
+            },
+            {
+              "molecule_synonym": "O-04",
+              "syn_type": "JAN",
+              "synonyms": "O-04"
+            },
+            {
+              "molecule_synonym": "O-05",
+              "syn_type": "INN",
+              "synonyms": "O-05"
+            },
+            {
+              "molecule_synonym": "O-06",
+              "syn_type": "USAN",
+              "synonyms": "O-06"
+            },
+            {
+              "molecule_synonym": "O-07",
+              "syn_type": "BAN",
+              "synonyms": "O-07"
+            },
+            {
+              "molecule_synonym": "O-08",
+              "syn_type": "JAN",
+              "synonyms": "O-08"
+            },
+            {
+              "molecule_synonym": "O-09",
+              "syn_type": "INN",
+              "synonyms": "O-09"
+            },
+            {
+              "molecule_synonym": "O-10",
+              "syn_type": "USAN",
+              "synonyms": "O-10"
+            },
+            {
+              "molecule_synonym": "O-11",
+              "syn_type": "BAN",
+              "synonyms": "O-11"
+            },
+            {
+              "molecule_synonym": "Ta-1",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "TA-1"
+            },
+            {
+              "molecule_synonym": "Tb-1",
+              "syn_type": "TRADE_NAME",
+              "synonyms": "TB-1"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

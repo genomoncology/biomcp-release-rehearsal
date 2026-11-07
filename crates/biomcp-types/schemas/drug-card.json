@@ -186,6 +186,13 @@
           },
           "type": "array"
         },
+        "official_names": {
+          "description": "The alternate names the source types as official: INN, USAN, BAN, JAN or FDA.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "type": "array"
+        },
         "parents": {
           "description": "Explicit native parent links.",
           "items": {

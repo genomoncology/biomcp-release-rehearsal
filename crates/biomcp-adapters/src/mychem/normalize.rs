@@ -154,6 +154,11 @@ fn synonyms(
                             &format!("{name}.molecule_synonyms.molecule_synonym"),
                             problems,
                         ),
+                        syn_type: optional_string(
+                            v.syn_type,
+                            &format!("{name}.molecule_synonyms.syn_type"),
+                            problems,
+                        ),
                     })
                 })
                 .collect()
