@@ -26,9 +26,22 @@ pub(super) fn checked(verb: &str, entity: &str, cause: &QueryInvalid) -> Option<
     Some(UsageArguments {
         argument: Some(argument.into()),
         message: cause.message(),
-        valid_values: accepted(&schema, property),
+        valid_values: choices(name).or_else(|| accepted(&schema, property)),
         next: vec![help([verb, entity])],
     })
+}
+
+/// Name the real choices of a free-text argument whose schema carries only a type description.
+fn choices(name: &str) -> Option<Box<[biodata::Text]>> {
+    let values: &[&str] = match name {
+        "label_section" => &biomcp_types::OPENFDA_LABEL_HEADINGS,
+        _ => return None,
+    };
+    values
+        .iter()
+        .map(|value| biodata::Text::new(value).ok())
+        .collect::<Option<Vec<_>>>()
+        .map(Into::into)
 }
 
 pub(super) fn help<'a>(path: impl IntoIterator<Item = &'a str>) -> biomcp_types::Step {

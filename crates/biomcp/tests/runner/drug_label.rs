@@ -13,10 +13,33 @@ pub(super) fn trials() -> Vec<Trial> {
         transcript_trial(crate::runner::required_contract::LABEL_HEADINGS.0, || {
             headings().map_err(Into::into)
         }),
+        transcript_trial("drug-label/bare-label-lists-headings", || {
+            bare_label().map_err(Into::into)
+        }),
         transcript_trial("drug-label/published-sections", || {
             published::sections().map_err(Into::into)
         }),
     ]
+}
+fn bare_label() -> Check {
+    let id = identity(4)?;
+    let (env, _stub) = get_setup(&id, record(&id))?;
+    let mut args = get_args(&id)?;
+    args.push("label".into());
+    let cli = invoke(&env, args.clone(), 2)?;
+    let mcp = super::mcp::call_with_globals(&env, &args, true, &[])?;
+    for value in [&cli, &mcp] {
+        let listed = value
+            .pointer("/error/valid_values")
+            .and_then(Value::as_array)
+            .ok_or("no valid_values")?;
+        if !listed.contains(&json!("boxed_warning"))
+            || !listed.contains(&json!("indications_and_usage"))
+        {
+            return Err(format!("section names missing: {value}"));
+        }
+    }
+    Ok(())
 }
 fn identity(n: usize) -> Result<Value, String> {
     let rows: Vec<Value> = serde_json::from_str(&crate::runner::launch::fixture_text(

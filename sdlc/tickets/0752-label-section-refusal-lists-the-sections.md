@@ -1,6 +1,7 @@
 # 0752 — Label section refusal lists the sections
 
-Status: READY.
+Status: COMPLETE.
+Landed: 777f9c2d27a415979e8b77e9c28c108357548d28
 
 Milestone: 5
 
