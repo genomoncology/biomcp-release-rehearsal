@@ -63,3 +63,7 @@ PM ruling, from the review at the top of the hosting stack. These three are fixe
 ## Amendment, 2026-11-06
 
 PM ruling, second pass. A name group takes names only from records that describe this one drug. Leaving out combination product rows is a rule about records, not a name quality filter. When the walk cannot show one drug, the search uses the typed term and says so. `paracetamol` gave 64,226 trials against 3,395 for `acetaminophen`, from names like `Cold` and `HEB`, so this is fixed before landing. Official names on the drug card are a separate ticket.
+
+## Amendment, 2026-11-06
+
+PM ruling, replacing the single-ingredient wording above. Product rows give no names when the drug has rows of its own, and product-only hits give none either; a record with nothing but product rows still gives its names. Single-ingredient rows alone left 242 store brands such as `HEB` and `Pain Relief`. A brand stated only in a product row is searched only when typed. Some broad ChEMBL trade names stay, and that is accepted for 1.0.
