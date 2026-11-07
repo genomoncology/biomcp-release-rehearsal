@@ -1,0 +1,28 @@
+{
+  "feature": "source-data-age",
+  "live_check": "Entirely synthetic native-shaped source facts; no live provider observation",
+  "replay": "source-age/opentargets-version-unreadable",
+  "story": "An unreadable Open Targets data version leaves the date unknown, says so, and keeps the drug facts",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "drug",
+        "CHEMBL941",
+        "--source",
+        "opentargets"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/header/name": "Canonical therapy",
+        "/problems/0/source": "opentargets",
+        "/problems/0/field": "meta.dataVersion",
+        "/sources/0": {
+          "omits": [
+            "notices"
+          ]
+        }
+      }
+    }
+  ]
+}

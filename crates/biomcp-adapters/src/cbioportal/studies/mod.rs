@@ -68,6 +68,7 @@ pub fn sync(fetch: &Fetch) -> Result<(crate::Mapped<SyncResult>, bool), RequestE
             refusals,
             problems,
             value: SyncResult {
+                data_date: None,
                 snapshot: info.as_ref().map(snapshot).transpose()?,
                 etag: info.as_ref().and_then(|info| info.etag.clone()),
                 last_modified: info.as_ref().and_then(|info| info.last_modified.clone()),

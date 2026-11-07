@@ -2,6 +2,15 @@
 use super::{Bundle, BundleInfo, Find, Row, store};
 use crate::{Leg, Mode, RequestError};
 impl Leg<'_> {
+    /// Inspect the admitted publisher dataset date without synchronization or a full row scan.
+    pub fn stored_data_date<R: Row>(
+        &self,
+        bundle: &Bundle<R>,
+    ) -> Result<Option<Box<str>>, RequestError> {
+        self.bundle_source(bundle)?;
+        let cache = self.bundle_cache()?;
+        data_date::<R>(cache.bundle_first_row(bundle.name, self.budget())?)
+    }
     /// Inspect the selected store metadata without reading rows, importing or synchronizing.
     pub fn stored_bundle_state<R: Row>(
         &self,
@@ -192,7 +201,7 @@ impl Leg<'_> {
             waiting = true;
             snapshot = cache.stored_bundle(bundle.name, find, self.budget())?;
         }
-        let (meta, rows) =
+        let store::StoredBundle { meta, rows, sample } =
             snapshot.ok_or_else(|| self.failure(biomcp_types::Reason::Syncing, None))?;
         let rows = decode(rows)?;
         if meta.fresh_until <= crate::cache::now() {
@@ -201,7 +210,12 @@ impl Leg<'_> {
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .stale = true;
         }
-        Ok((rows, store::info(bundle, &meta)))
+        let mut info = store::info(bundle, &meta);
+        info.data_date = data_date::<R>(sample)?;
+        if let Some(date) = &info.data_date {
+            self.data_date(date);
+        }
+        Ok((rows, info))
     }
     fn import_predecessor(
         &self,
@@ -258,4 +272,14 @@ fn decode<R: Row>(rows: Vec<String>) -> Result<Vec<R>, RequestError> {
     rows.into_iter()
         .map(|row| serde_json::from_str(&row).map_err(|_| crate::CacheError::Encoding.into()))
         .collect()
+}
+
+fn data_date<R: Row>(row: Option<String>) -> Result<Option<Box<str>>, RequestError> {
+    row.map(|row| {
+        serde_json::from_str::<R>(&row)
+            .map(|row| row.data_date().map(Into::into))
+            .map_err(|_| crate::CacheError::Encoding.into())
+    })
+    .transpose()
+    .map(Option::flatten)
 }

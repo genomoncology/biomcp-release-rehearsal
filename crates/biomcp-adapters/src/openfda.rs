@@ -46,6 +46,12 @@ pub(crate) trait Item: DeserializeOwned {
     }
 }
 impl<T: Item> Reply for Envelope<T> {
+    fn data_date(&self) -> Option<String> {
+        match self {
+            Self::Page { meta, .. } => meta.last_updated.map(|date| date.to_string()),
+            Self::Absent { .. } => None,
+        }
+    }
     fn check(&self) -> Result<(), BadReply> {
         match self {
             Self::Page { meta, results } if T::counts(meta, results.len()) => {

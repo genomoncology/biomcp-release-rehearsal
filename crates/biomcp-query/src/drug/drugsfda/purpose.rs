@@ -37,6 +37,7 @@ pub(super) fn enrich(
         source.notices.extend(report.notices);
         if document_failed {
             source.notices.push(biomcp_types::SourceNotice::RequestGuidance {
+            data_date: None,
                 message: "Approval history was read; some supplement letters could not be read. Each affected row reports its document failure.".into(),
                 retry_after_seconds: None,
             });

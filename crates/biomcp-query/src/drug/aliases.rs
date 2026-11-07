@@ -239,6 +239,7 @@ fn notice(out: &mut Outcome, selected: DrugSource, message: String) {
         .find(|s| s.source == selected.source())
     {
         source.notices.push(SourceNotice::RequestGuidance {
+            data_date: None,
             message: message.into(),
             retry_after_seconds: None,
         });

@@ -18,6 +18,27 @@ impl<T: for<'de> Deserialize<'de>> Reply for Response<T> {
         }
     }
 }
+/// Platform metadata, read apart from drug queries so their request identities stay unchanged.
+#[derive(Debug, Deserialize)]
+pub(super) struct VersionData {
+    /// Native platform metadata.
+    pub meta: Meta,
+}
+/// Native platform metadata.
+#[derive(Debug, Deserialize)]
+pub(super) struct Meta {
+    /// Published data release, absent when the platform does not name one.
+    #[serde(rename = "dataVersion")]
+    pub data_version: Option<Field<DataVersion>>,
+}
+/// Published data release, with month precision.
+#[derive(Debug, Deserialize)]
+pub(super) struct DataVersion {
+    /// Native year spelling, observed as two digits.
+    pub year: String,
+    /// Native month spelling.
+    pub month: String,
+}
 /// Source candidate collection.
 #[derive(Debug, Deserialize)]
 pub(super) struct SearchData {

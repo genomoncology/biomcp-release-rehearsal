@@ -75,6 +75,9 @@ pub struct SyncQuery {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct SyncResult {
+    /// Native publisher dataset date, separate from local synchronization time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_date: Option<Box<str>>,
     /// Catalog content revision and acquisition time, separate from source headers.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub snapshot: Option<crate::StudySnapshot>,

@@ -1,0 +1,24 @@
+{
+  "feature": "source-data-age",
+  "live_check": "Synthetic publisher dataset date added to an existing synthetic label response; no live observation",
+  "replay": "source-age",
+  "story": "A recent label event does not hide an old publisher dataset date",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "--indication",
+        "melanoma",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/sources/0/notices/0/message": "Publisher dataset date: 2000-01-01. Old data: exceeds the configured 365-day age limit. Retrieval does not establish a newer data date.",
+        "/page/returned": 1
+      }
+    }
+  ]
+}

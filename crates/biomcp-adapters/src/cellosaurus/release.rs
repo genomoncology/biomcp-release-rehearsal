@@ -22,6 +22,9 @@ pub fn release(
         version: problems.required_field("release.version", release.version),
         updated: problems.required_field("release.updated", release.updated),
     };
+    if let Some(date) = value.updated {
+        leg.data_date(&date.to_string());
+    }
     Ok(crate::Mapped {
         refusals: crate::Refusal::None,
         value,

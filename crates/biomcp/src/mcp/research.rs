@@ -114,6 +114,7 @@ pub(super) fn execute(
         crate::command::tool(&call.args, context)?
     };
     super::hosted::project(&mut outcome, context, &call.args)?;
+    super::hosted::transport_next(&mut outcome, context, http)?;
     let view = if matches!(
         outcome.status,
         crate::exit::Status::Success | crate::exit::Status::Absent

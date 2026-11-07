@@ -98,6 +98,7 @@ fn disclosure(out: &mut Outcome, selector: Option<biodata::Text>) {
         source
             .notices
             .push(biomcp_types::SourceNotice::RequestGuidance {
+            data_date: None,
             message:
                 "Exact and word name searches found no matching product; searched label free text."
                     .into(),

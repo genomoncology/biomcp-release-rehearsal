@@ -1,6 +1,7 @@
 # 0718 — Sources show how old their data is
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 9e897ff3a3897b723055d40bc28462d06b0e3efc
 
 Milestone: 5
 

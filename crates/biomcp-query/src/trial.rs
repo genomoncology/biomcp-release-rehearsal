@@ -162,6 +162,7 @@ fn intervention_notices(
             source
                 .notices
                 .push(biomcp_types::SourceNotice::RequestGuidance {
+                data_date: None,
                 message: format!(
                     "Trial {}: interventions omitted: {omitted}; read all registered interventions \
                      with biomcp get trial {} arms.",

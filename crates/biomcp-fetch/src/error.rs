@@ -32,6 +32,7 @@ impl SourceError {
         self.tls_cause
             .filter(|_| self.reason == Reason::Tls)
             .map(|cause| biomcp_types::SourceNotice::RequestGuidance {
+                data_date: None,
                 message: format!("TLS verification failed: {cause}").into(),
                 retry_after_seconds: None,
             })

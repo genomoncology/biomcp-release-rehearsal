@@ -1,5 +1,7 @@
 #[path = "hosted_surface.rs"]
 mod hosted_surface;
+#[path = "source_age.rs"]
+mod source_age;
 
 #[path = "label_priority.rs"]
 mod label_priority;
@@ -39,6 +41,7 @@ pub(super) fn trials() -> Vec<Trial> {
     let mut trials = typed_followups::trials();
     trials.extend(hosted_surface::trials());
     trials.extend(typed::trials());
+    trials.extend(source_age::trials());
     trials.extend([
         transcript_trial("mcp-parity/cancellation-suppresses-later-output", || {
             cancellation().map_err(Into::into)

@@ -33,6 +33,7 @@
       "expect": {
         "/status": "complete",
         "/page/total": 0,
+        "/sources/0/notices/0/data_date": "2026-09",
         "/sources/1/source": "mychem",
         "/sources/1/reason": "disabled",
         "/sources/2/source": "openfda-label",

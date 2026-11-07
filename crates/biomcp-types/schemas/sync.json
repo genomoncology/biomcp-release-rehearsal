@@ -380,6 +380,13 @@
         {
           "description": "Local request limits, source observations and recovery guidance.",
           "properties": {
+            "data_date": {
+              "description": "Retained publisher dataset date, independent of acquisition and record events.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "kind": {
               "const": "request-guidance",
               "type": "string"
@@ -702,6 +709,13 @@
           "format": "uint64",
           "minimum": 0,
           "type": "integer"
+        },
+        "data_date": {
+          "description": "Native publisher dataset date, separate from local synchronization time.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "downloaded_bytes": {
           "description": "Source body bytes received in this sync; excludes previous partials, 304 reuse and replay.",

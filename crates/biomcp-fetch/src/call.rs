@@ -110,6 +110,9 @@ impl Leg<'_> {
                 )?
             }
         };
+        if let Some(date) = value.data_date() {
+            self.data_date(&date);
+        }
         Ok(Received { value, meta })
     }
 }

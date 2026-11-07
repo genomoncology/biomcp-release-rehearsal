@@ -541,6 +541,13 @@
         {
           "description": "Local request limits, source observations and recovery guidance.",
           "properties": {
+            "data_date": {
+              "description": "Retained publisher dataset date, independent of acquisition and record events.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "kind": {
               "const": "request-guidance",
               "type": "string"

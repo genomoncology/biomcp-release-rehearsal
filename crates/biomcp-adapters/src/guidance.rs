@@ -21,6 +21,7 @@ pub fn notices(
     };
     message
         .map(|message| SourceNotice::RequestGuidance {
+            data_date: None,
             message: message.into(),
             retry_after_seconds: retry.map(|d| d.as_secs() + u64::from(d.subsec_nanos() != 0)),
         })

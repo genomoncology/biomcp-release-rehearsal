@@ -4,6 +4,10 @@ BioMCP reads the configuration file described in the README. Unknown keys cause 
 
 ## Cache and store folders
 
+Publisher dataset dates are disclosed separately from retrieval and record event dates. `source_data_max_age_days` sets the age after which a supplied dataset date is flagged as old (default 365 days). A missing publisher date stays unknown; a recent retrieval never establishes a recent dataset release. The flag describes age and does not change the publisher's values or imply that a historical event is wrong. Stored continuations retain the publisher date and reassess its age using the current setting. OncoKB's release date is assessed as `YYYY-MM-DD`; its annotation keeps the original `MM/DD/YYYY` text. Open Targets publishes a year and month, shown as `YYYY-MM` with no age claim.
+
+Open Targets indication replies also show bounded FDA application events found by the source's drug-name lookup. Their indications are not linked. Native dates and identifiers stay with each fact, missing dates remain unknown, and neither source is labeled as superseding the other. FDA unavailability leaves the phase facts readable and discloses the additional source outcome.
+
 On Unix, BioMCP keeps its cache and stored collections in `$XDG_CACHE_HOME/biomcp`, or `~/.cache/biomcp` when `XDG_CACHE_HOME` is unset. On Windows, it uses `%LOCALAPPDATA%/biomcp`. Choose a local disk for these folders. Sharing one cache between several processes through a Docker Desktop host bind mount or a network filesystem is unsupported. BioMCP uses SQLite's write-ahead log (WAL), which needs shared memory between processes on the same host; see the [storage caution](cautions.md#cache-and-store-storage).
 
 Set `BIOMCP_SQLITE_DIAGNOSTICS` to an existing file to opt into bounded SQLite operation and numeric error-code diagnostics (up to 4096 bytes); it does not include queries or patient data.

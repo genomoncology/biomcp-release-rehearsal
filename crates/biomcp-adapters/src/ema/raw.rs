@@ -66,6 +66,13 @@ impl Medicine {
     }
 }
 impl Row for Medicine {
+    fn data_date(&self) -> Option<&str> {
+        self.meta
+            .timestamp
+            .as_ref()
+            .and_then(crate::raw::Field::as_ref)
+            .map(|date| date.as_str())
+    }
     fn check_bundle(&self, rows: usize) -> Result<(), BadReply> {
         if self.meta.total_records != rows {
             return Err(BadReply);

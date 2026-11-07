@@ -2,6 +2,7 @@
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 mod identity;
+mod regulatory_context;
 mod sections;
 use crate::{Ctx, Outcome, status};
 use biomcp_adapters::{NativeWindow, chembl, opentargets};
@@ -122,6 +123,7 @@ fn search_page(
             query.offset() / query.limit(),
             query.limit(),
         )?;
+        problems.extend(opentargets::version(leg));
         let mapped = opentargets::search_headers(page, (query.offset() % query.limit()) as usize);
         problems.extend(mapped.problems);
         let received = mapped.value.items.len() as u32;
@@ -162,6 +164,12 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     }
     let remaining = leg.remaining();
     finish(&mut out, leg, query.source().source(), error);
+    if error.is_none()
+        && query.source() == DrugSource::Opentargets
+        && query.sections() == [DrugSection::Indications]
+    {
+        regulatory_context::attach(cx, query, deadline, &mut out);
+    }
     command.finish(remaining);
     out
 }

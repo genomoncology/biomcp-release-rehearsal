@@ -26,6 +26,10 @@ pub trait Row: serde::de::DeserializeOwned {
     }
     /// Return the row’s exact and word search keys.
     fn keys(&self) -> Keys;
+    /// Shared publisher dataset date embedded in this admitted bundle row.
+    fn data_date(&self) -> Option<&str> {
+        None
+    }
     /// Validate this row against its declared member of a complete source set.
     fn check_part(&self, _part: &str) -> Result<(), crate::BadReply> {
         Ok(())
@@ -143,6 +147,8 @@ pub enum Find<'a> {
 /// Public bundle metadata contains no local filenames or provider diagnostics.
 #[derive(Clone, Debug)]
 pub struct BundleInfo {
+    /// Publisher dataset date retained in admitted rows, never a local synchronization time.
+    pub data_date: Option<Box<str>>,
     /// Rejected logical source rows, retained across synchronization reuse.
     pub rejections: Vec<BundleRejection>,
     /// Native publisher revision validator, when supplied.
@@ -206,7 +212,9 @@ impl Fetch {
         let deadline = self.deadline(self.config.sync_budget);
         let mut leg = self.leg(bundle.spec, deadline);
         leg.deadline = deadline;
-        leg.sync_bundle(bundle, false)?.published(&leg)
+        let mut info = leg.sync_bundle(bundle, false)?.published(&leg)?;
+        info.data_date = leg.stored_data_date(bundle)?;
+        Ok(info)
     }
 }
 /// Serialize a typed source document row for the shared checked bundle store.

@@ -34,6 +34,12 @@ struct Meta {
     last_updated: Option<PartialDate>,
 }
 impl Reply for Response {
+    fn data_date(&self) -> Option<String> {
+        match self {
+            Self::Page { meta, .. } => meta.last_updated.map(|date| date.to_string()),
+            Self::Absent { .. } => None,
+        }
+    }
     fn check(&self) -> Result<(), BadReply> {
         match self {
             Self::Page { .. } => Ok(()),

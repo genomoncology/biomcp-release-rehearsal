@@ -1,0 +1,52 @@
+{
+  "method": "GET",
+  "source": "drugsfda",
+  "url": "https://api.fda.gov/drug/drugsfda.json?search=products.brand_name.exact%3A%22Canonical%20therapy%22%20OR%20products.active_ingredients.name.exact%3A%22Canonical%20therapy%22&limit=1",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "meta": {
+            "last_updated": "2026-01-01",
+            "results": {
+              "skip": 0,
+              "limit": 1,
+              "total": 1
+            }
+          },
+          "results": [
+            {
+              "application_number": "NDA999999",
+              "sponsor_name": "Synthetic Sponsor",
+              "products": [
+                {
+                  "product_number": "001",
+                  "brand_name": "Canonical therapy",
+                  "active_ingredients": [
+                    {
+                      "name": "Canonical therapy",
+                      "strength": "1 mg"
+                    }
+                  ]
+                }
+              ],
+              "submissions": [
+                {
+                  "submission_type": "SUPPL",
+                  "submission_number": "001",
+                  "submission_status": "AP",
+                  "submission_status_date": "20250116"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

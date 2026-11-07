@@ -20,6 +20,7 @@ pub(super) fn append(gene: &str, contexts: &[GeneContext], source: &mut SourceOu
             ),
         };
         source.notices.push(SourceNotice::RequestGuidance {
+            data_date: None,
             message: message.into(),
             retry_after_seconds: None,
         });

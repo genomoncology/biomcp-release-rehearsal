@@ -87,6 +87,7 @@ fn wrap_page(mut page: ctgov::SearchPage) -> Result<ctgov::SearchPage, RequestEr
 
 fn guidance(message: String) -> SourceNotice {
     SourceNotice::RequestGuidance {
+        data_date: None,
         message: message.into(),
         retry_after_seconds: None,
     }

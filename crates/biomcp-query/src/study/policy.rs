@@ -22,6 +22,7 @@ pub(super) fn notice(out: &mut Outcome, ids: &[&str], skipped: bool) {
             continue;
         };
         source.notices.push(SourceNotice::RequestGuidance {
+            data_date: None,
             message: format!("Study {id} was left out in restricted mode: {reason}").into(),
             retry_after_seconds: None,
         });

@@ -148,12 +148,34 @@ pub struct Implication {
     pub(super) abstracts: Option<Field<Vec<Field<Abstract>>>>,
 }
 impl Reply for Annotation {
+    fn data_date(&self) -> Option<String> {
+        let native = self.last_update.as_ref()?.as_ref()?;
+        release_date(native)
+    }
     fn check(&self) -> Result<(), BadReply> {
         if self.errors.as_ref().is_none_or(Vec::is_empty) {
             Ok(())
         } else {
             Err(BadReply)
         }
+    }
+}
+// Normalize only the documented source spelling for age assessment. Mapping keeps
+// lastUpdate itself unchanged, including missing or unrecognized source text.
+fn release_date(native: &str) -> Option<String> {
+    let mut parts = native.split('/');
+    let (Some(month), Some(day), Some(year), None) =
+        (parts.next(), parts.next(), parts.next(), parts.next())
+    else {
+        return None;
+    };
+    if month.len() != 2 || day.len() != 2 || year.len() != 4 {
+        return None;
+    }
+    let date = format!("{year}-{month}-{day}");
+    match date.parse::<biodata::PartialDate>() {
+        Ok(date) => Some(date.to_string()),
+        Err(_) => None,
     }
 }
 /// Read only the licensed endpoint under the existing required-key source policy.

@@ -167,6 +167,22 @@ pub struct DrugIndications {
     pub identity: DrugHeader,
     /// Existing typed section state, preserving empty, unavailable and skipped outcomes.
     pub indications: Section<DrugRecords<DrugIndicationClaim>>,
+    /// Independent FDA application events found by the source's drug-name lookup.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub regulatory_context: Option<DrugRegulatoryContext>,
+}
+/// Native FDA events beside phase facts, without an indication-level assertion.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct DrugRegulatoryContext {
+    /// False: the indication claims and FDA events have not been linked.
+    pub indications_linked: bool,
+    /// Plain statement of the name-only relationship and independent source facts.
+    pub notice: Box<str>,
+    /// Native FDA application count for the drug-name lookup.
+    pub total_applications: u64,
+    /// Source-owned application identities, products and dated submission events.
+    pub applications: Box<[DrugApprovals]>,
 }
 /// Complete CIViC therapy/profile context with independent native claim continuations.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

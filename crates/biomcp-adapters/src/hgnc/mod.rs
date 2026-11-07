@@ -75,6 +75,7 @@ pub fn sync_all(fetch: &Fetch) -> Result<Mapped<biomcp_types::SyncResult>, Reque
         refusals,
         problems,
         value: biomcp_types::SyncResult {
+            data_date: None,
             native_rows: None,
             snapshot: None,
             etag: None,

@@ -158,6 +158,7 @@ The runner tool proof `schema-discovery/capture-retains-replay-owner` drops the 
 
 | File | Reason |
 | --- | --- |
+| `crates/biomcp-fetch/tests/record/data_age.rs` | Check Gregorian calendar arithmetic, including leap years and invalid dates, without adding a public clock control. |
 | `crates/biomcp/src/mcp/http/load_benchmark.rs` | Measure explicitly invoked bounded HTTP load against one owned service and Fetch. |
 | `crates/biomcp/tests/ratchets/source_declaration_proof.rs` | Plant source declaration omissions, identity mismatches, unnamed provider facts and transport source literals at the structural boundary. |
 | `crates/biomcp-adapters/tests/source_declarations.rs` | Check unique declared bundle command names and their stable public discovery order through the adapter registry. |

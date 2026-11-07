@@ -50,6 +50,7 @@ pub fn sync(fetch: &Fetch) -> Result<crate::Mapped<SyncResult>, RequestError> {
         refusals,
         problems,
         value: SyncResult {
+            data_date: None,
             native_rows: None,
             snapshot: None,
             etag: None,

@@ -9,10 +9,15 @@ pub(super) fn run(
 ) -> io::Result<Outcome> {
     match biomcp_query::sources::sync(fetch, bundle) {
         biomcp_query::sources::BundleReply::Standard(result, stale) => {
-            finish(bundle, result, stale, encoding)
+            let date_notice = result
+                .as_ref()
+                .ok()
+                .and_then(|mapped| mapped.value.data_date.as_deref())
+                .map(|date| fetch.data_date_notice(date));
+            finish(bundle, result, stale, encoding, date_notice)
         }
         biomcp_query::sources::BundleReply::WikiPathways(result) => {
-            finish(bundle, result, false, encoding)
+            finish(bundle, result, false, encoding, None)
         }
     }
 }
@@ -21,6 +26,7 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
     result: Result<biomcp_query::sources::Mapped<T>, biomcp_fetch::RequestError>,
     stale: bool,
     encoding: Encoding,
+    date_notice: Option<biomcp_types::SourceNotice>,
 ) -> io::Result<Outcome> {
     let source = bundle_source(bundle);
     let refusals = result
@@ -64,6 +70,7 @@ fn finish<T: biomcp_types::ResponseBody<Query = biomcp_types::SyncQuery>>(
         source_outcome.notices.extend(error.tls_notice());
         rate_limit_stderr(error, encoding)?;
     }
+    source_outcome.notices.extend(date_notice);
     envelope.sources.push(source_outcome);
     let status = biomcp_query::sync_status(&envelope.sources, refusals);
     envelope.status = status;

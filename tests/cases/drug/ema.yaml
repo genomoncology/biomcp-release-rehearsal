@@ -13,7 +13,7 @@
         "/status": "complete",
         "/result/rows": 6
       },
-      "max_bytes": 170
+      "max_bytes": 438
     },
     {
       "run": [
@@ -33,7 +33,7 @@
         "/page/returned": 1,
         "/page/offset": 0
       },
-      "max_bytes": 697
+      "max_bytes": 930
     },
     {
       "run": [
@@ -54,7 +54,7 @@
         "/result/items/0/id": "EMEA/H/C/005056",
         "/page/offset": 1
       },
-      "max_bytes": 597
+      "max_bytes": 830
     },
     {
       "run": [
@@ -73,7 +73,7 @@
           "regulatory"
         ]
       },
-      "max_bytes": 574
+      "max_bytes": 807
     },
     {
       "run": [
@@ -94,7 +94,7 @@
         "/result/regulatory/data/records/0/dates/1/role": "marketing_authorisation_date",
         "/result/regulatory/data/records/0/dates/1/date": "2001-11-07"
       },
-      "max_bytes": 994
+      "max_bytes": 1227
     }
   ]
 }

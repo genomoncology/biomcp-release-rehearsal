@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "openfda-label",
+  "url": "https://api.fda.gov/drug/label.json?search=indications_and_usage%3A%22melanoma%22&limit=1&sort=effective_time%3Adesc",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"results\":{\"skip\":0,\"limit\":1,\"total\":2},\"last_updated\":\"2000-01-01\"},\"results\":[{\"id\":\"44444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\"set_id\":\"11111111-1111-4111-8111-111111111111\",\"version\":\"1\",\"effective_time\":\"20261005\",\"openfda\":{\"brand_name\":[\"ALPHA LABEL\"],\"generic_name\":[\"SYNTHETIC INGREDIENT 1\"],\"spl_set_id\":[\"11111111-1111-4111-8111-111111111111\"]},\"indications_and_usage\":[\"Synthetic fixture indication: melanoma.\"]}]}"
+      }
+    }
+  ]
+}

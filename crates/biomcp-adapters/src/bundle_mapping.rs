@@ -60,6 +60,7 @@ pub(crate) fn bundle_sync(
         refusals: bundle_refusals(&info),
         problems: bundle_problems(source, &info),
         value: biomcp_types::SyncResult {
+            data_date: info.data_date,
             native_rows: None,
             snapshot: None,
             etag: None,

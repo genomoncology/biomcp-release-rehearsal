@@ -5,7 +5,7 @@ use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
-const KEY: &str = "synthetic-oncokb-variant-key";
+pub(super) const KEY: &str = "synthetic-oncokb-variant-key";
 const INPUT: &str = "chr7:g.140753336A>T";
 const SECTION: &str = "/result/candidates/0/sections/oncokb";
 pub(super) fn trials() -> Vec<Trial> {

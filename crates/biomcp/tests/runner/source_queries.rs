@@ -130,43 +130,51 @@ fn article(source: &'static str) -> Result<(), String> {
     }
     Ok(())
 }
+fn opentargets_reply(request: &str) -> Result<String, String> {
+    if request.contains("drugsfda") {
+        return Ok(
+            json!({"meta":{"results":{"skip":0,"limit":1,"total":0}},"results":[]}).to_string(),
+        );
+    }
+    if request.lines().next() != Some("POST /api/v4/graphql HTTP/1.1") {
+        return Err(format!("unexpected Open Targets request: {request}"));
+    }
+    let body: Value = serde_json::from_str(request.split_once("\r\n\r\n").ok_or("missing body")?.1)
+        .map_err(|e| e.to_string())?;
+    if body.get("query") == Some(&json!("query DataVersion{meta{dataVersion{year month}}}")) {
+        return Ok(json!({"data":{"meta":{"dataVersion":{"year":"26","month":"09"}}}}).to_string());
+    }
+    if body.get("variables") == Some(&json!({"q":"synthetic words"})) {
+        if body.get("query")
+            != Some(&json!(
+                "query DrugSearch($q:String!){search(queryString:$q,entityNames:[\"drug\"],page:{index:0,size:10}){total hits{id name entity}}}"
+            ))
+        {
+            return Err(format!("Open Targets search syntax changed: {body}"));
+        }
+        return Ok(json!({"data":{"search":{"total":1,"hits":[{"id":"CHEMBL1","name":"Synthetic drug","entity":"drug"}]}}}).to_string());
+    }
+    if body.get("variables") != Some(&json!({"id":"CHEMBL1"}))
+        || body.get("query")
+            != Some(&json!(concat!(
+                "query Drug($id:String!){drug(chemblId:$id){id name indications{rows{maxClinicalStage disease{id ",
+                "name}}} mechanismsOfAction{rows{mechanismOfAction actionType targets{id approvedSymbol ",
+                "approvedName}}}}}"
+            )))
+    {
+        return Err(format!("Open Targets detail syntax changed: {body}"));
+    }
+    Ok(json!({"data":{"drug":{
+        "id":"CHEMBL1","name":"Synthetic drug",
+        "indications":{"rows":[{"disease":{"id":"EFO_0001","name":"Synthetic condition"}}]},
+        "mechanismsOfAction":{"rows":[{"targets":[{"id":"ENSG00000141510","approvedSymbol":"TP53"}]}]}
+    }}}).to_string())
+}
 fn opentargets() -> Result<(), String> {
-    let stub = Stub::for_source(
-        "api.platform.opentargets.org",
-        "application/json",
-        |request| {
-            if request.lines().next() != Some("POST /api/v4/graphql HTTP/1.1") {
-                return Err(format!("unexpected Open Targets request: {request}"));
-            }
-            let body: Value =
-                serde_json::from_str(request.split_once("\r\n\r\n").ok_or("missing body")?.1)
-                    .map_err(|e| e.to_string())?;
-            if body.get("variables") == Some(&json!({"q":"synthetic words"})) {
-                if body.get("query")
-                    != Some(&json!(
-                        "query DrugSearch($q:String!){search(queryString:$q,entityNames:[\"drug\"],page:{index:0,size:10}){total hits{id name entity}}}"
-                    ))
-                {
-                    return Err(format!("Open Targets search syntax changed: {body}"));
-                }
-                return Ok(json!({"data":{"search":{"total":1,"hits":[{"id":"CHEMBL1","name":"Synthetic drug","entity":"drug"}]}}}).to_string());
-            }
-            if body.get("variables") != Some(&json!({"id":"CHEMBL1"}))
-                || body.get("query")
-                    != Some(&json!(concat!(
-                        "query Drug($id:String!){drug(chemblId:$id){id name indications{rows{maxClinicalStage disease{id ",
-                        "name}}} mechanismsOfAction{rows{mechanismOfAction actionType targets{id approvedSymbol ",
-                        "approvedName}}}}}"
-                    )))
-            {
-                return Err(format!("Open Targets detail syntax changed: {body}"));
-            }
-            Ok(json!({"data":{"drug":{
-                "id":"CHEMBL1","name":"Synthetic drug",
-                "indications":{"rows":[{"disease":{"id":"EFO_0001","name":"Synthetic condition"}}]},
-                "mechanismsOfAction":{"rows":[{"targets":[{"id":"ENSG00000141510","approvedSymbol":"TP53"}]}]}
-            }}}).to_string())
-        },
+    let stub = Stub::for_sources(
+        &["api.platform.opentargets.org", "api.fda.gov"],
+        |_| "application/json",
+        opentargets_reply,
     )?;
     let env = environment(&stub)?;
     let search = invoke(
@@ -187,6 +195,9 @@ fn opentargets() -> Result<(), String> {
             "Open Targets search lost native identity: {search}"
         ));
     }
+    if search.pointer("/sources/0/notices/0/data_date") != Some(&json!("2026-09")) {
+        return Err(format!("Open Targets search lost its data date: {search}"));
+    }
     for section in [None, Some("targets"), Some("indications")] {
         let mut args = vec!["get", "drug", "CHEMBL1", "--source", "opentargets"];
         if let Some(section) = section {
@@ -194,6 +205,7 @@ fn opentargets() -> Result<(), String> {
         }
         let value = invoke(&env, args.into_iter().map(str::to_owned).collect(), 0)?;
         if value.get("status") != Some(&json!("complete"))
+            || value.pointer("/sources/0/notices/0/data_date") != Some(&json!("2026-09"))
             || value
                 .get("problems")
                 .and_then(Value::as_array)
@@ -204,8 +216,9 @@ fn opentargets() -> Result<(), String> {
     }
     let requests = stub.finish()?;
     record_requests(&requests)?;
-    if requests.len() != 2 {
-        return Err("Open Targets search/detail cache reads changed".into());
+    let reads = requests.iter().filter(|(_, r)| r.contains("/graphql"));
+    if reads.count() != 3 {
+        return Err("Open Targets search/detail/version cache reads changed".into());
     }
     Ok(())
 }

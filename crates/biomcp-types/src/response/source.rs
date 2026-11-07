@@ -117,6 +117,9 @@ pub enum SourceNotice {
     },
     /// Local request limits, source observations and recovery guidance.
     RequestGuidance {
+        /// Retained publisher dataset date, independent of acquisition and record events.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        data_date: Option<Box<str>>,
         /// Reviewed guidance; any quoted provider wording remains source data.
         message: Box<str>,
         /// Seconds left before another source request may be admitted.

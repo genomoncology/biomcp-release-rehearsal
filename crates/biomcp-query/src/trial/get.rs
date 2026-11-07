@@ -153,6 +153,14 @@ fn restore(
     }
     let version = snapshot.version.clone();
     out.sources = snapshot.sources.clone();
+    if let Some(version) = &version
+        && let Some(source) = out
+            .sources
+            .iter_mut()
+            .find(|source| source.source == Source::ClinicalTrialsGov)
+    {
+        cx.fetch.retain_data_date(source, version.value.as_str());
+    }
     let item = page::render(query, snapshot, query.pool().cloned(), out)?;
     finish(query, vec![item], version, out);
     Ok(())

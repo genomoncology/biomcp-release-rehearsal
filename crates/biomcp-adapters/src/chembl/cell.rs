@@ -248,6 +248,9 @@ pub fn release(leg: &Leg<'_>) -> Result<crate::Mapped<CellLineRelease>, RequestE
         version: problems.required_field("chembl_db_version", r.chembl_db_version),
         updated: problems.required_field("chembl_release_date", r.chembl_release_date),
     };
+    if let Some(date) = value.updated {
+        leg.data_date(&date.to_string());
+    }
     Ok(crate::Mapped {
         refusals: crate::Refusal::None,
         value,

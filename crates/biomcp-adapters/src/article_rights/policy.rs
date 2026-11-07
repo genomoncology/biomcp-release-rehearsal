@@ -179,6 +179,7 @@ pub fn text_unchecked(input: &biomcp_types::ArticleInput) -> biomcp_types::Withh
 /// State on the source that a bounded license lookup did not settle every paper.
 pub fn unchecked_notice() -> biomcp_types::SourceNotice {
     biomcp_types::SourceNotice::RequestGuidance {
+        data_date: None,
         message: "Some papers' licenses could not be checked within the lookup limit, so their \
                   body text was left out and this reply was not stored. Those papers are marked \
                   `unavailable`; try again or read them at the link given."

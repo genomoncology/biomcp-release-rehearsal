@@ -4,6 +4,18 @@ use biomcp_types::{Help, ResponseBody, Source};
 use serde_json::{Value, json};
 use std::{ffi::OsString, io};
 
+/// Ordinary HTTP also refuses synchronization and fresh reads; share execution's authority.
+pub(super) fn transport_next(
+    out: &mut crate::command::Outcome,
+    cx: Context<'_>,
+    http: bool,
+) -> io::Result<()> {
+    if http && !cx.globals.hosted {
+        next(out.value_mut()?, cx);
+    }
+    Ok(())
+}
+
 pub(super) fn project(
     out: &mut crate::command::Outcome,
     cx: Context<'_>,
@@ -271,6 +283,7 @@ fn notices(
             }
             let source: Source = serde_json::from_value(row["source"].clone())?;
             let notice = serde_json::to_value(biomcp_types::SourceNotice::RequestGuidance {
+                data_date: None,
                 message: reason(source, cx, required)?.into(),
                 retry_after_seconds: None,
             })?;

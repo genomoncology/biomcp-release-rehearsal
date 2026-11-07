@@ -1,0 +1,29 @@
+{
+  "feature": "source-data-age",
+  "live_check": "local-only configured request-mapping controls combine a retained registry body, synthetic country contradictions and an NCI replay key; tests/replies/trial/country/README.md records the native body",
+  "story": "The publisher dataset date remains distinct from source record event and retrieval dates",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "trial",
+        "NCT03734029",
+        "locations",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/input": "NCT03734029",
+        "/result/items/0/sections/locations/data/items/0/country": "United States",
+        "/sources/0/notices/0/data_date": "2026-10-29T09:00:05Z"
+      }
+    }
+  ],
+  "replay": "trial/country",
+  "config": {
+    "keys": {
+      "nci_api_key": "synthetic-nci-replay"
+    }
+  }
+}

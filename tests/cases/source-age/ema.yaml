@@ -1,0 +1,59 @@
+{
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
+  "feature": "source-data-age",
+  "story": "Every EMA read discloses the timestamp of the retained publisher feed",
+  "replay": "drug/ema-synthetic",
+  "steps": [
+    {
+      "run": [
+        "sync",
+        "ema"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/rows": 6,
+        "/result/data_date": "2026-10-24T18:22:32Z"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "Tibsovo",
+        "--source",
+        "ema",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/schema": "biomcp.drug-page/7",
+        "/status": "complete",
+        "/result/total": 2,
+        "/result/items/0/id": "EMEA/H/C/005936",
+        "/page/returned": 1,
+        "/page/offset": 0,
+        "/sources/0/notices/0/data_date": "2026-10-24T18:22:32Z"
+      }
+    },
+    {
+      "run": [
+        "search",
+        "drug",
+        "NoSuchSyntheticMedicine",
+        "--source",
+        "ema"
+      ],
+      "expect": {
+        "/result/total": 0,
+        "/sources/0/notices/0/data_date": "2026-10-24T18:22:32Z"
+      }
+    }
+  ],
+  "config": {
+    "disable_sources": [
+      "mychem",
+      "chembl",
+      "openfda-label"
+    ]
+  }
+}

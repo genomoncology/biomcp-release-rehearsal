@@ -9,7 +9,7 @@
         "sync",
         "ema"
       ],
-      "max_bytes": 170,
+      "max_bytes": 438,
       "expect": {
         "/schema": "biomcp.sync/7",
         "/status": "complete",
@@ -25,7 +25,7 @@
         "ema",
         "--fresh"
       ],
-      "max_bytes": 170,
+      "max_bytes": 438,
       "expect": {
         "/schema": "biomcp.sync/7",
         "/status": "complete",
