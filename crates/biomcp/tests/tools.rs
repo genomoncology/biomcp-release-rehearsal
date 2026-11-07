@@ -34,8 +34,19 @@ fn main() -> ExitCode {
             let arguments = std::iter::once("tools".to_owned()).chain(env::args().skip(2));
             match runner::tool_trials() {
                 Ok(trials) => {
-                    libtest_mimic::run(&libtest_mimic::Arguments::from_iter(arguments), trials)
-                        .exit_code()
+                    let arguments = libtest_mimic::Arguments::from_iter(arguments);
+                    if !arguments.list
+                        && trials.iter().all(|trial| arguments.is_filtered_out(trial))
+                    {
+                        use std::io::Write;
+                        let _ = writeln!(
+                            std::io::stderr(),
+                            "tools: --proofs {} selected no tests; use --proofs --list for custom trials or --cases DIRECTORY for YAML cases",
+                            runner::case_main::selector(&arguments)
+                        );
+                        return ExitCode::FAILURE;
+                    }
+                    libtest_mimic::run(&arguments, trials).exit_code()
                 }
                 Err(error) => {
                     use std::io::Write;

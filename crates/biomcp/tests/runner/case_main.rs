@@ -7,13 +7,12 @@ pub(crate) fn main(args: Vec<String>) -> ExitCode {
         Ok((arguments, trials)) => {
             // libtest-mimic 0.8.2 exposes its own exact/skip/ignored selector.
             // Selected ignored tests remain selected; --list has no result counts.
-            if let Some(filter) = &arguments.filter
-                && trials.iter().all(|trial| arguments.is_filtered_out(trial))
-            {
+            if selects_nothing(&arguments, &trials) {
                 use std::io::Write;
                 let _ = writeln!(
                     std::io::stderr(),
-                    "cases: filter {filter:?} selected no tests"
+                    "cases: {} selected no tests; use --cases DIRECTORY --list for case names or tools --proofs --list for custom trials",
+                    selector(&arguments)
                 );
                 return ExitCode::FAILURE;
             }
@@ -25,6 +24,19 @@ pub(crate) fn main(args: Vec<String>) -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+// A named filter must match even when listing; --skip alone only trims a catalog.
+pub(crate) fn selects_nothing(arguments: &Arguments, trials: &[Trial]) -> bool {
+    (arguments.filter.is_some() || !arguments.list)
+        && trials.iter().all(|trial| arguments.is_filtered_out(trial))
+}
+
+pub(crate) fn selector(arguments: &Arguments) -> String {
+    arguments.filter.as_ref().map_or_else(
+        || "--skip or --ignored".to_owned(),
+        |filter| format!("filter {filter:?}"),
+    )
 }
 
 fn trials(arguments: Vec<String>) -> Result<(Arguments, Vec<Trial>), String> {

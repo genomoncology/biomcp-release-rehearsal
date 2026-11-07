@@ -1,6 +1,7 @@
 # 0729 — Focused test runs refuse zero selection
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c7249848141ca18cba81ccd3e2b021464fdbae4e
 
 Milestone: 5
 

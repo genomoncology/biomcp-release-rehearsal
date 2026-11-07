@@ -22,6 +22,10 @@ Capture covers YAML steps and trial commands whose existing consumer obtains com
 
 ## Exercise installed artifacts
 
+For focused execution, use `python3 scripts/trials.py --runner RUNNER --executable EXECUTABLE --cases CASE_ROOT EXACT_NAME`. Select the runner and executable from Cargo's `compiler-artifact` JSON records (`--message-format=json`), matching the target names `cases` (or `tools`) and `biomcp`. Keep these artifacts from the same build and pass an absolute case root. This reuses both artifacts without compiling. Omitting `--runner` builds the selected test target; omitting `--executable` builds the CLI after validating selection. `--list` does not prepare or build the CLI, but still builds a runner when `--runner` is absent. The existing default build profile is `dev`.
+
+YAML cases use `--cases DIRECTORY`; custom tool trials use `--target tools --proofs`. Copy exact names from the matching `--list` catalog. A focused execution selecting no tests fails and names the relevant selector, including a run that `--skip` or `--ignored` leaves empty. Native case and proof runners retain their own filtered listing behavior; use listing to discover names before execution.
+
 The release rehearsal copies all of `tests/` outside the checkout and runs the complete `cases` target against each installed executable. `BIOMCP_TEST_EXECUTABLE` selects the installed executable and `BIOMCP_TEST_FIXTURES` selects the copied tree. Every case directory registers the same Rust trials. Use ordinary feature names to select the cache publication, HTTP and AlphaGenome trials.
 
 Reports include the YAML case count, total trial count and elapsed time. The first complete installed run measures the suite timeout; later installation channels use the larger of that measurement plus 15 percent and `BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS` (60 seconds by default). The platform job bounds the first measurement. The installed smoke cleanup check uses `BIOMCP_INSTALLED_SMOKE_HANG_GUARD_SECONDS` (600 seconds by default) to catch hangs. Fixture path checks reject direct manifest-directory reads outside the launcher.

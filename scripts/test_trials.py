@@ -90,7 +90,8 @@ class FocusedCommand(unittest.TestCase):
             runner.write_text(RUNNER.replace('#!/usr/bin/env python3', '#!' + sys.executable, 1))
             runner.chmod(0o755)
             command = [sys.executable, str(ROOT / 'scripts/trials.py'),
-                       '--runner', str(runner), '--executable', str(runner), '--installed']
+                       '--runner', str(runner), '--executable', str(runner),
+                       '--cases', str(ROOT / 'tests/cases'), '--installed']
             environment = dict(os.environ, PATH=str(directory),
                                TRIAL_CATALOG='markdown-view/view-empty/empty-section.yaml: test')
             # Only the runner's absolute Python interpreter is available; no Cargo.
@@ -103,11 +104,14 @@ class FocusedCommand(unittest.TestCase):
                         self.assertEqual(result.returncode, 0, result.stderr)
                         output = json.loads(result.stdout)
                         self.assertEqual(output['arguments'],
-                            ['markdown-view/view-empty/empty-section.yaml', '--exact'])
+                            ['--cases', str(ROOT / 'tests/cases'),
+                             'markdown-view/view-empty/empty-section.yaml', '--exact'])
                         self.assertNotEqual(output['cwd'], str(ROOT / 'crates/biomcp'))
                     else:
                         self.assertNotEqual(result.returncode, 0)
                         self.assertIn('markdown-view/view-empty/empty-section.yaml', result.stderr)
+                        self.assertIn('--cases DIRECTORY', result.stderr)
+                        self.assertIn('--target tools --proofs', result.stderr)
                         self.assertEqual(result.stdout, '')
 
     def test_discovery_preserves_rust_case_and_custom_trial_modes(self):

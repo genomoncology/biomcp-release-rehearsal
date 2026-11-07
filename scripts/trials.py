@@ -14,6 +14,10 @@ sys.path.insert(0, str(ROOT))
 from release.artifacts import cargo
 
 
+SELECTOR_HINT = ("; use --cases DIRECTORY for YAML cases or --target tools --proofs "
+                 "for custom trials, then --list to find exact names")
+
+
 def run_selected(target: Sequence[str], cwd: Path, names: Sequence[str],
                  prepare: Callable[[], None], *, case_files: Sequence[str] = ()) -> None:
     """List and run the same target in its required directory using exact names."""
@@ -34,13 +38,13 @@ def run_selected(target: Sequence[str], cwd: Path, names: Sequence[str],
                 path, sorted(available), n=3, cutoff=0)
             raise ValueError(f"case file {path!r} requires exactly one catalog match; "
                              f"found {len(matches)}; nearest catalog entries: "
-                             + ", ".join(nearest))
+                             + ", ".join(nearest) + SELECTOR_HINT)
         selected.append(matches[0])
     selected = list(dict.fromkeys(selected))
     unknown = [name for name in selected if name not in available]
     if not selected or unknown:
         raise ValueError("trial selection requires exact names from this target's --list: "
-                         + ", ".join(unknown))
+                         + ", ".join(unknown) + SELECTOR_HINT)
     prepare()
     status = 0
     for name in selected:
@@ -53,11 +57,11 @@ def run_selected(target: Sequence[str], cwd: Path, names: Sequence[str],
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", choices=["cases", "tools", "ratchets"], default="cases")
-    parser.add_argument("--runner", type=Path, help="Reuse a previously built runner")
+    parser.add_argument("--runner", type=Path, help="Reuse this runner; omitting it builds the --target runner using Cargo JSON artifact identity")
     parser.add_argument("--installed", action="store_true", help="Copy product, runner and public fixtures into an isolated install")
-    parser.add_argument("--executable", type=Path, help="Exercise this installed product without building another CLI")
+    parser.add_argument("--executable", type=Path, help="Reuse this product; omitting it builds the CLI after selection (except --list)")
     parser.add_argument("--profile", choices=["dev", "release"], default="dev")
-    parser.add_argument("--cases", type=Path, help="case directory interpreted by the Rust runner")
+    parser.add_argument("--cases", type=Path, help="Explicit case root interpreted by the Rust runner; not a proof selector")
     parser.add_argument("--case-file", action="append", default=[], metavar="RELATIVE/PATH.yaml",
                         help="select one exact case-relative path from the runner catalog; repeatable")
     parser.add_argument("--proofs", action="store_true", help="select custom trials in tools")
