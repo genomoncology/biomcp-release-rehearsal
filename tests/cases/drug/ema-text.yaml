@@ -1,0 +1,52 @@
+{
+  "feature": "drug-ema",
+  "story": "EMA indication text reads without HTML entities, and a question mark in the source stays as published.",
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
+  "replay": "drug/ema-text",
+  "steps": [
+    {
+      "run": [
+        "sync",
+        "ema"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/rows": 1
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "EMEA/H/C/000406",
+        "regulatory",
+        "--source",
+        "ema"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/regulatory/data/records/0/indication": "Synthetic use at doses <10 mg or >2 mg, with haemoglobin ?10 g/dl &unknown; AT&T"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "EMEA/H/C/000406",
+        "regulatory",
+        "--source",
+        "ema",
+        "--format",
+        "md"
+      ],
+      "expect": {
+        "": {
+          "includes_all_of": [
+            "&lt;10 mg",
+            "&gt;2 mg"
+          ]
+        }
+      }
+    }
+  ]
+}

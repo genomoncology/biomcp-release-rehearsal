@@ -1,11 +1,17 @@
 use crate::Outcome;
 use biodata::{FaersReport, Text};
-use biomcp_adapters::{NativePositions, faers::Positions};
+use biomcp_adapters::{
+    NativePositions,
+    faers::{
+        Positions,
+        words::{PATIENT_SEX, REPORTER_QUALIFICATION, label},
+    },
+};
 use biomcp_fetch::RequestError;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
-    AdverseEventGet, AdverseEventHeader, AdverseEventSection as S, AdverseEventSource, Request,
-    StepKind,
+    AdverseEventGet, AdverseEventHeader, AdverseEventPatient, AdverseEventReporter,
+    AdverseEventSection as S, AdverseEventSource, Request, StepKind,
 };
 mod identifiers;
 mod rows;
@@ -174,8 +180,14 @@ fn card(
         transmitted_format: r.transmissiondateformat,
         first_received_format: r.receivedateformat,
         seriousness: r.seriousness,
-        patient: r.patient,
-        reporter: r.reporter,
+        patient: r.patient.map(|native| AdverseEventPatient {
+            sex_label: label(PATIENT_SEX, native.sex.as_deref()),
+            native,
+        }),
+        reporter: r.reporter.map(|native| AdverseEventReporter {
+            qualification_label: label(REPORTER_QUALIFICATION, native.qualification.as_deref()),
+            native,
+        }),
         drug_count: positions
             .drugs
             .as_ref()

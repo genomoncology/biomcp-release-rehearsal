@@ -33,8 +33,11 @@ pub struct AuthorLiterature {
 pub struct AuthorPublication {
     /// Citation identity and metadata.
     pub paper: crate::ArticleHeader,
-    /// All received author names, without linking equal names across papers.
+    /// Received author names in source order, bounded on long lists, without linking equal names.
     pub authors: Box<[biodata::Text]>,
+    /// Names left out of `authors`; absent when every received name is shown.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authors_omitted: Option<u64>,
 }
 /// Exact source cards in input order; outer source outcomes retain failures.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

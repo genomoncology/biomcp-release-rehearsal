@@ -1,0 +1,160 @@
+{
+  "method": "POST",
+  "source": "pubmed",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+  "post": {
+    "request_content_type": "application/x-www-form-urlencoded",
+    "request_body_sha256": "110dbade536777014018eebfe4351144612929120702d50fbcbb1075acc8f514"
+  },
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "result": {
+            "uids": [
+              "10002",
+              "10001"
+            ],
+            "10002": {
+              "uid": "10002",
+              "title": "DNA repair study in cohort two",
+              "fulljournalname": "Synthetic citation journal",
+              "pubdate": "2025",
+              "authors": [
+                {
+                  "name": "Müller K"
+                },
+                {
+                  "name": "Patel R"
+                }
+              ],
+              "articleids": []
+            },
+            "10001": {
+              "uid": "10001",
+              "title": "DNA repair study in cohort one",
+              "fulljournalname": "Synthetic citation journal",
+              "pubdate": "2025",
+              "authors": [
+                {
+                  "name": "Author1 A"
+                },
+                {
+                  "name": "Author2 A"
+                },
+                {
+                  "name": "Author3 A"
+                },
+                {
+                  "name": "Author4 A"
+                },
+                {
+                  "name": "Author5 A"
+                },
+                {
+                  "name": "Author6 A"
+                },
+                {
+                  "name": "Author7 A"
+                },
+                {
+                  "name": "Author8 A"
+                },
+                {
+                  "name": "Author9 A"
+                },
+                {
+                  "name": "Author10 A"
+                },
+                {
+                  "name": "Author11 A"
+                },
+                {
+                  "name": "Author12 A"
+                },
+                {
+                  "name": "Author13 A"
+                },
+                {
+                  "name": "Author14 A"
+                },
+                {
+                  "name": "Author15 A"
+                },
+                {
+                  "name": "Author16 A"
+                },
+                {
+                  "name": "Author17 A"
+                },
+                {
+                  "name": "Author18 A"
+                },
+                {
+                  "name": "Author19 A"
+                },
+                {
+                  "name": "Author20 A"
+                },
+                {
+                  "name": "Author21 A"
+                },
+                {
+                  "name": "Author22 A"
+                },
+                {
+                  "name": "Author23 A"
+                },
+                {
+                  "name": "Author24 A"
+                },
+                {
+                  "name": "Müller K"
+                },
+                {
+                  "name": "Author25 A"
+                },
+                {
+                  "name": "Author26 A"
+                },
+                {
+                  "name": "Author27 A"
+                },
+                {
+                  "name": "Author28 A"
+                },
+                {
+                  "name": "Author29 A"
+                },
+                {
+                  "name": "Author30 A"
+                },
+                {
+                  "name": "Author31 A"
+                },
+                {
+                  "name": "Author32 A"
+                },
+                {
+                  "name": "Author33 A"
+                },
+                {
+                  "name": "Author34 A"
+                },
+                {
+                  "name": "Author35 A"
+                }
+              ],
+              "articleids": []
+            }
+          }
+        }
+      }
+    }
+  ]
+}

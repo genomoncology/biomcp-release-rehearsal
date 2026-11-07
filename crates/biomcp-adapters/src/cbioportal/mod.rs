@@ -185,28 +185,37 @@ pub fn mutations(
 
 /// Largest public list measured, 1,086,826 bytes for 54,331 members, plus fifteen percent, rounded upward.
 const MAX_SAMPLE_LIST_BYTES: u64 = 1_249_850;
-/// The source states a list's size only on its detailed record, whose member IDs are dropped at parse.
-/// A study's lists together outgrow any fixed bound on large studies, so this reads the selected list alone.
 fn sample_count(
     leg: &Leg<'_>,
     query: &VariantRecurrenceQuery,
 ) -> Result<crate::Mapped<Option<u64>>, RequestError> {
+    list_sample_count(leg, query.study().as_str(), query.sample_set().as_str())
+}
+/// The source states a list's size only on its detailed record, whose member IDs are dropped at parse.
+/// A study's lists together outgrow any fixed bound on large studies, so this reads one list alone.
+fn list_sample_count(
+    leg: &Leg<'_>,
+    study: &str,
+    sample_list: &str,
+) -> Result<crate::Mapped<Option<u64>>, RequestError> {
     let endpoint = SPEC
         .get("/sample-lists")
-        .with_segments(&[PathSegment::new(query.sample_set().as_str())?])
+        .with_segments(&[PathSegment::new(sample_list)?])
         .fresh(Freshness::Days(1))
         .bytes(MAX_SAMPLE_LIST_BYTES);
     let (list, _) = leg
         .call(
             &endpoint,
             Input::Params(&[]),
-            Read::<raw::SampleList>::json().check(&|v| {
-                if v.study_id == *query.study() && v.sample_list_id == *query.sample_set() {
-                    Ok(())
-                } else {
-                    Err(BadReply)
-                }
-            }),
+            Read::<raw::SampleList>::json()
+                .bounded(MAX_SAMPLE_LIST_BYTES, biomcp_types::Reason::TooLarge)
+                .check(&|v| {
+                    if v.study_id.as_str() == study && v.sample_list_id.as_str() == sample_list {
+                        Ok(())
+                    } else {
+                        Err(BadReply)
+                    }
+                }),
         )
         .map(|received| (received.value, received.meta))?;
     let mut problems = crate::mapped::Problems {

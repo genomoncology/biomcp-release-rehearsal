@@ -142,7 +142,7 @@ fn section_page(
             let records = studies::profiles(leg, q.id(), q.section_offset(), q.section_limit())?;
             out.include_refusals(records.window.refusals());
             out.problems.extend(records.problems);
-            let rejected = records.rejected;
+            let partial = records.rejected != 0 || records.incomplete;
             let next_offset = records.window.next_offset();
             let page = PageInfo {
                 offset: records.window.offset(),
@@ -170,14 +170,14 @@ fn section_page(
                 out.body = data.with_query(q.clone());
                 out.page = Some(page.clone());
             }
-            continuation(out, cx, q, rejected, next_offset);
+            continuation(out, cx, q, partial, next_offset);
         }
         Some(StudySection::SampleLists) => {
             let records =
                 studies::sample_lists(leg, q.id(), q.section_offset(), q.section_limit())?;
             out.include_refusals(records.window.refusals());
             out.problems.extend(records.problems);
-            let rejected = records.rejected;
+            let partial = records.rejected != 0 || records.incomplete;
             let next_offset = records.window.next_offset();
             let page = PageInfo {
                 offset: records.window.offset(),
@@ -205,7 +205,7 @@ fn section_page(
                 out.body = data.with_query(q.clone());
                 out.page = Some(page.clone());
             }
-            continuation(out, cx, q, rejected, next_offset);
+            continuation(out, cx, q, partial, next_offset);
         }
         _ => {}
     }
@@ -215,10 +215,11 @@ fn continuation(
     out: &mut Outcome,
     cx: &Ctx<'_>,
     q: &StudyGet,
-    rejected: usize,
+    // Rejected rows or a row missing a source value.
+    partial: bool,
     next_offset: Option<u32>,
 ) {
-    if rejected != 0 {
+    if partial {
         crate::status::item(out, true, false, true);
     } else if out.status() != Status::Partial {
         crate::status::item(out, true, false, false);

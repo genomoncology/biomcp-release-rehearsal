@@ -5,6 +5,7 @@ use crate::runner::launch::Environment;
 use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
+use sha2::Digest;
 use std::{fs, path::Path};
 #[path = "study_get/resource_refusals.rs"]
 mod resource_refusals;
@@ -16,6 +17,15 @@ pub(super) fn trials() -> Vec<Trial> {
     vec![
         transcript_trial(required_contract::STUDY_PAGES.0, || {
             pages().map_err(Into::into)
+        }),
+        transcript_trial("study-get/oversized-list-keeps-its-row", || {
+            oversized_list().map_err(Into::into)
+        }),
+        transcript_trial("study-get/failed-list-count-keeps-the-section", || {
+            failed_count().map_err(Into::into)
+        }),
+        transcript_trial("study-get/count-deadline-marks-the-rest", || {
+            count_deadline().map_err(Into::into)
         }),
         // Replace the native catalog after acquiring a pool and revisit its old immutable membership.
         transcript_trial(
@@ -80,6 +90,8 @@ pub(super) fn recording_raw(
             "study",
             "synthetic_0",
             selected,
+            "--section-limit",
+            "50",
             "--record",
             directory.to_str().ok_or("recording path")?,
         ]
@@ -87,7 +99,9 @@ pub(super) fn recording_raw(
         .to_vec(),
         0,
     )?;
-    if stub.finish()?.len() != 2 {
+    // One catalog read and one section read; sample lists add one count read per list.
+    let counts = if selected == "sample-lists" { 13 } else { 0 };
+    if stub.finish()?.len() != 2 + counts {
         return Err("synthetic study recording changed request count".into());
     }
     for file in fs::read_dir(directory.join("cbioportal")).map_err(|e| e.to_string())? {
@@ -95,6 +109,9 @@ pub(super) fn recording_raw(
         let mut value: Value =
             serde_json::from_slice(&fs::read(file.path()).map_err(|e| e.to_string())?)
                 .map_err(|e| e.to_string())?;
+        if copied_count(replay, &file, &value)? {
+            continue;
+        }
         if value.pointer("/exchanges/0/fetched") != acquired.pointer("/result/acquired")
             || acquired
                 .pointer("/result/acquired")
@@ -121,6 +138,21 @@ pub(super) fn recording_raw(
     }
     Ok(())
 }
+/// Copies a sample-list count recording as recorded; returns whether the file was one.
+fn copied_count(replay: &Path, file: &fs::DirEntry, value: &Value) -> Result<bool, String> {
+    let count = value
+        .get("url")
+        .and_then(Value::as_str)
+        .is_some_and(|url| url.contains("/api/sample-lists/"));
+    if count {
+        fs::copy(
+            file.path(),
+            replay.join("cbioportal").join(file.file_name()),
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(count)
+}
 fn synthetic_reply(request: &str) -> Result<String, String> {
     Ok(if request.contains("/molecular-profiles?") {
         profiles()
@@ -128,10 +160,176 @@ fn synthetic_reply(request: &str) -> Result<String, String> {
         json!([{ "sampleId": "synthetic_sample", "studyId": "synthetic_0", "sampleType": "Primary" }])
     } else if request.contains("/sample-lists?") {
         lists()
+    } else if let Some(list) = request
+        .strip_prefix("GET /api/sample-lists/")
+        .and_then(|path| path.split([' ', '?']).next())
+    {
+        let count = list.rsplit('_').next().and_then(|n| n.parse::<u64>().ok());
+        json!({ "sampleListId": list, "studyId": "synthetic_0", "sampleCount": count })
     } else {
         rows()
     }
     .to_string())
+}
+
+/// One list above the read bound leaves its row and says its count is missing.
+fn oversized_list() -> Check {
+    let stub = crate::runner::network_stub::Stub::for_source(
+        "www.cbioportal.org",
+        "application/json",
+        |request| {
+            Ok(if request.contains("/sample-lists?") {
+                json!([{"sampleListId":"native_list_big","studyId":"synthetic_0",
+                    "category":"all_cases_in_study","name":"Synthetic list",
+                    "description":"Synthetic list (200000 samples)"}])
+            } else if request.starts_with("GET /api/sample-lists/") {
+                json!({"sampleListId":"native_list_big","studyId":"synthetic_0","sampleCount":200_000,
+                    "sampleIds":vec!["synthetic_member"; 200_000]})
+            } else {
+                rows()
+            }
+            .to_string())
+        },
+    )?;
+    let env = crate::runner::variant::source_environment(&stub)?;
+    let invoke = |args: &[&str]| {
+        let args = args.iter().map(|arg| (*arg).to_owned()).collect();
+        crate::runner::configuration::invoke(&env, args, 0)
+    };
+    invoke(&["sync", "cbioportal-studies"])?;
+    let reply = invoke(&["get", "study", "synthetic_0", "sample-lists"])?;
+    let row = reply.pointer("/result/items/0").ok_or("list row missing")?;
+    if reply.get("status") != Some(&json!("partial"))
+        || row.get("sampleListId") != Some(&json!("native_list_big"))
+        || row.get("sampleCount").is_some()
+        || reply.pointer("/problems/0/field") != Some(&json!("sampleCount: too-large"))
+        || reply.pointer("/problems/0/code") != Some(&json!("collection.incomplete"))
+    {
+        return Err(format!("oversized list reply changed: {reply}"));
+    }
+    Ok(())
+}
+
+/// The second list's count reply names another study; both rows stay, and only it lacks a count.
+fn failed_count() -> Check {
+    let stub = crate::runner::network_stub::Stub::for_source(
+        "www.cbioportal.org",
+        "application/json",
+        |request| {
+            Ok(if request.contains("/sample-lists?") {
+                json!(
+                    ["native_list_1", "native_list_2", "native_list_3"].map(|id| json!({
+                    "sampleListId": id, "studyId": "synthetic_0", "category": "all_cases_in_study",
+                    "name": "Synthetic list", "description": "Synthetic list"}))
+                )
+            } else if let Some(list) = request
+                .strip_prefix("GET /api/sample-lists/")
+                .and_then(|path| path.split([' ', '?']).next())
+            {
+                let study = if list == "native_list_2" {
+                    "other_study"
+                } else {
+                    "synthetic_0"
+                };
+                json!({ "sampleListId": list, "studyId": study, "sampleCount": 7 })
+            } else {
+                rows()
+            }
+            .to_string())
+        },
+    )?;
+    let env = crate::runner::variant::source_environment(&stub)?;
+    let invoke = |args: &[&str]| {
+        let args = args.iter().map(|arg| (*arg).to_owned()).collect();
+        crate::runner::configuration::invoke(&env, args, 0)
+    };
+    invoke(&["sync", "cbioportal-studies"])?;
+    let reply = invoke(&["get", "study", "synthetic_0", "sample-lists"])?;
+    let counts: Vec<_> = (0..3)
+        .map(|i| {
+            reply
+                .pointer(&format!("/result/items/{i}/sampleCount"))
+                .cloned()
+        })
+        .collect();
+    if reply.get("status") != Some(&json!("partial"))
+        || counts != [Some(json!(7)), None, Some(json!(7))]
+        || reply.pointer("/problems/0/record") != Some(&json!("native_list_2"))
+        || reply.pointer("/problems/0/field") != Some(&json!("sampleCount: bad-reply"))
+        || reply.pointer("/problems/0/code") != Some(&json!("collection.incomplete"))
+    {
+        return Err(format!("failed list count reply changed: {reply}"));
+    }
+    Ok(())
+}
+
+/// The second count read runs out of time, so the third is not attempted and both lack counts.
+fn count_deadline() -> Check {
+    let env = Environment::new().map_err(|e| e.to_string())?;
+    let replay = seed(&env, rows(), 200)?;
+    // Direct calls: these replies have no stored byte budget phase.
+    let run = |args: &[&str]| {
+        let mut words = env.globals(Some(&replay), false);
+        words.extend(args.iter().map(|arg| (*arg).to_owned()));
+        crate::runner::configuration::invoke(&env, words, 0)
+    };
+    run(&["sync", "cbioportal-studies"])?;
+    let lists = ["native_list_1", "native_list_2", "native_list_3"];
+    let summary = json!(lists.map(|id| json!({"sampleListId": id, "studyId": "synthetic_0",
+        "category": "all_cases_in_study", "name": "Synthetic list", "description": "Synthetic list"})));
+    replayed(
+        &replay,
+        "https://www.cbioportal.org/api/studies/synthetic_0/sample-lists?projection=SUMMARY",
+        &summary,
+        0,
+    )?;
+    // The third list has no recording: a read of it would fail the command as a replay miss.
+    for (id, delay) in [("native_list_1", 0), ("native_list_2", 30_001)] {
+        let count = json!({"sampleListId": id, "studyId": "synthetic_0", "sampleCount": 7});
+        replayed(
+            &replay,
+            &format!("https://www.cbioportal.org/api/sample-lists/{id}"),
+            &count,
+            delay,
+        )?;
+    }
+    let reply = run(&["get", "study", "synthetic_0", "sample-lists"])?;
+    let counts: Vec<_> = (0..3)
+        .map(|i| {
+            reply
+                .pointer(&format!("/result/items/{i}/sampleCount"))
+                .cloned()
+        })
+        .collect();
+    let missing: Vec<_> = reply
+        .get("problems")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|p| p.get("field") == Some(&json!("sampleCount: deadline-exceeded")))
+        .filter_map(|p| p.get("record").cloned())
+        .collect();
+    if reply.get("status") != Some(&json!("partial"))
+        || counts != [Some(json!(7)), None, None]
+        || missing != [json!("native_list_2"), json!("native_list_3")]
+    {
+        return Err(format!("count deadline reply changed: {reply}"));
+    }
+    Ok(())
+}
+fn replayed(replay: &Path, url: &str, body: &Value, delay: u64) -> Check {
+    let key: String = sha2::Sha256::digest(format!("GET\0{url}").as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    let recording = json!({"source":"cbioportal","method":"GET","url":url,"exchanges":[{"status":200,
+        "fetched":42,"content_type":"application/json","delay_ms":delay,"retry_after_ms":null,
+        "body":{"kind":"text","value":body.to_string()}}]});
+    fs::write(
+        replay.join("cbioportal").join(format!("{key}.json")),
+        recording.to_string(),
+    )
+    .map_err(|e| e.to_string())
 }
 
 fn pages() -> Check {

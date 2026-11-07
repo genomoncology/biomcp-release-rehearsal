@@ -7,6 +7,9 @@ use biomcp_types::{
     Paged, ReplyBody, Request, Source, StepKind,
 };
 
+/// Names shown per paper, matching the article card; one consortium paper lists thousands.
+const AUTHOR_NAMES: usize = 10;
+
 pub(super) fn search(cx: &Ctx<'_>, q: &AuthorSearch) -> Outcome {
     if q.pool().is_some() {
         let mut out = status::empty(biomcp_types::ReplyData::PoolError { mismatch: true });
@@ -68,7 +71,7 @@ fn execute(
         } else {
             Vec::new()
         };
-        present(q, out, papers, found.count, ids.len() as u32)
+        present(q, out, papers, found.count, ids.len() as u32, &mut notices)
     })();
     let error = result.as_ref().err().copied();
     let mut source = status::source(Source::PubMed, leg.finish(), error);
@@ -105,11 +108,26 @@ fn execute(
 fn present(
     q: &AuthorSearch,
     out: &mut Outcome,
-    papers: Vec<AuthorPublication>,
+    mut papers: Vec<AuthorPublication>,
     count: u64,
     consumed: u32,
+    notices: &mut Vec<biomcp_types::SourceNotice>,
 ) -> Result<(), RequestError> {
     let returned = papers.len() as u32;
+    for paper in &mut papers {
+        bound(q.query(), paper);
+        if let (Some(omitted), Some(pmid)) = (paper.authors_omitted, paper.paper.pmid.as_ref()) {
+            notices.push(biomcp_types::SourceNotice::RequestGuidance {
+                message: format!(
+                    "Paper {pmid}: authors omitted: {omitted}; read every author at \
+                     https://pubmed.ncbi.nlm.nih.gov/{pmid}/."
+                )
+                .into(),
+                retry_after_seconds: None,
+                data_date: None,
+            });
+        }
+    }
     if q.offset().saturating_add(consumed) < count.min(9999) as u32 {
         let next = q.with_source(AuthorSearchSource::Pubmed);
         out.next.push(crate::next::Step::new(
@@ -141,4 +159,102 @@ fn present(
         }),
     }.with_query(q.clone());
     Ok(())
+}
+
+/// Keep source order, showing names like the query first (best effort) and then the leading names.
+fn bound(query: &str, paper: &mut AuthorPublication) {
+    let total = paper.authors.len();
+    if total <= AUTHOR_NAMES {
+        return;
+    }
+    let query = words(query);
+    let mut keep = vec![false; total];
+    let matched = paper
+        .authors
+        .iter()
+        .enumerate()
+        .filter(|(_, name)| same_words(&query, name.as_str()))
+        .take(AUTHOR_NAMES)
+        .map(|(index, _)| index)
+        .collect::<Vec<_>>();
+    for index in &matched {
+        if let Some(slot) = keep.get_mut(*index) {
+            *slot = true;
+        }
+    }
+    keep.iter_mut()
+        .filter(|slot| !**slot)
+        .take(AUTHOR_NAMES - matched.len())
+        .for_each(|slot| *slot = true);
+    let mut keep = keep.into_iter();
+    let shown: Vec<_> = std::mem::take(&mut paper.authors)
+        .into_vec()
+        .into_iter()
+        .filter(|_| keep.next().unwrap_or(false))
+        .collect();
+    paper.authors_omitted = Some((total - shown.len()) as u64);
+    paper.authors = shown.into();
+}
+
+fn words(text: &str) -> Vec<String> {
+    text.split(|ch: char| !ch.is_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .map(|word| {
+            word.chars()
+                .flat_map(char::to_lowercase)
+                .fold(String::new(), |mut out, ch| {
+                    match fold(ch) {
+                        Some(base) => out.push_str(base),
+                        None => out.push(ch),
+                    }
+                    out
+                })
+        })
+        .collect()
+}
+
+/// Base letters for lowercase Latin-1 and Latin Extended-A, from Unicode decompositions, so
+/// `Müller` and `Muller` compare equal on both sides; names are lowercased first.
+fn fold(ch: char) -> Option<&'static str> {
+    Some(match ch {
+        'ß' => "ss",
+        'à' | 'á' | 'â' | 'ã' | 'ä' | 'å' | 'ā' | 'ă' | 'ą' => "a",
+        'æ' => "ae",
+        'ç' | 'ć' | 'ĉ' | 'ċ' | 'č' => "c",
+        'è' | 'é' | 'ê' | 'ë' | 'ē' | 'ĕ' | 'ė' | 'ę' | 'ě' => "e",
+        'ì' | 'í' | 'î' | 'ï' | 'ĩ' | 'ī' | 'ĭ' | 'į' | 'ı' => "i",
+        'ð' | 'ď' | 'đ' => "d",
+        'ñ' | 'ń' | 'ņ' | 'ň' | 'ŉ' | 'ŋ' => "n",
+        'ò' | 'ó' | 'ô' | 'õ' | 'ö' | 'ø' | 'ō' | 'ŏ' | 'ő' => "o",
+        'ù' | 'ú' | 'û' | 'ü' | 'ũ' | 'ū' | 'ŭ' | 'ů' | 'ű' | 'ų' => "u",
+        'ý' | 'ÿ' | 'ŷ' => "y",
+        'þ' => "th",
+        'ĝ' | 'ğ' | 'ġ' | 'ģ' => "g",
+        'ĥ' | 'ħ' => "h",
+        'ĵ' => "j",
+        'ķ' | 'ĸ' => "k",
+        'ĺ' | 'ļ' | 'ľ' | 'ŀ' | 'ł' => "l",
+        'œ' => "oe",
+        'ŕ' | 'ŗ' | 'ř' => "r",
+        'ś' | 'ŝ' | 'ş' | 'š' => "s",
+        'ţ' | 'ť' | 'ŧ' => "t",
+        'ŵ' => "w",
+        'ź' | 'ż' | 'ž' => "z",
+        _ => return None,
+    })
+}
+
+/// Best effort: PubMed does not say which name matched and citation names carry initials,
+/// so every accent-folded query word must pair with its own name word, one a prefix of the
+/// other. A miss only changes which names are shown; the notice still counts the omitted
+/// names and links the full list. It claims no identity.
+fn same_words(query: &[String], name: &str) -> bool {
+    let mut name = words(name);
+    !query.is_empty()
+        && query.iter().all(|word| {
+            name.iter()
+                .position(|part| part.starts_with(word.as_str()) || word.starts_with(part.as_str()))
+                .map(|index| name.swap_remove(index))
+                .is_some()
+        })
 }

@@ -81,8 +81,12 @@ fn posted() -> Check {
     {
         return Err("adverse-event group denominator changed".into());
     }
-    // Compare every whole native row, including later pages, to the independent captured reply.
-    let source = source()?;
+    native_rows(&rows, &serious)
+}
+
+/// Compares every whole native row, including later pages, to the independent captured reply.
+fn native_rows(rows: &[Value], serious: &[Value]) -> Check {
+    let source = plain(&source()?)?;
     let native = &source["resultsSection"];
     let outcomes: Vec<_> = rows
         .iter()
@@ -94,6 +98,12 @@ fn posted() -> Check {
         .filter(|r| r["record"] == "other-event")
         .map(|r| r["data"].clone())
         .collect();
+    if json!([&outcomes, &serious, &other])
+        .to_string()
+        .contains(r"\\")
+    {
+        return Err("a Markdown escape reached posted result text".into());
+    }
     if json!(outcomes) != native["outcomeMeasuresModule"]["outcomeMeasures"]
         || json!(serious) != native["adverseEventsModule"]["seriousEvents"]
         || json!(other) != native["adverseEventsModule"]["otherEvents"]
@@ -143,6 +153,13 @@ fn posted_primary(first: &Value) -> Check {
     Ok(())
 }
 
+/// The captured reply as readers get it: the source's own `\<` and `\>` escapes removed.
+fn plain(source: &Value) -> Result<Value, Box<dyn std::error::Error>> {
+    let text = source.to_string();
+    Ok(serde_json::from_str(
+        &text.replace(r"\\<", "<").replace(r"\\>", ">"),
+    )?)
+}
 fn source() -> Result<Value, Box<dyn std::error::Error>> {
     for file in std::fs::read_dir(
         super::launch::fixtures().join("replies/trial/results/NCT01844505/ctgov"),

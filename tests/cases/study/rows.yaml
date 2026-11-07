@@ -1,7 +1,7 @@
 {
   "feature": "study-rows",
   "story": "Public SKCM BRAF V600E mutation observations retain sample identities and the selected mutation profile; sample ID/type pages keep exact totals and native order.",
-  "live_check": "Native public cBioPortal API replies captured unchanged on 2026-11-04; API schema https://www.cbioportal.org/api/v3/api-docs.",
+  "live_check": "Native public cBioPortal API replies captured unchanged on 2026-11-04, and the sample-list summary on 2026-11-07; API schema https://www.cbioportal.org/api/v3/api-docs.",
   "replay": "study/rows",
   "steps": [
     {

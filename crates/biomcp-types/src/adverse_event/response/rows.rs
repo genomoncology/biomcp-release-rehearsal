@@ -1,4 +1,27 @@
+use biodata::{FaersPatient, FaersReporter};
 use serde::{Deserialize, Serialize};
+/// Native patient facts with the published word beside the sex code.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct AdverseEventPatient {
+    /// Unchanged native patient values.
+    #[serde(flatten)]
+    pub native: FaersPatient,
+    /// Published word for the sex code, when the code is on openFDA's list.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sex_label: Option<Box<str>>,
+}
+/// Native reporter facts with the published word beside the qualification code.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct AdverseEventReporter {
+    /// Unchanged native reporter values.
+    #[serde(flatten)]
+    pub native: FaersReporter,
+    /// Published word for the qualification code, when the code is on openFDA's list.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub qualification_label: Option<Box<str>>,
+}
 /// Lengths of present native harmonized lists; missing stays absent.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -37,6 +60,9 @@ pub struct AdverseEventDrug {
     /// Native role string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub role: Option<Box<str>>,
+    /// Published word for the role code, when the code is on openFDA's list.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_label: Option<Box<str>>,
     /// Native indication string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indication: Option<Box<str>>,
@@ -100,6 +126,9 @@ pub struct AdverseEventDrug {
     /// Native actiondrug string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub actiondrug: Option<Box<str>>,
+    /// Published word for the action code, when the code is on openFDA's list.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actiondrug_label: Option<Box<str>>,
     /// Native drugadditional string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub drugadditional: Option<Box<str>>,
@@ -121,6 +150,9 @@ pub struct AdverseEventReaction {
     /// Native outcome string; present empty values remain present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub outcome: Option<Box<str>>,
+    /// Published word for the outcome code, when the code is on openFDA's list.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outcome_label: Option<Box<str>>,
 }
 /// Native device fields; administrative addresses are excluded.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

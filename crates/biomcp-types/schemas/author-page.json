@@ -270,11 +270,20 @@
       "description": "One paper and the author names asserted by its citation source.",
       "properties": {
         "authors": {
-          "description": "All received author names, without linking equal names across papers.",
+          "description": "Received author names in source order, bounded on long lists, without linking equal names.",
           "items": {
             "$ref": "#/$defs/Reply_Text"
           },
           "type": "array"
+        },
+        "authors_omitted": {
+          "description": "Names left out of `authors`; absent when every received name is shown.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "paper": {
           "$ref": "#/$defs/Reply_ArticleHeader",

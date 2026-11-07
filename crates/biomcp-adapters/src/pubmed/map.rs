@@ -101,6 +101,7 @@ pub(super) fn author_summaries(
         value.push(biomcp_types::AuthorPublication {
             paper,
             authors: names,
+            authors_omitted: None,
         });
     }
     Mapped {

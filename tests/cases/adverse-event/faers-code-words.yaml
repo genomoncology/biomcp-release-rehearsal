@@ -1,0 +1,63 @@
+{
+  "feature": "adverse-event-get",
+  "story": "Coded FAERS values keep the source code and show openFDA's published word beside it; a code outside the list has no word.",
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
+  "replay": "adverse-event/faers-code-words",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/patient/sex": "2",
+        "/result/patient/sex_label": "Female",
+        "/result/reporter/qualification": "1",
+        "/result/reporter/qualification_label": "Physician",
+        "/result/reporter/country": "US"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "reactions"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/reactions/records/0/outcome": "6",
+        "/result/reactions/records/0/outcome_label": "Unknown",
+        "/result/reactions/records/1/outcome": "9",
+        "/result/reactions/records/1": {
+          "omits": [
+            "outcome_label"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "get",
+        "adverse-event",
+        "100",
+        "drugs"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/drugs/records/0/role": "1",
+        "/result/drugs/records/0/role_label": "Suspect (the drug was considered by the reporter to be the cause)",
+        "/result/drugs/records/0/actiondrug": "5",
+        "/result/drugs/records/0/actiondrug_label": "Unknown",
+        "/result/drugs/records/1/role": "7",
+        "/result/drugs/records/1": {
+          "omits": [
+            "role_label"
+          ]
+        }
+      }
+    }
+  ]
+}

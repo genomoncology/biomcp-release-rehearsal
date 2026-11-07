@@ -9,9 +9,9 @@ pub use response::{
     AdverseEventDevice, AdverseEventDevices, AdverseEventDrug, AdverseEventDrugs,
     AdverseEventFaersCard, AdverseEventHeader, AdverseEventIdentifierRecords,
     AdverseEventIdentifiers, AdverseEventIdentityCounts, AdverseEventMaudeCard,
-    AdverseEventNarrative, AdverseEventNarrativeItem, AdverseEventPage, AdverseEventReaction,
-    AdverseEventReactionCount, AdverseEventReactionCounts, AdverseEventReactionMatch,
-    AdverseEventReactions, AdverseEventRecords,
+    AdverseEventNarrative, AdverseEventNarrativeItem, AdverseEventPage, AdverseEventPatient,
+    AdverseEventReaction, AdverseEventReactionCount, AdverseEventReactionCounts,
+    AdverseEventReactionMatch, AdverseEventReactions, AdverseEventRecords, AdverseEventReporter,
 };
 pub use selectors::{
     AdverseEventAggregate, AdverseEventIdentifierSection, AdverseEventSection, AdverseEventSerious,

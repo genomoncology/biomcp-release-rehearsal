@@ -3,13 +3,38 @@ use crate::{mapped::Problems, raw::Field};
 use biomcp_types::{
     TrialAdverseEvents, TrialEvent, TrialEventGroup, TrialPostedOutcome, TrialResultRecord,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer, de::DeserializeOwned};
+use serde_json::Value;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct Results {
-    outcome_measures_module: Option<Field<Outcomes>>,
-    adverse_events_module: Option<Field<Events>>,
+    outcome_measures_module: Option<Field<Plain<Outcomes>>>,
+    adverse_events_module: Option<Field<Plain<Events>>>,
+}
+/// A module whose every string has lost the source's Markdown escapes before it
+/// becomes a public value, so a field added to the public types cannot be missed.
+struct Plain<T>(T);
+impl<'de, T: DeserializeOwned> Deserialize<'de> for Plain<T> {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        let mut value = Value::deserialize(d)?;
+        unescape(&mut value);
+        T::deserialize(value)
+            .map(Self)
+            .map_err(serde::de::Error::custom)
+    }
+}
+fn unescape(value: &mut Value) {
+    match value {
+        Value::String(text) => {
+            if let std::borrow::Cow::Owned(plain) = crate::source_text::unescape_markdown(text) {
+                *text = plain;
+            }
+        }
+        Value::Array(rows) => rows.iter_mut().for_each(unescape),
+        Value::Object(fields) => fields.values_mut().for_each(unescape),
+        _ => {}
+    }
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,7 +57,7 @@ impl Results {
         refusals: &mut crate::Refusal,
     ) -> Box<[TrialResultRecord]> {
         let mut rows = Vec::new();
-        if let Some(module) = problems.field(
+        if let Some(Plain(module)) = problems.field(
             "resultsSection.outcomeMeasuresModule",
             self.outcome_measures_module,
         ) {
@@ -48,7 +73,7 @@ impl Results {
                 .map(TrialResultRecord::Outcome),
             );
         }
-        if let Some(module) = problems.field(
+        if let Some(Plain(module)) = problems.field(
             "resultsSection.adverseEventsModule",
             self.adverse_events_module,
         ) {

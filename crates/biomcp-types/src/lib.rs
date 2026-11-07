@@ -195,11 +195,11 @@ pub use adverse_event::{
     AdverseEventDrugs, AdverseEventFaersCard, AdverseEventGet, AdverseEventHeader,
     AdverseEventIdentifierRecords, AdverseEventIdentifierSection, AdverseEventIdentifiers,
     AdverseEventIdentityCounts, AdverseEventMaudeCard, AdverseEventNarrative,
-    AdverseEventNarrativeItem, AdverseEventPage, AdverseEventReaction, AdverseEventReactionCount,
-    AdverseEventReactionCounts, AdverseEventReactionMatch, AdverseEventReactions,
-    AdverseEventRecords, AdverseEventSearch, AdverseEventSection, AdverseEventSerious,
-    AdverseEventSource, ReportUnit, VAERS_INFLUENZA, VaersCell, VaersNotice, VaersRow, VaersScope,
-    VaersSection, VaersSummary, vaers_vaccine_code,
+    AdverseEventNarrativeItem, AdverseEventPage, AdverseEventPatient, AdverseEventReaction,
+    AdverseEventReactionCount, AdverseEventReactionCounts, AdverseEventReactionMatch,
+    AdverseEventReactions, AdverseEventRecords, AdverseEventReporter, AdverseEventSearch,
+    AdverseEventSection, AdverseEventSerious, AdverseEventSource, ReportUnit, VAERS_INFLUENZA,
+    VaersCell, VaersNotice, VaersRow, VaersScope, VaersSection, VaersSummary, vaers_vaccine_code,
 };
 
 mod pgx;

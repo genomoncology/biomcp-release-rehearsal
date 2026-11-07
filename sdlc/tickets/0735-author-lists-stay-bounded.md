@@ -18,7 +18,7 @@ Review of 0722: nothing caps names per paper. One 2,900-author paper adds about 
 
 ## Keeps
 
-- Keeps: the row order and the matched author always shown.
+- Keeps: the row order. Showing the matched author is best effort (names compare with accents folded, word by word); when it misses, the notice still says names were omitted and where to read them all.
 
 ## Changes
 

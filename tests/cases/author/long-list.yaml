@@ -1,0 +1,71 @@
+{
+  "feature": "author-search",
+  "live_check": "synthetic control",
+  "story": "A paper with a long author list shows a bounded row with the matched name, the count left out and where to read the rest, without changing row order.",
+  "replay": "author/long-list",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "author",
+        "Morgan Lee",
+        "--disable-sources",
+        "noncommercial,orcid"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/literature/papers/*/paper/pmid": [
+          "10002",
+          "10001"
+        ],
+        "/result/literature/papers/0/authors": [
+          "Lee M",
+          "Patel R"
+        ],
+        "/result/literature/papers/1/authors": [
+          "Author1 A",
+          "Author2 A",
+          "Author3 A",
+          "Author4 A",
+          "Author5 A",
+          "Author6 A",
+          "Author7 A",
+          "Author8 A",
+          "Author9 A",
+          "Lee M"
+        ],
+        "/result/literature/papers/1/authors_omitted": 26,
+        "/sources/0/notices/*/message": {
+          "includes_all_of": [
+            "Paper 10001: authors omitted: 26; read every author at https://pubmed.ncbi.nlm.nih.gov/10001/."
+          ]
+        },
+        "/result/literature/papers/0": {
+          "omits": [
+            "authors_omitted"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "author",
+        "Morgan Lee",
+        "--disable-sources",
+        "noncommercial,orcid",
+        "--format",
+        "md"
+      ],
+      "expect": {
+        "": {
+          "includes_all_of": [
+            "authors omitted&#58; 26",
+            "pubmed&#46;ncbi&#46;nlm&#46;nih&#46;gov/10001",
+            "Lee M"
+          ]
+        }
+      }
+    }
+  ]
+}

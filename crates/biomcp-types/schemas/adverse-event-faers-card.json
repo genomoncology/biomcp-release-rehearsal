@@ -51,7 +51,7 @@
         "patient": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reply_FaersPatient"
+              "$ref": "#/$defs/Reply_AdverseEventPatient"
             },
             {
               "type": "null"
@@ -73,7 +73,7 @@
         "reporter": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reply_FaersReporter"
+              "$ref": "#/$defs/Reply_AdverseEventReporter"
             },
             {
               "type": "null"
@@ -248,6 +248,71 @@
       ],
       "type": "object"
     },
+    "Reply_AdverseEventPatient": {
+      "description": "Native patient facts with the published word beside the sex code.",
+      "properties": {
+        "age": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_WithUnit_FiniteNumber_FaersAgeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native numeric age with the exact publisher unit code, when stated."
+        },
+        "sex": {
+          "description": "Native sex string, including a present empty value.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sex_label": {
+          "description": "Published word for the sex code, when the code is on openFDA's list.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "weight": {
+          "description": "Native weight string, including a present empty value.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Reply_AdverseEventReporter": {
+      "description": "Native reporter facts with the published word beside the qualification code.",
+      "properties": {
+        "country": {
+          "description": "Native country string, including a present empty value.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "qualification": {
+          "description": "Native qualification string, including a present empty value.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "qualification_label": {
+          "description": "Published word for the qualification code, when the code is on openFDA's list.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "Reply_AdverseEventSection": {
       "description": "One source-owned section; no all or reporter section.",
       "enum": [
@@ -359,57 +424,6 @@
         "805"
       ],
       "type": "string"
-    },
-    "Reply_FaersPatient": {
-      "description": "Native patient age and independently supplied sex and weight fields.",
-      "properties": {
-        "age": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Reply_WithUnit_FiniteNumber_FaersAgeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Native numeric age with the exact publisher unit code, when stated."
-        },
-        "sex": {
-          "description": "Native sex string, including a present empty value.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "weight": {
-          "description": "Native weight string, including a present empty value.",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
-    "Reply_FaersReporter": {
-      "description": "Source reporter fields; qualification may be absent.",
-      "properties": {
-        "country": {
-          "description": "Native country string, including a present empty value.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "qualification": {
-          "description": "Native qualification string, including a present empty value.",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
     },
     "Reply_FaersSeriousness": {
       "description": "Independent overlapping report-level flags; no CTCAE or reaction-outcome conversion.",

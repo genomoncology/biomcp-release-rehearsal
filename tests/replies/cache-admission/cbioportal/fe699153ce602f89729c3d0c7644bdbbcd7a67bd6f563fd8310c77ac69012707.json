@@ -1,7 +1,7 @@
 {
   "source": "cbioportal",
   "method": "GET",
-  "url": "https://www.cbioportal.org/api/studies/synthetic_0/sample-lists?projection=DETAILED",
+  "url": "https://www.cbioportal.org/api/sample-lists/synthetic_0_native",
   "exchanges": [
     {
       "status": 200,
@@ -10,13 +10,11 @@
       "retry_after_ms": null,
       "body": {
         "kind": "json",
-        "value": [
-          {
-            "studyId": "synthetic_0",
-            "sampleListId": {},
-            "name": {}
-          }
-        ]
+        "value": {
+          "sampleListId": "synthetic_0_native",
+          "studyId": "synthetic_0",
+          "sampleCount": 1
+        }
       }
     }
   ]

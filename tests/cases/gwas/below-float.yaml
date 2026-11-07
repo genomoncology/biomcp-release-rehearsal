@@ -1,0 +1,46 @@
+{
+  "feature": "gwas-search",
+  "story": "A p-value below the float range shows only its exact value, while a zero with no exact value stays as reported.",
+  "live_check": "synthetic authored or response-edited replies; no live provider observation",
+  "replay": "gwas/below-float",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "gwas",
+        "association:6114"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/association/exact_p_value/exponent": -320,
+        "/result/association": {
+          "omits": [
+            "p_value"
+          ]
+        }
+      }
+    },
+    {
+      "run": [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17529967",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/0/id": "association:6110",
+        "/result/items/0/exact_p_value/exponent": -320,
+        "/result/items/1/id": "association:6111",
+        "/result/items/1/p_value": 0.0,
+        "/result/items/0": {
+          "omits": [
+            "p_value"
+          ]
+        }
+      }
+    }
+  ]
+}

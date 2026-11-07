@@ -1,5 +1,8 @@
 use biodata::{FaersDrug, FaersReaction};
-use biomcp_adapters::NativePositions;
+use biomcp_adapters::{
+    NativePositions,
+    faers::words::{ACTION_TAKEN, DRUG_ROLE, REACTION_OUTCOME, label},
+};
 use biomcp_types::{
     AdverseEventDrug, AdverseEventGet, AdverseEventIdentityCounts, AdverseEventReaction,
 };
@@ -17,6 +20,7 @@ pub(super) fn drugs(
             index,
             medicinalproduct: r.medicinalproduct.clone(),
             role: r.drugcharacterization.clone(),
+            role_label: label(DRUG_ROLE, r.drugcharacterization.as_deref()),
             indication: r.drugindication.clone(),
             drugadministrationroute: r.drugadministrationroute.clone(),
             drugauthorizationnumb: r.drugauthorizationnumb.clone(),
@@ -38,6 +42,7 @@ pub(super) fn drugs(
             drugtreatmentduration: r.drugtreatmentduration.clone(),
             drugtreatmentdurationunit: r.drugtreatmentdurationunit.clone(),
             actiondrug: r.actiondrug.clone(),
+            actiondrug_label: label(ACTION_TAKEN, r.actiondrug.as_deref()),
             drugadditional: r.drugadditional.clone(),
             identity_counts: counts(r.openfda.as_ref()),
         })
@@ -77,6 +82,7 @@ pub(super) fn reactions(
             term: r.term.clone(),
             vocabulary_version: r.vocabulary_version.clone(),
             outcome: r.outcome.clone(),
+            outcome_label: label(REACTION_OUTCOME, r.outcome.as_deref()),
         })
         .collect()
 }

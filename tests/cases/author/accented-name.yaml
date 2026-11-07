@@ -1,0 +1,33 @@
+{
+  "feature": "author-search",
+  "live_check": "synthetic control",
+  "story": "A query without accents still shows the accented matching name on a long author list, because names compare with accents folded.",
+  "replay": "author/accented-name",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "author",
+        "Kai Muller",
+        "--disable-sources",
+        "noncommercial,orcid"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/literature/papers/1/authors": [
+          "Author1 A",
+          "Author2 A",
+          "Author3 A",
+          "Author4 A",
+          "Author5 A",
+          "Author6 A",
+          "Author7 A",
+          "Author8 A",
+          "Author9 A",
+          "Müller K"
+        ],
+        "/result/literature/papers/1/authors_omitted": 26
+      }
+    }
+  ]
+}

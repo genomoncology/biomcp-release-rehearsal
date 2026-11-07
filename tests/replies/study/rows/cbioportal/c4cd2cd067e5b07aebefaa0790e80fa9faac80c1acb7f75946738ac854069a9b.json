@@ -1,0 +1,18 @@
+{
+  "source": "cbioportal",
+  "method": "GET",
+  "url": "https://www.cbioportal.org/api/studies/skcm_tcga_pan_can_atlas_2018/sample-lists?projection=SUMMARY",
+  "exchanges": [
+    {
+      "status": 200,
+      "fetched": 1794054355,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "[{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_3way_complete\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_mutation_and_cna_and_mrna_data\",\"name\":\"Complete samples\",\"description\":\"Samples with mutation, CNA and expression data (363 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_all\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_in_study\",\"name\":\"All samples\",\"description\":\"All samples (448 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_cna\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_cna_data\",\"name\":\"Samples with CNA data\",\"description\":\"Samples with CNA data (367 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_cnaseq\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_mutation_and_cna_data\",\"name\":\"Samples with mutation and CNA data\",\"description\":\"Samples with mutation and CNA data (363 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_log2CNA\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_log2_cna_data\",\"name\":\"Samples with log2 copy-number data\",\"description\":\"Samples with log2 copy-number data (367 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_methylation_all\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_methylation_data\",\"name\":\"Samples with methylation data\",\"description\":\"Samples with methylation data (443 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_methylation_hm450\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_methylation_data\",\"name\":\"Samples with methylation data (HM450)\",\"description\":\"Samples with methylation (HM450) data (444 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_rna_seq_v2_mrna\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_mrna_rnaseq_data\",\"name\":\"Samples with mRNA data (RNA Seq V2)\",\"description\":\"Samples with mRNA expression data (443 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_rppa\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_rppa_data\",\"name\":\"Samples with protein data (RPPA)\",\"description\":\"Samples with protein data (RPPA) (329 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_sequenced\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_mutation_data\",\"name\":\"Samples with mutation data\",\"description\":\"Samples with mutation data (440 samples)\"},{\"sampleListId\":\"skcm_tcga_pan_can_atlas_2018_sv\",\"studyId\":\"skcm_tcga_pan_can_atlas_2018\",\"category\":\"all_cases_with_sv_data\",\"name\":\"Samples with SV data\",\"description\":\"All samples\"}]\n"
+      }
+    }
+  ]
+}

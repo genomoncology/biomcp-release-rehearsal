@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "ema",
+  "url": "https://www.ema.europa.eu/en/documents/report/medicines-output-medicines_json-report_en.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "text",
+        "value": "{\"meta\":{\"total_records\":1,\"timestamp\":\"2026-10-24T18:22:32Z\"},\"data\":[{\"category\":\"Human\",\"ema_product_number\":\"EMEA/H/C/000406\",\"name_of_medicine\":\"Synthetic EMA text\",\"medicine_status\":\"Authorised\",\"medicine_url\":\"https://www.ema.europa.eu/en/medicines/human/EPAR/glivec\",\"revision_number\":\"1\",\"last_updated_date\":\"24/10/2026\",\"marketing_authorisation_date\":\"07/11/2001\",\"therapeutic_indication\":\"Synthetic use at&nbsp;doses &lt;10 mg or &gt;2 mg, with haemoglobin ?10 g/dl &unknown; AT&T\"}]}"
+      }
+    }
+  ]
+}

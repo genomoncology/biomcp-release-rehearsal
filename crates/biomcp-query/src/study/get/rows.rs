@@ -73,7 +73,7 @@ fn page(leg: &Leg<'_>, q: &StudyGet, cx: &Ctx<'_>, out: &mut Outcome) -> Result<
             out.body = data.with_query(q.clone());
             out.page = Some(page);
         }
-        continuation(out, cx, q, rows.rejected, offset);
+        continuation(out, cx, q, rows.rejected != 0, offset);
     } else {
         let (rows, profile, gene) = studies::mutations(leg, q)?;
         let page = page_info(&rows.window);
@@ -101,7 +101,7 @@ fn page(leg: &Leg<'_>, q: &StudyGet, cx: &Ctx<'_>, out: &mut Outcome) -> Result<
             out.body = data.with_query(q.clone());
             out.page = Some(page);
         }
-        continuation(out, cx, &query, rows.rejected, offset);
+        continuation(out, cx, &query, rows.rejected != 0, offset);
     }
     Ok(())
 }

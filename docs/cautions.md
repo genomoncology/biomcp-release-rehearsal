@@ -77,6 +77,8 @@ The drug index is its absolute position in the report. Missing retained reports 
 
 HGNC and ClinGen reads can synchronize absent or stale bundles under `auto_sync_max_bytes`. Offline mode never synchronizes. EMA, GTR, WHO and cBioPortal studies read explicitly synchronized stored bundles and never synchronize on read. Missing stored bundles offer an explicit sync command; stale stored rows remain readable with a stale marker.
 
+EMA's medicines file holds some `?` characters where a symbol such as `≥` was lost before publication, as in `?10 g/dl`. They cannot be told from a real question mark, so EMA indications show them as published.
+
 ## GTR search
 
 Diagnostic reads use the stored pair and never synchronize it. Combine one relation selector with the native `--type` value. Search pages count distinct accession/version identities and preserve the relation that matched. Conflicting identities have no selected card.

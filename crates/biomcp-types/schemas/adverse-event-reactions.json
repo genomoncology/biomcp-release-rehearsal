@@ -132,6 +132,13 @@
             "null"
           ]
         },
+        "outcome_label": {
+          "description": "Published word for the outcome code, when the code is on openFDA's list.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "term": {
           "anyOf": [
             {

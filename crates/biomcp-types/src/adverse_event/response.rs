@@ -2,14 +2,14 @@ use super::{
     AdverseEventGet, AdverseEventSearch, AdverseEventSection, AdverseEventSource, ReportUnit,
 };
 use crate::{ComponentLabel, ResponseBody};
-use biodata::{FaersPatient, FaersReporter, FaersSeriousness, ReportId, Text};
+use biodata::{FaersSeriousness, ReportId, Text};
 use serde::{Deserialize, Serialize};
 mod counts;
 mod rows;
 pub use counts::{AdverseEventReactionCount, AdverseEventReactionCounts};
 pub use rows::{
     AdverseEventDevice, AdverseEventDrug, AdverseEventIdentityCounts, AdverseEventNarrativeItem,
-    AdverseEventReaction,
+    AdverseEventPatient, AdverseEventReaction, AdverseEventReporter,
 };
 /// Small source report header without a drug title, flattened lists or count buckets.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -99,10 +99,10 @@ pub struct AdverseEventFaersCard {
     pub seriousness: Option<FaersSeriousness>,
     /// Fixed native patient strings.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub patient: Option<FaersPatient>,
+    pub patient: Option<AdverseEventPatient>,
     /// Optional reporter facts.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub reporter: Option<FaersReporter>,
+    pub reporter: Option<AdverseEventReporter>,
     /// Actual drug-array length, never count bucket.
     pub drug_count: u32,
     /// Actual reaction-array length, never causal pairs.

@@ -28,6 +28,7 @@ mod detail_map;
 mod detail_raw;
 
 mod positions;
+pub mod words;
 pub use positions::Positions;
 
 /// Complete source policy and command declaration.

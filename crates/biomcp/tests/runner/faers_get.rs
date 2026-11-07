@@ -264,7 +264,7 @@ fn budget(value: &Value, full: usize, comparable: usize) -> Check {
         ("reactions", "failed") => ("faers-envelope-423", "faers-envelope-308"),
         ("unii", "failed") => ("faers-envelope-433", "faers-envelope-318"),
         ("unii", "absent") => ("faers-envelope-629", "faers-envelope-507"),
-        ("drugs", "complete") => ("faers-envelope-1453", "faers-envelope-1338"),
+        ("drugs", "complete") => ("faers-envelope-1832", "faers-envelope-1710"),
         ("reactions", "complete") => ("faers-envelope-1403", "faers-envelope-1288"),
         ("unii", "complete") => ("faers-envelope-897", "faers-envelope-775"),
         ("rxcui", "complete") => ("faers-envelope-896", "faers-envelope-774"),

@@ -119,6 +119,7 @@ pub fn samples(leg: &Leg<'_>, q: &StudyGet) -> Result<Records<StudySample>, Requ
         })
         .collect();
     Ok(Records {
+        incomplete: false,
         rejected: total - rows.iter().flatten().count(),
         window: crate::NativeWindow::local(rows, q.section_offset(), q.section_limit()),
         problems: problems.list,
@@ -192,6 +193,7 @@ pub fn mutations(
         .collect();
     Ok((
         Records {
+            incomplete: false,
             rejected: total - rows.iter().flatten().count(),
             window: crate::NativeWindow::local(rows, q.section_offset(), q.section_limit()),
             problems: problems.list,
@@ -268,7 +270,7 @@ fn sample_list(
     leg: &Leg<'_>,
     id: &StudyId,
 ) -> Result<(biodata::StudySampleListId, Vec<biomcp_types::Problem>), RequestError> {
-    let lists = super::sample_lists(leg, id, 0, u32::MAX)?;
+    let lists = super::sections::list_summaries(leg, id, 0, u32::MAX)?;
     let list = lists
         .window
         .rows

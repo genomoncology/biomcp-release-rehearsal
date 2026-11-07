@@ -95,7 +95,7 @@ pub(super) const OWNERS: &[Owner] = &[
     Owner {
         name: "cbioportal-sample-lists",
         feature: "study-get",
-        recording: "replies/cache-admission/cbioportal/618bda1e8d21d6719677f6998f2944ae1c910013e4aef803a88f9fce67151732.json",
+        recording: "replies/cache-admission/cbioportal/45e5163d08727fd13718b83b1dc94cccbd32f4039b9b3cd27d2d4e6638c7589b.json",
         rows: "",
         identity: "/0/sampleListId",
         accepted_identity: "\"synthetic_0_native\"",

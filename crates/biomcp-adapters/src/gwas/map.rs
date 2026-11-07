@@ -24,7 +24,10 @@ pub(super) fn association(
                 allele: a.effect_allele,
             })
             .collect(),
-        p_value: row.p_value,
+        // A value below the float range reads 0.0; the exact value is then the only truth.
+        p_value: row
+            .p_value
+            .filter(|p| p.get() != 0.0 || exact_p_value.is_none()),
         exact_p_value,
         author: optional_text(row.author.clone(), "first_author", record.clone(), problems),
         mapped_genes: row

@@ -129,7 +129,14 @@ pub(super) fn event(
         },
         kind: item(row, problems, "opinion_status"),
         dates,
-        indication: item(row, problems, "therapeutic_indication"),
+        indication: problems.optional(
+            "therapeutic_indication",
+            row.field("therapeutic_indication").map(|value| {
+                value.and_then(|text| {
+                    crate::mapped::source_text(&crate::source_text::decode_entities(text))
+                })
+            }),
+        ),
         attribution: Attribution {
             approved: None,
             published: None,
