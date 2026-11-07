@@ -8,7 +8,7 @@ pub enum ArticleResolution {
     /// A record whose own identity agrees with the input.
     Resolved {
         /// Source card with capped authors.
-        card: Article<Capped<Text>>,
+        card: Box<Article<Capped<Text>>>,
         /// Identity evidence.
         r#match: ArticleMatch,
         /// Original fetch time in Unix seconds.

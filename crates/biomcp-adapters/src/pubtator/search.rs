@@ -30,7 +30,8 @@ pub fn search(leg: &Leg<'_>, term: &str) -> Result<Search, RequestError> {
             .call(
                 &SEARCH,
                 Input::Params(&[("text", Arg::Text(term)), ("page", Arg::Num(page))]),
-                Read::<Page>::json(),
+                Read::<Page>::json()
+                    .filter_body(&|body| crate::article_rights::pubtator::search(leg, body)),
             )
             .map(|received| received.value);
         let reply = match reply {

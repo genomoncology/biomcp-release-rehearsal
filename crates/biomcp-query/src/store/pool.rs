@@ -254,6 +254,38 @@ impl Store<'_> {
         })
     }
 
+    pub(crate) fn rewrite_article_text(
+        &mut self,
+        pool: &str,
+        rows: &[biomcp_types::ArticleItem],
+    ) -> Result<(), CacheError> {
+        let policy = self.policy();
+        self.write(|tx| {
+            policy.authorize(tx, super::ownership::Table::Pool, pool)?;
+            for row in rows {
+                let mut item = row.clone();
+                item.header = None;
+                let identity = item
+                    .key
+                    .as_ref()
+                    .map(serde_json::to_string)
+                    .transpose()
+                    .map_err(|_| CacheError::Encoding)?;
+                if let Some(identity) = identity {
+                    tx.execute(
+                        "UPDATE pool_item SET item=?3 WHERE pool=?1 AND identity=?2",
+                        params![
+                            pool,
+                            identity,
+                            serde_json::to_string(&item).map_err(|_| CacheError::Encoding)?
+                        ],
+                    )
+                    .map_err(db)?;
+                }
+            }
+            Ok(())
+        })
+    }
     pub(crate) fn hydrate(
         &mut self,
         pool: &str,

@@ -72,6 +72,7 @@ pub fn fetch_articles(
     if ids.len() > 200 || ids.is_empty() {
         return Err(biomcp_fetch::InputError::Method.into());
     }
+    let licenses = crate::article_rights::pubmed::lookup(leg, ids);
     let ids: Vec<_> = ids
         .iter()
         .map(|id| id.to_string().into_boxed_str())
@@ -86,7 +87,12 @@ pub fn fetch_articles(
         params.push(("email", Arg::Contact(email)));
     }
     let (reply, metadata) = leg
-        .call(&FETCH, Input::Params(&params), Read::<Records>::xml())
+        .call(
+            &FETCH,
+            Input::Params(&params),
+            Read::<Records>::xml()
+                .filter_body(&|body| crate::article_rights::pubmed::filter(leg, body, &licenses)),
+        )
         .map(|received| (received.value, received.meta))?;
     Ok((reply.articles, metadata))
 }
@@ -160,6 +166,7 @@ fn article(root: Element<'_>) -> Result<FetchedArticle, BadReply> {
         refusals,
         indexing,
         article: Article {
+            text_withheld: crate::article_rights::pubmed::notice(&root, pmid)?,
             europepmc_id: None,
             pmid: Some(pmid),
             doi,

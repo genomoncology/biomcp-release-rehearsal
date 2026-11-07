@@ -423,6 +423,26 @@ const ALLOWED: &[(&str, &str)] = &[
         "crates/biomcp/tests/ratchets/proof.rs",
         "Enforce repository structure and prove refusal of planted violations in isolated trees.",
     ),
+    (
+        "crates/biomcp-query/tests/article_rights.rs",
+        "Inspect raw replies, ranked pools and full-text refusal identities through public queries using synthetic transport.",
+    ),
+    (
+        "crates/biomcp-query/tests/article_rights/authors.rs",
+        "Prove private abstract refusal metadata survives raw cache reuse and rewrite legacy author continuation bytes through public queries.",
+    ),
+    (
+        "crates/biomcp-query/tests/article_rights/contexts.rs",
+        "Inspect retained citation reply bytes and distinguish absent contexts from rights refusals through public adapters.",
+    ),
+    (
+        "crates/biomcp-query/tests/article_rights/lookups.rs",
+        "Inspect stored replies and pools after failed or capped license lookups, and repeat reads, through public queries.",
+    ),
+    (
+        "crates/biomcp-query/tests/article_rights/routes.rs",
+        "Inspect synthetic transport replies for source-owned abstract and passage rights and bounded dependency admission.",
+    ),
 ];
 
 pub(super) fn check(root: &Path) -> Check {

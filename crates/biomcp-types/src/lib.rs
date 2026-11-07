@@ -76,7 +76,7 @@ pub use response::{
 };
 pub use response::{
     ArticleItem, ArticleKey, ArticlePage, ArticleSentence, CacheProblem, LitVarCandidate, PoolInfo,
-    SourceNotice,
+    SourceNotice, WithheldArticleText,
 };
 pub use response::{ArticlePdfResult, OpenAccessStatus, PdfLink, PdfSaved};
 pub use response::{

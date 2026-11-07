@@ -155,12 +155,82 @@
         "erratum"
       ]
     },
+    "Reply_Reason": {
+      "description": "Why a source could not supply data.",
+      "type": "string",
+      "x-enum-descriptions": [
+        " The requested record was not found.",
+        " The public bucket does not hold an open text record.",
+        " Publisher response is not a PDF.",
+        " The local reader does not support the file or container format.",
+        " The response exceeds an explicit reader resource bound.",
+        " The source limited the request rate.",
+        " The local source quota refused admission without a network request.",
+        " The source was unavailable.",
+        " Platform or configured certificate verification failed.",
+        " Connecting to or negotiating the configured proxy failed.",
+        " The source rejected the request.",
+        " The reply could not be used.",
+        " The request exhausted its deadline.",
+        " Network access was disabled.",
+        " A required credential was absent.",
+        " The source was disabled.",
+        " No recording matched the request.",
+        " The source data was being synchronized.",
+        " Identity lacks the identifier required to join this source."
+      ],
+      "x-extensible-enum": [
+        "not-found",
+        "not-open",
+        "not-pdf",
+        "unsupported",
+        "too-large",
+        "rate-limited",
+        "local-quota",
+        "unavailable",
+        "tls",
+        "proxy",
+        "rejected",
+        "bad-reply",
+        "deadline-exceeded",
+        "offline",
+        "no-key",
+        "disabled",
+        "replay-miss",
+        "syncing",
+        "no-join-id"
+      ]
+    },
     "Reply_Text": {
       "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
       "maxLength": 1048576,
       "minLength": 1,
       "pattern": "^(?![\\s\\S]*[\\x00-\\x1f\\x7f-\\x9f\\u061c\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069])",
       "type": "string"
+    },
+    "Reply_WithheldArticleText": {
+      "description": "Why article text was withheld, with a public reading destination.",
+      "properties": {
+        "reason": {
+          "$ref": "#/$defs/Reply_Reason",
+          "description": "`disabled` when the use policy refuses the record's text; `unavailable`\nwhen its license could not be checked, so body text was left out."
+        },
+        "url": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Public record where the caller can read the paper."
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "type": "object"
     }
   },
   "$id": "biomcp.article/4",
@@ -258,6 +328,17 @@
     "pmid": {
       "$ref": "#/$defs/Reply_Pmid",
       "description": "PubMed identity."
+    },
+    "text_withheld": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply_WithheldArticleText"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Text withheld because the record's terms do not permit this use."
     },
     "title": {
       "$ref": "#/$defs/Reply_Text",

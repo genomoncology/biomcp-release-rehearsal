@@ -283,25 +283,8 @@ impl Leg<'_> {
 
     fn exchange<T: Reply>(&self, prepared: &Prepared, codec: &Read<T>) -> Result<Wire, Failure> {
         let local = |error| Failure::Local(RequestError::Recording(error));
-        if let Some(exchange) = self
-            .fetch
-            .recordings
-            .replay(
-                self.spec.source,
-                &prepared.identity,
-                &prepared.url,
-                prepared.recording(),
-                codec.limit.unwrap_or(self.fetch.config.max_body),
-            )
-            .map_err(|error| {
-                if codec.limit.is_some() && error == crate::RecordError::Limit {
-                    Failure::Local(self.failure(codec.overflow_reason, None).into())
-                } else {
-                    local(error)
-                }
-            })?
-        {
-            return self.replayed_wire(prepared, exchange);
+        if let Some(wire) = self.replay_exchange(prepared, codec)? {
+            return Ok(wire);
         }
         let started = Instant::now();
         let mut response = if prepared.publisher {
@@ -331,7 +314,7 @@ impl Leg<'_> {
         let fetched = crate::cache::timestamp();
         let recording = matches!(self.fetch.mode, crate::Mode::Record { .. });
         let body = self.wire_body(prepared, codec, &mut response, status, recording)?;
-        let wire = Wire {
+        let mut wire = Wire {
             fetched,
             status,
             content_type,
@@ -342,11 +325,52 @@ impl Leg<'_> {
         };
         self.contain_response(prepared, &wire, &wire.body, status)
             .map_err(Failure::Local)?;
+        self.filter_wire(&mut wire, codec)?;
         if recording {
             self.record_wire(prepared, codec, &wire, started)
                 .map_err(local)?;
         }
         Ok(wire)
+    }
+    fn replay_exchange<T: Reply>(
+        &self,
+        prepared: &Prepared,
+        codec: &Read<T>,
+    ) -> Result<Option<Wire>, Failure> {
+        let Some(exchange) = self
+            .fetch
+            .recordings
+            .replay(
+                self.spec.source,
+                &prepared.identity,
+                &prepared.url,
+                prepared.recording(),
+                codec.limit.unwrap_or(self.fetch.config.max_body),
+            )
+            .map_err(|error| {
+                if codec.limit.is_some() && error == crate::RecordError::Limit {
+                    Failure::Local(self.failure(codec.overflow_reason, None).into())
+                } else {
+                    Failure::Local(RequestError::Recording(error))
+                }
+            })?
+        else {
+            return Ok(None);
+        };
+        let mut wire = self.replayed_wire(prepared, exchange)?;
+        self.filter_wire(&mut wire, codec)?;
+        Ok(Some(wire))
+    }
+    fn filter_wire<T: Reply>(&self, wire: &mut Wire, codec: &Read<T>) -> Result<(), Failure> {
+        if (200..300).contains(&wire.status)
+            && let std::borrow::Cow::Owned(body) =
+                codec.filtered_body(&wire.body).map_err(|_| {
+                    Failure::Local(self.failure(Reason::BadReply, Some(wire.status)).into())
+                })?
+        {
+            wire.body = body;
+        }
+        Ok(())
     }
     fn wire_body<T: Reply>(
         &self,

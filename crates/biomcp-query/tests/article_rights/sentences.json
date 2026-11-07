@@ -1,0 +1,18 @@
+[
+  {
+    "pmid": 1001,
+    "section": "RESULTS",
+    "text": "permitted body witness"
+  },
+  {
+    "pmid": 1002,
+    "section": "RESULTS",
+    "text": "noncommercial body witness"
+  },
+  {
+    "pmid": 1003,
+    "section": "RESULTS",
+    "text": "unknown body witness",
+    "body_copy": "unlicensed ignored source field"
+  }
+]

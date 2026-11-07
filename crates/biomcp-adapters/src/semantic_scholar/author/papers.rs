@@ -110,13 +110,15 @@ pub fn papers(
                 ("offset", Arg::Num(u64::from(q.offset()))),
                 ("limit", Arg::Num(u64::from(q.limit()))),
             ]),
-            Read::<PapersPage>::json().check(&|page| {
-                if page.offset == q.offset() && page.received <= q.limit() as usize {
-                    Ok(())
-                } else {
-                    Err(BadReply)
-                }
-            }),
+            Read::<PapersPage>::json()
+                .filter_body(&|body| crate::article_rights::semantic::filter(leg, body, None))
+                .check(&|page| {
+                    if page.offset == q.offset() && page.received <= q.limit() as usize {
+                        Ok(())
+                    } else {
+                        Err(BadReply)
+                    }
+                }),
         )
         .map(|received| (received.value, received.meta))?;
     Ok(page)

@@ -73,7 +73,8 @@ fn record(leg: &Leg<'_>, id: &EuropePmcId) -> Result<(Record, ReplyMetadata), Re
                 ("format", Arg::Text("json")),
                 ("resultType", Arg::Text("core")),
             ]),
-            biomcp_fetch::Read::<Raw>::json(),
+            biomcp_fetch::Read::<Raw>::json()
+                .filter_body(&|body| crate::article_rights::europepmc(leg, body)),
         )
         .map(|received| (received.value, received.meta))?;
     if raw.result.id != *id {
@@ -129,6 +130,20 @@ pub fn core(
         .field("journal", raw.book_or_report_details)
         .and_then(|r| p.source_field("journal", r.publisher));
     let value = Article {
+        text_withheld: if leg.disabled_use(biomcp_types::Use::PerRecord)
+            && !crate::article_rights::permitted(
+                raw.license
+                    .as_ref()
+                    .and_then(Field::as_ref)
+                    .map(|code| pmc_oa::license(code)),
+                true,
+            ) {
+            Some(crate::article_rights::text_withheld(
+                &biomcp_types::ArticleInput::EuropePmc(raw.id.clone()),
+            ))
+        } else {
+            None
+        },
         europepmc_id: Some(raw.id),
         pmid: p.field("pmid", raw.pmid),
         doi: p.field("doi", raw.doi),

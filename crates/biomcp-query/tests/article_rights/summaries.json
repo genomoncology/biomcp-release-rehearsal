@@ -1,0 +1,39 @@
+{
+  "result": {
+    "uids": [
+      "1001",
+      "1002",
+      "1003"
+    ],
+    "1001": {
+      "uid": "1001",
+      "title": "First paper",
+      "articleids": [
+        {
+          "idtype": "pmc",
+          "value": "PMC1001"
+        }
+      ]
+    },
+    "1002": {
+      "uid": "1002",
+      "title": "Second paper",
+      "articleids": [
+        {
+          "idtype": "pmc",
+          "value": "PMC1002"
+        }
+      ]
+    },
+    "1003": {
+      "uid": "1003",
+      "title": "Third paper",
+      "articleids": [
+        {
+          "idtype": "pmc",
+          "value": "PMC1003"
+        }
+      ]
+    }
+  }
+}

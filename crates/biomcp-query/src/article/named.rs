@@ -75,6 +75,8 @@ pub(super) fn pubtator<'a>(
                 .ids
                 .into_iter()
                 .map(|id| ArticleItem {
+                    text_withheld: None,
+                    context_license: None,
                     key: Some(ArticleKey::Pubmed(id)),
                     pmid: Some(id),
                     found_by: Default::default(),

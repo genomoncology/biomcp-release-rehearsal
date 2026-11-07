@@ -62,6 +62,7 @@ pub(super) fn check_inventory_mutations() -> Check {
         entry.insert("class".into(), "migrated".into());
     }
     validate(&current.to_string())?;
+    check_policy_absence_mutations(original)?;
     validate("{\"sites\":[]}")?;
     let planted = serde_json::json!({"sites": [{
         "path": "crates/biomcp-adapters/src/example/details.rs",
@@ -110,6 +111,48 @@ pub(super) fn check_inventory_mutations() -> Check {
         validate(&current.to_string()).is_err(),
         "duplicate pending entry passed"
     );
+    Ok(())
+}
+
+#[expect(
+    clippy::indexing_slicing,
+    reason = "A missing field in the checked-in audit fails this proof"
+)]
+fn check_policy_absence_mutations(original: &str) -> Check {
+    use super::source::adapter_values::validate;
+    let audit: serde_json::Value = serde_json::from_str(original)?;
+    let entries = audit["sites"].as_array().ok_or("missing sites")?;
+    let entries: Vec<_> = entries
+        .iter()
+        .filter(|entry| entry["owner"] == "article_rights")
+        .collect();
+    assert_eq!(
+        entries.len(),
+        2,
+        "only the two reviewed policy absences belong here"
+    );
+    for entry in entries {
+        validate(&serde_json::json!({"sites":[entry]}).to_string())?;
+        for (field, value) in [
+            ("site", serde_json::json!("unreviewed third policy absence")),
+            ("maximum", serde_json::json!(2)),
+            ("class", serde_json::json!("pending_audit")),
+            ("class", serde_json::json!("migrated")),
+            ("class", serde_json::json!("identity_refusal")),
+            (
+                "path",
+                serde_json::json!("crates/biomcp-adapters/src/other/policy.rs"),
+            ),
+            ("owner", serde_json::json!("other")),
+        ] {
+            let mut changed = entry.clone();
+            changed[field] = value;
+            assert!(
+                validate(&serde_json::json!({"sites":[changed]}).to_string()).is_err(),
+                "an unreviewed policy absence mutation passed: {field}"
+            );
+        }
+    }
     Ok(())
 }
 

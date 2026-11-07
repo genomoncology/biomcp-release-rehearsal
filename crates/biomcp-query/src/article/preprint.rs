@@ -28,7 +28,7 @@ pub(super) fn cards<'a>(cx: &Ctx<'a>, deadline: &mut Deadline<'a>, out: &mut Out
                 out.problems.extend(card.problems);
                 item.status = crate::status::item_status(true, false, false);
                 item.answer = Some(ArticleResolution::Resolved {
-                    card: card.value.card(),
+                    card: Box::new(card.value.card()),
                     r#match: ArticleMatch {
                         kind: item.input.kind(),
                     },

@@ -73,6 +73,9 @@ fn execute<'a>(
             let Some(items) = create(cx, query, references, deadline, out)? else {
                 return Ok(());
             };
+            out.dropped |= items
+                .iter()
+                .any(biomcp_adapters::article_rights::item_unchecked);
             store.set_deadline(*deadline);
             match crate::publish::keep(
                 store
@@ -155,6 +158,8 @@ fn create<'a>(
     let mut items: Vec<_> = ids
         .into_iter()
         .map(|id| ArticleItem {
+            text_withheld: None,
+            context_license: None,
             key: Some(ArticleKey::Pubmed(id)),
             pmid: Some(id),
             header: None,

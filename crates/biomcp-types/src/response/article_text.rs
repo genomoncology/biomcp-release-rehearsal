@@ -70,6 +70,9 @@ pub struct TextHit {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleTextResult {
+    /// Explain a withheld body and provide the public reading destination.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text_withheld: Option<crate::WithheldArticleText>,
     /// Requested PMC record when known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pmcid: Option<Pmcid>,

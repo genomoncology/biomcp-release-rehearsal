@@ -162,7 +162,7 @@ fn append(
                     crate::status::item_status(true, false, false)
                 },
                 Some(ArticleResolution::Resolved {
-                    card: card.article.clone().card(),
+                    card: Box::new(card.article.clone().card()),
                     r#match: ArticleMatch { kind: input.kind() },
                     fetched: fetched.and_then(|value| u64::try_from(value).ok()),
                 }),

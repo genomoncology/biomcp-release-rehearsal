@@ -8,6 +8,7 @@ use std::borrow::Cow;
 type BodyCheck<'a> = dyn Fn(&[u8]) -> Result<(), biomcp_types::Reason> + 'a;
 type ReplyCheck<'a, T> = dyn Fn(&T) -> Result<(), crate::BadReply> + 'a;
 type RangeCheck<'a, T> = dyn Fn(&T, crate::ContentRange, u16) -> Result<(), crate::BadReply> + 'a;
+type BodyFilter<'a> = dyn Fn(&[u8]) -> Result<Vec<u8>, crate::BadReply> + 'a;
 type BodyNormalizer = for<'a> fn(&str, &'a [u8]) -> Cow<'a, [u8]>;
 /// Options shared by live, replay and cached response reads.
 pub struct Read<'a, T> {
@@ -18,6 +19,7 @@ pub struct Read<'a, T> {
     codec: Codec,
     xml_media: Option<fn(&str) -> bool>,
     normalize_body: Option<BodyNormalizer>,
+    filter_body: Option<&'a BodyFilter<'a>>,
     pub(crate) limit: Option<u64>,
     pub(crate) overflow_reason: biomcp_types::Reason,
     pub(crate) json_rejections: bool,
@@ -35,6 +37,21 @@ impl<T> std::fmt::Debug for Read<'_, T> {
     }
 }
 impl<'a, T: Reply> Read<'a, T> {
+    /// Remove disallowed source fields before decoding, recording or cache admission.
+    /// The same policy applies to existing cached bytes without refetching them.
+    pub fn filter_body(mut self, filter: &'a BodyFilter<'a>) -> Self {
+        self.filter_body = Some(filter);
+        self
+    }
+    pub(crate) fn filtered_body<'b>(
+        &self,
+        body: &'b [u8],
+    ) -> Result<Cow<'b, [u8]>, crate::BadReply> {
+        self.filter_body.map_or_else(
+            || Ok(Cow::Borrowed(body)),
+            |filter| filter(body).map(Cow::Owned),
+        )
+    }
     /// Check request-bound identity before cache admission and every reuse.
     pub fn check(mut self, check: &'a ReplyCheck<'a, T>) -> Self {
         self.check = Some(check);
@@ -94,6 +111,7 @@ impl<'a, T: Reply> Read<'a, T> {
             codec: Codec::Json,
             xml_media: None,
             normalize_body: None,
+            filter_body: None,
             validate: None,
             check: None,
             cache_if: None,
@@ -123,6 +141,7 @@ impl<'a, T: Reply> Read<'a, T> {
             codec: Codec::Xml,
             xml_media: Some(T::accepts_media),
             normalize_body: Some(T::normalize_body),
+            filter_body: None,
             validate: None,
             check: None,
             cache_if: None,
@@ -192,6 +211,7 @@ impl Read<'_, Probe> {
             codec: Codec::Probe,
             xml_media: None,
             normalize_body: None,
+            filter_body: None,
             validate: None,
             check: None,
             cache_if: None,
@@ -220,6 +240,7 @@ impl<'a> Read<'a, Bytes> {
             codec: Codec::Bytes("application/octet-stream"),
             xml_media: None,
             normalize_body: None,
+            filter_body: None,
             validate: None,
             check: None,
             cache_if: None,

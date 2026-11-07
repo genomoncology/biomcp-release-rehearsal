@@ -178,8 +178,12 @@ pub fn search(
     if open_access {
         args.push(("openAccessPdf", Arg::Text("")));
     }
-    leg.call(&SEARCH, Input::Params(&args), Read::json())
-        .map(|received| received.value)
+    leg.call(
+        &SEARCH,
+        Input::Params(&args),
+        Read::json().filter_body(&|body| crate::article_rights::semantic::filter(leg, body, None)),
+    )
+    .map(|received| received.value)
 }
 impl Paper {
     /// Map identifiers and source metadata without joining another provider.
@@ -241,6 +245,8 @@ impl Paper {
             author_count: self.authors.as_ref().map_or(0, |a| a.len() as u32),
         });
         ArticleItem {
+            text_withheld: None,
+            context_license: None,
             key,
             pmid,
             header,

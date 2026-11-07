@@ -22,6 +22,10 @@ pub(super) fn fold(
             {
                 if existing.sentence.is_none() {
                     existing.sentence = row.sentence.clone();
+                    // The reason, and whether the pool is whole, travel with the text.
+                    if existing.text_withheld.is_none() {
+                        existing.text_withheld = row.text_withheld.clone();
+                    }
                 }
                 if disclose {
                     existing.found_by.entry(*source).or_insert(native_rank);

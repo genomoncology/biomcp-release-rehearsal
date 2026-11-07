@@ -163,6 +163,8 @@ fn pubmed_search<'a>(
             ids.ids
                 .into_iter()
                 .map(|id| ArticleItem {
+                    text_withheld: None,
+                    context_license: None,
                     key: Some(ArticleKey::Pubmed(id)),
                     pmid: Some(id),
                     header: None,
@@ -303,6 +305,8 @@ fn litvar_search((leg, selected): PreparedLitvar<'_>) -> ResultLeg {
             outcome.retrieved_count = Some(ids.len() as u32);
             ids.into_iter()
                 .map(|id| ArticleItem {
+                    text_withheld: None,
+                    context_license: None,
                     key: Some(ArticleKey::Pubmed(id)),
                     pmid: Some(id),
                     header: None,

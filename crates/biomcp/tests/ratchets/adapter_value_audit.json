@@ -2631,6 +2631,22 @@
       "class": "legitimate_absence",
       "owner": "variant",
       "reason": "This existing optional query projection keeps its established None or fallback path. The refactor preserves the owning caller and independently retained source outcome; no new source record is silently admitted."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/article_rights/policy.rs",
+      "site": "parse_pmid: - > Option < Pmid > { value . parse ( ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article_rights",
+      "reason": "An invalid optional PMID hint cannot establish a record license. Body text is withheld without dropping the paper; the source mapper still reports invalid native identity fields. Existing recorded reply and continuation rights cases cover the fail-closed policy."
+    },
+    {
+      "path": "crates/biomcp-adapters/src/article_rights/policy.rs",
+      "site": "read_url: > { biodata : : Text : : new ( value ) . ok ( )",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "article_rights",
+      "reason": "A rejected reading URL constructed from checked article identity leaves the existing text refusal intact. This optional destination cannot grant any text rights or discard the paper; the recorded rights cases verify refusal identities and reading links."
     }
   ],
   "fields": [

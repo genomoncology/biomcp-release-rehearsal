@@ -1,7 +1,40 @@
-use super::PaperSummary;
+//! Machine-written summaries retain their independent counts and source model.
 use crate::mapped::Problems;
+use crate::{native_text::NativeText, raw::Field};
+use biomcp_fetch::{BadReply, Reply};
 use biomcp_types::Tldr;
+use serde::Deserialize;
 
+/// Independent machine-written summary and source counts.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaperSummary {
+    // A successful HTTP status can still carry the provider's protocol error.
+    error: Option<serde::de::IgnoredAny>,
+    /// Null means the source has no summary.
+    tldr: Option<Field<Summary>>,
+    /// Independently reported citation count.
+    citation_count: Option<Field<u64>>,
+    /// Independently reported influential citation count.
+    influential_citation_count: Option<Field<u64>>,
+}
+/// Source summary and model identifier.
+#[derive(Debug, Deserialize)]
+struct Summary {
+    /// Complete source summary.
+    text: Option<Field<NativeText>>,
+    /// Source model version.
+    model: Option<Field<NativeText>>,
+}
+impl Reply for PaperSummary {
+    fn check(&self) -> Result<(), BadReply> {
+        if self.error.is_some() {
+            Err(BadReply)
+        } else {
+            Ok(())
+        }
+    }
+}
 impl PaperSummary {
     /// Preserve missing counts independently from an available summary.
     pub fn section(self, problems: &mut Vec<biomcp_types::Problem>) -> biomcp_types::Section<Tldr> {

@@ -141,9 +141,39 @@ pub(super) fn read<'a>(
             }
         }
     }
+    filter_stored_text(cx, store, id, &mut rows, out)?;
     finish(query, pool, rows, out);
     Ok(())
 }
+/// Recheck and rewrite retained article text before returning a stored page.
+fn filter_stored_text<'a>(
+    cx: &Ctx<'a>,
+    store: &mut Store<'a>,
+    id: &str,
+    rows: &mut [StoredItem],
+    out: &mut Outcome,
+) -> Result<(), RequestError> {
+    if cx.fetch.disabled_use(biomcp_types::Use::PerRecord) {
+        let leg = cx.fetch.leg(&pubmed::SPEC, store.deadline());
+        let started = leg.remaining();
+        let mut items: Vec<_> = rows.iter().map(|row| row.item.clone()).collect();
+        out.dropped |= biomcp_adapters::article_rights::items(&leg, &mut items);
+        let mut changed = Vec::new();
+        for (row, item) in rows.iter_mut().zip(items) {
+            // An unfinished lookup settles nothing, so its row stays as stored.
+            if row.item != item && !biomcp_adapters::article_rights::item_unchecked(&item) {
+                changed.push(item.clone());
+            }
+            row.item = item;
+        }
+        store.set_deadline(consume(store.deadline(), started, leg.remaining()));
+        if !changed.is_empty() {
+            store.rewrite_article_text(id, &changed)?;
+        }
+    }
+    Ok(())
+}
+
 fn finish(query: Cursor<'_>, pool: &Pool, rows: Vec<StoredItem>, out: &mut Outcome) {
     for source in rows.iter().filter_map(|r| r.outcome.as_ref()) {
         if let Some(original) = out.sources.iter_mut().find(|s| s.source == source.source) {

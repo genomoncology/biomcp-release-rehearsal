@@ -1,6 +1,7 @@
 # 0689 — Hosted replies carry no unlicensed LitSense text
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: cda30a40c0f41f67a6523b5b5d7f9b4038350d4b
 
 Milestone: 5
 

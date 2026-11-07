@@ -76,6 +76,9 @@ fn execute<'a>(
         }
         None => {
             let items = create(cx, query, deadline, out)?;
+            out.dropped |= items
+                .iter()
+                .any(biomcp_adapters::article_rights::item_unchecked);
             store.set_deadline(*deadline);
             match crate::publish::keep(
                 store

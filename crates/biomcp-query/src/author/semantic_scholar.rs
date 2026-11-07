@@ -64,8 +64,22 @@ fn execute(
             None,
         )
     };
-    let cached = saved.pages.iter().any(|p| p.offset == q.offset());
-    if !cached {
+    let has_page = saved.pages.iter().any(|p| p.offset == q.offset());
+    let mut filtered = false;
+    if cx.fetch.disabled_use(biomcp_types::Use::PerRecord) && has_page {
+        let body = serde_json::to_vec(&saved).map_err(|_| biomcp_fetch::CacheError::Encoding)?;
+        let leg = cx.fetch.leg(&biomcp_adapters::pubmed::SPEC, deadline);
+        let body_filtered = biomcp_adapters::article_rights::snapshot(&leg, &body)
+            .map_err(|_| biomcp_fetch::CacheError::Encoding)?;
+        filtered = serde_json::from_slice::<serde_json::Value>(&body)
+            .map_err(|_| biomcp_fetch::CacheError::Encoding)?
+            != serde_json::from_slice::<serde_json::Value>(&body_filtered)
+                .map_err(|_| biomcp_fetch::CacheError::Encoding)?;
+        saved = serde_json::from_slice(&body_filtered)
+            .map_err(|_| biomcp_fetch::CacheError::Encoding)?;
+    }
+    let cached = has_page && !filtered;
+    if !has_page {
         let leg = cx
             .fetch
             .leg(&semantic_scholar::SPEC, deadline)
@@ -102,7 +116,7 @@ fn execute(
 fn present(
     q: &AuthorPapersQuery,
     out: &mut Outcome,
-    saved: super::NativePages<author::PapersPage>,
+    mut saved: super::NativePages<author::PapersPage>,
     pool: Option<crate::store::Pool>,
 ) -> Result<(), RequestError> {
     let page = saved
@@ -115,7 +129,14 @@ fn present(
     let items: Box<[_]> = page
         .data
         .into_iter()
-        .map(|r| r.detail(&mut out.problems))
+        .map(|r| {
+            if let Some(notice) = r.withholding_notice()
+                && !saved.source.notices.contains(&notice)
+            {
+                saved.source.notices.push(notice);
+            }
+            r.detail(&mut out.problems)
+        })
         .collect::<Result<_, _>>()
         .map_err(|_| SourceError {
             source: Source::SemanticScholar,

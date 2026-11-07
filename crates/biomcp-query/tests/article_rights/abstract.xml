@@ -1,0 +1,12 @@
+<PubmedArticleSet>
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID>1002</PMID>
+      <Article>
+        <ArticleTitle>Second paper</ArticleTitle>
+        <Abstract><AbstractText>noncommercial abstract witness</AbstractText></Abstract>
+      </Article>
+    </MedlineCitation>
+    <PubmedData><ArticleIdList><ArticleId IdType="pmc">PMC1002</ArticleId></ArticleIdList></PubmedData>
+  </PubmedArticle>
+</PubmedArticleSet>

@@ -45,6 +45,7 @@ const LAYERS: &[(&str, &[&str])] = &[
             "biomcp-types",
             "biomcp-fetch",
             "serde",
+            "serde_json", // Redact native article text before transport persists it.
             "serde_ignored",
             "quick-xml",
             "thiserror",

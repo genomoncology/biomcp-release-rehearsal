@@ -26,6 +26,7 @@ pub fn download(cx: &Ctx<'_>, query: &ArticleText, allow: bool) -> super::save::
     let mut deadline = command.deadline();
     let mut out = crate::status::ready(
         (ArticleTextResult {
+            text_withheld: None,
             pmcid: None,
             content: Section::NotApplicable,
         })
@@ -141,6 +142,18 @@ fn execute<'a>(
         crate::status::item(out, true, false, true);
     }
     out.sources.push(source);
+    if matches!(result, Err(RequestError::Source(error)) if error.reason == Reason::Disabled) {
+        out.body = (ArticleTextResult {
+            text_withheld: Some(biomcp_adapters::article_rights::text_withheld(
+                &ArticleInput::Pmcid(id),
+            )),
+            pmcid: Some(id),
+            content: Section::unavailable(Source::PmcOa, Reason::Disabled),
+        })
+        .with_query(query.clone());
+        crate::status::item(out, true, false, false);
+        return Ok(());
+    }
     let content = match result? {
         None => Section::unavailable(Source::PmcOa, Reason::NotOpen),
         Some(document) => {
@@ -163,7 +176,21 @@ fn execute<'a>(
             }
         }
     };
+    let text_withheld = (cx.fetch.disabled_use(biomcp_types::Use::PerRecord)
+        && matches!(
+            content,
+            Section::Unavailable {
+                reason: Reason::NotOpen,
+                ..
+            }
+        ))
+    .then(|| biomcp_types::WithheldArticleText {
+        reason: Reason::NotOpen,
+        url: biomcp_adapters::article_rights::text_withheld(&biomcp_types::ArticleInput::Pmcid(id))
+            .url,
+    });
     out.body = (ArticleTextResult {
+        text_withheld,
         pmcid: Some(id),
         content,
     })
@@ -373,11 +400,24 @@ fn preprint<'a>(
         crate::status::item(out, true, false, true);
     }
     out.sources.push(source);
+    if matches!(result, Err(RequestError::Source(error)) if error.reason == Reason::Disabled) {
+        out.body = (ArticleTextResult {
+            text_withheld: Some(biomcp_adapters::article_rights::text_withheld(
+                query.input(),
+            )),
+            pmcid: None,
+            content: Section::unavailable(Source::EuropePmc, Reason::Disabled),
+        })
+        .with_query(query.clone());
+        crate::status::item(out, true, false, false);
+        return Ok(());
+    }
     let mapped = result?;
     out.include_refusals(mapped.refusals);
     out.problems.extend(mapped.problems);
     let Some(document) = mapped.value else {
         out.body = (ArticleTextResult {
+            text_withheld: None,
             pmcid: None,
             content: Section::unavailable(Source::EuropePmc, Reason::NotOpen),
         })
@@ -396,6 +436,7 @@ fn preprint<'a>(
         return Ok(());
     };
     out.body = (ArticleTextResult {
+        text_withheld: None,
         pmcid: None,
         content: Section::Data {
             source: Source::EuropePmc,

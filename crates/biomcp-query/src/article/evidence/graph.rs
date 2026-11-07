@@ -171,6 +171,8 @@ fn retain(snapshot: &mut Snapshot, edge: semantic_scholar::Edge) -> Result<(), R
     snapshot.graph = Section::Data {
         source: Source::SemanticScholar,
         data: CitationContexts {
+            license: edge.context_license,
+            text_withheld: edge.text_withheld,
             contexts: Capped {
                 total: contexts.len() as u64,
                 items: contexts.into(),
@@ -188,12 +190,15 @@ fn finish(snapshot: &mut Snapshot) {
     if let Section::Data { data, .. } = &mut snapshot.graph {
         data.complete = snapshot.terminal;
         data.source_cursor = snapshot.cursor;
-        data.notice = (snapshot.terminal && data.contexts.items.is_empty())
-            .then_some(EvidenceNotice::NoContexts);
+        data.notice =
+            (snapshot.terminal && data.contexts.items.is_empty() && data.text_withheld.is_none())
+                .then_some(EvidenceNotice::NoContexts);
     } else if snapshot.terminal {
         snapshot.graph = Section::Data {
             source: Source::SemanticScholar,
             data: CitationContexts {
+                license: None,
+                text_withheld: None,
                 contexts: Capped {
                     total: 0,
                     items: Box::default(),
@@ -212,6 +217,8 @@ fn finish(snapshot: &mut Snapshot) {
         snapshot.graph = Section::Data {
             source: Source::SemanticScholar,
             data: CitationContexts {
+                license: None,
+                text_withheld: None,
                 contexts: Capped {
                     total: 0,
                     items: Box::default(),

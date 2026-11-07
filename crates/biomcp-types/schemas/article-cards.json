@@ -207,6 +207,17 @@
           "$ref": "#/$defs/Reply_Pmid",
           "description": "PubMed identity."
         },
+        "text_withheld": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_WithheldArticleText"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Text withheld because the record's terms do not permit this use."
+        },
         "title": {
           "$ref": "#/$defs/Reply_Text",
           "description": "Whole title with inline text preserved."
@@ -2641,6 +2652,30 @@
         "per-record"
       ],
       "type": "string"
+    },
+    "Reply_WithheldArticleText": {
+      "description": "Why article text was withheld, with a public reading destination.",
+      "properties": {
+        "reason": {
+          "$ref": "#/$defs/Reply_Reason",
+          "description": "`disabled` when the use policy refuses the record's text; `unavailable`\nwhen its license could not be checked, so body text was left out."
+        },
+        "url": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Public record where the caller can read the paper."
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "type": "object"
     }
   },
   "$id": "biomcp.article-cards/9",

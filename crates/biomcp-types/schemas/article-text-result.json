@@ -108,6 +108,17 @@
             }
           ],
           "description": "Requested PMC record when known."
+        },
+        "text_withheld": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_WithheldArticleText"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Explain a withheld body and provide the public reading destination."
         }
       },
       "required": [
@@ -1087,6 +1098,30 @@
         "per-record"
       ],
       "type": "string"
+    },
+    "Reply_WithheldArticleText": {
+      "description": "Why article text was withheld, with a public reading destination.",
+      "properties": {
+        "reason": {
+          "$ref": "#/$defs/Reply_Reason",
+          "description": "`disabled` when the use policy refuses the record's text; `unavailable`\nwhen its license could not be checked, so body text was left out."
+        },
+        "url": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Public record where the caller can read the paper."
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "type": "object"
     }
   },
   "$id": "biomcp.article-text/7",

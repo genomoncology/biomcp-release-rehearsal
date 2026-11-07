@@ -117,7 +117,8 @@ pub fn recommendations(
             .call(
                 &GET.clone().with_segments(&[segment]),
                 biomcp_fetch::Input::Params(&args),
-                Read::json(),
+                Read::json()
+                    .filter_body(&|body| crate::article_rights::semantic::filter(leg, body, None)),
             )
             .map(|received| received.value);
     }
@@ -131,6 +132,10 @@ pub fn recommendations(
         positive_paper_ids: seeds.iter().map(paper_id).collect::<Result<_, _>>()?,
         negative_paper_ids: negative.iter().map(paper_id).collect::<Result<_, _>>()?,
     };
-    leg.call(&POST, biomcp_fetch::Input::json(&args, &body), Read::json())
-        .map(|received| received.value)
+    leg.call(
+        &POST,
+        biomcp_fetch::Input::json(&args, &body),
+        Read::json().filter_body(&|body| crate::article_rights::semantic::filter(leg, body, None)),
+    )
+    .map(|received| received.value)
 }

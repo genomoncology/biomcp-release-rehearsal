@@ -1,0 +1,5 @@
+[
+  {"pmid": 1001, "section": "ABSTRACT", "text": "permitted abstract sentence"},
+  {"pmid": 1002, "section": "TITLE", "text": "noncommercial title sentence"},
+  {"pmid": 1003, "section": "ABSTRACT", "text": "unknown abstract sentence"}
+]

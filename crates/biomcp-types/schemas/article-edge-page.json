@@ -190,6 +190,17 @@
             "null"
           ]
         },
+        "context_license": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_License"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Record-owned license of the citing paper that supplied context text."
+        },
         "contexts": {
           "anyOf": [
             {
@@ -283,6 +294,17 @@
             }
           ],
           "description": "First matching sentence in LitSense2 provider order."
+        },
+        "text_withheld": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_WithheldArticleText"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Record-owned text was not admitted under the current use policy."
         }
       },
       "type": "object"
@@ -381,6 +403,17 @@
     "Reply_ArticleSentence": {
       "description": "Source-provided sentence resemblance, without a claim of clinical relevance.",
       "properties": {
+        "license": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_License"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Explicit record-owned license, when independently resolved."
+        },
         "section": {
           "anyOf": [
             {
@@ -473,6 +506,34 @@
       "description": "Europe PMC source prefix followed by its positive numeric local identifier.",
       "pattern": "^(?=.{1,64}$)[A-Z]{1,8}[0-9]*[1-9][0-9]*$",
       "type": "string"
+    },
+    "Reply_License": {
+      "description": "License reported by the bucket metadata record.",
+      "type": "string",
+      "x-enum-descriptions": [
+        " Creative Commons Attribution.",
+        " Creative Commons Attribution NonCommercial.",
+        " Creative Commons Attribution ShareAlike.",
+        " Creative Commons Attribution NonCommercial ShareAlike.",
+        " Creative Commons Attribution NoDerivatives.",
+        " Creative Commons Attribution NonCommercial NoDerivatives.",
+        " Creative Commons public-domain dedication.",
+        " Public domain.",
+        " Text and data mining manuscript terms.",
+        " The bucket reports another license."
+      ],
+      "x-extensible-enum": [
+        "cc_by",
+        "cc_by_nc",
+        "cc_by_sa",
+        "cc_by_nc_sa",
+        "cc_by_nd",
+        "cc_by_nc_nd",
+        "cc0",
+        "public_domain",
+        "tdm",
+        "other"
+      ]
     },
     "Reply_PageInfo": {
       "description": "Search counts after filtering and deduplication.",
@@ -1182,6 +1243,30 @@
         "per-record"
       ],
       "type": "string"
+    },
+    "Reply_WithheldArticleText": {
+      "description": "Why article text was withheld, with a public reading destination.",
+      "properties": {
+        "reason": {
+          "$ref": "#/$defs/Reply_Reason",
+          "description": "`disabled` when the use policy refuses the record's text; `unavailable`\nwhen its license could not be checked, so body text was left out."
+        },
+        "url": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Public record where the caller can read the paper."
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "type": "object"
     }
   },
   "$id": "biomcp.article-edges/10",

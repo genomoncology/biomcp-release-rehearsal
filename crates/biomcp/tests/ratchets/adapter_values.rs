@@ -64,7 +64,7 @@ pub(crate) fn validate(text: &str) -> Result<Audit, Box<dyn std::error::Error>> 
                 entry.class.as_str(),
                 "migrated" | "identity_refusal" | "legitimate_absence" | "pending_audit"
             )
-            || !initial_entry(entry)
+            || !(initial_entry(entry) || reviewed_absence(entry))
         {
             return Err(format!(
                 "{}: new or invalid pending entry: {}",
@@ -74,6 +74,18 @@ pub(crate) fn validate(text: &str) -> Result<Audit, Box<dyn std::error::Error>> 
         }
     }
     Ok(audit)
+}
+// These two reviewed policy absences are not additions to the frozen migration debt.
+// Their errors cannot grant text rights or discard the paper/refusal.
+fn reviewed_absence(entry: &Site) -> bool {
+    entry.class == "legitimate_absence"
+        && entry.maximum == 1
+        && entry.path == "crates/biomcp-adapters/src/article_rights/policy.rs"
+        && matches!(
+            entry.site.as_str(),
+            "parse_pmid: - > Option < Pmid > { value . parse ( ) . ok ( )"
+                | "read_url: > { biodata : : Text : : new ( value ) . ok ( )"
+        )
 }
 fn initial_entry(entry: &Site) -> bool {
     let identity = format!("{}\n{}", entry.path, entry.site);

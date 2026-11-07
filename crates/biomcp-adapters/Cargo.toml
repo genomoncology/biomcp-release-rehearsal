@@ -13,6 +13,7 @@ biodata = { workspace = true }
 biomcp-fetch = { workspace = true }
 serde.workspace = true
 serde_ignored.workspace = true
+serde_json.workspace = true
 quick-xml.workspace = true
 calamine.workspace = true
 csv.workspace = true
@@ -23,7 +24,6 @@ biomcp-test-support.workspace = true
 sha2.workspace = true
 rustls.workspace = true
 libtest-mimic.workspace = true
-serde_json.workspace = true
 tempfile.workspace = true
 
 [lints]

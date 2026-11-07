@@ -150,7 +150,7 @@ impl Leg<'_> {
         entry.fetched_at = acquired;
         entry.content_range = range;
         entry.pagination = pagination;
-        if (200..300).contains(&status) && codec.cacheable(&reply) {
+        if (200..300).contains(&status) && codec.cacheable(&reply) && !self.license_unchecked() {
             self.cache_result(cache.write(
                 &prepared.identity,
                 self.spec.source,
@@ -221,10 +221,11 @@ impl Leg<'_> {
             }
             Err(error) => return Err(error.into()),
         };
-        let Some(entry) = entry else {
+        let Some(mut entry) = entry else {
             return Ok(None);
         };
         self.contain_response(prepared, &entry, &entry.body, entry.status)?;
+        self.filter_cached(cache, prepared, codec, &mut entry)?;
         let fresh = entry.fresh_until > now();
         if entry.status == 404 {
             if fresh {
@@ -287,5 +288,38 @@ impl Leg<'_> {
                 .and_then(crate::ContentRange::parse),
             entry.pagination,
         )))
+    }
+    /// Sanitize a checked positive entry before either reuse or a persistent rewrite.
+    fn filter_cached<T: Reply>(
+        &self,
+        cache: &Cache,
+        prepared: &crate::prepared::Prepared,
+        codec: &Read<T>,
+        entry: &mut Entry,
+    ) -> Result<(), RequestError> {
+        if (200..300).contains(&entry.status) {
+            let filtered = codec
+                .filtered_body(&entry.body)
+                .map_err(|_| self.failure(Reason::BadReply, Some(entry.status)))?;
+            if filtered.len() as u64 > codec.limit.unwrap_or(self.fetch.config.max_body) {
+                return Err(self
+                    .failure(codec.overflow_reason, Some(entry.status))
+                    .into());
+            }
+            if filtered.as_ref() != entry.body.as_slice() {
+                entry.body = filtered.into_owned();
+                // Text filtered on an unfinished lookup serves this read only.
+                if !self.license_unchecked() {
+                    cache.write(
+                        &prepared.identity,
+                        self.spec.source,
+                        &prepared.url,
+                        entry,
+                        self.budget(),
+                    )?;
+                }
+            }
+        }
+        Ok(())
     }
 }

@@ -17,6 +17,8 @@ pub struct Paper {
     #[serde(with = "crate::mapped::refusal_serde")]
     pub refusals: crate::Refusal,
     detail: AuthorPaperDetail,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text_withheld: Option<biomcp_types::WithheldArticleText>,
     problems: Vec<biomcp_types::Problem>,
 }
 // Accept the previous native snapshot shape as well as the mapped shape. No
@@ -31,6 +33,7 @@ enum Input {
         )]
         refusals: crate::Refusal,
         detail: AuthorPaperDetail,
+        text_withheld: Option<biomcp_types::WithheldArticleText>,
         problems: Vec<biomcp_types::Problem>,
     },
     Native(Raw),
@@ -45,6 +48,8 @@ struct Raw {
     venue: Option<Field<String>>,
     #[serde(rename = "abstract")]
     abstract_text: Option<Field<NativeText>>,
+    #[serde(rename = "biomcpAbstractWithheld")]
+    text_withheld: Option<biomcp_types::WithheldArticleText>,
     publication_date: Option<Field<PartialDate>>,
     reference_count: Option<Field<u64>>,
     citation_count: Option<Field<u64>>,
@@ -100,10 +105,12 @@ impl From<Input> for Paper {
         match input {
             Input::Cached {
                 detail,
+                text_withheld,
                 problems,
                 refusals,
             } => Self {
                 detail,
+                text_withheld,
                 problems,
                 refusals,
             },
@@ -220,11 +227,26 @@ impl Raw {
         Paper {
             refusals,
             detail,
+            text_withheld: self.text_withheld,
             problems: p.list,
         }
     }
 }
 impl Paper {
+    /// Report a retained abstract refusal without changing the pinned detail type.
+    pub fn withholding_notice(&self) -> Option<biomcp_types::SourceNotice> {
+        let notice = self.text_withheld.as_ref()?;
+        let id = &self.detail.header.paper_id;
+        let url = notice
+            .url
+            .as_ref()
+            .map(ToString::to_string)
+            .unwrap_or_else(|| format!("https://www.semanticscholar.org/paper/{id}"));
+        Some(biomcp_types::SourceNotice::RequestGuidance {
+            message: format!("Abstract withheld for paper {id}: its record license does not permit this use. Read it at {url}.").into(),
+            retry_after_seconds: None,
+        })
+    }
     /// Return source metadata and its retained problems without repeating admission.
     pub fn detail(
         self,

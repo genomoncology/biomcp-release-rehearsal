@@ -34,6 +34,9 @@ macro_rules! article {
     };
 }
 article! {
+    /// Text withheld because the record's terms do not permit this use.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text_withheld: Option<crate::WithheldArticleText>,
     /// Europe PMC identity when this card comes from its core record.
     #[serde(default, deserialize_with = "present", skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(with = "EuropePmcId"))]
@@ -79,6 +82,7 @@ impl Article {
     /// Disclose the first ten authors and retain the whole count.
     pub fn card(self) -> Article<Capped<Text>> {
         Article {
+            text_withheld: self.text_withheld,
             europepmc_id: self.europepmc_id,
             pmid: self.pmid,
             doi: self.doi,

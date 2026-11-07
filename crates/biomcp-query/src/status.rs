@@ -269,6 +269,11 @@ pub(crate) fn source(
             _ => None,
         }),
     ));
+    if report.license_unchecked {
+        outcome
+            .notices
+            .push(biomcp_adapters::article_rights::unchecked_notice());
+    }
     outcome
         .notices
         .extend(report.cache_problems.into_iter().map(|error| {

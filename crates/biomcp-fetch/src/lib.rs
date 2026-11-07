@@ -458,8 +458,40 @@ pub struct LegReport {
     pub failures: Vec<SourceError>,
     /// Cache failures that did not invalidate the checked provider answer.
     pub cache_problems: Vec<CacheError>,
+    /// A license lookup did not settle every paper, so this leg stored no reply.
+    pub license_unchecked: bool,
 }
 impl Leg<'_> {
+    /// Keep this leg's replies out of the cache: text filtered on an unfinished
+    /// license lookup is not the source's answer and cannot recover once stored.
+    pub fn note_license_unchecked(&self) {
+        self.report
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .license_unchecked = true;
+    }
+    pub(crate) fn license_unchecked(&self) -> bool {
+        self.report
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .license_unchecked
+    }
+    /// Run a metadata dependency within the remaining request budget.
+    /// Charge its independent replay clock back to the calling source leg.
+    pub fn dependency<T>(
+        &self,
+        spec: &'static SourceSpec,
+        cap: Duration,
+        operation: impl FnOnce(&Leg<'_>) -> T,
+    ) -> T {
+        let mut leg = self.fetch.leg(spec, self.deadline);
+        leg.deadline = leg.deadline.child(self.remaining().min(cap));
+        let started = leg.remaining();
+        let result = operation(&leg);
+        self.budget()
+            .advance(started.saturating_sub(leg.remaining()));
+        result
+    }
     /// Inspect the same source policy without opening another transport leg.
     pub fn disabled_source(&self, source: biomcp_types::Source) -> bool {
         self.fetch.disabled(source)

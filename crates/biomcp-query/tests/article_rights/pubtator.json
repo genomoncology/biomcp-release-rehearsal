@@ -1,0 +1,47 @@
+{
+  "PubTator3": [
+    {
+      "id": "1001",
+      "passages": [
+        {
+          "infons": {
+            "type": "body"
+          },
+          "text": "permitted passage witness",
+          "annotations": []
+        }
+      ]
+    },
+    {
+      "id": "1002",
+      "passages": [
+        {
+          "infons": {
+            "type": "abstract"
+          },
+          "text": "noncommercial passage witness",
+          "annotations": []
+        }
+      ]
+    },
+    {
+      "id": "1003",
+      "passages": [
+        {
+          "infons": {
+            "type": "body"
+          },
+          "text": "unknown passage witness",
+          "annotations": []
+        },
+        {
+          "infons": {
+            "type": "abstract"
+          },
+          "text": "unknown abstract passage retained",
+          "annotations": []
+        }
+      ]
+    }
+  ]
+}

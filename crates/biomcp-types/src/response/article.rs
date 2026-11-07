@@ -25,6 +25,17 @@ pub enum ArticleKey {
     /// Semantic Scholar local identity when no indexed identifier exists.
     SemanticScholar(crate::SemanticScholarId),
 }
+/// Why article text was withheld, with a public reading destination.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct WithheldArticleText {
+    /// `disabled` when the use policy refuses the record's text; `unavailable`
+    /// when its license could not be checked, so body text was left out.
+    pub reason: crate::Reason,
+    /// Public record where the caller can read the paper.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<crate::Text>,
+}
 /// One original pool position, including a summary hole.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -43,6 +54,9 @@ pub struct ArticleItem {
     /// iCite citing-paper count, only under citation ordering.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cited_by: Option<u64>,
+    /// Record-owned text was not admitted under the current use policy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text_withheld: Option<WithheldArticleText>,
     /// First matching sentence in LitSense2 provider order.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sentence: Option<ArticleSentence>,
@@ -52,6 +66,9 @@ pub struct ArticleItem {
     /// Provider's influential flag; absent is distinct from false.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub influential: Option<bool>,
+    /// Record-owned license of the citing paper that supplied context text.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub context_license: Option<biodata::License>,
     /// First citation context and the source's complete context count.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub contexts: Option<crate::Capped<crate::Text>>,
@@ -131,6 +148,9 @@ pub use evidence::{
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ArticleSentence {
+    /// Explicit record-owned license, when independently resolved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub license: Option<biodata::License>,
     /// Source section, when present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub section: Option<crate::Text>,

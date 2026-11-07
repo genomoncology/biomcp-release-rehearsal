@@ -1,7 +1,6 @@
 //! Bounded paper sections and native citation graph windows.
 use crate::{
     mapped::{Problems, record},
-    native_text::NativeText,
     raw::Field,
 };
 use biodata::Text;
@@ -11,36 +10,7 @@ use biomcp_types::Capped;
 use serde::Deserialize;
 mod summary;
 const PAPER: Endpoint = super::SPEC.get("/paper").fresh(Freshness::Days(1));
-/// Independent machine-written summary and source counts.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PaperSummary {
-    // A successful HTTP status can still carry the provider's protocol error.
-    error: Option<serde::de::IgnoredAny>,
-    /// Null means the source has no summary.
-    tldr: Option<Field<Summary>>,
-    /// Independently reported citation count.
-    citation_count: Option<Field<u64>>,
-    /// Independently reported influential citation count.
-    influential_citation_count: Option<Field<u64>>,
-}
-/// Source summary and model identifier.
-#[derive(Debug, Deserialize)]
-struct Summary {
-    /// Complete source summary.
-    text: Option<Field<NativeText>>,
-    /// Source model version.
-    model: Option<Field<NativeText>>,
-}
-impl Reply for PaperSummary {
-    fn check(&self) -> Result<(), BadReply> {
-        if self.error.is_some() {
-            Err(BadReply)
-        } else {
-            Ok(())
-        }
-    }
-}
+pub use summary::PaperSummary;
 /// Bind a checked article identity to the shared graph source without accepting a free URL.
 pub fn paper_endpoint(input: &ArticleInput) -> Result<Endpoint, RequestError> {
     let value = super::paper_id(input)?;
@@ -87,6 +57,10 @@ pub struct Edge {
     pub is_influential: Option<bool>,
     /// Missing is distinct from a reported empty list.
     pub contexts: Option<Vec<String>>,
+    /// Independently resolved license of the citing paper.
+    pub context_license: Option<biodata::License>,
+    /// Text was removed while retaining the paper and edge metadata.
+    pub text_withheld: Option<biomcp_types::WithheldArticleText>,
     /// Rejected edge metadata retained with its paper.
     pub problems: Vec<biomcp_types::Problem>,
 }
@@ -98,6 +72,10 @@ struct RawEdge {
     intents: Option<Field<Vec<Field<biomcp_types::CitationIntent>>>>,
     is_influential: Option<Field<bool>>,
     contexts: Option<Field<Vec<Field<String>>>>,
+    #[serde(rename = "biomcpContextLicense")]
+    context_license: Option<biodata::License>,
+    #[serde(rename = "biomcpTextWithheld")]
+    text_withheld: Option<biomcp_types::WithheldArticleText>,
 }
 impl From<RawEdge> for Edge {
     fn from(raw: RawEdge) -> Self {
@@ -131,6 +109,8 @@ impl From<RawEdge> for Edge {
             intents,
             is_influential,
             contexts,
+            context_license: raw.context_license,
+            text_withheld: raw.text_withheld,
             problems: p.list,
         }
     }
@@ -194,6 +174,14 @@ impl Edge {
         .item(problems);
         item.intents = self.intents;
         item.influential = self.is_influential;
+        item.context_license = self.context_license;
+        item.text_withheld = self.text_withheld.map(|notice| {
+            if notice.url.is_some() {
+                notice
+            } else {
+                crate::article_rights::withheld_item(&item)
+            }
+        });
         item.contexts = self
             .contexts
             .map(|contexts| {
@@ -247,7 +235,13 @@ pub fn edges(
         .call(
             &endpoint,
             biomcp_fetch::Input::Params(&args),
-            biomcp_fetch::Read::<RawEdges>::json(),
+            biomcp_fetch::Read::<RawEdges>::json().filter_body(&|body| {
+                let parent = match input {
+                    ArticleInput::Pmid(id) => Some(*id),
+                    _ => None,
+                };
+                crate::article_rights::semantic::filter(leg, body, parent)
+            }),
         )?
         .value;
     let data = raw.data.ok_or(biomcp_fetch::SourceError {
@@ -266,7 +260,10 @@ pub fn edges(
     let data = data
         .into_iter()
         .filter_map(|v| {
-            let row = p.record("paper_id", v, &mut refusals)?;
+            let mut row = p.record("paper_id", v, &mut refusals)?;
+            if references && let Some(notice) = &mut row.text_withheld {
+                notice.url = crate::article_rights::text_withheld(input).url;
+            }
             refusals.include(row.refusals);
             Some(row)
         })
