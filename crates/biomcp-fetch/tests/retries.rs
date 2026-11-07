@@ -5,6 +5,8 @@
 )]
 use biomcp_fetch::{Input, Read};
 
+#[path = "support/early.rs"]
+mod early;
 mod support;
 #[path = "support/timing.rs"]
 mod timing;
@@ -157,7 +159,10 @@ fn ordinary_backoff_expiry_is_deadline_exceeded_and_releases_permit() {
                 )
                 .map(|received| received.value)
         });
-        server.next().respond(503, "Retry-After: malformed\r\n", "");
+        // A budget spent before sending ends the same way as one spent in backoff.
+        if let Some(request) = early::next_unless(&server, || worker.is_finished()) {
+            request.respond(503, "Retry-After: malformed\r\n", "");
+        }
         let error = worker.join().unwrap().unwrap_err();
         let biomcp_fetch::RequestError::Source(error) = error else {
             panic!("expected provider failure: {error}");

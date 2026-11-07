@@ -1,6 +1,7 @@
 # 0670 — Moderate-risk timing tests start their budgets after setup
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: bf5f97838c6f235da8fb3a2665494510654c830e
 
 Milestone: 5
 

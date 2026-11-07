@@ -164,6 +164,29 @@ fn oversized_provider_length_does_not_poison_the_next_sync() {
     }
 }
 
+fn holds_file_of(folder: &std::path::Path, bytes: u64) -> bool {
+    std::fs::read_dir(folder).unwrap().any(|entry| {
+        let entry = entry.unwrap();
+        let metadata = entry.metadata().unwrap();
+        if metadata.is_dir() {
+            holds_file_of(&entry.path(), bytes)
+        } else {
+            entry.file_name().to_string_lossy().starts_with(".tmp") && metadata.len() == bytes
+        }
+    })
+}
+
+fn wait_for_file_of(folder: &std::path::Path, bytes: u64) {
+    let started = std::time::Instant::now();
+    while !holds_file_of(folder, bytes) {
+        assert!(
+            started.elapsed() < Duration::from_secs(30),
+            "no {bytes}-byte transfer file"
+        );
+        std::thread::sleep(Duration::from_millis(5));
+    }
+}
+
 #[test]
 fn a_stalled_body_keeps_its_partial_bytes_and_resumes_within_a_new_budget() {
     let server = support::Server::new();
@@ -172,13 +195,13 @@ fn a_stalled_body_keeps_its_partial_bytes_and_resumes_within_a_new_budget() {
     let path = dir.path().join("cache.sqlite");
     let f = Fetch::open(FetchConfig {
         cache: Some(path.clone()),
-        sync_budget: Duration::from_secs(1),
         ..Default::default()
     })
     .unwrap();
+    let (stalled, cancel) = f.cancellable().unwrap();
     let cut = TSV.len() / 2;
     std::thread::scope(|scope| {
-        let call = scope.spawn(|| f.sync(&b));
+        let call = scope.spawn(|| stalled.sync(&b));
         let request = server.next();
         let (release, wait) = std::sync::mpsc::channel();
         request
@@ -193,6 +216,9 @@ fn a_stalled_body_keeps_its_partial_bytes_and_resumes_within_a_new_budget() {
                 continuation: Some(wait),
             })
             .unwrap();
+        // End the first budget only once the stalled half is on disk.
+        wait_for_file_of(dir.path(), cut as u64);
+        cancel.cancel();
         assert!(
             matches!(call.join().unwrap(),Err(biomcp_fetch::RequestError::Source(e)) if e.reason==biomcp_types::Reason::Syncing)
         );

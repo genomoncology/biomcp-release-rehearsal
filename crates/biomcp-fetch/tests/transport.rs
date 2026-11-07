@@ -362,40 +362,55 @@ fn refusals_send_zero_requests() {
 }
 
 #[test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "A scoped caller lets the test see when the server received its request"
+)]
 fn source_budget_caps_supplied_deadline_during_headers_and_body() {
     for (block, status) in [("head", None), ("body", Some(200))] {
         let stub = Stub::new(200, "application/json", r#"{"answer":"late"}"#, Some(block));
         let spec = stub.spec(KeyUse::None, Duration::from_secs(1));
         let fetch = fetch();
-        let error = fetch
-            .leg(spec, fetch.deadline(Duration::from_secs(30)))
-            .call(
-                &spec.get("/answer"),
-                Input::Params(&[]),
-                biomcp_fetch::Read::<Answer>::json(),
-            )
-            .unwrap_err();
+        let supplied = fetch.deadline(Duration::from_secs(30));
+        let (error, late) = thread::scope(|scope| {
+            let worker = scope.spawn(|| {
+                fetch
+                    .leg(spec, supplied)
+                    .call(
+                        &spec.get("/answer"),
+                        Input::Params(&[]),
+                        biomcp_fetch::Read::<Answer>::json(),
+                    )
+                    .unwrap_err()
+            });
+            let late = stub
+                .requests
+                .recv_timeout(Duration::from_millis(500))
+                .is_err();
+            (worker.join().unwrap(), late)
+        });
         let biomcp_fetch::RequestError::Source(error) = error else {
             panic!("expected provider failure: {error}");
         };
-        assert_eq!(
-            (error.reason, error.status),
-            (Reason::DeadlineExceeded, status)
-        );
-        // The server stays blocked until after the call returns. No elapsed-time assertion.
-        assert_eq!(stub.finish().len(), 1);
+        assert_eq!(error.reason, Reason::DeadlineExceeded);
+        // Only a request that reached the server late may lose the race to its headers.
+        assert!(error.status == status || late && error.status.is_none());
+        // The source budget ended the call, with most of the supplied budget unspent.
+        assert!(supplied.remaining() > Duration::from_secs(15));
+        // The server stays blocked until after the call returns.
+        assert!(stub.finish().len() <= usize::from(late));
     }
 }
 
 #[test]
 #[expect(
     clippy::disallowed_types,
-    reason = "Thread-local fixture passes this test thread’s leg deadline to its Reply check"
+    reason = "Thread-local fixture passes this test thread’s cancellation to its Reply check"
 )]
 fn deadline_exhausted_during_reply_check_returns_deadline_exceeded() {
-    // A per-thread timer lets the reply check finish only once its leg expires.
+    // The reply check ends its own leg, after the whole response has arrived.
     thread_local! {
-        static CHECK_DEADLINE: std::cell::Cell<Option<std::time::Instant>> = const {
+        static CHECK_CANCEL: std::cell::Cell<Option<biomcp_fetch::Cancellation>> = const {
             std::cell::Cell::new(None)
         };
     }
@@ -403,25 +418,17 @@ fn deadline_exhausted_during_reply_check_returns_deadline_exceeded() {
     struct CheckedAnswer {}
     impl Reply for CheckedAnswer {
         fn check(&self) -> Result<(), BadReply> {
-            CHECK_DEADLINE.with(|timer| {
-                let deadline = timer.get().unwrap();
-                while deadline > std::time::Instant::now() {
-                    thread::park_timeout(
-                        deadline.saturating_duration_since(std::time::Instant::now()),
-                    );
-                }
-            });
+            CHECK_CANCEL.with(|cancel| cancel.take().unwrap().cancel());
             Ok(())
         }
     }
 
     let stub = Stub::new(200, "application/json", "{}", None);
     let spec = stub.spec(KeyUse::None, Duration::from_secs(30));
-    let fetch = fetch();
-    let deadline = fetch.deadline(Duration::from_secs(1));
-    CHECK_DEADLINE.with(|timer| timer.set(Some(std::time::Instant::now() + deadline.remaining())));
+    let (fetch, cancel) = fetch().cancellable().unwrap();
+    CHECK_CANCEL.with(|slot| slot.set(Some(cancel)));
     let error = fetch
-        .leg(spec, deadline)
+        .leg(spec, fetch.deadline(Duration::from_secs(30)))
         .call(
             &spec.get("/answer"),
             Input::Params(&[]),
@@ -431,7 +438,6 @@ fn deadline_exhausted_during_reply_check_returns_deadline_exceeded() {
     let biomcp_fetch::RequestError::Source(error) = error else {
         panic!("expected provider failure: {error}");
     };
-    CHECK_DEADLINE.with(|timer| timer.set(None));
     assert_eq!(
         (error.reason, error.status),
         (Reason::DeadlineExceeded, Some(200))

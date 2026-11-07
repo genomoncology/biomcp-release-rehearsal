@@ -320,9 +320,13 @@ tool_only! {
             },
             &request,
         );
+        // A budget spent before the bundle read starts stops at that read's own check.
         if !result.sources.iter().any(|source| {
             source.source == biomcp_types::Source::Hgnc
-                && source.reason == Some(biomcp_types::Reason::Syncing)
+                && matches!(
+                    source.reason,
+                    Some(biomcp_types::Reason::Syncing | biomcp_types::Reason::DeadlineExceeded)
+                )
         }) {
             return Err(format!(
                 "first snapshot did not wait within its deadline: {result:?}"

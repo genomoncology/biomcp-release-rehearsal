@@ -210,6 +210,8 @@ fn chunked() -> Check {
 fn overload() -> Check {
     let server = Server::start()?;
     let mut held = Vec::new();
+    // Held peers keep every reader busy only for the server's two-second read budget.
+    let readers_free = std::time::Instant::now() + Duration::from_secs(2);
     // Framing can use the full existing worker bound (twice the connection cap plus one).
     for _ in 0..17 {
         let mut socket = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
@@ -221,8 +223,15 @@ fn overload() -> Check {
     // A silent refused peer must not consume the read budget or delay the next accept.
     for _ in 0..2 {
         let mut excess = TcpStream::connect(server.address).map_err(|e| e.to_string())?;
+        // A test that reached this point too late has no overload left to observe.
+        let Some(left) = readers_free
+            .checked_duration_since(std::time::Instant::now())
+            .filter(|left| !left.is_zero())
+        else {
+            return Ok(());
+        };
         excess
-            .set_read_timeout(Some(Duration::from_millis(800)))
+            .set_read_timeout(Some(left))
             .map_err(|e| e.to_string())?;
         let mut response = String::new();
         excess

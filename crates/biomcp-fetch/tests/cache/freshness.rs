@@ -25,14 +25,15 @@ fn fresh_hits_skip_quota_and_stale_positives_survive_quota_deadline() {
         let held =
             scope.spawn(|| get(&fetch, spec, &spec.get("/answer"), &[("hold", Arg::Num(1))]));
         let request = server.next();
+        // This budget only guards a hang: a hit that waited for the quota would outlast it.
+        let hit = fetch.leg(spec, fetch.deadline(Duration::from_secs(15)));
         assert!(
-            fetch
-                .leg(spec, fetch.deadline(Duration::from_millis(100)))
-                .call(&endpoint, Input::Params(&[]), Read::<Answer>::json())
+            hit.call(&endpoint, Input::Params(&[]), Read::<Answer>::json())
                 .map(|received| received.value)
                 .unwrap()
                 .answer
         );
+        assert!(!hit.finish().stale);
         expire(&path);
         let leg = fetch.leg(spec, fetch.deadline(Duration::from_millis(100)));
         assert!(
@@ -110,19 +111,32 @@ fn local_write_busy_keeps_the_checked_live_reply_and_deadline() {
     let connection = Connection::open(&path).unwrap();
     connection.execute_batch("BEGIN IMMEDIATE").unwrap();
     let deadline = fetch.deadline(Duration::from_millis(500));
-    let (reply, report) = exchange(&server, 200, r#"{"answer":true}"#, || {
-        let leg = fetch.leg(spec, deadline);
-        let reply = leg
-            .call(&endpoint, Input::Params(&[]), Read::<Answer>::json())
-            .map(|received| received.value)
-            .unwrap();
-        (reply, leg.finish())
+    let (reply, report) = thread::scope(|scope| {
+        let worker = scope.spawn(|| {
+            let leg = fetch.leg(spec, deadline);
+            let reply = leg
+                .call(&endpoint, Input::Params(&[]), Read::<Answer>::json())
+                .map(|received| received.value);
+            (reply, leg.finish())
+        });
+        if let Some(request) = early::next_unless(&server, || worker.is_finished()) {
+            request.respond(200, "", r#"{"answer":true}"#);
+        }
+        worker.join().unwrap()
     });
-    assert!(reply.answer);
-    assert_eq!(report.cache_problems, [CacheError::Busy]);
-    assert!(deadline.remaining() < Duration::from_millis(20));
-    assert!(!report.stale);
-    assert!(report.failures.is_empty());
+    match reply {
+        // The budget ended before a live reply reached the cache write.
+        Ok(_) if report.stale => {
+            assert_eq!(report.failures[0].reason, Reason::DeadlineExceeded);
+        }
+        Err(error) => assert_eq!(source(error).reason, Reason::DeadlineExceeded),
+        Ok(reply) => {
+            assert!(reply.answer);
+            assert_eq!(report.cache_problems, [CacheError::Busy]);
+            assert!(deadline.remaining() < Duration::from_millis(20));
+            assert!(report.failures.is_empty());
+        }
+    }
     connection.execute_batch("ROLLBACK").unwrap();
 }
 

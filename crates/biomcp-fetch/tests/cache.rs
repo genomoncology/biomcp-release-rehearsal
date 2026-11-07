@@ -11,6 +11,8 @@
 use biomcp_fetch::{Input, Read};
 #[path = "support/cache_process.rs"]
 mod cache_process;
+#[path = "support/early.rs"]
+mod early;
 mod support;
 use biomcp_fetch::{
     Arg, BadReply, CacheError, Credential, Endpoint, Fetch, FetchConfig, FetchError, Freshness,
