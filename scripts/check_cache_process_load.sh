@@ -14,7 +14,7 @@ container|retention)
         --platform linux/arm64 --memory "$memory" --cpus "$cores" \
         -v "$PWD:/source" -w /source -e HOME=/source/target/cache-process-load/home \
         -e CARGO_TARGET_DIR=/source/target/cache-process-load/build \
-        -e CARGO_BUILD_JOBS=2 -e RUST_TEST_THREADS=2 \
+        -e CARGO_BUILD_JOBS=2 -e RUST_TEST_THREADS=2 -e PM_JOB_CORES="$cores" \
         "$image" /bin/bash scripts/linux_fixture_cache.sh /source/target/fixture-evidence \
         /bin/bash scripts/check_cache_process_load.sh "$mode"
     ;;
@@ -32,7 +32,7 @@ checks)
     cargo fmt --all -- --check
     cargo test --locked -p biomcp-fetch --test cache --no-run --message-format=json > target/cache-process-load/build.json
     python3.13 scripts/test_linux_fixture_cache.py
-    python3.13 scripts/cache_process_load.py target/cache-process-load/build.json
+    python3.13 scripts/cache_process_load.py target/cache-process-load/build.json --only cache-process
     ;;
 *) exit 2 ;;
 esac

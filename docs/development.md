@@ -6,6 +6,8 @@ Run `make schema-release-check` to compare the generated schemas with the record
 
 A test that uses real time starts a short deadline only after the setup it is not testing has finished, such as a child starting or a connection opening, or makes the deadline end at a point the test controls. It accepts every valid result of the deadline ending earlier. A real-time limit the test expects to pass is at least 15 seconds or is a lower limit. A limit set from one earlier run has an absolute floor. See [the child-readiness fix (0667)](../release/test_mutations.py) and [the timing analysis](../sdlc/records/2026-11-05-timing-tests-under-load.md).
 
+`make stress` is the long suite for those tests: it repeats every real-time and multi-process check at 1.5 times the job's booked cores, offline, and the first failure ends the run and names the SQLite step. It runs at final release. A ticket that adds or changes such a test runs only that check, for example `make stress STRESS_ARGS="--only fetch/retries"`; `scripts/cache_process_load.py --list` shows the names. A failure is never retried: fix or delete the test, or fix the product.
+
 ## Compare replies while restructuring
 
 Set `BIOMCP_TRANSCRIPT_DIR` to an empty output directory when running the case runner. It records exact stdout bytes, exit codes, surfaces and arguments before assertions or JSON parsing. Without the variable, tests run normally. Keep transcript directories outside Git.

@@ -53,6 +53,11 @@ def main():
         (root / 'summary.json').write_text(json.dumps(record, indent=2) + '\n')
         print(json.dumps(record), flush=True)
         if not record['empty_cache_before_release'] or not databases or record['exits'] != [0] * 8:
+            for worker, status in enumerate(record['exits']):
+                if status:
+                    for stream in ('stdout', 'stderr'):
+                        text = (root / f'{worker:02}.{stream}').read_text(errors='replace')[:600]
+                        print(f'worker {worker} exit {status} {stream}: {text}', flush=True)
             failed = True
             break
     raise SystemExit(bool(failed))

@@ -13,21 +13,27 @@ use std::{
     time::{Duration, Instant},
 };
 const CALLS: usize = 300;
-const SYNCS: usize = 64;
+const SYNCS: usize = 8;
+// Publish a bundle the size of the real HGNC set, so each sync is a large cache write.
+const PUBLISH_ROWS: usize = 44_000;
+// Leave one connection for /health, so its samples never refuse a call.
+const CALL_WORKERS: usize = crate::config::DEFAULT_HTTP_CAPACITY - 1;
+const SYNC_GAP: Duration = Duration::from_secs(1);
 const WINDOW: Duration = Duration::from_secs(5 * 60);
 /// A client can reconnect before the server frees its last slot, and health polls also take
 /// one. This run measures sync under call load, so admission limits stay out of its way;
 /// their refusals have their own tests.
 const ADMITTED: usize = crate::config::DEFAULT_HTTP_CAPACITY * 2 + 1;
 
-type Sample = (f64, Result<(), String>);
+type Sample = (f64, bool, Result<(), String>);
 struct Measurements {
     samples: Vec<Sample>,
     syncs: Vec<Result<u64, String>>,
-    health: Vec<Result<u16, String>>,
+    health: Vec<(f64, bool, Result<u16, String>)>,
 }
 struct Control {
     running: AtomicBool,
+    syncing: AtomicBool,
     next: AtomicUsize,
     barrier: Barrier,
     started: Instant,
@@ -45,8 +51,9 @@ fn hosted_http_sync_load() -> Result<(), Box<dyn std::error::Error>> {
     });
     let control = Control {
         running: AtomicBool::new(true),
+        syncing: AtomicBool::new(false),
         next: AtomicUsize::new(0),
-        barrier: Barrier::new(crate::config::DEFAULT_HTTP_CAPACITY + 1),
+        barrier: Barrier::new(CALL_WORKERS + 1),
         started: Instant::now(),
     };
     let measurements = collect(&service, &control);
@@ -102,7 +109,7 @@ fn collect(service: &Service, control: &Control) -> Measurements {
     std::thread::scope(|scope| {
         let sync = scope.spawn(|| sync_worker(service, control));
         let health = scope.spawn(|| health_worker(service, control));
-        let workers: Vec<_> = (0..crate::config::DEFAULT_HTTP_CAPACITY)
+        let workers: Vec<_> = (0..CALL_WORKERS)
             .map(|_| scope.spawn(|| call_worker(service.address, control)))
             .collect();
         let samples = workers
@@ -124,19 +131,24 @@ fn sync_worker(service: &Service, control: &Control) -> Vec<Result<u64, String>>
         && results.len() < SYNCS
         && control.started.elapsed() < WINDOW
     {
+        control.syncing.store(true, Ordering::Release);
         results.push(sync(service).map_err(|error| error.to_string()));
+        control.syncing.store(false, Ordering::Release);
+        // Leave quiet gaps, so the same run measures calls with and without a write.
+        std::thread::sleep(SYNC_GAP);
     }
     results
 }
-fn health_worker(service: &Service, control: &Control) -> Vec<Result<u16, String>> {
+fn health_worker(service: &Service, control: &Control) -> Vec<(f64, bool, Result<u16, String>)> {
     let mut codes = Vec::new();
     while control.running.load(Ordering::Acquire) && control.started.elapsed() < WINDOW {
-        codes.push(
-            request(service.address, None)
-                .map(|(code, _)| code)
-                .map_err(|error| error.to_string()),
-        );
-        let end = Instant::now() + Duration::from_secs(1);
+        let began = Instant::now();
+        let syncing = control.syncing.load(Ordering::Acquire);
+        let result = request(service.address, None)
+            .map(|(code, _)| code)
+            .map_err(|error| error.to_string());
+        codes.push((began.elapsed().as_secs_f64(), syncing, result));
+        let end = Instant::now() + Duration::from_millis(100);
         while control.running.load(Ordering::Acquire) && Instant::now() < end {
             std::thread::park_timeout(Duration::from_millis(20));
         }
@@ -167,6 +179,7 @@ fn call_worker(address: SocketAddr, control: &Control) -> Vec<Sample> {
             "params":{"name":"biomcp","arguments":{"args":args}}})
         .to_string();
         let began = Instant::now();
+        let syncing = control.syncing.load(Ordering::Acquire);
         let result = request(address, Some(&body)).and_then(|(status, value)| {
             let has_rows = value
                 .pointer("/result/structuredContent/result/items")
@@ -181,6 +194,7 @@ fn call_worker(address: SocketAddr, control: &Control) -> Vec<Sample> {
         });
         samples.push((
             began.elapsed().as_secs_f64(),
+            syncing,
             result.map_err(|error| error.to_string()),
         ));
     }
@@ -190,7 +204,7 @@ fn report(measurements: &Measurements, initial_rows: u64, started: Instant) -> i
     let mut latencies = measurements
         .samples
         .iter()
-        .map(|(elapsed, _)| *elapsed)
+        .map(|(elapsed, _, _)| *elapsed)
         .collect::<Vec<_>>();
     latencies.sort_by(f64::total_cmp);
     let percentile = |percent: usize| {
@@ -201,24 +215,46 @@ fn report(measurements: &Measurements, initial_rows: u64, started: Instant) -> i
     let failures = measurements
         .samples
         .iter()
-        .filter_map(|(_, result)| result.as_ref().err())
+        .filter_map(|(_, _, result)| result.as_ref().err())
         .collect::<Vec<_>>();
+    let calls = |during: bool| {
+        spread(
+            measurements
+                .samples
+                .iter()
+                .filter(|(_, syncing, _)| *syncing == during)
+                .map(|(elapsed, _, _)| *elapsed),
+        )
+    };
+    let health = |during: bool| {
+        spread(
+            measurements
+                .health
+                .iter()
+                .filter(|(_, syncing, _)| *syncing == during)
+                .map(|(elapsed, _, _)| *elapsed),
+        )
+    };
     let report = json!({"benchmark":"hosted-http-sync", "host":std::env::consts::OS,
+    "publish_rows":PUBLISH_ROWS,
+    "calls_during_sync":calls(true),"calls_between_syncs":calls(false),
+    "health_during_sync":health(true),"health_between_syncs":health(false),
     "cache":"cold replay store, then shared warm Fetch with concurrent repeated sync",
     "publisher_delay":"zero; measure local shared cache work",
     "acquisition":"measurement time assigned to copied captures for cache admission",
     "latency_seconds":latencies,
-    "workers":crate::config::DEFAULT_HTTP_CAPACITY,"call_limit":CALLS,"window_seconds":WINDOW.as_secs(),
+    "workers":CALL_WORKERS,"call_limit":CALLS,"window_seconds":WINDOW.as_secs(),
     "elapsed_seconds":started.elapsed().as_secs_f64(),"completed_calls":measurements.samples.len(),
     "p50_seconds":percentile(50),"p95_seconds":percentile(95),"max_seconds":latencies.last(),
     "failed_calls":failures,"initial_sync_rows":initial_rows,
     "sync_completed":measurements.syncs.iter().filter(|result| result.is_ok()).count(),
     "sync_failed":measurements.syncs.iter().filter_map(|result| result.as_ref().err()).collect::<Vec<_>>(),
-    "health_statuses":measurements.health});
+    "health_statuses":measurements.health.iter().map(|(_, _, status)| status).collect::<Vec<_>>()});
     let mut output = serde_json::to_vec(&report)?;
     output.push(b'\n');
     crate::output::bytes(&output)?;
-    if measurements.samples.is_empty()
+    if initial_rows < PUBLISH_ROWS as u64
+        || measurements.samples.is_empty()
         || !failures.is_empty()
         || measurements.syncs.is_empty()
         || measurements.syncs.iter().any(Result::is_err)
@@ -226,13 +262,19 @@ fn report(measurements: &Measurements, initial_rows: u64, started: Instant) -> i
         || measurements
             .health
             .iter()
-            .any(|result| !matches!(result, Ok(200)))
+            .any(|(_, _, result)| !matches!(result, Ok(200)))
     {
         return Err(io::Error::other(
             "load measurement contains failed or missing work",
         ));
     }
     Ok(())
+}
+fn spread(elapsed: impl Iterator<Item = f64>) -> Value {
+    let mut elapsed = elapsed.collect::<Vec<_>>();
+    elapsed.sort_by(f64::total_cmp);
+    let p95 = (elapsed.len() * 95).div_ceil(100).saturating_sub(1);
+    json!({"count":elapsed.len(),"p95_seconds":elapsed.get(p95),"max_seconds":elapsed.last()})
 }
 fn sync(service: &Service) -> io::Result<u64> {
     let fetch = service
@@ -307,6 +349,27 @@ fn request(address: SocketAddr, body: Option<&str>) -> io::Result<(u16, Value)> 
         .ok_or_else(|| io::Error::other("HTTP status missing"))?;
     Ok((status, serde_json::from_str(body)?))
 }
+// Extend the complete set with synthetic genes that share no identifier with a real row.
+fn enlarge(body: &mut Value) {
+    let Some(text) = body.as_str().filter(|text| text.starts_with("hgnc_id\t")) else {
+        return;
+    };
+    let Some((_, row)) = text.trim_end().rsplit_once('\n') else {
+        return;
+    };
+    let mut fields = row.split('\t').collect::<Vec<_>>();
+    fields.iter_mut().skip(7).for_each(|field| *field = "");
+    let tail = fields[3..].join("\t");
+    let mut enlarged = text.trim_end().to_owned();
+    for index in 0..PUBLISH_ROWS {
+        enlarged.push_str(&format!(
+            "\nHGNC:{}\tLOADGENE{index}\tload gene {index}\t{tail}",
+            9_000_000 + index
+        ));
+    }
+    enlarged.push('\n');
+    *body = json!(enlarged);
+}
 fn fixtures(source: &Path, target: &Path) -> io::Result<()> {
     std::fs::create_dir_all(target)?;
     for entry in std::fs::read_dir(source)? {
@@ -322,6 +385,9 @@ fn fixtures(source: &Path, target: &Path) -> io::Result<()> {
                 .ok_or_else(|| io::Error::other("recorded exchanges missing"))?;
             for exchange in exchanges.iter_mut() {
                 exchange["delay_ms"] = json!(0);
+                if let Some(body) = exchange.pointer_mut("/body/value") {
+                    enlarge(body);
+                }
                 // Give copied captures a current acquisition time so real cache writes run.
                 exchange["fetched"] = json!(
                     std::time::SystemTime::now()

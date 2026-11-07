@@ -1,6 +1,7 @@
 # 0641 — Real-time and multi-process tests run under repeated load
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 8f0beb2c93fd598cb5c84418a89e894996c14572
 
 Milestone: 5
 

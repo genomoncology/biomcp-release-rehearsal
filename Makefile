@@ -245,6 +245,7 @@ docs-check:
 	+$(MAKE) --no-print-directory gate-stage-check
 	python3 scripts/test_build_workers.py
 	python3 scripts/test_trials.py
+	python3 scripts/test_cache_process_load.py
 	python3 scripts/test_nightly_live_check.py
 	python3 -m unittest release.test_installer release.test_checks release.test_gate release.test_windows release.test_artifacts.ReleaseCommands
 	python3 -m unittest release.test_workflow release.test_security release.test_licenses release.test_docs
@@ -358,6 +359,14 @@ http-edge-check: fmt
 	cargo clippy --locked -p biomcp --all-targets -- -D warnings
 	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)
 	cargo test --locked -p biomcp --test cases mcp-http/ $(TEST_THREADS)
+
+# Long suite: real-time and multi-process checks repeated under load, run at final
+# release and for touched checks: make stress STRESS_ARGS="--only fetch/retries".
+.PHONY: stress
+stress:
+	mkdir -p target/stress
+	cargo build --locked -p biomcp -p biomcp-fetch --bin biomcp --test cases --test tools --test cache --test retries --test transport --test quotas --test grpc_worker --test grpc_persistence --test bundle --message-format=json > target/stress/build.jsonl
+	python3 scripts/cache_process_load.py target/stress/build.jsonl $(STRESS_ARGS)
 
 .PHONY: hosted-http-load
 hosted-http-load:
@@ -824,14 +833,9 @@ enum-case-metadata-check:
 	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-metadata-transcripts" cargo test --locked -p biomcp --test cases mcp-parity/typed-help-research-discovery $(TEST_THREADS)
 	BIOMCP_TRANSCRIPT_DIR="$(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/enum-case-metadata-transcripts" cargo test --locked -p biomcp --test cases schema-discovery/help-contract $(TEST_THREADS)
 
-.PHONY: gencc-publisher-check gencc-publisher-load
+.PHONY: gencc-publisher-check
 gencc-publisher-check: fmt
 	cargo test --locked -p biomcp --test cases gene-sections/gencc-first-publisher $(TEST_THREADS)
-
-gencc-publisher-load: fmt
-	mkdir -p target
-	cargo build --locked -p biomcp --bin biomcp --test cases --message-format=json > target/gencc-load-build.jsonl
-	python3 scripts/gencc_publisher_load.py target/gencc-load-build.jsonl
 
 .PHONY: accepted-batch-composition-check
 accepted-batch-composition-check:
