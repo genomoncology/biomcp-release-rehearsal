@@ -146,6 +146,9 @@ pub(super) fn unknown_command(args: &[OsString], root: &Command) -> Option<Vec<S
         if word.starts_with('-') && path.first().is_none_or(|name| name != "serve") {
             return None;
         }
+        if let Some(typed) = typed_order(root, &path, word, words.clone()) {
+            return Some(typed);
+        }
         if command.get_subcommands().next().is_some() {
             let nearest = command
                 .get_subcommands()
@@ -157,6 +160,29 @@ pub(super) fn unknown_command(args: &[OsString], root: &Command) -> Option<Vec<S
             .then_some(path);
     }
     None
+}
+
+// A command typed in reverse has one exact path, so it needs no nearest-name guess.
+fn typed_order<'a>(
+    root: &Command,
+    path: &[String],
+    word: &'a str,
+    mut rest: impl Iterator<Item = &'a OsString>,
+) -> Option<Vec<String>> {
+    let (verb, entity) = match path {
+        [] => (
+            rest.find_map(|word| word.to_str().filter(|word| !word.starts_with('-')))?,
+            word,
+        ),
+        [entity] => (word, entity.as_str()),
+        _ => return None,
+    };
+    let verb = root.find_subcommand(verb)?;
+    let entity = verb.find_subcommand(entity)?;
+    Some(vec![
+        verb.get_name().to_owned(),
+        entity.get_name().to_owned(),
+    ])
 }
 
 // Bound comparisons of untrusted text while keeping allocation proportional to known names.

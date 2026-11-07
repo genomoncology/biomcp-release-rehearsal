@@ -1,6 +1,7 @@
 # 0746 — Skill map shows commands as typed
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: fd59b6cae19c7036f0ba219294eb4b9675318de6
 
 Milestone: 5
 

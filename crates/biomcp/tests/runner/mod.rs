@@ -128,6 +128,7 @@ mod variant_civic;
 mod variant_hotspots;
 mod variant_population;
 mod wikipathways;
+mod word_order;
 
 pub(super) fn output_limit(name: &str) -> Result<usize, String> {
     let limits: std::collections::BTreeMap<String, usize> =
@@ -316,7 +317,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(pathway_commands::trials());
     trials.extend(gwas_search::trials());
     trials.extend(diagnostic_who::trials());
-    trials.push(help_contract::trial());
+    trials.extend([help_contract::trial(), word_order::trial()]);
     trials.push(wikipathways::trial());
     trials.extend(variant_civic::trials());
     trials.extend(protein_domains::trials());

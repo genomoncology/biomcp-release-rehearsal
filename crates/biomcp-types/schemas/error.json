@@ -242,6 +242,7 @@
         "use: search trial --intervention <text>; no inferred aliases",
         "use: trial document <NCT> <FILE> --save PATH; first list get trial <NCT> documents",
         "use: get gene <gene>",
+        "use: search gene <query>",
         "use: get gene <gene> pathways",
         "use: search trial --gene <gene>",
         "use: search article --gene <gene>",

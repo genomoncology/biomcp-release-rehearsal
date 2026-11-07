@@ -44,8 +44,7 @@ fn generate_rows(
             verb
         };
         let row = entities.entry(name.into()).or_default();
-        row.commands
-            .insert(if name == child { verb } else { child }.into());
+        row.commands.insert(format!("{verb} {child}"));
         let schema: Value =
             serde_json::from_str(schemas.get(schema).ok_or("missing command schema")?)?;
         let sources = coverage::command_sources(verb, child, &schema);
@@ -149,7 +148,7 @@ fn words(items: &BTreeSet<String>) -> String {
 }
 fn render(entities: BTreeMap<String, Entity>) -> String {
     let mut lines = Vec::new();
-    for (name, mut row) in entities {
+    for mut row in entities.into_values() {
         let represented = row
             .sections
             .values()
@@ -165,7 +164,7 @@ fn render(entities: BTreeMap<String, Entity>) -> String {
             .cloned()
             .reduce(|a, b| a.intersection(&b).cloned().collect())
             .unwrap_or_default();
-        let mut line = format!("{name}: {}", words(&row.commands));
+        let mut line = words(&row.commands);
         if !common.is_empty() {
             line.push_str(&format!(";({})", words(&common)));
         }
@@ -230,20 +229,16 @@ mod tests {
         shown
     }
     fn assert_command(map: &str, verb: &str, child: &str, schema: &Value) {
-        let name = if matches!(verb, "get" | "search") {
-            child
-        } else {
-            verb
-        };
+        let command = format!("{verb} {child}");
         let line = map
             .lines()
-            .find(|line| line.starts_with(&format!("{name}: ")))
-            .expect("entity line");
+            .find(|line| {
+                line.split(';')
+                    .next()
+                    .is_some_and(|head| head.split(',').any(|shown| shown == command))
+            })
+            .unwrap_or_else(|| panic!("command missing: {command}"));
         let words = || line.split([' ', ':', ';', ',', '(', ')']);
-        assert!(
-            words().any(|word| word == if name == child { verb } else { child }),
-            "command missing: {verb} {child}"
-        );
         let sources = coverage::command_sources(verb, child, schema);
         for source in &sources {
             assert!(
@@ -298,8 +293,10 @@ mod tests {
         for line in map.lines() {
             for field in line.split(';').filter(|field| field.starts_with('(')) {
                 for source in field.trim_matches(['(', ')']).split(',') {
+                    let (_, details) = line.split_once(';').expect("command field");
                     assert_eq!(
-                        line.split([' ', ';', ',', '(', ')'])
+                        details
+                            .split([' ', ';', ',', '(', ')'])
                             .filter(|word| *word == source)
                             .count(),
                         1,
@@ -366,7 +363,7 @@ mod tests {
         )
         .expect("synthetic declaration");
         assert!(
-            result.starts_with("synthetic-entity: search;(pubmed);synthetic-section\n"),
+            result.starts_with("search synthetic-entity;(pubmed);synthetic-section\n"),
             "new declaration must appear without renderer changes"
         );
         assert!(
