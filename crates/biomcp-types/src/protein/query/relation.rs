@@ -92,6 +92,19 @@ relation!(ProteinComplexMembersQuery, MemberFields, "MemberFields", {
 }, "Page five native participants of an exact Complex Portal complex containing the anchor. No \
     interaction or clinical meaning is inferred; no bioinformatics tool runs.");
 impl ProteinFeaturesQuery {
+    /// Build one unfiltered native feature page for an exact accession.
+    pub fn new(accession: UniProtIsoform, limit: u32) -> Result<Self, QueryInvalid> {
+        FeatureFields {
+            accession,
+            position: None,
+            feature_type: None,
+            limit,
+            offset: 0,
+            pool: None,
+        }
+        .try_into()
+    }
+
     /// Exact native residue filter.
     pub fn position(&self) -> Option<Position1> {
         self.0.position

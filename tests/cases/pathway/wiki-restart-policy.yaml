@@ -1,0 +1,30 @@
+{
+  "feature": "pathway-wikipathways-genes",
+  "live_check": "local-only",
+  "story": "Disabling Reactome keeps the expired WikiPathways relation restart command.",
+  "config": {
+    "disable_sources": [
+      "reactome"
+    ]
+  },
+  "steps": [
+    {
+      "run": [
+        "pathway",
+        "genes",
+        "WP382",
+        "--pool",
+        "unknown",
+        "--offset",
+        "1"
+      ],
+      "exit": 3,
+      "expect": {
+        "/error/code": "pool.expired",
+        "/next/0/kind": "restart",
+        "/next/0/args/0": "pathway",
+        "/next/0/args/1": "genes"
+      }
+    }
+  ]
+}

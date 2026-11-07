@@ -27,7 +27,6 @@ pub(super) struct Names {
     pub brand_name: Option<Vec<NativeText>>,
     pub generic_name: Option<Vec<NativeText>>,
     pub spl_set_id: Option<Vec<DrugId>>,
-    pub application_number: Option<Vec<NativeText>>,
 }
 impl Record {
     /// Only published native sections survive admission; absent remains absent.

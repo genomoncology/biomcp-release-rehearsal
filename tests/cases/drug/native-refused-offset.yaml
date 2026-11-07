@@ -1,0 +1,25 @@
+{
+  "feature": "drug-native-sources",
+  "story": "A refused OpenTargets native candidate consumes its source row and preserves the next page.",
+  "replay": "drug/native-refused-offset",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "EX-66",
+        "--source",
+        "opentargets",
+        "--limit",
+        "1"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/page/total": 3,
+        "/page/returned": 0,
+        "/next/0/kind": "page"
+      }
+    }
+  ],
+  "live_check": "synthetic"
+}

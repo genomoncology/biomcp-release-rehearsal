@@ -92,6 +92,7 @@ singleton! {
             first-page command, then follow its next command",
         TrialSearchCursor => "nonzero --offset requires --next-page from the returned continuation; run the suggested \
             first-page command, then follow its next command",
+        FaersOffset => "FAERS supports --offset up to 25000; narrow the filters to retrieve more reports",
         FaersDrugNames => "pass --drug once per literal name to search several names with OR; OR inside one --drug value \
             is not supported",
         FaersQueryLength => "FAERS_QUERY_MAX_BYTES is 4096 bytes for the escaped native query including filters; use fewer or shorter --drug names",

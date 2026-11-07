@@ -75,18 +75,20 @@ pub fn search(leg: &Leg<'_>, q: &DrugSearch) -> Result<Page, RequestError> {
         ("skip", Arg::Num(q.offset().into())),
         ("sort", Arg::Text("recall_initiation_date:desc")),
     ]);
-    let (reply, _) = leg
-        .call(
-            &SPEC
-                .get("/drug/enforcement.json")
-                .fresh(Freshness::Days(1))
-                .bytes(2 * 1024 * 1024)
-                .json_absence(),
-            Input::Params(&args),
-            Read::<raw::Response<raw::Record>>::json()
-                .check(&|reply| counts(reply, q.offset(), q.limit(), false)),
-        )
-        .map(|received| (received.value, received.meta))?;
+    let (reply, _) = crate::openfda::page(
+        Source::FdaDrugRecall,
+        leg,
+        &SPEC
+            .get("/drug/enforcement.json")
+            .fresh(Freshness::Days(1))
+            .bytes(2 * 1024 * 1024)
+            .json_absence(),
+        &args,
+        q.offset(),
+        q.limit(),
+        &|reply| counts(reply, q.offset(), q.limit(), false),
+    )
+    .map(|received| (received.value, received.meta))?;
     let mut page = Page {
         items: Box::default(),
         total: 0,

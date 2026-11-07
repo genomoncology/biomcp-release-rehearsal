@@ -1,5 +1,4 @@
 use super::{SPEC, raw};
-use biomcp_fetch::Input;
 use biomcp_fetch::{Arg, BadReply, Freshness, Leg, RequestError};
 use biomcp_types::{AdverseEventHeader, AdverseEventSearch, AdverseEventSource, Source};
 fn phrase(field: &str, text: &biodata::Text) -> String {
@@ -49,25 +48,28 @@ pub fn search(
     crate::adverse_event_sources::components::gmdn(leg)?;
     let selector = expression(query);
     let endpoint = SPEC.get("").fresh(Freshness::Days(1)).json_absence();
-    let (reply, metadata) = leg
-        .call(
-            &endpoint,
-            Input::Params(&[
-                ("search", Arg::Text(&selector)),
-                ("limit", Arg::Num(query.limit().into())),
-                ("skip", Arg::Num(query.offset().into())),
-                ("sort", Arg::Text("date_received:desc")),
-            ]),
-            biomcp_fetch::Read::<raw::Response>::json().check(&|reply| {
-                if let raw::Response::Page { meta, .. } = reply
-                    && (meta.results.skip != query.offset() || meta.results.limit != query.limit())
-                {
-                    return Err(BadReply);
-                }
-                Ok(())
-            }),
-        )
-        .map(|received| (received.value, received.meta))?;
+    let (reply, metadata) = crate::openfda::page(
+        Source::Maude,
+        leg,
+        &endpoint,
+        &[
+            ("search", Arg::Text(&selector)),
+            ("limit", Arg::Num(query.limit().into())),
+            ("skip", Arg::Num(query.offset().into())),
+            ("sort", Arg::Text("date_received:desc")),
+        ],
+        query.offset(),
+        query.limit(),
+        &|reply| {
+            if let raw::Response::Page { meta, .. } = reply
+                && (meta.results.skip != query.offset() || meta.results.limit != query.limit())
+            {
+                return Err(BadReply);
+            }
+            Ok(())
+        },
+    )
+    .map(|received| (received.value, received.meta))?;
     let mut problems = crate::mapped::Problems {
         source: Source::Maude,
         record: None,

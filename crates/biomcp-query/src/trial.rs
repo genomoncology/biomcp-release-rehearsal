@@ -86,7 +86,6 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     }
     outcome.local = error.and_then(status::local);
     outcome.sources.push(source);
-    status::search_for(&mut outcome, &asked_sources(expanded.failed));
     command.finish(deadline.remaining());
     outcome
 }
@@ -135,14 +134,6 @@ fn sent_query(
     } else {
         expanded.query.exact()
     }
-}
-/// A failed name lookup leaves the search incomplete even when the registry answered.
-fn asked_sources(failed: bool) -> Vec<Source> {
-    let mut asked = vec![Source::ClinicalTrialsGov];
-    if failed {
-        asked.extend([Source::Mychem, Source::Chembl, Source::OpenfdaLabel]);
-    }
-    asked
 }
 fn request_rejected(error: Option<&biomcp_fetch::RequestError>) -> bool {
     matches!(error, Some(biomcp_fetch::RequestError::Source(error)) if error.status == Some(400))

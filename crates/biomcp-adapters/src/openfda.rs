@@ -72,3 +72,58 @@ impl<T: Item> Reply for Envelope<T> {
         }
     }
 }
+
+/// Recover the native total only when a nonzero page is reported absent.
+/// The probe keeps the selector and sort of the requested page and omits `skip`,
+/// as every adapter's first page may.
+pub(crate) fn page<T: Item>(
+    source: biomcp_types::Source,
+    leg: &biomcp_fetch::Leg<'_>,
+    endpoint: &biomcp_fetch::Endpoint,
+    args: &[(&str, biomcp_fetch::Arg<'_>)],
+    offset: u32,
+    limit: u32,
+    check: &dyn Fn(&Envelope<T>) -> Result<(), BadReply>,
+) -> Result<biomcp_fetch::Received<Envelope<T>>, biomcp_fetch::RequestError> {
+    use biomcp_fetch::{Arg, Input, Read};
+    let mut received = leg.call(endpoint, Input::Params(args), Read::json().check(check))?;
+    if offset == 0 || !matches!(received.value, Envelope::Absent { .. }) {
+        return Ok(received);
+    }
+    let mut probe = Vec::new();
+    for (name, value) in args {
+        if *name == "skip" {
+            continue;
+        }
+        let value = match (*name, value) {
+            ("limit", _) => Arg::Num(1),
+            (_, Arg::Text(value)) => Arg::Text(value),
+            (_, Arg::Num(value)) => Arg::Num(*value),
+            (_, Arg::Ids(value)) => Arg::Ids(value),
+            (_, Arg::Contact(value)) => Arg::Contact(value),
+        };
+        probe.push((*name, value));
+    }
+    let first = leg.call(
+        endpoint,
+        Input::Params(&probe),
+        Read::<Envelope<T>>::json().check(&|reply| match reply {
+            Envelope::Page { meta, .. } if meta.results.skip != 0 || meta.results.limit != 1 => {
+                Err(BadReply)
+            }
+            _ => Ok(()),
+        }),
+    )?;
+    if let Envelope::Page { mut meta, .. } = first.value {
+        if u64::from(offset) < meta.results.total {
+            return Err(biomcp_fetch::bad_reply(source, Some(404)));
+        }
+        meta.results.skip = offset;
+        meta.results.limit = limit;
+        received.value = Envelope::Page {
+            meta,
+            results: Vec::new(),
+        };
+    }
+    Ok(received)
+}

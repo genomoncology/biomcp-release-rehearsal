@@ -23,6 +23,15 @@ pub(super) struct Selection<'a> {
     pub fresh: bool,
     pub header: Option<PathwayHeader>,
 }
+impl Selection<'_> {
+    fn source(&self) -> Source {
+        if matches!(self.id, PathwayId::Wikipathways(_)) {
+            Source::WikiPathways
+        } else {
+            Source::Reactome
+        }
+    }
+}
 /// Page retained source membership with checked gene pivots.
 pub(crate) fn genes(cx: &Ctx<'_>, q: &PathwayGenesQuery) -> Outcome {
     execute(
@@ -93,7 +102,7 @@ fn restart(q: &Selection<'_>, out: &mut Outcome) {
     if let Ok(request) = request {
         out.next.push(crate::next::Step::new(
             StepKind::Restart,
-            &[Source::Reactome],
+            &[q.source()],
             super::run(request),
         ));
     }
@@ -104,11 +113,7 @@ fn read_inner(
     deadline: Deadline<'_>,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    let source = if matches!(q.id, PathwayId::Wikipathways(_)) {
-        Source::WikiPathways
-    } else {
-        Source::Reactome
-    };
+    let source = q.source();
     if cx.fetch.disabled(source) {
         let error: RequestError = SourceError::disabled(source).into();
         out.sources.push(biomcp_adapters::registry::outcome(

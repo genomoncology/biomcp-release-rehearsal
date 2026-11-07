@@ -1,6 +1,7 @@
 # 0693 — Status and totals tell the truth
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: fcd9f8e60eacd796bcb52a6d655ef6160d84729a
 
 Milestone: 5
 

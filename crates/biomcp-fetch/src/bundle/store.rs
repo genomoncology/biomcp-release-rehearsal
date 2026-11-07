@@ -34,6 +34,26 @@ pub(super) struct Part {
     pub total: Option<u64>,
 }
 impl Part {
+    fn relocate(&mut self, folder: &std::path::Path) -> Result<(), CacheError> {
+        let path = std::path::Path::new(&self.path);
+        let parent = path.parent().ok_or(CacheError::Limit)?;
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .filter(|name| part_name(name))
+            .ok_or(CacheError::Limit)?;
+        // A moved cache owns the same named transfer file in its new parts folder.
+        // Existing foreign folders still follow the strict ownership check.
+        if matches!(parent.canonicalize(), Err(error) if error.kind() == std::io::ErrorKind::NotFound)
+        {
+            self.path = folder
+                .join(name)
+                .to_str()
+                .ok_or(CacheError::Filesystem)?
+                .to_owned();
+        }
+        Ok(())
+    }
     fn in_use(&self, folder: &std::path::Path) -> Result<bool, CacheError> {
         if !self.validate(folder)? {
             return Ok(false);
@@ -210,7 +230,7 @@ impl Cache {
     ) -> Result<Option<Part>, CacheError> {
         self.write_sql(d, |c| {
             let tx = write_transaction(c)?;
-            let old = tx
+            let mut old = tx
                 .query_row(
                     "SELECT holder,lease_until,url,part,bytes,etag,total FROM bundle_sync WHERE name=?1",
                     [name],
@@ -230,6 +250,9 @@ impl Cache {
                 )
                 .optional()
                 .map_err(|error| db_error(error))?;
+            if let Some((_, _, _, part)) = &mut old {
+                part.relocate(&self.1)?;
+            }
             if let Some((Some(_), until, _, part)) = &old
                 && *until > now()
                 && part.in_use(&self.1)?

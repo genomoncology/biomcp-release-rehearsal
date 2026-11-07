@@ -1,0 +1,26 @@
+{
+  "feature": "drug-label",
+  "live_check": "synthetic",
+  "story": "An exhausted exact-name page retains its native total without loosening to word search. All source records are synthetic.",
+  "replay": "drug/exhausted-label",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "imatinib",
+        "--source",
+        "openfda-label",
+        "--limit",
+        "3",
+        "--offset",
+        "20"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 4,
+        "/page/returned": 0
+      }
+    }
+  ]
+}

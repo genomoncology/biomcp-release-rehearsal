@@ -43,7 +43,7 @@ Err(biomcp_fetch::RequestError::Source(e)) if e.reason==biomcp_types::Reason::Of
 #[test]
 fn interrupted_download_resumes_only_the_same_representation() {
     for scenario in [
-        "safe", "ignored", "changed", "offset", "total", "missing", "412",
+        "safe", "ignored", "changed", "offset", "total", "missing", "412", "moved",
     ] {
         let server = support::Server::new();
         let b = declared(&server);
@@ -60,6 +60,19 @@ fn interrupted_download_resumes_only_the_same_representation() {
             ));
             assert!(call.join().unwrap().is_err());
         });
+        let moved_path = dir.path().join("moved.sqlite");
+        let f = if scenario == "moved" {
+            drop(f);
+            std::fs::rename(&path, &moved_path).unwrap();
+            std::fs::rename(
+                path.with_extension("parts"),
+                moved_path.with_extension("parts"),
+            )
+            .unwrap();
+            cached(&moved_path)
+        } else {
+            f
+        };
         std::thread::scope(|scope| {
             let call = scope.spawn(|| f.sync(&b));
             let request = server.next();
@@ -67,35 +80,9 @@ fn interrupted_download_resumes_only_the_same_representation() {
             assert!(lower.contains(&format!("range: bytes={cut}-")));
             assert!(lower.contains("if-match: \"one\""));
             assert!(!lower.contains("if-range"));
-            match scenario {
-                "ignored" => request.respond(200, "ETag: \"two\"\r\n", TSV),
-                "412" => {
-                    request.respond(412, "", "");
-                    let next = server.next();
-                    assert!(!next.text.to_ascii_lowercase().contains("range:"));
-                    next.respond(200, "ETag: \"two\"\r\n", TSV);
-                }
-                _ => {
-                    let etag = if scenario == "changed" { "two" } else { "one" };
-                    let offset = if scenario == "offset" { cut + 1 } else { cut };
-                    let total = if scenario == "total" {
-                        TSV.len() + 1
-                    } else {
-                        TSV.len()
-                    };
-                    let range = if scenario == "missing" {
-                        String::new()
-                    } else {
-                        format!(
-                            "Content-Range: bytes {offset}-{}/{total}\r\n",
-                            TSV.len() - 1
-                        )
-                    };
-                    request.respond(206, &format!("ETag: \"{etag}\"\r\n{range}"), &TSV[cut..]);
-                }
-            }
+            answer_resume(&server, request, scenario, cut);
             let result = call.join().unwrap();
-            if ["safe", "ignored", "412"].contains(&scenario) {
+            if ["safe", "ignored", "412", "moved"].contains(&scenario) {
                 assert_download(result.unwrap(), scenario, cut);
             } else {
                 assert!(result.is_err());
@@ -114,11 +101,53 @@ fn interrupted_download_resumes_only_the_same_representation() {
             });
         }
         assert_eq!(
-            std::fs::read_dir(path.with_extension("parts"))
-                .unwrap()
-                .count(),
+            std::fs::read_dir(if scenario == "moved" {
+                moved_path.with_extension("parts")
+            } else {
+                path.with_extension("parts")
+            })
+            .unwrap()
+            .count(),
             0
         );
+    }
+}
+
+fn answer_resume(
+    server: &support::Server,
+    request: support::Request<()>,
+    scenario: &str,
+    cut: usize,
+) {
+    match scenario {
+        "ignored" => request.respond(200, "ETag: \"two\"\r\n", TSV),
+        "412" => {
+            request.respond(412, "", "");
+            let next = server.next();
+            assert!(
+                !next.text.to_ascii_lowercase().contains("range:"),
+                "a refused resume must restart without a range"
+            );
+            next.respond(200, "ETag: \"two\"\r\n", TSV);
+        }
+        _ => {
+            let etag = if scenario == "changed" { "two" } else { "one" };
+            let offset = if scenario == "offset" { cut + 1 } else { cut };
+            let total = if scenario == "total" {
+                TSV.len() + 1
+            } else {
+                TSV.len()
+            };
+            let range = if scenario == "missing" {
+                String::new()
+            } else {
+                format!(
+                    "Content-Range: bytes {offset}-{}/{total}\r\n",
+                    TSV.len() - 1
+                )
+            };
+            request.respond(206, &format!("ETag: \"{etag}\"\r\n{range}"), &TSV[cut..]);
+        }
     }
 }
 
@@ -132,7 +161,7 @@ fn assert_download(info: biomcp_fetch::BundleInfo, scenario: &str, cut: usize) {
         TSV.len() as u64,
         "Bundle downloads must publish only the complete checked file"
     );
-    let received = if scenario == "safe" {
+    let received = if ["safe", "moved"].contains(&scenario) {
         TSV.len() - cut
     } else {
         TSV.len()

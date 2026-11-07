@@ -1,5 +1,4 @@
 //! Source-scoped openFDA label identities, name discovery and literal indication search.
-use biomcp_fetch::Input;
 use biomcp_fetch::{SourceSpec, Terms};
 use biomcp_types::Source;
 use std::time::Duration;
@@ -112,22 +111,25 @@ fn page(
     if offset > 0 {
         args.push(("skip", Arg::Num(offset.into())));
     }
-    let (reply, metadata) = leg
-        .call(
-            &LABEL,
-            Input::Params(&args),
-            biomcp_fetch::Read::<raw::Response>::json().check(&|reply| match reply {
-                raw::Response::Page { meta, results }
-                    if meta.results.skip != offset
-                        || meta.results.limit != limit
-                        || set.is_some_and(|set| results.iter().any(|r| r.set_id != *set)) =>
-                {
-                    Err(BadReply)
-                }
-                _ => Ok(()),
-            }),
-        )
-        .map(|received| (received.value, received.meta))?;
+    let (reply, metadata) = crate::openfda::page(
+        Source::OpenfdaLabel,
+        leg,
+        &LABEL,
+        &args,
+        offset,
+        limit,
+        &|reply| match reply {
+            raw::Response::Page { meta, results }
+                if meta.results.skip != offset
+                    || meta.results.limit != limit
+                    || set.is_some_and(|set| results.iter().any(|r| r.set_id != *set)) =>
+            {
+                Err(BadReply)
+            }
+            _ => Ok(()),
+        },
+    )
+    .map(|received| (received.value, received.meta))?;
     let (records, total) = match reply {
         raw::Response::Page { meta, results } => (results, meta.results.total),
         raw::Response::Absent { .. } => (Vec::new(), 0),

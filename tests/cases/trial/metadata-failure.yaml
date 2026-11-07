@@ -1,0 +1,36 @@
+{
+  "feature": "trial-search",
+  "live_check": "never",
+  "story": "A valid registry page remains visible and partial when registry version metadata fails.",
+  "replay": "trial/metadata-failure",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--condition",
+        "melanoma",
+        "--intervention",
+        "pembrolizumab"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/page/total": 399,
+        "/result/items/*/nct_id": {
+          "equals": [
+            "NCT04631731",
+            "NCT03006887",
+            "NCT05061017",
+            "NCT05338580",
+            "NCT04860076",
+            "NCT04955743",
+            "NCT02896335",
+            "NCT03228667",
+            "NCT04146064",
+            "NCT05180799"
+          ]
+        }
+      }
+    }
+  ]
+}

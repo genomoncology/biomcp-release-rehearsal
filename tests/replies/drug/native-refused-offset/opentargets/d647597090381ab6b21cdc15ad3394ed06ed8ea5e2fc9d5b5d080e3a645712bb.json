@@ -1,0 +1,35 @@
+{
+  "method": "POST",
+  "source": "opentargets",
+  "url": "https://api.platform.opentargets.org/api/v4/graphql",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "search": {
+              "total": 3,
+              "hits": [
+                {
+                  "id": "invalid",
+                  "name": "Canonical therapy",
+                  "entity": "drug"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "ea30341bdf3ae6c6f8728e1900b2ce5e62efebd7c6536777795d26a010dea33c"
+  }
+}

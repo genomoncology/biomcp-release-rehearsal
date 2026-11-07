@@ -232,6 +232,12 @@ fn attribution(drug: &DrugIdentity) -> Result<Attribution, Error> {
 /// Accepted source search with private provider fields.
 #[derive(Debug)]
 pub struct Search(pub(super) super::raw::Search);
+impl Search {
+    /// Native rows consumed before malformed candidate identities are refused.
+    pub fn received(&self) -> usize {
+        self.0.hits.len()
+    }
+}
 /// Accepted source drug with private provider fields.
 #[derive(Debug)]
 pub struct Drug(pub(super) super::raw::Drug);

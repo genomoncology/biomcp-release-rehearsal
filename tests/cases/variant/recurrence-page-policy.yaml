@@ -1,0 +1,36 @@
+{
+  "feature": "variant-recurrence",
+  "live_check": "synthetic",
+  "replay": "variant/recurrence",
+  "story": "Disabling unrelated hotspot lookup keeps the cBioPortal recurrence page continuation.",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "recurrence",
+        "NC_000007.13:g.140494253G>A",
+        "--source",
+        "cbioportal",
+        "--gene",
+        "BRAF",
+        "--study",
+        "msk_impact_2017",
+        "--profile",
+        "msk_impact_2017_mutations",
+        "--sample-set",
+        "msk_impact_2017_all",
+        "--limit",
+        "3"
+      ],
+      "expect": {
+        "/result/more": true,
+        "/next/0/kind": "page"
+      }
+    }
+  ],
+  "config": {
+    "disable_sources": [
+      "hotspots"
+    ]
+  }
+}

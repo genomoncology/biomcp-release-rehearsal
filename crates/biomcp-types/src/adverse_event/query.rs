@@ -117,15 +117,16 @@ impl SearchFields {
         }
         Ok(())
     }
-}
-crate::query::validation::checked_query!(AdverseEventSearch, SearchFields);
-impl TryFrom<SearchFields> for AdverseEventSearch {
-    type Error = QueryInvalid;
-    fn try_from(mut v: SearchFields) -> Result<Self, Self::Error> {
-        v.validate_aggregate()?;
+    fn validate_scope(&self) -> Result<(), QueryInvalid> {
+        self.validate_aggregate()?;
+        if self.source == AdverseEventSource::Faers && self.offset > 25_000 {
+            return Err(
+                QueryInvalid::new(&["offset"]).with_message(crate::ErrorMessage::FaersOffset)
+            );
+        }
         let maude_filter =
-            v.manufacturer.is_some() || !v.product_code.is_empty() || v.problem.is_some();
-        if v.source != AdverseEventSource::Maude && maude_filter {
+            self.manufacturer.is_some() || !self.product_code.is_empty() || self.problem.is_some();
+        if self.source != AdverseEventSource::Maude && maude_filter {
             return Err(QueryInvalid::new(&[
                 "source",
                 "manufacturer",
@@ -133,9 +134,9 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "problem",
             ]));
         }
-        if v.text.is_none()
-            && v.drug.is_empty()
-            && !(v.source == AdverseEventSource::Maude && maude_filter)
+        if self.text.is_none()
+            && self.drug.is_empty()
+            && !(self.source == AdverseEventSource::Maude && maude_filter)
         {
             return Err(QueryInvalid::new(&[
                 "text",
@@ -144,32 +145,32 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "problem",
             ]));
         }
-        if v.source != AdverseEventSource::Faers && !v.drug.is_empty() {
+        if self.source != AdverseEventSource::Faers && !self.drug.is_empty() {
             return Err(QueryInvalid::new(&["source", "drug"]));
         }
-        if !(1..=50).contains(&v.limit) {
+        if !(1..=50).contains(&self.limit) {
             return Err(QueryInvalid::new(&["limit"]));
         }
-        v.received_from = super::receipt::day(v.received_from, false, "received_from")?;
-        v.received_to = super::receipt::day(v.received_to, true, "received_to")?;
-        if v.received_from
-            .zip(v.received_to)
-            .is_some_and(|(a, b)| a.to_string() > b.to_string())
+        Ok(())
+    }
+    fn validate_source_filters(&self) -> Result<(), QueryInvalid> {
+        if self.source != AdverseEventSource::Vaers
+            && (self.section.is_some() || self.snapshot.is_some())
         {
-            return Err(QueryInvalid::new(&["received_from", "received_to"]));
-        }
-        if v.source != AdverseEventSource::Vaers && (v.section.is_some() || v.snapshot.is_some()) {
             return Err(QueryInvalid::new(&["source", "section", "snapshot"]));
         }
-        if v.source == AdverseEventSource::Vaers
-            && v.text
+        if self.source == AdverseEventSource::Vaers
+            && self
+                .text
                 .as_ref()
                 .and_then(|text| super::vaers::vaers_vaccine_code(text.as_str()))
                 .is_none()
         {
             return Err(QueryInvalid::new(&["source", "text"]));
         }
-        if v.source != AdverseEventSource::Faers && (v.reaction.is_some() || v.serious.is_some()) {
+        if self.source != AdverseEventSource::Faers
+            && (self.reaction.is_some() || self.serious.is_some())
+        {
             return Err(QueryInvalid::new(&[
                 "source",
                 "reaction",
@@ -178,8 +179,8 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "received_to",
             ]));
         }
-        if v.source == AdverseEventSource::Vaers
-            && (v.received_from.is_some() || v.received_to.is_some())
+        if self.source == AdverseEventSource::Vaers
+            && (self.received_from.is_some() || self.received_to.is_some())
         {
             return Err(QueryInvalid::new(&[
                 "source",
@@ -187,6 +188,23 @@ impl TryFrom<SearchFields> for AdverseEventSearch {
                 "received_to",
             ]));
         }
+        Ok(())
+    }
+}
+crate::query::validation::checked_query!(AdverseEventSearch, SearchFields);
+impl TryFrom<SearchFields> for AdverseEventSearch {
+    type Error = QueryInvalid;
+    fn try_from(mut v: SearchFields) -> Result<Self, Self::Error> {
+        v.validate_scope()?;
+        v.received_from = super::receipt::day(v.received_from, false, "received_from")?;
+        v.received_to = super::receipt::day(v.received_to, true, "received_to")?;
+        if v.received_from
+            .zip(v.received_to)
+            .is_some_and(|(a, b)| a.to_string() > b.to_string())
+        {
+            return Err(QueryInvalid::new(&["received_from", "received_to"]));
+        }
+        v.validate_source_filters()?;
         v.validate_drug_names()?;
         let query = Self(v);
         if query.source() == AdverseEventSource::Faers

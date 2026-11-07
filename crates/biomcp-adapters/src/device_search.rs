@@ -1,5 +1,5 @@
 //! Shared native openFDA device search filters and bounded page admission.
-use biomcp_fetch::{Arg, BadReply, Freshness, Input, Leg, Read, RequestError, SourceSpec};
+use biomcp_fetch::{Arg, BadReply, Freshness, Leg, RequestError, SourceSpec};
 use biomcp_types::{DiagnosticSearch, Problem};
 use serde::de::DeserializeOwned;
 /// Source-owned diagnostic submission candidates.
@@ -52,24 +52,27 @@ pub(crate) fn page<T: DeserializeOwned + crate::openfda::Item>(
     if !selector.is_empty() {
         args.push(("search", Arg::Text(&selector)));
     }
-    let reply = leg
-        .call(
-            &spec
-                .get("")
-                .fresh(Freshness::Days(1))
-                .bytes(2 * 1024 * 1024)
-                .json_absence(),
-            Input::Params(&args),
-            Read::<crate::openfda::Envelope<T>>::json().check(&|reply| {
-                if let crate::openfda::Envelope::Page { meta, .. } = reply
-                    && (meta.results.skip != q.offset() || meta.results.limit != q.limit())
-                {
-                    return Err(BadReply);
-                }
-                Ok(())
-            }),
-        )?
-        .value;
+    let reply = crate::openfda::page(
+        spec.source,
+        leg,
+        &spec
+            .get("")
+            .fresh(Freshness::Days(1))
+            .bytes(2 * 1024 * 1024)
+            .json_absence(),
+        &args,
+        q.offset(),
+        q.limit(),
+        &|reply| {
+            if let crate::openfda::Envelope::Page { meta, .. } = reply
+                && (meta.results.skip != q.offset() || meta.results.limit != q.limit())
+            {
+                return Err(BadReply);
+            }
+            Ok(())
+        },
+    )?
+    .value;
     Ok(match reply {
         crate::openfda::Envelope::Page { meta, results } => (results, meta.results.total),
         crate::openfda::Envelope::Absent { .. } => (vec![], 0),

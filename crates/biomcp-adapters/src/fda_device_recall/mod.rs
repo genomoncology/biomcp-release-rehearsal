@@ -70,18 +70,20 @@ pub fn search(leg: &Leg<'_>, q: &DiagnosticSearch) -> Result<Page, RequestError>
         ("skip", Arg::Num(q.offset().into())),
         ("sort", Arg::Text("event_date_initiated:desc")),
     ]);
-    let (reply, _) = leg
-        .call(
-            &SPEC
-                .get("/device/recall.json")
-                .fresh(Freshness::Days(1))
-                .bytes(2 * 1024 * 1024)
-                .json_absence(),
-            Input::Params(&args),
-            Read::<raw::Response<raw::Record>>::json()
-                .check(&|reply| counts(reply, q.offset(), q.limit(), false)),
-        )
-        .map(|received| (received.value, received.meta))?;
+    let (reply, _) = crate::openfda::page(
+        Source::FdaDeviceRecall,
+        leg,
+        &SPEC
+            .get("/device/recall.json")
+            .fresh(Freshness::Days(1))
+            .bytes(2 * 1024 * 1024)
+            .json_absence(),
+        &args,
+        q.offset(),
+        q.limit(),
+        &|reply| counts(reply, q.offset(), q.limit(), false),
+    )
+    .map(|received| (received.value, received.meta))?;
     let mut page = Page {
         items: Box::default(),
         total: 0,

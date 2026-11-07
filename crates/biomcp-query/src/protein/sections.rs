@@ -2,8 +2,8 @@
 use biodata::ProteinSequence;
 use biomcp_adapters::uniprot::Entry;
 use biomcp_types::{
-    ProteinFeatures, ProteinFunctionResult, ProteinGet, ProteinIsoforms, ProteinSection,
-    ProteinSections, ProteinSequenceResult, ProteinStructures, Reason, Section, Source,
+    ProteinFunctionResult, ProteinGet, ProteinSection, ProteinSectionPage, ProteinSections,
+    ProteinSequenceResult, Reason, Section, Source,
 };
 pub(super) const NAMES: [ProteinSection; 7] = [
     ProteinSection::Domains,
@@ -33,22 +33,9 @@ fn rows<T, B>(items: Vec<T>, wrap: impl FnOnce(Box<[T]>) -> B) -> Section<B> {
 pub(super) fn first(q: &ProteinGet, entry: &Entry) -> ProteinSections {
     let n = q.section_limit() as usize;
     ProteinSections {
-        features: wants(q, ProteinSection::Features).then(|| {
-            rows(entry.features.iter().take(n).cloned().collect(), |items| {
-                ProteinFeatures { items }
-            })
-        }),
-        isoforms: wants(q, ProteinSection::Isoforms).then(|| {
-            rows(entry.isoforms.iter().take(n).cloned().collect(), |items| {
-                ProteinIsoforms { items }
-            })
-        }),
-        structures: wants(q, ProteinSection::Structures).then(|| {
-            rows(
-                entry.structures.iter().take(n).cloned().collect(),
-                |items| ProteinStructures { items },
-            )
-        }),
+        features: wants(q, ProteinSection::Features).then(|| bounded(&entry.features, n)),
+        isoforms: wants(q, ProteinSection::Isoforms).then(|| bounded(&entry.isoforms, n)),
+        structures: wants(q, ProteinSection::Structures).then(|| bounded(&entry.structures, n)),
         function: wants(q, ProteinSection::Function).then(|| {
             rows(entry.function.clone(), |items| ProteinFunctionResult {
                 items,
@@ -57,6 +44,50 @@ pub(super) fn first(q: &ProteinGet, entry: &Entry) -> ProteinSections {
         sequence: wants(q, ProteinSection::Sequence).then(|| sequence(entry.sequence.clone())),
         domains: None,
         complexes: None,
+    }
+}
+fn bounded<T: Clone>(items: &[T], limit: usize) -> Section<ProteinSectionPage<T>> {
+    rows(items.iter().take(limit).cloned().collect(), |rows| {
+        ProteinSectionPage {
+            items: rows,
+            total: items.len() as u64,
+        }
+    })
+}
+/// Offer the section's dedicated paged command whenever a card omits rows.
+pub(super) fn continuations(q: &ProteinGet, entry: &Entry, out: &mut crate::Outcome) {
+    use biomcp_types::{ProteinFeaturesQuery, ProteinRelationQuery, Request, StepKind};
+    let id = &entry.header.protein.accession;
+    let limit = q.section_limit();
+    let sections = [
+        (ProteinSection::Features, entry.features.len()),
+        (ProteinSection::Isoforms, entry.isoforms.len()),
+        (ProteinSection::Structures, entry.structures.len()),
+    ];
+    for (section, total) in sections {
+        if !wants(q, section) || total <= limit as usize {
+            continue;
+        }
+        let request = match section {
+            ProteinSection::Features => {
+                ProteinFeaturesQuery::new(id.clone(), limit).map(Request::ProteinFeatures)
+            }
+            ProteinSection::Isoforms => {
+                ProteinRelationQuery::new(id.clone(), limit).map(Request::ProteinIsoforms)
+            }
+            ProteinSection::Structures => {
+                ProteinRelationQuery::new(id.clone(), limit).map(Request::ProteinStructures)
+            }
+            _ => unreachable!(),
+        };
+        if let Some(request) = crate::next::checked(request, Source::UniProt, &mut out.problems) {
+            out.next.push(crate::next::Step::run(
+                StepKind::Section,
+                &[Source::UniProt],
+                request,
+                false,
+            ));
+        }
     }
 }
 fn sequence(value: Option<ProteinSequence>) -> Section<ProteinSequenceResult> {

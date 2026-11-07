@@ -86,7 +86,7 @@ pub struct ProteinCard {
     pub items: Box<[ProteinCardItem]>,
 }
 impl ResponseBody for ProteinCard {
-    const SCHEMA: &'static str = "biomcp.protein-card/9";
+    const SCHEMA: &'static str = "biomcp.protein-card/10";
     type Query = ProteinGet;
 }
 /// One requested identity and its source outcome, without first-hit selection.
@@ -119,19 +119,19 @@ pub struct ProteinCardItem {
 pub struct ProteinSections {
     /// Requested UniProt feature page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub features: Option<Section<ProteinFeatures>>,
+    pub features: Option<Section<ProteinSectionPage<ProteinFeature>>>,
     /// Requested InterPro match page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub domains: Option<Section<ProteinDomains>>,
     /// Requested native alternative-product page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub isoforms: Option<Section<ProteinIsoforms>>,
+    pub isoforms: Option<Section<ProteinSectionPage<ProteinIsoform>>>,
     /// Requested exact participant-admitted header page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub complexes: Option<Section<ProteinComplexes>>,
     /// Requested structure-link page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub structures: Option<Section<ProteinStructures>>,
+    pub structures: Option<Section<ProteinSectionPage<ProteinStructureRef>>>,
     /// Requested whole native function text and evidence.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub function: Option<Section<ProteinFunctionResult>>,
@@ -161,4 +161,14 @@ pub struct ProteinFunctionResult {
 impl ResponseBody for ProteinFunctionResult {
     const SCHEMA: &'static str = "biomcp.protein-function/4";
     type Query = ProteinGet;
+}
+
+/// Bounded card rows and the size of their complete UniProt collection.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct ProteinSectionPage<T> {
+    /// Whole native rows in source order.
+    pub items: Box<[T]>,
+    /// Number of source rows before card bounding.
+    pub total: u64,
 }

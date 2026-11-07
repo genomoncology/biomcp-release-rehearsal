@@ -1,0 +1,35 @@
+{
+  "method": "POST",
+  "source": "opentargets",
+  "url": "https://api.platform.opentargets.org/api/v4/graphql",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "data": {
+            "drug": {
+              "id": "CHEMBL941",
+              "name": "Canonical therapy",
+              "indications": {
+                "rows": []
+              },
+              "mechanismsOfAction": {
+                "rows": []
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "post": {
+    "request_content_type": "application/json",
+    "request_body_sha256": "ea3392b5ff5d08af8a47e75a679f44d1df34dca2db319bd29934131a88675ae5"
+  }
+}

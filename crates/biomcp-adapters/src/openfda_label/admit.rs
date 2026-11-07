@@ -12,18 +12,19 @@ impl From<wire::Record> for Record {
         };
         let openfda = p
             .field("openfda", row.openfda)
-            .map(|v| Names {
-                brand_name: p.optional_fields("openfda.brand_name", v.brand_name),
-                generic_name: p.optional_fields("openfda.generic_name", v.generic_name),
-                spl_set_id: p.optional_fields("openfda.spl_set_id", v.spl_set_id),
-                application_number: p
-                    .optional_fields("openfda.application_number", v.application_number),
+            .map(|v| {
+                // The search selects on this field, so only its problems are kept.
+                let _ = p.optional_fields("openfda.application_number", v.application_number);
+                Names {
+                    brand_name: p.optional_fields("openfda.brand_name", v.brand_name),
+                    generic_name: p.optional_fields("openfda.generic_name", v.generic_name),
+                    spl_set_id: p.optional_fields("openfda.spl_set_id", v.spl_set_id),
+                }
             })
             .unwrap_or(Names {
                 brand_name: None,
                 generic_name: None,
                 spl_set_id: None,
-                application_number: None,
             });
         let effective_time = p
             .field("effective_time", row.effective_time)

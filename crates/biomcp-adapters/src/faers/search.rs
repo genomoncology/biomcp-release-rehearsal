@@ -1,6 +1,5 @@
 use super::{SPEC, raw};
 use biodata::PartialDate;
-use biomcp_fetch::Input;
 use biomcp_fetch::{Arg, BadReply, Freshness, Leg, ReplyMetadata, RequestError};
 use biomcp_types::{AdverseEventHeader, AdverseEventSearch, AdverseEventSource};
 /// One native ordered report page; no drug/reaction-array join.
@@ -43,25 +42,28 @@ pub fn search(leg: &Leg<'_>, query: &AdverseEventSearch) -> Result<Page, Request
         Box::default()
     };
     let endpoint = SPEC.get("").fresh(Freshness::Days(1)).json_absence();
-    let (response, metadata) = leg
-        .call(
-            &endpoint,
-            Input::Params(&[
-                ("search", Arg::Text(&selector)),
-                ("limit", Arg::Num(query.limit().into())),
-                ("skip", Arg::Num(query.offset().into())),
-                ("sort", Arg::Text("receivedate:desc")),
-            ]),
-            biomcp_fetch::Read::<raw::Response>::json().check(&|reply| {
-                if let raw::Response::Page { meta, .. } = reply
-                    && (meta.results.skip != query.offset() || meta.results.limit != query.limit())
-                {
-                    return Err(BadReply);
-                }
-                Ok(())
-            }),
-        )
-        .map(|received| (received.value, received.meta))?;
+    let (response, metadata) = crate::openfda::page(
+        biomcp_types::Source::Faers,
+        leg,
+        &endpoint,
+        &[
+            ("search", Arg::Text(&selector)),
+            ("limit", Arg::Num(query.limit().into())),
+            ("skip", Arg::Num(query.offset().into())),
+            ("sort", Arg::Text("receivedate:desc")),
+        ],
+        query.offset(),
+        query.limit(),
+        &|reply| {
+            if let raw::Response::Page { meta, .. } = reply
+                && (meta.results.skip != query.offset() || meta.results.limit != query.limit())
+            {
+                return Err(BadReply);
+            }
+            Ok(())
+        },
+    )
+    .map(|received| (received.value, received.meta))?;
     let mut problems = crate::mapped::Problems {
         source: biomcp_types::Source::Faers,
         record: None,

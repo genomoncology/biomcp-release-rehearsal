@@ -1,0 +1,46 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/version",
+  "exchanges": [
+    {
+      "fetched": 1792863143,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 2,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "error": "temporary metadata outage"
+        }
+      }
+    },
+    {
+      "fetched": 1792863143,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 2,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "error": "temporary metadata outage"
+        }
+      }
+    },
+    {
+      "fetched": 1792863143,
+      "status": 503,
+      "content_type": "application/json",
+      "delay_ms": 2,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "error": "temporary metadata outage"
+        }
+      }
+    }
+  ]
+}

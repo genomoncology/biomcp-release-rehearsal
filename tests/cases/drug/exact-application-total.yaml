@@ -1,0 +1,22 @@
+{
+  "feature": "drug-label",
+  "live_check": "synthetic",
+  "story": "Application discovery uses the exact source selector so totals count exactly the returned applications. Synthetic matching and loose-match records.",
+  "replay": "drug/exact-application-total",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "drug",
+        "NDA123456",
+        "--source",
+        "openfda-label"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/page/total": 1,
+        "/page/returned": 1
+      }
+    }
+  ]
+}

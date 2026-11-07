@@ -1,0 +1,49 @@
+{
+  "feature": "protein-sections",
+  "live_check": "synthetic assertions over existing recorded UniProt entry",
+  "story": "A bounded protein card discloses the full source count and a dedicated section paging command.",
+  "verified": "UniProt CC BY 4.0, https://www.uniprot.org/help/license. Original body SHA256 90c459656751eac791efc2f369f49145d38cc949f5b41bf628180ac0a6874b02. Captured 2026-10-30 with no key. Complex Portal CC0 native search body SHA256 4ec43eabf808af512e0fbb67b17b269d14771c24e5700f390ee2f561682639f0 proves an empty exact-accession collection; no membership is inferred.",
+  "replay": "protein/native-sections",
+  "steps": [
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "isoforms",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/isoforms/data/items/0/ids/0": "P00533-1",
+        "/result/items/0/sections/isoforms/data/items": {
+          "count": 2
+        },
+        "/result/items/0/sections/isoforms/data/total": 4,
+        "/next/0/args/0": "protein",
+        "/next/0/args/1": "isoforms"
+      }
+    },
+    {
+      "run": [
+        "get",
+        "protein",
+        "P00533",
+        "structures",
+        "--section-limit",
+        "2"
+      ],
+      "expect": {
+        "/result/items/0/header/protein/accession": "P00533",
+        "/result/items/0/sections/structures/data/items/0/id": "1IVO",
+        "/result/items/0/sections/structures/data/items": {
+          "count": 2
+        },
+        "/result/items/0/sections/structures/data/total": 385,
+        "/next/0/args/0": "protein",
+        "/next/0/args/1": "structures"
+      }
+    }
+  ]
+}
