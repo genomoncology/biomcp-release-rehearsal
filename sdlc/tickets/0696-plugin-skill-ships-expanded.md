@@ -1,6 +1,7 @@
 # 0696 — Plugin skill ships expanded
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 888ed99c3f4d5bdf4ea1bd9eb399ea6068eba958
 
 Milestone: 5
 

@@ -16,7 +16,7 @@ Artifacts from an earlier main commit do not qualify new main. A section that ne
 
 | Input | Contents |
 | --- | --- |
-| `NATIVE` | One platform's complete producer output: wheel, `release.json`, archive and checksum, registry record, licenses and desktop bundle where produced |
+| `NATIVE` | One platform's complete producer output: wheel, `release.json`, archive and checksum, registry record, licenses, expanded `SKILL.md` and desktop bundle where produced |
 | `PROOF` | Matching case runner, tool runner, copied fixtures, copied release helpers and `bootstrap.json`, produced by `release/gate.py --prepare-only` |
 | `ALL_NATIVE` | One subdirectory per native platform, each containing producer output from the same selected main commit |
 | `STAGED` | A new output directory for the complete publication payload; absent before staging |

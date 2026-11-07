@@ -60,6 +60,12 @@ class ReleaseCommands(unittest.TestCase):
         candidate = tools / 'biomcp'
         descriptions = json.loads((ROOT / 'manifest.json').read_text())['tools']
         candidate.write_text(f'#!{sys.executable}\nimport json, sys\nTOOLS = {descriptions!r}\n' +
+                             "import pathlib\n" +
+                             "if sys.argv[1:] == ['skill', 'install', 'guide']:\n" +
+                             "    path = pathlib.Path('guide/skills/biomcp/SKILL.md')\n" +
+                             "    path.parent.mkdir(parents=True)\n" +
+                             "    path.write_text('Fixture guide\\n')\n" +
+                             "    sys.exit()\n" +
                              "assert sys.argv[1:] == ['serve']\n" +
                              "for frame in sys.stdin:\n" +
                              "    value = json.loads(frame)\n" +
@@ -180,6 +186,7 @@ with patch('io.open', windows_open):
             result = subprocess.run([sys.executable, '-c', command, str(output)],
                                     cwd=ROOT, env=env, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual((output / 'SKILL.md').read_text(), 'Fixture guide\n')
             notices = (output / 'THIRD-PARTY-NOTICES.txt').read_bytes()
             self.assertTrue(notices.startswith(b'Generated third-party notices\n'))
             with zipfile.ZipFile(next(output.glob('*.whl'))) as wheel:

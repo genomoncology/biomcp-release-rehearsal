@@ -325,13 +325,15 @@ fn embed_skills(map: &str) -> Result<(), Box<dyn Error>> {
     let mut assets = BTreeMap::new();
     skill_files(&directory, &directory, &mut assets)?;
     let guide = assets.get_mut("SKILL.md").ok_or("missing skill guide")?;
-    if guide.matches("{{front-map}}").count() != 1 {
-        return Err("skill template requires exactly one front-map marker".into());
+    // The marker is a comment because the plugin marketplace serves this file as written.
+    let marker = "<!-- {{front-map}} -->";
+    if guide.matches("{{front-map}}").count() != 1 || !guide.lines().any(|line| line == marker) {
+        return Err("skill template requires exactly one front-map comment line".into());
     }
     if guide.len() > 4096 {
         return Err("agent skill template exceeds 4 KB".into());
     }
-    *guide = guide.replace("{{front-map}}", map);
+    *guide = guide.replace(marker, map);
     let entries = assets
         .iter()
         .map(|(name, text)| format!("({name:?}, {text:?}),\n"))

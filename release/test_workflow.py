@@ -12,6 +12,9 @@ import zipfile
 from release.test_licenses import archive as write_archive, payloads, wheel_fixture, write_payloads
 
 
+EXPANDED = "---\nname: biomcp\n---\n\nGenerated command map\n\nBioMCP guide\n"
+
+
 class Staging(unittest.TestCase):
     def test_workflow_attests_all_subjects_before_candidate_upload(self):
         workflow = Path(".github/workflows/release.yml").read_text()
@@ -59,6 +62,7 @@ class Staging(unittest.TestCase):
             _, record = wheel_fixture(directory, platform)
             write_payloads(directory)
             (directory / "release.json").write_text(json.dumps(record))
+            (directory / "SKILL.md").write_text(EXPANDED)
             name = "biomcp-" + archive
             write_archive(directory / name, {"biomcp": platform.encode(), **payloads()})
             digest = hashlib.sha256((directory / name).read_bytes()).hexdigest()
@@ -78,7 +82,9 @@ class Staging(unittest.TestCase):
         (plugin / ".claude-plugin/plugin.json").write_text('{"name":"biomcp","version":"1.0.0","skills":["./skills/"]}')
         (plugin / ".claude-plugin/marketplace.json").write_text('{"name":"biomcp","plugins":[{"name":"biomcp","source":"./","version":"1.0.0","mcpServers":{"biomcp":{"command":"biomcp","args":["serve"]}}}]}')
         (plugin / "skills").mkdir()
-        (plugin / "skills/SKILL.md").write_text("BioMCP guide\n")
+        (plugin / "skills/SKILL.md").write_text("---\nname: biomcp\n---\n\n<!-- {{front-map}} -->\n\nBioMCP guide\n")
+        (plugin / "skills/use-cases").mkdir()
+        (plugin / "skills/use-cases/01-example.md").write_text("# Example\n")
         return artifacts, plugin
 
     def stage(self, root, artifacts, plugin):
@@ -124,11 +130,13 @@ class Staging(unittest.TestCase):
                 self.assertIn(".claude-plugin/marketplace.json", archive.namelist())
                 for name, data in payloads().items():
                     self.assertEqual(archive.read(name), data)
-                self.assertEqual(archive.read("skills/SKILL.md"), b"BioMCP guide\n")
+                self.assertEqual(archive.read("skills/SKILL.md").decode(), EXPANDED)
+                self.assertEqual(archive.read("skills/use-cases/01-example.md"), b"# Example\n")
                 self.assertEqual(json.loads(archive.read(".claude-plugin/plugin.json"))["skills"], ["./skills/"])
 
     def test_stage_refuses_incomplete_or_mixed_candidates(self):
-        for defect in ["missing-platform", "revision", "checksum", "registry", "plugin", "skills", "plugin-version"]:
+        for defect in ["missing-platform", "revision", "checksum", "registry", "plugin", "skills", "plugin-version",
+                       "raw-guide", "mixed-guide"]:
             with self.subTest(defect=defect), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 artifacts, plugin = self.prepare(root)
@@ -144,6 +152,11 @@ class Staging(unittest.TestCase):
                     (linux / "server.json").write_text('{"version":"0.9.3"}')
                 elif defect == "plugin":
                     (plugin / ".claude-plugin/plugin.json").write_text('{"name":"other"}')
+                elif defect == "raw-guide":
+                    for path in artifacts.glob("*/SKILL.md"):
+                        path.write_text((plugin / "skills/SKILL.md").read_text())
+                elif defect == "mixed-guide":
+                    (linux / "SKILL.md").write_text("Older guide\n")
                 elif defect == "skills":
                     (plugin / ".claude-plugin/plugin.json").write_text('{"name":"biomcp"}')
                 else:

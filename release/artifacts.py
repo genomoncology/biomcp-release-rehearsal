@@ -19,14 +19,14 @@ import zipfile
 if __package__:
     from .vendor import environment as vendor_environment, stage as vendor_stage
     from .readme import description
-    from .tools import candidate, check
+    from .tools import candidate, check, skill_guide
     from .source_revision import revision as source_revision
     from .notices import generate, payloads, metadata as check_metadata
     from .license_check import zip_payload
 else:
     from vendor import environment as vendor_environment, stage as vendor_stage
     from readme import description
-    from tools import candidate, check
+    from tools import candidate, check, skill_guide
     from source_revision import revision as source_revision
     from notices import generate, payloads, metadata as check_metadata
     from license_check import zip_payload
@@ -239,6 +239,7 @@ def build(args):
     generate(output)
     candidate = wheel(output, binary, record)
     channels(output, binary, record)
+    skill_guide(binary, output)
     archive = binary_archive(output, binary, tag)
     (output / "release.json").write_text(json.dumps(record, indent=2) + "\n")
     formula = '''class Biomcp < Formula

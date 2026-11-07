@@ -3,6 +3,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tempfile
 
@@ -51,6 +52,18 @@ def candidate(binary):
     if result.stderr or len(replies) != 2 or [reply.get("id") for reply in replies] != [1, 2]:
         raise ValueError("candidate tool discovery failed")
     return [{"name": tool["name"], "description": tool["description"]} for tool in replies[1]["result"]["tools"]]
+
+
+def skill_guide(binary, output):
+    # Staging has no binary to run, so keep the guide this candidate installs.
+    if __package__:
+        from .smoke import environment
+    else:
+        from smoke import environment
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory).resolve()
+        subprocess.run([str(binary.resolve()), "skill", "install", "guide"], cwd=root, env=environment(root), stdin=subprocess.DEVNULL, capture_output=True, timeout=60, check=True)
+        shutil.copy2(root / "guide/skills/biomcp/SKILL.md", output / "SKILL.md")
 
 
 if __name__ == "__main__":
