@@ -123,19 +123,23 @@ pub fn regulatory(
     id: &DrugId,
 ) -> Result<crate::Mapped<Option<DrugRegulatory>>, RequestError> {
     let mut problems = fields(Some(id));
-    let value = exact(leg, id)?.map(|row| DrugRegulatory {
-        identity: map::header(&row, &mut problems),
-        regulatory: Section::Data {
-            source: Source::Ema,
-            data: DrugRecords {
-                records: vec![map::event(&row, &mut problems)].into(),
-                offset: 0,
-                total: Some(1),
-                truncated: None,
-                version: problems.field("_bundle_meta.timestamp", row.meta.timestamp),
-                retrieved: None,
+    let value = exact(leg, id)?.map(|row| {
+        let event = map::event(&row, &mut problems);
+        DrugRegulatory {
+            identity: map::header(&row, &mut problems),
+            date_roles: map::date_roles(&row, &mut problems, &event),
+            regulatory: Section::Data {
+                source: Source::Ema,
+                data: DrugRecords {
+                    records: vec![event].into(),
+                    offset: 0,
+                    total: Some(1),
+                    truncated: None,
+                    version: problems.field("_bundle_meta.timestamp", row.meta.timestamp),
+                    retrieved: None,
+                },
             },
-        },
+        }
     });
     Ok(crate::Mapped {
         refusals: crate::Refusal::None,

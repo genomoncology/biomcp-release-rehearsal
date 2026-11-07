@@ -1,6 +1,7 @@
 # 0757 — EMA dates say which decision they are
 
-Status: READY.
+Status: COMPLETE.
+Landed: f84fa015c3221a67d57944a7db442e790c101146
 
 Milestone: 5
 

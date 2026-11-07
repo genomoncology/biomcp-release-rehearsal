@@ -242,6 +242,41 @@
       ],
       "type": "string"
     },
+    "Reply_DateRoleLabel": {
+      "description": "One native date role with the source's own published description of it.",
+      "properties": {
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The source's published words for this date; omitted when the source publishes none."
+        },
+        "procedure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native procedure reference the source shows beside this date; omitted when none."
+        },
+        "role": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Native date role, as it appears in the records' dates."
+        }
+      },
+      "required": [
+        "role"
+      ],
+      "type": "object"
+    },
     "Reply_DrugGet": {
       "description": "A source-selected drug request echoed with a native ID after name resolution.",
       "properties": {
@@ -605,6 +640,13 @@
     "Reply_DrugRegulatory": {
       "description": "Source-scoped regulator events preserving date roles and original status.",
       "properties": {
+        "date_roles": {
+          "description": "The source's own published description of each date role in these records.",
+          "items": {
+            "$ref": "#/$defs/Reply_DateRoleLabel"
+          },
+          "type": "array"
+        },
         "identity": {
           "$ref": "#/$defs/Reply_DrugHeader",
           "description": "Selected native identity, checked independently of section facts."

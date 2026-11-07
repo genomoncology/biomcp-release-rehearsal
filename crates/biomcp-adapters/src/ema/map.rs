@@ -1,6 +1,56 @@
 use super::raw;
 use biodata::{Attribution, AuthorizationDate, AuthorizationEvent, DrugIdentityLevel, Text};
-use biomcp_types::{DrugCard, DrugHeader, DrugSection, DrugSource};
+use biomcp_types::{DateRoleLabel, DrugCard, DrugHeader, DrugSection, DrugSource};
+/// EMA's own words for its medicine date keys, from two EMA pages:
+/// - "Download website data in JSON data format", section "Medicines through centralised procedure -
+///   data included":
+///   <https://www.ema.europa.eu/en/about-us/about-website/download-website-data-json-data-format>.
+///   It names "European Commission decision date", "first published date" and "last updated date".
+/// - Each medicine's EPAR page, for example
+///   <https://www.ema.europa.eu/en/medicines/human/EPAR/tecovirimat-siga>, shows the
+///   `european_commission_decision_date` value beside "Latest procedure affecting product
+///   information" and its reference, the `marketing_authorisation_date` value as "Marketing
+///   authorisation issued", and the `opinion_adopted_date` value as "Opinion adopted".
+///
+/// Neither page labels the other date keys, such as `start_of_evaluation_date` or
+/// `withdrawal_of_application_date`, so those keep their native name only.
+fn date_label(role: &str) -> Option<Text> {
+    Some(match role {
+        "european_commission_decision_date" => biodata::text!(
+            "European Commission decision date; latest procedure affecting product information"
+        ),
+        "marketing_authorisation_date" => biodata::text!("Marketing authorisation issued"),
+        "opinion_adopted_date" => biodata::text!("Opinion adopted"),
+        "first_published_date" => biodata::text!("first published date"),
+        "last_updated_date" => biodata::text!("last updated date"),
+        _ => return None,
+    })
+}
+/// Each date role in the event, labelled only with EMA's published words. The EPAR page shows
+/// the latest procedure reference beside the European Commission decision date, so it is kept there.
+pub(super) fn date_roles(
+    row: &raw::Medicine,
+    problems: &mut crate::mapped::Problems,
+    event: &AuthorizationEvent,
+) -> Box<[DateRoleLabel]> {
+    event
+        .dates
+        .iter()
+        .map(|date| DateRoleLabel {
+            role: date.role.clone(),
+            label: date_label(date.role.as_str()),
+            procedure: (date.role.as_str() == "european_commission_decision_date")
+                .then(|| {
+                    item(
+                        row,
+                        problems,
+                        "latest_procedure_affecting_product_information",
+                    )
+                })
+                .flatten(),
+        })
+        .collect()
+}
 pub(super) fn header(row: &raw::Medicine, problems: &mut crate::mapped::Problems) -> DrugHeader {
     problems.required(
         "_bundle_meta.timestamp",

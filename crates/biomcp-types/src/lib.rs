@@ -175,11 +175,11 @@ pub use response::{
 };
 mod drug;
 pub use drug::{
-    DEFAULT_DRUG_APPROVALS_LIMIT, DrugApprovals, DrugCard, DrugCivic, DrugCivicClaim,
-    DrugCivicMember, DrugCivicPage, DrugCivicProfile, DrugCivicStreams, DrugFdaCandidate,
-    DrugFdaDocument, DrugFdaIngredient, DrugFdaPage, DrugFdaProduct, DrugFdaProperty,
-    DrugFdaSubmission, DrugFdaSupplementPurpose, DrugGet, DrugHeader, DrugIndications,
-    DrugInteractions, DrugLabel, DrugLabelFragment, DrugLabelText, DrugNameMatch,
+    DEFAULT_DRUG_APPROVALS_LIMIT, DateRoleLabel, DrugApprovals, DrugCard, DrugCivic,
+    DrugCivicClaim, DrugCivicMember, DrugCivicPage, DrugCivicProfile, DrugCivicStreams,
+    DrugFdaCandidate, DrugFdaDocument, DrugFdaIngredient, DrugFdaPage, DrugFdaProduct,
+    DrugFdaProperty, DrugFdaSubmission, DrugFdaSupplementPurpose, DrugGet, DrugHeader,
+    DrugIndications, DrugInteractions, DrugLabel, DrugLabelFragment, DrugLabelText, DrugNameMatch,
     DrugNameResolution, DrugNameSelector, DrugOncokbLookup, DrugOncokbMissing, DrugPage,
     DrugRecallCard, DrugRecallClassification, DrugRecallCountUnit, DrugRecallHeader,
     DrugRecallPage, DrugRecords, DrugRegulatory, DrugRegulatoryContext, DrugSearch, DrugSection,

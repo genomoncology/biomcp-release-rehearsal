@@ -1,0 +1,57 @@
+{
+  "live_check": "public EMA medicine rows from the 2026-11-07 JSON data file, trimmed to two exact records; replay only",
+  "feature": "drug-ema",
+  "story": "Each EMA date keeps its native role and exact day and carries EMA's own published words for it, so a later European Commission decision is not read as the marketing authorisation date",
+  "replay": "drug/ema-dates",
+  "steps": [
+    {
+      "run": ["sync", "ema"],
+      "expect": {
+        "/status": "complete",
+        "/result/rows": 2
+      }
+    },
+    {
+      "run": ["get", "drug", "EMEA/H/C/005248", "regulatory", "--source", "ema"],
+      "expect": {
+        "/status": "complete",
+        "/result/regulatory/data/records/0/dates/0/role": "european_commission_decision_date",
+        "/result/regulatory/data/records/0/dates/0/date": "2026-05-28",
+        "/result/regulatory/data/records/0/dates/3/role": "marketing_authorisation_date",
+        "/result/regulatory/data/records/0/dates/3/date": "2022-01-06",
+        "/result/regulatory/data/records/0/dates/4/role": "opinion_adopted_date",
+        "/result/regulatory/data/records/0/dates/4/date": "2021-11-11",
+        "/result/date_roles/0/role": "european_commission_decision_date",
+        "/result/date_roles/0/label": "European Commission decision date; latest procedure affecting product information",
+        "/result/date_roles/0/procedure": "REF/0000287477",
+        "/result/date_roles/3/role": "marketing_authorisation_date",
+        "/result/date_roles/3/label": "Marketing authorisation issued",
+        "/result/date_roles/4/label": "Opinion adopted"
+      }
+    },
+    {
+      "run": ["get", "drug", "EMEA/H/C/005248", "regulatory", "--source", "ema", "--format", "md"],
+      "expect": {
+        "": {
+          "includes_all_of": [
+            "| European Commission decision date; latest procedure affecting product information | REF/0000287477 | european\\_commission\\_decision\\_date |",
+            "| Marketing authorisation issued |  | marketing\\_authorisation\\_date |",
+            "| Opinion adopted |  | opinion\\_adopted\\_date |",
+            "| 2026-05-28 | european\\_commission\\_decision\\_date |",
+            "| 2022-01-06 | marketing\\_authorisation\\_date |"
+          ]
+        }
+      }
+    },
+    {
+      "run": ["get", "drug", "EMEA/H/C/000093", "regulatory", "--source", "ema"],
+      "expect": {
+        "/status": "complete",
+        "/result/regulatory/data/records/0/dates/0/role": "european_commission_decision_date",
+        "/result/regulatory/data/records/0/dates/0/date": "2014-01-01",
+        "/result/regulatory/data/records/0/dates/1/role": "first_published_date",
+        "/result/regulatory/data/records/0/dates/1/date": "2014-01-01"
+      }
+    }
+  ]
+}
