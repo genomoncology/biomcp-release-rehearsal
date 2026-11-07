@@ -1,6 +1,7 @@
 # 0735 — Author lists stay bounded
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 1dd1b732aadfc9e3eea2716c5886a963471a07b1
 
 Milestone: 5
 
