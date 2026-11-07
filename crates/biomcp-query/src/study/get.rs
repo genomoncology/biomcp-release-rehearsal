@@ -24,6 +24,10 @@ pub(crate) fn get(cx: &Ctx<'_>, q: &StudyGet) -> Outcome {
         Some(StudySection::Files) => biomcp_types::StudyFiles::into_reply(q.clone(), None),
         _ => biomcp_types::StudyCard::into_reply(q.clone(), None),
     });
+    if super::blocked(cx, q.id().as_str(), &mut out) {
+        command.finish(deadline.remaining());
+        return out;
+    }
     if matches!(q.section(), None | Some(StudySection::All)) {
         let leg = cx.fetch.leg(&SPEC, deadline);
         let result = card(&leg, q, &mut out);

@@ -261,7 +261,12 @@ fn notices(
 ) -> io::Result<()> {
     if let Some(rows) = value.get_mut("sources").and_then(Value::as_array_mut) {
         for row in rows {
-            if row.get("reason") != Some(&json!("disabled")) {
+            // A row with its own notice, such as one left-out study, has a source that stays on.
+            let explained = row
+                .get("notices")
+                .and_then(Value::as_array)
+                .is_some_and(|rows| !rows.is_empty());
+            if row.get("reason") != Some(&json!("disabled")) || explained {
                 continue;
             }
             let source: Source = serde_json::from_value(row["source"].clone())?;

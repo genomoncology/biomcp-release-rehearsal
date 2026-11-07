@@ -1,15 +1,26 @@
 //! Literal study catalog reads with checked source admission and fixed continuation state.
 use biomcp_types::ReplyBody;
 mod page;
+mod policy;
 pub(super) use crate::status::empty;
 use crate::{Action, Bundle, Ctx, Outcome, status};
 use biomcp_adapters::cbioportal::{SPEC, studies};
 use biomcp_fetch::{Leg, RequestError};
 use biomcp_types::{Source, SourceState, Status, StepKind, StudySearch};
+pub(crate) use policy::blocked;
 fn finish(out: &mut Outcome, leg: Leg<'_>, error: Option<RequestError>) {
     out.local = error.and_then(status::local);
-    out.sources
-        .push(status::source(Source::Cbioportal, leg.finish(), error));
+    let mut source = status::source(Source::Cbioportal, leg.finish(), error);
+    if let Some(index) = out
+        .sources
+        .iter()
+        .position(|s| s.source == Source::Cbioportal)
+    {
+        source
+            .notices
+            .append(&mut out.sources.remove(index).notices);
+    }
+    out.sources.push(source);
     if error.is_some() {
         crate::status::item(out, false, true, false)
     } else if out.status() == Status::Complete

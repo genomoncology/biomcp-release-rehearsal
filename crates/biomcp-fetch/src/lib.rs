@@ -191,6 +191,7 @@ pub struct Fetch {
     bundle_imports: std::sync::Arc<std::sync::Mutex<std::collections::BTreeSet<&'static str>>>,
     disabled_sources: std::collections::BTreeSet<biomcp_types::Source>,
     disabled_uses: std::collections::BTreeSet<biomcp_types::Use>,
+    commercial_studies_only: bool,
 }
 
 #[expect(
@@ -276,6 +277,7 @@ impl Fetch {
             clock: clock.map(std::sync::Arc::new),
             disabled_sources: config.disabled_sources.clone(),
             disabled_uses: config.disabled_uses.clone(),
+            commercial_studies_only: false,
             config: std::sync::Arc::new(config),
             limiters: std::sync::Arc::default(),
             background_refresh: None,
@@ -320,6 +322,17 @@ impl Fetch {
         let mut restricted = self.clone();
         restricted.disabled_uses.extend(disabled);
         restricted
+    }
+
+    /// Apply the restricted hosted mode's study-level commercial-use policy.
+    pub fn restrict_studies(&self) -> Self {
+        let mut restricted = self.clone();
+        restricted.commercial_studies_only = true;
+        restricted
+    }
+    /// Whether reviewed study restrictions must be enforced on this request.
+    pub fn commercial_studies_only(&self) -> bool {
+        self.commercial_studies_only
     }
 
     /// Replace this command's credentials while retaining every shared transport resource.

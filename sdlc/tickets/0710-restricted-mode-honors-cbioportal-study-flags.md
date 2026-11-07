@@ -1,6 +1,7 @@
 # 0710 — Restricted mode honors cBioPortal study flags
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 74c8dd435d41270d803137656aafdf1171418a10
 
 Milestone: 5
 

@@ -55,13 +55,27 @@ pub(super) fn search(
 fn render(
     cx: &Ctx<'_>,
     q: &StudySearch,
-    pool: Option<biomcp_types::PoolInfo>,
+    mut pool: Option<biomcp_types::PoolInfo>,
     retained: Retained,
     out: &mut Outcome,
 ) -> Result<(), RequestError> {
-    let (rows, snapshot, problems, dropped) = retained;
+    let (mut rows, snapshot, problems, dropped) = retained;
     out.dropped = dropped;
     out.problems = problems;
+    let mut excluded = Vec::new();
+    rows.retain(|row| {
+        if super::policy::excluded(cx, row.study_id.as_str()) {
+            excluded.push(row.study_id.clone());
+            false
+        } else {
+            true
+        }
+    });
+    let ids: Vec<_> = excluded.iter().map(|id| id.as_str()).collect();
+    super::policy::notice(out, &ids, false);
+    if let Some(pool) = &mut pool {
+        pool.size = rows.len() as u32;
+    }
     let query = q.with_pool(pool.as_ref().map(|p| p.id.clone()));
     let total = rows.len() as u64;
     let items: Box<[_]> = rows

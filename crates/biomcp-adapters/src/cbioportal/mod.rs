@@ -1,6 +1,8 @@
 //! Bounded explicit-cohort mutation observations and stored public study metadata.
 use biomcp_fetch::{Input, Read};
+mod commercial;
 mod raw;
+pub use commercial::commercial_restriction;
 mod scope;
 use biodata::NcbiGeneId;
 use biomcp_fetch::{Arg, BadReply, Freshness, KeyUse, Leg, PathSegment, RequestError, SourceSpec};

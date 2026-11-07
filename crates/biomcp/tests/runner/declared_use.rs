@@ -8,6 +8,7 @@ mod commercial;
 mod components;
 mod continuation;
 mod records;
+mod studies;
 const ACADEMIC: &str = "x-biomcp-use: academic\r\n";
 const KEY: &str = "7c28f96a-3f48-4d6b-8d30-512c5d41e979";
 const CLINPGX: &[&str] = &[
@@ -23,6 +24,9 @@ const ONCOKB: &[&str] = &["get", "gene", "TP53", "oncokb"];
 
 pub(super) fn trials() -> Vec<Trial> {
     vec![
+        trial("mcp-hosted/use/study-commercial-flags", || {
+            studies::check().map_err(Into::into)
+        }),
         trial("mcp-hosted/use/mode-ceiling", || {
             ceiling::check().map_err(Into::into)
         }),
