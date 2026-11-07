@@ -111,7 +111,6 @@ fn older_version() -> Check {
 }
 
 fn legacy_drug_pool() -> Check {
-    use sha2::{Digest, Sha256};
     let env = Environment::new()?;
     let replay = env.root().join("recordings");
     copy_capture("search/drug-names", &replay, |_, _| {})?;
@@ -120,40 +119,51 @@ fn legacy_drug_pool() -> Check {
     let mut literal = args.to_vec();
     literal.push("--exact-term".into());
     let first = command(&env, &literal, &globals, 0)?;
-    let id = first
-        .pointer("/page/pool/id")
-        .and_then(serde_json::Value::as_str)
-        .ok_or("literal pool")?;
+    let id = pool_id(&first)?;
     if first.pointer("/page/total") != Some(&json!(1)) {
         return Err(format!("literal control did not return one identity: {first}").into());
     }
-    // Seed the pre-expansion representation in this isolated cache only.
-    let query: biomcp_types::ArticleSearch =
-        serde_json::from_value(json!({"text":"Canonical therapy", "limit":1}))?;
-    let bytes = serde_json::to_vec(&query.identity())?;
-    let key = Sha256::digest([b"biomcp.article_page/1\0".as_slice(), &bytes].concat());
+    // Seed the pre-expansion representation in this isolated cache only: the literal pool takes
+    // over the request and current slot of a real expanded search.
+    let current = pool_id(&command(&env, &args, &globals, 0)?)?;
     let db = rusqlite::Connection::open(env.root().join("case-cache/replay.sqlite"))?;
     if db.execute(
-        "UPDATE pool SET request_key=?1 WHERE id=?2",
-        rusqlite::params![key.as_slice(), id],
+        "UPDATE pool SET request_key=(SELECT request_key FROM pool WHERE id=?2) WHERE id=?1",
+        rusqlite::params![id, current],
     )? != 1
+        || db.execute(
+            "UPDATE pool_current SET pool=?1 WHERE pool=?2",
+            rusqlite::params![id, current],
+        )? != 1
     {
         return Err("expected one isolated literal pool".into());
     }
-    db.execute(
-        "INSERT INTO pool_current(request_key,pool) VALUES (?1,?2)",
-        rusqlite::params![key.as_slice(), id],
-    )?;
     drop(db);
     let expanded = command(&env, &args, &globals, 0)?;
     if expanded.pointer("/page/total") != Some(&json!(3)) {
         return Err(format!("legacy literal pool hid source names: {expanded}").into());
     }
+    let rebuilt = pool_id(&expanded)?;
+    if rebuilt == id {
+        return Err("legacy literal pool was reused".into());
+    }
+    let again = command(&env, &args, &globals, 0)?;
+    if pool_id(&again)? != rebuilt {
+        return Err(format!("rebuilt drug pool did not become current: {again}").into());
+    }
     let mut historical = args.to_vec();
-    historical.extend(["--pool".into(), id.into()]);
+    historical.extend(["--pool".into(), id]);
     let retained = command(&env, &historical, &globals, 0)?;
     if retained.pointer("/page/total") != Some(&json!(1)) {
         return Err(format!("explicit historical pool changed: {retained}").into());
     }
     Ok(())
+}
+
+fn pool_id(reply: &serde_json::Value) -> Result<String, Box<dyn std::error::Error>> {
+    reply
+        .pointer("/page/pool/id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_owned)
+        .ok_or_else(|| format!("no stored pool: {reply}").into())
 }

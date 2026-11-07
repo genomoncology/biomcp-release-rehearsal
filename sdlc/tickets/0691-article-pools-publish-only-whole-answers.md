@@ -1,6 +1,7 @@
 # 0691 — Article pools publish only whole answers
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: ce421c2e7b921eb7c5956cebc47e43ce4ec74a8d
 
 Milestone: 5
 

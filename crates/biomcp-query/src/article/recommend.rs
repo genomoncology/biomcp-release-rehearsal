@@ -8,7 +8,6 @@ use biomcp_types::{
     ArticleRecommend, ArticleRecommendations, EvidenceNotice, ReplyData, Request, Source, Status,
     StepKind,
 };
-use sha2::{Digest, Sha256};
 /// Read one recommendation window without local topic filtering or ranking.
 pub(crate) fn run(cx: &Ctx<'_>, query: &ArticleRecommend) -> Outcome {
     let mut out = super::empty((body(Box::default(), false)).with_query(query.clone()));
@@ -55,13 +54,15 @@ fn execute<'a>(
 ) -> Result<(), RequestError> {
     let mut store = Store::open(cx.fetch.cache_access()?, *deadline)?;
     let identity = serde_json::to_vec(&query.identity()).map_err(|_| CacheError::Encoding)?;
-    let key = Sha256::digest([b"biomcp.article_recommend/1\0".as_slice(), &identity].concat());
+    let keys = super::pool::key(cx, b"biomcp.article_recommend/1\0", &identity)?;
+    let key = keys.identity;
     let explicit = query.pool().map(Text::as_str);
     let old = if cx.fresh && explicit.is_none() {
         None
     } else {
-        store.find(&key, explicit)?
+        store.find(&keys.current, explicit)?
     };
+    let publish = old.is_none() && explicit.is_none();
     let pool = match old {
         Some(pool) if pool.key != key.as_slice() => {
             out.body = ReplyData::PoolError { mismatch: true };
@@ -95,12 +96,13 @@ fn execute<'a>(
         }
     };
     out.sources = pool.sources.clone();
-    let result = super::page::read(
+    let result = super::pool::read(
         cx,
         super::page::Cursor::Recommend(query),
         &mut store,
         &pool,
         out,
+        publish.then_some(keys.current.as_slice()),
     );
     *deadline = store.deadline();
     result

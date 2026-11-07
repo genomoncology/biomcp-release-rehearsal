@@ -13,6 +13,7 @@ fn run(fetch: &Fetch, query: AuthorPapersQuery) -> biomcp_query::Outcome {
             budget: Duration::from_secs(20),
             fresh: false,
             ncbi_email: None,
+            drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
         },
         &Request::AuthorPapers(query),
     )

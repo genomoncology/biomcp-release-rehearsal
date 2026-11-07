@@ -9,6 +9,7 @@ tool_only! { mod protein_commands; }
 tool_only! { mod trial_condition; }
 tool_only! { pub(super) mod other_source_value_proof; }
 mod article_lean;
+mod article_pools;
 mod article_save;
 mod article_save_reply;
 mod assertions;
@@ -259,6 +260,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(enum_case::trials());
     trials.extend(protocol::trials());
     trials.extend(article_lean::trials());
+    trials.extend(article_pools::trials());
     trials.extend(configuration::trials());
     trials.extend(bundle_wait::trials());
     trials.extend(bundle_refresh::trials());

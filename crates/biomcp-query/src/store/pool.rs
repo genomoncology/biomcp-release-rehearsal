@@ -107,12 +107,6 @@ impl Store<'_> {
                         .map_err(|error| db(error))?;
                 }
             }
-            tx.execute(
-                "INSERT INTO pool_current(request_key,pool) VALUES (?1,?2) ON CONFLICT(request_key) DO UPDATE SET \
-                pool=excluded.pool",
-                params![key, id],
-            )
-            .map_err(|error| db(error))?;
             Ok(Pool {
                 info: PoolInfo {
                     id: Text::new(&id).map_err(|_| CacheError::Limit)?,
@@ -125,6 +119,29 @@ impl Store<'_> {
                 problems: global,
                 dropped,
             })
+        })
+    }
+    /// Make a checked whole article answer available to new searches.
+    pub(crate) fn publish_current(&mut self, pool: &Pool, key: &[u8]) -> Result<(), CacheError> {
+        let policy = self.policy();
+        self.write(|tx| {
+            policy.authorize(tx, super::ownership::Table::Pool, pool.info.id.as_str())?;
+            tx.execute(
+                "INSERT INTO pool_current(request_key,pool) VALUES (?1,?2) ON CONFLICT(request_key) DO UPDATE SET pool=excluded.pool",
+                params![key, pool.info.id.as_str()],
+            ).map_err(db)?;
+            Ok(())
+        })
+    }
+    /// Remove only this pool's reusable answer, retaining its explicit pages.
+    pub(crate) fn unpublish_current(&mut self, pool: &Pool) -> Result<(), CacheError> {
+        self.write(|tx| {
+            tx.execute(
+                "DELETE FROM pool_current WHERE pool=?1",
+                params![pool.info.id.as_str()],
+            )
+            .map_err(db)?;
+            Ok(())
         })
     }
     /// Publish arbitrary source snapshot payload and its fixed-lifetime pool metadata together.

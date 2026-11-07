@@ -29,7 +29,8 @@ fn fetch(name: &str, cache: ReplayCache) -> Fetch {
     .unwrap()
 }
 fn query(pool: Option<&str>, offset: u32) -> ArticleSearch {
-    let query: ArticleSearch = serde_json::from_str(r#"{"text":"AKT1 E17K","limit":2}"#).unwrap();
+    let query: ArticleSearch =
+        serde_json::from_str(r#"{"text":"AKT1 E17K","exact_term":true,"limit":2}"#).unwrap();
     query.page(offset, pool.map(|value| value.parse().unwrap()))
 }
 fn run(fetch: &Fetch, query: ArticleSearch, fresh: bool) -> Outcome {
