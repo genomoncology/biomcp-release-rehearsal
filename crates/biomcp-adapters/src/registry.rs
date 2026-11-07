@@ -48,6 +48,21 @@ pub fn group(name: &str) -> Option<Use> {
 pub fn disabled_uses(names: &[String]) -> BTreeSet<Use> {
     names.iter().filter_map(|name| group(name)).collect()
 }
+/// Every source name a switch accepts: direct sources, then switchable components.
+pub fn switchable() -> Vec<Source> {
+    let mut seen = BTreeSet::new();
+    sources()
+        .map(|spec| spec.source)
+        .chain(components().filter_map(|component| component.native_source))
+        .filter(|&source| seen.insert(source))
+        .collect()
+}
+/// Resolve one source name; terms groups are not source names.
+pub fn switchable_source(name: &str) -> Option<Source> {
+    switchable()
+        .into_iter()
+        .find(|source| source.to_string() == name)
+}
 /// Expand source switches while component declarations keep aggregators available.
 pub fn disabled(names: &[String]) -> Result<BTreeSet<Source>, biodata::Error> {
     let mut disabled = BTreeSet::new();
@@ -55,16 +70,7 @@ pub fn disabled(names: &[String]) -> Result<BTreeSet<Source>, biodata::Error> {
         if let Some(usage) = group(name) {
             disabled.extend(groups::sources_for_use(usage));
         } else {
-            let source = sources()
-                .find(|s| s.source.to_string() == *name)
-                .map(|s| s.source)
-                .or_else(|| {
-                    components()
-                        .filter_map(|c| c.native_source)
-                        .find(|s| s.to_string() == *name)
-                })
-                .ok_or(biodata::Error::SourceUnknown)?;
-            disabled.insert(source);
+            disabled.insert(switchable_source(name).ok_or(biodata::Error::SourceUnknown)?);
         }
     }
     Ok(disabled)

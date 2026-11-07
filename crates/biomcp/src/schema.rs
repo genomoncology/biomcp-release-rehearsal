@@ -46,8 +46,8 @@ pub(crate) fn replies(query: &str, verb: &str, entity: &str) -> Vec<String> {
 
 pub(crate) fn local_replies(command: &[String]) -> Vec<String> {
     use biomcp_types::{
-        Health, Help, KeyHelp, RegisteredKeys, ResponseBody, SchemaCatalog, StoreClean, SyncResult,
-        WikiPathwaysSync,
+        Health, Help, KeyHelp, RegisteredKeys, ResponseBody, SchemaCatalog, StoreClean,
+        SwitchableSources, SyncResult, WikiPathwaysSync,
     };
     let Some(verb) = command.first().map(String::as_str) else {
         return Vec::new();
@@ -60,6 +60,7 @@ pub(crate) fn local_replies(command: &[String]) -> Vec<String> {
         "help" if command.get(1).is_some_and(|word| word == "key") => KeyHelp::SCHEMA,
         "help" => Help::SCHEMA,
         "key" => RegisteredKeys::SCHEMA,
+        "source" => SwitchableSources::SCHEMA,
         "health" => Health::SCHEMA,
         "store" => StoreClean::SCHEMA,
         "sync" if command.get(1).is_some_and(|word| word == "wikipathways") => {

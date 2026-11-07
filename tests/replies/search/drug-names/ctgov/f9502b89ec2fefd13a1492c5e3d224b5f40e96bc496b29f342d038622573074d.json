@@ -1,0 +1,68 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&pageSize=10&query.term=%28%22Long%20therapy%22%20OR%20%22LT-5%22%29",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "totalCount": 2,
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT03000011",
+                  "briefTitle": "Synthetic long-name trial"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING"
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Synthetic condition"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Long therapy"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT03000012",
+                  "briefTitle": "Synthetic long-name trial"
+                },
+                "statusModule": {
+                  "overallStatus": "RECRUITING"
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Synthetic condition"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "LT-5"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

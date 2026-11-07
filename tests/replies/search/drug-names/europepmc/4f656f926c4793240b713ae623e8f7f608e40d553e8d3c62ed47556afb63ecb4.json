@@ -1,0 +1,23 @@
+{
+  "method": "GET",
+  "source": "europepmc",
+  "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=Canonical%20therapy&format=json&resultType=lite&pageSize=100",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "hitCount": 0,
+          "resultList": {
+            "result": []
+          }
+        }
+      }
+    }
+  ]
+}

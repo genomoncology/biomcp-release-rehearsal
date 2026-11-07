@@ -1,0 +1,23 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
+  "story": "Product rows, whether a combination or a store brand, give no names when the drug has rows of its own.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Mixed therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Mixed therapy",
+          "MX-7"
+        ],
+        "/page/total": 2
+      }
+    }
+  ]
+}

@@ -189,9 +189,8 @@ fn stated_restriction(text: &str) -> License {
     if has(&["TDM"]) {
         return License::Tdm;
     }
-    let noncommercial = has(&["NC", "NONCOMMERCIAL"])
-        || has(&["NON"]) && has(&["COMMERCIAL"])
-        || compact("");
+    let noncommercial =
+        has(&["NC", "NONCOMMERCIAL"]) || has(&["NON"]) && has(&["COMMERCIAL"]) || compact("");
     if !noncommercial {
         License::Other
     } else if has(&["ND", "NODERIVATIVES", "NODERIVS"]) || compact("ND") {

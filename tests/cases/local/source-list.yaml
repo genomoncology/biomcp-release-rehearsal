@@ -1,0 +1,15 @@
+live_check: "local-only command output and help; no recorded source replies"
+feature: mcp-hosted
+story: The source list names the hosted header and describes what a request may leave out.
+steps:
+- run:
+  - source
+  - list
+  expect:
+    /result/header: x-biomcp-exclude-sources
+- run:
+  - help
+  - source
+  - list
+  expect:
+    /result/commands/0/description: List the source names a hosted request may leave out.

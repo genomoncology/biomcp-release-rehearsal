@@ -48,7 +48,7 @@ Which registered trials match melanoma?
 biomcp search trial --condition melanoma
 ```
 
-Trial and article searches expand a whole drug name to the other names stated by an existing drug source when it identifies one drug. Source notices list the names searched and any left out by the limit. Ambiguous names stay as typed, and a reply says when lookups failed and names were not expanded. Use `--exact-term` to skip this expansion; the selected provider still controls its own matching and ranking.
+Trial and article searches expand a whole drug name to the other names stated by an existing drug source when it identifies one drug. Source notices list the names searched and count any left out. Ambiguous names stay as typed, and a reply says when lookups failed and names were not expanded. Use `--exact-term` to skip this expansion; the selected provider still controls its own matching and ranking.
 
 These commands come from recorded cases. Live replies can change. Inspect source outcomes before interpreting a result. Follow returned next commands to page records, inspect source sections or resolve an ambiguous identity. A missing result does not establish absence.
 

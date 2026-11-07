@@ -279,7 +279,14 @@ fn article_processes() -> Result<(), String> {
         &fixture,
         super::response_cases::CACHE_ACQUIRED,
     )?;
-    let base = ["search", "article", "AKT1 E17K", "--limit", "2"];
+    let base = [
+        "search",
+        "article",
+        "AKT1 E17K",
+        "--limit",
+        "2",
+        "--exact-term",
+    ];
     let initial = invoke(&env, cached(&base, &case, Some(&fixture)), 0)?;
     let expected = initial.pointer("/result/items").ok_or("items missing")?;
     let parent = env.root().join("cache/biomcp");

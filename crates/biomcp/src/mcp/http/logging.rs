@@ -31,12 +31,7 @@ pub(super) fn line(params: &Value, duration: Duration, http: u16, reply: Option<
     let tool = params
         .get("name")
         .and_then(Value::as_str)
-        .filter(|name| {
-            matches!(*name, "biomcp" | "biomcp_help" | "search" | "fetch")
-                || crate::grammar::command_paths()
-                    .iter()
-                    .any(|(verb, entity, _)| *name == format!("{verb}_{entity}").replace('-', "_"))
-        })
+        .filter(|name| super::super::typed::served(name))
         .unwrap_or("unknown");
     let content = reply.and_then(|reply| {
         reply

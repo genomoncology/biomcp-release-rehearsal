@@ -146,7 +146,7 @@ pub(super) fn check(
             json!("search"),
             "tools/call",
             json!({"name":"biomcp","arguments":{
-            "args":["search","article","AKT1 E17K","--limit","2","--offline","--fresh"]}}),
+            "args":["search","article","AKT1 E17K","--limit","2","--exact-term","--offline","--fresh"]}}),
         ))?;
         peer.send(&request(json!("accepted"), "ping", json!({})))?;
     }

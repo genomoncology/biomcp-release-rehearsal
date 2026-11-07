@@ -209,6 +209,53 @@ fn pubmed_checks_licenses_before_its_own_call_and_keeps_an_unchecked_abstract() 
 }
 
 #[test]
+fn a_card_with_an_unchecked_license_is_partial_until_the_lookup_recovers() {
+    let healthy = Arc::new(AtomicBool::new(false));
+    let dir = tempfile::tempdir().unwrap();
+    let state = healthy.clone();
+    let (stub, fetch) = fixture::live(dir.path(), move |request| {
+        if request.contains("esummary") || request.contains("efetch") {
+            return fixture::response(request);
+        }
+        if !state.load(Ordering::SeqCst) && request.contains("list-type") {
+            return Ok("not a listing".into());
+        }
+        Ok(fixture::many_papers(request, &[1002]))
+    });
+    let card = || {
+        biomcp_query::run(
+            &biomcp_query::Ctx {
+                fetch: &fetch,
+                budget: Duration::from_secs(20),
+                fresh: false,
+                ncbi_email: None,
+                drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
+            },
+            &Request::GetArticle(biomcp_types::ArticleGet::single(
+                biomcp_types::ArticleInput::Pmid("1002".parse().unwrap()),
+            )),
+        )
+    };
+    let out = card();
+    let reply = format!("{:?}", out.body);
+    assert!(reply.contains("Unavailable"), "the card says so: {reply}");
+    assert_eq!(
+        out.status(),
+        Status::Partial,
+        "an unchecked card is not whole"
+    );
+    healthy.store(true, Ordering::SeqCst);
+    let out = card();
+    let reply = format!("{:?}", out.body);
+    assert!(
+        !reply.contains("Unavailable"),
+        "the lookup settled: {reply}"
+    );
+    assert_eq!(out.status(), Status::Complete, "a checked card is whole");
+    drop(stub);
+}
+
+#[test]
 fn repeat_reads_keep_refusal_markers_and_write_nothing_new() {
     let dir = tempfile::tempdir().unwrap();
     let (stub, fetch) = fixture::live(dir.path(), fixture::response);
@@ -330,10 +377,11 @@ fn both_sources(fetch: &Fetch) -> biomcp_query::Outcome {
             budget: Duration::from_secs(20),
             fresh: false,
             ncbi_email: None,
+            drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
         },
         &Request::SearchArticle(
             serde_json::from_str::<ArticleSearch>(
-                r#"{"text":"rights witness","source":["pubmed","litsense"],"limit":3}"#,
+                r#"{"text":"rights witness","exact_term":true,"source":["pubmed","litsense"],"limit":3}"#,
             )
             .unwrap(),
         ),

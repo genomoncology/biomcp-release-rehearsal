@@ -90,6 +90,7 @@ fn article(source: &'static str) -> Result<(), String> {
         "BRAF",
         "--source",
         source,
+        "--exact-term",
     ];
     if source == "semantic-scholar" {
         args.extend(["--since", "2000", "--until", "2020"]);

@@ -6,6 +6,7 @@ pub(crate) enum Command {
     Skill(crate::skill::Skill),
     Version { verbose: bool },
     McpConfig { client: Client },
+    SourceList,
 }
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub(crate) enum Client {
@@ -21,9 +22,33 @@ impl Command {
             Self::Skill(command) => command.render()?,
             Self::Version { verbose } => version(*verbose, globals)?,
             Self::McpConfig { client } => mcp_config(*client)?,
+            Self::SourceList => source_list()?,
         };
         Ok(text.into_bytes())
     }
+}
+/// Names follow the source switch registry, so this list and the header cannot differ.
+fn source_list() -> io::Result<String> {
+    let entries = biomcp_query::sources::switchable()
+        .into_iter()
+        .map(|source| {
+            Ok(biomcp_types::SwitchableSource {
+                source,
+                name: biodata::Text::new(biomcp_query::sources::display_name(source))
+                    .map_err(io::Error::other)?,
+                usage: biomcp_query::sources::terms(source)
+                    .ok_or_else(|| io::Error::other("undeclared source terms"))?
+                    .usage,
+            })
+        })
+        .collect::<io::Result<_>>()?;
+    let header = biodata::Text::new(crate::command::EXCLUDE_HEADER).map_err(io::Error::other)?;
+    let reply = biomcp_types::Envelope::new(
+        biomcp_types::Status::Complete,
+        biomcp_types::EmptyQuery {},
+        Some(biomcp_types::SwitchableSources { header, entries }),
+    );
+    Ok(format!("{}\n", serde_json::to_string(&reply)?))
 }
 fn mcp_config(client: Client) -> io::Result<String> {
     let command = crate::config::executable()?;
@@ -67,7 +92,7 @@ fn display_path(path: Option<std::path::PathBuf>) -> String {
 }
 
 pub(crate) fn recognizes(name: &str) -> bool {
-    matches!(name, "version" | "mcp-config" | "skill")
+    matches!(name, "version" | "mcp-config" | "skill" | "source")
 }
 
 pub(crate) fn help(root: &clap::Command) -> Vec<biomcp_types::HelpCommand> {

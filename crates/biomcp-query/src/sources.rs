@@ -6,7 +6,7 @@ pub use biomcp_adapters::registry::records::{RecordKind, declaration, record_url
 pub use biomcp_adapters::registry::{
     components, disable_groups, disabled, disabled_uses, discovery_aliases, display_name, group,
     key_name, key_source, key_suffix, key_tier, keys, outcome, requests, restore_outcome, sources,
-    sources_for_use, terms,
+    sources_for_use, switchable, switchable_source, terms,
 };
 
 pub use biomcp_adapters::decl::{BundleReply, bundles};

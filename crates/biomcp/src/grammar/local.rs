@@ -117,9 +117,18 @@ pub(super) fn help_source(
     }
 }
 
-pub(super) fn housekeeping_commands() -> [Command; 3] {
+pub(super) fn housekeeping_commands() -> [Command; 4] {
     [
         crate::skill::grammar(),
+        Command::new("source")
+            .about("List source names as JSON. No source requests or key reads.")
+            .after_help("Example: biomcp source list")
+            .subcommand_required(true)
+            .subcommand(
+                Command::new("list")
+                    .about("List the source names a hosted request may leave out.")
+                    .after_help("Example: biomcp source list"),
+            ),
         Command::new("version").after_help("Example: biomcp version")
             .about("Print version; --verbose adds build, schema and path provenance. No source requests or key reads.")
             .arg(
@@ -150,6 +159,7 @@ pub(super) fn housekeeping(
     use crate::housekeeping::{Client, Command};
     match verb {
         "skill" => crate::skill::parse(matches).map(Command::Skill),
+        "source" => Some(Command::SourceList),
         "version" => Some(Command::Version {
             verbose: matches.get_flag("verbose"),
         }),

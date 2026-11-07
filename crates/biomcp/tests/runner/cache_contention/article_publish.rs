@@ -42,6 +42,7 @@ pub(super) fn check() -> Result<(), String> {
         "semantic-scholar",
         "--limit",
         "1",
+        "--exact-term",
     ]
     .map(str::to_owned);
     let output = env

@@ -327,6 +327,16 @@ fn overlapping_replay_commands_complete_without_adding_each_others_spend() {
     }
 }
 
+fn current_rows(fetch: &Fetch, pool: &str) -> i64 {
+    let connection = fetch.cache_access().unwrap().connect().unwrap();
+    connection
+        .query_row(
+            "SELECT count(*) FROM pool_current WHERE pool=?1",
+            [pool],
+            |row| row.get(0),
+        )
+        .unwrap()
+}
 #[test]
 fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     let directory = tempfile::tempdir().unwrap();
@@ -350,6 +360,7 @@ fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     .unwrap();
     let (first, _) = page(run(&replay, query(None, 0), false));
     let id = first.pool.unwrap().id;
+    assert_eq!(current_rows(&replay, id.as_str()), 1);
     let connection = replay.cache_access().unwrap().connect().unwrap();
     connection
         .execute_batch("UPDATE pool_item SET checked=0,header=NULL; UPDATE reply SET fresh_until=0")
@@ -370,6 +381,8 @@ fn stale_summary_fallback_stays_partial_when_its_page_is_read_offline() {
     assert_eq!(first.local, None);
     assert_eq!(first.status(), Status::Partial);
     assert_eq!(first.sources[0].state, biomcp_types::SourceState::Stale);
+    // A page that turned partial must stop answering new searches.
+    assert_eq!(current_rows(&live, id.as_str()), 0);
     let biomcp_query::Action::Run {
         request: Request::SearchArticle(retry),
         fresh: true,

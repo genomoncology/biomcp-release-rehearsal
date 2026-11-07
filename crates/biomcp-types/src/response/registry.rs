@@ -22,6 +22,7 @@ macro_rules! reply_types {
             help: $crate::Help => "help",
             key_help: $crate::KeyHelp => "key",
             registered_keys: $crate::RegisteredKeys => "registered-keys",
+            switchable_sources: $crate::SwitchableSources => "switchable-sources",
             gene_cards: $crate::GeneCards => "gene-cards",
             gene_page: $crate::GenePage => "gene-page",
             store_clean: $crate::StoreClean => "store-clean",

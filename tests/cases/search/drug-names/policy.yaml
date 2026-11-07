@@ -27,13 +27,12 @@
         "--disable-sources",
         "chembl"
       ],
-      "exit": 4,
-      "is_error": true,
       "expect": {
-        "/status": "failed",
+        "/status": "complete",
+        "/page/total": 2,
+        "/sources/0/term": "EX-66",
         "/sources/0": {
           "omits": [
-            "term",
             "notices"
           ]
         },

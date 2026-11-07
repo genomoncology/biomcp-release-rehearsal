@@ -1,0 +1,56 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
+  "story": "A name past the words ClinicalTrials.gov accepts stays out of the trial name group and is counted, whichever name was typed.",
+  "replay": "search/drug-names",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "Long therapy"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Long therapy",
+          "LT-5"
+        ],
+        "/sources/0/notices/0/message": "Searched the names stated by mychem record LONGTHERAPYAAA-SFHVURJKSA-N. Left out 1 of 3 names too long for the provider to search.",
+        "/page/total": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "LT-5"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Long therapy",
+          "LT-5"
+        ],
+        "/sources/0/notices/0/message": "Searched the names stated by mychem record LONGTHERAPYAAA-SFHVURJKSA-N. Left out 1 of 3 names too long for the provider to search.",
+        "/page/total": 2
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "1-alpha-2-beta-3-gamma-4-delta-5-epsilon-6-zeta-7-eta-8-theta-9-iota-10-kappa"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Long therapy",
+          "LT-5"
+        ],
+        "/sources/0/notices/0/message": "Searched the names stated by mychem record LONGTHERAPYAAA-SFHVURJKSA-N. Left out 1 of 3 names too long for the provider to search.",
+        "/page/total": 2
+      }
+    }
+  ]
+}

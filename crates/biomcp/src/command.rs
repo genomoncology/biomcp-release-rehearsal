@@ -6,7 +6,7 @@ pub(crate) use context::Context;
 pub(crate) use encoding::{Encoding, Outcome};
 mod hosted_keys;
 pub(crate) mod hosted_use;
-pub(crate) use hosted_use::DeclaredUse;
+pub(crate) use hosted_use::{DeclaredUse, EXCLUDE_HEADER};
 pub(crate) mod local;
 mod maintenance;
 pub(crate) mod mcp_policy;

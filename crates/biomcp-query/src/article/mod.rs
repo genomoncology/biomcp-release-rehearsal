@@ -63,6 +63,8 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &ArticleSearch) -> Outcome {
     }
     out
 }
+/// Sentences kept out of the store and given back to this reply.
+type Held = Vec<(biomcp_types::ArticleKey, biomcp_types::ArticleSentence)>;
 fn execute<'a>(
     cx: &Ctx<'a>,
     query: &ArticleSearch,
@@ -82,62 +84,22 @@ fn execute<'a>(
     // A repeat search rechecks what an unfinished lookup left out; a named pool stays as paged.
     let restricted = cx.fetch.disabled_use(biomcp_types::Use::PerRecord);
     let stored = stored.filter(|pool| explicit.is_some() || !(restricted && pool.dropped));
-    let mut held = Vec::new();
     let (stored, looked_up) = drug_names::reuse(cx, query, stored, out, deadline);
     let publish = stored.is_none() && explicit.is_none();
-    let pool = match stored {
+    let (pool, held, whole) = match stored {
         Some(pool) if pool.key != key.as_slice() => {
             pool_error(query, true, out);
             return Ok(());
         }
-        Some(pool) => pool,
+        Some(pool) => (pool, Vec::new(), true),
         None if explicit.is_some() => {
             pool_error(query, false, out);
             return Ok(());
         }
-        None => {
-            let Some(resolved) = term::search(cx, query, deadline, out)? else {
-                return Ok(());
-            };
-            let drug_names = looked_up
-                .unwrap_or_else(|| crate::drug::search_names::article(cx, query, out, deadline));
-            let mut items =
-                match sources::search(cx, query, &resolved, &drug_names.names, deadline, out)? {
-                    sources::SearchResult::Items(items) => items,
-                    sources::SearchResult::Answer => return Ok(()),
-                    sources::SearchResult::Unavailable => {
-                        retry(query, None, out);
-                        return Ok(());
-                    }
-                };
-            if query.sort() == biomcp_types::ArticleSort::Citations
-                && !order::apply(cx, deadline, &mut items, out)?
-            {
-                retry(query, None, out);
-                return Ok(());
-            }
-            filter_text(cx, deadline, &mut items, out);
-            // Names may be missing, so these rows are this reply's, not the whole pool's.
-            if drug_names.failed {
-                page::fetched(page::Cursor::Search(query), items, out);
-                return Ok(());
-            }
-            held = biomcp_adapters::article_rights::take_unchecked(&mut items);
-            store.set_deadline(*deadline);
-            match crate::publish::keep(
-                store
-                    .publish(&key, &items, &out.sources, &out.problems, out.dropped)
-                    .map_err(Into::into),
-                out,
-            )? {
-                Some(pool) => pool,
-                None => {
-                    biomcp_adapters::article_rights::return_unchecked(&mut items, &held);
-                    page::fetched(page::Cursor::Search(query), items, out);
-                    return Ok(());
-                }
-            }
-        }
+        None => match fetch_pool(cx, query, &key, looked_up, &mut store, deadline, out)? {
+            Some(fetched) => fetched,
+            None => return Ok(()),
+        },
     };
     out.sources = pool.sources.clone();
     let result = self::pool::read(
@@ -146,7 +108,8 @@ fn execute<'a>(
         &mut store,
         &pool,
         out,
-        publish.then_some(keys.current.as_slice()),
+        keys.current.as_slice(),
+        publish && whole,
     );
     if let ReplyData::ArticlePage {
         body: Some(page), ..
@@ -156,6 +119,52 @@ fn execute<'a>(
     }
     *deadline = store.deadline();
     result
+}
+/// Fetch and store a new pool. `None` means the reply is already complete in `out`.
+fn fetch_pool<'a>(
+    cx: &Ctx<'a>,
+    query: &ArticleSearch,
+    key: &[u8],
+    looked_up: Option<crate::drug::search_names::Resolved>,
+    store: &mut Store<'a>,
+    deadline: &mut Deadline<'a>,
+    out: &mut Outcome,
+) -> Result<Option<(crate::store::Pool, Held, bool)>, RequestError> {
+    let Some(resolved) = term::search(cx, query, deadline, out)? else {
+        return Ok(None);
+    };
+    let drug_names =
+        looked_up.unwrap_or_else(|| crate::drug::search_names::article(cx, query, out, deadline));
+    let mut items = match sources::search(cx, query, &resolved, &drug_names.names, deadline, out)? {
+        sources::SearchResult::Items(items) => items,
+        sources::SearchResult::Answer => return Ok(None),
+        sources::SearchResult::Unavailable => {
+            retry(query, None, out);
+            return Ok(None);
+        }
+    };
+    if query.sort() == biomcp_types::ArticleSort::Citations
+        && !order::apply(cx, deadline, &mut items, out)?
+    {
+        retry(query, None, out);
+        return Ok(None);
+    }
+    filter_text(cx, deadline, &mut items, out);
+    let held = biomcp_adapters::article_rights::take_unchecked(&mut items);
+    store.set_deadline(*deadline);
+    let Some(pool) = crate::publish::keep(
+        store
+            .publish(key, &items, &out.sources, &out.problems, out.dropped)
+            .map_err(Into::into),
+        out,
+    )?
+    else {
+        biomcp_adapters::article_rights::return_unchecked(&mut items, &held);
+        page::fetched(page::Cursor::Search(query), items, out);
+        return Ok(None);
+    };
+    // Names may be missing, so the pool serves this search's pages and never a new search.
+    Ok(Some((pool, held, !drug_names.failed)))
 }
 /// Apply the record policy before publishing a newly fetched ranked pool.
 fn filter_text<'a>(

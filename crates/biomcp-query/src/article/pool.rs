@@ -34,16 +34,18 @@ pub(super) fn read<'a>(
     store: &mut Store<'a>,
     pool: &Pool,
     out: &mut Outcome,
-    current: Option<&[u8]>,
+    current: &[u8],
+    publish: bool,
 ) -> Result<(), RequestError> {
     let result = page::read(cx, cursor, store, pool, out);
     let complete = result.is_ok() && out.status() == Status::Complete;
-    let update = match (complete, current) {
+    let update = match (complete, publish) {
         // A new pool is unpublished, so a partial page has no mapping to remove.
-        (false, Some(_)) => return result,
-        (false, None) => store.unpublish_current(pool),
-        (true, Some(key)) => store.publish_current(pool, key),
-        (true, None) => return result,
+        (false, true) => return result,
+        // Only this caller's source list is judged: another list may read the pool whole.
+        (false, false) => store.unpublish_current(pool, current),
+        (true, true) => store.publish_current(pool, current),
+        (true, false) => return result,
     };
     crate::publish::keep(update.map_err(Into::into), out)?;
     result

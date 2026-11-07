@@ -258,7 +258,6 @@ fn components(
     search: bool,
 ) -> Vec<biomcp_types::SourceOutcome> {
     mychem::requested_components(search)
-        .into_iter()
         .filter_map(|component| {
             let source = component.native_source?;
             Some(biomcp_adapters::registry::outcome(

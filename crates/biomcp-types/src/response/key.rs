@@ -69,3 +69,28 @@ impl super::ResponseBody for RegisteredKeys {
     const SCHEMA: &'static str = "biomcp.registered-keys/5";
     type Query = super::EmptyQuery;
 }
+/// One source name a hosted request may leave out.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct SwitchableSource {
+    /// Source name accepted by the hosted header.
+    pub source: crate::Source,
+    /// Publisher display name.
+    pub name: crate::Text,
+    /// Publisher use label for the whole source.
+    pub usage: crate::Use,
+}
+/// Source names a hosted request may leave out, and the header that carries them.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct SwitchableSources {
+    /// Comma-separated hosted HTTP request header.
+    pub header: crate::Text,
+    /// Accepted source names in public order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub entries: Vec<SwitchableSource>,
+}
+impl super::ResponseBody for SwitchableSources {
+    const SCHEMA: &'static str = "biomcp.switchable-sources/1";
+    type Query = super::EmptyQuery;
+}

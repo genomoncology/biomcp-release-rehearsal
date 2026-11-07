@@ -15,6 +15,7 @@
           "--criteria",
           "--distance",
           "--exact-condition",
+          "--exact-term",
           "--facility",
           "--gene",
           "--has-results",

@@ -87,6 +87,7 @@ pub(super) fn search<'a>(
     )))
 }
 /// Search the typed term where a provider refused the name group, and say so on that provider.
+/// True only when every provider taking the group fell back, so none searched the names.
 fn retry_typed<'a>(
     cx: &Ctx<'a>,
     query: &ArticleSearch,
@@ -100,10 +101,12 @@ fn retry_typed<'a>(
         return false;
     };
     let mut retried = false;
-    for result in results
-        .iter_mut()
-        .filter(|r| grouped(r.source) && search_names::rejected(r.error.as_ref()))
-    {
+    let mut all = true;
+    for result in results.iter_mut().filter(|r| grouped(r.source)) {
+        if !search_names::rejected(result.error.as_ref()) {
+            all = false;
+            continue;
+        }
         let batch = [(result.source, query.clone())];
         if let Some(mut typed) = fetch_batch(cx, &batch, resolved, *deadline, prepared).pop() {
             *deadline = deadline.after_stage(typed.elapsed);
@@ -113,9 +116,11 @@ fn retry_typed<'a>(
                 .push(search_names::typed_only(input, typed.outcome.source));
             *result = typed;
             retried = true;
+        } else {
+            all = false;
         }
     }
-    retried
+    retried && all
 }
 /// A provider taking one request per name reports which names it had time for.
 fn note_request_limit(query: &ArticleSearch, names: &[Text], out: &mut Outcome) {

@@ -25,6 +25,7 @@ Commands:
   variant     Read source variant assertions, populations and recurrence.
   sync        Synchronize a local source bundle.
   skill       Read embedded guidance and worked examples. No source requests. Overview and catalog are bounded by the embedded payload; install and status return one summary. Install writes only inside DIR and refuses symbolic links and parent traversal.
+  source      List source names as JSON. No source requests or key reads.
   version     Print version; --verbose adds build, schema and path provenance. No source requests or key reads.
   mcp-config  Print MCP configuration with this executable’s absolute path. JSON formats name their top-level object and retain released client aliases. The codex client prints its shell registration command. No source requests or key reads.
   health      Report source terms and bounded reachability.
@@ -78,6 +79,7 @@ trial: Read trial groups and public documents.
 variant: Read source variant assertions, populations and recurrence.
 sync: Synchronize a local source bundle.
 skill: Read embedded guidance and worked examples
+source: List source names as JSON
 version: Print version; --verbose adds build, schema and path provenance
 mcp-config: Print MCP configuration with this executable’s absolute path
 health: Report source terms and bounded reachability.
@@ -5502,6 +5504,93 @@ Install into DIR/skills/biomcp; a skills or biomcp directory is accepted directl
 - `directory`: Directory to inspect or install BioMCP guidance.
 - `--force`: Repair managed files; retain unrelated files. Value form: boolean. Example: --force. Local command option; independent of source selection.
 
+## biomcp source
+
+```text
+List source names as JSON. No source requests or key reads.
+
+Usage: biomcp source [OPTIONS] <COMMAND>
+
+Commands:
+  list  List the source names a hosted request may leave out.
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups. Example: --disable-sources civic.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
+
+      --config <config>
+          Read configuration from this file. Example: --config config.json.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+Example: biomcp source list
+
+```
+
+List source names as JSON. No source requests or key reads.
+
+
+## biomcp source list
+
+```text
+List the source names a hosted request may leave out.
+
+Usage: biomcp source list [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups. Example: --disable-sources civic.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
+
+      --config <config>
+          Read configuration from this file. Example: --config config.json.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+Example: biomcp source list
+
+```
+
+List the source names a hosted request may leave out.
+
+
 ## biomcp version
 
 ```text
@@ -6066,6 +6155,7 @@ Commands:
   variant            Read source variant assertions, populations and recurrence.
   sync               Synchronize a local source bundle.
   skill
+  source
   version
   mcp-config
   health             Report source terms and bounded reachability.
@@ -9522,6 +9612,87 @@ Options:
 ```
 
 Describe help skill install.
+
+
+## biomcp help source
+
+```text
+Usage: biomcp help source [OPTIONS] [COMMAND]
+
+Commands:
+  list  List supported discovery topics.
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups. Example: --disable-sources civic.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
+
+      --config <config>
+          Read configuration from this file. Example: --config config.json.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+Describe help source.
+
+
+## biomcp help source list
+
+```text
+List supported discovery topics.
+
+Usage: biomcp help source list [OPTIONS]
+
+Options:
+      --format <format>
+          Choose JSON or Markdown output; configuration can change the default.
+
+          [default: json]
+          [possible values: json, md]
+
+      --disable-sources <disable-sources>
+          Exclude source names or source terms groups. Example: --disable-sources civic.
+
+      --source_pacing <source_pacing>
+          Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
+
+      --config <config>
+          Read configuration from this file. Example: --config config.json.
+
+      --offline[=<offline>]
+          Read local data without source requests.
+
+          [default: false]
+          [possible values: true, false]
+
+      --fresh[=<fresh>]
+          Request fresh source data instead of cached replies.
+
+          [default: false]
+          [possible values: true, false]
+
+```
+
+List supported discovery topics.
 
 
 ## biomcp help version

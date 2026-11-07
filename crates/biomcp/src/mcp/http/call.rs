@@ -30,6 +30,7 @@ pub(super) struct HostedCall {
     pub(super) modern: bool,
     pub(super) call: research::Call,
     pub(super) secrets: Option<Secrets>,
+    pub(super) excluded: std::collections::BTreeSet<biomcp_types::Source>,
     pub(super) declared_use: crate::command::DeclaredUse,
     pub(super) scope: Cancellation,
 }
@@ -45,6 +46,7 @@ impl Calls {
             modern,
             call,
             secrets,
+            excluded,
             declared_use,
             scope,
         } = work;
@@ -81,6 +83,7 @@ impl Calls {
                     fetch: &fetch,
                     recovery: recovery.as_deref(),
                     secrets: secrets.as_ref(),
+                    excluded: Some(&excluded),
                     declared_use: Some(declared_use),
                     scope: Some(&worker_scope),
                 };
@@ -272,6 +275,35 @@ mod tests {
         assert!(!line.to_string().contains("private"));
     }
 
+    #[test]
+    fn call_diagnostic_names_every_served_tool() {
+        let service = test_service();
+        let context = crate::command::Context::new(
+            &service.globals,
+            &service.fetch,
+            &service.root,
+            &service.settings,
+        );
+        let tools = crate::mcp::typed::tools(context, false).unwrap();
+        let reference = tools
+            .iter()
+            .find(|tool| tool["name"] == "biomcp_reference")
+            .unwrap();
+        let grouped = reference["inputSchema"]["properties"]["command"]["enum"]
+            .as_array()
+            .unwrap();
+        assert!(!grouped.is_empty());
+        let log = |name: &serde_json::Value| {
+            super::super::logging::line(&json!({"name":name}), Duration::ZERO, 200, None)
+        };
+        for name in tools.iter().map(|tool| &tool["name"]).chain(grouped) {
+            assert_eq!(&log(name)["tool"], name);
+        }
+        for name in ["biomcp_private", "get_private", "reference", "BIOMCP", ""] {
+            assert_eq!(log(&json!(name))["tool"], "unknown");
+        }
+    }
+
     const DEADLOCK_GUARD: Duration = Duration::from_secs(60);
 
     #[test]
@@ -311,6 +343,7 @@ mod tests {
                     catalog: None,
                 },
                 secrets: None,
+                excluded: Default::default(),
                 declared_use: crate::command::DeclaredUse::Academic,
                 scope: Cancellation::with_budget(DEADLOCK_GUARD),
             },

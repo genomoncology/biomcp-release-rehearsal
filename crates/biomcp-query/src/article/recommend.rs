@@ -102,7 +102,8 @@ fn execute<'a>(
         &mut store,
         &pool,
         out,
-        publish.then_some(keys.current.as_slice()),
+        keys.current.as_slice(),
+        publish,
     );
     *deadline = store.deadline();
     result

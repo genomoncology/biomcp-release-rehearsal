@@ -17,7 +17,7 @@ const NAME_REQUESTS: usize = 4;
 /// What one lookup settled about a typed name.
 #[derive(Debug, Default)]
 pub(crate) struct Resolved {
-    /// Names to search; one name means the term stays as typed.
+    /// Names to search, most wanted first; one name means the term stays as typed.
     pub names: Vec<Text>,
     /// A lookup failed and none gave names, so the search may be missing names.
     pub failed: bool,
@@ -26,6 +26,7 @@ pub(crate) struct Resolved {
 enum Found {
     Names {
         names: Vec<Text>,
+        preferred: Vec<String>,
         record: String,
         evidence: Vec<SourceOutcome>,
         problems: Vec<biomcp_types::Problem>,
@@ -50,11 +51,13 @@ pub(crate) fn bounded<'a, T>(
 /// Walk the sources until one states the drug's names. A source with several structures, or
 /// nothing more to give, passes to the next; a failed source is never read as an empty one.
 /// ChEMBL comes before the label because a molecule record carries more names than one product.
+/// `fits` says which names the searching provider can take.
 pub(crate) fn resolve<'a>(
     cx: &Ctx<'a>,
     input: &Text,
     out: &mut Outcome,
     deadline: &mut Deadline<'a>,
+    fits: fn(&str) -> bool,
 ) -> Resolved {
     let mut ambiguous = None;
     let mut failed = Vec::new();
@@ -85,27 +88,19 @@ pub(crate) fn resolve<'a>(
         match found {
             Found::Names {
                 names,
+                preferred,
                 record,
                 evidence,
                 problems,
             } => {
-                let (names, left_out) = capped(names, input, cx.drug_name_limit);
-                let message = format!(
-                    "Searched the names stated by {} record {record}.{}",
-                    source.source(),
-                    if left_out == 0 {
-                        String::new()
-                    } else {
-                        format!(
-                            " Left out {left_out} of {} names, past the drug_search_name_limit setting.",
-                            left_out + names.len()
-                        )
-                    }
-                );
-                record_evidence(out, evidence, input, &names, message);
+                let kept = capped(names, &preferred, input, cx.drug_name_limit, fits);
+                let message = kept.message(source.source(), &record);
+                let mut listed = kept.names.clone();
+                listed.sort_by_key(lowered);
+                record_evidence(out, evidence, input, &listed, message);
                 out.problems.extend(problems);
                 return Resolved {
-                    names,
+                    names: kept.names,
                     failed: false,
                 };
             }
@@ -138,7 +133,8 @@ pub(crate) fn resolve<'a>(
     Resolved::default()
 }
 
-/// Read the rows stating the name. Product rows and stereo forms are not separate drugs.
+/// Read the rows stating the name. Product rows and stereo forms are not separate drugs, and
+/// product rows give no names when the drug has rows of its own.
 fn mychem(cx: &Ctx<'_>, input: &Text) -> Found {
     let command = cx.fetch.command_deadline(cx.budget);
     let leg = cx
@@ -168,12 +164,15 @@ fn mychem(cx: &Ctx<'_>, input: &Text) -> Found {
         return Found::Nothing;
     };
     let record = record.id.clone();
-    let names = mapped
-        .value
-        .iter()
+    // A product row with no structure of its own never describes this drug.
+    let drug_rows = || mapped.value.iter().filter(|row| row.structure.is_some());
+    let names = drug_rows()
         .flat_map(|row| row.names.iter().cloned())
         .collect();
-    with_other_names(names, input, record, evidence, mapped.problems)
+    let preferred = drug_rows()
+        .flat_map(|row| row.preferred.iter().cloned())
+        .collect();
+    with_other_names((names, preferred), input, record, evidence, mapped.problems)
 }
 
 /// Read one exact source record through the get drug path.
@@ -214,13 +213,24 @@ fn card(cx: &Ctx<'_>, source: DrugSource, input: &Text, out: &mut Outcome) -> Fo
     if source == DrugSource::Chembl && super::aliases::ambiguous(card) {
         return Found::Ambiguous(found.sources);
     }
+    let preferred = names
+        .first()
+        .map(|name| name.to_string())
+        .into_iter()
+        .collect();
     let names = names.into_iter().cloned().collect();
     let record = card.header.id.to_string();
-    with_other_names(names, input, record, found.sources, found.problems)
+    with_other_names(
+        (names, preferred),
+        input,
+        record,
+        found.sources,
+        found.problems,
+    )
 }
 
 fn with_other_names(
-    names: Vec<Text>,
+    (names, preferred): (Vec<Text>, Vec<String>),
     input: &Text,
     record: String,
     evidence: Vec<SourceOutcome>,
@@ -234,6 +244,7 @@ fn with_other_names(
     }
     Found::Names {
         names,
+        preferred,
         record,
         evidence,
         problems,
@@ -252,26 +263,80 @@ fn failure(error: Option<RequestError>, evidence: Vec<SourceOutcome>) -> Found {
     Found::Failed(evidence)
 }
 
-/// One spelling per name, the typed one always kept. The shortest names survive the limit, so
-/// the same drug keeps the same names whichever of them was typed.
-fn capped(names: Vec<Text>, input: &Text, limit: usize) -> (Vec<Text>, usize) {
+fn lowered(name: &Text) -> String {
+    name.as_str().to_lowercase()
+}
+
+/// The names one provider will search, and how many the record stated beyond them.
+struct Capped {
+    names: Vec<Text>,
+    left_out: usize,
+    too_long: usize,
+}
+
+impl Capped {
+    fn message(&self, source: biomcp_types::Source, record: &str) -> String {
+        let total = self.names.len() + self.left_out + self.too_long;
+        let mut message = format!("Searched the names stated by {source} record {record}.");
+        if self.too_long > 0 {
+            message.push_str(&format!(
+                " Left out {} of {total} names too long for the provider to search.",
+                self.too_long
+            ));
+        }
+        if self.left_out > 0 {
+            message.push_str(&format!(
+                " Left out {} of {total} names, past the drug_search_name_limit setting.",
+                self.left_out
+            ));
+        }
+        message
+    }
+}
+
+/// One spelling per name, the typed one kept when the provider can take it. The record's
+/// preferred names rank first and then the shortest, so the same drug keeps the same names
+/// whichever of them was typed.
+fn capped(
+    names: Vec<Text>,
+    preferred: &[String],
+    input: &Text,
+    limit: usize,
+    fits: fn(&str) -> bool,
+) -> Capped {
     let mut seen = std::collections::BTreeSet::new();
-    let mut names: Vec<_> = std::iter::once(input.clone())
+    let stated: Vec<_> = std::iter::once(input.clone())
         .chain(names)
-        .filter(|name| seen.insert(name.as_str().to_lowercase()))
+        .filter(|name| seen.insert(lowered(name)))
         .collect();
-    let lowered = |name: &Text| name.as_str().to_lowercase();
-    names.sort_by_key(|name| (name.as_str().chars().count(), lowered(name)));
+    let stated_count = stated.len();
+    let mut names: Vec<_> = stated
+        .into_iter()
+        .filter(|name| fits(name.as_str()))
+        .collect();
+    let too_long = stated_count - names.len();
+    let preferred: std::collections::BTreeSet<_> =
+        preferred.iter().map(|name| name.to_lowercase()).collect();
+    names.sort_by_key(|name| {
+        (
+            !preferred.contains(&lowered(name)),
+            name.as_str().chars().count(),
+            lowered(name),
+        )
+    });
     let left_out = names.len().saturating_sub(limit);
     if left_out > 0 {
-        let typed_kept = names.iter().take(limit).any(|name| name == input);
+        let typed_cut = names.iter().skip(limit).any(|name| name == input);
         names.truncate(limit);
-        if !typed_kept && let Some(last) = names.last_mut() {
+        if typed_cut && let Some(last) = names.last_mut() {
             *last = input.clone();
         }
     }
-    names.sort_by_key(lowered);
-    (names, left_out)
+    Capped {
+        names,
+        left_out,
+        too_long,
+    }
 }
 
 fn record_evidence(
@@ -317,7 +382,7 @@ pub(crate) fn article<'a>(
     query
         .drug_name_input()
         .map_or_else(Resolved::default, |input| {
-            bounded(deadline, |lookup| resolve(cx, input, out, lookup))
+            bounded(deadline, |lookup| resolve(cx, input, out, lookup, |_| true))
         })
 }
 
@@ -354,10 +419,10 @@ pub(crate) fn retract(out: &mut Outcome) {
     }
 }
 
-/// Providers taking one request per name get the typed name and the shortest others.
+/// Providers taking one request per name get the typed name, then the others in `names` order.
 pub(crate) fn one_request_each(input: Option<&Text>, names: &[Text]) -> Vec<Text> {
     let mut picked: Vec<_> = names.iter().collect();
-    picked.sort_by_key(|name| (Some(*name) != input, name.as_str().chars().count()));
+    picked.sort_by_key(|name| Some(*name) != input);
     picked.truncate(NAME_REQUESTS);
     // Request order sets result order, so it must not depend on which name was typed.
     picked.sort_by_key(|name| name.as_str().to_lowercase());
@@ -366,6 +431,9 @@ pub(crate) fn one_request_each(input: Option<&Text>, names: &[Text]) -> Vec<Text
 
 /// Source names are literal terms inside a native Boolean group.
 pub(crate) fn alternatives(names: &[Text], input: &Text) -> Text {
+    let mut names = names.to_vec();
+    // A provider's reply is cached by its request, so the order must not depend on the typed name.
+    names.sort_by_key(lowered);
     let terms: Vec<_> = names
         .iter()
         .map(|name| {

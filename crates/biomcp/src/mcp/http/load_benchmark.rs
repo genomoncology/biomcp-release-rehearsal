@@ -15,6 +15,10 @@ use std::{
 const CALLS: usize = 300;
 const SYNCS: usize = 64;
 const WINDOW: Duration = Duration::from_secs(5 * 60);
+/// A client can reconnect before the server frees its last slot, and health polls also take
+/// one. This run measures sync under call load, so admission limits stay out of its way;
+/// their refusals have their own tests.
+const ADMITTED: usize = crate::config::DEFAULT_HTTP_CAPACITY * 2 + 1;
 
 type Sample = (f64, Result<(), String>);
 struct Measurements {
@@ -81,9 +85,9 @@ fn load_service(
     let service = Arc::new(Service {
         hosted_max_use: Default::default(),
         calls: Calls::default(),
-        connections: super::super::admission::Slots::new(crate::config::DEFAULT_HTTP_CAPACITY),
-        max_calls: crate::config::DEFAULT_HTTP_CAPACITY,
-        max_connections: crate::config::DEFAULT_HTTP_CAPACITY,
+        connections: super::super::admission::Slots::new(ADMITTED),
+        max_calls: ADMITTED,
+        max_connections: ADMITTED,
         address,
         hosts: Vec::new(),
         globals,

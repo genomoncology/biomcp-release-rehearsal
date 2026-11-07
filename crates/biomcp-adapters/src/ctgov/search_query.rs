@@ -3,6 +3,18 @@ use super as ctgov;
 use biomcp_fetch::{Leg, RequestError};
 use biomcp_types::{SourceNotice, TrialSearch};
 
+/// Most words the registry accepts in one quoted name, measured live: a longer name fails the
+/// whole request with 400 "Too complicated query", whichever other names are beside it.
+const NAME_WORDS: usize = 12;
+
+/// Whether the registry can search this name, counting every run of letters or digits as a word.
+pub fn name_fits(name: &str) -> bool {
+    name.split(|c: char| !c.is_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .count()
+        <= NAME_WORDS
+}
+
 /// Search typed selectors with the registry name fallback.
 pub fn search_query(
     leg: &Leg<'_>,

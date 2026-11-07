@@ -23,6 +23,12 @@ pub(crate) enum StartError {
     AllowHost,
     Local,
 }
+/// What one request's hosted headers allow, before any source work.
+#[derive(Default)]
+struct Caller {
+    declared_use: Option<crate::command::DeclaredUse>,
+    excluded: std::collections::BTreeSet<biomcp_types::Source>,
+}
 struct Service {
     calls: Calls,
     connections: admission::Slots,
@@ -192,21 +198,9 @@ impl Service {
             Ok(revision) => revision,
             Err(error) => return (400, Some(error), None),
         };
-        let declared_use = if self.globals.hosted {
-            match request.declared_use() {
-                Ok(usage) if self.hosted_max_use.permits(usage) => Some(usage),
-                _ => {
-                    return (
-                        400,
-                        Some(
-                            json!({"error":format!("Invalid x-biomcp-use header; allowed values: {}", self.hosted_max_use.allowed())}),
-                        ),
-                        Some(revision),
-                    );
-                }
-            }
-        } else {
-            None
+        let caller = match self.caller(request) {
+            Ok(caller) => caller,
+            Err(error) => return (400, Some(error), Some(revision)),
         };
         let keys = self.catalog_keys(request, &value);
         let Ok(keys) = keys else {
@@ -218,8 +212,9 @@ impl Service {
         };
         let mut context =
             crate::command::Context::new(&self.globals, &self.fetch, &self.root, &self.settings);
-        context.declared_use = declared_use;
+        context.declared_use = caller.declared_use;
         context.secrets = keys.as_ref();
+        context.excluded = Some(&caller.excluded);
         let mut legacy = revision != super::protocol::REVISIONS[0];
         let result = match super::rpc::message(
             &request.body,
@@ -231,7 +226,7 @@ impl Service {
             super::rpc::Message::Reply(reply) => reply,
             super::rpc::Message::Notification { .. } => return (202, None, Some(revision)),
             super::rpc::Message::Tool { id, params, modern } => {
-                return self.tool(request, id, &params, modern, revision, declared_use);
+                return self.tool(request, id, &params, modern, revision, caller);
             }
         };
         let status = if result.pointer("/error/code") == Some(&json!(-32601)) {
@@ -240,6 +235,34 @@ impl Service {
             200
         };
         (status, Some(result), Some(revision))
+    }
+    /// Refuse bad caller policy before any source or catalog work; ordinary HTTP ignores it.
+    fn caller(&self, request: &wire::Request) -> Result<Caller, Value> {
+        if !self.globals.hosted {
+            return Ok(Caller::default());
+        }
+        let declared_use = request
+            .declared_use()
+            .ok()
+            .filter(|&usage| self.hosted_max_use.permits(usage))
+            .ok_or_else(|| {
+                json!({"error":format!("Invalid x-biomcp-use header; allowed values: {}", self.hosted_max_use.allowed())})
+            })?;
+        let excluded = request.excluded_sources().map_err(|_| {
+            let allowed = biomcp_query::sources::switchable()
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(", ");
+            json!({"error":format!(
+                "Unknown source name in {} header; allowed values: {allowed}",
+                crate::command::EXCLUDE_HEADER
+            )})
+        })?;
+        Ok(Caller {
+            declared_use: Some(declared_use),
+            excluded,
+        })
     }
     fn catalog_keys(
         &self,
@@ -264,7 +287,7 @@ impl Service {
         params: &Value,
         modern: bool,
         revision: &'static str,
-        declared_use: Option<crate::command::DeclaredUse>,
+        caller: Caller,
     ) -> (u16, Option<Value>, Option<&'static str>) {
         let scope = self.globals.hosted.then(|| {
             biomcp_fetch::Cancellation::with_budget(crate::config::budget(&self.settings))
@@ -291,7 +314,8 @@ impl Service {
             fetch: &self.fetch,
             recovery: self.recovery.as_deref(),
             secrets: keys.as_ref(),
-            declared_use,
+            excluded: Some(&caller.excluded),
+            declared_use: caller.declared_use,
             scope: scope.as_ref(),
         };
         let call = match self.parse_tool(&id, params, modern, context) {
@@ -306,7 +330,10 @@ impl Service {
                     modern,
                     call,
                     secrets: keys,
-                    declared_use: declared_use.unwrap_or(crate::command::DeclaredUse::Restricted),
+                    declared_use: caller
+                        .declared_use
+                        .unwrap_or(crate::command::DeclaredUse::Restricted),
+                    excluded: caller.excluded,
                     scope,
                 },
             )

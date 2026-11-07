@@ -32,15 +32,21 @@ impl DeclaredUse {
     }
 }
 
+/// The hosted header naming sources one request leaves out.
+pub(crate) const EXCLUDE_HEADER: &str = "x-biomcp-exclude-sources";
+
 pub(crate) fn restrict(fetch: Fetch, context: Option<Context<'_>>) -> Fetch {
-    let Some(context) = context.filter(|c| {
-        matches!(
-            c.declared_use,
-            Some(DeclaredUse::Restricted | DeclaredUse::Commercial)
-        )
-    }) else {
+    let Some(context) = context else {
         return fetch;
     };
+    // A request's own list narrows every declared use, academic included.
+    let fetch = fetch.restrict_sources(context.excluded.cloned().unwrap_or_default());
+    if !matches!(
+        context.declared_use,
+        Some(DeclaredUse::Restricted | DeclaredUse::Commercial)
+    ) {
+        return fetch;
+    }
     let fetch = if context.declared_use == Some(DeclaredUse::Restricted) {
         fetch.restrict_studies()
     } else {

@@ -38,6 +38,7 @@ pub(in crate::mcp) fn excluded(
         context.declared_use,
         context.secrets,
     ));
+    sources.extend(context.excluded.into_iter().flatten().copied());
     if context.globals.hosted
         && let Ok(fetch) = context.fetch
     {

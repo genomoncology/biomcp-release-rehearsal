@@ -233,6 +233,7 @@ fn query(index: usize, nci: bool, source: &str) -> Vec<String> {
             format!("synthetic EGFR {index}"),
             "--source".into(),
             source.into(),
+            "--exact-term".into(),
         ]
     }
 }

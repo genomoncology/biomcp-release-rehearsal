@@ -1,5 +1,6 @@
 //! HTTP syntax belongs to httparse; reads have size and absolute time bounds.
 use std::{
+    collections::BTreeSet,
     io::{self, Read, Write},
     net::TcpStream,
     time::{Duration, Instant},
@@ -16,6 +17,19 @@ pub(super) struct Request {
 impl Request {
     pub(super) fn declared_use(&self) -> io::Result<crate::command::DeclaredUse> {
         crate::command::DeclaredUse::parse(self.one("x-biomcp-use")?).ok_or_else(malformed)
+    }
+    /// An empty value leaves nothing out; every listed name must be a known source.
+    pub(super) fn excluded_sources(&self) -> io::Result<BTreeSet<biomcp_types::Source>> {
+        let value = self
+            .one(crate::command::EXCLUDE_HEADER)?
+            .unwrap_or_default();
+        if value.trim().is_empty() {
+            return Ok(BTreeSet::new());
+        }
+        value
+            .split(',')
+            .map(|name| biomcp_query::sources::switchable_source(name.trim()).ok_or_else(malformed))
+            .collect()
     }
     pub(super) fn source_keys(&self) -> io::Result<biomcp_fetch::Secrets> {
         let mut secrets = biomcp_fetch::Secrets::default();

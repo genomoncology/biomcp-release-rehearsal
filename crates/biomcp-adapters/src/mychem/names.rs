@@ -75,18 +75,19 @@ pub(super) fn name_records(
             continue;
         }
         let (id, _, rows) = super::map::components(hit, leg, &mut problems);
-        let names = stated(&rows);
         if matching(&rows, query).is_some()
-            || names
+            || stated(&rows)
                 .iter()
                 .any(|name| DrugNameMatch::same_identity(name, query))
         {
+            let names = drug_names(&rows);
             records.push(super::NameRecord {
                 structure: structure(&id, &rows),
                 names: names
                     .iter()
                     .filter_map(|name| problems.text("name", Some(name.as_str())))
                     .collect(),
+                preferred: preferred(&rows),
                 id,
             });
         }
@@ -96,6 +97,32 @@ pub(super) fn name_records(
         value: records,
         problems: problems.list,
     })
+}
+/// The names of the drug itself. A product row can be a combination or a store brand, and even
+/// its generic name cannot show one ingredient, so it speaks only when no drug row exists.
+fn drug_names(rows: &[(&str, Component)]) -> Vec<String> {
+    let product = |component: &str| matches!(component, "ndc" | "openfda");
+    if rows.iter().all(|(component, _)| product(component)) {
+        return stated(rows);
+    }
+    rows.iter()
+        .filter(|(component, _)| !product(component))
+        .flat_map(|row| stated(std::slice::from_ref(row)))
+        .collect()
+}
+/// The main name each source gives the row.
+fn preferred(rows: &[(&str, Component)]) -> Vec<String> {
+    rows.iter()
+        .flat_map(|(_, c)| {
+            [
+                c.name.as_deref(),
+                c.pref_name.as_deref(),
+                c.display_name.as_deref(),
+            ]
+        })
+        .flatten()
+        .map(str::to_owned)
+        .collect()
 }
 /// Every name the rows state, with source values that join several names split apart.
 fn stated(rows: &[(&str, Component)]) -> Vec<String> {

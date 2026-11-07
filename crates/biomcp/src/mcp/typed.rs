@@ -98,6 +98,21 @@ use std::io;
 fn name(verb: &str, entity: &str) -> String {
     format!("{verb}_{entity}").replace('-', "_")
 }
+/// Catalog tools that no command path names. A test walks the real catalog against this list.
+const FIXED_TOOLS: [&str; 5] = [
+    "biomcp",
+    "biomcp_help",
+    "biomcp_reference",
+    "search",
+    "fetch",
+];
+/// Whether a caller-supplied tool name is one this build can serve, so it is safe to log.
+pub(in crate::mcp) fn served(tool: &str) -> bool {
+    FIXED_TOOLS.contains(&tool)
+        || crate::grammar::command_paths()
+            .iter()
+            .any(|(verb, entity, _)| name(verb, entity) == tool)
+}
 pub(in crate::mcp) fn schema(id: &str) -> io::Result<Value> {
     serde_json::from_str(
         crate::schema::find(id).ok_or_else(|| io::Error::other("missing query schema"))?,

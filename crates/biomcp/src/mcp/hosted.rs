@@ -358,6 +358,33 @@ fn reason(
 ) -> io::Result<String> {
     let operator = crate::config::excluded_sources(cx.globals, cx.settings)
         .map_err(|e| io::Error::other(e.0))?;
+    // A source the use limit keeps off stays off whatever the list says, so say that first.
+    let use_limit = crate::command::hosted_use::disabled(cx.declared_use, cx.secrets);
+    let limited = use_limit.contains(&source)
+        || biomcp_query::sources::components().any(|component| {
+            component.source == source
+                && component
+                    .native_source
+                    .is_some_and(|native| required.contains(&native) && use_limit.contains(&native))
+        });
+    if !operator.contains(&source)
+        && !limited
+        && cx.excluded.is_some_and(|excluded| {
+            excluded.contains(&source)
+                || biomcp_query::sources::components().any(|component| {
+                    component.source == source
+                        && component.native_source.is_some_and(|native| {
+                            required.contains(&native) && excluded.contains(&native)
+                        })
+                })
+        })
+    {
+        return Ok(
+            "This request's source list leaves out this source or a required component. \
+                   Change the source list in your account settings to include it."
+                .to_owned(),
+        );
+    }
     let component_disabled = |hosted| {
         cx.fetch.as_ref().is_ok_and(|fetch| {
             let effective = if hosted {
@@ -379,9 +406,7 @@ fn reason(
     };
     let explanation = if operator.contains(&source) || component_disabled(false) {
         "The server operator disabled this source or a required component.".to_owned()
-    } else if crate::command::hosted_use::disabled(cx.declared_use, cx.secrets).contains(&source)
-        || component_disabled(true)
-    {
+    } else if limited || component_disabled(true) {
         let ceiling =
             crate::config::hosted_max_use(cx.settings).map_err(|e| io::Error::other(e.0))?;
         let effective = cx

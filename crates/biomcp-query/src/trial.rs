@@ -57,46 +57,19 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     let mut source = status::source(Source::ClinicalTrialsGov, leg.finish(), error);
     source.notices.extend(name_notice);
     if typed_only {
-        crate::drug::search_names::retract(&mut outcome);
-        source.notices.extend(
-            expanded.inputs.iter().map(|input| {
-                crate::drug::search_names::typed_only(input, Source::ClinicalTrialsGov)
-            }),
-        );
+        retract_names(&expanded.inputs, &mut source, &mut outcome);
     }
     {
-        let (found, identity_failed, unavailable) = if result.is_err() {
-            (false, true, false)
-        } else if version.is_err()
-            || error.is_some()
-            || source.state == SourceState::Stale
-            || outcome
-                .sources
-                .iter()
-                .any(|source| source.state != SourceState::Ok)
-        {
-            (true, false, true)
-        } else {
-            (true, false, false)
-        };
+        let missing = version.is_err() || error.is_some() || source.state == SourceState::Stale;
+        let (found, identity_failed, unavailable) = item_state(&outcome, result.is_ok(), missing);
         crate::status::item(&mut outcome, found, identity_failed, unavailable);
     };
     if let Ok(page) = result {
         if page.condition_word_mismatch {
             condition::word_notice(query, cx.fresh, &mut source, &mut outcome);
         }
-        if let Some(gene) = gene.as_deref() {
-            gene_notice::append(gene, &page.gene_contexts, &mut source);
-        }
-        intervention_notices(query, &page.items, &mut source);
-        source.count = page.total;
-        source.retrieved_count = Some(page.items.len() as u32);
-        // The registry's token belongs to the request that was sent, so the next page repeats it.
-        let sent = if expanded.inputs.is_empty() || typed_only {
-            query.clone()
-        } else {
-            expanded.query.exact()
-        };
+        page_notices(query, gene.as_deref(), &page, &mut source);
+        let sent = sent_query(query, &expanded, typed_only);
         apply_page(query, &sent, cx.fresh, gene.as_deref(), &mut outcome, page);
     }
     if let Ok(version) = version {
@@ -113,14 +86,63 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     }
     outcome.local = error.and_then(status::local);
     outcome.sources.push(source);
-    // A failed name lookup leaves the search incomplete even when the registry answered.
-    let mut asked = vec![Source::ClinicalTrialsGov];
-    if expanded.failed {
-        asked.extend([Source::Mychem, Source::Chembl, Source::OpenfdaLabel]);
-    }
-    status::search_for(&mut outcome, &asked);
+    status::search_for(&mut outcome, &asked_sources(expanded.failed));
     command.finish(deadline.remaining());
     outcome
+}
+/// The found, identity-failed and unavailable states, counting earlier source outcomes.
+fn item_state(outcome: &Outcome, answered: bool, missing: bool) -> (bool, bool, bool) {
+    let earlier = outcome
+        .sources
+        .iter()
+        .any(|source| source.state != SourceState::Ok);
+    (answered, !answered, answered && (missing || earlier))
+}
+/// Say the registry searched only the typed terms after refusing the expanded names.
+fn retract_names(
+    inputs: &[biodata::Text],
+    source: &mut biomcp_types::SourceOutcome,
+    outcome: &mut Outcome,
+) {
+    crate::drug::search_names::retract(outcome);
+    source.notices.extend(
+        inputs
+            .iter()
+            .map(|input| crate::drug::search_names::typed_only(input, Source::ClinicalTrialsGov)),
+    );
+}
+fn page_notices(
+    query: &TrialSearch,
+    gene: Option<&str>,
+    page: &ctgov::SearchPage,
+    source: &mut biomcp_types::SourceOutcome,
+) {
+    if let Some(gene) = gene {
+        gene_notice::append(gene, &page.gene_contexts, source);
+    }
+    intervention_notices(query, &page.items, source);
+    source.count = page.total;
+    source.retrieved_count = Some(page.items.len() as u32);
+}
+/// The registry's token belongs to the request that was sent, so the next page repeats it.
+fn sent_query(
+    query: &TrialSearch,
+    expanded: &drug_names::Expanded,
+    typed_only: bool,
+) -> TrialSearch {
+    if expanded.inputs.is_empty() || typed_only {
+        query.clone()
+    } else {
+        expanded.query.exact()
+    }
+}
+/// A failed name lookup leaves the search incomplete even when the registry answered.
+fn asked_sources(failed: bool) -> Vec<Source> {
+    let mut asked = vec![Source::ClinicalTrialsGov];
+    if failed {
+        asked.extend([Source::Mychem, Source::Chembl, Source::OpenfdaLabel]);
+    }
+    asked
 }
 fn request_rejected(error: Option<&biomcp_fetch::RequestError>) -> bool {
     matches!(error, Some(biomcp_fetch::RequestError::Source(error)) if error.status == Some(400))

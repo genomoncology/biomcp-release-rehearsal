@@ -98,18 +98,27 @@ pub(super) fn rights() -> Result<(), String> {
         if academic.pointer("/result/structuredContent/status") != Some(&json!("complete")) {
             return Err(format!("academic full text failed: {academic}"));
         }
+        let witness = academic
+            .pointer("/result/structuredContent/result/content/data/markdown")
+            .and_then(Value::as_str)
+            .and_then(|text| text.lines().map(str::trim).find(|line| line.len() > 40))
+            .map(|line| json!(line).to_string().trim_matches('"').to_owned())
+            .ok_or_else(|| format!("academic reply has no body text: {academic}"))?;
         for header in [
             "",
             "x-biomcp-use: restricted\r\n",
             "x-biomcp-use: commercial\r\n",
         ] {
             let reply = call(&server, &args, header, false)?;
-            if license == "CC BY NC"
-                && reply
-                    .pointer("/result/structuredContent/result/content")
-                    .is_some()
-            {
-                return Err("noncommercial full text leaked content".into());
+            if license == "CC BY NC" {
+                // The withheld reply keeps a skipped section and a reading link, never the text.
+                let content = reply.pointer("/result/structuredContent/result/content");
+                if content.and_then(|c| c.get("state")) != Some(&json!("skipped"))
+                    || content.and_then(|c| c.get("data")).is_some()
+                    || reply.to_string().contains(&witness)
+                {
+                    return Err(format!("noncommercial full text leaked content: {reply}"));
+                }
             }
             if disabled(&reply, "pmc-oa") != (license == "CC BY NC") {
                 return Err(format!("record rights did not gate cached text: {reply}"));

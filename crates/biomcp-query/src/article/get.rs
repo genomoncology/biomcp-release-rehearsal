@@ -156,7 +156,10 @@ fn append(
             found = true;
             items.push(item(
                 input,
-                if stale || card.refusals == biomcp_adapters::Refusal::Refused {
+                if stale
+                    || card.refusals == biomcp_adapters::Refusal::Refused
+                    || unchecked(&card.article)
+                {
                     crate::status::item_status(true, false, true)
                 } else {
                     crate::status::item_status(true, false, false)
@@ -185,6 +188,14 @@ fn append(
             Some(ArticleResolution::NotFound),
         ));
     }
+}
+
+/// A card whose license lookup did not finish is not a whole answer.
+fn unchecked(article: &Article) -> bool {
+    article
+        .text_withheld
+        .as_ref()
+        .is_some_and(|notice| notice.reason == biomcp_types::Reason::Unavailable)
 }
 
 fn sources(

@@ -133,12 +133,14 @@ impl Store<'_> {
             Ok(())
         })
     }
-    /// Remove only this pool's reusable answer, retaining its explicit pages.
-    pub(crate) fn unpublish_current(&mut self, pool: &Pool) -> Result<(), CacheError> {
+    /// Remove this pool's reusable answer for one request key, retaining its explicit pages.
+    pub(crate) fn unpublish_current(&mut self, pool: &Pool, key: &[u8]) -> Result<(), CacheError> {
+        let policy = self.policy();
         self.write(|tx| {
+            policy.authorize(tx, super::ownership::Table::Pool, pool.info.id.as_str())?;
             tx.execute(
-                "DELETE FROM pool_current WHERE pool=?1",
-                params![pool.info.id.as_str()],
+                "DELETE FROM pool_current WHERE pool=?1 AND request_key=?2",
+                params![pool.info.id.as_str(), key],
             )
             .map_err(db)?;
             Ok(())

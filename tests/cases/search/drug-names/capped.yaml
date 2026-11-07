@@ -1,7 +1,7 @@
 {
   "feature": "drug-name-search",
   "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
-  "story": "A capped search keeps the typed name and says how many names it left out.",
+  "story": "A capped search keeps the typed name and the record's preferred name, and says how many names it left out.",
   "replay": "search/drug-names",
   "config": {
     "drug_search_name_limit": 2
@@ -19,6 +19,22 @@
           "Canonical therapy",
           "EX-66"
         ],
+        "/sources/0/notices/0/message": "Searched the names stated by mychem record KTUFNOKKBVMGRW-SFHVURJKSA-N. Left out 1 of 3 names, past the drug_search_name_limit setting."
+      }
+    },
+    {
+      "run": [
+        "search",
+        "trial",
+        "Example brand"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy",
+          "Example brand"
+        ],
+        "/page/total": 1,
         "/sources/0/notices/0/message": "Searched the names stated by mychem record KTUFNOKKBVMGRW-SFHVURJKSA-N. Left out 1 of 3 names, past the drug_search_name_limit setting."
       }
     }
