@@ -1,6 +1,7 @@
 # 0732 — Live check is short and readable
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: af4740e1acd702cf648c5fdddf165c7ad36fd2a5
 
 Milestone: 5
 

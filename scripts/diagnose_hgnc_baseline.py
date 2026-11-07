@@ -98,7 +98,6 @@ def main():
         prior = ROOT / "hgnc-bounded-output-a08841e78b27" / "binding.json"
         if prior.exists():
             shutil.copy2(prior, output / "j25685-partial-binding.json")
-        shutil.copy2(INSTALLED / "old-live-list.json", output / "baseline-old-live-list.json")
         shutil.copytree(INSTALLED / "hgnc-transcript", output / "baseline-transcript")
         baseline = output / "baseline-cli"
         baseline.mkdir()

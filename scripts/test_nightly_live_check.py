@@ -1,190 +1,154 @@
-"""Exercise scheduled command settings, delivery and scratch ownership offline."""
-import fnmatch
+"""Run the live check with fake cargo and product commands."""
 import json
+import os
 from pathlib import Path
-import shutil
+import stat
+import subprocess
+import sys
+import tempfile
 import unittest
 
-if __package__:
-    from . import nightly_test_support as support
-else:
-    import nightly_test_support as support
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+from nightly_live_check import CHECKS
 
-ROOT = support.ROOT
+CARGO = '''#!/usr/bin/env python3
+import json, os, sys
+if os.environ.get('FAKE_BUILD') == 'fail':
+    print(json.dumps({'reason': 'compiler-message',
+                      'message': {'level': 'error', 'message': 'mismatched types'}}))
+    sys.exit(101)
+print(json.dumps({'reason': 'compiler-artifact', 'target': {'name': 'biomcp'},
+                  'executable': os.environ['FAKE_BIOMCP']}))
+'''
+# Replies keep the fields real source, search and usage replies carry.
+BIOMCP = '''#!/usr/bin/env python3
+import json, os, sys, time
+with open(SEEN, 'a') as seen:
+    seen.write(json.dumps({'args': sys.argv[1:], 'env': sorted(os.environ)}) + '\\n')
+words = ' '.join(sys.argv[1:])
+replies = json.loads(REPLIES)
+for key, (code, body, *once) in replies.items():
+    tries = sum(json.loads(line)['args'] == sys.argv[1:] for line in open(SEEN))
+    if key in words and not (once and tries > 1):
+        if body == 'hang':
+            time.sleep(30)
+        print(body if isinstance(body, str) else json.dumps(body))
+        print('crash detail', file=sys.stderr) if code == 101 else None
+        sys.exit(code)
+print(json.dumps({'schema': 'biomcp.article-page/9', 'status': 'complete',
+                  'page': {'offset': 0, 'returned': 1, 'total': 193},
+                  'result': {'items': [{'pmid': '1'}]},
+                  'sources': [{'source': 'pubmed', 'state': 'ok', 'count': 193}],
+                  'problems': [{'source': 'pubmed', 'field': 'electronic_date',
+                                'code': 'value.unknown'}]}))
+'''
+FAILED_SOURCE = {'schema': 'biomcp.article-page/9', 'status': 'failed',
+                 'sources': [{'source': 'pubmed', 'state': 'failed', 'reason': 'proxy',
+                              'term': 'AKT1 E17K'}]}
+NO_RESULTS = {'schema': 'biomcp.trial-page/14', 'status': 'complete',
+              'page': {'offset': 0, 'returned': 0, 'total': 0},
+              'sources': [{'source': 'ctgov', 'state': 'ok', 'count': 0}]}
+# Cell line and pathway searches carry no top-level page, and an empty list may be left out.
+NO_ITEMS = {'schema': 'biomcp.cell-line-page/1', 'status': 'complete', 'page': None,
+            'result': {'release': '53'}, 'sources': [{'source': 'cellosaurus', 'state': 'ok'}]}
+EMPTY_ITEMS = {'schema': 'biomcp.pathway-page/1', 'status': 'complete', 'page': None,
+               'result': {'items': [], 'page': {'offset': 0, 'returned': 0, 'total': 0}},
+               'sources': [{'source': 'reactome', 'state': 'ok'}]}
+USAGE = {'schema': 'biomcp.error/4', 'status': 'usage',
+         'error': {'code': 'usage.arguments', 'message': 'expected a supported command'}}
+PARTIAL = {'schema': 'biomcp.gene-cards/13', 'status': 'partial',
+           'sources': [{'source': 'hgnc', 'state': 'ok'},
+                       {'source': 'gnomad', 'state': 'failed', 'reason': 'timeout'}]}
 
 
-class NightlyCommand(support.NightlyHarness, unittest.TestCase):
-    def test_missing_destination_fails_before_running_or_creating_scratch(self):
-        for name in ('BIOMCP_EVIDENCE_HOST', 'BIOMCP_EVIDENCE_DIR', 'BIOMCP_SCRATCH_DIR'):
-            self.env.pop(name, None)
-        result = self.run_command()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('supply --host', result.stderr)
-        self.assertFalse(self.scratch_root.exists())
-        self.assertFalse(self.store.exists())
+class LiveCheck(unittest.TestCase):
+    def run_check(self, replies=None, build=None, extra=()):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            seen = root / 'seen.jsonl'
+            # The product sees only the allowed environment, so its settings live in the file.
+            settings = 'SEEN = {!r}\nREPLIES = {!r}\n'.format(str(seen), json.dumps(replies or {}))
+            for name, body in (('cargo', CARGO), ('biomcp', BIOMCP.replace('\n', '\n' + settings, 1))):
+                path = root / name
+                path.write_text(body)
+                path.chmod(path.stat().st_mode | stat.S_IXUSR)
+            env = {**os.environ, 'PATH': str(root) + os.pathsep + os.environ['PATH'],
+                   'FAKE_BIOMCP': str(root / 'biomcp'),
+                   'NCBI_API_KEY': 'test-only-value', 'ONCOKB_TOKEN': 'test-only-value'}
+            if build:
+                env['FAKE_BUILD'] = build
+            result = subprocess.run(
+                [sys.executable, 'scripts/nightly_live_check.py', '--pause', '0', *extra],
+                cwd=ROOT, env=env, capture_output=True, text=True, check=False)
+            rows = [json.loads(line) for line in seen.read_text().splitlines()] if seen.exists() else []
+        return result, rows
 
-    def test_make_uses_only_local_settings_from_config_home_or_home(self):
-        for xdg in (True, False):
-            with self.subTest(xdg=xdg):
-                config = self.root / 'config' if xdg else self.home / '.config'
-                self.local_settings(config)
-                if xdg:
-                    self.env['XDG_CONFIG_HOME'] = str(config)
-                else:
-                    self.env.pop('XDG_CONFIG_HOME')
-                result = self.run_command()
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                self.copied()
-                self.assertEqual(self.scratch(), [])
-                shutil.rmtree(self.store)
-
-    def test_environment_overrides_local_settings(self):
-        overrides = {name: self.env[name] for name in (
-            'BIOMCP_EVIDENCE_HOST', 'BIOMCP_EVIDENCE_DIR', 'BIOMCP_SCRATCH_DIR')}
-        self.local_settings(Path(self.env['XDG_CONFIG_HOME']))
-        overrides.update(BIOMCP_EVIDENCE_HOST='environment-store',
-                         BIOMCP_EVIDENCE_DIR=str(self.root / 'environment-evidence'),
-                         BIOMCP_SCRATCH_DIR=str(self.root / 'environment-scratch'))
-        result = self.run_command(FAKE_HOST='environment-store', **overrides)
+    def test_passing_run_checks_every_command_and_exits_zero(self):
+        result, rows = self.run_check()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertFalse(self.store.exists())
-        self.assertFalse(self.scratch_root.exists())
-        self.store = Path(overrides['BIOMCP_EVIDENCE_DIR'])
-        self.copied()
-        self.assertEqual(list(Path(overrides['BIOMCP_SCRATCH_DIR']).iterdir()), [])
+        self.assertEqual(len(rows), len(CHECKS))
+        self.assertIn('live check: 0 of {} commands failed in '.format(len(CHECKS)),
+                      result.stdout.splitlines()[-1])
 
-    def test_arguments_override_environment_and_local_settings(self):
-        overrides = {name: self.env[name] for name in (
-            'BIOMCP_EVIDENCE_HOST', 'BIOMCP_EVIDENCE_DIR', 'BIOMCP_SCRATCH_DIR')}
-        self.local_settings(Path(self.env['XDG_CONFIG_HOME']))
-        evidence, scratch = self.root / 'argument-evidence', self.root / 'argument-scratch'
-        result = self.run_command(
-            args=('--host', 'argument-store', '--evidence-dir', str(evidence),
-                  '--scratch-dir', str(scratch)), FAKE_HOST='argument-store', **overrides)
+    def test_each_failure_is_one_line_with_command_and_reason_at_the_end(self):
+        result, _ = self.run_check({
+            'AKT1 E17K': [4, FAILED_SOURCE],
+            'NCT04303780': [2, USAGE],
+            'melanoma': [0, NO_RESULTS],
+            'BRAF': [0, PARTIAL],
+            'MOLM13': [101, 'thread panicked'],
+        })
+        self.assertEqual(result.returncode, 1)
+        lines = result.stdout.splitlines()
+        self.assertIn('live check: 5 of {} commands failed in '.format(len(CHECKS)), lines[-1])
+        self.assertEqual(lines[-6:-1], [
+            'FAIL biomcp get gene BRAF: gnomad: timeout',
+            "FAIL biomcp search article 'AKT1 E17K': pubmed: proxy",
+            'FAIL biomcp search trial --condition melanoma --limit 1: no results',
+            'FAIL biomcp get trial NCT04303780: expected a supported command',
+            'FAIL biomcp search cell-line MOLM13: exit 101: crash detail',
+        ])
+
+    def test_a_search_with_no_top_level_page_and_no_items_fails(self):
+        result, _ = self.run_check({'MOLM13': [0, NO_ITEMS], 'Signaling by EGFR': [0, EMPTY_ITEMS]})
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("FAIL biomcp search pathway 'Signaling by EGFR': no results", result.stdout)
+        self.assertIn('FAIL biomcp search cell-line MOLM13: no results', result.stdout)
+
+    def test_a_hung_command_fails_alone_and_the_run_continues(self):
+        result, rows = self.run_check({'MOLM13': [0, 'hang']}, extra=('--timeout', '1'))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('FAIL biomcp search cell-line MOLM13: no reply in 1.0 seconds', result.stdout)
+        self.assertEqual(len(rows), len(CHECKS) + 1)
+
+    def test_a_command_that_recovers_on_its_second_try_does_not_fail_the_run(self):
+        slow = {'schema': 'biomcp.protein-page/1', 'status': 'failed',
+                'sources': [{'source': 'uniprot', 'state': 'failed', 'reason': 'deadline-exceeded'}]}
+        result, rows = self.run_check({'--reviewed': [4, slow, 'once']})
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertFalse(self.store.exists())
-        self.assertFalse(self.scratch_root.exists())
-        self.store = evidence
-        self.copied()
-        self.assertEqual(list(scratch.iterdir()), [])
+        self.assertIn('ok biomcp search protein --gene EGFR --reviewed on its second try, '
+                      'first: uniprot: deadline-exceeded', result.stdout)
+        self.assertNotIn('FAIL', result.stdout)
+        self.assertEqual(len(rows), len(CHECKS) + 1)
 
-    def test_malformed_local_settings_fail_before_starting(self):
-        self.local_settings(Path(self.env['XDG_CONFIG_HOME']))
-        settings = Path(self.env['XDG_CONFIG_HOME']) / 'biomcp/nightly.json'
-        for body in ('{', '[]', '{"host": null}', '{"scratch_dir": 3}'):
-            with self.subTest(body=body):
-                settings.write_text(body)
-                result = self.run_command()
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn('invalid nightly settings at ' + str(settings), result.stderr)
-                self.assertNotIn('Owned scratch:', result.stdout)
-                self.assertFalse(self.scratch_root.exists())
-                self.assertFalse(self.store.exists())
+    def test_a_build_failure_is_one_line_and_runs_nothing(self):
+        result, rows = self.run_check(build='fail')
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(rows, [])
+        self.assertIn(': mismatched types\n', result.stdout)
 
-    def test_empty_settings_fail_before_starting_from_each_origin(self):
-        environment = dict(self.env)
-        self.local_settings(Path(self.env['XDG_CONFIG_HOME']))
-        settings = Path(self.env['XDG_CONFIG_HOME']) / 'biomcp/nightly.json'
-        valid = json.loads(settings.read_text())
-        for origin in ('file', 'environment', 'argument'):
-            for key, variable, option in (
-                    ('host', 'BIOMCP_EVIDENCE_HOST', '--host'),
-                    ('evidence_dir', 'BIOMCP_EVIDENCE_DIR', '--evidence-dir'),
-                    ('scratch_dir', 'BIOMCP_SCRATCH_DIR', '--scratch-dir')):
-                with self.subTest(origin=origin, key=key):
-                    self.env = dict(environment)
-                    settings.write_text(json.dumps(valid))
-                    args = ()
-                    if origin == 'file':
-                        for name in ('BIOMCP_EVIDENCE_HOST', 'BIOMCP_EVIDENCE_DIR',
-                                     'BIOMCP_SCRATCH_DIR'):
-                            self.env.pop(name)
-                        settings.write_text(json.dumps(dict(valid, **{key: ''})))
-                    elif origin == 'environment':
-                        self.env[variable] = ''
-                    else:
-                        args = (option, '')
-                    result = self.run_command(args=args)
-                    self.assertNotEqual(result.returncode, 0)
-                    self.assertIn('supply --host', result.stderr)
-                    self.assertNotIn('Owned scratch:', result.stdout)
-                    self.assertFalse(self.scratch_root.exists())
-                    self.assertFalse(self.store.exists())
+    def test_no_key_reaches_the_product(self):
+        _, rows = self.run_check()
+        for row in rows:
+            self.assertNotIn('NCBI_API_KEY', row['env'])
+            self.assertNotIn('ONCOKB_TOKEN', row['env'])
 
-    def test_clean_copies_and_cleans_only_owned_scratch(self):
-        unowned = self.scratch_root / 'another-run'
-        unowned.mkdir(parents=True)
-        (unowned / 'keep').write_text('owned by another run')
-        result = self.run_command()
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual((self.copied() / 'exit-status').read_text(), '0\n')
-        self.assertEqual(self.scratch(), [unowned])
-        self.assertEqual((unowned / 'keep').read_text(), 'owned by another run')
-        second = self.run_command()
-        self.assertEqual(second.returncode, 0, second.stderr)
-        self.assertEqual(len(list(self.store.glob('*'))), 2)
-
-    def test_drift_errors_and_failed_runner_still_copy(self):
-        for overrides in [dict(FAKE_REPORT='{"drift_cases":1,"error_cases":0}'),
-                          dict(FAKE_REPORT='{"drift_cases":0,"error_cases":1}'),
-                          dict(FAKE_REPORT='{"drift_cases":0,"error_cases":0,"eligible":1,"checked":0}'),
-                          dict(FAKE_REPORT='{"drift_cases":0,"error_cases":0,"checked":0}'),
-                          dict(FAKE_EXIT='7'), dict(FAKE_REPORT='{}')]:
-            with self.subTest(overrides=overrides):
-                result = self.run_command(**overrides)
-                self.assertNotEqual(result.returncode, 0)
-                self.copied()
-                self.assertEqual(self.scratch(), [])
-                shutil.rmtree(self.store)
-
-    def test_diagnostic_witness_survives_verified_delivery(self):
-        witness = {"baseline": {"output": {"id": "old"}}, "live": {
-            "requests": [{"url": "https://example.org/search?q=cancer", "status": 200,
-                          "shape": {"fields": {"/id": True}}}],
-            "result_ids": [{"field": "id", "value": "new"}], "output": {"id": "new"}}}
-        report = {"drift_cases": 1, "error_cases": 0, "eligible": 2, "checked": 2,
-                  "case_sample": [{"case": "changed", "witness": witness,
-                                   "result": {"drift": ["x: request-plan-changed"]}},
-                                  {"case": "clean", "result": {"drift": []}}]}
-        result = self.run_command(FAKE_REPORT=json.dumps(report))
-        self.assertNotEqual(result.returncode, 0)
-        copied = json.loads((self.copied() / 'report.json').read_text())
-        self.assertEqual(copied['case_sample'][0]['witness'], witness)
-        self.assertEqual(copied['case_sample'][0]['classification'], 'failure')
-        self.assertEqual(self.scratch(), [])
-
-    def test_trial_continuation_uses_live_follow_and_excludes_recorded_mcp_token(self):
-        case = json.loads((ROOT / 'tests/native/case-inputs/trial/walk.yaml').read_text())
-        live = [step for step in case['steps'] if not step.get('offline')]
-        self.assertEqual(live[0]['run'], ['search', 'trial', '--condition', 'melanoma'])
-        self.assertEqual(live[1]['follow'], 'page')
-        self.assertEqual(len(live), 2)
-        recorded = [step for step in case['steps'] if 'mcp' in step][0]
-        self.assertIn('--next-page', recorded['mcp'])
-        self.assertTrue(recorded['offline'])
-
-    def test_failed_copy_or_manifest_keeps_scratch(self):
-        for failure in ['fail', 'manifest']:
-            with self.subTest(failure=failure):
-                result = self.run_command(FAKE_COPY=failure)
-                self.assertNotEqual(result.returncode, 0)
-                scratch = self.scratch()
-                self.assertEqual(len(scratch), 1, result.stdout + result.stderr)
-                self.assertTrue((scratch[0] / 'report.json').is_file())
-                self.assertTrue((scratch[0] / 'manifest.json').is_file())
-                shutil.rmtree(scratch[0])
-
-
-def load_tests(loader, tests, pattern):
-    # Keep the original entry point complete when discovery targets only it.
-    # Broader discovery loads the classification module itself exactly once.
-    if pattern is None or not fnmatch.fnmatchcase("test_nightly_classification.py", pattern):
-        if __package__:
-            from . import test_nightly_classification as classification
-        else:
-            import test_nightly_classification as classification
-        tests.addTests(loader.loadTestsFromModule(classification))
-    return tests
+    def test_kegg_and_litsense_are_never_called(self):
+        for row in CHECKS:
+            words = ' '.join(row).lower()
+            self.assertNotIn('kegg', words)
+            self.assertNotIn('litsense', words)
 
 
 if __name__ == '__main__':

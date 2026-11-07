@@ -1,4 +1,4 @@
-//! Explicit measurement, live-check and generation tools.
+//! Explicit measurement and generation tools.
 #![expect(
     clippy::disallowed_methods,
     reason = "The test entry point reads arguments and locates its own executable"
@@ -13,28 +13,6 @@ use std::{env, path::PathBuf, process::ExitCode};
 fn main() -> ExitCode {
     if let Some(code) = native_proof() {
         return code;
-    }
-    if env::args().nth(1).as_deref() == Some("--live-check") {
-        let mode = env::args().nth(2);
-        let list = mode.as_deref() == Some("--list");
-        let details = mode.as_deref() == Some("--details");
-        if mode.is_some() && !list && !details
-            || env::args().len() > if mode.is_some() { 3 } else { 2 }
-        {
-            return ExitCode::FAILURE;
-        }
-        return match runner::live::run(list, details) {
-            Ok(report) => {
-                use std::io::Write;
-                let _ = writeln!(std::io::stdout(), "{report}");
-                ExitCode::SUCCESS
-            }
-            Err(error) => {
-                use std::io::Write;
-                let _ = writeln!(std::io::stderr(), "live-check: {error}");
-                ExitCode::FAILURE
-            }
-        };
     }
     if env::args().nth(1).as_deref() == Some("--runner-environment-probe") {
         return runner::proof::environment_probe();

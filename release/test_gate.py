@@ -172,13 +172,6 @@ else:
             self.assertEqual(bootstrap['tooling_revision'], tooling)
             self.assertEqual(bootstrap['product_revision'], record['revision'])
             self.assertEqual(bootstrap['python'], sys.executable)
-            helpers = scratch / 'fixtures/support/scripts'
-            imported = subprocess.run([sys.executable, '-c',
-                                       'import icite_discovery_proof as proof; '
-                                       'assert callable(proof.prove) and callable(proof.classify_case)'],
-                                      cwd=helpers, env={**env, 'PYTHONPATH': ''},
-                                      capture_output=True, text=True)
-            self.assertEqual(imported.returncode, 0, imported.stdout + imported.stderr)
             if actual_build:
                 # The copied runners and helpers must stand on their own.
                 shutil.rmtree(source)

@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 import shutil
-import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,12 +30,6 @@ def main():
     print(json.dumps({"source": os.environ.get("BIOMCP_BUILD_REVISION"),
                       "product": str(binary), "runner": str(tool),
                       "fixtures": str(installed / "fixtures")}), flush=True)
-    listing = subprocess.run([str(tool), "--live-check", "--list"], cwd=installed,
-                             env=environment, check=True, capture_output=True)
-    (installed / "old-live-list.json").write_bytes(listing.stdout)
-    rows = json.loads(listing.stdout)["cases"]
-    print(json.dumps({"old_live_rows": [row for row in rows
-          if row["case"].endswith(("grammar.yaml", "failure-500.yaml"))]}), flush=True)
     names = ["hgnc-first-snapshot-recovers"] if len(sys.argv) == 1 else sys.argv[1:]
     print(json.dumps({"free_bytes_before_proof": shutil.disk_usage(ROOT).free}), flush=True)
     os.environ.update(environment)

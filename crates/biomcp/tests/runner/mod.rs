@@ -41,6 +41,7 @@ mod citation_values;
 mod clinpgx;
 mod configuration;
 mod cpic;
+mod declared_use;
 mod diagnostic_cdx;
 mod diagnostic_retirements;
 mod diagnostic_who;
@@ -66,16 +67,6 @@ mod http_limits;
 mod key_input;
 mod key_registration;
 pub(super) mod launch;
-mod recurrence;
-mod remote_tools;
-mod replay;
-mod socket_read;
-mod source_pacing;
-mod source_status;
-tool_only! { pub(crate) mod live; }
-tool_only! { mod live_follow_proof; }
-tool_only! { mod live_proof; }
-mod declared_use;
 mod licensed_cache;
 mod maude;
 mod maude_budget;
@@ -83,7 +74,13 @@ mod mcp;
 mod mcp_boundaries;
 mod mcp_hosted;
 mod nci;
+mod recurrence;
+mod remote_tools;
+mod replay;
 mod request_keys;
+mod socket_read;
+mod source_pacing;
+mod source_status;
 tool_only! { mod negative_cases; }
 use biomcp_test_support::network_stub;
 mod normalization;
@@ -526,8 +523,6 @@ tool_only! {
         trials.extend(hgnc_sync::trials());
         trials.extend(schema_proof::trials(registry));
         trials.extend(source_terms::trials());
-        trials.extend(live_proof::trials());
-        trials.extend(live_follow_proof::trials());
         Ok(trials)
     }
 }

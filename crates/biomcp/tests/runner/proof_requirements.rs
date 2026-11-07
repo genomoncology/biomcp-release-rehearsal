@@ -33,7 +33,7 @@ pub(super) fn trial() -> Trial {
                 .filter(|row| row.get("requires_repository_python") == Some(&json!(true)))
                 .filter_map(|row| row.get("name").and_then(Value::as_str))
                 .collect::<Vec<_>>();
-            if excluded != ["live-source-checks/retained-drift-witnesses"]
+            if excluded != ["mcp-http/readiness-rejects-eof-and-hung-child"]
                 || rows.len() <= excluded.len()
             {
                 return Err(

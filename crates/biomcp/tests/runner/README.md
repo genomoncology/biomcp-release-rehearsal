@@ -83,36 +83,10 @@ failure. Future code constants must bound floor reads, regex source size and
 compiled regex size. Every operator, pattern and floor must validate before any
 command launches.
 
-## Scheduled live checks
+## Diagnostic observations
 
-`cargo test --locked -p biomcp --test tools -- --live-check` runs the distinct
-keyless diagnostic mode. Ordinary tests and landing gates never select this mode.
-The command prints a bounded JSON drift summary. The summary counts all cases with drift or command errors and samples affected cases first. The default samples cases and drift details using `CASE_SAMPLE` and `MAX_CHANGES`; `--live-check --list` lists every eligibility and skip reason offline. `--live-check --details` includes every checked case in the live report; individual drift samples retain their bound.
-Configure scheduling separately. This command installs no schedule. It never records or refreshes a fixture.
+The optional `--observe PATH` creates an exclusive bounded JSON-lines diagnostic file. It contains existing transport identities, credential-free prepared request URLs, attempts, status, received bytes, elapsed time and sampled raw field structure. It contains no HTTP headers or response body values.
 
-Discovery requires every kept case to declare `live_check`. Missing or empty declarations fail before any source request. Each case with real recorded replies sets `live_check: public` after its source provenance is reviewed. Its `verified` field identifies captures, source projections and any synthetic components. Removing papers or projecting captured identity fields does not make the retained source data invented. Recording through a local TLS peer also does not make an ordinary public-source command local-only.
-
-Another string states a case's exclusion: invented failure replies, local-only behavior, or a source key absent from the nightly environment. Configured cases remain ineligible. A public case skips offline and local validation steps, while retaining source absence requests, entity action commands and named MCP tools. The existing MCP helper validates each named tool's output schema. External cases outside the kept case directory remain outside discovery.
-
-The offline plan reports its eligible case count. The nightly report records `eligible` and `checked` separately. The scheduled command rejects a report when those counts differ, including a run that reaches its existing time budget before attempting every eligible case. A command error still counts as an attempted check and remains an error in the report. Source quotas and evidence limits remain in their existing owners.
-
-Each case runs in an empty environment with cold isolated caches. Its commands retain only their own case state for continuation. The shared
-transport enforces within-command quotas. Commands run serially with a keyless
-interval between them. The run has a discovery limit and a total time budget;
-child watchdogs kill and reap hung commands. The optional `--observe PATH` creates
-an exclusive bounded JSON-lines diagnostic file. It contains existing transport
-identities, credential-free prepared request URLs, attempts, status, received bytes, elapsed time and sampled raw field structure. It contains no HTTP headers or response body values. Drifted and errored cases retain bounded baseline and live context in the report; clean cases retain summaries. The per-case witness budget is `MAX_CASE_BYTES`; a case stops before its next command when that budget is exhausted and retains every completed command. Drift and exchange details remain complete. Product output values are retained only when every contributing source has open use; other terms retain shape and identities. Truncated samples
-can miss optional-field changes; schema failures and status transitions remain
-reported separately. Live counts compare only positive to zero, never historical
-exact totals. Drift is diagnostic and does not fail the landing gate.
 The release artifact gate sets `BIOMCP_TEST_EXECUTABLE` to an absolute installed binary. The shared launcher uses it for CLI, MCP and process checks, including nested runner checks. `BIOMCP_TEST_FIXTURES` selects the complete copied public fixture tree outside the checkout. The runner registers all feature trials even when `--cases` selects another directory. Cache publication, HTTP ownership and AlphaGenome local TLS checks run as their ordinary feature trials.
 
-Nightly scheduling classifies the retained diagnostic report without changing replay assertions. Explicit checked discovery identifiers and dependent identifier inputs use the same namespace. Received body digests remain diagnostic and cannot establish causation. Missing source provenance remains uncertain. Cut witnesses and omitted drift fail the evidence integrity check. Request completion order does not change a request set. The original drift and error counts remain in the report beside classification counts.
-
-`make nightly-live-check` reads optional local settings from `$XDG_CONFIG_HOME/biomcp/nightly.json` or `~/.config/biomcp/nightly.json`. Keep this file outside the checkout. For example:
-
-```json
-{"host":"evidence.example.org","evidence_dir":"/srv/evidence/nightly","scratch_dir":"/tmp/nightly-scratch"}
-```
-
-`BIOMCP_EVIDENCE_HOST`, `BIOMCP_EVIDENCE_DIR` and `BIOMCP_SCRATCH_DIR` override the corresponding file settings. The script's `--host`, `--evidence-dir` and `--scratch-dir` arguments override both. Missing settings fail before the check starts. To verify local settings and precedence without calling providers, run `python3 scripts/test_nightly_live_check.py`; its isolated fixture runs the Make target with fake Cargo and SSH commands.
+The scheduled live check runs the built command directly and is described in `docs/development.md`. It does not use this runner.

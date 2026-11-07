@@ -110,10 +110,6 @@ def stage_fixtures(source, fixtures):
     provenance = Path("sdlc/planning/slices/gene.md")
     (fixtures / "support" / provenance).parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source / provenance, fixtures / "support" / provenance)
-    helpers = fixtures / "support/scripts"
-    helpers.mkdir(parents=True, exist_ok=True)
-    for name in ("icite_discovery_proof.py", "nightly_live_check.py", "nightly_evidence.py"):
-        shutil.copy2(source / "scripts" / name, helpers / name)
 
 
 def installed(args):

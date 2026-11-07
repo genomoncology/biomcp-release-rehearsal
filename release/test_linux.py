@@ -31,7 +31,7 @@ print(report, end='')
 print('gate complete')
 '''
 TOOL = r'''import json, os, sys
-excluded = 'live-source-checks/retained-drift-witnesses'
+excluded = 'runtime/needs-python'
 if sys.argv[1:] == ['--proof-metadata']:
     print(json.dumps([{'name': 'runtime/one', 'requires_repository_python': False},
                       {'name': 'runtime/two', 'requires_repository_python': False},
@@ -171,7 +171,7 @@ class LinuxContainers(unittest.TestCase):
             self.assertIn('all-cases-and-trials', containers[0]['checks'])
             self.assertEqual(containers[0]['trials'], 2)
             self.assertEqual(containers[0]['proofs'], {
-                'ran': 2, 'excluded': ['live-source-checks/retained-drift-witnesses'], 'excluded_count': 1})
+                'ran': 2, 'excluded': ['runtime/needs-python'], 'excluded_count': 1})
             self.assertFalse((root / 'injected').exists())
             self.assertEqual((root / 'dist/biomcp-container-amd64.tar').read_bytes(),
                              b'container archive')

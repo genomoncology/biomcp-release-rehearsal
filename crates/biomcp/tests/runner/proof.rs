@@ -22,7 +22,8 @@ pub(crate) fn trials() -> Vec<Trial> {
         }),
         transcript_trial("mcp-http/readiness-rejects-eof-and-hung-child", || {
             super::http::readiness_proof().map_err(Into::into)
-        }),
+        })
+        .with_kind(super::proof_requirements::REPOSITORY_PYTHON),
         transcript_trial("article-semantic-sections/checked-edge-boundaries", || {
             super::semantic_tables::check().map_err(|e| e.to_string().into())
         }),
