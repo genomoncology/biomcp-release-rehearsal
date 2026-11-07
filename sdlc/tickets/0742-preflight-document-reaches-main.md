@@ -1,6 +1,7 @@
 # 0742 — Preflight document reaches main
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: e6b7a2dc37a1477bcfe77858c9dfc5d5e60abf4d
 
 Milestone: 5
 
