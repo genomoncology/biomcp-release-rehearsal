@@ -1,6 +1,7 @@
 # 0764 — Docs and skill name the entity tools
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 1f8f2165fc8b341d402717ae6c49e1ee3779b99a
 
 Milestone: 5
 
