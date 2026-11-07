@@ -35,3 +35,10 @@ Hosting found `get gene BRCA2 clingen` reads stale with status partial, though i
 ## Depends on
 
 - Depends on: 0718.
+
+## Amendment, 2026-11-07
+
+Two findings from the 0718 stack, in this ticket because both concern how age is reported:
+
+- Case budgets depend on the calendar. 0718's "old data" notice is longer past 365 days, so fixtures with a publisher date will fail their byte budgets once that date passes: the cell-line assay case after 2027-05-01, the 2026-10-23 fixtures in October 2027. Pin "today" in those cases. A test must not fail because the date changed.
+- Page 2 of the trial gene-notices case has no date notice, while page 1 and count-only do. Decide whether every reply states its date, and make the code match.
