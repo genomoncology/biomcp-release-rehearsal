@@ -1,6 +1,7 @@
 # 0758 — The reference tool's example is a valid call
 
-Status: READY.
+Status: COMPLETE.
+Landed: dc0eae33f1a4957bcd229e14559b32a017fac165
 
 Milestone: 5
 

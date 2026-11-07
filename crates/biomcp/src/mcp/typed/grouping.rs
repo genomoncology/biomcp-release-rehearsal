@@ -100,12 +100,12 @@ fn reference(commands: &[Value]) -> Value {
     json!({"name":"biomcp_reference",
         "description":"Run specialist reference commands and additional entity operations with their typed arguments. \
         IDs and options follow the selected command's schema. \
-        Example: {\"command\":\"get_protein\",\"arguments\":{\"id\":\"P04637\"}}.",
+        Example: {\"command\":\"get_protein\",\"arguments\":{\"input\":[\"P04637\"]}}.",
         "inputSchema":{"$schema":super::super::protocol::SCHEMA_DIALECT,"type":"object",
             "properties":{
                 "command":{"type":"string","enum":names,"description":"Registered typed command name, such as get_protein."},
                 "arguments":{"type":"object","additionalProperties":true,
-                    "description":"The selected command's typed arguments; example for get_protein: {\"id\":\"P04637\"}."}},
+                    "description":"The selected command's typed arguments, keyed by that command's input property names."}},
             "required":["command","arguments"],"additionalProperties":false},
         "annotations":{"readOnlyHint":read_only,"destructiveHint":false,"openWorldHint":true}})
 }
