@@ -51,3 +51,11 @@ Changes to the build:
 Proof adds fixtures in the real reply shape: several rows for one drug, several structures at one source, a pipe-joined value, and a code name differing only by a space or hyphen. It also adds a case where lookups use up their share of the time and the search still runs. A live check of brand, generic and code names runs on the built binary after landing, with drugs beyond the report's. A failure there is a new bug against landed work, not a landing condition.
 
 PM ruling: this expansion is allowed by the amendment now on `decisions/2026-10-24-no-text-heuristics.md`.
+
+## Amendment, 2026-11-06
+
+PM ruling, from the review at the top of the hosting stack. These three are fixed before landing, on the stack's top branch, replacing the earlier allowance to land with a live failure:
+
+1. ClinicalTrials.gov gets a size limit on the name group, because one long chemical name made it reject the whole group for sotorasib and imatinib. This is a provider limit, not a name quality filter. The notice counts names left out.
+2. The name cap always keeps the record's preferred name, and providers that take one name per request use it first.
+3. A reply says only the typed term was searched only when every grouped provider fell back.
