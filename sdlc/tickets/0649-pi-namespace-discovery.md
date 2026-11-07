@@ -1,6 +1,7 @@
 # Keep Pi namespace tool discovery usable alongside full server instructions
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: f636524bbb3b3ef6b3fbd5d2875fec06d143d0a5
 
 Milestone: 5
 
