@@ -334,13 +334,17 @@ fn setup_lock(path: &Path, deadline: Deadline<'_>) -> Result<Option<std::fs::Fil
     let Ok(file) = options.open(path.with_extension("open-lock")) else {
         return Ok(None);
     };
+    let started = std::time::Instant::now();
     loop {
         match file.try_lock() {
             Ok(()) => return Ok(Some(file)),
             Err(std::fs::TryLockError::WouldBlock) if !deadline.expired() => {
                 std::thread::park_timeout(Duration::from_millis(1).min(deadline.remaining()));
             }
-            Err(std::fs::TryLockError::WouldBlock) => return Err(CacheError::Busy),
+            Err(std::fs::TryLockError::WouldBlock) => {
+                crate::observe::record_open_failure("lock", 0, started);
+                return Err(CacheError::Busy);
+            }
             Err(std::fs::TryLockError::Error(_)) => return Ok(None),
         }
     }

@@ -2,15 +2,17 @@
 use super::*;
 use std::sync::mpsc;
 
-fn execute(words: &[&str], allowed: Option<SecretName>) -> usize {
+/// Run one command and return the environment keys it read, in order. A key outside
+/// `allowed` fails at once.
+fn reads(words: &[&str], allowed: &[SecretName]) -> Vec<String> {
     let (send, receive) = mpsc::channel();
+    let allowed = allowed
+        .iter()
+        .map(|name| name.environment())
+        .collect::<Vec<_>>();
     let secrets = secrets_using(None, move |name| {
-        assert_eq!(
-            Some(name),
-            allowed.map(SecretName::environment),
-            "forbidden key read"
-        );
-        send.send(()).unwrap();
+        assert!(allowed.contains(&name), "forbidden key read: {name}");
+        send.send(name.to_owned()).unwrap();
         Ok(Some(PathBuf::from("synthetic-settings-key")))
     });
     assert!(!format!("{secrets:?}").contains("API_KEY"));
@@ -24,7 +26,12 @@ fn execute(words: &[&str], allowed: Option<SecretName>) -> usize {
     })
     .unwrap();
     run(&fetch, words);
-    receive.try_iter().count()
+    receive.try_iter().collect()
+}
+
+/// Count the reads of one command that may read at most one key.
+fn execute(words: &[&str], allowed: Option<SecretName>) -> usize {
+    reads(words, allowed.as_slice()).len()
 }
 
 fn run(fetch: &Fetch, words: &[&str]) -> serde_json::Value {
@@ -105,29 +112,31 @@ fn unrelated_and_disabled_commands_never_read_keys() {
 
 #[test]
 fn called_sources_read_only_their_own_environment_key_once() {
+    // Each command may read the keys of the sources it calls, each once. Article search
+    // looks drug names up in openFDA labels (0717), so it calls openFDA as well as NCBI.
     let cases = [
         (
-            SecretName::OpenfdaApiKey,
+            vec![SecretName::OpenfdaApiKey],
             vec!["get", "diagnostic", "K173492", "--source", "fda-510k"],
         ),
         (
-            SecretName::NcbiApiKey,
+            vec![SecretName::NcbiApiKey, SecretName::OpenfdaApiKey],
             vec!["search", "article", "EGFR", "--source", "pubmed"],
         ),
         (
-            SecretName::OrcidAccessToken,
+            vec![SecretName::OrcidAccessToken],
             vec!["get", "author", "orcid:0000-0002-4299-3018"],
         ),
         (
-            SecretName::NcbiApiKey,
+            vec![SecretName::NcbiApiKey],
             vec!["get", "variant", "clinvar:13961", "clinvar"],
         ),
         (
-            SecretName::SemanticScholarApiKey,
+            vec![SecretName::SemanticScholarApiKey],
             vec!["get", "author", "semantic-scholar:123"],
         ),
         (
-            SecretName::OncokbApiKey,
+            vec![SecretName::OncokbApiKey],
             vec![
                 "get",
                 "variant",
@@ -140,7 +149,7 @@ fn called_sources_read_only_their_own_environment_key_once() {
             ],
         ),
         (
-            SecretName::NciApiKey,
+            vec![SecretName::NciApiKey],
             vec![
                 "search",
                 "trial",
@@ -154,7 +163,7 @@ fn called_sources_read_only_their_own_environment_key_once() {
     assert_eq!(
         cases
             .iter()
-            .map(|(name, _)| *name)
+            .flat_map(|(names, _)| names.iter().copied())
             .collect::<std::collections::BTreeSet<_>>(),
         biomcp_query::sources::keys()
             .iter()
@@ -163,8 +172,15 @@ fn called_sources_read_only_their_own_environment_key_once() {
             .filter(|name| *name != SecretName::AlphaGenomeApiKey)
             .collect()
     );
-    for (name, command) in cases {
-        assert_eq!(execute(&command, Some(name)), 1, "{name:?}");
+    for (names, command) in cases {
+        let mut read = reads(&command, &names);
+        read.sort_unstable();
+        let mut expected = names
+            .iter()
+            .map(|name| name.environment())
+            .collect::<Vec<_>>();
+        expected.sort_unstable();
+        assert_eq!(read, expected, "{command:?}");
     }
 }
 

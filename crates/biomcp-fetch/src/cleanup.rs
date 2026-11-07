@@ -142,5 +142,9 @@ fn remove_database(path: &Path) -> Result<(), CacheError> {
             Err(_) => return Err(CacheError::Filesystem),
         }
     }
-    Ok(())
+    match fs::remove_file(path.with_extension("open-lock")) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(_) => Err(CacheError::Filesystem),
+    }
 }

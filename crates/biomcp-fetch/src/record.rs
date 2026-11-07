@@ -127,6 +127,7 @@ impl ReplayCache {
                 "replay.sqlite",
                 "replay.sqlite-wal",
                 "replay.sqlite-shm",
+                "replay.open-lock",
             ]
             .iter()
             .any(|allowed| name == *allowed)

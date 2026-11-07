@@ -34,6 +34,16 @@ class FailedRun(unittest.TestCase):
         self.assertEqual(logs, 1)
         self.assertIn('sqlite operation=fetch::cache.rs:125 code=5 extended=5', output)
 
+    def test_cache_process_fails_when_libtest_runs_no_tests(self):
+        with tempfile.TemporaryDirectory(dir=load.ROOT) as folder, contextlib.redirect_stdout(io.StringIO()):
+            for text, failed in (('running 0 tests', True), ('running 1 test', False)):
+                argv = [sys.executable, '-c', f'print({text!r})']
+                self.assertEqual(bool(load.run_once('cache-process', argv, Path(folder) / 'x.log')), failed)
+
+    def test_rounds_below_one_are_refused(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            load.main(['--rounds', '0'])
+
     def test_every_round_runs_when_all_pass(self):
         passed, logs, _ = self.run_check('pass')
         self.assertTrue(passed)

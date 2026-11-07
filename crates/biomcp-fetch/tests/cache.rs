@@ -250,3 +250,14 @@ fn ownership_version_query_reports_a_locked_table_as_busy() {
     assert!(reader.is_autocommit());
     transaction.rollback().unwrap();
 }
+
+#[test]
+fn a_case_directory_reopens_after_the_open_lock_exists() {
+    let directory = tempfile::tempdir().unwrap();
+    let case = directory.path().join("case");
+    biomcp_fetch::ReplayCache::create_case_with_owners(&case, &[]).unwrap();
+    assert!(case.join("replay.open-lock").is_file());
+    for _ in 0..2 {
+        biomcp_fetch::ReplayCache::open_case_with_owners(&case, &[]).unwrap();
+    }
+}
