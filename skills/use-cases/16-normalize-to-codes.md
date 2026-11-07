@@ -24,4 +24,4 @@ Read this service’s independent result and explicit requested assembly. Compar
 
 Use a returned explicit identifier for subsequent retrieval after checking it matches the intended allele. Normalization does not classify pathogenicity or select a clinically appropriate transcript.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

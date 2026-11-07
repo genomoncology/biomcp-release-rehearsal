@@ -10,7 +10,7 @@ How do I inspect gene and diplotype source records without calculating a phenoty
 biomcp search pgx --gene DPYD --source cpic
 ```
 
-Read the source’s returned gene and drug rows and identifiers. The executable examples use authored synthetic CPIC rows, not clinical-positive evidence.
+Read the source’s returned gene and drug rows and identifiers.
 
 ## 2. Retrieve and inspect
 
@@ -32,4 +32,4 @@ Read the echoed diplotype and the source-provided matching rows. Do not combine 
 
 Follow the original guideline and source record for the applicable context. BioMCP retrieves tables; it does not infer a patient’s genotype, phenotype or treatment.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

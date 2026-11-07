@@ -24,4 +24,4 @@ Compare the selected identifier, name, definition and source. The [HPO release 2
 
 If the definition does not match the stated term, return to the candidates and inspect the appropriate source records. Follow returned page commands when candidates remain. This lookup supplies terminology; it establishes no diagnosis, cause, severity or patient interpretation.
 
-These authored API replies are synthetic. The identifier, name and definition come from HPO release 2026-09-01; the replies are not captured API responses. Read response status, problems and source terms at every step. Live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

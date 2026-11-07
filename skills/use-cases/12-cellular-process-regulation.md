@@ -32,4 +32,4 @@ Read event identities and source relationships separately from gene membership.
 
 Follow returned pages and source event links. Membership and event listings do not measure regulation or patient-specific pathway activity. BioMCP does not run pathway analysis tools.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

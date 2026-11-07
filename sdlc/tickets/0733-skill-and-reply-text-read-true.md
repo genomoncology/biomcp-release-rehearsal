@@ -1,6 +1,7 @@
 # 0733 — Skill and reply text read true to the agent
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c3c8bf84b8c2922645bb9c60f33599ed77957c8c
 
 Milestone: 5
 

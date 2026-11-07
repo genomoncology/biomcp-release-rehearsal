@@ -7,6 +7,7 @@ pub(super) fn render(
     args: &[std::ffi::OsString],
     tools: &super::grouping::Catalog,
     projected: &[Value],
+    form: crate::config::ReplyForm,
 ) -> String {
     let status = value
         .get("status")
@@ -30,7 +31,7 @@ pub(super) fn render(
         calls.push(call.to_string());
     }
     calls.first().map_or_else(
-        || format!("{status}: JSON reply is in structuredContent."),
+        || format!("{status}: {}", super::super::protocol::reply_note(form)),
         |call| format!("{status}: next {call}"),
     )
 }

@@ -24,4 +24,4 @@ Inspect the same source section through the get route. Confirm the requested ide
 
 Review the underlying submissions and evidence. Do not turn an aggregate label into a patient diagnosis or a treatment recommendation.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

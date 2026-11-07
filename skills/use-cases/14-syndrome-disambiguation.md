@@ -24,4 +24,4 @@ This example adds an explicitly stated cytoband to the alias search. Inspect the
 
 Choose a candidate only from the question’s stated identity or independently reviewed evidence. A gene alias and its candidate list cannot disambiguate a syndrome or diagnose a patient.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

@@ -14,6 +14,6 @@ Read the echoed one-based inclusive region and assembly, source query and every 
 
 ## Next
 
-Follow returned pages and explicit variant record commands. Preserve assembly and reference-qualified expressions. These recorded candidate fixtures demonstrate command behavior and do not rank pathogenicity.
+Follow returned pages and explicit variant record commands. Preserve assembly and reference-qualified expressions. Candidates do not rank pathogenicity.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

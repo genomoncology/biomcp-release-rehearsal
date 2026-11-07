@@ -58,6 +58,8 @@ singleton! {
 
  VariantNormalizeForms => "normalization accepts reference-qualified HGVS, or chromosome genomic HGVS with CAR \
  and --build; convert rsIDs, clinvar:N, VCV accessions and genomic coordinates with get variant <ID> first",
+ VariantNormalizeRoute => "normalization needs reference-qualified HGVS; for gene shorthand use search variant \
+ --gene <SYMBOL> --coding <CHANGE> or --protein <CHANGE>, then get variant <ID>",
  GwasPositiveThreshold => "--p-value threshold must be a positive probability in scientific notation",
  WhoSearchArguments => "WHO PQ search requires a name or --prequalified-from/--prequalified-to date range",
  SourceSelector => "choose one of the source selector values",

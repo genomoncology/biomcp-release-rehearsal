@@ -32,4 +32,4 @@ Read each source domain identifier and interval. Keep domain records distinct fr
 
 Follow returned protein section and page commands. An annotation’s position does not establish a clinical consequence.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

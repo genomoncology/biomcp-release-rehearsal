@@ -38,14 +38,18 @@ impl TryFrom<Fields> for VariantNormalize {
         if !(1..=50).contains(&f.limit) {
             return Err(super::gene::QueryInvalid::new(&["limit"]));
         }
-        let hgvs =
-            VariantInput::new(&f.hgvs).map_err(|_| super::gene::QueryInvalid::new(&["hgvs"]))?;
-        if f.hgvs.len() > 2048
-            || !(hgvs.hgvs().is_some()
-                || f.source == NormalizationSource::Car
-                    && f.build.is_some()
-                    && hgvs.namespace() == VariantNamespace::Chromosome
-                    && !hgvs.coordinate_form())
+        if f.hgvs.len() > VariantInput::MAX_BYTES {
+            return Err(super::gene::QueryInvalid::new(&["hgvs"]));
+        }
+        let hgvs = VariantInput::new(&f.hgvs).map_err(|_| {
+            super::gene::QueryInvalid::new(&["hgvs"])
+                .with_message(crate::ErrorMessage::VariantNormalizeRoute)
+        })?;
+        if !(hgvs.hgvs().is_some()
+            || f.source == NormalizationSource::Car
+                && f.build.is_some()
+                && hgvs.namespace() == VariantNamespace::Chromosome
+                && !hgvs.coordinate_form())
         {
             return Err(super::gene::QueryInvalid::new(&["hgvs"])
                 .with_message(crate::ErrorMessage::VariantNormalizeForms));

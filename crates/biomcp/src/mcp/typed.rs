@@ -44,6 +44,7 @@ pub(super) fn prepare_with_catalog(
         args,
         advertised,
         &calls,
+        crate::config::mcp_reply_form(context.settings),
     )))
 }
 
@@ -71,11 +72,12 @@ pub(super) fn tool_result(
             summary.clone()
         } else {
             format!(
-                "{}: JSON reply is in structuredContent.",
+                "{}: {}",
                 value
                     .get("status")
                     .and_then(Value::as_str)
-                    .unwrap_or("complete")
+                    .unwrap_or("complete"),
+                super::protocol::reply_note(form)
             )
         };
         let text = if matches!(form, crate::config::ReplyForm::StructuredOnly) {

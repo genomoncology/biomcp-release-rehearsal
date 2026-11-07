@@ -16,4 +16,4 @@ Read each resolved gene identity in input order. Inspect the source disease iden
 
 Follow source record links and returned section commands. An assessment about a gene and disease is not a classification of an individual variant or a diagnosis.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

@@ -24,4 +24,4 @@ Read the native identifier, name, species, version and release. Confirm the sour
 
 Follow returned source links and section commands to inspect membership. Pathway membership does not establish that a pathway is active in a patient.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

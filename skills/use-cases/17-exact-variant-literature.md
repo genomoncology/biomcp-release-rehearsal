@@ -24,4 +24,4 @@ Read the exact PMID, publication type and labeled abstract parts. Confirm the ar
 
 Follow references or full-text commands returned by the article. Inspect the original study before using its claims; a textual match does not establish that evidence applies to a patient.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

@@ -34,6 +34,11 @@
       ],
       "exit": 4,
       "expect": {
+        "/next/0/args": [
+          "get",
+          "variant",
+          "clinvar:13961"
+        ],
         "/problems/*/field": {
           "includes_all_of": [
             "assembly: no GRCh38 allele; retried GRCh37 source index; allele assembly unknown",

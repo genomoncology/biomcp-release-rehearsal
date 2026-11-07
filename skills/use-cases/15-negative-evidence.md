@@ -24,4 +24,4 @@ Read the independent pathway section state. Inapplicable is distinct from a succ
 
 Keep each state, query and source with the observation. Do not report an empty or unavailable section as evidence that the gene lacks a biological role or a clinical association.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

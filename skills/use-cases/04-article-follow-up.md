@@ -32,4 +32,4 @@ Read the returned citation context and its source. Check that both publication i
 
 Open relevant cited articles through returned commands. Read the study’s own methods and results before using a claim; citation direction alone does not express support.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

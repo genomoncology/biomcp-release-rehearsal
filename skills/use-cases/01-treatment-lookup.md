@@ -24,4 +24,4 @@ Read the next page of the same dated query. Keep the original filters, inspect t
 
 Use each response’s returned article commands and page commands. A search match does not establish a treatment indication, benefit or patient fit.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

@@ -24,4 +24,4 @@ Read jurisdiction, source status and dates with their named roles. Keep separate
 
 If the stored bundle is missing, use the explicit sync command returned in the reply and repeat the read. Follow the regulator’s record for current product information; this record does not choose treatment.
 
-Read response status, problems and source terms at every step. Recorded replies demonstrate the commands; live replies can change.
+Read response status, problems and source terms at every step. Live replies can change.

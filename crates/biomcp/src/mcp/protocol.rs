@@ -121,12 +121,19 @@ pub(super) fn tool_result(
     };
     result(id, content(error, true, form), modern)
 }
+// A summary line names where this form puts the JSON, so it never names an absent field.
+pub(super) fn reply_note(form: ReplyForm) -> &'static str {
+    match form {
+        ReplyForm::StructuredOnly => "JSON reply is in structuredContent.",
+        ReplyForm::Both | ReplyForm::TextOnly => "JSON reply follows.",
+    }
+}
 fn content(value: Value, failed: bool, form: ReplyForm) -> Value {
     match form {
         ReplyForm::Both => json!({"content":[{"type":"text","text":value.to_string()}],
             "structuredContent":value, "isError":failed}),
         ReplyForm::StructuredOnly => {
-            json!({"content":[{"type":"text","text":"JSON reply is in structuredContent."}],
+            json!({"content":[{"type":"text","text":reply_note(form)}],
             "structuredContent":value, "isError":failed})
         }
         ReplyForm::TextOnly => {
