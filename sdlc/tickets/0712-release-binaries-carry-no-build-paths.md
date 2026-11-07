@@ -1,6 +1,7 @@
 # 0712 — Release binaries carry no build paths
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: fe9abf65328ba866b0643a1020f5c81e6dcf709a
 
 Milestone: 5
 

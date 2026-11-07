@@ -17,14 +17,14 @@ import tarfile
 import zipfile
 
 if __package__:
-    from .vendor import environment as vendor_environment
+    from .vendor import environment as vendor_environment, stage as vendor_stage
     from .readme import description
     from .tools import candidate, check
     from .source_revision import revision as source_revision
     from .notices import generate, payloads, metadata as check_metadata
     from .license_check import zip_payload
 else:
-    from vendor import environment as vendor_environment
+    from vendor import environment as vendor_environment, stage as vendor_stage
     from readme import description
     from tools import candidate, check
     from source_revision import revision as source_revision
@@ -41,11 +41,11 @@ def run(args):
                                    env=vendor_environment() if args[:1] == ["cargo"] else None)
 
 
-def cargo(profile, tests=False, revision=None):
+def cargo(profile, tests=False, revision=None, clean_paths=False):
     args = ["cargo", "test" if tests else "build", "--locked", "-p", "biomcp", "--profile", profile, "--message-format=json"]
     target = tests if isinstance(tests, str) else "cases"
     args += ["--test", target, "--no-run"] if tests else ["--bin", "biomcp"]
-    environment = {**vendor_environment(), **({"BIOMCP_BUILD_REVISION": revision} if revision else {})}
+    environment = {**vendor_environment(clean_paths), **({"BIOMCP_BUILD_REVISION": revision} if revision else {})}
     process = subprocess.Popen(args, stdout=subprocess.PIPE, text=True, env=environment)
     found = None
     for line in process.stdout:
@@ -79,6 +79,19 @@ def check_floor(binary, tag):
     floor = tuple(map(int, tag.split("_")[1:3]))
     if not required or max(required) > floor:
         raise ValueError("ELF requirements exceed the claimed manylinux floor")
+
+
+def check_build_paths(binary):
+    """Refuse a binary that names a folder of the machine that built it."""
+    # In a container the root is /source and the home may be /tmp, so a search
+    # for either bare folder would match ordinary text.
+    home = Path(os.environ.get("CARGO_HOME") or Path.home() / ".cargo")
+    folders = [Path(__file__).resolve().parent.parent / "crates", binary.resolve().parent, vendor_stage(), home / "registry"]
+    data = binary.read_bytes()
+    found = {str(folder) for folder in folders for separator in "/\\"
+             if str(folder).replace("\\", "/").replace("/", separator).encode() in data}
+    if found:
+        raise ValueError("Release binary holds build paths: " + ", ".join(sorted(found)))
 
 
 def wheel(output, binary, provenance):
@@ -211,12 +224,14 @@ def build(args):
     if platform.system() == "Darwin":
         os.environ["MACOSX_DEPLOYMENT_TARGET"] = "11.0"
     revision = source_revision(args.revision)
-    artifact = cargo(args.profile, revision=revision)
+    artifact = cargo(args.profile, revision=revision, clean_paths=args.profile == "release")
     binary = Path(artifact["executable"])
     metadata = json.loads(run(["cargo", "metadata", "--locked", "--format-version", "1", "--no-deps"]))
     version = next(p["version"] for p in metadata["packages"] if p["name"] == "biomcp")
     tag = platform_tag(args.manylinux)
     check_floor(binary, tag)
+    if args.profile == "release":
+        check_build_paths(binary)
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     distribution = json.loads((Path(__file__).resolve().parent.parent / "server.json").read_text())["packages"][0]["identifier"]
