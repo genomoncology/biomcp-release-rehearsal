@@ -1,0 +1,231 @@
+{
+  "method": "GET",
+  "source": "cellosaurus",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=idsy%3A%22NB4%22%20AND%20NOT%20hi%3A%2A&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca&rows=10",
+  "exchanges": [
+    {
+      "fetched": 1794002653,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 5,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_8821"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C3270",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C3270",
+                    "label": "Neuroblastoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C3270"
+                  },
+                  {
+                    "accession": "Orphanet_635",
+                    "category": "Medical resources",
+                    "database": "ORDO",
+                    "iri": "http://www.orpha.net/ORDO/Orphanet_635",
+                    "label": "Neuroblastoma",
+                    "url": "https://www.ebi.ac.uk/ols4/ontologies/ordo/classes/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_635"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "SJNB-4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "SJNB4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "SJNB-4(SD)"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "NB4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "NB4-DH"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_0005"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C3182",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C3182",
+                    "label": "Acute promyelocytic leukemia with PML-RARA",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C3182"
+                  },
+                  {
+                    "accession": "Orphanet_520",
+                    "category": "Medical resources",
+                    "database": "ORDO",
+                    "iri": "http://www.orpha.net/ORDO/Orphanet_520",
+                    "label": "Acute promyelocytic leukemia",
+                    "url": "https://www.ebi.ac.uk/ols4/ontologies/ordo/classes/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_520"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "NB4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "NB-4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "NB.4"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_9907"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C3270",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C3270",
+                    "label": "Neuroblastoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C3270"
+                  },
+                  {
+                    "accession": "Orphanet_635",
+                    "category": "Medical resources",
+                    "database": "ORDO",
+                    "iri": "http://www.orpha.net/ORDO/Orphanet_635",
+                    "label": "Neuroblastoma",
+                    "url": "https://www.ebi.ac.uk/ols4/ontologies/ordo/classes/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_635"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "UKF-NB-4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "UKF-NB4"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_9889"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C3270",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C3270",
+                    "label": "Neuroblastoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C3270"
+                  },
+                  {
+                    "accession": "Orphanet_635",
+                    "category": "Medical resources",
+                    "database": "ORDO",
+                    "iri": "http://www.orpha.net/ORDO/Orphanet_635",
+                    "label": "Neuroblastoma",
+                    "url": "https://www.ebi.ac.uk/ols4/ontologies/ordo/classes/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_635"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "STA-NB-4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "STA-NB4"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "St. Anna Kinderspital-Neuroblastoma-4"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

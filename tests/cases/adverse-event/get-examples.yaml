@@ -14,10 +14,10 @@
         "/status": "complete",
         "/result/header/id": "100",
         "": {
-          "max_bytes": 1096
+          "max_bytes": 1309
         }
       },
-      "max_bytes": 1098
+      "max_bytes": 1311
     },
     {
       "run": [
@@ -31,10 +31,10 @@
         "/result/header/id": "100",
         "/result/reactions/records/0/term/label": "Synthetic term",
         "": {
-          "max_bytes": 846
+          "max_bytes": 1059
         }
       },
-      "max_bytes": 847
+      "max_bytes": 1060
     }
   ],
   "verified": "j13131 measured full/comparable compact bytes 1068/953 and 850/735. Bounds apply fifteen percent headroom to the comparable bytes through the shared validated source-terms deduction; component terms remain counted. The final routine gate executes both CLI and MCP."

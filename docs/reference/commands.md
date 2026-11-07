@@ -110,7 +110,7 @@ Commands:
   biomarker      Find NCI biomarker concepts by name or synonym. The public tier returns codes, name, type, trial count, synonyms, parent_ids, ancestor_ids and eligibility_criterion. These concepts differ from diagnostic --biomarker filters and literal trial --variant text. Use search trial --source nci --biomarker-code CODE for trials that list an exact concept. Native criteria do not establish patient eligibility.
   author         Literal author name query and native window; positional text maps to query.
   organization   Find NCI organizations. Names are not unique; trial counts cover every status, including closed trials. No organization ID or get is available.
-  cell-line      One native cell line search with optional text, species and NCIt disease filters.
+  cell-line      One native cell line search with optional text, species, disease, variation and derived-line filters.
   gwas           Source associations in default p-value-ascending order. Reports no personal risk, causal variant or gene, or clinical interpretation of a statistic.
   protein        Search five reviewed human UniProt headers by literal text or exact gene.
                  No variant effect, structure, interaction or clinical meaning is inferred. No bioinformatics tool runs.
@@ -387,7 +387,7 @@ Listed choices accept any letter case; replies use their listed spelling. Value 
 ## biomcp search cell-line
 
 ```text
-One native cell line search with optional text, species and NCIt disease filters.
+One native cell line search with optional text, species, disease, variation and derived-line filters.
 
 Usage: biomcp search cell-line [OPTIONS] [query]
 
@@ -408,17 +408,32 @@ Options:
       --disable-sources <disable-sources>
           Exclude source names or source terms groups. Example: --disable-sources civic.
 
-  -l, --limit <limit>
-          Native page size.
+      --exclude-derived[=<exclude_derived>]
+          Leave out lines derived from a parent line; needs another search term.
 
-      --offset <offset>
-          Native start offset.
+          [default: false]
+          [possible values: true, false]
+
+      --gene <gene>
+          Cellosaurus variation gene, as the source writes it (for example KRAS).
 
       --source_pacing <source_pacing>
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
 
       --config <config>
           Read configuration from this file. Example: --config config.json.
+
+  -l, --limit <limit>
+          Native page size.
+
+      --mutation <mutation>
+          Cellosaurus variation text, as the source writes it (for example p.Gly12Asp).
+
+      --offset <offset>
+          Native start offset.
+
+      --protein <protein>
+          Protein change, sent in the source's spelling (G12D is sent as p.Gly12Asp).
 
       --species <species>
           Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606).
@@ -440,8 +455,12 @@ Options:
 Search cell lines by name or identifier. Sources: cellosaurus.
 
 - `--disease`: Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224). Value form: string. Example: --disease Melanoma. Command sources: cellosaurus; source restrictions in the field description apply.
+- `--exclude-derived`: Leave out lines derived from a parent line; needs another search term. Value form: boolean. Example: --exclude-derived. Command sources: cellosaurus; source restrictions in the field description apply.
+- `--gene`: Cellosaurus variation gene, as the source writes it (for example KRAS). Value form: string. Example: --gene KRAS. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--limit`: Source page size. Value form: integer. Example: --limit 1. Command sources: cellosaurus; source restrictions in the field description apply.
+- `--mutation`: Cellosaurus variation text, as the source writes it (for example p.Gly12Asp). Value form: string. Example: --mutation p.Gly12Asp. Command sources: cellosaurus; source restrictions in the field description apply.
 - `--offset`: Source start offset. Value form: integer. Example: --offset 0. Command sources: cellosaurus; source restrictions in the field description apply.
+- `--protein`: Protein change, sent in the source's spelling (G12D is sent as p.Gly12Asp). Value form: string. Example: --protein G12D. Command sources: cellosaurus; source restrictions in the field description apply.
 - `query`: Exact source query from the positional argument.
 - `--species`: Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606). Value form: string. Example: --species 'Homo sapiens'. Command sources: cellosaurus; source restrictions in the field description apply.
 

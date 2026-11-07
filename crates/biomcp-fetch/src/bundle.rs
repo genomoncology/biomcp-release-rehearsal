@@ -213,7 +213,11 @@ impl Fetch {
         let mut leg = self.leg(bundle.spec, deadline);
         leg.deadline = deadline;
         let mut info = leg.sync_bundle(bundle, false)?.published(&leg)?;
-        info.data_date = leg.stored_data_date(bundle)?;
+        // A busy cache must not fail a sync that already published; the date stays unknown.
+        info.data_date = match leg.stored_data_date(bundle) {
+            Err(RequestError::Cache(crate::CacheError::Busy)) => None,
+            other => other?,
+        };
         Ok(info)
     }
 }

@@ -46,6 +46,10 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         return found;
     }
     evidence.append(&mut out, query.source());
+    if evidence.local.is_some() {
+        // A local failure while looking up names leaves the search incomplete, as its exit code says.
+        status::search(&mut out);
+    }
     if let Some(card) = card {
         hint(&mut out, &card, input, query.source(), cx.fresh);
     }

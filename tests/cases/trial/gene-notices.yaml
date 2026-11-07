@@ -41,7 +41,7 @@
         },
         "/result/items/0/nct_id": "NCT06943755",
         "/result/items/4/nct_id": "NCT06998940",
-        "/sources/1/notices/0/kind": "condition-word-mismatch",
+        "/sources/1/notices/1/kind": "condition-word-mismatch",
         "/sources/1/notices/*/message": {
           "includes_all_of": [
             "Trial NCT06943755: KRAS is not mentioned as an exact word in the returned protocol fields. Registry text matching does not establish a gene link or eligibility.",

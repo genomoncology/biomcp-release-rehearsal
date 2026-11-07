@@ -1,0 +1,112 @@
+{
+  "method": "GET",
+  "source": "cellosaurus",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=idsy%3A%22SW979%22%20AND%20var%3A%22KRAS%22&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca%2Cvar&rows=5",
+  "exchanges": [
+    {
+      "fetched": 1794002656,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 5,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_4057"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C8294",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C8294",
+                    "label": "Pancreatic adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C8294"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "SW979"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "SW-979"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "SW 979"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "-",
+                    "mutation-type": "None_reported",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=8026879"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:6407",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "KRAS",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:6407"
+                      }
+                    ],
+                    "zygosity-type": "-"
+                  },
+                  {
+                    "mutation-description": "-",
+                    "mutation-type": "None_reported",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=8026879"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:11998",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "TP53",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:11998"
+                      }
+                    ],
+                    "zygosity-type": "-"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

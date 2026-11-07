@@ -14,6 +14,28 @@
       ],
       "type": "string"
     },
+    "Reply_Capped_CellLineVariation": {
+      "description": "A bounded list with the total before its cap was applied.",
+      "properties": {
+        "items": {
+          "description": "References in stable source order.",
+          "items": {
+            "$ref": "#/$defs/Reply_CellLineVariation"
+          },
+          "type": "array"
+        },
+        "total": {
+          "description": "Distinct references before capping.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total"
+      ],
+      "type": "object"
+    },
     "Reply_Capped_CellLineXref": {
       "description": "A bounded list with the total before its cap was applied.",
       "properties": {
@@ -39,6 +61,30 @@
     "Reply_CellLineFilteredPage": {
       "$ref": "#/$defs/Reply_CellLinePage",
       "description": "Native filtered cell-line headers; the literal-search reply contract remains unchanged."
+    },
+    "Reply_CellLineGene": {
+      "description": "A native variation gene member with only a source-supplied HGNC identity.",
+      "properties": {
+        "hgnc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_HgncId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Present only if this source member explicitly carries the HGNC identifier."
+        },
+        "reference": {
+          "$ref": "#/$defs/Reply_CellLineXref",
+          "description": "Complete original source gene cross-reference."
+        }
+      },
+      "required": [
+        "reference"
+      ],
+      "type": "object"
     },
     "Reply_CellLineHeader": {
       "description": "Compact source identity with independently capped species and diseases.",
@@ -76,6 +122,17 @@
         "species": {
           "$ref": "#/$defs/Reply_Capped_CellLineXref",
           "description": "Up to three complete species references and their native total."
+        },
+        "variations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Capped_CellLineVariation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Up to three of this line's variations that show every filter term, and their total. Only variation-filtered searches carry it."
         }
       },
       "required": [
@@ -114,8 +171,82 @@
             }
           ],
           "description": "Independently fetched publisher release, never a result total."
+        },
+        "variation_match": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CellLineVariationMatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What a variation filter matched; only variation-filtered searches carry it."
         }
       },
+      "type": "object"
+    },
+    "Reply_CellLineProvenance": {
+      "description": "One complete native source row; reference, institution and database provenance stay independent.",
+      "properties": {
+        "institution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native institution name if supplied."
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CellLineReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native publication reference if supplied."
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native institution value if supplied."
+        },
+        "xref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_CellLineXref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Complete native database provenance if supplied."
+        }
+      },
+      "type": "object"
+    },
+    "Reply_CellLineReference": {
+      "description": "One native internal publication reference, without requiring PubMed.",
+      "properties": {
+        "resource_internal_ref": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Complete native resource reference, for example PubMed=9305600."
+        }
+      },
+      "required": [
+        "resource_internal_ref"
+      ],
       "type": "object"
     },
     "Reply_CellLineRelease": {
@@ -162,13 +293,36 @@
           "required": [
             "disease"
           ]
+        },
+        {
+          "required": [
+            "gene"
+          ]
+        },
+        {
+          "required": [
+            "mutation"
+          ]
+        },
+        {
+          "required": [
+            "protein"
+          ]
         }
       ],
-      "description": "One native cell line search with optional text, species and NCIt disease filters.",
+      "description": "One native cell line search with optional text, species, disease, variation and derived-line filters.",
       "properties": {
         "disease": {
           "$ref": "#/$defs/Reply_Text",
           "description": "Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224)."
+        },
+        "exclude_derived": {
+          "description": "Leave out lines derived from a parent line; needs another search term.",
+          "type": "boolean"
+        },
+        "gene": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Cellosaurus variation gene, as the source writes it (for example KRAS)."
         },
         "limit": {
           "default": 5,
@@ -178,12 +332,20 @@
           "minimum": 1,
           "type": "integer"
         },
+        "mutation": {
+          "$ref": "#/$defs/Reply_Text",
+          "description": "Cellosaurus variation text, as the source writes it (for example p.Gly12Asp)."
+        },
         "offset": {
           "default": 0,
           "description": "Native start offset.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
+        },
+        "protein": {
+          "$ref": "#/$defs/Reply_ProteinQuery",
+          "description": "Protein change, sent in the source's spelling (G12D is sent as p.Gly12Asp)."
         },
         "query": {
           "$ref": "#/$defs/Reply_Text",
@@ -195,6 +357,109 @@
           "description": "Cellosaurus species: NCBI Taxonomy name or ID (for example Homo sapiens or 9606)."
         }
       },
+      "type": "object"
+    },
+    "Reply_CellLineVariation": {
+      "description": "One complete native variation row; descriptions do not become normalized alleles.",
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Complete native mutation description including all coordinate spellings."
+        },
+        "genes": {
+          "description": "Every native gene member, including both fusion members.",
+          "items": {
+            "$ref": "#/$defs/Reply_CellLineGene"
+          },
+          "type": "array"
+        },
+        "mutation_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native open mutation label."
+        },
+        "note": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Complete native variation note."
+        },
+        "provenance": {
+          "description": "Every native provenance row in source order; no PMID is required.",
+          "items": {
+            "$ref": "#/$defs/Reply_CellLineProvenance"
+          },
+          "type": "array"
+        },
+        "references": {
+          "description": "Every other variation cross-reference in native order.",
+          "items": {
+            "$ref": "#/$defs/Reply_CellLineXref"
+          },
+          "type": "array"
+        },
+        "variation_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native open variation label."
+        },
+        "zygosity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Native zygosity label; absence is not inferred."
+        }
+      },
+      "type": "object"
+    },
+    "Reply_CellLineVariationMatch": {
+      "description": "The source terms a variation filter sent, and what a match on them means.",
+      "properties": {
+        "note": {
+          "description": "How far a match on those terms can be trusted.",
+          "type": "string"
+        },
+        "terms": {
+          "description": "Terms sent to the source, in its spelling.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "terms",
+        "note"
+      ],
       "type": "object"
     },
     "Reply_CellLineXref": {
@@ -275,6 +540,11 @@
     "Reply_CellosaurusAccession": {
       "description": "A checked Cellosaurus accession; primary identity is verified by the adapter.",
       "pattern": "^CVCL_[A-Z0-9]{4}$",
+      "type": "string"
+    },
+    "Reply_HgncId": {
+      "description": "An HGNC identifier with canonical namespace and positive numeric value.",
+      "pattern": "^HGNC:(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})$",
       "type": "string"
     },
     "Reply_PageInfo": {
@@ -410,6 +680,11 @@
         "collection.incomplete",
         "identity.conflict"
       ]
+    },
+    "Reply_ProteinQuery": {
+      "description": "A validated canonical ProteinQuery string.",
+      "pattern": "^(p\\.)?(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter)(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter|=)$",
+      "type": "string"
     },
     "Reply_Reason": {
       "description": "Why a source could not supply data.",

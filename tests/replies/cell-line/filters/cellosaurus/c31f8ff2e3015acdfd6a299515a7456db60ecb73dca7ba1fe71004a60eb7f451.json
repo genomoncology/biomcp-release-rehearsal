@@ -1,0 +1,90 @@
+{
+  "method": "GET",
+  "source": "cellosaurus",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=idsy%3A%22AsPC-1%22%20AND%20NOT%20hi%3A%2A&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca&rows=5",
+  "exchanges": [
+    {
+      "fetched": 1794002652,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 5,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_0152"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C9120",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C9120",
+                    "label": "Pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C9120"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "AsPC-1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "AsPc-1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "Aspc-1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "ASPC-1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "As-PC1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "ASPC1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "AsPC1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "Aspc1"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "AsPc1"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

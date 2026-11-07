@@ -441,3 +441,6 @@ mod native;
 
 #[path = "bundle/rejections.rs"]
 mod rejections;
+
+#[path = "bundle/resume.rs"]
+mod resume;

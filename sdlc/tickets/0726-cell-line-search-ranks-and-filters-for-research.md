@@ -1,6 +1,7 @@
 # 0726 — Cell line search ranks and filters for research
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 371549be0f1bed93515d10a33c5806d69be0efdd
 
 Milestone: 5
 

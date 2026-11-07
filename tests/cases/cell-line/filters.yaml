@@ -1,8 +1,8 @@
 {
   "feature": "cell-line-identity",
   "live_check": "public",
-  "story": "Species and NCIt disease constraints are sent to Cellosaurus before its native window; human melanoma excludes mouse B16 and a specific disease name and ID identify the same source line.",
-  "verified": "Unchanged public Cellosaurus API reply bodies captured 2026-11-04, CC BY 4.0; cite Bairoch (2018). Native ox (NCBI Taxonomy) and din (NCIt-only disease) fields documented at https://api.cellosaurus.org/api-fields. Disease name/ID comparison uses the complete one-row Desmoplastic melanoma result; no inferred disease mapping or local result filtering.",
+  "story": "Species, NCIt disease, derived-line and sequence variation constraints are sent to Cellosaurus before its native window, so paging stays correct; human melanoma excludes mouse B16, a specific disease name and ID identify the same source line, excluding derived lines reaches the parent line in the first window, and variation replies show what matched and say the match is on source text.",
+  "verified": "Unchanged public Cellosaurus API reply bodies captured 2026-11-04, CC BY 4.0; cite Bairoch (2018). Native ox (NCBI Taxonomy) and din (NCIt-only disease) fields documented at https://api.cellosaurus.org/api-fields. Variation and derived-line replies captured 2026-11-06 from the same API; var and hi are native fields. Disease name/ID comparison uses the complete one-row Desmoplastic melanoma result; no inferred disease mapping or local result filtering.",
   "replay": "cell-line/filters",
   "steps": [
     {
@@ -99,6 +99,191 @@
           ]
         }
       },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "AsPC-1",
+        "--exclude-derived"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/accession": {
+          "equals": [
+            "CVCL_0152"
+          ]
+        },
+        "/query/exclude_derived": true
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "NB4",
+        "--exclude-derived",
+        "--limit",
+        "10"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/name": {
+          "includes_all_of": [
+            "NB4"
+          ],
+          "excludes": "NB4-LR1"
+        }
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--gene",
+        "KRAS",
+        "--protein",
+        "G12D",
+        "--species",
+        "9606",
+        "--exclude-derived"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/variations/items/*/description": {
+          "includes_all_of": [
+            "p.Gly12Asp (c.35G>A)"
+          ]
+        },
+        "/result/variation_match/terms": [
+          "KRAS",
+          "p.Gly12Asp"
+        ],
+        "/next/*/args/*": {
+          "includes_all_of": [
+            "--gene",
+            "KRAS",
+            "--protein",
+            "G12D",
+            "--species",
+            "9606",
+            "--exclude-derived",
+            "--offset"
+          ]
+        }
+      },
+      "max_bytes": 14000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--gene",
+        "KRAS",
+        "--protein",
+        "G12D",
+        "--species",
+        "9606",
+        "--exclude-derived",
+        "--offset",
+        "5"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/query/offset": 5,
+        "/result/items/*/variations/items/*/description": {
+          "includes_all_of": [
+            "p.Gly12Asp (c.35G>A)"
+          ]
+        }
+      },
+      "max_bytes": 14000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "SW979",
+        "--gene",
+        "KRAS"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/variations/items/*/mutation_type": {
+          "equals": [
+            "None_reported"
+          ]
+        }
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--gene",
+        "KRAS",
+        "--mutation",
+        "p.Gly12Asp"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/variations/total": {
+          "equals": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "max_bytes": 14000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--gene",
+        "KRAS",
+        "--mutation",
+        "None_reported"
+      ],
+      "expect": {
+        "/status": "complete",
+        "/result/items/*/variations/total": {
+          "includes_all_of": [
+            0
+          ]
+        },
+        "/result/items/2/variations/items/0/provenance/0/value": "Direct_author_submission"
+      },
+      "max_bytes": 14000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--mutation",
+        "G12D"
+      ],
+      "expect": {
+        "/result/variation_match/terms": [
+          "G12D"
+        ]
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "search",
+        "cell-line",
+        "--exclude-derived"
+      ],
+      "exit": 2,
       "max_bytes": 9000
     }
   ]

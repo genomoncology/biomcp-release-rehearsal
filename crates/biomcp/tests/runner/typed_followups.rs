@@ -247,5 +247,14 @@ pub(in crate::runner) fn data(value: &Value) -> Value {
             step_paths::remove(&mut value, &path);
         }
     }
+    // Removing every step leaves an empty list on one surface and no key on another.
+    if let Some(fields) = value.as_object_mut()
+        && fields
+            .get("next")
+            .and_then(Value::as_array)
+            .is_some_and(Vec::is_empty)
+    {
+        fields.remove("next");
+    }
     value
 }

@@ -1420,6 +1420,21 @@
           "required": [
             "disease"
           ]
+        },
+        {
+          "required": [
+            "gene"
+          ]
+        },
+        {
+          "required": [
+            "mutation"
+          ]
+        },
+        {
+          "required": [
+            "protein"
+          ]
         }
       ],
       "description": "Search cell lines by name or identifier.",
@@ -1432,6 +1447,14 @@
           "$ref": "#/$defs/Text",
           "description": "Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224)."
         },
+        "exclude_derived": {
+          "description": "Leave out lines derived from a parent line; needs another search term.",
+          "type": "boolean"
+        },
+        "gene": {
+          "$ref": "#/$defs/Text",
+          "description": "Cellosaurus variation gene, as the source writes it (for example KRAS)."
+        },
         "limit": {
           "default": 5,
           "description": "Native page size.",
@@ -1440,12 +1463,20 @@
           "minimum": 1,
           "type": "integer"
         },
+        "mutation": {
+          "$ref": "#/$defs/Text",
+          "description": "Cellosaurus variation text, as the source writes it (for example p.Gly12Asp)."
+        },
         "offset": {
           "default": 0,
           "description": "Native start offset.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
+        },
+        "protein": {
+          "$ref": "#/$defs/ProteinQuery",
+          "description": "Protein change, sent in the source's spelling (G12D is sent as p.Gly12Asp)."
         },
         "query": {
           "$ref": "#/$defs/Text",

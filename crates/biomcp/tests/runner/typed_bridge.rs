@@ -105,7 +105,10 @@ fn parity(env: &Environment, globals: &[String], call: Value, expected: &Value) 
     let (status, http) = server.request("POST", "/mcp", &frame.to_string())?;
     if super::typed_followups::data(&actual) != super::typed_followups::data(expected)
         || status != 200
-        || http.pointer("/result/structuredContent") != Some(&actual)
+        || http
+            .pointer("/result/structuredContent")
+            .map(super::typed_followups::data)
+            != Some(super::typed_followups::data(&actual))
     {
         return Err(format!(
             "typed bridge differs: CLI {expected}, stdio {actual}, HTTP {http}"

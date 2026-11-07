@@ -21,6 +21,9 @@ pub struct CellLineHeader {
     pub species: Capped<CellLineXref>,
     /// Up to three complete disease references and their independent total.
     pub diseases: Capped<CellLineXref>,
+    /// Up to three of this line's variations that show every filter term, and their total. Only variation-filtered searches carry it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub variations: Option<Capped<CellLineVariation>>,
 }
 /// Source-ordered cell line search headers; totals remain unknown.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -29,12 +32,37 @@ pub struct CellLinePage {
     /// Native result order, without reranking or selected identity.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub items: Box<[CellLineHeader]>,
+    /// What a variation filter matched; only variation-filtered searches carry it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub variation_match: Option<CellLineVariationMatch>,
     /// Independently fetched publisher release, never a result total.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub release: Option<CellLineRelease>,
     /// Original retrieval seconds; not a source release date.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fetched: Option<u64>,
+}
+/// The source terms a variation filter sent, and what a match on them means.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct CellLineVariationMatch {
+    /// Terms sent to the source, in its spelling.
+    pub terms: Box<[Text]>,
+    /// How far a match on those terms can be trusted.
+    pub note: Box<str>,
+}
+impl CellLineVariationMatch {
+    /// The one statement every variation-filtered reply carries.
+    pub(super) fn new(terms: Vec<Text>) -> Self {
+        Self {
+            terms: terms.into(),
+            note: "Matched on Cellosaurus variation text as the source writes it, so a short or empty \
+                result is not proof of absence. Terms are not tied to one variation: a line can \
+                match on separate variations, \
+                and a gene term also matches lines marked None_reported. Each row's variations lists \
+                only variations showing every term; a row with none matched across variations.".into(),
+        }
+    }
 }
 /// One requested cell identity with explicit ambiguity and requested section states.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

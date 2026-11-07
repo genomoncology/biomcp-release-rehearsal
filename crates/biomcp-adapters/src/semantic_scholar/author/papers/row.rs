@@ -243,6 +243,7 @@ impl Paper {
             .map(ToString::to_string)
             .unwrap_or_else(|| format!("https://www.semanticscholar.org/paper/{id}"));
         Some(biomcp_types::SourceNotice::RequestGuidance {
+            data_date: None,
             message: format!("Abstract withheld for paper {id}: its record license does not permit this use. Read it at {url}.").into(),
             retry_after_seconds: None,
         })

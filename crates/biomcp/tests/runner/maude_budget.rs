@@ -90,12 +90,12 @@ fn ceiling(value: &Value, schema: &str) -> Option<(usize, usize)> {
             crate::runner::output_limit("maude-envelope-1364").ok()?,
         )),
         "biomcp.adverse-event-devices/4" => Some((
-            crate::runner::output_limit("maude-envelope-1241").ok()?,
-            crate::runner::output_limit("maude-envelope-1109").ok()?,
+            crate::runner::output_limit("maude-envelope-1495").ok()?,
+            crate::runner::output_limit("maude-envelope-1355").ok()?,
         )),
         "biomcp.adverse-event-narrative/4" => Some((
-            crate::runner::output_limit("maude-envelope-912").ok()?,
-            crate::runner::output_limit("maude-envelope-780").ok()?,
+            crate::runner::output_limit("maude-envelope-1147").ok()?,
+            crate::runner::output_limit("maude-envelope-1007").ok()?,
         )),
         _ => None,
     }

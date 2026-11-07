@@ -133,7 +133,7 @@ fn article(source: &'static str) -> Result<(), String> {
 fn opentargets_reply(request: &str) -> Result<String, String> {
     if request.contains("drugsfda") {
         return Ok(
-            json!({"meta":{"results":{"skip":0,"limit":1,"total":0}},"results":[]}).to_string(),
+            json!({"meta":{"results":{"skip":0,"limit":10,"total":0}},"results":[]}).to_string(),
         );
     }
     if request.lines().next() != Some("POST /api/v4/graphql HTTP/1.1") {

@@ -1,5 +1,10 @@
 {
   "$defs": {
+    "ProteinQuery": {
+      "description": "A validated canonical ProteinQuery string.",
+      "pattern": "^(p\\.)?(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter)(?:4294967295|[1-9][0-9]{0,8}|[1-3][0-9]{9}|4[0-1][0-9]{8}|42[0-8][0-9]{7}|429[0-3][0-9]{6}|4294[0-8][0-9]{5}|42949[0-5][0-9]{4}|429496[0-6][0-9]{3}|4294967[0-1][0-9]{2}|42949672[0-8][0-9]{1}|429496729[0-4][0-9]{0})(A|Ala|R|Arg|N|Asn|D|Asp|C|Cys|E|Glu|Q|Gln|G|Gly|H|His|I|Ile|L|Leu|K|Lys|M|Met|F|Phe|P|Pro|S|Ser|T|Thr|W|Trp|Y|Tyr|V|Val|U|Sec|O|Pyl|\\*|Ter|=)$",
+      "type": "string"
+    },
     "Text": {
       "description": "Bounded nonempty text with surrounding Unicode whitespace removed.",
       "maxLength": 1048576,
@@ -26,13 +31,36 @@
       "required": [
         "disease"
       ]
+    },
+    {
+      "required": [
+        "gene"
+      ]
+    },
+    {
+      "required": [
+        "mutation"
+      ]
+    },
+    {
+      "required": [
+        "protein"
+      ]
     }
   ],
-  "description": "One native cell line search with optional text, species and NCIt disease filters.",
+  "description": "One native cell line search with optional text, species, disease, variation and derived-line filters.",
   "properties": {
     "disease": {
       "$ref": "#/$defs/Text",
       "description": "Cellosaurus disease: NCIt name or ID (for example Melanoma or C3224)."
+    },
+    "exclude_derived": {
+      "description": "Leave out lines derived from a parent line; needs another search term.",
+      "type": "boolean"
+    },
+    "gene": {
+      "$ref": "#/$defs/Text",
+      "description": "Cellosaurus variation gene, as the source writes it (for example KRAS)."
     },
     "limit": {
       "default": 5,
@@ -42,12 +70,20 @@
       "minimum": 1,
       "type": "integer"
     },
+    "mutation": {
+      "$ref": "#/$defs/Text",
+      "description": "Cellosaurus variation text, as the source writes it (for example p.Gly12Asp)."
+    },
     "offset": {
       "default": 0,
       "description": "Native start offset.",
       "format": "uint32",
       "minimum": 0,
       "type": "integer"
+    },
+    "protein": {
+      "$ref": "#/$defs/ProteinQuery",
+      "description": "Protein change, sent in the source's spelling (G12D is sent as p.Gly12Asp)."
     },
     "query": {
       "$ref": "#/$defs/Text",

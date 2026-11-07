@@ -11,7 +11,7 @@ pub(super) fn transport_next(
     http: bool,
 ) -> io::Result<()> {
     if http && !cx.globals.hosted {
-        next(out.value_mut()?, cx);
+        next(out.value_mut()?, cx, false);
     }
     Ok(())
 }
@@ -27,7 +27,7 @@ pub(super) fn project(
     let value = out.value_mut()?;
     help(value, cx)?;
     recovery(value, cx)?;
-    next(value, cx);
+    next(value, cx, true);
     let required = match crate::grammar::parse(cx.root, args)
         .ok()
         .and_then(|parsed| parsed.action)
@@ -224,11 +224,14 @@ fn recovery(value: &mut Value, cx: Context<'_>) -> io::Result<()> {
     Ok(())
 }
 
-fn next(value: &mut Value, cx: Context<'_>) {
+fn next(value: &mut Value, cx: Context<'_>, drop_empty: bool) {
     // Envelope recovery commands are Steps; source-body continuations are queries.
     if let Some(steps) = value.get_mut("next").and_then(Value::as_array_mut) {
+        let offered = !steps.is_empty();
         steps.retain_mut(|step| next_step(step, cx));
-        if steps.is_empty()
+        // Ordinary HTTP leaves an already-empty list as stdio shows it; only a list this filter emptied goes.
+        if (drop_empty || offered)
+            && steps.is_empty()
             && let Some(fields) = value.as_object_mut()
         {
             fields.remove("next");

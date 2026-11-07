@@ -23,6 +23,7 @@ pub(super) fn header(row: raw::Record) -> Result<CellLineHeader, RequestError> {
         category: row.category,
         species: capped(row.species_list.unwrap_or_default().0.into_vec(), 3),
         diseases: capped(row.disease_list.unwrap_or_default().0.into_vec(), 3),
+        variations: None,
     })
 }
 pub(super) fn card(row: raw::Record) -> Result<CellLineCard, RequestError> {
@@ -46,6 +47,7 @@ pub(super) fn card(row: raw::Record) -> Result<CellLineCard, RequestError> {
             category: row.category,
             species: capped(row.species_list.unwrap_or_default().0.into_vec(), 3),
             diseases: capped(row.disease_list.unwrap_or_default().0.into_vec(), 3),
+            variations: None,
         }),
         candidates: Box::default(),
         dates: Some(CellLineEntryDates {

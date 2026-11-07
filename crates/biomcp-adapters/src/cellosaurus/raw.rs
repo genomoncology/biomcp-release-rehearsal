@@ -57,7 +57,27 @@ pub(super) struct Variation {
     pub variation_note: Option<crate::raw::Field<NativeText>>,
     pub zygosity_type: Option<crate::raw::Field<Text>>,
     pub xref_list: Option<crate::raw::Field<Vec<crate::raw::Field<Xref>>>>,
-    pub source_list: Option<crate::raw::Field<Vec<crate::raw::Field<Provenance>>>>,
+    pub source_list: Option<crate::raw::Field<Vec<crate::raw::Field<VariationSource>>>>,
+}
+// A source row is a record, or a bare name such as "Direct_author_submission".
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub(super) enum VariationSource {
+    Named(NativeText),
+    Record(Box<Provenance>),
+}
+impl From<VariationSource> for Provenance {
+    fn from(row: VariationSource) -> Self {
+        match row {
+            VariationSource::Named(value) => Self {
+                reference: None,
+                institution: None,
+                value: Some(crate::raw::Field::Value(value)),
+                xref: None,
+            },
+            VariationSource::Record(row) => *row,
+        }
+    }
 }
 #[derive(Debug, Deserialize)]
 pub(super) struct Provenance {

@@ -1,0 +1,328 @@
+{
+  "method": "GET",
+  "source": "cellosaurus",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=var%3A%22KRAS%22%20AND%20var%3A%22p.Gly12Asp%22&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca%2Cvar&rows=5",
+  "exchanges": [
+    {
+      "fetched": 1794002657,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 5,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_S971"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C133090",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C133090",
+                    "label": "Hamster pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C133090"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "H2T"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=7809022"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "A0A1U7QTX5",
+                        "category": "Sequence databases",
+                        "database": "UniProtKB",
+                        "iri": "http://purl.uniprot.org/uniprot/A0A1U7QTX5",
+                        "label": "Kras",
+                        "url": "https://www.uniprot.org/uniprotkb/A0A1U7QTX5/entry"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "10036",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_10036",
+                    "label": "Mesocricetus auratus (Golden hamster)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=10036&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_T059"
+                  }
+                ],
+                "category": "Transformed cell line",
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "KL5B"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=10069471"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "A0A1U7QTX5",
+                        "category": "Sequence databases",
+                        "database": "UniProtKB",
+                        "iri": "http://purl.uniprot.org/uniprot/A0A1U7QTX5",
+                        "label": "Kras",
+                        "url": "https://www.uniprot.org/uniprotkb/A0A1U7QTX5/entry"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "10036",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_10036",
+                    "label": "Mesocricetus auratus (Golden hamster)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=10036&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_L900"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C133090",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C133090",
+                    "label": "Hamster pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C133090"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "PC-1 [Hamster]"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "PC1"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=2173932"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "A0A1U7QTX5",
+                        "category": "Sequence databases",
+                        "database": "UniProtKB",
+                        "iri": "http://purl.uniprot.org/uniprot/A0A1U7QTX5",
+                        "label": "Kras",
+                        "url": "https://www.uniprot.org/uniprotkb/A0A1U7QTX5/entry"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "10036",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_10036",
+                    "label": "Mesocricetus auratus (Golden hamster)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=10036&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_L901"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C133090",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C133090",
+                    "label": "Hamster pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C133090"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "PC-1.0"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "PC-1-0"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "PC1.0"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=2173932"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "A0A1U7QTX5",
+                        "category": "Sequence databases",
+                        "database": "UniProtKB",
+                        "iri": "http://purl.uniprot.org/uniprot/A0A1U7QTX5",
+                        "label": "Kras",
+                        "url": "https://www.uniprot.org/uniprotkb/A0A1U7QTX5/entry"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "10036",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_10036",
+                    "label": "Mesocricetus auratus (Golden hamster)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=10036&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_5U62"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C64112",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C64112",
+                    "label": "Carcinoma of the rat lung",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C64112"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "RLCNR"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "Rat Lung Cancer in NaRa"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=15596300"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "2981",
+                        "category": "Organism-specific databases",
+                        "database": "RGD",
+                        "label": "Kras",
+                        "url": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=2981"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "10116",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_10116",
+                    "label": "Rattus norvegicus (Rat)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=10116&lvl=3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

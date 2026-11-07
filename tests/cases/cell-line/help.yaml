@@ -10,7 +10,11 @@
             "--limit",
             "--offset",
             "--species",
-            "--disease"
+            "--disease",
+            "--gene",
+            "--mutation",
+            "--protein",
+            "--exclude-derived"
           ]
         },
         "/result/commands/0/description": "Search cell lines by name or identifier. Sources: cellosaurus.",
@@ -20,7 +24,7 @@
         "/status": "complete"
       },
       "full_output_bytes": true,
-      "max_bytes": 1739,
+      "max_bytes": 2654,
       "run": [
         "help",
         "search",

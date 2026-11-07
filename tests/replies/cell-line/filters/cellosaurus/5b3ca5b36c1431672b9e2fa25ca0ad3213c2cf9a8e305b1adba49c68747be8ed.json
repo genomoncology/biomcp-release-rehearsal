@@ -1,0 +1,379 @@
+{
+  "method": "GET",
+  "source": "cellosaurus",
+  "url": "https://api.cellosaurus.org/search/cell-line?q=ox%3A%229606%22%20AND%20var%3A%22KRAS%22%20AND%20var%3A%22p.Gly12Asp%22%20AND%20NOT%20hi%3A%2A&format=json&fields=ac%2Cid%2Csy%2Cox%2Cdi%2Cca%2Cvar&rows=5&start=5",
+  "exchanges": [
+    {
+      "fetched": 1794002655,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 5,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "Cellosaurus": {
+            "cell-line-list": [
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_4573"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C4349",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C4349",
+                    "label": "Colon adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C4349"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "COLO 94H"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "COLO-94H"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "Colo-94H"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "COLO94H"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "xref": {
+                          "accession": "300161",
+                          "category": "Cell line collections (Providers)",
+                          "database": "CLS",
+                          "url": "https://www.cytion.com/300161"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:6407",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "KRAS",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:6407"
+                      },
+                      {
+                        "accession": "VCV000012582",
+                        "category": "Polymorphism and mutation databases",
+                        "database": "ClinVar",
+                        "url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/VCV000012582"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_8131"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C4044",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C4044",
+                    "label": "Laryngeal squamous cell carcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C4044"
+                  },
+                  {
+                    "accession": "Orphanet_494550",
+                    "category": "Medical resources",
+                    "database": "ORDO",
+                    "iri": "http://www.orpha.net/ORDO/Orphanet_494550",
+                    "label": "Squamous cell carcinoma of the larynx",
+                    "url": "https://www.ebi.ac.uk/ols4/ontologies/ordo/classes/http%253A%252F%252Fwww.orpha.net%252FORDO%252FOrphanet_494550"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "HN-8"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "HN8"
+                  },
+                  {
+                    "type": "synonym",
+                    "value": "LICR-LON-HN8"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=2183872"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:6407",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "KRAS",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:6407"
+                      },
+                      {
+                        "accession": "VCV000012582",
+                        "category": "Polymorphism and mutation databases",
+                        "database": "ClinVar",
+                        "url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/VCV000012582"
+                      }
+                    ],
+                    "zygosity-type": "Unspecified"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_A068"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C9120",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C9120",
+                    "label": "Pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C9120"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "HPC-Y23"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=7961102"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:6407",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "KRAS",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:6407"
+                      },
+                      {
+                        "accession": "VCV000012582",
+                        "category": "Polymorphism and mutation databases",
+                        "database": "ClinVar",
+                        "url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/VCV000012582"
+                      }
+                    ],
+                    "zygosity-type": "Heterozygous"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_6917"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C9120",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C9120",
+                    "label": "Pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C9120"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "HPC-Y25"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=7961102"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:6407",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "KRAS",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:6407"
+                      },
+                      {
+                        "accession": "VCV000012582",
+                        "category": "Polymorphism and mutation databases",
+                        "database": "ClinVar",
+                        "url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/VCV000012582"
+                      }
+                    ],
+                    "zygosity-type": "Heterozygous"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              },
+              {
+                "accession-list": [
+                  {
+                    "type": "primary",
+                    "value": "CVCL_A066"
+                  }
+                ],
+                "category": "Cancer cell line",
+                "disease-list": [
+                  {
+                    "accession": "C9120",
+                    "category": "Medical resources",
+                    "database": "NCIt",
+                    "iri": "http://purl.obolibrary.org/obo/NCIT_C9120",
+                    "label": "Pancreatic ductal adenocarcinoma",
+                    "url": "https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncit/C9120"
+                  }
+                ],
+                "name-list": [
+                  {
+                    "type": "identifier",
+                    "value": "HPC-Y3"
+                  }
+                ],
+                "sequence-variation-list": [
+                  {
+                    "mutation-description": "p.Gly12Asp (c.35G>A)",
+                    "mutation-type": "Simple",
+                    "source-list": [
+                      {
+                        "reference": {
+                          "resource-internal-ref": "PubMed=7961102"
+                        }
+                      }
+                    ],
+                    "variation-type": "Mutation",
+                    "xref-list": [
+                      {
+                        "accession": "HGNC:6407",
+                        "category": "Organism-specific databases",
+                        "database": "HGNC",
+                        "label": "KRAS",
+                        "url": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:6407"
+                      },
+                      {
+                        "accession": "VCV000012582",
+                        "category": "Polymorphism and mutation databases",
+                        "database": "ClinVar",
+                        "url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/VCV000012582"
+                      }
+                    ],
+                    "zygosity-type": "Heterozygous"
+                  }
+                ],
+                "species-list": [
+                  {
+                    "accession": "9606",
+                    "category": "Taxonomy",
+                    "database": "NCBI_TaxID",
+                    "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                    "label": "Homo sapiens (Human)",
+                    "url": "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=9606&lvl=3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

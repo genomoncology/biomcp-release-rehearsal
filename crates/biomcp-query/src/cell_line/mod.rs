@@ -23,6 +23,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &CellLineSearchCommand) -> Outcome {
     let mut out = empty(search_body(
         CellLinePage {
             items: Box::default(),
+            variation_match: None,
             release: None,
             fetched: None,
         },
@@ -55,6 +56,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &CellLineSearchCommand) -> Outcome {
         out.body = search_body(
             CellLinePage {
                 items: page.items.into(),
+                variation_match: query.variation_match(),
                 release: None,
                 fetched: page
                     .metadata

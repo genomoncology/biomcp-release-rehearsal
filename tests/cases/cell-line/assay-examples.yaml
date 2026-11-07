@@ -17,7 +17,7 @@
         "/result/assay_count": 1408
       },
       "full_output_bytes": true,
-      "max_bytes": 433
+      "max_bytes": 602
     },
     {
       "run": [
@@ -32,7 +32,7 @@
         "/result/assay_count": 1408
       },
       "full_output_bytes": true,
-      "max_bytes": 433
+      "max_bytes": 602
     }
   ]
 }
