@@ -32,6 +32,15 @@ pub(super) fn info() -> Value {
 pub(super) fn error(id: Value, code: i32, message: &str) -> Value {
     json!({"jsonrpc":"2.0", "id":id, "error":{"code":code,"message":message}})
 }
+/// Keeps the code and leading text hosting relies on, then says what to do.
+pub(super) fn capacity(id: Value, limit: usize) -> Value {
+    let message = format!(
+        "Tool capacity exceeded: this server runs at most {limit} tool calls at once. \
+         Retry this call after one of your running calls returns, \
+         or after a few seconds if none are running."
+    );
+    error(id, -31000, &message)
+}
 pub(super) fn timeout(id: Value) -> Value {
     json!({"jsonrpc":"2.0", "id":id, "error":{"code":-32000,"message":"Tool deadline exceeded",
         "data":{"reason":biomcp_types::Reason::DeadlineExceeded}}})

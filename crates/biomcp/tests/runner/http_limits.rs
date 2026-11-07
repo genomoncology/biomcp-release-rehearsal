@@ -461,7 +461,10 @@ fn refuse_over_capacity(server: &Server, probe: &str, held: &mut Vec<TcpStream>)
     )
     .to_string();
     let (status, body) = server.request("POST", "/mcp", &call)?;
-    if status != 200 || body.pointer("/error/code") != Some(&serde_json::json!(-31000)) {
+    if status != 200
+        || body.pointer("/error/code") != Some(&serde_json::json!(-31000))
+        || !super::capacity_refusal(&body, 2)
+    {
         return Err(format!("third tool escaped call cap: {status} {body}"));
     }
     // Two tool connections plus two unfinished headers fill the normal budget.

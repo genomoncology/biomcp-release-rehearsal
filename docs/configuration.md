@@ -39,6 +39,10 @@ Set `"mcp_typed_output_schema": true` to include reply envelope schemas on the d
 
 Use the same names as flags on `serve --http`: `--http_max_calls` and `--http_max_connections`. The defaults live in [`DEFAULT_HTTP_CAPACITY`](../crates/biomcp/src/config.rs). Raise connections above calls to let discovery requests answer while tool calls occupy their slots.
 
+`mcp_max_calls` limits tool calls in flight on a stdio `serve`, which serves one agent. It accepts a positive integer, and the default lives in [`DEFAULT_MCP_CAPACITY`](../crates/biomcp/src/config.rs): agents send many calls at once, and source pacing already bounds upstream load, so this ceiling only bounds local worker threads.
+
+A call over either limit gets JSON-RPC error `-31000`. Its message starts with `Tool capacity exceeded`, names the limit, and says to retry after a running call returns, or after a few seconds if the client has none running.
+
 For example, this configuration gives discovery requests room alongside tool calls:
 
 ```json

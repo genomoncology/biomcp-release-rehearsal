@@ -20,7 +20,6 @@ use std::{
     thread,
 };
 
-const MAX_ACTIVE_CALLS: usize = 8;
 const MAX_RETAINED_EVENTS: usize = 32;
 
 enum Event {
@@ -39,6 +38,7 @@ struct Call {
 struct Server {
     sender: mpsc::SyncSender<Event>,
     active: BTreeMap<String, Call>,
+    max_calls: usize,
     legacy: bool,
     globals: crate::grammar::Globals,
     root: std::sync::Arc<crate::grammar::Root>,
@@ -59,6 +59,7 @@ pub(crate) fn serve(
     let mut server = Server {
         sender,
         active: BTreeMap::new(),
+        max_calls: crate::config::mcp_capacity(&settings),
         legacy: false,
         globals,
         root,
@@ -177,8 +178,8 @@ impl Server {
         if self.active.contains_key(&key) {
             return Ok(Some(protocol::error(id, -32600, "Request already active")));
         }
-        if self.active.len() >= MAX_ACTIVE_CALLS {
-            return Ok(Some(protocol::error(id, -31000, "Tool capacity exceeded")));
+        if self.active.len() >= self.max_calls {
+            return Ok(Some(protocol::capacity(id, self.max_calls)));
         }
         let globals = self.globals.clone();
         let root = self.root.clone();

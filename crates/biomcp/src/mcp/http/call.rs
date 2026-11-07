@@ -60,7 +60,7 @@ impl Calls {
             }
         }
         if active.len() >= service.max_calls {
-            return protocol::error(id, -31000, "Tool capacity exceeded");
+            return protocol::capacity(id, service.max_calls);
         }
         if scope.remaining().is_zero() {
             return protocol::timeout(id);

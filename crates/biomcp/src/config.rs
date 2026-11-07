@@ -16,6 +16,20 @@ pub(crate) use file::{ConfigError, ReplyForm, ToolMode};
 
 pub(crate) const DEFAULT_HTTP_CAPACITY: usize = 8;
 
+/// A stdio server serves one agent, and agents fan out: the 2026-11-07 bench
+/// agent sent at least 24 calls at once. Source pacing already bounds upstream
+/// load, so this ceiling bounds only local worker threads.
+pub(crate) const DEFAULT_MCP_CAPACITY: usize = 32;
+
+pub(crate) fn mcp_capacity(settings: &Settings) -> usize {
+    settings
+        .as_ref()
+        .ok()
+        .and_then(Option::as_ref)
+        .and_then(|file| file.mcp_max_calls)
+        .map_or(DEFAULT_MCP_CAPACITY, std::num::NonZeroUsize::get)
+}
+
 pub(crate) fn http_capacity(
     globals: &Globals,
     settings: &Settings,

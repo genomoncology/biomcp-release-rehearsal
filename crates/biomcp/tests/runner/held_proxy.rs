@@ -125,7 +125,7 @@ fn configure(
     let path = environment.root().join("source.pem");
     fs::write(&path, certificate).map_err(|e| e.to_string())?;
     environment
-        .config(&json!({"proxy":format!("http://{address}"), "ca_bundle":path}))
+        .config(&json!({"proxy":format!("http://{address}"), "ca_bundle":path, "mcp_max_calls":8}))
         .map_err(|e| e.to_string())
 }
 fn mode_input(
@@ -403,6 +403,7 @@ fn cancel_capacity(
         .map_err(|_| "capacity probe watchdog")??;
     if ninth.get("id") != Some(&json!("ninth"))
         || ninth.pointer("/error/code") != Some(&json!(-31000))
+        || !super::capacity_refusal(&ninth, 8)
     {
         return Err(format!("eight workers were not occupied: {ninth}"));
     }

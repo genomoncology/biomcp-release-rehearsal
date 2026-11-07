@@ -7,6 +7,7 @@ fn panicking_worker_completes_with_internal_error() {
     let mut server = Server {
         sender,
         active: std::collections::BTreeMap::new(),
+        max_calls: crate::config::DEFAULT_MCP_CAPACITY,
         legacy: false,
         globals: crate::grammar::Globals::default(),
         root: std::sync::Arc::new(crate::grammar::Root::new(clap::Command::new(

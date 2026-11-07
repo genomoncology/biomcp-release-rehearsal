@@ -535,3 +535,15 @@ use biomcp_test_support::fixtures as fixture_paths;
 use biomcp_test_support::hash as stable_hash;
 
 use biomcp_test_support::recordings as recording_support;
+
+/// A full server keeps the hosted code and leading text, then names its limit.
+fn capacity_refusal(reply: &serde_json::Value, limit: usize) -> bool {
+    reply
+        .pointer("/error/message")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|message| {
+            message.starts_with("Tool capacity exceeded")
+                && message.contains(&format!("at most {limit} tool calls at once"))
+                && message.contains("Retry this call after")
+        })
+}
