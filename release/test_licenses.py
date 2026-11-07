@@ -12,7 +12,8 @@ import unittest
 import zipfile
 
 LICENSE = Path('LICENSE').read_bytes()
-NOTICES = b'Generated third-party notices\nSynthetic fixture dependency\nPermission notice\n'
+NOTICES = (b'Generated third-party notices\nSynthetic fixture dependency\nPermission notice\n'
+           b'AlphaGenome protocol messages, Copyright 2024 Google LLC (Apache-2.0)\n')
 
 
 def payloads():
@@ -94,13 +95,16 @@ class Licensing(unittest.TestCase):
             self.assertEqual((root / 'LICENSE').read_bytes(), LICENSE)
 
     def test_inspection_requires_license_notices_and_registry_metadata(self):
-        for defect in ('LICENSE', 'THIRD-PARTY-NOTICES.txt', 'marker', 'License', 'Project-URL', None):
+        for defect in ('LICENSE', 'THIRD-PARTY-NOTICES.txt', 'protos', 'marker', 'License', 'Project-URL', None):
             with self.subTest(defect=defect), tempfile.TemporaryDirectory() as temp:
                 path, _ = wheel_fixture(Path(temp), 'linux_x86_64')
                 with zipfile.ZipFile(path) as source:
                     files = {name: source.read(name) for name in source.namelist()}
                 if defect in payloads():
                     del files['biomcp_cli-1.0.0.dist-info/' + defect]
+                elif defect == 'protos':
+                    name = 'biomcp_cli-1.0.0.dist-info/THIRD-PARTY-NOTICES.txt'
+                    files[name] = files[name].replace(b'AlphaGenome protocol messages', b'Other messages')
                 elif defect:
                     name = 'biomcp_cli-1.0.0.dist-info/METADATA'
                     token = {'marker': b'mcp-name: io.github.genomoncology/biomcp', 'License': b'License: MIT',

@@ -43,6 +43,24 @@ class HostedWorkflow(unittest.TestCase):
                         workflow.index('python release/gate.py --artifacts'))
         self.assertNotIn('original_run', Path('release/section.py').read_text())
 
+    def test_native_sections_keep_room_above_the_slowest_platform(self):
+        # Intel Mac qualified at 119m44s, and all five platforms share these jobs.
+        qualify = Path('.github/workflows/release.yml').read_text().split('\n  qualify:\n')[1].split('\n  stage:\n')[0]
+        recover = Path('.github/workflows/recover-section.yml').read_text()
+        self.assertEqual(re.findall(r'timeout-minutes: (\d+)', qualify), ['180'])
+        self.assertEqual(re.findall(r'^    timeout-minutes: (\d+)', recover, re.M), ['180'])
+
+    def test_staged_wheels_and_installer_are_checked_before_any_channel(self):
+        workflow = Path('.github/workflows/release.yml').read_text()
+        job = workflow.split('\n  staged-payload:\n')[1].split('\n  publish-github:\n')[0]
+        self.assertIn('python -m twine check --strict staged/*.whl', job)
+        self.assertIn('published.py installer-bytes', job)
+        # Third-party install steps stay out of the job that can sign.
+        self.assertNotIn('id-token', job)
+        for name in ['github', 'ghcr', 'pypi', 'homebrew', 'installer', 'registry']:
+            job = workflow.split('\n  publish-' + name + ':\n', 1)[1]
+            self.assertIn('staged-payload', re.search(r'^    needs: (.*)$', job, re.M)[1])
+
     def test_security_checks_install_pinned_cargo_deny_first(self):
         workflow = Path('.github/workflows/release.yml').read_text()
         install = 'cargo install cargo-deny --version "${{ steps.tools.outputs.cargo_deny }}" --locked'
@@ -89,7 +107,7 @@ class HostedWorkflow(unittest.TestCase):
         self.assertLess(checks.index('cargo clean --profile dev'), checks.index('run: make release-linux'))
         self.assertIn("matrix.platform == 'manylinux_2_28_x86_64'", qualify)
         self.assertIn('--staged-formula staged/biomcp.rb', workflow)
-        self.assertIn('needs: [candidate, stage, staged-homebrew]', workflow)
+        self.assertIn('needs: [candidate, stage, staged-homebrew, staged-payload]', workflow)
         self.assertNotIn('Ian approved BioMCP', workflow)
         self.assertIn('Rehearsal reached; no channel authentication or publication attempted.', workflow)
 

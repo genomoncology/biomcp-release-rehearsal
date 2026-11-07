@@ -1,6 +1,7 @@
 # 0697 — Public release text and limits
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b62753b8d17b3b92161f2294f05317718fc25592
 
 Milestone: 5
 

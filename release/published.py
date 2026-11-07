@@ -74,9 +74,21 @@ def registry(root, version):
     return pypi(root, package['version'], package['identifier'])
 
 
-def installer(root, version):
+def installer_bytes(url, staged, attempts=1):
+    expected = (staged / 'install.sh').read_bytes()
+    for attempt in range(attempts):
+        data = fetch(url)
+        if data == expected:
+            return data
+        if attempt + 1 < attempts:
+            time.sleep(10)
+    raise ValueError('fetched installer differs from the staged install.sh')
+
+
+def installer(root, version, staged):
     script = root / 'install.sh'
-    script.write_bytes(fetch('https://biomcp.org/install.sh'))
+    # Pages can keep serving the previous file for a short time after publication.
+    script.write_bytes(installer_bytes('https://biomcp.org/install.sh', staged, attempts=12))
     script.chmod(0o700)
     env = {**environment(root), 'PATH': os.defpath, 'BIOMCP_INSTALL_DIR': str(root / 'bin')}
     subprocess.run(['bash', str(script), '--version', version], cwd=root, env=env, check=True)
@@ -193,7 +205,7 @@ def ghcr(root, version):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('channel', choices=['pypi', 'ghcr', 'homebrew', 'installer', 'registry', 'legacy-installer', 'plugin'])
+    parser.add_argument('channel', choices=['pypi', 'ghcr', 'homebrew', 'installer', 'installer-bytes', 'registry', 'legacy-installer', 'plugin'])
     parser.add_argument('--version', required=True)
     parser.add_argument('--artifacts', type=Path)
     parser.add_argument('--revision', help='Full artifact source commit, independent of this runner')
@@ -201,9 +213,19 @@ def main():
     parser.add_argument('--plugin-source', type=Path)
     parser.add_argument('--binary', type=Path)
     parser.add_argument('--claude', default='claude')
+    parser.add_argument('--served', type=Path, help='Folder served locally as the installer site, before the tag')
     args = parser.parse_args()
     if not re.fullmatch(r'\d+\.\d+\.\d+', args.version):
         raise ValueError('expected a stable release version')
+    if args.channel in ('installer', 'installer-bytes') and not args.artifacts:
+        parser.error(args.channel + ' requires --artifacts with the staged install.sh')
+    if args.channel == 'installer-bytes':
+        if not args.served:
+            parser.error('installer-bytes requires --served')
+        with server(args.served) as base:
+            installer_bytes(base + '/install.sh', args.artifacts)
+        print('installer-bytes: served installer matches the staged install.sh')
+        return
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         if args.channel == 'plugin':
@@ -218,6 +240,8 @@ def main():
             if not args.artifacts or not args.revision or not re.fullmatch('[0-9a-f]{40}', args.revision):
                 parser.error('legacy-installer requires --artifacts and full --revision')
             command = legacy_installer(root, args.version, args.artifacts.resolve(), args.revision, args.installer_script)
+        elif args.channel == 'installer':
+            command = installer(root, args.version, args.artifacts)
         else:
             command = globals()[args.channel](root, args.version)
         check_version(run(command + ['version'], cwd=root, env={**environment(root), 'PATH': os.defpath}), args.version)

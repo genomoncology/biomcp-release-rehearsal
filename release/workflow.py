@@ -34,6 +34,11 @@ PLATFORMS = [
 ]
 
 
+def macos_floor():
+    floor, = {".".join(row["platform"].split("_")[1:3]) for row in PLATFORMS if row["platform"].startswith("macosx_")}
+    return floor
+
+
 def identity(args):
     metadata = json.loads(subprocess.check_output(["cargo", "metadata", "--locked", "--no-deps", "--format-version", "1"], text=True))
     version = next(package["version"] for package in metadata["packages"] if package["name"] == "biomcp")
@@ -138,18 +143,16 @@ def plugin(source, output, version, native_output):
 
 def release_notes(output, version, revision):
     (output / "RELEASE-NOTES.md").write_text(
-        (Path(__file__).with_name("notes.md").read_text() + f"\n\nCandidate source commit: `{revision}`.\n\n"
-         + schema_changes() + "\n\n")
+        (Path(__file__).with_name("notes.md").read_text()
+         + f"\n\n## Platform support\n\nmacOS downloads require macOS {macos_floor()} or later.\n\n"
+         + f"Source commit: `{revision}`.\n\n" + schema_changes() + "\n\n")
         + "Before installation, verify each downloaded release artifact with a current GitHub CLI:\n\n"
         "```sh\ngh attestation verify ARTIFACT --repo genomoncology/biomcp "
         "--signer-workflow genomoncology/biomcp/.github/workflows/release.yml "
         f"--source-ref refs/tags/v{version} --source-digest {revision}\n```\n\n"
         "Replace ARTIFACT with the downloaded file. Compare the source commit above with the release's "
-        "tag before accepting it. Private no-op rehearsals are unsigned and cannot pass attestation verification. "
-        "Their retained release-subject-checksums artifact and candidate.json source commit identify the outputs, "
-        "but do not provide signed provenance. For a signed public rehearsal, use the repository that ran the workflow for both "
-        "repository arguments and replace --source-ref with the actual rehearsal ref. The source commit must match that run. Verification fails if the file, "
-        "signer workflow or source commit differs. Stop if verification fails.\n\n"
+        "tag before accepting it. Verification fails if the file, signer workflow or source commit differs. "
+        "Stop if verification fails.\n\n"
         "The installer also checks the archive's SHA-256 checksum. Attestations identify the workflow "
         "and source that produced the bytes; they do not establish that the software is defect-free.\n"
     )
@@ -196,7 +199,7 @@ def stage(args):
     plugin(args.plugin, args.output, args.version, first)
     zip_payload(args.output / "biomcp-plugin.zip")
     index = {"version": args.version, "revision": args.revision,
-             "image": "ghcr.io/genomoncology/biomcp", "publication": "requires Ian's approval before pushing the release tag"}
+             "image": "ghcr.io/genomoncology/biomcp", "macos_floor": macos_floor()}
     (args.output / "candidate.json").write_text(json.dumps(index, indent=2) + "\n")
     release_notes(args.output, args.version, args.revision)
     print(json.dumps(index))

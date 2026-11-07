@@ -113,7 +113,11 @@ class Staging(unittest.TestCase):
             notes = (staged / "RELEASE-NOTES.md").read_text()
             self.assertIn("gh attestation verify", notes)
             self.assertIn("--source-ref refs/tags/v1.0.0", notes)
-            self.assertIn("replace --source-ref with the actual rehearsal ref", notes)
+            self.assertIn("macOS 11.0 or later", notes)
+            candidate = (staged / "candidate.json").read_text()
+            self.assertEqual(json.loads(candidate)["macos_floor"], "11.0")
+            for text in (notes, candidate):
+                self.assertIsNone(re.search(r"\bIan\b|rehears|no-op|\bprivate\b|\bcandidate\b", text, re.I))
             self.assertIn("--repo genomoncology/biomcp", notes)
             self.assertIn("a" * 40, notes)
             checksums = root / "subjects.sha256"

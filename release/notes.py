@@ -18,6 +18,5 @@ def schema_changes():
                 new = json.loads(path.read_text())['$id']
                 if old != new:
                     rows.append(f'| `{old}` | `{new}` |')
-    return ('## Changed schema identities\n\nCompared with the preserved pre-release migration schemas. '
-            'These are the schemas in this candidate; they do not describe a final release until the candidate ships.\n\n'
-            '| Baseline | Candidate |\n| --- | --- |\n' + '\n'.join(sorted(rows)))
+    return ('## Changed schema identities\n\nCompared with the preserved pre-release migration schemas.\n\n'
+            '| Earlier | This release |\n| --- | --- |\n' + '\n'.join(sorted(rows)))

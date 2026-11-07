@@ -50,6 +50,34 @@ class Publication(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn('publication identity', result.stderr)
 
+    def test_installer_bytes_compare_a_served_file_with_the_staged_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'site').mkdir()
+            (root / 'staged').mkdir()
+            (root / 'staged/install.sh').write_bytes(b'#!/bin/sh\necho staged\n')
+            command = [sys.executable, 'release/published.py', 'installer-bytes', '--version', '1.0.0',
+                       '--served', str(root / 'site'), '--artifacts', str(root / 'staged')]
+            (root / 'site/install.sh').write_bytes(b'#!/bin/sh\necho staged\n')
+            result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            (root / 'site/install.sh').write_bytes(b'#!/bin/sh\necho changed\n')
+            result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('differs from the staged install.sh', result.stderr)
+
+    def test_public_installer_stops_before_running_different_bytes(self):
+        from release.published import installer
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'install.sh').write_bytes(b'#!/bin/sh\necho staged\n')
+            with patch('release.published.fetch', return_value=b'#!/bin/sh\necho changed\n') as fetched, \
+                    patch('release.published.time.sleep'), patch('release.published.subprocess.run') as ran:
+                with self.assertRaisesRegex(ValueError, 'differs from the staged'):
+                    installer(root / 'run', '1.0.0', root)
+            self.assertEqual(fetched.call_count, 12)
+            ran.assert_not_called()
+
     def test_publisher_install_verifies_checksum_and_signature_before_writing_executable(self):
         from release.toolchain import install_mcp_publisher
         archive = io.BytesIO()

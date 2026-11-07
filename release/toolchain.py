@@ -148,7 +148,7 @@ def main():
     elif args.command == 'image':
         print(pins['images'][args.key])
     elif args.command == 'outputs':
-        for key in ('rust', 'rustup', 'python', 'cargo-deny', 'cosign'):
+        for key in ('rust', 'rustup', 'python', 'cargo-deny', 'cosign', 'twine'):
             print(key.replace('-', '_') + '=' + pins[key])
     elif args.command == 'check':
         check()

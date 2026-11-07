@@ -113,6 +113,8 @@ Windows release proof is the hosted native `release/gate.py` result from the rec
 | Staged artifact secret scan | `python3 release/secrets.py artifacts "$STAGED"` | Actual complete staged bytes and pinned scanner; includes archive members and compiled binaries. An empty directory scans clean, so this row counts only with a passing subject inventory of the same `STAGED` |
 | Staged Homebrew formula | `python3 release/gate.py --artifacts "$NATIVE" --scratch "$SCRATCH" --staged-formula "$STAGED/biomcp.rb"` | Apple Silicon macOS with its matching native output and the universal staged formula. Intel has no local host and no recovery section, so its half runs only as the rehearsal's `staged-homebrew` job on `macos-15-intel` |
 | Claude plugin | `python3 release/published.py plugin --version "$VERSION" --revision "$MAIN_REVISION" --artifacts "$NATIVE" --plugin-source "$PLUGIN_SOURCE" --binary "$BINARY" --claude "$CLAUDE"` | Native Unix host with real Claude CLI; same-main staged plugin and executable; no model invocation |
+| Staged wheel metadata | `python3 -m twine check --strict "$STAGED"/*.whl` | Any host with `twine` at the `release/toolchain.json` pin; complete staged wheels |
+| Staged installer bytes | `python3 release/published.py installer-bytes --version "$VERSION" --served release --artifacts "$STAGED"` | Any Linux or macOS host; selected main's `release/install.sh` served on loopback and compared with the staged file |
 | Attestation subject inventory | `python3 release/workflow.py subjects --artifacts "$STAGED" --output "$EVIDENCE/subjects.sha256"` | Complete staged tree; new output outside that tree |
 
 Staging does not scan the payload by itself. Screen those bytes before treating stage preparation as complete. History screening does not replace artifact screening. Classify a failure and fix its owning source; do not add a broad binary or archive allowlist. Each staged Homebrew run installs the actual two-architecture formula from the checked local archives, without fetching a public release. Unpack the checked stage's plugin archive for the plugin row. Its helper installs the marketplace in an isolated home, reads the installed launch declaration and calls the selected executable's MCP `help`, without invoking a model or a source API.
@@ -127,6 +129,8 @@ The rehearsal runs the staged sections again in `release.yml`, on the bytes the 
 | --- | --- | --- |
 | Stage | `stage`, `ubuntu-24.04` | The publication payload command in section 4 |
 | Staged artifact scan | `stage`, `ubuntu-24.04` | The staged artifact secret scan command in section 4 |
+| Staged wheel metadata | `staged-payload`, `ubuntu-24.04` | The staged wheel metadata command in section 4 |
+| Staged installer bytes | `staged-payload`, `ubuntu-24.04` | The staged installer bytes command in section 4 |
 | Attestation | `stage`, `ubuntu-24.04`, from the subject inventory | Signing needs the workflow's identity, so it has no local command and reruns with this rehearsal. The inventory runs alone in section 4 and `gh attestation verify` below checks each file |
 | Staged Homebrew | `staged-homebrew`, `macos-15` and `macos-15-intel` | The staged Homebrew formula command in section 4 on Apple Silicon. Intel reruns with this rehearsal |
 

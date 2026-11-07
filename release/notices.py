@@ -13,6 +13,7 @@ else:
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = ('LICENSE', 'THIRD-PARTY-NOTICES.txt')
 MARKER = 'mcp-name: io.github.genomoncology/biomcp'
+PROTO_NOTICE = 'AlphaGenome protocol messages, Copyright 2024 Google LLC (Apache-2.0)'
 
 
 def payloads(directory):
@@ -29,6 +30,8 @@ def validate(files):
         raise ValueError('artifact LICENSE differs from the project license')
     if not files[NAMES[1]].startswith(b'Generated third-party notices\n'):
         raise ValueError('artifact requires generated third-party notices')
+    if PROTO_NOTICE.encode() not in files[NAMES[1]]:
+        raise ValueError('artifact notices must name the AlphaGenome protos')
 
 
 def metadata(value):
@@ -74,6 +77,9 @@ def generate(output):
     for license in data['licenses']:
         users = sorted(item['crate']['name'] + ' ' + item['crate']['version'] for item in license['used_by'])
         lines += [license['name'] + ' (' + license['id'] + ')', ', '.join(users), license['text'], '']
+    # These messages are copied source, so cargo-about cannot see their license.
+    lines += [PROTO_NOTICE, 'crates/biomcp-fetch/proto/alphagenome, crates/biomcp-adapters/src/alphagenome/generated',
+              (ROOT / 'crates/biomcp-fetch/proto/LICENSE').read_text(), '']
     (output / 'LICENSE').write_bytes((ROOT / 'LICENSE').read_bytes())
     (output / NAMES[1]).write_bytes('\n'.join(lines).encode('utf-8'))
     return payloads(output)
