@@ -1,6 +1,7 @@
 # 0751 — A slow name lookup leaves article search whole
 
-Status: READY.
+Status: COMPLETE.
+Landed: 91870c431f466a00a75db1908ccdbd32a6228c54
 
 Milestone: 5
 

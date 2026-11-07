@@ -1,0 +1,33 @@
+{
+  "feature": "drug-name-search",
+  "live_check": "synthetic names in real source reply shapes; no clinical or live completeness claim",
+  "story": "A label lookup that stalls after the other name sources found nothing costs the lookup, not the article search.",
+  "replay": "search/drug-names-budget",
+  "config": {
+    "command_timeout_seconds": 9
+  },
+  "steps": [
+    {
+      "run": [
+        "search",
+        "article",
+        "Unlisted variant"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/sources/0/source": "openfda-label",
+        "/sources/0/state": "failed",
+        "/sources/0/reason": "deadline-exceeded",
+        "/sources/0/notices/0/names": [
+          "Unlisted variant"
+        ],
+        "/sources/0/notices/0/message": "Drug-name lookups did not finish, so names were not expanded; searched the typed term.",
+        "/sources/1/source": "pubmed",
+        "/sources/1/state": "ok",
+        "/page/total": 1,
+        "/result/items/0/pmid": "99000001",
+        "/result/items/0/header/title": "Synthetic article 99000001"
+      }
+    }
+  ]
+}

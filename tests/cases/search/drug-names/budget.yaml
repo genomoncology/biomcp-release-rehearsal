@@ -24,6 +24,26 @@
         "/sources/3/state": "ok",
         "/page/total": 1
       }
+    },
+    {
+      "run": [
+        "search",
+        "article",
+        "Canonical therapy"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/sources/0/source": "mychem",
+        "/sources/0/state": "failed",
+        "/sources/0/notices/0/names": [
+          "Canonical therapy"
+        ],
+        "/sources/3/source": "pubmed",
+        "/sources/3/state": "ok",
+        "/page/total": 1,
+        "/result/items/0/pmid": "99000001",
+        "/result/items/0/header/title": "Synthetic article 99000001"
+      }
     }
   ]
 }
