@@ -114,7 +114,7 @@ class GateStages(unittest.TestCase):
             focused.write_text('#!/bin/sh\nmake check-cheap\n')
             subprocess.run(['git', '-C', str(root), 'add', 'scripts/check_focused.sh'], check=True)
             goals = ('fmt', 'unused-dependencies', 'check-no-default-features',
-                     'lint-workspace', 'lint-tools', 'ratchets')
+                     'lint-workspace', 'lint-tools', 'lint-rustdoc', 'ratchets')
             # check-cheap invokes a recursive make; pass omissions to that child.
             command = ['make', '--no-print-directory', 'check-cheap',
                        'MAKE=make ' + ' '.join('-o ' + goal for goal in goals)]

@@ -1,6 +1,6 @@
 //! Admit native gene–disease–MOI identities before optional curation fields.
-//! Publisher SOP v11 pp. 10–11: https://clinicalgenome.org/site/assets/files/9851/gene-disease_validity_standard_operating_procedures-_version_11_docx.pdf
-//! Export field names: https://search.clinicalgenome.org/kb/gene-validity/download
+//! Publisher SOP v11 pp. 10–11: <https://clinicalgenome.org/site/assets/files/9851/gene-disease_validity_standard_operating_procedures-_version_11_docx.pdf>
+//! Export field names: <https://search.clinicalgenome.org/kb/gene-validity/download>
 use crate::native_text::NativeText;
 use biodata::{GeneSymbol, HgncId, Text};
 

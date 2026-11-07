@@ -1,5 +1,5 @@
 //! Preserve nullable constraint metrics independently of the requested gene and transcript.
-//! Publisher schema: https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/gene.graphql
+//! Publisher schema: <https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/gene.graphql>
 use crate::raw::Field;
 use biodata::{AccessionBase, EnsemblGeneId, FiniteNumber};
 

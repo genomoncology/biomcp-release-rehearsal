@@ -1,5 +1,5 @@
 //! Canonical CA identity is independent of nested representations and references.
-//! Allele Registry v0.08.07 pp. 5–7: https://calculator.clinicalgenome.org/redmine/attachments/download/264/AlleleRegistry_0.8.7_api.pdf
+//! Allele Registry v0.08.07 pp. 5–7: <https://calculator.clinicalgenome.org/redmine/attachments/download/264/AlleleRegistry_0.8.7_api.pdf>
 //! Every coordinate tuple belongs to one complete definition; never retain a subset as a simpler allele.
 use crate::raw::Field;
 use biodata::Text;

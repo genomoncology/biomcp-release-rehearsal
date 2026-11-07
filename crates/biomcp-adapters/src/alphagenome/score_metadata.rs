@@ -1,6 +1,6 @@
 //! Map native score metadata independently of complete tensor protocol admission.
 //! NaN scores remain native content; optional nonzero_mean follows a finite metadata contract.
-//! https://raw.githubusercontent.com/google-deepmind/alphagenome/55943112b83439e0c2512110f1ae607d4b5b492a/src/alphagenome/models/v1/variant_scoring_utils.py
+//! <https://raw.githubusercontent.com/google-deepmind/alphagenome/55943112b83439e0c2512110f1ae607d4b5b492a/src/alphagenome/models/v1/variant_scoring_utils.py>
 use super::proto;
 use crate::mapped::Problems;
 use biomcp_fetch::BadReply;

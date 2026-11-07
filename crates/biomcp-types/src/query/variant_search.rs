@@ -268,7 +268,7 @@ impl TryFrom<Fields> for VariantSearch {
 }
 impl VariantSearch {
     /// Inspect one unchanged source record without assigning an assembly.
-    /// https://docs.myvariant.info/en/latest/doc/variant_query_service.html#fielded-queries
+    /// <https://docs.myvariant.info/en/latest/doc/variant_query_service.html#fielded-queries>
     pub fn source_record(id: &crate::VariantInput) -> Result<Self, QueryInvalid> {
         Self::try_from(Fields {
             gene: None,

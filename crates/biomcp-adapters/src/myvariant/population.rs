@@ -1,6 +1,6 @@
 //! Candidate-bound cross-reference joins; no local coordinate conversion.
-//! Source fields: https://biothings.io/blog/new-data-release-201606
-//! CA identifier contract: https://reg.genome.network/doc/alleleTerminology.html
+//! Source fields: <https://biothings.io/blog/new-data-release-201606>
+//! CA identifier contract: <https://reg.genome.network/doc/alleleTerminology.html>
 use super::raw::Hit;
 use crate::{Mapped, raw::Field};
 use biodata::VariantId;

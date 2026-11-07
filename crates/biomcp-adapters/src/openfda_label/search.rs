@@ -1,6 +1,6 @@
 //! Literal indication search and unfielded recovery of labels without harmonized names.
 //! Native application numbers remain exact, separate from brand or ingredient identity.
-//! Publisher fields: https://open.fda.gov/apis/drug/label/searchable-fields/.
+//! Publisher fields: <https://open.fda.gov/apis/drug/label/searchable-fields/>.
 use super::{Page, literal, page};
 use biodata::{DrugId, Text};
 use biomcp_fetch::{Leg, RequestError};

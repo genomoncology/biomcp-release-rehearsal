@@ -1,5 +1,5 @@
 //! Source coordinate metadata qualifies an unchanged native record key.
-//! https://biothings.io/blog/new-data-release-201606 describes root chrom/hg19/hg38.
+//! <https://biothings.io/blog/new-data-release-201606> describes root chrom/hg19/hg38.
 //! Index selection alone never establishes a returned coordinate's assembly.
 use super::raw::{Hit, SourceChromosome, SourceSpan};
 use biodata::Build;

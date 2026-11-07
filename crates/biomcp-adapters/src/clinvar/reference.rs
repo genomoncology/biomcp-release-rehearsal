@@ -1,4 +1,4 @@
-//! NCBI EFetch sequence parameters: https://www.ncbi.nlm.nih.gov/books/NBK25499/.
+//! NCBI EFetch sequence parameters: <https://www.ncbi.nlm.nih.gov/books/NBK25499/>.
 //! seq_start and seq_stop are inclusive, one-based; strand=1 is the forward reference.
 use super::FETCH;
 const REFERENCE: biomcp_fetch::Endpoint = FETCH.bytes(1024);

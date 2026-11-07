@@ -1,5 +1,5 @@
 //! Checked protein substitutions and no-change notation; no allele inference.
-//! https://hgvs-nomenclature.org/21.1.3/recommendations/protein/substitution/
+//! <https://hgvs-nomenclature.org/21.1.3/recommendations/protein/substitution/>
 use biodata::text_value;
 use std::str::FromStr;
 const AMINO: &[(&str, &str)] = &[

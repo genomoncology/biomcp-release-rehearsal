@@ -1,5 +1,5 @@
 //! Native identity discovery follows NCBI's ClinVar E-utilities search contract.
-//! https://www.ncbi.nlm.nih.gov/clinvar/docs/programmatic_access/
+//! <https://www.ncbi.nlm.nih.gov/clinvar/docs/programmatic_access/>
 use super::SPEC;
 use crate::{Mapped, mapped::Problems, raw::Field};
 use biodata::{ClinVarVariationId, Variant, VariantId};

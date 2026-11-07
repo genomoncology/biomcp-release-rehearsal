@@ -1,6 +1,6 @@
 //! Native nullable measurements are independent of allele and cohort identity.
-//! Publisher schema: https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/variant.graphql
-//! VA counts and cohorts: https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/va.graphql
+//! Publisher schema: <https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/variant.graphql>
+//! VA counts and cohorts: <https://github.com/broadinstitute/gnomad-browser/blob/main/graphql-api/src/graphql/types/va.graphql>
 //! Null is absence; filters [] is a supplied empty list, never an inferred PASS classification.
 use crate::raw::Field;
 use biodata::Text;

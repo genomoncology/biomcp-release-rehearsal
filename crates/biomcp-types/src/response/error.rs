@@ -10,7 +10,8 @@ macro_rules! singleton {
         #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
         #[cfg_attr(feature = "schema", schemars(with = "str", extend("enum" = [$($literal),+])))]
         $visibility enum $name {
-            $(#[doc = $literal]
+            // Double backticks: one literal holds single backticks.
+            $(#[doc = concat!("`` ", $literal, " ``")]
             #[serde(rename = $literal)]
             $variant,)+
         }

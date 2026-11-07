@@ -131,7 +131,7 @@ full-suite:
 .PHONY: pre-job check-cheap proof-check proof-list proof proof-unpack gate-stage-check
 pre-job: check-cheap
 
-LINT_GOALS = unused-dependencies check-no-default-features lint-workspace lint-tools
+LINT_GOALS = unused-dependencies check-no-default-features lint-workspace lint-tools lint-rustdoc
 
 check-cheap:
 	python3 scripts/check_docs.py
@@ -182,6 +182,9 @@ lint-workspace:
 
 lint-tools:
 	cargo clippy --keep-going --locked -p biomcp --test tools -- -D warnings
+
+lint-rustdoc:
+	RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked --keep-going
 
 ratchets: plain-cli-build
 	cargo test --locked -p biomcp --test ratchets $(TEST_THREADS)
