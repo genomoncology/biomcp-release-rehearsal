@@ -1,6 +1,7 @@
 # 0766 — Bare label read lists sections
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b5cbf62c6ba5476f61efb097b715e697c8b51de3
 
 Milestone: 5
 

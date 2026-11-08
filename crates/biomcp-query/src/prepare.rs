@@ -172,7 +172,11 @@ fn drug_selector(action: &Action) -> Result<(), UsageError> {
     else {
         return Ok(());
     };
-    let (option, values) = if !query.supports_sections() {
+    let label_only = query.sections() == [biomcp_types::DrugSection::Label];
+    let (option, values) = if !query.supports_sections() && label_only {
+        // Only the openFDA label source serves a label read, so name the source to pass.
+        ("source", "openfda-label".parse().map(|v| vec![v]))
+    } else if !query.supports_sections() {
         (
             "section",
             query

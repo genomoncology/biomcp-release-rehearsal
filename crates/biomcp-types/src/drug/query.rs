@@ -63,7 +63,7 @@ struct GetFields {
     /// Named section continuation, refused on an identity-only card.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     section_offset: Option<u32>,
-    #[doc = "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields; required for the label section."]
+    #[doc = "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields. Omit it to list names."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     label_section: Option<Text>,
     #[doc = "FDA product number.\nExplicit native application product number, only for approvals."]
@@ -151,13 +151,8 @@ fn validate_sections(fields: &GetFields) -> Result<(), QueryInvalid> {
             "section_offset",
         ]));
     }
-    if fields.section.contains(&DrugSection::Label) != fields.label_section.is_some() {
-        let cause = QueryInvalid::new(&["label_section", "section"]);
-        return Err(if fields.label_section.is_none() {
-            cause.with_message(crate::ErrorMessage::LabelSectionMissing)
-        } else {
-            cause
-        });
+    if fields.label_section.is_some() && !fields.section.contains(&DrugSection::Label) {
+        return Err(QueryInvalid::new(&["label_section", "section"]));
     }
     if fields.product_number.is_some() && !fields.section.contains(&DrugSection::Approvals) {
         return Err(QueryInvalid::new(&["product_number", "section"]));

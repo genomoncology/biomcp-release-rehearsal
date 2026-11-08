@@ -152,6 +152,12 @@ pub struct DrugLabel {
     pub identity: DrugHeader,
     /// Existing typed section state, preserving empty, unavailable and skipped outcomes.
     pub label: Section<DrugLabelText>,
+    /// Label section names present for this record, listed when no label_section was given.
+    #[serde(default, skip_serializing_if = "<[ _ ]>::is_empty")]
+    pub sections: Box<[Text]>,
+    /// How to read one of those sections.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hint: Option<Text>,
 }
 /// Native target and mechanism relations, without a clinical indication inference.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

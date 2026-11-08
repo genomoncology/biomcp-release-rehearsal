@@ -26,26 +26,70 @@ fn bare_label() -> Check {
     let (env, _stub) = get_setup(&id, record(&id))?;
     let mut args = get_args(&id)?;
     args.push("label".into());
-    let cli = invoke(&env, args.clone(), 2)?;
-    let mcp = super::mcp::call_with_globals(&env, &args, true, &[])?;
+    let cli = invoke(&env, args.clone(), 0)?;
+    let mcp = super::mcp::call_with_globals(&env, &args, false, &[])?;
     for value in [&cli, &mcp] {
-        let listed = value
-            .pointer("/error/valid_values")
+        let body = value.pointer("/result").unwrap_or(value);
+        let listed = body
+            .pointer("/sections")
             .and_then(Value::as_array)
-            .ok_or("no valid_values")?;
+            .ok_or_else(|| format!("no sections: {value}"))?;
         if !listed.contains(&json!("boxed_warning"))
             || !listed.contains(&json!("indications_and_usage"))
         {
             return Err(format!("section names missing: {value}"));
         }
-        let message = value
+        let hint = body
+            .pointer("/hint")
+            .and_then(Value::as_str)
+            .ok_or("no hint")?;
+        if !hint.contains("label_section") || !hint.contains("--label-section") {
+            return Err(format!("hint lacks the option: {hint}"));
+        }
+    }
+    let mut unknown = args.clone();
+    unknown.extend(["--label-section".into(), "effective_time".into()]);
+    let refused_mcp = super::mcp::call_with_globals(&env, &unknown, true, &[])?;
+    for refused in [invoke(&env, unknown, 2)?, refused_mcp] {
+        let message = refused
             .pointer("/error/message")
             .and_then(Value::as_str)
-            .ok_or("no message")?;
-        if !message.contains("--label-section NAME")
-            || !message.contains("biomcp get drug imatinib label --label-section ")
+            .ok_or("no refusal message")?;
+        if !message.contains("--label-section") || refused.pointer("/error/valid_values").is_none()
         {
-            return Err(format!("message lacks the option or example: {message}"));
+            return Err(format!("unknown section refusal unclear: {refused}"));
+        }
+    }
+    env.config(&json!({"mcp_tool_mode":"typed"}))
+        .map_err(|e| e.to_string())?;
+    // The typed drug tool: a bad section on the label source, and a source with no label.
+    for (source, option, valid) in [
+        ("openfda-label", "label_section", "boxed_warning"),
+        ("mychem", "source", "openfda-label"),
+    ] {
+        let typed = super::mcp::exchange_with_globals(
+            &env,
+            &[super::mcp::request(
+                json!(1),
+                "tools/call",
+                json!({"name":"drug","arguments":{"action":"get","get":{
+                    "input":field(&id,"set_id"),"source":source,
+                    "section":["label"],"label_section":"effective_time"}}}),
+            )],
+            &[],
+        )?;
+        let refused = typed
+            .first()
+            .and_then(|r| r.pointer("/result/structuredContent"))
+            .ok_or_else(|| format!("no typed reply: {typed:?}"))?;
+        let message = refused.pointer("/error/message").and_then(Value::as_str);
+        let listed = refused
+            .pointer("/error/valid_values")
+            .and_then(Value::as_array);
+        let named = message.is_some_and(|m| m.contains("--label-section"))
+            || refused.pointer("/error/option").and_then(Value::as_str) == Some(option);
+        if !named || !listed.is_some_and(|l| l.contains(&json!(valid))) {
+            return Err(format!("typed refusal unclear for {source}: {refused}"));
         }
     }
     Ok(())

@@ -118,7 +118,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields; required for the label section."
+          "description": "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields. Omit it to list names."
         },
         "product_number": {
           "anyOf": [

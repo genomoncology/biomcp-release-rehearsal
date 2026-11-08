@@ -3030,7 +3030,7 @@ Options:
 
       --label-section <label_section>
           Exact openFDA SPL field.
-          Exact published openFDA SPL section field, including table fields; required for the label section.
+          Exact published openFDA SPL section field, including table fields. Omit it to list names.
 
       --product-number <product_number>
           FDA product number.
@@ -3083,7 +3083,7 @@ Listed choices accept any letter case; replies use their listed spelling. Value 
 - `input`: Source ID, brand or generic name.
 Source-source ID or complete brand or generic name; WHO references retain source spaces. Exact brands rank before generics; Drugs@FDA prefers NDA/BLA before ANDA, then earliest approval. Other sources retain search order. The chosen record reports up to five alternatives and their total. Generic names also accept one trailing listed salt or ester term: mesylate, hydrochloride, sodium, potassium, calcium, sulfate, maleate, tartrate, citrate, phosphate, acetate, besylate, fumarate, succinate, tosylate, bromide, chloride. Brand names identical to their own ingredient count as generic. USAN nomenclature: https://www.ama-assn.org/about/united-states-adopted-names-usan/united-states-adopted-names-naming-guidelines
 - `--label-section`: Exact openFDA SPL field.
-Exact published openFDA SPL section field, including table fields; required for the label section. Value form: string. Example: --label-section warnings_and_cautions. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
+Exact published openFDA SPL section field, including table fields. Omit it to list names. Value form: string. Example: --label-section warnings_and_cautions. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
 - `--product-number`: FDA product number.
 Explicit source application product number, only for approvals. Value form: string. Example: --product-number 001. Command sources: chembl, civic, ddinter, drugsfda, ema, fda-drug-recall, mychem, openfda-label, opentargets, who-pq; source restrictions in the field description apply.
 - `section`: Source sections; help get drug

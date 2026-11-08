@@ -140,8 +140,12 @@ fn entity(
         .filter(|(_, kind, _)| *kind == Kind::Facet)
         .map(|(action, _, _)| *action)
         .collect::<Vec<_>>();
+    let mut description = super::description::tool(label, &sources, &names, &facets, excluded);
+    if name == "drug" {
+        description.push_str(" A label read takes label_section, such as boxed_warning.");
+    }
     let mut tool = json!({"name":name,
-        "description":super::description::tool(label, &sources, &names, &facets, excluded),
+        "description":description,
         "inputSchema":{"$schema":super::super::protocol::SCHEMA_DIALECT,"type":"object",
             "properties":properties,"required":["action"],"additionalProperties":false},
         "annotations":{"readOnlyHint":actions.iter().all(|(_, _, command)| command.read_only),

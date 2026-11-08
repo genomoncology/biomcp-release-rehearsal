@@ -220,7 +220,7 @@
               "type": "null"
             }
           ],
-          "description": "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields; required for the label section."
+          "description": "Exact openFDA SPL field.\nExact published openFDA SPL section field, including table fields. Omit it to list names."
         },
         "product_number": {
           "anyOf": [
@@ -396,6 +396,17 @@
     "Reply_DrugLabel": {
       "description": "One explicit native label heading and text continuation.",
       "properties": {
+        "hint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How to read one of those sections."
+        },
         "identity": {
           "$ref": "#/$defs/Reply_DrugHeader",
           "description": "Selected native identity, checked independently of section facts."
@@ -403,6 +414,13 @@
         "label": {
           "$ref": "#/$defs/Reply_Section_DrugLabelText",
           "description": "Existing typed section state, preserving empty, unavailable and skipped outcomes."
+        },
+        "sections": {
+          "description": "Label section names present for this record, listed when no label_section was given.",
+          "items": {
+            "$ref": "#/$defs/Reply_Text"
+          },
+          "type": "array"
         }
       },
       "required": [
