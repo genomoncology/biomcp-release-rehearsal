@@ -29,6 +29,24 @@
       },
       "max_bytes": 1415,
       "full_output_bytes": true
+    },
+    {
+      "run": [
+        "search",
+        "adverse-event",
+        "--source",
+        "maude",
+        "--manufacturer",
+        "Synthetic maker",
+        "--disable-sources",
+        "gmdn"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/state": "skipped",
+        "/sources/0/reason": "disabled"
+      }
     }
   ],
   "story": "A caller searches MAUDE report fields without device text and combines exact native product codes with OR."

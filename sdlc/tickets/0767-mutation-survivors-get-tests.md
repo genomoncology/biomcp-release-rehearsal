@@ -1,7 +1,8 @@
 # 0767 — Mutation survivors get tests
 
-Status: OPEN. Mutation section j35419 at bc44fca0b: 6 survivors. The mutation run executes only the biomcp cases test (release/mutations.py native_args), so the new biomcp-adapters tests never ran. Also new survivors in allele_registry qualify (mod.rs:96, :103).
-Landed: a2635192c33495c81601fa85858204fcde22a52a
+Status: COMPLETE.
+Landed: bc8a72338236cded91e78bbd131e7eb875a25bb0
+Opened as: 2026-11-08. Mutation section j35419 at bc44fca0b: 6 survivors. The mutation run executes only the biomcp cases test (release/mutations.py native_args), so the new biomcp-adapters tests never ran. Also new survivors in allele_registry qualify (mod.rs:96, :103).
 
 Milestone: 5
 

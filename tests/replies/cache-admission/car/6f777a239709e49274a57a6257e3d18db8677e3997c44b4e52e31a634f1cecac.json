@@ -1,0 +1,36 @@
+{
+  "method": "GET",
+  "source": "car",
+  "url": "https://reg.genome.network/allele?hgvs=NC_000010.10%3Ag.114758349C%3ET&fields=none%2B%40id%2BcommunityStandardTitle%2BgenomicAlleles%2BtranscriptAlleles.MANE%2BexternalRecords.dbSNP%2BexternalRecords.ClinVarVariations",
+  "exchanges": [
+    {
+      "fetched": 1792870631,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "@id": "http://reg.genome.network/allele/CA123643",
+          "genomicAlleles": [
+            {
+              "referenceGenome": "GRCh37",
+              "hgvs": [
+                "NC_000010.10:g.114758349C>T"
+              ],
+              "coordinates": [
+                {
+                  "start": 114758348,
+                  "end": 114758349,
+                  "referenceAllele": "C",
+                  "allele": "T"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

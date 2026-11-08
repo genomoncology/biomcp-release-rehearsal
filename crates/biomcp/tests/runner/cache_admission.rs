@@ -1,5 +1,6 @@
 //! Recorded command cases need a local peer to observe cache reuse across processes.
 //! Separate replay steps cannot witness a second provider request.
+mod car;
 mod cases;
 mod controls;
 use super::{
@@ -25,6 +26,9 @@ struct Owner {
     optional: &'static str,
 }
 pub(super) fn trials() -> Vec<Trial> {
+    car::trials().into_iter().chain(owner_trials()).collect()
+}
+fn owner_trials() -> Vec<Trial> {
     cases::OWNERS
         .iter()
         .copied()

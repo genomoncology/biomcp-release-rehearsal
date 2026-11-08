@@ -55,11 +55,11 @@ fn admit(leg: &Leg<'_>, component: Source, owner: Source) -> Result<(), RequestE
 }
 /// Label one carried terminology using the same canonical declaration as admission.
 pub fn labels(
-    owner: Source,
+    _owner: Source,
     component: Source,
 ) -> Result<Box<[biomcp_types::ComponentLabel]>, RequestError> {
     let declaration = all()
-        .find(|v| v.source == owner && v.native_source == Some(component))
+        .find(|v| v.native_source == Some(component))
         .ok_or(biomcp_fetch::InputError::Serialization)?;
     let text = |value: &str| {
         biodata::Text::new(value).map_err(|_| biomcp_fetch::InputError::Serialization)

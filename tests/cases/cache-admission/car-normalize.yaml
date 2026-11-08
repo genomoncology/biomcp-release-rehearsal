@@ -1,0 +1,40 @@
+{
+  "feature": "variant-normalization",
+  "live_check": "Authored unusable registry replies for local cache admission; the accepted reply is a recorded registry allele.",
+  "story": "A chromosome-alias HGVS reaches the registry as its reference-qualified form, and a repeated call reuses the stored allele.",
+  "replay": "cache-admission",
+  "steps": [
+    {
+      "run": [
+        "variant",
+        "normalize",
+        "--source",
+        "car",
+        "--hgvs",
+        "chr10:g.114758349C>T",
+        "--build",
+        "GRCh37"
+      ],
+      "expect": {
+        "/result/results/0/outcome": "resolved",
+        "/sources/0/state": "ok"
+      }
+    },
+    {
+      "run": [
+        "variant",
+        "normalize",
+        "--source",
+        "car",
+        "--hgvs",
+        "chr10:g.114758349C>T",
+        "--build",
+        "GRCh37"
+      ],
+      "expect": {
+        "/result/results/0/outcome": "resolved",
+        "/sources/0/state": "ok"
+      }
+    }
+  ]
+}

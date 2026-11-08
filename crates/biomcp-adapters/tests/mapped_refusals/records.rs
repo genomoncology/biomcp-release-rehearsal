@@ -16,10 +16,6 @@ pub(super) fn trials() -> Vec<Trial> {
             || registry().map_err(|e| e.to_string().into()),
         ),
         trial(
-            "variant-normalization/unusable-registry-reply-is-not-cached",
-            || registry_not_cached().map_err(|e| e.to_string().into()),
-        ),
-        trial(
             "variant-normalization/refused-mutalyzer-identity-carries-fact",
             || normalized().map_err(|e| e.to_string().into()),
         ),
@@ -67,59 +63,6 @@ fn registry() -> Check {
             }
         {
             return Err("Registry actual allele refusal or optional metadata changed".into());
-        }
-    }
-    Ok(())
-}
-
-// Two recorded replies for one request: the first is unusable, the second is the real one.
-// A second call that returns the first again was served from the cache.
-fn registry_not_cached() -> Check {
-    let query = "NC_000010.10:g.114758349C>T";
-    let good = {
-        let (_root, fetch) = replay("variant/normalization/grch37", |_, _| {})?;
-        let leg = fetch.leg(
-            &allele_registry::SPEC,
-            fetch.deadline(Duration::from_secs(20)),
-        );
-        let mapped = allele_registry::normalize(&leg, query, None)?;
-        (format!("{:?}", mapped.value), mapped.refusals)
-    };
-    for case in ["wrong-identity", "error-reply"] {
-        let mut changed = false;
-        let (_root, fetch) = replay("variant/normalization/grch37", |source, recording| {
-            if source == "car"
-                && let Some(exchanges) = recording
-                    .pointer_mut("/exchanges")
-                    .and_then(|v| v.as_array_mut())
-                && let Some(mut bad) = exchanges.first().cloned()
-                && let Some(body) = bad.pointer_mut("/body/value")
-            {
-                changed = true;
-                if case == "wrong-identity" {
-                    replace(
-                        body,
-                        "/@id",
-                        &(json!("http://reg.genome.network/allele/not-an-id")),
-                    );
-                } else {
-                    replace(body, "/errorType", &(json!("InternalServerError")));
-                }
-                exchanges.insert(0, bad);
-            }
-        })?;
-        if !changed {
-            return Err("Registry native allele missing".into());
-        }
-        let leg = fetch.leg(
-            &allele_registry::SPEC,
-            fetch.deadline(Duration::from_secs(20)),
-        );
-        // The unusable reply may be an error or a mapped refusal; either way it is not stored.
-        let _ = allele_registry::normalize(&leg, query, None);
-        let second = allele_registry::normalize(&leg, query, None)?;
-        if (format!("{:?}", second.value), second.refusals) != good {
-            return Err(format!("{case}: an unusable registry reply was cached").into());
         }
     }
     Ok(())
