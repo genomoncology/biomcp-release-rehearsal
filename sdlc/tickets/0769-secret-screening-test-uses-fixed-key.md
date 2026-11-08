@@ -1,6 +1,7 @@
 # 0769 — Secret screening test uses a fixed key
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 8b7ae360c650963fc2fbf478a3a45200d353aa01
 
 Milestone: 5
 

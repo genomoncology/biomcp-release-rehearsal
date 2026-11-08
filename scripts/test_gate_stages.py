@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 import re
-import secrets
 from pathlib import Path
 import subprocess
 import sys
@@ -12,6 +11,7 @@ import unittest
 
 from release.secrets import inputs
 from release.smoke import environment
+from release.test_security import github_token
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -189,7 +189,7 @@ class GateStages(unittest.TestCase):
             expected_objects = set(git(source, 'rev-list', '--objects', '--no-object-names', revision).splitlines())
             git(source, 'checkout', '--orphan', 'old-main')
             git(source, 'rm', '-rf', '.')
-            token = 'ghp_' + secrets.token_hex(18)
+            token = github_token()
             commit('credential.txt', 'access_token = ' + token + '\n')
             git(source, 'tag', 'v0.9.2')
             remote_refs = git(source, 'show-ref')

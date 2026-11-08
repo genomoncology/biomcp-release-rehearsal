@@ -5,11 +5,13 @@ import hashlib
 import lzma
 import json
 import os
+import random
 import re
 from pathlib import Path
 from release.smoke import environment
 import secrets
 import shutil
+import string
 import subprocess
 import sys
 import tarfile
@@ -19,6 +21,18 @@ from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def synthetic_credential(seed, length, prefix=""):
+    # The pinned scanner's entropy and stopword filters can pass a random value.
+    # A fixed seed gives every run and host the same flagged value, which is
+    # never written in source.
+    chosen = random.Random(seed)
+    return prefix + "".join(chosen.choice(string.ascii_letters + string.digits) for _ in range(length))
+
+
+def github_token():
+    return synthetic_credential(0, 36, "ghp_")
 
 
 class Screening(unittest.TestCase):
@@ -36,7 +50,7 @@ class Screening(unittest.TestCase):
             artifacts.mkdir()
             binary = artifacts / "biomcp"
             public = b"MZ" + bytes(128) + (endpoint + diagnostic).encode() + b"\n"
-            token = secrets.token_hex(24)
+            token = synthetic_credential(0, 48)
             for payload, expected in [(public, 0),
                                       (public + ("api_key = " + token + "\n").encode(), 1)]:
                 binary.write_bytes(payload)
@@ -111,7 +125,7 @@ class Screening(unittest.TestCase):
             root = Path(temporary).resolve()
             artifacts = root / "artifacts"
             artifacts.mkdir()
-            token = "ghp_" + secrets.token_hex(18)
+            token = github_token()
             secret = ("access_token = " + token + "\n").encode()
             metadata = b"auto\n/usr/share/man/man7/builtins.7.gz\n\n/usr/share/man/man7/bash-builtins.7.gz\n10\n\n"
             def screen(database, manpage):
@@ -141,7 +155,7 @@ class Screening(unittest.TestCase):
             root = Path(temporary).resolve()
             artifacts = root / "artifacts"
             artifacts.mkdir()
-            token = "ghp_" + secrets.token_hex(18)
+            token = github_token()
             secret = ("access_token = " + token + "\n").encode()
             for suffix, compress in [("xz", lzma.compress)]:
                 for payload, expected in [(compress(b"clean log\n"), 0), (compress(secret), 1), (b"broken", 2), (compress(b"clean log\n")[:-1], 2)]:
@@ -251,7 +265,7 @@ class Screening(unittest.TestCase):
             git("commit", "--quiet", "--allow-empty", "-m", "Initial fixture")
             clean = git("rev-parse", "HEAD")
             git("worktree", "add", "--quiet", "--detach", str(sibling))
-            token = "ghp_" + secrets.token_hex(18)
+            token = github_token()
             (sibling / "credential.txt").write_text("access_token = " + token + "\n")
             git("-C", str(sibling), "add", ".")
             git("-C", str(sibling), "commit", "--quiet", "-m", "Add sibling fixture")
@@ -278,7 +292,7 @@ class Screening(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
             # Construct only in owned scratch; no token or secret fixture enters Git.
-            token = "ghp_" + "".join(secrets.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") for _ in range(36))
+            token = github_token()
             repo = root / "repo"
             repo.mkdir()
             env = {"PATH": os.defpath, "HOME": str(root), "GIT_CONFIG_NOSYSTEM": "1"}
@@ -313,7 +327,7 @@ class Screening(unittest.TestCase):
     def test_scanner_covers_binary_members_and_merge_only_history(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
-            token = "ghp_" + secrets.token_hex(18)
+            token = github_token()
             payload = b"MZ" + bytes(128) + ("access_token = " + token + "\n").encode()
             artifacts = root / "artifacts"
             artifacts.mkdir()
@@ -444,7 +458,7 @@ class Screening(unittest.TestCase):
             git("add", ".")
             git("commit", "--quiet", "-m", "Initial fixture")
             empty = git("rev-parse", "HEAD")
-            token = "ghp_" + secrets.token_hex(18)
+            token = github_token()
             path = "tests/replies/credential.json"
             file = repo / path
             file.parent.mkdir(parents=True)
@@ -504,7 +518,7 @@ class Screening(unittest.TestCase):
                 return result
             path.write_text(json.dumps({"nextPageToken": cursor, "request_key": digest}))
             screen(0)
-            token = "ghp_" + secrets.token_hex(18)
+            token = github_token()
             path.write_text(json.dumps({"nextPageToken": cursor, "request_key": digest, "api_key": token}))
             rejected = screen(1)
             self.assertNotIn(token, rejected.stdout + rejected.stderr)
