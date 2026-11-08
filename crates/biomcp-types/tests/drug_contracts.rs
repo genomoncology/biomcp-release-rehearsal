@@ -186,7 +186,6 @@ fn section_options_use_existing_continuation_names_and_reject_card_paging() {
         json!({"section_limit":51,"section":["targets"]}),
         json!({"section_offset":0}),
         json!({"label_section":"drug_interactions"}),
-        json!({"section":["label"]}),
         json!({"product_number":"001"}),
         json!({"text_offset":1}),
     ] {

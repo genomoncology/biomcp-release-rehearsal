@@ -1,7 +1,8 @@
 # 0766 — Bare label read lists sections
 
-Status: OPEN. Release full suite j35400 at 88a6b79e5 failed library-tests: drug_contracts still expects a bare label section to be refused at deserialization.
-Landed: a6a84b3e34010c9dcd547465fa576bdf3a057221
+Status: COMPLETE.
+Landed: 46bf995112f443c3c144e8bddc610078fa13be58
+Opened as: 2026-11-08. Release full suite j35400 at 88a6b79e5 failed library-tests: drug_contracts still expects a bare label section to be refused at deserialization.
 Opened as: 2026-11-08. Release full suite j35338 at bc44fca0b failed docs-check: the front map's new label line names the flag --label-section, and the front map must name commands only. Fix: name label_section instead.
 
 Milestone: 5
