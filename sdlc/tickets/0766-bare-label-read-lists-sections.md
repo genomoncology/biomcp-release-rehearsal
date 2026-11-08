@@ -1,6 +1,6 @@
 # 0766 — Bare label read lists sections
 
-Status: COMPLETE.
+Status: OPEN. Release full suite j35338 at bc44fca0b failed docs-check: the front map's new label line names the flag --label-section, and the front map must name commands only. Fix: name label_section instead.
 Landed: b5cbf62c6ba5476f61efb097b715e697c8b51de3
 
 Milestone: 5
