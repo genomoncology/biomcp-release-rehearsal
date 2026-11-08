@@ -30,6 +30,13 @@ impl Leg<'_> {
 
     /// Find checked rows, synchronizing absent or stale data when policy permits.
     pub fn rows<R: Row>(&self, bundle: &Bundle<R>, find: Find<'_>) -> Result<Vec<R>, RequestError> {
+        self.name_busy(self.read_rows(bundle, find))
+    }
+    fn read_rows<R: Row>(
+        &self,
+        bundle: &Bundle<R>,
+        find: Find<'_>,
+    ) -> Result<Vec<R>, RequestError> {
         self.bundle_source(bundle)?;
         if self.fetch.cache.is_none() && matches!(self.fetch.mode, Mode::Offline) {
             return Err(self.failure(biomcp_types::Reason::Offline, None).into());
@@ -180,6 +187,13 @@ impl Leg<'_> {
         bundle: &Bundle<R>,
         find: Find<'_>,
     ) -> Result<(Vec<R>, BundleInfo), RequestError> {
+        self.name_busy(self.read_stored_rows(bundle, find))
+    }
+    fn read_stored_rows<R: Row>(
+        &self,
+        bundle: &Bundle<R>,
+        find: Find<'_>,
+    ) -> Result<(Vec<R>, BundleInfo), RequestError> {
         self.bundle_source(bundle)?;
         let cache = self.bundle_cache()?;
         self.import_predecessor(cache, bundle.name)?;
@@ -210,6 +224,23 @@ impl Leg<'_> {
             self.data_date(date);
         }
         Ok((rows, info))
+    }
+    // A busy store stays a local error, and the leg also names why the read stopped:
+    // its deadline ran out, or another writer held the bundle store.
+    fn name_busy<T>(&self, result: Result<T, RequestError>) -> Result<T, RequestError> {
+        if matches!(result, Err(RequestError::Cache(crate::CacheError::Busy))) {
+            let reason = if self.budget().expired() {
+                biomcp_types::Reason::DeadlineExceeded
+            } else {
+                biomcp_types::Reason::Syncing
+            };
+            self.report
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .failures
+                .push(self.failure(reason, None));
+        }
+        result
     }
     fn import_predecessor(
         &self,

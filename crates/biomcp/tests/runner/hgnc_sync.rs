@@ -288,7 +288,9 @@ tool_only! {
         Ok(())
     }
 
-    // The public query API admits a short command budget that the CLI cannot set.
+    // A first snapshot is being published and another owner holds the cache for
+    // the whole read, so every step finds the store busy until the budget ends.
+    // Host speed changes only how long that takes, never where the read stops.
     fn bounded() -> Check {
         use biomcp_fetch::{Fetch, FetchConfig, Secret};
         let env = Environment::new().map_err(|e| e.to_string())?;
@@ -310,27 +312,34 @@ tool_only! {
                 .map_err(|e: biodata::Error| e.to_string())?]))
             .map_err(|e| e.to_string())?,
         );
-        let result = biomcp_query::run(
-            &biomcp_query::Ctx {
-                fetch: &fetch,
-                budget: Duration::from_millis(30),
-                ncbi_email: None,
-                fresh: false,
-                drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
-            },
-            &request,
-        );
-        // A budget spent before the bundle read starts stops at that read's own check.
+        let access = fetch.cache_access().map_err(|e| e.to_string())?;
+        let (done, completion) = mpsc::channel();
+        let result = std::thread::scope(|scope| {
+            access
+                .admit(fetch.deadline(Duration::from_secs(60)), || {
+                    scope.spawn(|| {
+                        let _ = done.send(biomcp_query::run(
+                            &biomcp_query::Ctx {
+                                fetch: &fetch,
+                                budget: Duration::from_millis(200),
+                                ncbi_email: None,
+                                fresh: false,
+                                drug_name_limit: biomcp_query::DRUG_NAME_LIMIT,
+                            },
+                            &request,
+                        ));
+                    });
+                    // A watchdog only: the read ends with its own short budget.
+                    Ok(completion.recv_timeout(Duration::from_secs(30)))
+                })
+                .map_err(|e| e.to_string())
+        })?
+        .map_err(|e| format!("busy read did not answer: {e}"))?;
         if !result.sources.iter().any(|source| {
             source.source == biomcp_types::Source::Hgnc
-                && matches!(
-                    source.reason,
-                    Some(biomcp_types::Reason::Syncing | biomcp_types::Reason::DeadlineExceeded)
-                )
+                && source.reason == Some(biomcp_types::Reason::DeadlineExceeded)
         }) {
-            return Err(format!(
-                "first snapshot did not wait within its deadline: {result:?}"
-            ));
+            return Err(format!("busy first snapshot did not name why: {result:?}"));
         }
         Ok(())
     }

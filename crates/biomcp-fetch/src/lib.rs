@@ -463,7 +463,7 @@ pub struct LegReport {
     pub replies: Vec<ReplyMetadata>,
     /// Whether any request served a checked stale reply.
     pub stale: bool,
-    /// Original typed provider failures that caused stale replies to be served.
+    /// Typed failures behind stale replies, and the reason a bundle read stopped on a busy store.
     pub failures: Vec<SourceError>,
     /// Cache failures that did not invalidate the checked provider answer.
     pub cache_problems: Vec<CacheError>,

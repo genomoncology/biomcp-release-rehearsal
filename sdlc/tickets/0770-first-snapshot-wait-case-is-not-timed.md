@@ -1,6 +1,7 @@
 # 0770 — First snapshot wait case is not timed
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: d5c534afeacee6975eb2c084191cbb2bcf1a7934
 
 Milestone: 5
 
