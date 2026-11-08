@@ -8,7 +8,7 @@ pub(crate) const TRAPS: &[&str] = &[
     "Sources/components: help sources.",
     "Variant IDs are command-specific; normalize requires reference HGVS.",
     "Sections are source-specific.",
-    "Drug label needs --label-section NAME, e.g. boxed_warning.",
+    "Drug label needs label_section, e.g. boxed_warning.",
     "Article text: PMID/PMC/EuropePMC; select part/find/variant/save; no DOI.",
     "ClinGen: get gene ID clingen; separate validity/dosage.",
     "Errors differ from empty; inspect problems/next.",
