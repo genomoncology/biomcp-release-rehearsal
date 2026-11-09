@@ -159,7 +159,7 @@ pub(super) fn cut_binary_body_is_refused_before_returning_bytes() {
     );
 }
 
-pub(super) fn only_bounded_json_reports_typed_overflow() {
+pub(super) fn body_overflow_preserves_explicit_reader_reason() {
     for kind in ["bounded", "json", "bytes"] {
         let server = Server::new();
         let spec = spec(&server);
@@ -172,7 +172,7 @@ pub(super) fn only_bounded_json_reports_typed_overflow() {
                         .call(
                             &spec.get("/answer"),
                             Input::Params(&[]),
-                            Read::<Answer>::json().bounded(8, biomcp_types::Reason::TooLarge),
+                            Read::<Answer>::json().bounded(8, biomcp_types::Reason::BadReply),
                         )
                         .map(|received| received.value)
                         .map(|_| ()),
@@ -204,9 +204,9 @@ pub(super) fn only_bounded_json_reports_typed_overflow() {
                 "HTTP/1.1 200 OK\r\nContent-Type: {media}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()
             ));
             let expected = if kind == "bounded" {
-                biomcp_types::Reason::TooLarge
-            } else {
                 biomcp_types::Reason::BadReply
+            } else {
+                biomcp_types::Reason::TooLarge
             };
             let actual = worker.join().unwrap();
             assert!(

@@ -235,9 +235,12 @@ fn xml_body_and_nested_inline_content_are_bounded() {
         })
         .unwrap();
         let error = exchange(&server, &fetch, spec, "text/xml", body.as_bytes()).unwrap_err();
-        assert!(
-            matches!(error, biomcp_fetch::RequestError::Source(e) if e.reason == Reason::BadReply)
-        );
+        let expected = if max_body == 16 {
+            Reason::TooLarge
+        } else {
+            Reason::BadReply
+        };
+        assert!(matches!(error, biomcp_fetch::RequestError::Source(e) if e.reason == expected));
     }
     // Arbitrary nested inline content below the bound is accepted.
     let body = format!(

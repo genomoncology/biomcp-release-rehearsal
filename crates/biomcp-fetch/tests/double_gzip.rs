@@ -141,14 +141,14 @@ fn reply_compressed_once_or_not_at_all_still_reads() {
 fn inner_layer_cannot_pass_the_body_limit() {
     let large = format!(r#"{{"answer":"{}"}}"#, "a".repeat(100_000));
     let (result, _) = read(true, gzip(&gzip(large.as_bytes())), 4096);
-    assert_eq!(reason(result), Some(Reason::BadReply));
+    assert_eq!(reason(result), Some(Reason::TooLarge));
 }
 
 #[test]
 fn outer_layer_cannot_pass_the_body_limit() {
     let large = format!(r#"{{"answer":"{}"}}"#, "a".repeat(100_000));
     let (result, _) = read(true, gzip(large.as_bytes()), 4096);
-    assert_eq!(reason(result), Some(Reason::BadReply));
+    assert_eq!(reason(result), Some(Reason::TooLarge));
 }
 
 #[test]

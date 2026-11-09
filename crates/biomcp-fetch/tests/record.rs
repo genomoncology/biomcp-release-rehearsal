@@ -512,8 +512,8 @@ fn cut_binary_body_never_returns_partial_bytes() {
 }
 
 #[test]
-fn bounded_json_overflow_preserves_existing_reader_errors() {
-    bytes::only_bounded_json_reports_typed_overflow();
+fn response_overflow_is_typed_and_preserves_explicit_reader_errors() {
+    bytes::body_overflow_preserves_explicit_reader_reason();
 }
 
 #[test]

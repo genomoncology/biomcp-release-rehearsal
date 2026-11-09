@@ -440,7 +440,7 @@ fn endpoint_json_budget_rejects_oversize_live_replay_and_cached_replies() {
     );
     let live = Fetch::open(config(&path)).unwrap();
     let failure = exchange(&server, 200, body, || get(&live, spec, &narrow, &[]));
-    assert_eq!(source(failure.unwrap_err()).reason, Reason::BadReply);
+    assert_eq!(source(failure.unwrap_err()).reason, Reason::TooLarge);
     let replay = Fetch::open(FetchConfig {
         mode: Mode::Replay { dir: recordings },
         ..FetchConfig::default()
