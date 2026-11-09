@@ -26,6 +26,7 @@ const WINDOW: Duration = Duration::from_secs(5 * 60);
 const ADMITTED: usize = crate::config::DEFAULT_HTTP_CAPACITY * 2 + 1;
 
 type Sample = (f64, bool, Result<(), String>);
+type LoadService = (TcpListener, Arc<Service>, Vec<biomcp_fetch::Fetch>);
 struct Measurements {
     samples: Vec<Sample>,
     syncs: Vec<Result<u64, String>>,
@@ -42,8 +43,18 @@ struct Control {
 #[ignore = "Explicit load measurement; run make hosted-http-load"]
 fn hosted_http_sync_load() -> Result<(), Box<dyn std::error::Error>> {
     let directory = tempfile::tempdir()?;
-    let (listener, service) = load_service(directory.path())?;
-    let initial_rows = sync(&service)?;
+    let (listener, service, writers) = load_service(directory.path())?;
+    let fetch = service
+        .fetch
+        .as_ref()
+        .map_err(|_| io::Error::other("Fetch unavailable"))?;
+    let initial_rows = sync(&service, fetch)?;
+    if initial_rows < PUBLISH_ROWS as u64 {
+        return Err(io::Error::other(format!(
+            "load fixture published {initial_rows} rows, expected at least {PUBLISH_ROWS}"
+        ))
+        .into());
+    }
     let (stop, stopped) = mpsc::sync_channel(1);
     let server_service = service.clone();
     let server = std::thread::spawn(move || {
@@ -56,7 +67,7 @@ fn hosted_http_sync_load() -> Result<(), Box<dyn std::error::Error>> {
         barrier: Barrier::new(CALL_WORKERS + 1),
         started: Instant::now(),
     };
-    let measurements = collect(&service, &control);
+    let measurements = collect(&service, &control, &writers);
     let _ = stop.send(());
     server
         .join()
@@ -64,9 +75,7 @@ fn hosted_http_sync_load() -> Result<(), Box<dyn std::error::Error>> {
     report(&measurements, initial_rows, control.started)?;
     Ok(())
 }
-fn load_service(
-    directory: &Path,
-) -> Result<(TcpListener, Arc<Service>), Box<dyn std::error::Error>> {
+fn load_service(directory: &Path) -> Result<LoadService, Box<dyn std::error::Error>> {
     let records = directory.join("records");
     fixtures(
         &Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/replies/gene/main"),
@@ -81,12 +90,22 @@ fn load_service(
         replay: Some(records.clone()),
         ..Globals::default()
     };
-    let fetch = biomcp_fetch::Fetch::open(biomcp_fetch::FetchConfig {
-        mode: biomcp_fetch::Mode::Replay { dir: records },
-        cache_owners: vec![biomcp_query::store::OWNER],
-        disabled_sources: [biomcp_types::Source::Oncokb].into_iter().collect(),
-        ..Default::default()
-    })?;
+    let cache = biomcp_fetch::ReplayCache::temporary_with_owners(&[biomcp_query::store::OWNER])?;
+    let open = || {
+        biomcp_fetch::Fetch::open(biomcp_fetch::FetchConfig {
+            mode: biomcp_fetch::Mode::Replay {
+                dir: records.clone(),
+            },
+            replay_cache: Some(cache.clone()),
+            cache_owners: vec![biomcp_query::store::OWNER],
+            disabled_sources: [biomcp_types::Source::Oncokb].into_iter().collect(),
+            ..Default::default()
+        })
+    };
+    let fetch = open()?;
+    // A replay Fetch imports each bundle once. Fresh importers share the reader's
+    // isolated store, so every measured sync really publishes another large set.
+    let writers = (0..SYNCS).map(|_| open()).collect::<Result<Vec<_>, _>>()?;
     let listener = TcpListener::bind("127.0.0.1:0")?;
     let address = listener.local_addr()?;
     let service = Arc::new(Service {
@@ -103,11 +122,11 @@ fn load_service(
         fetch: Ok(Arc::new(fetch)),
         recovery: None,
     });
-    Ok((listener, service))
+    Ok((listener, service, writers))
 }
-fn collect(service: &Service, control: &Control) -> Measurements {
+fn collect(service: &Service, control: &Control, writers: &[biomcp_fetch::Fetch]) -> Measurements {
     std::thread::scope(|scope| {
-        let sync = scope.spawn(|| sync_worker(service, control));
+        let sync = scope.spawn(|| sync_worker(service, control, writers));
         let health = scope.spawn(|| health_worker(service, control));
         let workers: Vec<_> = (0..CALL_WORKERS)
             .map(|_| scope.spawn(|| call_worker(service.address, control)))
@@ -116,25 +135,30 @@ fn collect(service: &Service, control: &Control) -> Measurements {
             .into_iter()
             .flat_map(|worker| worker.join().expect("load client stopped"))
             .collect();
+        let syncs = sync.join().expect("sync worker stopped");
         control.running.store(false, Ordering::Release);
         Measurements {
             samples,
-            syncs: sync.join().expect("sync worker stopped"),
+            syncs,
             health: health.join().expect("health worker stopped"),
         }
     })
 }
-fn sync_worker(service: &Service, control: &Control) -> Vec<Result<u64, String>> {
+fn sync_worker(
+    service: &Service,
+    control: &Control,
+    writers: &[biomcp_fetch::Fetch],
+) -> Vec<Result<u64, String>> {
     control.barrier.wait();
     let mut results = Vec::new();
-    while control.running.load(Ordering::Acquire)
-        && results.len() < SYNCS
-        && control.started.elapsed() < WINDOW
-    {
+    for writer in writers {
+        if !control.running.load(Ordering::Acquire) || control.started.elapsed() >= WINDOW {
+            break;
+        }
         control.syncing.store(true, Ordering::Release);
-        results.push(sync(service).map_err(|error| error.to_string()));
+        results.push(publish(service, writer).map_err(|error| error.to_string()));
         control.syncing.store(false, Ordering::Release);
-        // Leave quiet gaps, so the same run measures calls with and without a write.
+        // Leave quiet gaps so health sampling also covers periods between writes.
         std::thread::sleep(SYNC_GAP);
     }
     results
@@ -253,10 +277,9 @@ fn report(measurements: &Measurements, initial_rows: u64, started: Instant) -> i
     let mut output = serde_json::to_vec(&report)?;
     output.push(b'\n');
     crate::output::bytes(&output)?;
-    if initial_rows < PUBLISH_ROWS as u64
-        || measurements.samples.is_empty()
+    if measurements.samples.len() != CALLS
         || !failures.is_empty()
-        || measurements.syncs.is_empty()
+        || measurements.syncs.len() != SYNCS
         || measurements.syncs.iter().any(Result::is_err)
         || measurements.health.is_empty()
         || measurements
@@ -276,11 +299,7 @@ fn spread(elapsed: impl Iterator<Item = f64>) -> Value {
     let p95 = (elapsed.len() * 95).div_ceil(100).saturating_sub(1);
     json!({"count":elapsed.len(),"p95_seconds":elapsed.get(p95),"max_seconds":elapsed.last()})
 }
-fn sync(service: &Service) -> io::Result<u64> {
-    let fetch = service
-        .fetch
-        .as_ref()
-        .map_err(|_| io::Error::other("Fetch unavailable"))?;
+fn sync(service: &Service, fetch: &biomcp_fetch::Fetch) -> io::Result<u64> {
     let outcome = command::execute(
         &service.root,
         &service.settings,
@@ -305,6 +324,28 @@ fn sync(service: &Service) -> io::Result<u64> {
         .and_then(Value::as_u64)
         .filter(|rows| *rows > 0)
         .ok_or_else(|| io::Error::other("sync imported no rows"))
+}
+fn publish(service: &Service, fetch: &biomcp_fetch::Fetch) -> io::Result<u64> {
+    let receipt = || {
+        fetch
+            .cache_access()
+            .and_then(|cache| cache.connect_read_only())
+            .map_err(io::Error::other)?
+            .query_row(
+                "SELECT rowid FROM bundle_content WHERE name='hgnc'",
+                [],
+                |row| row.get::<_, i64>(0),
+            )
+            .map_err(io::Error::other)
+    };
+    let before = receipt()?;
+    let rows = sync(service, fetch)?;
+    if rows < PUBLISH_ROWS as u64 || receipt()? == before {
+        return Err(io::Error::other(
+            "sync did not publish the large HGNC fixture",
+        ));
+    }
+    Ok(rows)
 }
 fn request(address: SocketAddr, body: Option<&str>) -> io::Result<(u16, Value)> {
     let mut socket = TcpStream::connect(address)?;
@@ -354,13 +395,15 @@ fn enlarge(body: &mut Value) {
     let Some(text) = body.as_str().filter(|text| text.starts_with("hgnc_id\t")) else {
         return;
     };
-    let Some((_, row)) = text.trim_end().rsplit_once('\n') else {
+    // Trailing tabs are empty TSV cells, so remove only record terminators.
+    let text = text.trim_end_matches(['\r', '\n']);
+    let Some((_, row)) = text.rsplit_once('\n') else {
         return;
     };
     let mut fields = row.split('\t').collect::<Vec<_>>();
     fields.iter_mut().skip(7).for_each(|field| *field = "");
     let tail = fields[3..].join("\t");
-    let mut enlarged = text.trim_end().to_owned();
+    let mut enlarged = text.to_owned();
     for index in 0..PUBLISH_ROWS {
         enlarged.push_str(&format!(
             "\nHGNC:{}\tLOADGENE{index}\tload gene {index}\t{tail}",
