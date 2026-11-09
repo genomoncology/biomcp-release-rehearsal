@@ -1,0 +1,874 @@
+{
+  "method": "GET",
+  "source": "mychem",
+  "url": "https://mychem.info/v1/query?q=Failed%20product&size=50&from=100&fields=drugbank.name%2Cdrugbank.synonyms%2Cchembl.pref_name%2Cchembl.molecule_type%2Cchembl.molecule_synonyms%2Cdrugcentral.synonyms%2Cgtopdb.name%2Cgtopdb.type%2Cgtopdb.synonyms%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname%2Copenfda.generic_name%2Copenfda.brand_name",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "took": 9,
+          "total": 251,
+          "max_score": 30.0,
+          "hits": [
+            {
+              "_id": "BURIEDPDWAAAAA-UHFFFAOYSA-N",
+              "_score": 29.0,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 100"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 100, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 100"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPDXAAAAA-UHFFFAOYSA-N",
+              "_score": 28.99,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 101"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 101, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 101"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPDYAAAAA-UHFFFAOYSA-N",
+              "_score": 28.98,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 102"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 102, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 102"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPDZAAAAA-UHFFFAOYSA-N",
+              "_score": 28.97,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 103"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 103, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 103"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEAAAAAA-UHFFFAOYSA-N",
+              "_score": 28.96,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 104"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 104, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 104"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEBAAAAA-UHFFFAOYSA-N",
+              "_score": 28.95,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 105"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 105, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 105"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPECAAAAA-UHFFFAOYSA-N",
+              "_score": 28.94,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 106"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 106, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 106"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEDAAAAA-UHFFFAOYSA-N",
+              "_score": 28.93,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 107"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 107, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 107"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEEAAAAA-UHFFFAOYSA-N",
+              "_score": 28.92,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 108"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 108, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 108"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEFAAAAA-UHFFFAOYSA-N",
+              "_score": 28.91,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 109"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 109, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 109"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEGAAAAA-UHFFFAOYSA-N",
+              "_score": 28.9,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 110"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 110, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 110"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEHAAAAA-UHFFFAOYSA-N",
+              "_score": 28.89,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 111"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 111, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 111"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEIAAAAA-UHFFFAOYSA-N",
+              "_score": 28.88,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 112"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 112, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 112"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEJAAAAA-UHFFFAOYSA-N",
+              "_score": 28.87,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 113"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 113, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 113"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEKAAAAA-UHFFFAOYSA-N",
+              "_score": 28.86,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 114"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 114, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 114"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPELAAAAA-UHFFFAOYSA-N",
+              "_score": 28.85,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 115"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 115, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 115"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEMAAAAA-UHFFFAOYSA-N",
+              "_score": 28.84,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 116"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 116, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 116"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPENAAAAA-UHFFFAOYSA-N",
+              "_score": 28.83,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 117"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 117, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 117"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEOAAAAA-UHFFFAOYSA-N",
+              "_score": 28.82,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 118"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 118, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 118"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEPAAAAA-UHFFFAOYSA-N",
+              "_score": 28.81,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 119"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 119, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 119"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEQAAAAA-UHFFFAOYSA-N",
+              "_score": 28.8,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 120"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 120, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 120"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPERAAAAA-UHFFFAOYSA-N",
+              "_score": 28.79,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 121"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 121, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 121"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPESAAAAA-UHFFFAOYSA-N",
+              "_score": 28.78,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 122"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 122, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 122"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPETAAAAA-UHFFFAOYSA-N",
+              "_score": 28.77,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 123"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 123, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 123"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEUAAAAA-UHFFFAOYSA-N",
+              "_score": 28.76,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 124"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 124, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 124"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEVAAAAA-UHFFFAOYSA-N",
+              "_score": 28.75,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 125"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 125, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 125"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEWAAAAA-UHFFFAOYSA-N",
+              "_score": 28.74,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 126"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 126, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 126"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEXAAAAA-UHFFFAOYSA-N",
+              "_score": 28.73,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 127"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 127, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 127"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEYAAAAA-UHFFFAOYSA-N",
+              "_score": 28.72,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 128"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 128, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 128"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPEZAAAAA-UHFFFAOYSA-N",
+              "_score": 28.71,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 129"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 129, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 129"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFAAAAAA-UHFFFAOYSA-N",
+              "_score": 28.7,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 130"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 130, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 130"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFBAAAAA-UHFFFAOYSA-N",
+              "_score": 28.69,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 131"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 131, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 131"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFCAAAAA-UHFFFAOYSA-N",
+              "_score": 28.68,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 132"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 132, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 132"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFDAAAAA-UHFFFAOYSA-N",
+              "_score": 28.67,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 133"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 133, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 133"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFEAAAAA-UHFFFAOYSA-N",
+              "_score": 28.66,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 134"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 134, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 134"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFFAAAAA-UHFFFAOYSA-N",
+              "_score": 28.65,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 135"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 135, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 135"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFGAAAAA-UHFFFAOYSA-N",
+              "_score": 28.64,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 136"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 136, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 136"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFHAAAAA-UHFFFAOYSA-N",
+              "_score": 28.63,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 137"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 137, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 137"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFIAAAAA-UHFFFAOYSA-N",
+              "_score": 28.62,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 138"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 138, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 138"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFJAAAAA-UHFFFAOYSA-N",
+              "_score": 28.61,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 139"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 139, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 139"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFKAAAAA-UHFFFAOYSA-N",
+              "_score": 28.6,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 140"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 140, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 140"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFLAAAAA-UHFFFAOYSA-N",
+              "_score": 28.59,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 141"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 141, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 141"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFMAAAAA-UHFFFAOYSA-N",
+              "_score": 28.58,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 142"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 142, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 142"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFNAAAAA-UHFFFAOYSA-N",
+              "_score": 28.57,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 143"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 143, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 143"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFOAAAAA-UHFFFAOYSA-N",
+              "_score": 28.56,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 144"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 144, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 144"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFPAAAAA-UHFFFAOYSA-N",
+              "_score": 28.55,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 145"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 145, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 145"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFQAAAAA-UHFFFAOYSA-N",
+              "_score": 28.54,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 146"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 146, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 146"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFRAAAAA-UHFFFAOYSA-N",
+              "_score": 28.53,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 147"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 147, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 147"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFSAAAAA-UHFFFAOYSA-N",
+              "_score": 28.52,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 148"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 148, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 148"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFTAAAAA-UHFFFAOYSA-N",
+              "_score": 28.51,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 149"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 149, Failed product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Failed product plus 149"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

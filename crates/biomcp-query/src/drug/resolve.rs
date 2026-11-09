@@ -69,7 +69,7 @@ pub(super) fn get(cx: &Ctx<'_>, query: &DrugGet) -> Outcome {
     };
     let out = super::selected_get(&within(cx, deadline.remaining()), &resolved);
     let mut out = chosen_name(query, rank.0, &candidates, discovery, out);
-    if unsettled {
+    if unsettled && out.status() == biomcp_types::Status::Complete {
         // A product-only answer, while later matches may hold the drug itself.
         status::item(&mut out, true, false, true);
     }

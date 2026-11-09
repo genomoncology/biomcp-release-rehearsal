@@ -1,6 +1,6 @@
 {
   "feature": "drug-name-get",
-  "story": "MyChem free text can rank a drug's exact name behind looser matches and product-only records, so a name get reads further pages until one holds a drug record of that name, answers with the drug before any product-only record, and says how far it read when a page cap stops it first.",
+  "story": "MyChem free text can rank a drug's exact name behind looser matches and product-only records, so a name get reads further pages until one holds a drug record of that name, answers with the drug before any product-only record, and says how far it read when a page cap stops it first. A capped product-only match stays partial only when its record fetch succeeds; record failures stay failed, and an exhausted product-only match is complete.",
   "live_check": "Synthetic names in real MyChem reply shapes; no live provider observation.",
   "replay": "drug/name-get-pages",
   "steps": [
@@ -66,6 +66,58 @@
         "/status": "failed",
         "/sources/0/source": "mychem",
         "/sources/0/notices/0/message": "Read the first 250 of 1000 matches without a drug record of that exact name; later matches were not examined."
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Capped product",
+        "--source",
+        "mychem"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "partial",
+        "/sources/0/source": "mychem",
+        "/result/header/id": "CAPPEDPRODUCTA-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1,
+        "/sources/0/notices/0/message": "Read the first 250 of 251 matches without a drug record of that exact name; later matches were not examined."
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Failed product",
+        "--source",
+        "mychem"
+      ],
+      "exit": 4,
+      "expect": {
+        "/status": "failed",
+        "/sources/0/source": "mychem",
+        "/sources/0/notices/0/message": "Read the first 250 of 251 matches without a drug record of that exact name; later matches were not examined.",
+        "/sources/0/state": "failed"
+      },
+      "max_bytes": 9000
+    },
+    {
+      "run": [
+        "get",
+        "drug",
+        "Known product",
+        "--source",
+        "mychem"
+      ],
+      "exit": 0,
+      "expect": {
+        "/status": "complete",
+        "/sources/0/source": "mychem",
+        "/result/header/id": "KNOWNPRODUCTAA-UHFFFAOYSA-N",
+        "/result/header/name_resolution/total": 1
       },
       "max_bytes": 9000
     }

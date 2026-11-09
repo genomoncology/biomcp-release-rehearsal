@@ -1,0 +1,874 @@
+{
+  "method": "GET",
+  "source": "mychem",
+  "url": "https://mychem.info/v1/query?q=Capped%20product&size=50&from=150&fields=drugbank.name%2Cdrugbank.synonyms%2Cchembl.pref_name%2Cchembl.molecule_type%2Cchembl.molecule_synonyms%2Cdrugcentral.synonyms%2Cgtopdb.name%2Cgtopdb.type%2Cgtopdb.synonyms%2Cunii.display_name%2Cunii.ingredient_type%2Cndc.producttypename%2Cndc.nonproprietaryname%2Cndc.proprietaryname%2Copenfda.generic_name%2Copenfda.brand_name",
+  "exchanges": [
+    {
+      "fetched": 1793329799,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "took": 9,
+          "total": 251,
+          "max_score": 30.0,
+          "hits": [
+            {
+              "_id": "BURIEDPFUAAAAA-UHFFFAOYSA-N",
+              "_score": 28.5,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 150"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 150, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 150"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFVAAAAA-UHFFFAOYSA-N",
+              "_score": 28.49,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 151"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 151, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 151"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFWAAAAA-UHFFFAOYSA-N",
+              "_score": 28.48,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 152"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 152, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 152"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFXAAAAA-UHFFFAOYSA-N",
+              "_score": 28.47,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 153"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 153, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 153"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFYAAAAA-UHFFFAOYSA-N",
+              "_score": 28.46,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 154"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 154, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 154"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPFZAAAAA-UHFFFAOYSA-N",
+              "_score": 28.45,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 155"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 155, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 155"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGAAAAAA-UHFFFAOYSA-N",
+              "_score": 28.44,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 156"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 156, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 156"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGBAAAAA-UHFFFAOYSA-N",
+              "_score": 28.43,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 157"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 157, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 157"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGCAAAAA-UHFFFAOYSA-N",
+              "_score": 28.42,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 158"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 158, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 158"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGDAAAAA-UHFFFAOYSA-N",
+              "_score": 28.41,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 159"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 159, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 159"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGEAAAAA-UHFFFAOYSA-N",
+              "_score": 28.4,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 160"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 160, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 160"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGFAAAAA-UHFFFAOYSA-N",
+              "_score": 28.39,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 161"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 161, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 161"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGGAAAAA-UHFFFAOYSA-N",
+              "_score": 28.38,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 162"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 162, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 162"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGHAAAAA-UHFFFAOYSA-N",
+              "_score": 28.37,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 163"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 163, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 163"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGIAAAAA-UHFFFAOYSA-N",
+              "_score": 28.36,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 164"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 164, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 164"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGJAAAAA-UHFFFAOYSA-N",
+              "_score": 28.35,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 165"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 165, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 165"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGKAAAAA-UHFFFAOYSA-N",
+              "_score": 28.34,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 166"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 166, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 166"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGLAAAAA-UHFFFAOYSA-N",
+              "_score": 28.33,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 167"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 167, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 167"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGMAAAAA-UHFFFAOYSA-N",
+              "_score": 28.32,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 168"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 168, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 168"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGNAAAAA-UHFFFAOYSA-N",
+              "_score": 28.31,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 169"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 169, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 169"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGOAAAAA-UHFFFAOYSA-N",
+              "_score": 28.3,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 170"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 170, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 170"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGPAAAAA-UHFFFAOYSA-N",
+              "_score": 28.29,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 171"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 171, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 171"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGQAAAAA-UHFFFAOYSA-N",
+              "_score": 28.28,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 172"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 172, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 172"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGRAAAAA-UHFFFAOYSA-N",
+              "_score": 28.27,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 173"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 173, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 173"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGSAAAAA-UHFFFAOYSA-N",
+              "_score": 28.26,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 174"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 174, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 174"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGTAAAAA-UHFFFAOYSA-N",
+              "_score": 28.25,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 175"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 175, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 175"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGUAAAAA-UHFFFAOYSA-N",
+              "_score": 28.24,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 176"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 176, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 176"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGVAAAAA-UHFFFAOYSA-N",
+              "_score": 28.23,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 177"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 177, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 177"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGWAAAAA-UHFFFAOYSA-N",
+              "_score": 28.22,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 178"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 178, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 178"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGXAAAAA-UHFFFAOYSA-N",
+              "_score": 28.21,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 179"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 179, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 179"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGYAAAAA-UHFFFAOYSA-N",
+              "_score": 28.2,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 180"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 180, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 180"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPGZAAAAA-UHFFFAOYSA-N",
+              "_score": 28.19,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 181"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 181, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 181"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHAAAAAA-UHFFFAOYSA-N",
+              "_score": 28.18,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 182"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 182, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 182"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHBAAAAA-UHFFFAOYSA-N",
+              "_score": 28.17,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 183"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 183, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 183"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHCAAAAA-UHFFFAOYSA-N",
+              "_score": 28.16,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 184"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 184, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 184"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHDAAAAA-UHFFFAOYSA-N",
+              "_score": 28.15,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 185"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 185, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 185"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHEAAAAA-UHFFFAOYSA-N",
+              "_score": 28.14,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 186"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 186, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 186"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHFAAAAA-UHFFFAOYSA-N",
+              "_score": 28.13,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 187"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 187, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 187"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHGAAAAA-UHFFFAOYSA-N",
+              "_score": 28.12,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 188"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 188, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 188"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHHAAAAA-UHFFFAOYSA-N",
+              "_score": 28.11,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 189"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 189, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 189"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHIAAAAA-UHFFFAOYSA-N",
+              "_score": 28.1,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 190"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 190, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 190"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHJAAAAA-UHFFFAOYSA-N",
+              "_score": 28.09,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 191"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 191, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 191"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHKAAAAA-UHFFFAOYSA-N",
+              "_score": 28.08,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 192"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 192, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 192"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHLAAAAA-UHFFFAOYSA-N",
+              "_score": 28.07,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 193"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 193, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 193"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHMAAAAA-UHFFFAOYSA-N",
+              "_score": 28.06,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 194"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 194, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 194"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHNAAAAA-UHFFFAOYSA-N",
+              "_score": 28.05,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 195"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 195, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 195"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHOAAAAA-UHFFFAOYSA-N",
+              "_score": 28.04,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 196"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 196, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 196"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHPAAAAA-UHFFFAOYSA-N",
+              "_score": 28.03,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 197"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 197, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 197"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHQAAAAA-UHFFFAOYSA-N",
+              "_score": 28.02,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 198"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 198, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 198"
+                }
+              ]
+            },
+            {
+              "_id": "BURIEDPHRAAAAA-UHFFFAOYSA-N",
+              "_score": 28.01,
+              "chembl": {
+                "_license": "http://bit.ly/2KAUCAm",
+                "molecule_type": "Small molecule",
+                "pref_name": "Partner 199"
+              },
+              "ndc": [
+                {
+                  "_license": "https://www.fda.gov/AboutFDA/AboutThisWebsite/WebsitePolicies/default.htm#linking",
+                  "nonproprietaryname": "Partner 199, Capped product",
+                  "producttypename": "HUMAN OTC DRUG",
+                  "proprietaryname": "Capped product plus 199"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
