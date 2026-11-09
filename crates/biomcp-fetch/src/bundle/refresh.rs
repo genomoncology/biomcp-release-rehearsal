@@ -26,13 +26,18 @@ impl Leg<'_> {
                 join(bundle.name, worker);
             }
         }
-        let mut fetch = self.fetch.clone();
+        let mut fetch = match self.fetch.with_cancellation(&owner.cancellation) {
+            Ok(fetch) => fetch,
+            Err(error) => {
+                diagnostic(bundle.name, error);
+                return;
+            }
+        };
         // Keep caller policy, shared quotas and store, without retaining the
         // owner from its own thread or inheriting a completed call's sockets.
         fetch.background_refresh = None;
-        fetch.agents = owner.agents.clone();
-        fetch.cancelled = None;
         fetch.call_end = None;
+        let cancellation = owner.cancellation.clone();
         let (spec, name, path, format, fresh) = (
             bundle.spec,
             bundle.name,
@@ -63,7 +68,9 @@ impl Leg<'_> {
                     }
                     leg.sync_bundle(&bundle, true)?.published(&leg).map(|_| ())
                 });
-                if let Err(error) = result {
+                if let Err(error) = result
+                    && !cancellation.is_cancelled()
+                {
                     diagnostic(name, error);
                 }
             });
@@ -82,6 +89,7 @@ fn join(name: &str, worker: JoinHandle<()>) {
 }
 impl Drop for BundleRefresh {
     fn drop(&mut self) {
+        self.cancellation.cancel();
         let running = self.running.get_mut().unwrap_or_else(|e| e.into_inner());
         for (name, worker) in std::mem::take(running) {
             join(name, worker);

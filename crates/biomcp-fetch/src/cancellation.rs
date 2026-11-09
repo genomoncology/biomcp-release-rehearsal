@@ -28,7 +28,7 @@ impl Cancellation {
         clippy::disallowed_types,
         reason = "One command registers only its live isolated connection owners"
     )]
-    fn new(end: Option<std::time::Instant>) -> Self {
+    pub(crate) fn new(end: Option<std::time::Instant>) -> Self {
         Self {
             agents: Arc::new(Mutex::new(Vec::new())),
             cancelled: Arc::new(AtomicBool::new(false)),
@@ -42,12 +42,15 @@ impl Cancellation {
     }
     /// Return the wall-clock budget left, independent of any replay clock.
     pub fn remaining(&self) -> std::time::Duration {
-        if self.cancelled.load(Ordering::Acquire) {
+        if self.is_cancelled() {
             return std::time::Duration::ZERO;
         }
         self.end.map_or(std::time::Duration::MAX, |end| {
             end.saturating_duration_since(std::time::Instant::now())
         })
+    }
+    pub(crate) fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::Acquire)
     }
     /// Interrupt active socket work and prevent further requests in this command.
     pub fn cancel(&self) {

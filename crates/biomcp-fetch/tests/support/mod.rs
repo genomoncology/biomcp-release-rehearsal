@@ -68,6 +68,9 @@ pub(super) struct Server<T = ()> {
 }
 impl<T: Default + Send + 'static> Server<T> {
     pub(super) fn new() -> Self {
+        Self::with_reply_timeout(Duration::from_secs(10))
+    }
+    pub(super) fn with_reply_timeout(reply_timeout: Duration) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let base = Box::leak(format!("http://{}", listener.local_addr().unwrap()).into_boxed_str());
         let (sent, requests) = mpsc::channel();
@@ -125,7 +128,7 @@ impl<T: Default + Send + 'static> Server<T> {
                     break;
                 }
                 handlers.push(thread::spawn(move || {
-                    if let Ok(response) = receive.recv_timeout(Duration::from_secs(10)) {
+                    if let Ok(response) = receive.recv_timeout(reply_timeout) {
                         let _ = stream.write_all(&response.bytes);
                         if let Some(continuation) = response.continuation
                             && let Ok(bytes) = continuation.recv_timeout(Duration::from_secs(10))

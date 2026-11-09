@@ -206,7 +206,7 @@ pub struct Fetch {
     reason = "The server owns and joins at most one refresh worker per declared bundle"
 )]
 struct BundleRefresh {
-    agents: std::sync::Arc<network::Agents>,
+    cancellation: Cancellation,
     running:
         std::sync::Mutex<std::collections::BTreeMap<&'static str, std::thread::JoinHandle<()>>>,
 }
@@ -228,7 +228,7 @@ impl Fetch {
     pub fn with_background_refresh(mut self) -> Self {
         if self.background_refresh.is_none() {
             self.background_refresh = Some(std::sync::Arc::new(BundleRefresh {
-                agents: self.agents.clone(),
+                cancellation: Cancellation::new(None),
                 running: std::sync::Mutex::new(std::collections::BTreeMap::new()),
             }));
         }

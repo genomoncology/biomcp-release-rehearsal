@@ -1,6 +1,7 @@
 # 0781 — cancel-owned-bundle-refresh-on-shutdown
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: f41e667683c1012cfb2c4401053ffcf848262e08
 
 Milestone: 5
 
