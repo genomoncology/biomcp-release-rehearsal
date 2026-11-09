@@ -216,17 +216,28 @@ fn settings(env: &Environment, default: &[Value]) -> Result<(), String> {
     )?;
     report(&enabled)?;
     for tool in enabled {
-        if field(&tool, "name").as_str() == Some("disease")
-            && !tool
-                .pointer("/outputSchema/anyOf/0/properties/schema/enum")
-                .and_then(Value::as_array)
-                .is_some_and(|ids| {
-                    ids.contains(&json!(
-                        <biomcp_types::DiseaseSites as biomcp_types::ResponseBody>::SCHEMA
-                    ))
-                })
-        {
-            return Err("disease output schema omits site disambiguation".into());
+        for (name, id) in [
+            (
+                "disease",
+                <biomcp_types::DiseaseSites as biomcp_types::ResponseBody>::SCHEMA,
+            ),
+            (
+                "cell_line",
+                <biomcp_types::CellLinePage as biomcp_types::ResponseBody>::SCHEMA,
+            ),
+            (
+                "cell_line",
+                <biomcp_types::CellLineFilteredPage as biomcp_types::ResponseBody>::SCHEMA,
+            ),
+        ] {
+            if field(&tool, "name").as_str() == Some(name)
+                && !tool
+                    .pointer("/outputSchema/anyOf/0/properties/schema/enum")
+                    .and_then(Value::as_array)
+                    .is_some_and(|ids| ids.contains(&json!(id)))
+            {
+                return Err(format!("{name} output schema omits {id}"));
+            }
         }
         if matches!(
             field(&tool, "name").as_str(),

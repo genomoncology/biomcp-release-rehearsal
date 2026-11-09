@@ -38,7 +38,10 @@ pub(super) fn write(
         else {
             continue;
         };
-        let mut titles = BTreeSet::from([title.trim_end_matches("Command").to_owned()]);
+        let mut titles = BTreeSet::from([
+            title.to_owned(),
+            title.trim_end_matches("Command").to_owned(),
+        ]);
         if let Some(aliases) = schema["x-reply-query-titles"].as_array() {
             titles.extend(aliases.iter().filter_map(Value::as_str).map(str::to_owned));
         }

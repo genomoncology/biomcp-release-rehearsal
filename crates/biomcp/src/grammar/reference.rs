@@ -318,3 +318,22 @@ fn every_rendered_flag_retains_its_schema_or_parser_description() -> Check {
     }
     Ok(())
 }
+
+#[test]
+fn filtered_cell_line_search_discovery_keeps_both_reply_forms() -> Check {
+    use biomcp_types::{CellLineFilteredPage, CellLinePage, ResponseBody};
+    let root = super::root().map_err(|_| "command grammar unavailable")?;
+    let help = crate::help::reference(&root)?;
+    let command = help
+        .commands
+        .iter()
+        .find(|command| command.command == ["search", "cell-line"])
+        .ok_or("cell-line search command")?;
+    for id in [CellLinePage::SCHEMA, CellLineFilteredPage::SCHEMA] {
+        assert!(
+            command.reply_schemas.iter().any(|reply| reply == id),
+            "complete help omits {id} for cell-line search"
+        );
+    }
+    Ok(())
+}
