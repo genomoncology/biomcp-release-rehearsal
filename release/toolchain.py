@@ -29,6 +29,13 @@ def check():
             raise ValueError('toolchain.json runtime package requires a version')
     if not re.fullmatch(r'\d{8}T\d{6}Z', pins['debian-snapshot']):
         raise ValueError('toolchain.json debian-snapshot requires a dated snapshot')
+    zlib = pins['runtime-zlib']
+    if (not re.fullmatch(r'\d{8}T\d{6}Z', zlib['snapshot'])
+            or zlib['suite'] != 'trixie-security'
+            or not re.fullmatch(r'zlib1g=[a-zA-Z0-9+:.~_-]+', zlib['package'])
+            or set(zlib['sha256']) != {'amd64', 'arm64'}
+            or any(not re.fullmatch(r'[0-9a-f]{64}', digest) for digest in zlib['sha256'].values())):
+        raise ValueError('toolchain.json runtime-zlib requires a signed dated source, exact package and architecture digests')
     for digest in pins['rustup-sha256'].values():
         if not re.fullmatch(r'[0-9a-f]{64}', digest):
             raise ValueError('toolchain.json rustup requires a sha256 digest')
@@ -50,16 +57,22 @@ def check():
             raise ValueError(name + ' duplicates an image pin')
         if name.endswith('.sh') and ('toolchain.py image runtime' not in text
                 or 'toolchain.py get runtime-packages' not in text
-                or 'toolchain.py get debian-snapshot' not in text):
+                or 'toolchain.py get debian-snapshot' not in text
+                or 'toolchain.py get runtime-zlib.sha256.' not in text):
             raise ValueError(name + ' must consume runtime pins')
     dockerfile = (ROOT / 'release/Dockerfile').read_text()
     if ('FROM ${runtime_image}' not in dockerfile
             or '--no-install-recommends ${runtime_packages}' not in dockerfile
             or 'snapshot.debian.org/archive/debian/${debian_snapshot}/ bookworm main' not in dockerfile
-            or re.search(r'^ARG (?:runtime_image|runtime_packages|debian_snapshot)=', dockerfile, re.M)):
+            or re.search(r'^ARG (?:runtime_image|runtime_packages|debian_snapshot|runtime_zlib_[a-z0-9_]+)=', dockerfile, re.M)
+            or 'apt-get download "${runtime_zlib_package}"' not in dockerfile
+            or 'sha256sum -c -' not in dockerfile
+            or 'dpkg -i "$1"' not in dockerfile):
         raise ValueError('Dockerfile must consume runtime pins without defaults')
-    if re.findall(r'[a-z+]+://[^\s"]+', dockerfile) != ['http://snapshot.debian.org/archive/debian/${debian_snapshot}/']:
-        raise ValueError('Dockerfile must install only from the dated snapshot')
+    if re.findall(r'[a-z+]+://[^\s"]+', dockerfile) != [
+            'http://snapshot.debian.org/archive/debian/${debian_snapshot}/',
+            'http://snapshot.debian.org/archive/debian-security/${runtime_zlib_snapshot}/']:
+        raise ValueError('Dockerfile must install only from the dated snapshots')
     if re.search(r'trusted|insecure|unauthenticated', dockerfile, re.I):
         raise ValueError('Dockerfile must keep apt signature checks')
     scanner = (ROOT / 'release/secrets.py').read_text()
@@ -143,7 +156,9 @@ def main():
     args = parser.parse_args()
     pins = manifest()
     if args.command == 'get':
-        value = pins[args.key]
+        value = pins
+        for key in args.key.split('.'):
+            value = value[key]
         print(' '.join(value) if isinstance(value, list) else value)
     elif args.command == 'image':
         print(pins['images'][args.key])

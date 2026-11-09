@@ -87,7 +87,11 @@ stage container-recipe cp "$tooling_source/release/Dockerfile" container/Dockerf
 image="biomcp-candidate:$arch"
 stage container-build docker build --build-arg "runtime_image=$(python3 release/toolchain.py image runtime)" \
   --build-arg "runtime_packages=$(python3 release/toolchain.py get runtime-packages)" \
-  --build-arg "debian_snapshot=$(python3 release/toolchain.py get debian-snapshot)" --platform "linux/$arch" -t "$image" container
+  --build-arg "debian_snapshot=$(python3 release/toolchain.py get debian-snapshot)" \
+    --build-arg "runtime_zlib_snapshot=$(python3 release/toolchain.py get runtime-zlib.snapshot)" \
+    --build-arg "runtime_zlib_suite=$(python3 release/toolchain.py get runtime-zlib.suite)" \
+    --build-arg "runtime_zlib_package=$(python3 release/toolchain.py get runtime-zlib.package)" \
+    --build-arg "runtime_zlib_sha256=$(python3 release/toolchain.py get runtime-zlib.sha256.$arch)" --platform "linux/$arch" -t "$image" container
 version=$(python3 -c 'import json; print(json.load(open("dist/release.json"))["version"])') || version=unknown
 stage container-check python3 "$tooling_source/release/container_check.py" "$image" "$arch" container "$version" "$@"
 stage container-save docker save "$image" -o "dist/biomcp-container-$arch.tar"

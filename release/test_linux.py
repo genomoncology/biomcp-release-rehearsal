@@ -104,8 +104,18 @@ if '/bin/bash' in args:
         assert not pathlib.Path(container).exists()
 elif '/usr/bin/sha256sum' in args:
     print(hashlib.sha256(b'candidate').hexdigest(), '/usr/local/bin/biomcp')
+elif '/usr/bin/dpkg-query' in args:
+    defect = os.environ.get('PROOF_DEFECT')
+    if defect == 'zlib-missing':
+        sys.exit(1)
+    pin = json.loads(pathlib.Path('release/toolchain.json').read_text())['runtime-zlib']
+    print('old-version' if defect == 'zlib-old' else pin['package'].split('=', 1)[1])
 elif '/bin/cat' in args:
-    sys.stdout.buffer.write(pathlib.Path('container', pathlib.Path(args[-1]).name).read_bytes())
+    if args[-1].endswith('runtime-zlib.sha256'):
+        pin = json.loads(pathlib.Path('release/toolchain.json').read_text())['runtime-zlib']
+        print('wrong-digest' if os.environ.get('PROOF_DEFECT') == 'zlib-digest' else pin['sha256']['amd64'])
+    else:
+        sys.stdout.buffer.write(pathlib.Path('container', pathlib.Path(args[-1]).name).read_bytes())
 elif args[-2] == 'schema':
     print(json.dumps({'$id': args[-1]}))
 elif args[-1] == 'help':
@@ -159,7 +169,10 @@ class LinuxContainers(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
                 diagnostic = {'zero': 'container runner did not execute any proof',
                               'extra-filter': 'installed runner did not report the complete declared selection',
-                              'missing': 'container proof count differs from declared selection'}[defect]
+                              'missing': 'container proof count differs from declared selection',
+                              'zlib-old': 'container zlib version differs',
+                              'zlib-missing': 'zlib1g',
+                              'zlib-digest': 'container zlib archive digest differs'}[defect]
                 self.assertIn(diagnostic, result.stdout + result.stderr)
                 return None
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -191,14 +204,17 @@ class LinuxContainers(unittest.TestCase):
                  '--user=0:0', '--env=HOME=/root']
         baseline = self.run_release([])
         supplied = self.run_release(extra)
-        self.assertEqual(len(baseline), 14)
+        self.assertEqual(len(baseline), 16)
         self.assertEqual(len(supplied), len(baseline))
-        self.assertEqual(sum(row[0] == 'run' for row in baseline), 11)
+        self.assertEqual(sum(row[0] == 'run' for row in baseline), 13)
         pins = json.loads((ROOT / 'release/toolchain.json').read_text())
         build, = [row for row in baseline if row[0] == 'build']
         self.assertIn('runtime_image=' + pins['images']['runtime'], build)
         self.assertIn('runtime_packages=' + ' '.join(pins['runtime-packages']), build)
         self.assertIn('debian_snapshot=' + pins['debian-snapshot'], build)
+        for name in ('snapshot', 'suite', 'package'):
+            self.assertIn('runtime_zlib_' + name + '=' + pins['runtime-zlib'][name], build)
+        self.assertIn('runtime_zlib_sha256=' + pins['runtime-zlib']['sha256']['amd64'], build)
         for plain, labeled in zip(baseline, supplied):
             with self.subTest(command=plain):
                 self.assertNotIn('--label', plain)
@@ -212,10 +228,16 @@ class LinuxContainers(unittest.TestCase):
                                         '<revision>' if arg.startswith('BIOMCP_BUILD_REVISION=') else arg
                                         for arg in row]
                 self.assertEqual(normalize(labeled), normalize(plain))
-        self.assertEqual([row[-1] for row in baseline[3:12]],
-                         ['/usr/local/bin/biomcp', '/usr/share/doc/biomcp/LICENSE',
+        self.assertEqual([row[-1] for row in baseline[3:14]],
+                         ['/usr/local/bin/biomcp', 'zlib1g', '/usr/share/doc/biomcp/runtime-zlib.sha256',
+                          '/usr/share/doc/biomcp/LICENSE',
                           '/usr/share/doc/biomcp/THIRD-PARTY-NOTICES.txt', SCHEMA_ID, 'help', 'serve',
                           '--proof-metadata', '2', '2'])
+
+    def test_container_rejects_old_missing_or_wrong_digest_zlib(self):
+        for defect in ('zlib-old', 'zlib-missing', 'zlib-digest'):
+            with self.subTest(defect=defect):
+                self.run_release([], defect)
 
     def test_container_rejects_zero_missing_or_extra_filtered_proofs(self):
         for defect in ('zero', 'missing', 'extra-filter'):

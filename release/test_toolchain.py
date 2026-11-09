@@ -60,6 +60,11 @@ if sys.argv[1:] == ['machete', '--version']:
                 ('release/matrix.sh', lambda s: s.replace('toolchain.py get debian-snapshot', 'toolchain.py get unpinned-snapshot')),
                 ('release/toolchain.json', lambda s: s.replace('"debian-snapshot": "20261101T000000Z"', '"debian-snapshot": "latest"')),
                 ('release/Dockerfile', lambda s: s.replace('ARG debian_snapshot', 'ARG debian_snapshot=20261101T000000Z')),
+                ('release/Dockerfile', lambda s: s.replace('ARG runtime_zlib_sha256', 'ARG runtime_zlib_sha256=' + '0' * 64)),
+                ('release/Dockerfile', lambda s: s.replace('sha256sum -c -', 'true')),
+                ('release/Dockerfile', lambda s: s.replace('apt-get download "${runtime_zlib_package}"', 'apt-get install -y zlib1g')),
+                ('release/toolchain.json', lambda s: s.replace('"trixie-security"', '"trixie"')),
+
                 ('release/Dockerfile', lambda s: s.replace('snapshot.debian.org/archive/debian/${debian_snapshot}/', 'deb.debian.org/debian/')),
                 ('release/Dockerfile', lambda s: s.replace('RUN rm -f', 'RUN echo "deb http://deb.debian.org/debian bookworm main" >> /etc/apt/sources.list; rm -f')),
                 ('release/Dockerfile', lambda s: s.replace('> /etc/apt/sources.list', '> /etc/apt/sources.list && echo "deb https://ftp.debian.org/debian bookworm main" >> /etc/apt/sources.list')),

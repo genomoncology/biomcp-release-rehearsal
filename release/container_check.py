@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 
+from toolchain import manifest
 from smoke import SCHEMA_ID, case_suite, mcp_probe, require
 
 RUNNER_SETUP = ('mkdir /tmp/check && '
@@ -20,7 +21,14 @@ def main():
     common = ["docker", "run", "--rm", "--memory", "2g", "--cpus", "2", "--platform", "linux/" + arch] + extra_args
     checksum = subprocess.check_output(common + ["--entrypoint", "/usr/bin/sha256sum", image, "/usr/local/bin/biomcp"], text=True).split()[0]
     require(checksum == hashlib.sha256((Path(proof) / "biomcp").read_bytes()).hexdigest(), "container binary differs from the candidate")
-    checks = ["candidate-bytes"]
+    pin = manifest()['runtime-zlib']
+    installed = subprocess.check_output(common + ['--entrypoint', '/usr/bin/dpkg-query', image,
+                                                 '-W', '-f=${Version}', 'zlib1g'], text=True).strip()
+    require(installed == pin['package'].split('=', 1)[1], 'container zlib version differs from the fixed pin')
+    receipt = subprocess.check_output(common + ['--entrypoint', '/bin/cat', image,
+                                               '/usr/share/doc/biomcp/runtime-zlib.sha256'], text=True).strip()
+    require(receipt == pin['sha256'][arch], 'container zlib archive digest differs from the fixed pin')
+    checks = ["candidate-bytes", "runtime-zlib"]
     for name in ('LICENSE', 'THIRD-PARTY-NOTICES.txt'):
         contents = subprocess.check_output(common + ['--entrypoint', '/bin/cat', image,
                                                     '/usr/share/doc/biomcp/' + name])
@@ -53,6 +61,7 @@ def main():
     summary = case_suite(executable, os.environ.copy(), Path.cwd(), Path(proof) / "fixtures")
     checks.append("all-cases-and-trials")
     print(json.dumps({"artifact": "docker", "platform": "linux/" + arch, "result": "pass", "checks": checks,
+                      "runtime_zlib": {"package": pin["package"], "archive_sha256": receipt},
                       "proofs": {"ran": proofs["trials"], "excluded": exclusions,
                                  "excluded_count": len(exclusions)}, **summary}))
 
