@@ -8,6 +8,12 @@ Robustness and public-text fixes come first, because the parity run, the docs an
 
 ## Stages
 
+### Final review corrections before publication
+
+Fix the November 9 review findings before selecting the final release source: preserve selected-record failure status in capped MyChem name lookup, cancel server-owned bundle downloads on shutdown, let health honor the existing command/source budgets, and report confirmed response overflow as too large. Correct the stdio maintenance documentation and reconcile the site ticket around refresh before the cut and landing in the release session.
+
+Land these independent fixes in one reviewed batch. Then select the resulting source once and refresh the affected release qualification, history preparation, documentation binding and hosted image pin from that source. Earlier packets remain evidence for their original source; never relabel their artifacts as the new build. The old hosting proposal must not be deployed as the final source after these changes. The two minor cache follow-ups belong after 1.0 as milestone 6.
+
 ### 1. Close milestone 4 and harden the server
 
 - Finish the native concurrency diagnosis (0287).

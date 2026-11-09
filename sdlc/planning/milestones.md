@@ -44,6 +44,14 @@ Serves: users move from 0.9 to 1.0 without losing an answer they rely on.
 
 Done when: the parity run shows every asserted fact that 0.9 gets right is also right in 1.0, every documented command runs against recordings with a zero exit, and Ian approves the release. The last step replaces the BioMCP repository's history with this repository's history, keeping its stars and release history.
 
+## 6. Post-1.0 correctness follow-ups
+
+Delivers: narrow-reader cache preservation and a truthful offline diagnostic for expired negative knowledge.
+
+Serves: Ian's November 9 review, which explicitly allows these two minor fixes after release. They do not hold the 1.0 cut.
+
+Done when: a narrow reader cannot delete a valid cached answer usable by a wider reader, and offline replies distinguish expired absence knowledge from no cached answer without treating stale absence as current fact. Break into implementation after 1.0 publication; the owning cache tests already expose both behaviors.
+
 ## Later, unordered
 
 Each waits for a consumer or for Ian. None has tickets.
