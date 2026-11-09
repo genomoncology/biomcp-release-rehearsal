@@ -137,19 +137,26 @@ fn ownership_accepts_initialization_committed_between_metadata_and_table_reads()
     let path = dir.path().join("shared.sqlite");
     let writer = Connection::open(&path).unwrap();
     writer.pragma_update(None, "journal_mode", "WAL").unwrap();
-    let reader = Connection::open(&path).unwrap();
+    let mut reader = Connection::open(&path).unwrap();
     INITIALIZATION.with(|state| {
         *state.borrow_mut() = Some(Initialization {
             writer,
             result: None,
         });
     });
-    reader.trace_v2(
-        rusqlite::trace::TraceEventCodes::SQLITE_TRACE_STMT,
-        Some(initialize_between_owner_reads),
-    );
+    reader
+        .trace_v2(
+            rusqlite::trace::TraceEventCodes::SQLITE_TRACE_STMT,
+            Some(initialize_between_owner_reads),
+        )
+        .expect("install ownership initialization trace");
     let result = biomcp_fetch::check_owners(&reader, &[CHECKED_OWNER]);
-    reader.trace_v2(rusqlite::trace::TraceEventCodes::empty(), None);
+    reader
+        .trace_v2(
+            rusqlite::trace::TraceEventCodes::empty(),
+            None::<fn(rusqlite::trace::TraceEvent<'_>)>,
+        )
+        .expect("remove ownership initialization trace");
     INITIALIZATION.with(|state| {
         let initialization = state.borrow_mut().take().unwrap();
         initialization.result.unwrap().unwrap();
