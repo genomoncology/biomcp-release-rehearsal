@@ -98,8 +98,10 @@ gh workflow run recover-section.yml --repo genomoncology/biomcp-release-rehearsa
 
 | Section | Command | Host and inputs |
 | --- | --- | --- |
-| Full isolated installed cleanup smoke | `python3 scripts/installed_smoke_section.py "$NATIVE" "$PROOF" "$EVIDENCE/installed-smoke" --candidate "$MAIN_REVISION"` | Native Linux x86_64; retained matching product, runners and fixtures; new output directory; no compilation in this section |
+| Full isolated installed cleanup smoke | `python3 scripts/installed_smoke_section.py "$NATIVE" "$PROOF" "$EVIDENCE/installed-smoke" --candidate "$MAIN_REVISION"` | Native Linux or macOS matching the artifacts and runners; retained matching product, runners and fixtures; new output directory; no compilation in this section |
 | Pinned public 0.9 installer | `python3 release/published.py legacy-installer --version "$VERSION" --revision "$MAIN_REVISION" --artifacts "$NATIVE"` | Native Unix host matching the archive, with curl; optional `--installer-script` supplies the exact pinned cached public script |
+
+The installed cleanup helper runs the success and failure cleanup assertions in `release/test_smoke.py` on Linux and macOS. Its supplementary descendant observations read Linux `/proc`; macOS records no Linux process observations. Both hosts retain source and runner bindings, temporary-root removal, and the job-owned sentinel checks. See `scripts/installed_smoke_section.py` (`identities`, `observe` and `main`) and `release/test_smoke.py` (`test_isolated_installed_commands_and_cleanup`).
 
 The legacy helper verifies the pinned 0.9.3 installer bytes and redirects only its exact archive and checksum requests to the existing loopback server. It publishes nothing and uses no source API.
 
