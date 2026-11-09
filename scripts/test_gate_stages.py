@@ -209,8 +209,12 @@ class GateStages(unittest.TestCase):
             def screen(expected):
                 result = subprocess.run([sys.executable, str(ROOT / 'release/secrets.py'), 'history', str(checkout)],
                                         cwd=ROOT, env=env, capture_output=True, text=True)
-                self.assertEqual(result.returncode, expected, 'fixture history scan changed')
+                # Check for the value first, so a failure message can never carry it.
+                # stdout holds only file and rule names; stderr only the fixed
+                # category, stage and artifact label of a screening error.
                 self.assertNotIn(token, result.stdout + result.stderr)
+                self.assertEqual(result.returncode, expected,
+                                 'fixture history scan changed: ' + result.stdout + result.stderr)
                 return result
             scope(True)
             self.assertEqual(git(checkout, 'rev-parse', '--is-shallow-repository'), 'false')

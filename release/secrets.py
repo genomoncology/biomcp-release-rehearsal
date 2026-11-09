@@ -3,6 +3,7 @@
 import argparse
 import gzip
 import hashlib
+import http.client
 import io
 import json
 import lzma
@@ -14,6 +15,7 @@ import stat
 import subprocess
 import tarfile
 import tempfile
+import time
 import urllib.request
 import zipfile
 
@@ -29,6 +31,24 @@ SCANNER = manifest()["gitleaks"]
 VERSION = SCANNER["version"]
 ARCHIVES = {tuple(key.split("/")): value for key, value in SCANNER["archives"].items()}
 
+DOWNLOAD_ATTEMPTS = 3
+DOWNLOAD_TIMEOUT_SECONDS = 120
+DOWNLOAD_RETRY_SECONDS = 5
+DOWNLOAD_BUDGET_SECONDS = (DOWNLOAD_ATTEMPTS * DOWNLOAD_TIMEOUT_SECONDS
+                           + DOWNLOAD_RETRY_SECONDS * sum(range(DOWNLOAD_ATTEMPTS)))
+
+
+def download(url):
+    # A fresh hosted runner fetches the pinned scanner once. Retry only transport
+    # and HTTP failures; the caller still checks the digest of what arrives.
+    for attempt in range(DOWNLOAD_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(url, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response:
+                return response.read()
+        except (OSError, http.client.HTTPException):
+            if attempt + 1 == DOWNLOAD_ATTEMPTS:
+                raise
+            time.sleep(DOWNLOAD_RETRY_SECONDS * (attempt + 1))
 
 
 def scanner(cache, scratch):
@@ -38,8 +58,7 @@ def scanner(cache, scratch):
     archive = cache / name
     if not archive.exists():
         url = "https://github.com/gitleaks/gitleaks/releases/download/v" + VERSION + "/" + name
-        with urllib.request.urlopen(url, timeout=120) as response:
-            payload = response.read()
+        payload = download(url)
         if hashlib.sha256(payload).hexdigest() != digest:
             raise ValueError("scanner download checksum mismatch")
         # Atomic replacement also permits concurrent gates using the same cache.
@@ -348,7 +367,8 @@ def findings(report, mapping, staging):
 
 
 ERRORS = (OSError, ValueError, KeyError, subprocess.SubprocessError,
-          tarfile.TarError, zipfile.BadZipFile, lzma.LZMAError, RuntimeError, EOFError, TypeError)
+          tarfile.TarError, zipfile.BadZipFile, lzma.LZMAError, RuntimeError, EOFError, TypeError,
+          http.client.HTTPException)
 
 
 class ScreeningError(Exception):

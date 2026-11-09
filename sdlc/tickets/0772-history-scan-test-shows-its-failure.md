@@ -1,6 +1,7 @@
 # 0772 — History scan test shows its failure
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 1b6f0f6d6c7f5860ca972e20a7457d2e1b082a17
 
 Milestone: 5
 

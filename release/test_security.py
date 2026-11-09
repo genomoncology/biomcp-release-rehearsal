@@ -2,12 +2,14 @@
 import io
 import gzip
 import hashlib
+import http.client
 import lzma
 import json
 import os
 import random
 import re
 from pathlib import Path
+from release import secrets as secret_scan
 from release.smoke import environment
 import secrets
 import shutil
@@ -21,6 +23,8 @@ from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+# A cold scanner download may exhaust its retries before the scan itself starts.
+SCREENING_TIMEOUT_SECONDS = secret_scan.DOWNLOAD_BUDGET_SECONDS + 180
 
 
 def synthetic_credential(seed, length, prefix=""):
@@ -36,6 +40,49 @@ def github_token():
 
 
 class Screening(unittest.TestCase):
+    def test_scanner_download_recovers_transport_errors(self):
+        payload = b"scanner archive"
+        with patch("release.secrets.urllib.request.urlopen", side_effect=[
+                OSError("private transport diagnostic"),
+                http.client.IncompleteRead(b"private partial response"), io.BytesIO(payload)]) as opened, patch(
+                    "release.secrets.time.sleep") as wait:
+            self.assertEqual(secret_scan.download("https://example.invalid/scanner"), payload)
+        self.assertEqual(opened.call_count, 3)
+        self.assertEqual([call.args[0] for call in wait.call_args_list], [5, 10])
+
+    def test_scanner_download_retries_fit_parent_guard(self):
+        elapsed = 0
+        def failed(url, *, timeout):
+            nonlocal elapsed
+            elapsed += timeout
+            raise TimeoutError("private transport diagnostic")
+        def wait(seconds):
+            nonlocal elapsed
+            elapsed += seconds
+        with patch("release.secrets.urllib.request.urlopen", side_effect=failed), patch(
+                "release.secrets.time.sleep", side_effect=wait), self.assertRaises(TimeoutError):
+            secret_scan.download("https://example.invalid/scanner")
+        self.assertLess(elapsed, SCREENING_TIMEOUT_SECONDS,
+                        "parent guard must allow every download attempt and the scan")
+
+    def test_scanner_retry_exhaustion_and_checksum_failure_are_safe(self):
+        from contextlib import redirect_stderr
+        for transport, category, attempts in [
+                (http.client.HTTPException("private transport diagnostic"), "preparation", 3),
+                (io.BytesIO(b"wrong scanner archive"), "validation", 1)]:
+            with self.subTest(category=category), tempfile.TemporaryDirectory() as temporary:
+                target = Path(temporary)
+                opened_args = {"side_effect": transport} if isinstance(transport, Exception) else {"return_value": transport}
+                output = io.StringIO()
+                with patch("release.secrets.urllib.request.urlopen", **opened_args) as opened, patch(
+                        "release.secrets.time.sleep"), redirect_stderr(output), self.assertRaises(SystemExit) as stopped:
+                    secret_scan.main(["artifacts", str(target), "--cache", str(target / "cache")])
+                self.assertEqual(stopped.exception.code, 2)
+                self.assertEqual(opened.call_count, attempts)
+                self.assertEqual(json.loads(output.getvalue()), {
+                    "category": category, "stage": "scanner-preparation", "artifact": "scan-target"})
+                self.assertEqual(list((target / "cache").iterdir()), [])
+
     def test_alphagenome_public_literals_pass_but_fresh_credentials_fail(self):
         # Reconstruct only the two reviewed public source literals, in the
         # adjacency observed in the staged binary; never retain a matched value.
@@ -58,7 +105,7 @@ class Screening(unittest.TestCase):
                     [sys.executable, str(ROOT / "release/secrets.py"), "artifacts", str(artifacts),
                      "--cache", str(ROOT / "target/security-tools")],
                     cwd=ROOT, env={**environment(root), "PATH": os.defpath},
-                    capture_output=True, text=True, timeout=180)
+                    capture_output=True, text=True, timeout=SCREENING_TIMEOUT_SECONDS)
                 print("AlphaGenome public-literal screening exit=" + str(result.returncode)
                       + " expected=" + str(expected))
                 self.assertEqual(result.returncode, expected, "artifact screening boundary changed")
@@ -315,7 +362,7 @@ class Screening(unittest.TestCase):
                 archive.add(inner, arcname="layer/payload.whl")
             for mode, target in [("history", repo), ("artifacts", artifacts)]:
                 result = subprocess.run([sys.executable, str(ROOT / "release/secrets.py"), mode, str(target)],
-                                        cwd=ROOT, env=env, capture_output=True, text=True, timeout=180)
+                                        cwd=ROOT, env=env, capture_output=True, text=True, timeout=SCREENING_TIMEOUT_SECONDS)
                 self.assertEqual(result.returncode, 1, "planted fixture must fail secret screening")
                 self.assertTrue(token not in result.stdout + result.stderr, "scanner disclosed matched text")
                 self.assertTrue("access_token =" not in result.stdout + result.stderr, "scanner disclosed a source line")
