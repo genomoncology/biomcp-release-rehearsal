@@ -258,11 +258,19 @@ class MutationCommands(unittest.TestCase):
             report['caught'] + report['survivors'] + report['unviable'] + report['timeouts']))
         calls = [json.loads(line) for line in (self.root / 'cargo-calls.jsonl').read_text().splitlines()]
         run = next(row for row in calls if '--shard' in row['args'])
-        for argument in ('--test=cases', '--test=cache', '--locked',
-                         '--package=biomcp', '--package=biomcp-fetch'):
-            self.assertIn('--cargo-arg=' + argument, run['args'])
-        self.assertEqual([run['args'][i + 1] for i, arg in enumerate(run['args'])
-                          if arg == '--test-package'], ['biomcp', 'biomcp-fetch'])
+        native_calls = [row['args'] for row in calls
+                        if '--list' in row['args'] or '--shard' in row['args']]
+        self.assertEqual(len(native_calls), 3)  # Planning, shard discovery and execution.
+        for args in native_calls:
+            self.assertEqual([args[i + 1] for i, arg in enumerate(args)
+                              if arg == '--test-package'],
+                             ['biomcp', 'biomcp-fetch', 'biomcp-query'])
+            self.assertEqual([arg.removeprefix('--cargo-arg=') for arg in args
+                              if arg.startswith('--cargo-arg=')],
+                             ['--locked', '--test=cases', '--test=cache', '--test=bundle',
+                              '--test=transport', '--test=double_gzip', '--test=xml',
+                              '--test=record', '--test=health', '--package=biomcp',
+                              '--package=biomcp-fetch', '--package=biomcp-query'])
         self.assertEqual(run['args'][run['args'].index('--baseline') + 1], 'run')
         self.assertEqual((run['build'], run['tests']), ('2', '2'))
         self.assertEqual(run['revision'], value['candidate'])

@@ -97,9 +97,14 @@ def native_args():
     equivalent = (r'^crates/biomcp-fetch/src/cache\.rs:76:47: replace \| with \^ '
                   r'in Cache::owned_connection$')
     return ['cargo', 'mutants', '--no-shuffle', '--test-package', 'biomcp',
-            '--test-package', 'biomcp-fetch', '--exclude-re', equivalent,
+            '--test-package', 'biomcp-fetch', '--test-package', 'biomcp-query',
+            '--exclude-re', equivalent,
             '--cargo-arg=--locked', '--cargo-arg=--test=cases', '--cargo-arg=--test=cache',
-            '--cargo-arg=--package=biomcp', '--cargo-arg=--package=biomcp-fetch']
+            '--cargo-arg=--test=bundle', '--cargo-arg=--test=transport',
+            '--cargo-arg=--test=double_gzip', '--cargo-arg=--test=xml',
+            '--cargo-arg=--test=record', '--cargo-arg=--test=health',
+            '--cargo-arg=--package=biomcp', '--cargo-arg=--package=biomcp-fetch',
+            '--cargo-arg=--package=biomcp-query']
 
 
 def tool_version(deadline, log, extra_env=None):

@@ -300,6 +300,10 @@ const ALLOWED: &[(&str, &str)] = &[
         "Exercise transport ownership, local server behavior and cache/record failures through its public API.",
     ),
     (
+        "crates/biomcp-fetch/tests/bundle/shutdown.rs",
+        "Cancel and join server-owned bundle work while preserving caller cancellation independence and published rows through the public Fetch API.",
+    ),
+    (
         "crates/biomcp-fetch/tests/cache.rs",
         "Exercise transport ownership, local server behavior and cache/record failures through its public API.",
     ),
@@ -410,6 +414,10 @@ const ALLOWED: &[(&str, &str)] = &[
     (
         "crates/biomcp-query/tests/gene_resolution.rs",
         "Mutate isolated cache freshness and preserve a local bundle failure under an API-only short command deadline.",
+    ),
+    (
+        "crates/biomcp-query/tests/health.rs",
+        "Exercise command and per-source probe deadlines and failure diagnostics through the public health API with deterministic replay time.",
     ),
     (
         "crates/biomcp/tests/ratchets.rs",
