@@ -1,6 +1,7 @@
 # 0771 — Installed suite limit allows runner slowdown
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 83c9ce837cfe3b85900263136e40c4ae81702c3b
 
 Milestone: 5
 

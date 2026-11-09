@@ -26,8 +26,17 @@ def configured_timeout_seconds(name, default):
     return value
 
 
-# Later channels retain the first channel’s 15% margin, with startup headroom.
+# Later channels get a fixed multiple of the first channel's time, because a shared
+# runner can slow down between channels. The ceiling still stops a hung suite, and
+# the floor gives a fast first sample startup headroom.
 SUITE_TIMEOUT_FLOOR_SECONDS = configured_timeout_seconds("BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS", "60")
+SUITE_TIMEOUT_MULTIPLE = configured_timeout_seconds("BIOMCP_SUITE_TIMEOUT_MULTIPLE", "3")
+SUITE_TIMEOUT_CEILING_SECONDS = configured_timeout_seconds("BIOMCP_SUITE_TIMEOUT_CEILING_SECONDS", "2400")
+
+
+def later_suite_timeout(elapsed):
+    """Limit for a later channel's suite, from the first channel's elapsed seconds."""
+    return max(SUITE_TIMEOUT_FLOOR_SECONDS, min(elapsed * SUITE_TIMEOUT_MULTIPLE, SUITE_TIMEOUT_CEILING_SECONDS))
 
 
 def phase(name):
@@ -160,8 +169,12 @@ def smoke(binary, runner, fixtures, version, server_args=("serve",), timeout=Non
 
 def case_suite(command, env, root, fixtures, timeout=None, expected_filtered=None):
     started = time.monotonic()
-    result = subprocess.run(command + ["--test-threads", "2"], env=env, cwd=root,
-                            capture_output=True, text=True, timeout=timeout)
+    try:
+        result = subprocess.run(command + ["--test-threads", "2"], env=env, cwd=root,
+                                capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise ValueError(f"installed cases did not finish within the {timeout:.0f} second limit "
+                         "set from the first channel") from None
     elapsed = time.monotonic() - started
     print(result.stdout, end="", flush=True)
     require(result.returncode == 0, "installed cases failed: " + result.stdout + result.stderr)
@@ -173,7 +186,7 @@ def case_suite(command, env, root, fixtures, timeout=None, expected_filtered=Non
         require(int(counts.group(1)) > 0, "container runner did not execute any proof")
     return {"cases": sum(1 for path in (fixtures / "cases").rglob("*") if path.suffix in (".yaml", ".yml")),
             "trials": int(counts.group(1)) + int(counts.group(3)),
-            "elapsed_seconds": elapsed, "timeout_seconds": max(SUITE_TIMEOUT_FLOOR_SECONDS, elapsed * 1.15)}
+            "elapsed_seconds": elapsed, "timeout_seconds": later_suite_timeout(elapsed)}
 
 
 def mcp_probe(command, env, root, version, call_args=None):

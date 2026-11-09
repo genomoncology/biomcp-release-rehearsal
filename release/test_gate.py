@@ -65,6 +65,8 @@ class TimeoutConfiguration(unittest.TestCase):
     def test_configured_guards_require_positive_finite_seconds(self):
         for module, variable, constant in [
             ('release.smoke', 'BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS', 'SUITE_TIMEOUT_FLOOR_SECONDS'),
+            ('release.smoke', 'BIOMCP_SUITE_TIMEOUT_MULTIPLE', 'SUITE_TIMEOUT_MULTIPLE'),
+            ('release.smoke', 'BIOMCP_SUITE_TIMEOUT_CEILING_SECONDS', 'SUITE_TIMEOUT_CEILING_SECONDS'),
             ('release.test_smoke', 'BIOMCP_INSTALLED_SMOKE_HANG_GUARD_SECONDS', 'INSTALLED_SMOKE_HANG_GUARD_SECONDS'),
         ]:
             script = f'from {module} import {constant}; assert {constant} == 0.1'
@@ -82,32 +84,48 @@ class TimeoutConfiguration(unittest.TestCase):
 
 @unittest.skipIf(os.name == 'nt', 'synthetic executables use POSIX shebangs')
 class InstalledCli(unittest.TestCase):
-    def test_suite_timeout_floor_retains_margin_and_rejects_real_overrun(self):
+    def test_suite_limit_allows_runner_slowdown(self):
+        from unittest.mock import patch
+        from release.smoke import case_suite, later_suite_timeout
+        summary = 'test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch('release.smoke.SUITE_TIMEOUT_FLOOR_SECONDS', 60), patch(
+                    'release.smoke.SUITE_TIMEOUT_MULTIPLE', 3), patch(
+                    'release.smoke.SUITE_TIMEOUT_CEILING_SECONDS', 2400):
+                self.assertEqual(later_suite_timeout(0), 60)
+                self.assertEqual(later_suite_timeout(400), 1200)
+                self.assertEqual(later_suite_timeout(2000), 2400)
+                for elapsed, limit in [(400, None), (640, 1200)]:
+                    def complete(command, *, timeout, **kwargs):
+                        if timeout is not None and elapsed > timeout:
+                            raise subprocess.TimeoutExpired(command, timeout)
+                        return subprocess.CompletedProcess(command, 0, summary, '')
+                    with patch('release.smoke.subprocess.run', side_effect=complete) as run, patch(
+                            'release.smoke.time.monotonic', side_effect=[0, elapsed]):
+                        completed = case_suite(['runner'], None, root, root, limit)
+                    self.assertEqual(completed['elapsed_seconds'], elapsed)
+                    run.assert_called_once_with(['runner', '--test-threads', '2'], env=None,
+                                                cwd=root, capture_output=True, text=True, timeout=limit)
+
+    def test_suite_limit_stops_real_hung_child(self):
         script = """
 from pathlib import Path
-import subprocess, sys
-from release.smoke import case_suite, SUITE_TIMEOUT_FLOOR_SECONDS
+import sys
+from release.smoke import case_suite
 root = Path(sys.argv[1])
-command = [sys.executable, '-c', 'print("test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out")']
-first = case_suite(command, None, root, root)
-assert first['timeout_seconds'] == max(SUITE_TIMEOUT_FLOOR_SECONDS, first['elapsed_seconds'] * 1.15)
-if SUITE_TIMEOUT_FLOOR_SECONDS == 60:
-    assert first['timeout_seconds'] == 60
+try:
+    case_suite([sys.executable, '-c', 'import threading; threading.Event().wait()'],
+               None, root, root, 0.1)
+except ValueError as error:
+    assert 'did not finish within the' in str(error), error
 else:
-    assert first['timeout_seconds'] >= SUITE_TIMEOUT_FLOOR_SECONDS
-    try:
-        case_suite([sys.executable, '-c', 'import time; time.sleep(60)'], None, root, root, first['timeout_seconds'])
-    except subprocess.TimeoutExpired:
-        pass
-    else:
-        raise AssertionError('real suite overrun passed')
+    raise AssertionError('hung suite passed')
 """
         with tempfile.TemporaryDirectory() as directory:
-            for floor in ('60', '0.1'):
-                env = dict(os.environ, BIOMCP_SUITE_TIMEOUT_FLOOR_SECONDS=floor)
-                result = subprocess.run([sys.executable, '-c', script, directory], env=env,
-                                        capture_output=True, text=True, timeout=15)
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            result = subprocess.run([sys.executable, '-c', script, directory],
+                                    capture_output=True, text=True, timeout=60)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_archive_bootstrap_preserves_tooling_and_product_identity(self):
         source_root = Path(__file__).resolve().parents[1]

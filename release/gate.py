@@ -154,7 +154,7 @@ def installed(args):
         completed = smoke(binary, executable, fixtures, record["version"], server_args, suite_timeout,
                           python=args.python)
         if suite_timeout is None:
-            # The first channel reports its measured margin with the absolute floor.
+            # The first channel's time sets every later channel's limit.
             suite_timeout = completed["timeout_seconds"]
         if declared_tools is not None and sorted(completed["tools"]) != sorted(declared_tools):
             raise ValueError("desktop manifest tools differ from installed server")

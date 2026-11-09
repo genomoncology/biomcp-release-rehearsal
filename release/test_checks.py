@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 
 from release import secrets as history_scan
-from release.smoke import SCHEMA_ID, SUITE_TIMEOUT_FLOOR_SECONDS, environment
+from release.smoke import SCHEMA_ID, environment, later_suite_timeout
 
 
 class ReviewedPublicHistory(unittest.TestCase):
@@ -186,8 +186,7 @@ else:
                              "ordinary-cache-created", "runner-proofs", "all-cases-and-trials"])
             self.assertEqual(completed["tools"], ["biomcp"])
             self.assertEqual(completed["trials"], 2)
-            self.assertEqual(completed["timeout_seconds"],
-                             max(SUITE_TIMEOUT_FLOOR_SECONDS, completed["elapsed_seconds"] * 1.15))
+            self.assertEqual(completed["timeout_seconds"], later_suite_timeout(completed["elapsed_seconds"]))
             tool.unlink()
             missing = subprocess.run([sys.executable, "-O", "-c", script, str(binary), str(runner), str(root), "1"],
                                      capture_output=True, text=True, timeout=30)
