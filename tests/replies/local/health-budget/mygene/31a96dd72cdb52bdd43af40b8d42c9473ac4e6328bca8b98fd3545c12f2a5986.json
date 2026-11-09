@@ -1,0 +1,17 @@
+{
+  "method": "GET",
+  "source": "mygene",
+  "url": "https://mygene.info/v3/metadata",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 4000,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {}
+      }
+    }
+  ]
+}

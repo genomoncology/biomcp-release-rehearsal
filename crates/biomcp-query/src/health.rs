@@ -5,8 +5,7 @@ use biomcp_adapters::registry;
 use biomcp_fetch::{Fetch, KeyUse, RequestError};
 use biomcp_types::{Health, Reason, SourceHealth, SourceStatus};
 use std::time::Duration;
-const PROBE_BUDGET: Duration = Duration::from_secs(3);
-/// Probe every implemented source with one shared command deadline and short source caps.
+/// Probe every implemented source within the shared command and ordinary source deadlines.
 pub fn run(fetch: &Fetch, budget: Duration) -> Result<Health, RequestError> {
     let deadline = fetch.deadline(budget);
     let store = fetch.store_size(deadline)?;
@@ -23,7 +22,7 @@ pub fn run(fetch: &Fetch, budget: Duration) -> Result<Health, RequestError> {
                             KeyUse::None | KeyUse::Optional(_) | KeyUse::Required(_) => None,
                         }
                     };
-                    let leg = fetch.leg(spec, deadline.child(PROBE_BUDGET)).fresh(true);
+                    let leg = fetch.leg(spec, deadline).fresh(true);
                     let bundle = if skip.is_none() {
                         registry::bundle_state(spec, &leg)?
                     } else {

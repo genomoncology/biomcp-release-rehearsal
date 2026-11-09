@@ -63,6 +63,9 @@ pub(super) fn cached(args: &[&str], case: &Path, recording: Option<&Path>) -> Ve
 pub(super) fn trials() -> Vec<Trial> {
     // These inspect files and SQLite ownership before mutation; JSON replies cannot show those side effects.
     vec![
+        transcript_trial("source-controls/health-honors-command-timeout", || {
+            health_budget().map_err(Into::into)
+        }),
         transcript_trial(
             "gene-identity/persistent-case-cache-owns-all-writes",
             || ownership().map_err(Into::into),
@@ -75,6 +78,45 @@ pub(super) fn trials() -> Vec<Trial> {
             || article_owners().map_err(Into::into),
         ),
     ]
+}
+
+fn health_budget() -> Result<(), String> {
+    let recordings = crate::runner::launch::fixtures().join("replies/local/health-budget");
+    let disabled: Vec<_> = biomcp_adapters::registry::sources()
+        .map(|spec| spec.source)
+        .filter(|source| *source != biomcp_types::Source::MyGene)
+        .map(|source| source.to_string())
+        .collect();
+    for (seconds, state, reason, latency) in [
+        (2, "failed", Some("deadline-exceeded"), 2_000),
+        (20, "ok", None, 4_000),
+    ] {
+        let env = Environment::new().map_err(|e| e.to_string())?;
+        env.config(&json!({"command_timeout_seconds":seconds,"disable_sources":disabled}))
+            .map_err(|e| e.to_string())?;
+        let reply = invoke(
+            &env,
+            cached(&["health"], &env.root().join("case"), Some(&recordings)),
+            0,
+        )?;
+        let sources = reply
+            .pointer("/result/sources")
+            .and_then(Value::as_array)
+            .ok_or("health sources missing")?;
+        let observed = sources
+            .iter()
+            .find(|row| row.get("source") == Some(&json!("mygene")))
+            .ok_or("MyGene health missing")?;
+        if observed.get("state") != Some(&json!(state))
+            || observed.get("reason").and_then(Value::as_str) != reason
+            || observed.get("latency_ms") != Some(&json!(latency))
+        {
+            return Err(format!(
+                "health ignored {seconds}s command timeout: {observed}"
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn ownership() -> Result<(), String> {

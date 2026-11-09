@@ -12,8 +12,12 @@ pub(super) fn clean(fetch: &biomcp_fetch::Fetch, encoding: Encoding) -> io::Resu
     }
 }
 
-pub(super) fn health(fetch: &biomcp_fetch::Fetch, encoding: Encoding) -> io::Result<Outcome> {
-    match biomcp_query::health::run(fetch, crate::config::BUDGET) {
+pub(super) fn health(
+    fetch: &biomcp_fetch::Fetch,
+    budget: std::time::Duration,
+    encoding: Encoding,
+) -> io::Result<Outcome> {
+    match biomcp_query::health::run(fetch, budget) {
         Ok(result) => encoding.encode(
             Envelope::new(Status::Complete, biomcp_types::EmptyQuery {}, Some(result)),
             crate::exit::Status::Success,

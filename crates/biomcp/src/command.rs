@@ -201,7 +201,7 @@ pub(crate) fn execute(
             )
         }
         Action::StoreClean => maintenance::clean(fetch, encoding),
-        Action::Health => maintenance::health(fetch, encoding),
+        Action::Health => maintenance::health(fetch, crate::config::budget(settings), encoding),
         Action::KeyHelp(source) => key_help(source, encoding),
         Action::Sync { bundle } => sync::run(fetch, bundle, encoding),
         Action::Run { request, fresh } => {
