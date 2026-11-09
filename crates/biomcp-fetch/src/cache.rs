@@ -119,9 +119,7 @@ impl Cache {
         })?;
         step("initialize", &mut connection, deadline, Self::initialize)?;
         // Ownership is validated before changing the file's journal mode.
-        step("wal", &mut connection, deadline, |connection| {
-            enable_wal(connection)
-        })?;
+        retry_wal(&connection, deadline, || enable_wal(&connection, deadline))?;
         Ok(Self(
             Mutex::new(connection),
             path.with_extension("parts"),
@@ -366,11 +364,39 @@ fn step(
     result
 }
 
-fn enable_wal(connection: &Connection) -> Result<(), CacheError> {
+// WAL upgrades may return Busy without invoking SQLite's busy handler.
+// Only this idempotent operation may be repeated, under the shared open deadline.
+fn retry_wal(
+    connection: &Connection,
+    deadline: Deadline<'_>,
+    mut operation: impl FnMut() -> Result<(), CacheError>,
+) -> Result<(), CacheError> {
+    let started = std::time::Instant::now();
+    let mut attempts = 0_u32;
+    loop {
+        let result = sql_deadline(connection, deadline).and_then(|()| {
+            attempts = attempts.saturating_add(1);
+            operation()
+        });
+        match result {
+            Err(CacheError::Busy) if !deadline.expired() => {
+                std::thread::park_timeout(Duration::from_millis(1).min(deadline.remaining()));
+            }
+            Err(CacheError::Busy) => {
+                crate::observe::record_open_failure("wal", attempts.saturating_sub(1), started);
+                return Err(CacheError::Busy);
+            }
+            result => return result,
+        }
+    }
+}
+
+fn enable_wal(connection: &Connection, deadline: Deadline<'_>) -> Result<(), CacheError> {
     let journal: String = connection
         .pragma_query_value(None, "journal_mode", |row| row.get(0))
         .map_err(|error| db_error(error))?;
     if !journal.eq_ignore_ascii_case("wal") {
+        sql_deadline(connection, deadline)?;
         connection
             .pragma_update(None, "journal_mode", "WAL")
             .map_err(|error| db_error(error))?;

@@ -4,6 +4,8 @@ use std::{fs::File, io::Write, path::Path};
 /// Internal proof-owned destination; it must already exist and is never created here.
 pub const SQLITE_DIAGNOSTICS: &str = "BIOMCP_SQLITE_DIAGNOSTICS";
 const MAX_BYTES: u64 = 4096;
+// Repeated Busy coordinates must leave room for the final bounded-open summary.
+const FAILURE_RESERVE_BYTES: u64 = 256;
 
 pub(crate) fn append(path: &Path, operation: &str, error: &rusqlite::Error) {
     let Ok(mut file) = File::options().append(true).open(path) else {
@@ -19,7 +21,7 @@ pub(crate) fn append(path: &Path, operation: &str, error: &rusqlite::Error) {
         return;
     };
     bytes.push(b'\n');
-    if metadata.len().saturating_add(bytes.len() as u64) <= MAX_BYTES {
+    if metadata.len().saturating_add(bytes.len() as u64) <= MAX_BYTES - FAILURE_RESERVE_BYTES {
         // Match the existing opt-in observation sink: reporting cannot replace a result.
         let _ = file.write_all(&bytes);
     }
