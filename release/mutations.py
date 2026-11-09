@@ -93,8 +93,13 @@ def execute(command, deadline, log, extra_env=None):
 
 
 def native_args():
+    # READ_WRITE and URI have disjoint bits: OR and XOR produce identical flags.
+    equivalent = (r'^crates/biomcp-fetch/src/cache\.rs:76:47: replace \| with \^ '
+                  r'in Cache::owned_connection$')
     return ['cargo', 'mutants', '--no-shuffle', '--test-package', 'biomcp',
-            '--cargo-arg=--locked', '--cargo-arg=--test=cases', '--cargo-arg=--package=biomcp']
+            '--test-package', 'biomcp-fetch', '--exclude-re', equivalent,
+            '--cargo-arg=--locked', '--cargo-arg=--test=cases', '--cargo-arg=--test=cache',
+            '--cargo-arg=--package=biomcp', '--cargo-arg=--package=biomcp-fetch']
 
 
 def tool_version(deadline, log, extra_env=None):

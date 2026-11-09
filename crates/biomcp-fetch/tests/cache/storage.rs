@@ -256,6 +256,66 @@ fn every_cached_read_obeys_current_reply_type_body_limit_and_sql_contract() {
 }
 
 #[test]
+#[cfg(unix)]
+fn missing_cache_parent_is_a_filesystem_error() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("missing/cache.sqlite");
+    assert!(matches!(
+        Fetch::open(config(&path)),
+        Err(FetchError::Cache(CacheError::Filesystem))
+    ));
+    assert!(!path.exists());
+}
+
+#[test]
+fn corrupt_cached_status_and_pagination_are_evicted_before_offline_reads() {
+    for (status, body, pagination, expected) in [
+        (500, r#"{"answer":true}"#, None, Reason::Offline),
+        (404, r#"{"answer":true}"#, None, Reason::Offline),
+        (
+            200,
+            r#"{"answer":true}"#,
+            Some(r#"{"total":1,"next":""}"#),
+            Reason::Offline,
+        ),
+        (404, "", None, Reason::NotFound),
+    ] {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("cache.sqlite");
+        let server = Server::new();
+        let spec = spec(&server, KeyUse::None);
+        let endpoint = spec.get("/answer").fresh(Freshness::Hours(1));
+        let fetch = Fetch::open(config(&path)).unwrap();
+        exchange(&server, 200, r#"{"answer":true}"#, || {
+            get(&fetch, spec, &endpoint, &[])
+        })
+        .unwrap();
+        drop(fetch);
+        let connection = Connection::open(&path).unwrap();
+        connection
+            .execute(
+                "UPDATE reply SET status=?1,body=?2,pagination=?3",
+                rusqlite::params![status, body.as_bytes(), pagination],
+            )
+            .unwrap();
+        let offline = Fetch::open(FetchConfig {
+            mode: Mode::Offline,
+            ..config(&path)
+        })
+        .unwrap();
+        assert_eq!(
+            source(get(&offline, spec, &endpoint, &[]).unwrap_err()).reason,
+            expected
+        );
+        let rows: u32 = connection
+            .query_row("SELECT count(*) FROM reply", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(rows, u32::from(expected == Reason::NotFound));
+        assert!(server.requests.try_recv().is_err());
+    }
+}
+
+#[test]
 fn ownership_is_checked_before_any_schema_or_journal_change() {
     let directory = tempfile::tempdir().unwrap();
     for (name, sql) in [
@@ -404,6 +464,19 @@ fn ordinary_reply_write_prunes_expired_rows_and_retains_fresh_rows() {
         (x'01','pubmed','https://example.test/old',200,x'7b7d',0,0),(x'02','pubmed','https://example.test/live',200,x'7b7d',0,9223372036854775807);",
     )
     .unwrap();
+    // Both are expired: keep the 29-day row, prune the 31-day row.
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    for (key, days) in [(3_u8, 29), (4, 31)] {
+        cx.execute(
+            "INSERT INTO reply(key,source,url,status,body,fetched_at,fresh_until) VALUES \
+            (?1,'pubmed','https://example.test/expired',200,x'7b7d',0,?2)",
+            rusqlite::params![vec![key], now - days * 24 * 60 * 60],
+        )
+        .unwrap();
+    }
     let endpoint = spec.get("/answer").fresh(Freshness::Hours(1));
     exchange(&server, 200, r#"{"answer":true}"#, || {
         get(&fetch, spec, &endpoint, &[])
@@ -416,7 +489,9 @@ fn ordinary_reply_write_prunes_expired_rows_and_retains_fresh_rows() {
         .unwrap()
         .collect::<Result<_, _>>()
         .unwrap();
-    assert_eq!(keys.len(), 2);
+    assert_eq!(keys.len(), 3);
     assert!(keys.contains(&vec![2]));
     assert!(!keys.contains(&vec![1]));
+    assert!(keys.contains(&vec![3]));
+    assert!(!keys.contains(&vec![4]));
 }

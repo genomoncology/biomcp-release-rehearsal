@@ -26,6 +26,8 @@ if '--version' in args:
 if args[0] == 'install':
     sys.exit(0)
 names = json.loads(pathlib.Path('native-inventory.json').read_text())
+if '--exclude-re' in args:
+    names = [row for row in names if not re.search(args[args.index('--exclude-re') + 1], row['name'])]
 selected = ([row for row in names if re.search(args[args.index('--re') + 1], row['name'])]
             if '--re' in args else names)
 if '--list' in args:
@@ -256,12 +258,29 @@ class MutationCommands(unittest.TestCase):
             report['caught'] + report['survivors'] + report['unviable'] + report['timeouts']))
         calls = [json.loads(line) for line in (self.root / 'cargo-calls.jsonl').read_text().splitlines()]
         run = next(row for row in calls if '--shard' in row['args'])
-        for argument in ('--test=cases', '--locked', '--package=biomcp'):
+        for argument in ('--test=cases', '--test=cache', '--locked',
+                         '--package=biomcp', '--package=biomcp-fetch'):
             self.assertIn('--cargo-arg=' + argument, run['args'])
-        self.assertEqual(run['args'][run['args'].index('--test-package') + 1], 'biomcp')
+        self.assertEqual([run['args'][i + 1] for i, arg in enumerate(run['args'])
+                          if arg == '--test-package'], ['biomcp', 'biomcp-fetch'])
         self.assertEqual(run['args'][run['args'].index('--baseline') + 1], 'run')
         self.assertEqual((run['build'], run['tests']), ('2', '2'))
         self.assertEqual(run['revision'], value['candidate'])
+
+    def test_only_the_exact_equivalent_flags_mutation_is_excluded_from_inventory_and_shards(self):
+        name = 'crates/biomcp-fetch/src/cache.rs:76:47: replace | with ^ in Cache::owned_connection'
+        nearby = [name.replace(':76:', ':77:'), name.replace('with ^', 'with &')]
+        inventory = json.loads((self.root / 'native-inventory.json').read_text())
+        inventory.extend(dict(name=value, file=inventory[0]['file']) for value in [name, *nearby])
+        (self.root / 'native-inventory.json').write_text(json.dumps(inventory))
+        value = self.prepare('--cost-seconds', '1', '--baseline-seconds', '1')
+        self.assertNotIn(name, value['inventory'])
+        self.assertTrue(set(nearby) <= set(value['selected']))
+        self.call('shard', '--plan', self.plan, '--index', 0)
+        calls = [json.loads(line)['args'] for line in (self.root / 'cargo-calls.jsonl').read_text().splitlines()]
+        exclusions = [args[args.index('--exclude-re') + 1] for args in calls if '--exclude-re' in args]
+        self.assertEqual(len(exclusions), 3)  # Planning, shard discovery, shard execution.
+        self.assertEqual(len(set(exclusions)), 1)
 
     def test_candidate_survivors_fail_collection_and_stay_in_the_report(self):
         value = self.prepare('--measure')
