@@ -1,6 +1,7 @@
 # 0785 — retain-valid-cache-entry-for-narrow-readers
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: bf1de34a5cfa7586f39b091f2f9b87a018b6cee4
 
 Milestone: 5
 

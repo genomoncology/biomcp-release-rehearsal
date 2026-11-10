@@ -189,7 +189,7 @@ impl Cache {
             let entry = connection
                 .query_row(
                     "SELECT status, CASE WHEN length(body)<=?2 THEN body ELSE NULL END, fresh_until, fetched_at, \
-                    content_type, content_range, pagination FROM reply WHERE key=?1",
+                    content_type, content_range, pagination, length(body)>?2 FROM reply WHERE key=?1",
                     params![key, limit],
                     |row| {
                         Ok((
@@ -200,6 +200,7 @@ impl Cache {
                             row.get::<_, Option<String>>(4)?,
                             row.get::<_, Option<String>>(5)?,
                             row.get::<_, Option<String>>(6)?,
+                            row.get::<_, bool>(7)?,
                         ))
                     },
                 )
@@ -208,13 +209,16 @@ impl Cache {
             match entry {
                 Some((
                     status,
-                    Some(body),
+                    body,
                     fresh_until,
                     fetched_at,
                     content_type,
                     content_range,
                     pagination,
-                )) if (200..300).contains(&status) || status == 404 && body.is_empty() => {
+                    oversized,
+                )) if (200..300).contains(&status)
+                    || status == 404 && body.as_ref().is_some_and(Vec::is_empty) =>
+                {
                     let pagination = pagination
                         .map(|p| serde_json::from_str::<crate::Pagination>(&p))
                         .transpose();
@@ -222,7 +226,10 @@ impl Cache {
                         Ok(pagination)
                             if pagination.as_ref().is_none_or(crate::Pagination::valid) =>
                         {
-                            Ok(Some(Entry {
+                            if body.is_none() && !oversized {
+                                self.delete(connection, key)?;
+                            }
+                            Ok(body.map(|body| Entry {
                                 status,
                                 body,
                                 fresh_until,

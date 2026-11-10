@@ -230,7 +230,8 @@ fn every_cached_read_obeys_current_reply_type_body_limit_and_sql_contract() {
         ..config(&path)
     })
     .unwrap();
-    // The oversized old entry is evicted. Its stale body cannot hide this failure.
+    // A narrow reader skips the oversized entry; its stale body cannot hide failure.
+    expire(&path);
     let error = exchange(&server, 400, "rejected", || {
         limited
             .leg(spec, limited.deadline(Duration::from_secs(10)))
@@ -243,7 +244,18 @@ fn every_cached_read_obeys_current_reply_type_body_limit_and_sql_contract() {
         .unwrap()
         .query_row("SELECT count(*) FROM reply", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(count, 0);
+    assert_eq!(count, 1);
+    let offline = Fetch::open(FetchConfig {
+        mode: Mode::Offline,
+        ..config(&path)
+    })
+    .unwrap();
+    let cached = offline
+        .leg(spec, offline.deadline(Duration::from_secs(10)))
+        .call(&endpoint, Input::Params(&[]), Read::<Strict>::json())
+        .unwrap();
+    assert!(!cached.value.answer);
+    assert!(server.requests.try_recv().is_err());
     Connection::open(&path)
         .unwrap()
         .execute_batch("DROP TABLE reply")
