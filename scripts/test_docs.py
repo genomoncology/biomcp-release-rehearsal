@@ -74,6 +74,29 @@ def tools_check(root, readme, original_readme):
     readme.write_text(original_readme)
 
 
+def commercial_check(root, readme, original_readme):
+    """Commercial setup comes from the named configuration section, not other JSON."""
+    config = root / "docs/configuration.md"
+    original = config.read_text()
+    readme.write_text(original_readme + '\n```json\n{"format": "md"}\n```\n')
+    config.write_text('```json\n{"format": "md"}\n```\n\n' + original)
+    result = check(root)
+    assert result.returncode == 0, result.stderr
+    readme.write_text(original_readme)
+    config.write_text(original.replace('["noncommercial", "licensed"]', '["noncommercial"]', 1))
+    result = check(root)
+    assert result.returncode != 0 and "commercial setup differs" in result.stderr, result
+    for changed in (
+        original.replace("## Local source exclusions", "## Local source choices", 1),
+        original.replace('```json\n{"disable_sources": ["noncommercial", "licensed"]}\n```', '', 1),
+        original.replace('```json\n{"disable_sources": ["noncommercial", "licensed"]}\n```', '```json\n{invalid}\n```', 1),
+    ):
+        config.write_text(changed)
+        result = check(root)
+        assert result.returncode != 0 and "local source exclusions" in result.stderr, result
+    config.write_text(original)
+
+
 def main():
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
@@ -225,6 +248,7 @@ def main():
         readme.write_text(original_readme + "See https://example.org/home/about and /home/runner/work.\n")
         assert check(root).returncode == 0, check(root).stderr
         readme.write_text(original_readme)
+        commercial_check(root, readme, original_readme)
         tools_check(root, readme, original_readme)
     print(
         "Documentation contracts reject missing architecture checks, phantom leaves, unknown options, missing leaf accounting, drift, invalid feature declarations and internal workspace paths"

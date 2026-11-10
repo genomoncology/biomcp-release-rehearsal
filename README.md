@@ -14,15 +14,7 @@ biomcp version
 
 ## Configure sources and keys
 
-Every source and component field is enabled by default, including noncommercial and separately licensed data. Publisher terms remain authoritative. Public API access grants no additional reuse rights. Commercial users must set this configuration:
-
-```json
-{"disable_sources": ["noncommercial", "licensed"]}
-```
-
-BioMCP reads `$XDG_CONFIG_HOME/biomcp/config.json` or `~/.config/biomcp/config.json` on Unix, and `%APPDATA%/biomcp/config.json` on Windows. Use `--config PATH` for another file. Source names and the `noncommercial` and `licensed` groups also work with `--disable-sources`. Configuration and command exclusions combine. Exclusions also prevent disabled data from returning through cache, replay or stored collections.
-
-See [server configuration](docs/configuration.md) for cache and store folders, Docker storage and server settings.
+Before commercial use, [configure local source exclusions](docs/configuration.md#local-source-exclusions). See [server configuration](docs/configuration.md) for configuration files, cache and store folders, Docker storage and server settings.
 
 Use `biomcp key set oncokb` to enter your own key at a prompt that hides input. Keys stay in the configuration folder and out of shell history. `biomcp key list` reports credential names and origins without values. Source-specific environment variables remain available; `biomcp help key oncokb` explains the supported names. A source that requires your account or license sends no request without your key. An optional key raises its source's limit; the source remains available at its public limit without it.
 

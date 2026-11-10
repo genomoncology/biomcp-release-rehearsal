@@ -1,6 +1,7 @@
 # 0797 — Centralize source policy setup documentation
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 62fb202e781d0355b9210e63ce377071d0fb2d64
 
 Milestone: 5
 

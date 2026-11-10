@@ -246,6 +246,20 @@ def validate_examples(root, executable):
             raise ValueError(f"release notes map {old} to {tool} {action}, which the server does not offer")
 
 
+def commercial_setup(root):
+    text = (root / "docs/configuration.md").read_text()
+    sections = re.findall(r"(?ms)^## Local source exclusions\n(.*?)(?=^## |\Z)", text)
+    if len(sections) != 1:
+        raise ValueError("configuration needs one local source exclusions section")
+    examples = re.findall(r"```json\n(.*?)```", sections[0], re.S)
+    if len(examples) != 1:
+        raise ValueError("local source exclusions needs one JSON configuration example")
+    try:
+        return json.loads(examples[0])
+    except ValueError as error:
+        raise ValueError("local source exclusions configuration example is invalid JSON") from error
+
+
 def check(root, executable=None):
     architecture(root)
     internal_names(root)
@@ -261,11 +275,11 @@ def check(root, executable=None):
     if sorted(examples) != sorted(recorded) or len(recorded) != 4:
         raise ValueError("README examples differ from recorded cases")
 
-    commercial = json.loads(re.search(r"```json\n(.*?)```", readme, re.S).group(1))
+    commercial = commercial_setup(root)
     for path in (root / "tests/cases/readme").glob("*.yaml"):
         case = json.loads(path.read_text())
         if case.get("replay") and case.get("config") != commercial:
-            raise ValueError(f"README commercial setup differs from {path}")
+            raise ValueError(f"Configuration commercial setup differs from {path}")
 
     if (root / "skills/SKILL.md").stat().st_size > 4096:
         raise ValueError("agent skill exceeds 4 KB")

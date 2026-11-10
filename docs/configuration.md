@@ -1,6 +1,16 @@
 # Server configuration
 
-BioMCP reads the configuration file described in the README. Unknown keys cause a configuration error. Command flags override their configuration keys.
+Unknown keys cause a configuration error. Command flags override their configuration keys.
+
+## Local source exclusions
+
+Every source and component field is enabled by default, including noncommercial and separately licensed data. Publisher terms remain authoritative. Public API access grants no additional reuse rights. Commercial users must set this configuration:
+
+```json
+{"disable_sources": ["noncommercial", "licensed"]}
+```
+
+BioMCP reads `$XDG_CONFIG_HOME/biomcp/config.json` or `~/.config/biomcp/config.json` on Unix, and `%APPDATA%/biomcp/config.json` on Windows. Use `--config PATH` for another file. Source names and the `noncommercial` and `licensed` groups also work with `--disable-sources`. Configuration and command exclusions combine. Exclusions also prevent disabled data from returning through cache, replay or stored collections.
 
 ## Cache and store folders
 
