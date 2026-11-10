@@ -1,6 +1,7 @@
 # 0798 — Retain diagnostics for each live check attempt
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 915f4b83b33a7d10185d1599abf77fd90e5385d1
 
 Milestone: 5
 

@@ -40,6 +40,12 @@ BUILD = ('cargo', 'build', '--locked', '-p', 'biomcp', '--message-format=json')
 # Only these reach the product, so no source key can enter a check or its output.
 PASSED_ENVIRONMENT = ('PATH', 'LANG', 'http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY',
                       'no_proxy', 'NO_PROXY')
+ATTEMPT_LIMIT = 8192
+TLS_MESSAGES = {
+    "TLS verification failed: " + cause for cause in
+    ("unknown issuer", "CA used as end entity", "name mismatch", "expired",
+     "not yet valid", "revoked", "other")
+}
 REASON_LIMIT = 200
 RETRY_WAIT = 30  # Pauses to wait before the second try.
 
@@ -76,7 +82,7 @@ def reason(result, searching):
     except ValueError:
         reply = None
     if not isinstance(reply, dict):
-        return 'exit {}: {}'.format(result.returncode, result.stderr or result.stdout)
+        return 'exit {}: malformed reply'.format(result.returncode)
     failed = [row['source'] + ': ' + row.get('reason', 'failed') for row in reply.get('sources', [])
               if row.get('state') == 'failed']
     if failed:
@@ -96,14 +102,74 @@ def reason(result, searching):
     return None
 
 
-def check(executable, args, environment, timeout):
+def source_diagnostic(source):
+    """Keep fixed status fields and recognized guidance, never source text."""
+    row = {key: source[key][:128] for key in ('source', 'state', 'reason')
+           if isinstance(source.get(key), str)}
+    notices = source.get('notices', [])
+    for notice in notices if isinstance(notices, list) else []:
+        if not isinstance(notice, dict) or notice.get('kind') != 'request-guidance':
+            continue
+        if isinstance(notice.get('message'), str) and notice['message'] in TLS_MESSAGES:
+            row['tls_guidance'] = notice['message']
+        delay = notice.get('retry_after_seconds')
+        if type(delay) is int and 0 <= delay <= 2**32:
+            row['retry_after_seconds'] = delay
+    return row
+
+
+def attempt_record(args, attempt, started, result=None, failure=None):
+    """Flush a bounded JSON record before any retry can replace the evidence."""
+    row = {'kind': 'live-check-attempt', 'command': list(args), 'attempt': attempt,
+           'elapsed_ms': round((time.monotonic() - started) * 1000),
+           'exit_code': result.returncode if result is not None else None,
+           'timeout': failure == 'timeout', 'malformed_reply': False, 'truncated': False,
+           'sources': []}
+    if result is not None:
+        try:
+            reply = json.loads(result.stdout)
+        except ValueError:
+            reply = None
+        row['malformed_reply'] = not isinstance(reply, dict)
+        if isinstance(reply, dict):
+            if isinstance(reply.get('status'), str):
+                row['status'] = reply['status'][:128]
+                row['truncated'] |= len(reply['status']) > 128
+            error = reply.get('error')
+            if isinstance(error, dict) and isinstance(error.get('code'), str):
+                row['error_code'] = error['code'][:128]
+                row['truncated'] |= len(error['code']) > 128
+            sources = reply.get('sources', [])
+            if isinstance(sources, list):
+                row['truncated'] |= len(sources) > 64
+                row['truncated'] |= any(
+                    isinstance(source, dict) and any(
+                        isinstance(source.get(key), str) and len(source[key]) > 128
+                        for key in ('source', 'state', 'reason')) for source in sources[:64])
+                row['sources'] = [source_diagnostic(source) for source in sources[:64]
+                                  if isinstance(source, dict)]
+    if failure:
+        row['process_error'] = failure
+    encoded = json.dumps(row, separators=(',', ':'))
+    while len(encoded.encode('utf-8')) > ATTEMPT_LIMIT:
+        row['truncated'] = True
+        row['sources'].pop()
+        encoded = json.dumps(row, separators=(',', ':'))
+    print(encoded, flush=True)
+
+
+def check(executable, args, environment, timeout, attempt):
+    started = time.monotonic()
     try:
         result = subprocess.run([executable, '--format', 'json', *args], env=environment,
                                 capture_output=True, text=True, timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
+        attempt_record(args, attempt, started, failure='timeout')
         return 'no reply in {} seconds'.format(timeout)
     except OSError as error:
+        attempt_record(args, attempt, started, failure=type(error).__name__)
         return str(error)
+    attempt_record(args, attempt, started, result=result)
     return reason(result, args[0] == 'search')
 
 
@@ -125,7 +191,7 @@ def main():
         for index, row in enumerate(CHECKS):
             if index:
                 time.sleep(args.pause)
-            problem = check(executable, row, environment, args.timeout)
+            problem = check(executable, row, environment, args.timeout, 1)
             if problem is None:
                 print('ok ' + shlex.join(('biomcp', *row)), flush=True)
             else:
@@ -135,7 +201,7 @@ def main():
             time.sleep(args.pause * RETRY_WAIT)
         for row, first in retries:
             command = shlex.join(('biomcp', *row))
-            problem = check(executable, row, environment, args.timeout)
+            problem = check(executable, row, environment, args.timeout, 2)
             if problem is None:
                 print('ok {} on its second try, first: {}'.format(command, one_line(first)), flush=True)
             else:

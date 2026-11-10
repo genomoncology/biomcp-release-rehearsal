@@ -30,7 +30,9 @@ words = ' '.join(sys.argv[1:])
 replies = json.loads(REPLIES)
 for key, (code, body, *once) in replies.items():
     tries = sum(json.loads(line)['args'] == sys.argv[1:] for line in open(SEEN))
-    if key in words and not (once and tries > 1):
+    if key in words and not (once == ['once'] and tries > 1):
+        if once == ['sequence']:
+            code, body = body[min(tries - 1, len(body) - 1)]
         if body == 'hang':
             time.sleep(30)
         print(body if isinstance(body, str) else json.dumps(body))
@@ -107,7 +109,7 @@ class LiveCheck(unittest.TestCase):
             "FAIL biomcp search article 'AKT1 E17K': pubmed: proxy",
             'FAIL biomcp search trial --condition melanoma --limit 1: no results',
             'FAIL biomcp get trial NCT04303780: expected a supported command',
-            'FAIL biomcp search cell-line MOLM13: exit 101: crash detail',
+            'FAIL biomcp search cell-line MOLM13: exit 101: malformed reply',
         ])
 
     def test_a_search_with_no_top_level_page_and_no_items_fails(self):
@@ -131,6 +133,61 @@ class LiveCheck(unittest.TestCase):
                       'first: uniprot: deadline-exceeded', result.stdout)
         self.assertNotIn('FAIL', result.stdout)
         self.assertEqual(len(rows), len(CHECKS) + 1)
+
+    def attempts(self, result, args):
+        return [row for line in result.stdout.splitlines() if line.startswith('{')
+                and (row := json.loads(line)).get('command') == args]
+
+    def test_both_attempts_keep_their_distinct_source_failure(self):
+        second = {**FAILED_SOURCE, 'sources': [
+            {'source': 'pubmed', 'state': 'failed', 'reason': 'unavailable'}]}
+        result, _ = self.run_check({'AKT1 E17K': [0, [[4, FAILED_SOURCE], [4, second]], 'sequence']})
+        attempts = self.attempts(result, ['search', 'article', 'AKT1 E17K'])
+        self.assertEqual([row['attempt'] for row in attempts], [1, 2])
+        self.assertEqual([row['sources'][0]['reason'] for row in attempts], ['proxy', 'unavailable'])
+        self.assertEqual([row['exit_code'] for row in attempts], [4, 4])
+        self.assertTrue(all(row['elapsed_ms'] >= 0 for row in attempts))
+        self.assertEqual(result.returncode, 1)
+
+    def test_recovered_attempt_does_not_replace_failed_diagnostics(self):
+        result, _ = self.run_check({'AKT1 E17K': [4, FAILED_SOURCE, 'once']})
+        attempts = self.attempts(result, ['search', 'article', 'AKT1 E17K'])
+        self.assertEqual([row['status'] for row in attempts], ['failed', 'complete'])
+        self.assertEqual([row['exit_code'] for row in attempts], [4, 0])
+        self.assertEqual(result.returncode, 0)
+
+    def test_attempt_output_is_bounded_and_omits_payloads(self):
+        secret = 'sentinel-must-not-be-logged'
+        sources = [{'source': 'pubmed', 'state': 'failed', 'reason': 'tls', 'term': secret,
+                    'notices': [{'kind': 'request-guidance', 'message': secret},
+                                {'kind': 'request-guidance',
+                                 'message': 'TLS verification failed: unknown issuer'}]}] * 200
+        body = {**FAILED_SOURCE, 'sources': sources, 'result': {'body': secret},
+                'error': {'code': 'request.failed', 'message': secret}, 'headers': {'key': secret}}
+        result, _ = self.run_check({'AKT1 E17K': [4, body]})
+        attempts = self.attempts(result, ['search', 'article', 'AKT1 E17K'])
+        self.assertEqual(len(attempts), 2)
+        for row in attempts:
+            encoded = json.dumps(row)
+            self.assertNotIn(secret, encoded)
+            self.assertTrue(row['truncated'])
+            self.assertIn('unknown issuer', encoded)
+        for line in result.stdout.splitlines():
+            if line.startswith('{'):
+                self.assertLessEqual(len(line.encode('utf-8')), 8192)
+
+    def test_malformed_and_timeout_attempts_keep_only_fixed_diagnostics(self):
+        result, _ = self.run_check({'MOLM13': [0, 'not-json-body-sentinel']})
+        self.assertNotIn('not-json-body-sentinel', result.stdout)
+        attempts = self.attempts(result, ['search', 'cell-line', 'MOLM13'])
+        self.assertEqual(len(attempts), 2)
+        for row in attempts:
+            self.assertTrue(row['malformed_reply'])
+            self.assertNotIn('sentinel', json.dumps(row))
+        result, _ = self.run_check({'MOLM13': [0, 'hang']}, extra=('--timeout', '1'))
+        attempts = self.attempts(result, ['search', 'cell-line', 'MOLM13'])
+        self.assertEqual(len(attempts), 2)
+        self.assertTrue(all(row['timeout'] and row['exit_code'] is None for row in attempts))
 
     def test_a_build_failure_is_one_line_and_runs_nothing(self):
         result, rows = self.run_check(build='fail')
