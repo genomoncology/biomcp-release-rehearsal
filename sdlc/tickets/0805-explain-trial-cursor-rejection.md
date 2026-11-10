@@ -1,6 +1,7 @@
 # 0805 — Explain rejected trial continuations and offer a fresh restart
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 8fe91273cac6582b9bc14ab09caf48a5b8118cf1
 
 Milestone: 6
 
