@@ -1816,7 +1816,7 @@ Options:
 
       --next-page <next_page>
           Page token.
-          Opaque registry continuation; keep filters unchanged.
+          ClinicalTrials.gov: follow the returned token, selectors and offset unchanged; unbound tokens need a fresh first page.
 
       --offset <offset>
           Page offset.
@@ -1915,7 +1915,7 @@ Headers per page; NCI applies its own lower publisher limit. Value form: integer
 - `--lon`: Longitude degrees.
 ClinicalTrials.gov only: radius center longitude in degrees. Value form: string. Example: --lon -71.0589. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--next-page`: Page token.
-Opaque registry continuation; keep filters unchanged. Value form: string. Example: --next-page <next-page> (syntax; replace the placeholder with your retained value). Command sources: ctgov, nci; source restrictions in the field description apply.
+ClinicalTrials.gov: follow the returned token, selectors and offset unchanged; unbound tokens need a fresh first page. Value form: string. Example: --next-page <next-page> (syntax; replace the placeholder with your retained value). Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--offset`: Page offset.
 Zero-based offset of the first row in this continuation page. Value form: integer. Example: --offset 0. Command sources: ctgov, nci; source restrictions in the field description apply.
 - `--phase`: Source phase; help search trial
