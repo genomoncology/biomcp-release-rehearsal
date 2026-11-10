@@ -2,6 +2,111 @@
 use super::{configuration::invoke, launch::Environment};
 use serde_json::Value;
 
+pub(super) fn refused_pool_trial() -> libtest_mimic::Trial {
+    super::transcript::trial("protein-search/refused-membership-is-explicit-only", || {
+        refused_pool().map_err(Into::into)
+    })
+}
+
+fn refused_pool() -> Result<(), String> {
+    let (env, stub) = refused_fixture()?;
+    let args = ["search", "protein", "Synthetic protein", "--limit", "1"]
+        .map(str::to_owned)
+        .to_vec();
+    let first = invoke(&env, args.clone(), 0)?;
+    if first.pointer("/status") != Some(&serde_json::json!("partial"))
+        || first.pointer("/result/items/0/protein/accession") != Some(&serde_json::json!("P00533"))
+        || first
+            .get("sources")
+            .and_then(Value::as_array)
+            .is_none_or(|sources| {
+                sources.is_empty()
+                    || sources
+                        .iter()
+                        .any(|s| s.get("state") != Some(&serde_json::json!("ok")))
+            })
+        || first
+            .get("problems")
+            .and_then(Value::as_array)
+            .is_none_or(|problems| {
+                problems
+                    .iter()
+                    .all(|p| p.get("field") != Some(&serde_json::json!("identity")))
+            })
+    {
+        return Err(format!(
+            "refused UniProt identity lost its partial/source-Ok page: {first}"
+        ));
+    }
+    let next = super::action(&first, "page")?;
+    let second = invoke(&env, next.clone(), 0)?;
+    if pool(&first)? != pool(&second)?
+        || second.pointer("/status") != Some(&serde_json::json!("partial"))
+        || second.pointer("/result/items/0/protein/accession") != Some(&serde_json::json!("Q8N726"))
+    {
+        return Err(format!("explicit protein continuation changed: {second}"));
+    }
+    let repeated = invoke(&env, args, 0)?;
+    if pool(&first)? == pool(&repeated)? {
+        return Err(format!(
+            "incomplete protein search pool became the implicit default: {repeated}"
+        ));
+    }
+    if first.pointer("/result/items") != repeated.pointer("/result/items")
+        || repeated.pointer("/status") != first.pointer("/status")
+    {
+        return Err(format!(
+            "implicit protein reconstruction changed records: {repeated}"
+        ));
+    }
+    let kept = invoke(&env, next, 0)?;
+    if pool(&second)? != pool(&kept)?
+        || second.pointer("/result/items") != kept.pointer("/result/items")
+        || second.pointer("/status") != kept.pointer("/status")
+    {
+        return Err(format!("old explicit protein page was lost: {kept}"));
+    }
+    stub.finish()?;
+    Ok(())
+}
+
+fn pool(value: &Value) -> Result<&str, String> {
+    value
+        .pointer("/page/pool/id")
+        .and_then(Value::as_str)
+        .ok_or_else(|| format!("protein window lost pool identity: {value}"))
+}
+
+fn refused_fixture() -> Result<(Environment, super::network_stub::Stub), String> {
+    use serde_json::json;
+    let stub = super::network_stub::Stub::with_headers(
+        &["rest.uniprot.org"],
+        |_| "application/json",
+        |request| {
+            if !request.contains("/uniprotkb/search?") {
+                return Err(format!("unexpected UniProt request: {request}"));
+            }
+            let rows: Vec<_> = ["P00533", "Q8N726", "invalid"].into_iter().map(|id| {
+                json!({"primaryAccession":id,"uniProtkbId":"SYNTHETIC_HUMAN",
+                    "entryType":"UniProtKB reviewed (Swiss-Prot)","organism":{"taxonId":9606},
+                    "proteinDescription":{"recommendedName":{"fullName":{"value":"Synthetic protein"}}},
+                    "sequence":{"length":3,"value":"AAA"}})
+            }).collect();
+            Ok(json!({"results":rows}).to_string())
+        },
+        |_, bytes| bytes,
+        |_| 200,
+        |_| "x-total-results: 3\r\n".into(),
+    )?;
+    let env = Environment::new().map_err(|e| e.to_string())?;
+    let ca = env.root().join("source-ca.pem");
+    stub.retain(env.shared_root());
+    std::fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
+    env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca}))
+        .map_err(|e| e.to_string())?;
+    Ok((env, stub))
+}
+
 // Measure the ordinary CLI and MCP responses against the accepted external replay.
 tool_only! {
 pub(super) fn native(root: &std::path::Path) -> Result<(), String> {

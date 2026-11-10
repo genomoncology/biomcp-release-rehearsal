@@ -79,6 +79,17 @@ fn coordinates(env: &Environment) -> Result<(), String> {
     Ok(())
 }
 fn retained(env: &Environment, first: &Value) -> Result<(), String> {
+    let repeated = call(
+        env,
+        None,
+        &["protein", "features", "P00533", "--limit", "1"],
+        0,
+    )?;
+    if first.pointer("/page/pool/id") != repeated.pointer("/page/pool/id")
+        || first.pointer("/result/items") != repeated.pointer("/result/items")
+    {
+        return Err(format!("healthy protein window was rebuilt: {repeated}"));
+    }
     let pool = first
         .pointer("/page/pool/id")
         .and_then(Value::as_str)

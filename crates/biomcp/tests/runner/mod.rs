@@ -5,7 +5,7 @@ mod drug_identity;
 mod enum_case;
 mod key_reload;
 mod local_files;
-tool_only! { mod protein_commands; }
+mod protein_commands;
 tool_only! { mod trial_condition; }
 tool_only! { pub(super) mod other_source_value_proof; }
 mod article_lean;
@@ -13,6 +13,7 @@ mod article_pools;
 mod article_save;
 mod article_save_reply;
 mod assertions;
+mod author_pools;
 pub(super) mod case_main;
 tool_only! { pub(super) mod cell_line; }
 tool_only! { mod disease_mydisease; }
@@ -299,7 +300,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(trial_get::trials());
     trials.extend(trial_results::trials());
     trials.push(trial_sites::trial());
-    trials.extend(snapshot_errors::trials());
+    trials.extend(retained_source_trials());
     trials.extend(cache_errors::trials());
     trials.extend(variant_assertion_wire::trials());
     trials.extend(evidence::trials());
@@ -309,7 +310,6 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(variant_assertions::trials());
     trials.extend(pathway_sections::trials());
     trials.extend(oncokb::trials());
-    trials.extend(protein_sections::trials());
     trials.extend(gene_names::trials());
     trials.extend(drug_label::trials());
     trials.extend(study_catalog::trials());
@@ -334,6 +334,14 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
     trials.extend(drug_civic::trials());
     trials.push(citation_values::trial());
     trials.extend(transcript_trials());
+    trials
+}
+
+fn retained_source_trials() -> Vec<Trial> {
+    let mut trials = snapshot_errors::trials();
+    trials.extend(author_pools::trials());
+    trials.extend(protein_sections::trials());
+    trials.push(protein_commands::refused_pool_trial());
     trials
 }
 

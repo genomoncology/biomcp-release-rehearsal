@@ -1,6 +1,7 @@
 # 0803 — Prove healthy source-pool reuse and incomplete membership recovery
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 7649424af206147d102a2cdbc79789dd00aba400
 
 Milestone: 5
 

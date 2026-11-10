@@ -8,10 +8,15 @@ use std::fs;
 mod complexes;
 
 mod paging;
+mod retention;
 
 pub(super) fn trials() -> Vec<Trial> {
     // The peers verify source request counts and runtime pool ownership while native pages and members are reconstructed.
     vec![
+        transcript_trial(
+            "protein-domains-complexes/refused-fragment-is-explicit-only",
+            || retention::refused().map_err(Into::into),
+        ),
         transcript_trial(crate::runner::pool_contract::DOMAIN_PAGES.0, || {
             paging::run().map_err(Into::into)
         }),
@@ -38,6 +43,7 @@ fn domains() -> Result<(), String> {
     let env = setup(&stub)?;
     let value = call(&env, &["protein", "domains", "P04637"], 0)?;
     super::protein_budgets::check(&value, "synthetic-domains/default", "cli")?;
+    retention::healthy(&env, &value)?;
     if value.pointer("/result/items/0/entry_type") != Some(&json!("family"))
         || value
             .pointer("/result/items/0/locations/0/fragments")

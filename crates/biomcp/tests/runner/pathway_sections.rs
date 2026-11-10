@@ -6,9 +6,16 @@ use libtest_mimic::Trial;
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 type Check = Result<(), String>;
+mod retention;
 pub(super) fn trials() -> Vec<Trial> {
     // The test follows runtime pool bindings and compares complete source event/reference sets across pages.
     vec![
+        transcript_trial("pathway-reactome/healthy-events-reuse-pool", || {
+            retention::check(false).map_err(Into::into)
+        }),
+        transcript_trial("pathway-reactome/refused-events-are-explicit-only", || {
+            retention::check(true).map_err(Into::into)
+        }),
         transcript_trial(crate::runner::pool_contract::PATHWAY_GENES.0, || {
             walk(true).map_err(Into::into)
         }),
