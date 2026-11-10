@@ -10,7 +10,7 @@ When ClinicalTrials.gov rejects a paged request with HTTP 400, CLI and stdio MCP
 
 ## Why
 
-Ian's November 10 correction confirms fresh-token paging works but reports a misleading generic usage error for stale/fake tokens. Code inspection confirms the provider-400 conversion and recovery gap. Ian explicitly considers this nonblocking; preserve the current 1.0 candidate and implement after publication.
+The correction supplied in chat on November 10 confirms fresh-token paging works but reports a misleading generic usage error for stale/fake tokens. Code inspection confirms the provider-400 conversion and recovery gap. The supplied report explicitly calls this nonblocking; preserve the current 1.0 candidate and implement after publication.
 
 ## Proof
 
