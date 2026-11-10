@@ -41,7 +41,9 @@ fn main() -> ExitCode {
                         use std::io::Write;
                         let _ = writeln!(
                             std::io::stderr(),
-                            "tools: --proofs {} selected no tests; use --proofs --list for custom trials or --cases DIRECTORY for YAML cases",
+                            "tools: --proofs {} selected no tests; tools --proofs --list lists the separate tooling-proof catalog. \
+                             Use cases --list for YAML cases and routine Rust CLI/MCP trials (including protocol and pool trials); \
+                             --cases DIRECTORY selects a YAML root. Copy exact names from the selected runner's --list",
                             runner::case_main::selector(&arguments)
                         );
                         return ExitCode::FAILURE;

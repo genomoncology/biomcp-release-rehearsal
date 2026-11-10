@@ -1,6 +1,7 @@
 # 0804 — Clarify which runner owns routine command trials
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 5d1d1355e54c2daf52126ef9ec69015e75a70a8e
 
 Milestone: 5
 

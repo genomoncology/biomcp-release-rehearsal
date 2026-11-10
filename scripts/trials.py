@@ -14,8 +14,10 @@ sys.path.insert(0, str(ROOT))
 from release.artifacts import cargo
 
 
-SELECTOR_HINT = ("; use --cases DIRECTORY for YAML cases or --target tools --proofs "
-                 "for custom trials, then --list to find exact names")
+SELECTOR_HINT = ("; use --target cases for YAML cases and routine Rust CLI/MCP trials "
+                 "(including protocol and pool trials); --cases DIRECTORY selects a YAML root. "
+                 "--target tools --proofs selects a separate tooling-proof catalog. "
+                 "Copy exact names from the selected runner's --list")
 
 
 def run_selected(target: Sequence[str], cwd: Path, names: Sequence[str],
@@ -56,7 +58,8 @@ def run_selected(target: Sequence[str], cwd: Path, names: Sequence[str],
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--target", choices=["cases", "tools", "ratchets"], default="cases")
+    parser.add_argument("--target", choices=["cases", "tools", "ratchets"], default="cases",
+                        help="cases (default): YAML cases and routine Rust CLI/MCP trials, including protocol and pool trials; tools --proofs: separate tooling-proof catalog")
     parser.add_argument("--runner", type=Path, help="Reuse this runner; omitting it builds the --target runner using Cargo JSON artifact identity")
     parser.add_argument("--installed", action="store_true", help="Copy product, runner and public fixtures into an isolated install")
     parser.add_argument("--executable", type=Path, help="Reuse this product; omitting it builds the CLI after selection (except --list)")
@@ -64,9 +67,9 @@ def main():
     parser.add_argument("--cases", type=Path, help="Explicit case root interpreted by the Rust runner; not a proof selector")
     parser.add_argument("--case-file", action="append", default=[], metavar="RELATIVE/PATH.yaml",
                         help="select one exact case-relative path from the runner catalog; repeatable")
-    parser.add_argument("--proofs", action="store_true", help="select custom trials in tools")
+    parser.add_argument("--proofs", action="store_true", help="select the separate tooling-proof catalog in tools; routine Rust CLI/MCP trials use --target cases")
     parser.add_argument("--list", action="store_true", help="list literal names without preparing the product")
-    parser.add_argument("names", nargs="*", help="literal names copied from --list")
+    parser.add_argument("names", nargs="*", help="exact names copied from the selected runner's --list")
     args = parser.parse_args()
     if not args.list and not args.names and not args.case_file:
         parser.error("trial selection requires exact names from --list")

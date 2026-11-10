@@ -11,7 +11,10 @@ pub(crate) fn main(args: Vec<String>) -> ExitCode {
                 use std::io::Write;
                 let _ = writeln!(
                     std::io::stderr(),
-                    "cases: {} selected no tests; use --cases DIRECTORY --list for case names or tools --proofs --list for custom trials",
+                    "cases: {} selected no tests; use cases --list for YAML cases and routine Rust CLI/MCP trials \
+                     (including protocol and pool trials); --cases DIRECTORY selects a YAML root. \
+                     tools --proofs --list lists a separate tooling-proof catalog. \
+                     Copy exact names from the selected runner's --list",
                     selector(&arguments)
                 );
                 return ExitCode::FAILURE;

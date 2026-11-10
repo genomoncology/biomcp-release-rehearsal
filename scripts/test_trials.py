@@ -111,7 +111,11 @@ class FocusedCommand(unittest.TestCase):
                         self.assertNotEqual(result.returncode, 0)
                         self.assertIn('markdown-view/view-empty/empty-section.yaml', result.stderr)
                         self.assertIn('--cases DIRECTORY', result.stderr)
+                        self.assertIn('--target cases', result.stderr)
+                        self.assertIn('routine Rust CLI/MCP trials', result.stderr)
                         self.assertIn('--target tools --proofs', result.stderr)
+                        self.assertIn('separate tooling-proof catalog', result.stderr)
+                        self.assertIn("selected runner's --list", result.stderr)
                         self.assertEqual(result.stdout, '')
 
     def test_discovery_preserves_rust_case_and_custom_trial_modes(self):
