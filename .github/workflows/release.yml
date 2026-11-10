@@ -378,7 +378,7 @@ jobs:
     if: (github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.rehearsal
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment: release-publication
+    environment: pypi
     permissions:
       contents: read
       id-token: write

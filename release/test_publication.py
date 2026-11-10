@@ -19,7 +19,12 @@ class Publication(unittest.TestCase):
         for name in ['github', 'ghcr', 'pypi', 'homebrew', 'installer', 'registry', 'latest']:
             job = workflow.split('\n  publish-' + name + ':\n', 1)[1]
             job = re.split(r'\n  [a-z-]+:\n', job, maxsplit=1)[0]
-            self.assertIn('environment: release-publication', job)
+            environment = 'pypi' if name == 'pypi' else 'release-publication'
+            self.assertRegex(job, rf'(?m)^    environment: {environment}$')
+            if name == 'pypi':
+                self.assertIn('needs: [candidate, stage, staged-homebrew, staged-payload, publish-ghcr]', job)
+                self.assertIn('id-token: write', job)
+                self.assertIn('attestations: true', job)
             self.assertIn("github.event_name == 'push' && github.repository == 'genomoncology/biomcp') || inputs.rehearsal", job)
             self.assertIn('if: inputs.rehearsal', job)
             for step in job.split('      - name: ')[1:]:

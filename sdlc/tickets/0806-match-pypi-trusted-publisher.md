@@ -1,6 +1,7 @@
 # 0806 — Match the existing PyPI Trusted Publisher environment
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: a229f75226429a5b5988ebf39a492db2b30936ae
 
 Milestone: 5
 
