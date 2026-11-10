@@ -141,7 +141,12 @@ fn read(
         out.sources = vec![incoming.clone()];
         let page = result?;
         append(q, &mut saved, page)?;
-        saved.sources = vec![incoming];
+        if let Some(source) = saved.sources.first_mut() {
+            status::retain_source_state(source, &incoming);
+        } else {
+            saved.sources = vec![incoming];
+        }
+        out.sources = saved.sources.clone();
     } else {
         out.sources = saved.sources.clone();
     }
@@ -252,4 +257,10 @@ fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Option<Pool>, out: &
     out.body = body.with_query(biomcp_types::GwasPageQuery::Search(q.clone()));
     out.dropped = incomplete;
     status::search(out);
+}
+
+impl crate::source_snapshot::Observation for Saved {
+    fn whole(&self) -> bool {
+        !self.incomplete()
+    }
 }

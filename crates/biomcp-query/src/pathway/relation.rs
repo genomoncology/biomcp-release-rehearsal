@@ -351,3 +351,9 @@ pub(super) struct Saved {
     pub sources: Vec<biomcp_types::SourceOutcome>,
     pub problems: Vec<biomcp_types::Problem>,
 }
+
+impl crate::source_snapshot::Observation for Saved {
+    fn whole(&self) -> bool {
+        !self.dropped && crate::source_snapshot::sources_whole(&self.sources)
+    }
+}

@@ -62,7 +62,8 @@ fn stored_licensed_owners_admit_same_key_and_refuse_other_or_missing_keys() -> C
     let sources = [source(true)];
     let mut a = store(&first)?;
     let pool = a.publish(KEY, &[item()], &sources, &[], false)?;
-    let window = a.publish_source_pool(KEY, PAYLOAD, 1, &sources)?;
+    a.publish_current(&pool, KEY)?;
+    let window = a.publish_source_pool(KEY, PAYLOAD, 1, &sources, false)?;
     let snapshot = a.save_source_snapshot(KEY, PAYLOAD, &sources)?;
     let evidence = a.save_evidence(None, KEY, PAYLOAD, &sources)?;
     for key in [Some("synthetic-owner-a"), Some("synthetic-owner-b"), None] {
@@ -112,7 +113,7 @@ fn stored_licensed_owners_admit_same_key_and_refuse_other_or_missing_keys() -> C
         };
         assert_eq!(
             current
-                .extend_source_pool(supplied, PAYLOAD, 2, &sources)
+                .extend_source_pool(supplied, PAYLOAD, 2, &sources, false)
                 .is_ok(),
             same
         );
@@ -163,7 +164,8 @@ fn public_stores_remain_shared_and_legacy_licensed_rows_require_ownership() -> C
         let mut ordinary = store(&original)?;
         let sources = [source(private)];
         let pool = ordinary.publish(KEY, &[item()], &sources, &[], false)?;
-        let window = ordinary.publish_source_pool(KEY, PAYLOAD, 1, &sources)?;
+        ordinary.publish_current(&pool, KEY)?;
+        let window = ordinary.publish_source_pool(KEY, PAYLOAD, 1, &sources, false)?;
         let snapshot = ordinary.save_source_snapshot(KEY, PAYLOAD, &sources)?;
         let evidence = ordinary.save_evidence(None, KEY, PAYLOAD, &sources)?;
         for key in [Some("synthetic-owner-a"), Some("synthetic-owner-b"), None] {
@@ -306,5 +308,114 @@ fn query_connections_keep_virtual_sqlite_waits_zero_and_live_waits_bounded() -> 
             );
         }
     }
+    Ok(())
+}
+
+#[test]
+fn source_windows_admit_only_the_recorded_owner_and_enabled_source() -> Check {
+    let directory = tempfile::tempdir()?;
+    let path = directory.path().join("cache.sqlite");
+    let fetch = caller(&path, Some("synthetic-owner-a"), true)?;
+    let window = store(&fetch)?.publish_source_pool(KEY, PAYLOAD, 1, &[source(true)], false)?;
+    for key in [Some("synthetic-owner-a"), Some("synthetic-owner-b"), None] {
+        let fetch = caller(&path, key, true)?;
+        let current = store(&fetch)?;
+        for selected in [None, Some(window.info.id.as_str())] {
+            assert_eq!(
+                current
+                    .find_source_pool(KEY, selected, |_| false)?
+                    .is_some(),
+                key == Some("synthetic-owner-a")
+            );
+            assert!(current.find_source_pool(KEY, selected, |_| true)?.is_none());
+        }
+    }
+    Ok(())
+}
+
+// Stale handles stand in for delayed concurrent writers at the transaction boundary.
+#[test]
+fn source_defaults_follow_only_the_retained_complete_observation() -> Check {
+    let directory = tempfile::tempdir()?;
+    let fetch = caller(&directory.path().join("cache.sqlite"), None, false)?;
+    let mut a = store(&fetch)?;
+    let mut b = store(&fetch)?;
+    let sources = [source(false)];
+    let healthy = a.publish_source_pool(KEY, "healthy", 2, &sources, false)?;
+    let old = b
+        .find_source_pool(KEY, Some(healthy.info.id.as_str()), |_| false)?
+        .ok_or("healthy")?
+        .0;
+    let partial = b.publish_source_pool(KEY, "partial", 1, &sources, true)?;
+    assert_eq!(
+        a.find_source_pool(KEY, None, |_| false)?
+            .ok_or("current")?
+            .1,
+        "healthy"
+    );
+    b.extend_source_pool(old, "shorter", 1, &sources, true)?;
+    assert_eq!(
+        a.find_source_pool(KEY, None, |_| false)?
+            .ok_or("current")?
+            .1,
+        "healthy"
+    );
+    let newer = a.publish_source_pool(KEY, "newer", 3, &sources, false)?;
+    b.extend_source_pool(healthy, "incomplete old extension", 3, &sources, true)?;
+    assert_eq!(
+        a.find_source_pool(KEY, None, |_| false)?
+            .ok_or("current")?
+            .0
+            .info
+            .id,
+        newer.info.id
+    );
+    b.extend_source_pool(partial, "recovered explicit", 2, &sources, false)?;
+    assert_eq!(
+        a.find_source_pool(KEY, None, |_| false)?
+            .ok_or("current")?
+            .1,
+        "newer"
+    );
+    let mut stale = source(false);
+    stale.set_status(biomcp_types::SourceStatus::Stale(None));
+    b.extend_source_pool(newer, "newer", 3, &[stale], false)?;
+    assert!(a.find_source_pool(KEY, None, |_| false)?.is_none());
+    Ok(())
+}
+
+#[test]
+fn legacy_source_defaults_do_not_change_explicit_id_admission() -> Check {
+    let directory = tempfile::tempdir()?;
+    let fetch = caller(&directory.path().join("cache.sqlite"), None, false)?;
+    let mut a = store(&fetch)?;
+    let sources = [source(false)];
+    let partial = a.publish_source_pool(KEY, "partial", 1, &sources, true)?;
+    a.write(|tx| {
+        tx.execute(
+            "INSERT INTO pool_current(request_key,pool) VALUES(?1,?2)",
+            rusqlite::params![KEY, partial.info.id.as_str()],
+        )
+        .map_err(super::db)?;
+        Ok(())
+    })?;
+    assert!(a.find_source_pool(KEY, None, |_| false)?.is_none());
+    assert_eq!(
+        a.find_source_pool(KEY, Some(partial.info.id.as_str()), |_| false)?
+            .ok_or("explicit")?
+            .1,
+        "partial"
+    );
+    let private = a.publish_source_pool(KEY, "private", 1, &[source(true)], false)?;
+    let other = caller(
+        &directory.path().join("cache.sqlite"),
+        Some("synthetic-other"),
+        true,
+    )?;
+    assert!(
+        store(&other)?
+            .find_source_pool(KEY, Some(private.info.id.as_str()), |_| false)?
+            .is_none()
+    );
     Ok(())
 }

@@ -85,48 +85,73 @@ pub(crate) fn write(
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     Ok(store.save_source_snapshot(key, &payload, sources)?)
 }
+/// Entity-owned membership completeness, independent of optional field problems.
+pub(crate) trait Observation {
+    fn whole(&self) -> bool;
+}
+impl<T, U> Observation for (T, U, bool) {
+    fn whole(&self) -> bool {
+        !self.2
+    }
+}
+impl<T, U, V> Observation for (T, U, V, bool) {
+    fn whole(&self) -> bool {
+        !self.3
+    }
+}
+pub(crate) fn current_key(key: &[u8]) -> Vec<u8> {
+    [b"biomcp.source_current/2\0".as_slice(), key].concat()
+}
+pub(crate) fn sources_whole(sources: &[SourceOutcome]) -> bool {
+    sources
+        .iter()
+        .all(|source| source.state == biomcp_types::SourceState::Ok)
+}
 type Found<T> = (Option<(T, crate::store::Pool)>, bool);
 /// Find the current retained native window, or validate its explicit continuation.
-pub(crate) fn find<T: DeserializeOwned>(
+pub(crate) fn find<T: DeserializeOwned + Observation>(
     cx: &Ctx<'_>,
     key: &[u8],
     token: Option<&biodata::Text>,
     deadline: Deadline<'_>,
 ) -> Result<Found<T>, RequestError> {
     let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let pool = store.find(key, token.map(biodata::Text::as_str))?;
-    let mismatch = pool.as_ref().is_some_and(|p| p.key != key);
-    let Some(pool) = pool.filter(|_| !mismatch) else {
-        return Ok((None, mismatch));
+    let found = store.find_source_pool(key, token.map(biodata::Text::as_str), |s| {
+        cx.fetch.disabled(s)
+    })?;
+    let Some((pool, payload)) = found else {
+        return Ok((None, false));
     };
-    let saved = store
-        .source_snapshot(pool.info.id.as_str(), key, |s| cx.fetch.disabled(s))?
-        .map(|payload| decode(&payload).map(|saved| saved.map(|saved| (saved, pool))))
-        .transpose()?;
-    Ok((saved.flatten(), mismatch))
+    if pool.key != key {
+        return Ok((None, true));
+    }
+    let saved = decode::<T>(&payload)?;
+    Ok((
+        saved
+            .filter(|saved| {
+                token.is_some() || saved.whole() && !pool.dropped && sources_whole(&pool.sources)
+            })
+            .map(|saved| (saved, pool)),
+        false,
+    ))
 }
+
 pub(crate) fn publish(
     cx: &Ctx<'_>,
     key: &[u8],
-    payload: &impl Serialize,
+    payload: &(impl Serialize + Observation),
     size: u32,
     sources: &[SourceOutcome],
     pool: Option<crate::store::Pool>,
     deadline: Deadline<'_>,
 ) -> Result<crate::store::Pool, RequestError> {
+    let incomplete = !payload.whole();
     let payload = encode(payload)?;
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
     Ok(if let Some(pool) = pool {
-        if store
-            .source_snapshot(pool.info.id.as_str(), key, |s| cx.fetch.disabled(s))?
-            .as_deref()
-            == Some(payload.as_str())
-        {
-            return Ok(pool);
-        }
-        store.extend_source_pool(pool, &payload, size, sources)?
+        store.extend_source_pool(pool, &payload, size, sources, incomplete)?
     } else {
-        store.publish_source_pool(key, &payload, size, sources)?
+        store.publish_source_pool(key, &payload, size, sources, incomplete)?
     })
 }
 
@@ -134,21 +159,24 @@ pub(crate) fn publish(
 pub(crate) fn intern(
     cx: &Ctx<'_>,
     key: &[u8],
-    payload: &impl Serialize,
+    payload: &(impl Serialize + Observation),
     size: u32,
     sources: &[SourceOutcome],
     deadline: Deadline<'_>,
 ) -> Result<crate::store::Pool, RequestError> {
+    let incomplete = !payload.whole();
     let payload = encode(payload)?;
     let mut store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    if let Some(pool) = store.find(key, None)?
+    if !incomplete
+        && sources_whole(sources)
+        && let Some((pool, retained)) =
+            store.find_source_pool(key, None, |s| cx.fetch.disabled(s))?
         && pool.key == key
-        && store
-            .source_snapshot(pool.info.id.as_str(), key, |s| cx.fetch.disabled(s))?
-            .as_deref()
-            == Some(payload.as_str())
+        && !pool.dropped
+        && sources_whole(&pool.sources)
+        && retained == payload
     {
         return Ok(pool);
     }
-    Ok(store.publish_source_pool(key, &payload, size, sources)?)
+    Ok(store.publish_source_pool(key, &payload, size, sources, incomplete)?)
 }

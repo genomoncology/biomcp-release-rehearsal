@@ -75,13 +75,15 @@ fn complete_controls() -> Result<(), String> {
             threshold,
         ];
         let mut page = body(&url(&pairs()), 0, 3);
-        for row in page["_embedded"]["associations"]
-            .as_array_mut()
+        for row in page
+            .pointer_mut("/_embedded/associations")
+            .and_then(Value::as_array_mut)
             .ok_or("association fixture")?
         {
-            row["pvalue_exponent"] = json!(exponent);
+            let row = row.as_object_mut().ok_or("association object")?;
+            row.insert("pvalue_exponent".into(), json!(exponent));
             if exponent == -320 {
-                row["p_value"] = json!(0.0);
+                row.insert("p_value".into(), json!(0.0));
             }
         }
         let replay = seed(&env, &args, page, 200, 0)?;
@@ -175,4 +177,83 @@ fn replay_call(
     let mut command = env.globals(Some(replay), false);
     command.extend(args.iter().map(|arg| (*arg).to_owned()));
     super::invoke(env, command, 0)
+}
+
+pub(super) fn pools() -> Result<(), String> {
+    let env = Environment::new().map_err(|error| error.to_string())?;
+    let args = [
+        "search",
+        "gwas",
+        "--pubmed",
+        "17529967",
+        "--p-value",
+        "1e-200",
+    ];
+    let mut page = body(&url(&pairs()), 0, 3);
+    page.pointer_mut("/_embedded/associations/1")
+        .and_then(Value::as_object_mut)
+        .ok_or("association object")?
+        .remove("pvalue_mantissa");
+    let replay = seed(&env, &args, page, 200, 0)?;
+    let first = replay_call(&env, &replay, &args)?;
+    let repeated = replay_call(&env, &replay, &args)?;
+    let id = first
+        .pointer("/page/pool/id")
+        .and_then(Value::as_str)
+        .ok_or("first pool")?;
+    if repeated.pointer("/page/pool/id") == first.pointer("/page/pool/id") {
+        return Err("new search reused an incomplete observation as current".into());
+    }
+    let mut explicit = args.to_vec();
+    explicit.extend(["--pool", id]);
+    let old = replay_call(&env, &replay, &explicit)?;
+    if old.pointer("/page/pool/id") != first.pointer("/page/pool/id") {
+        return Err("old explicit pool lost its identity".into());
+    }
+    check(&old, "explicit incomplete pool", 2)
+}
+
+pub(super) fn stale_page() -> Result<(), String> {
+    let stub = crate::runner::network_stub::Stub::for_source(
+        "www.ebi.ac.uk",
+        "application/json",
+        super::wire::live_body,
+    )?;
+    let env = crate::runner::variant::source_environment(&stub)?;
+    let cache = env.root().join(format!(
+        "cache/biomcp/cache-{}-{}.sqlite",
+        biomcp_fetch::CACHE_NAMESPACE_VERSION,
+        biomcp_query::store::CACHE_NAMESPACE_VERSION
+    ));
+    let first = super::invoke(
+        &env,
+        [
+            "search",
+            "gwas",
+            "--pubmed",
+            "17529967",
+            "--p-value",
+            "1e-200",
+        ]
+        .into_iter()
+        .map(str::to_owned)
+        .collect(),
+        0,
+    )?;
+    let db = rusqlite::Connection::open(cache).map_err(|error| error.to_string())?;
+    db.execute(
+        "UPDATE trial_snapshot SET payload=json_set(payload,'$.sources[0].state','stale')",
+        [],
+    )
+    .map_err(|error| error.to_string())?;
+    drop(db);
+    let last = super::invoke(&env, crate::runner::action(&first, "page")?, 0)?;
+    if last.pointer("/status") != Some(&json!("partial"))
+        || last.pointer("/sources/0/state") != Some(&json!("stale"))
+        || last.pointer("/result/qualifying_total").is_some()
+        || stub.finish()?.len() != 2
+    {
+        return Err(format!("fresh extension erased stale observation: {last}"));
+    }
+    Ok(())
 }

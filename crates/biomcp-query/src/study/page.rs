@@ -24,14 +24,20 @@ pub(super) fn search(
     let key = request_key(q, &snapshot)?;
     // An explicit pool keeps its accepted catalog revision after a replacement sync.
     let store = Store::open(cx.fetch.cache_access()?, deadline)?;
-    let existing = store.find(&key, q.pool().map(|p| p.as_str()))?;
-    let (retained, pool) = if let Some(pool) = existing {
-        let retained: Option<Retained> =
-            source_snapshot::read(cx, &pool.key, pool.info.id.as_str(), deadline)?;
-        let Some(retained) = retained else {
-            pool_error(cx, q, false, out);
-            return Ok(());
-        };
+    let existing = store
+        .find_source_pool(&key, q.pool().map(|p| p.as_str()), |source| {
+            cx.fetch.disabled(source)
+        })?
+        .map(|(pool, payload)| {
+            crate::store::labels::decode::<Retained>(&payload)
+                .map(|retained| retained.map(|retained| (pool, retained)))
+        })
+        .transpose()?
+        .flatten()
+        .filter(|(_, retained)| {
+            q.pool().is_some() || !retained.3 && source_snapshot::sources_whole(&out.sources)
+        });
+    let (retained, pool) = if let Some((pool, retained)) = existing {
         (retained, Some(pool))
     } else if q.pool().is_some() {
         pool_error(cx, q, false, out);
@@ -40,7 +46,7 @@ pub(super) fn search(
         let size = u32::try_from(rows.len()).map_err(|_| CacheError::Limit)?;
         let retained = (rows, snapshot, out.problems.clone(), out.dropped);
         let pool = crate::publish::keep(
-            source_snapshot::publish(cx, &key, &retained, size, &[], None, deadline),
+            source_snapshot::publish(cx, &key, &retained, size, &out.sources, None, deadline),
             out,
         )?;
         (retained, pool)

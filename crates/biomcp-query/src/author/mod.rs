@@ -76,3 +76,22 @@ struct NativePages<P> {
     source: biomcp_types::SourceOutcome,
     key_needed: bool,
 }
+
+impl crate::source_snapshot::Observation
+    for NativePages<(biomcp_adapters::semantic_scholar::author::Page, bool)>
+{
+    fn whole(&self) -> bool {
+        self.pages.iter().all(|(_, refused)| !refused)
+            && crate::source_snapshot::sources_whole(std::slice::from_ref(&self.source))
+    }
+}
+impl crate::source_snapshot::Observation
+    for NativePages<biomcp_adapters::semantic_scholar::author::PapersPage>
+{
+    fn whole(&self) -> bool {
+        self.pages
+            .iter()
+            .all(|page| page.refusals == biomcp_adapters::Refusal::None)
+            && crate::source_snapshot::sources_whole(std::slice::from_ref(&self.source))
+    }
+}

@@ -1,6 +1,7 @@
 # 0794 — Reuse only whole source snapshots
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: ddefacff3a2e2c1f080446567e9f36bcb5e44190
 
 Milestone: 5
 

@@ -183,3 +183,14 @@ impl Saved {
         Ok(())
     }
 }
+
+impl crate::source_snapshot::Observation for Saved {
+    fn whole(&self) -> bool {
+        match self {
+            Self::Domains(_, _, _, dropped) => !dropped,
+            Self::Complexes(collection) => collection.refusals == biomcp_adapters::Refusal::None,
+            Self::Members(Some(complex)) => complex.refusals == biomcp_adapters::Refusal::None,
+            Self::Members(None) => true,
+        }
+    }
+}

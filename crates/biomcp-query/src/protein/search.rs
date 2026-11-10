@@ -229,3 +229,9 @@ fn render(
     });
     out.body = (ProteinPage { items: rows.into() }).with_query(q.clone());
 }
+
+impl crate::source_snapshot::Observation for Saved {
+    fn whole(&self) -> bool {
+        !self.dropped && crate::source_snapshot::sources_whole(&self.sources)
+    }
+}

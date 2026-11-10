@@ -22,6 +22,13 @@ pub(super) fn trials() -> Vec<Trial> {
         transcript_trial("gwas-search/threshold-unknown-membership", || {
             uncertainty::run().map_err(Into::into)
         }),
+        transcript_trial(
+            "gwas-search/stale-page-remains-incomplete-after-extension",
+            || uncertainty::stale_page().map_err(Into::into),
+        ),
+        transcript_trial("gwas-search/incomplete-pool-is-not-current", || {
+            uncertainty::pools().map_err(Into::into)
+        }),
     ]
 }
 

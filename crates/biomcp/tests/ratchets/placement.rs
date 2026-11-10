@@ -409,7 +409,8 @@ const ALLOWED: &[(&str, &str)] = &[
     ),
     (
         "crates/biomcp-query/src/store/privacy_tests.rs",
-        "Prove caller ownership at the private query store security boundary before licensed routes publish continuations.",
+        "Prove caller ownership and atomic current-pool admission at the private query store transaction boundary \
+        before retained routes publish continuations.",
     ),
     (
         "crates/biomcp-query/tests/gene_resolution.rs",
