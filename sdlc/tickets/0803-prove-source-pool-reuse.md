@@ -1,4 +1,4 @@
-# 0803 — Prove healthy source-pool reuse and incomplete author-page recovery
+# 0803 — Prove healthy source-pool reuse and incomplete membership recovery
 
 Status: OPEN.
 
@@ -6,11 +6,11 @@ Milestone: 5
 
 ## Outcome
 
-Outside-in regressions prove that healthy author/protein source windows remain reusable defaults and incomplete author observations remain explicitly readable without becoming defaults, including after a native extension.
+Outside-in regressions prove that healthy author/protein/pathway source windows remain reusable defaults and incomplete author/pathway observations remain explicitly readable without becoming defaults, including after a native author extension.
 
 ## Why
 
-The bounded mutation sample on product 34d found three meaningful survivors despite all existing cases passing: protein tuple completeness forced false and Semantic Scholar author completeness forced true or false. Independent inspection confirmed Medium regression gaps, not defects in the unmutated runtime.
+The bounded mutation sample on product 34d found five meaningful survivors despite all existing cases passing: protein tuple completeness forced false and Semantic Scholar author and Reactome pathway completeness forced true or false. Independent inspection confirmed Medium regression gaps, not defects in the unmutated runtime.
 
 ## Proof
 
@@ -18,12 +18,15 @@ The bounded mutation sample on product 34d found three meaningful survivors desp
 - Supply HTTP 200 author results containing valid and refused identities. Require a partial reply, stable explicit pages, and a subsequent identical implicit search that does not reuse the incomplete pool.
 - Extend a healthy current author window through its emitted continuation into a mixed valid/refused page. Repeating the original implicit search must select a new pool, while the explicit incomplete observation remains readable.
 - Extend the existing protein section boundary proof with an identical no-pool repeat; require stable pool ID and records, retaining explicit continuation as the control.
-- Prove these public-command checks fail under the three meaningful replacements and pass unmutated. Run focused checks and the routine gate; preserve red/green evidence and actual test-driver identity.
+- Repeat identical healthy pathway events commands without a pool selector; require complete replies, stable pool ID and records, retaining explicit continuation as the control.
+- Serve a valid pathway card and HTTP 200 events with two admitted events plus one invalid Reactome identity. At limit 1 require a partial reply and followable explicit continuation with stable pool identity. The identical implicit command must create a different pool while the original explicit pages remain readable. Do not substitute optional-field trouble or an HTTP failure for refused membership.
+- Prove these public-command checks fail under the five meaningful replacements and pass unmutated. Run focused checks and the routine gate; preserve red/green evidence and actual test-driver identity.
 
 ## Starts from
 
 - Product 34d6e02d1ebeac4d55e44e05099854f15e718d57, current main and existing fixture/stub runners. Protein retention is crates/biomcp-query/src/protein/relations/retained.rs; healthy entry admission is crates/biomcp-adapters/src/uniprot/entry/map.rs. Author refusal retention is crates/biomcp-query/src/author/search.rs and shared publication is crates/biomcp-query/src/source_snapshot.rs. Existing protein boundary proof: crates/biomcp/tests/runner/protein_sections/boundaries.rs.
 - Native survivor logs/diffs are receiver-verified on Yellow under data/biomcp-redux-evidence/0788/j36944-{second,third,fourth,fifth}-survivor/. The independent assessment traced tuple-true publication to accepted UniProt entries; do not invent an arbitrary tuple assertion to kill that masked survivor.
+- Pathway witnesses are j36944-sixth-survivor and j36944-seventh-survivor in the same evidence store. Reactome relation admission can retain valid rows alongside refused identities while source state stays Ok; pathway/relation.rs retains dropped membership. Extend the existing crates/biomcp/tests/runner/pathway_sections.rs runner.
 
 ## Keeps
 
@@ -36,4 +39,4 @@ The bounded mutation sample on product 34d found three meaningful survivors desp
 
 ## Changes
 
-- Existing CLI fixtures, stub responses and owning author/protein integration tests. No runtime changes expected; report a genuine baseline defect before broadening scope.
+- Existing CLI fixtures, stub responses and owning author/protein/pathway integration tests. No runtime changes expected; report a genuine baseline defect before broadening scope.
