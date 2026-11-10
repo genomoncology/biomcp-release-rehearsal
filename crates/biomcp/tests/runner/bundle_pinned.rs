@@ -6,7 +6,7 @@ use super::{
 };
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
-use std::fs;
+use std::{fs, sync::mpsc, time::Duration};
 
 // 2026-01-01T00:00:00Z, so the stated date never follows the calendar.
 const RETRIEVED: i64 = 1_767_225_600;
@@ -22,10 +22,26 @@ fn read() -> Result<(), String> {
     let env = Environment::new().map_err(|e| e.to_string())?;
     let replay = super::launch::fixtures().join("replies/gene/gencc");
     let body = native_body(&replay, "hgnc")?;
-    let stub = Stub::for_sources(
-        &["storage.googleapis.com"],
-        |_| "text/tab-separated-values",
-        move |_| Ok(body.clone()),
+    let (admitted, admission) = mpsc::channel();
+    let mut foreground = None;
+    let mut refresh = false;
+    let stub = Stub::for_source_with_held_response(
+        "storage.googleapis.com",
+        "text/tab-separated-values",
+        move |request| {
+            let line = request.lines().next().ok_or("missing HGNC request")?;
+            if let Some(expected) = &foreground {
+                if refresh || line != expected {
+                    return Err(format!("unexpected HGNC refresh: {line}"));
+                }
+                refresh = true;
+                admitted.send(()).map_err(|e| e.to_string())?;
+                Ok(None)
+            } else {
+                foreground = Some(line.to_owned());
+                Ok(Some(body.clone()))
+            }
+        },
     )?;
     stub.retain(env.shared_root());
     let ca = env.root().join("ca.pem");
@@ -57,9 +73,21 @@ fn read() -> Result<(), String> {
             Some(message) if message.contains("Local copy retrieved 2026-01-01,") => Ok(()),
             _ => Err(format!("hosted reply did not state the copy date: {reply}")),
         });
+    let admitted = admission
+        .recv_timeout(Duration::from_secs(15))
+        .map_err(|e| format!("owned refresh was not admitted: {e}"));
     let stopped = server.finish();
-    let fixture = stub.finish().map(|_| ());
-    result.and(stopped).and(fixture)
+    let fixture = stub.finish().and_then(|requests| {
+        if requests.len() == 2 {
+            Ok(())
+        } else {
+            Err(format!(
+                "expected seed and one owned refresh, got {} requests",
+                requests.len()
+            ))
+        }
+    });
+    result.and(admitted).and(stopped).and(fixture)
 }
 
 fn args(words: &[&str]) -> Vec<String> {

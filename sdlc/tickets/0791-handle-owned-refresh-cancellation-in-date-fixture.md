@@ -1,6 +1,7 @@
 # 0791 — Handle owned refresh cancellation in the hosted date fixture
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 22cff14e4845844247726fefe3c0909f085a7ca5
 
 Milestone: 5
 

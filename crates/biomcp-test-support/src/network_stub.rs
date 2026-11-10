@@ -57,6 +57,23 @@ impl Stub {
     ) -> Result<Self, String> {
         Self::for_sources(&[host], move |_| content_type, reply)
     }
+    /// Serve a publisher normally for `Some`, or hold `None` until its peer
+    /// closes the socket. Only a caller-identified refresh may select `None`.
+    pub fn for_source_with_held_response(
+        host: &'static str,
+        content_type: &'static str,
+        reply: impl FnMut(&str) -> Result<Option<String>, String> + Send + 'static,
+    ) -> Result<Self, String> {
+        Self::with_certificate_names(
+            &[host],
+            &[host],
+            move |_| content_type,
+            reply,
+            |_, bytes| bytes,
+            |_| 200,
+            |_| String::new(),
+        )
+    }
     /// Serve responses with a controlled content length.
     pub fn with_length(
         host: &'static str,
@@ -129,12 +146,20 @@ impl Stub {
     pub fn with_headers(
         hosts: &[&str],
         content_type: impl Fn(&str) -> &'static str + Send + 'static,
-        reply: impl FnMut(&str) -> Result<String, String> + Send + 'static,
+        mut reply: impl FnMut(&str) -> Result<String, String> + Send + 'static,
         length: fn(&str, usize) -> usize,
         status: impl FnMut(&str) -> u16 + Send + 'static,
         range: impl FnMut(&str) -> String + Send + 'static,
     ) -> Result<Self, String> {
-        Self::with_certificate_names(hosts, hosts, content_type, reply, length, status, range)
+        Self::with_certificate_names(
+            hosts,
+            hosts,
+            content_type,
+            move |request| reply(request).map(Some),
+            length,
+            status,
+            range,
+        )
     }
     /// Serve a synthetic HGNC publisher with a certificate for another name.
     pub fn mismatched_name() -> Result<Self, String> {
@@ -142,7 +167,7 @@ impl Stub {
             &["storage.googleapis.com"],
             &["wrong-name.invalid"],
             |_| "text/tab-separated-values",
-            |request| body(request.contains("withdrawn.txt")),
+            |request| body(request.contains("withdrawn.txt")).map(Some),
             |_, bytes| bytes,
             |_| 200,
             |_| String::new(),
@@ -152,7 +177,7 @@ impl Stub {
         hosts: &[&str],
         certificate_names: &[&str],
         content_type: impl Fn(&str) -> &'static str + Send + 'static,
-        mut reply: impl FnMut(&str) -> Result<String, String> + Send + 'static,
+        mut reply: impl FnMut(&str) -> Result<Option<String>, String> + Send + 'static,
         length: fn(&str, usize) -> usize,
         mut status: impl FnMut(&str) -> u16 + Send + 'static,
         mut range: impl FnMut(&str) -> String + Send + 'static,
@@ -190,7 +215,11 @@ impl Stub {
                     if let Some(kind) = tls.conn.handshake_kind() {
                         handshake.send(kind).map_err(|e| e.to_string())?;
                     }
-                    let body = reply(&request)?;
+                    let Some(body) = reply(&request)? else {
+                        observed.check("held refresh disconnect", disconnected(&mut tls.sock))?;
+                        requests.push((connect, request));
+                        continue;
+                    };
                     let content_type = content_type(&request);
                     let status = status(&request);
                     observed.check("TLS reply", write!(
@@ -248,6 +277,24 @@ impl Drop for Stub {
                 Ok(Ok(_)) => {}
             }
         }
+    }
+}
+fn disconnected(socket: &mut TcpStream) -> Result<(), String> {
+    socket
+        .set_read_timeout(Some(std::time::Duration::from_secs(30)))
+        .map_err(|error| error.to_string())?;
+    match socket.read(&mut [0]) {
+        Ok(0) => Ok(()),
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::ConnectionReset | std::io::ErrorKind::ConnectionAborted
+            ) =>
+        {
+            Ok(())
+        }
+        Ok(_) => Err("held refresh sent bytes instead of closing its socket".into()),
+        Err(error) => Err(error.to_string()),
     }
 }
 fn header(input: &mut impl Read) -> Result<String, String> {
