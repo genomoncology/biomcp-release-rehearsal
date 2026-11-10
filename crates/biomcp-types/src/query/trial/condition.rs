@@ -14,9 +14,8 @@ impl TrialSearch {
         {
             return None;
         }
-        let mut next = self.clone();
+        let mut next = self.first_page();
         next.0.exact_condition = true;
-        next.0.next_page = None;
         Some(next)
     }
 }

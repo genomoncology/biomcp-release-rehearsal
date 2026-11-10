@@ -1,0 +1,117 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&filter.advanced=AREA%5BLeadSponsorName%5D%22Paging%20unknown%22&pageSize=2",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT09000001",
+                  "briefTitle": "Trastuzumab Deruxtecan (DS-8201a) Versus Investigator's Choice for HER2-low Breast Cancer That Has Spread or Cannot be Surgically Removed [DESTINY-Breast04]"
+                },
+                "statusModule": {
+                  "overallStatus": "COMPLETED",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-09-28"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Breast Cancer"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Trastuzumab deruxtecan (DS-8201a)"
+                    },
+                    {
+                      "name": "Capecitabine"
+                    },
+                    {
+                      "name": "Eribulin"
+                    },
+                    {
+                      "name": "Gemcitabine"
+                    },
+                    {
+                      "name": "Paclitaxel"
+                    },
+                    {
+                      "name": "Nab-paclitaxel"
+                    }
+                  ]
+                }
+              },
+              "hasResults": true
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT09000002",
+                  "briefTitle": "Trastuzumab Deruxtecan (DS-8201a) Versus Investigator's Choice for HER2-low Breast Cancer That Has Spread or Cannot be Surgically Removed [DESTINY-Breast04]"
+                },
+                "statusModule": {
+                  "overallStatus": "COMPLETED",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-09-28"
+                  }
+                },
+                "conditionsModule": {
+                  "conditions": [
+                    "Breast Cancer"
+                  ]
+                },
+                "designModule": {
+                  "phases": [
+                    "PHASE3"
+                  ]
+                },
+                "armsInterventionsModule": {
+                  "interventions": [
+                    {
+                      "name": "Trastuzumab deruxtecan (DS-8201a)"
+                    },
+                    {
+                      "name": "Capecitabine"
+                    },
+                    {
+                      "name": "Eribulin"
+                    },
+                    {
+                      "name": "Gemcitabine"
+                    },
+                    {
+                      "name": "Paclitaxel"
+                    },
+                    {
+                      "name": "Nab-paclitaxel"
+                    }
+                  ]
+                }
+              },
+              "hasResults": true
+            }
+          ],
+          "nextPageToken": "synthetic-next",
+          "totalCount": 6
+        }
+      }
+    }
+  ]
+}

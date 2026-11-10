@@ -47,12 +47,17 @@
         "--sponsor",
         "Paging unknown",
         "--limit",
-        "2",
-        "--offset",
-        "2",
-        "--next-page",
-        "synthetic-next"
+        "2"
       ],
+      "expect": {
+        "/page/returned": 2,
+        "/next/*/kind": {
+          "includes": "page"
+        }
+      }
+    },
+    {
+      "follow": "page",
       "expect": {
         "/next/*/kind": {
           "includes": "page"

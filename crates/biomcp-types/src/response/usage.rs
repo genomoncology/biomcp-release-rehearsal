@@ -34,6 +34,8 @@ pub enum UsageError {
     TextPositionError,
     /// ClinicalTrials.gov rejected a request carrying a registry continuation.
     TrialContinuationRejected,
+    /// A retained registry continuation cannot establish its position and selectors.
+    TrialContinuationUnavailable,
     /// A numeric body selector exceeds the available outline.
     ArticlePartRange {
         /// Checked article identity for outline discovery.

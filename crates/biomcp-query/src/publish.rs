@@ -65,6 +65,7 @@ fn restart(request: &Request) -> Request {
             ..q.clone()
         }),
         Request::GetTrial(q) => Request::GetTrial(q.identity()),
+        Request::SearchTrial(q) => Request::SearchTrial(q.first_page()),
         Request::ProteinFeatures(q) => Request::ProteinFeatures(q.restart()),
         Request::ProteinIsoforms(q) => Request::ProteinIsoforms(q.restart()),
         Request::ProteinStructures(q) => Request::ProteinStructures(q.restart()),

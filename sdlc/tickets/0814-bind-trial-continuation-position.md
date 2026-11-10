@@ -1,6 +1,7 @@
 # 0814 — Bind trial continuations to their native position and selectors
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 8278dd1a2d6723c7bcf73f044ff991e3f163c643
 
 Milestone: 5
 

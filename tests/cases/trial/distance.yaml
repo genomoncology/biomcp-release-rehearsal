@@ -37,8 +37,8 @@
         "/result/source_updated/value": "2026-10-23T09:00:04Z",
         "/result/source_updated/timezone": "in-value"
       },
-      "max_bytes": 6167
+      "max_bytes": 6213
     }
   ],
-  "harvest": "Required-provenance exception measured by j10455: 5362 bytes minus 2057 bytes for exact source parameters, processing timestamp, attribution, row URLs, update dates and intervention names leaves 3305 bytes; comparable 0.9 output was 4534 bytes. Preserve every required fact."
+  "harvest": "Required-provenance exception measured by j10455: 5362 bytes minus 2057 bytes for exact source parameters, processing timestamp, attribution, row URLs, update dates and intervention names leaves 3305 bytes; comparable 0.9 output was 4534 bytes. Preserve every required fact. Bound-continuation change adds 46 bytes for one versioned store capability replacing the 39-character source token; retain the previous measured ceiling headroom."
 }

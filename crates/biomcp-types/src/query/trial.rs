@@ -232,7 +232,7 @@ struct Fields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "NctId"))]
     id: Option<NctId>,
-    #[doc = "Page token.\nOpaque registry continuation; keep filters unchanged."]
+    #[doc = "Page token.\nClinicalTrials.gov: follow the returned token, selectors and offset unchanged; unbound tokens need a fresh first page."]
     #[serde(
         default,
         deserialize_with = "super::gene::present",

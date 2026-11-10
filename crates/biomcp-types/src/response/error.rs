@@ -97,6 +97,8 @@ singleton! {
             first-page command, then follow its next command",
         TrialContinuationRejected => "ClinicalTrials.gov rejected this continuation request; run the suggested fresh \
             first-page search, then follow its next command",
+        TrialContinuationUnavailable => "this trial continuation cannot verify its position and search selectors; run the \
+            suggested fresh first-page search, then follow its next command",
         FaersOffset => "FAERS supports --offset up to 25000; narrow the filters to retrieve more reports",
         FaersDrugNames => "pass --drug once per literal name to search several names with OR; OR inside one --drug value \
             is not supported",
@@ -374,9 +376,12 @@ impl From<crate::UsageError> for ErrorEnvelope {
             }
             UsageError::UnsupportedAdverseEvent | UsageError::TextPositionError => {}
             UsageError::TrialContinuationRejected => {
-                out.error.source = Some(crate::Source::ClinicalTrialsGov);
-                out.error.option = Some("--next-page".into());
-                out.error.message = ErrorMessage::TrialContinuationRejected;
+                out.error
+                    .trial_continuation(ErrorMessage::TrialContinuationRejected);
+            }
+            UsageError::TrialContinuationUnavailable => {
+                out.error
+                    .trial_continuation(ErrorMessage::TrialContinuationUnavailable);
             }
             UsageError::ArticlePartRange { input, last } => out.article_part_range(input, last),
             UsageError::UnsupportedTrialFilter { source, option } => {
@@ -486,6 +491,11 @@ impl ErrorEnvelope {
 }
 
 impl ErrorDetail {
+    fn trial_continuation(&mut self, message: ErrorMessage) {
+        self.source = Some(crate::Source::ClinicalTrialsGov);
+        self.option = Some("--next-page".into());
+        self.message = message;
+    }
     fn arguments(&mut self, arguments: crate::UsageArguments) -> Vec<super::Step> {
         self.option = arguments.argument;
         self.message = arguments.message.unwrap_or_else(|| {

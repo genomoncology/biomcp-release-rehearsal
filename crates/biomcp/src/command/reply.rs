@@ -9,7 +9,10 @@ impl Reply for ResponseMeta {
         self.encode(query, body)
     }
     fn usage(self, error: UsageError) -> Self::Output {
-        if matches!(error, UsageError::TrialContinuationRejected) {
+        if matches!(
+            error,
+            UsageError::TrialContinuationRejected | UsageError::TrialContinuationUnavailable
+        ) {
             let mut envelope = biomcp_types::ErrorEnvelope::from(error);
             envelope.next = self.next;
             return self.encoding.encode(envelope, crate::exit::Status::Usage);

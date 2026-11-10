@@ -1,7 +1,7 @@
 {
   "feature": "trial-search",
   "live_check": "public",
-  "story": "Opaque registry continuation preserves native rows; the registry omits continuation totalCount, so a cached native count request supplies the exact total.",
+  "story": "Opaque registry continuation preserves native rows; the registry omits continuation totalCount, so a cached native count request supplies the exact total. Unbound legacy cursor text refuses even offline, with fresh first-page recovery rather than unverifiable position.",
   "replay": "trial/walk",
   "steps": [
     {
@@ -49,24 +49,15 @@
         "ZVNj7o2Elu8o3lpzV8ikv62tmpOQJJxuZPGs2Pg"
       ],
       "expect": {
-        "/status": "complete",
-        "/page/total": 3780,
-        "/result/items/*/nct_id": {
-          "equals": [
-            "NCT07760012",
-            "NCT07341737",
-            "NCT07815873",
-            "NCT06560905",
-            "NCT00716495",
-            "NCT00094653",
-            "NCT01005745",
-            "NCT03638492",
-            "NCT01760499",
-            "NCT02431572"
-          ]
+        "/error/option": "--next-page",
+        "/error/source": "ctgov",
+        "/next/0/args": {
+          "includes": "--fresh"
         }
       },
-      "max_bytes": 5790
+      "max_bytes": 5790,
+      "exit": 2,
+      "is_error": true
     }
   ]
 }

@@ -526,7 +526,7 @@
     },
     "next_page": {
       "$ref": "#/$defs/Text",
-      "description": "Page token.\nOpaque registry continuation; keep filters unchanged."
+      "description": "Page token.\nClinicalTrials.gov: follow the returned token, selectors and offset unchanged; unbound tokens need a fresh first page."
     },
     "offset": {
       "default": 0,

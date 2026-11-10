@@ -122,6 +122,7 @@ mod store_clean;
 mod store_coexistence;
 mod study_catalog;
 mod transcript;
+mod trial_binding;
 mod trial_continuation;
 mod trial_gene;
 mod trial_get;
@@ -343,6 +344,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
 
 fn retained_source_trials() -> Vec<Trial> {
     let mut trials = snapshot_errors::trials();
+    trials.extend(trial_binding::trials());
     trials.extend(author_pools::trials());
     trials.extend(faers_names::trials());
     trials.extend(protein_sections::trials());

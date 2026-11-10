@@ -89,7 +89,7 @@ pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
         Request::GetVariant(query) => crate::variant::get(cx, query),
         Request::TrialDocument(query) => crate::trial::document::download(cx, query, false).out,
         Request::GetTrial(query) => crate::trial::get::get(cx, query),
-        Request::SearchTrial(query) => crate::trial::search(cx, query),
+        Request::SearchTrial(query) => crate::trial::search_bound(cx, query),
         Request::ArticlePdf(query) => crate::article::pdf::download(cx, query, false).out,
         Request::ArticleEvidence(query) => crate::article::evidence::run(cx, query),
         Request::ArticleRecommend(query) => crate::article::recommend::run(cx, query),
