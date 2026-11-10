@@ -5,7 +5,7 @@
     {
       "expect": {
         "": {
-          "max_bytes": 6811
+          "max_bytes": 7981
         },
         "/result/commands": {
           "count": 1
@@ -24,7 +24,9 @@
             "--manufacturer",
             "--product-code",
             "--problem",
-            "--drug"
+            "--drug",
+            "--expand-drug-names",
+            "--name-snapshot"
           ]
         },
         "/result/commands/0/command": [
@@ -36,7 +38,7 @@
           "count": 1
         }
       },
-      "max_bytes": 6811,
+      "max_bytes": 7981,
       "run": [
         "help",
         "search",

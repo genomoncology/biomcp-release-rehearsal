@@ -347,7 +347,7 @@
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "description": "Source-stated names used in a trial or article search.",
+          "description": "Source-stated spellings actually searched.",
           "properties": {
             "input": {
               "$ref": "#/$defs/Reply_Text",

@@ -71,7 +71,7 @@ pub fn run(cx: &Ctx<'_>, request: &Request) -> Outcome {
         Request::GetPgxAnnotation(query) => crate::pgx::annotation(cx, query),
         Request::SearchDiagnostic(q) => crate::diagnostic::search(cx, q),
         Request::GetDiagnostic(q) => crate::diagnostic::get(cx, q),
-        Request::SearchAdverseEvent(query) => crate::adverse_event::search(cx, query),
+        Request::SearchAdverseEvent(query) => crate::adverse_event::search_command(cx, query),
         Request::GetAdverseEvent(q) if q.source() == biomcp_types::AdverseEventSource::Maude => {
             crate::adverse_event_maude::get(cx, q)
         }

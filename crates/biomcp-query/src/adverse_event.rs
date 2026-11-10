@@ -1,8 +1,9 @@
-//! One explicit adverse-event source; no inference, drug choice or source probing.
+//! Explicit adverse-event sources and optional bounded FAERS name discovery.
 use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 mod counts;
 mod get;
+mod names;
 mod vaers;
 use crate::{Ctx, Outcome, status};
 use biomcp_adapters::{faers, maude};
@@ -11,16 +12,34 @@ use biomcp_types::{
     StepKind,
 };
 /// Search report headers through the declared source and its reviewed component admission.
-pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
-    if query.aggregate().is_some() {
-        return counts::search(cx, query);
-    }
+pub(crate) fn search_command(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
     if query.source() == biomcp_types::AdverseEventSource::Vaers {
         return vaers::search(cx, query);
     }
-    let source = query.source().source();
     let command = cx.fetch.command_deadline(cx.budget);
-    let deadline = command.deadline();
+    let mut deadline = command.deadline();
+    let out = if query.expand_drug_names()
+        && !cx.fetch.disabled(Source::Faers)
+        && !cx.fetch.disabled(Source::Meddra)
+    {
+        names::search(cx, query, &mut deadline)
+    } else {
+        search(cx, query, query, deadline)
+    };
+    command.finish(deadline.remaining());
+    out
+}
+
+fn search<'a>(
+    cx: &Ctx<'a>,
+    query: &AdverseEventSearch,
+    navigation_query: &AdverseEventSearch,
+    deadline: biomcp_fetch::Deadline<'a>,
+) -> Outcome {
+    if query.aggregate().is_some() {
+        return counts::search(cx, query, navigation_query, deadline);
+    }
+    let source = query.source().source();
     let spec = if source == Source::Faers {
         &faers::SPEC
     } else {
@@ -54,7 +73,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
                 unit: ReportUnit::Reports,
                 components: Box::default(),
             })
-            .with_query(query.clone()),
+            .with_query(navigation_query.clone()),
             page: None,
             sources: vec![status::source(source, leg.finish(), error)],
             problems: Vec::new(),
@@ -64,7 +83,7 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
     );
     if let Ok(page) = reply {
         let returned = page.items.len() as u32;
-        navigation(query, &page, &mut out);
+        navigation(navigation_query, &page, &mut out);
         out.include_refusals(page.refusals);
         out.problems.extend(page.problems);
         out.page = Some(PageInfo {
@@ -88,7 +107,6 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
                 .and_then(|value| u64::try_from(value).ok());
         }
     }
-    command.finish(deadline.remaining());
     out
 }
 

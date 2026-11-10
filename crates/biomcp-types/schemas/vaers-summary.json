@@ -32,6 +32,10 @@
           },
           "type": "array"
         },
+        "expand_drug_names": {
+          "description": "FAERS only: explicitly search bounded source-stated aliases; literal search remains the default.",
+          "type": "boolean"
+        },
         "limit": {
           "default": 5,
           "description": "Native report headers, counted FAERS reaction terms or VAERS rows; default five.",
@@ -51,6 +55,17 @@
           ],
           "description": "MAUDE manufacturer.\nMAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.",
           "x-required-component": "gmdn"
+        },
+        "name_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reply_Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Retained FAERS name resolution; follow the returned command without changing filters."
         },
         "offset": {
           "default": 0,
@@ -554,7 +569,7 @@
       "description": "A source notice or request recovery step.",
       "oneOf": [
         {
-          "description": "Source-stated names used in a trial or article search.",
+          "description": "Source-stated spellings actually searched.",
           "properties": {
             "input": {
               "$ref": "#/$defs/Reply_Text",

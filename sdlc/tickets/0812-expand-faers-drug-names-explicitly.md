@@ -1,6 +1,7 @@
 # 0812 — Add disclosed bounded FAERS drug-name expansion
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 2167e618c7fb567659448e1488c7e6eaf3028597
 
 Milestone: 5
 

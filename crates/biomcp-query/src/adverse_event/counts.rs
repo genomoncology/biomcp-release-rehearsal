@@ -5,9 +5,12 @@ use biomcp_types::{
     AdverseEventPage, AdverseEventReactionCounts, AdverseEventSearch, ReplyBody, ReportUnit, Source,
 };
 
-pub(super) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
-    let command = cx.fetch.command_deadline(cx.budget);
-    let deadline = command.deadline();
+pub(super) fn search<'a>(
+    cx: &Ctx<'a>,
+    query: &AdverseEventSearch,
+    navigation_query: &AdverseEventSearch,
+    deadline: biomcp_fetch::Deadline<'a>,
+) -> Outcome {
     let leg = cx.fetch.leg(&faers::SPEC, deadline).fresh(cx.fresh);
     let mut body = AdverseEventPage {
         reaction_counts: None,
@@ -42,7 +45,7 @@ pub(super) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
     let mut out = status::finish(
         [status::item_status(false, true, false)],
         status::Parts {
-            body: body.with_query(query.clone()),
+            body: body.with_query(navigation_query.clone()),
             page: None,
             sources: vec![status::source(Source::Faers, leg.finish(), error)],
             problems: Vec::new(),
@@ -52,6 +55,5 @@ pub(super) fn search(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcome {
         },
     );
     status::search(&mut out);
-    command.finish(deadline.remaining());
     out
 }

@@ -2,6 +2,7 @@ use super::{AdverseEventAggregate, AdverseEventSection, AdverseEventSerious, Adv
 use crate::QueryInvalid;
 use biodata::{PartialDate, ReportId, Text};
 use serde::{Deserialize, Serialize};
+mod names;
 fn default_source() -> AdverseEventSource {
     AdverseEventSource::Faers
 }
@@ -39,6 +40,12 @@ struct SearchFields {
         at FAERS_QUERY_MAX_BYTES (4096 bytes)."]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     drug: Vec<Text>,
+    /// FAERS only: explicitly search bounded source-stated aliases; literal search remains the default.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    expand_drug_names: bool,
+    /// Retained FAERS name resolution; follow the returned command without changing filters.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    name_snapshot: Option<Text>,
     #[doc = "MAUDE manufacturer.\n\
         MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -119,6 +126,7 @@ impl SearchFields {
     }
     fn validate_scope(&self) -> Result<(), QueryInvalid> {
         self.validate_aggregate()?;
+        names::validate(self)?;
         if self.source == AdverseEventSource::Faers && self.offset > 25_000 {
             return Err(
                 QueryInvalid::new(&["offset"]).with_message(crate::ErrorMessage::FaersOffset)
@@ -228,6 +236,8 @@ impl AdverseEventSearch {
         Self::try_from(SearchFields {
             text: None,
             drug: Vec::new(),
+            expand_drug_names: false,
+            name_snapshot: None,
             manufacturer: None,
             product_code: vec![code],
             problem: None,
@@ -335,6 +345,7 @@ impl crate::Paged for AdverseEventSearch {
     }
     fn clear_page_context(&mut self) {
         self.0.snapshot = None;
+        self.0.name_snapshot = None;
     }
 }
 

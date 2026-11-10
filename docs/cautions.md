@@ -59,6 +59,8 @@ An exact rsID needs no allele-resolution request. Association pages retain the s
 
 An explicit `--drug` value containing a standalone OR between names is refused regardless of letter case. Pass `--drug` once per name. Positional drug text stays literal.
 
+FAERS stays literal by default. Add `--expand-drug-names` to search bounded source-stated aliases through the existing drug-name resolver. The reply lists searched spellings and lookup uncertainty; one native OR query supplies the report total, never a sum of spelling-specific counts. This is not a claim of all reports for a drug. Caller source/component exclusions and name/query limits still apply. Returned pages carry `--name-snapshot` to preserve their original spellings and evidence without repeating name resolution; keep the filters unchanged. Missing, expired or newly disallowed snapshots offer a restart. Reaction aggregates use the same expansion policy. VAERS remains an independent exact vaccine-code surface and does not accept this option.
+
 Named `recommendations` and `guidelines` sections preserve complete source rows and use `--section-limit` and `--section-offset`. An exact `--drug-id RxNorm:10324` on CYP2D6 recommendations selects the distinct native recommendation table. These commands preserve source labels and source-local empty replies. They calculate no phase, activity score, phenotype or treatment. Published website updates may precede the API tables; a retrieval date does not establish a dataset release. CPIC curated content is CC0 1.0. The reply retains the exact source expression, native order and report total. A report total is not incidence, risk or causation. Publisher dates and retrieval dates have separate roles.
 
 ## Vaccine identity

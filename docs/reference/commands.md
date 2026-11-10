@@ -1090,8 +1090,11 @@ Options:
           FAERS drug names; OR.
           FAERS literal drug name; repeat --drug for OR. A standalone OR joining names inside one --drug value is refused. Other filters AND with the names. BioMCP caps the escaped native query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes).
 
-      --limit <limit>
-          Native report headers, counted FAERS reaction terms or VAERS rows; default five.
+      --expand-drug-names[=<expand_drug_names>]
+          FAERS only: explicitly search bounded source-stated aliases; literal search remains the default.
+
+          [default: false]
+          [possible values: true, false]
 
       --source_pacing <source_pacing>
           Override source pacing with a JSON map of rate, keyed_rate and in_flight values. Example: --source_pacing '{}'.
@@ -1099,9 +1102,15 @@ Options:
       --config <config>
           Read configuration from this file. Example: --config config.json.
 
+      --limit <limit>
+          Native report headers, counted FAERS reaction terms or VAERS rows; default five.
+
       --manufacturer <manufacturer>
           MAUDE manufacturer.
           MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices.
+
+      --name-snapshot <name_snapshot>
+          Retained FAERS name resolution; follow the returned command without changing filters.
 
       --offset <offset>
           Native report row offset; reaction counts require zero. VAERS needs its snapshot.
@@ -1110,29 +1119,29 @@ Options:
           MAUDE product problem.
           MAUDE phrase on native product_problems.
 
-      --product-code <product_code>...
-          MAUDE product codes; OR.
-          MAUDE exact native device.device_report_product_code; repeated codes join with OR.
-
-      --reaction <reaction>
-          FAERS MedDRA phrase.
-          FAERS MedDRA term phrase match, not exact equality.
-
       --offline[=<offline>]
           Read local data without source requests.
 
           [default: false]
           [possible values: true, false]
 
-      --received-from <received_from>
-          First date, YYYY-MM[-DD].
-          Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
+      --product-code <product_code>...
+          MAUDE product codes; OR.
+          MAUDE exact native device.device_report_product_code; repeated codes join with OR.
 
       --fresh[=<fresh>]
           Request fresh source data instead of cached replies.
 
           [default: false]
           [possible values: true, false]
+
+      --reaction <reaction>
+          FAERS MedDRA phrase.
+          FAERS MedDRA term phrase match, not exact equality.
+
+      --received-from <received_from>
+          First date, YYYY-MM[-DD].
+          Inclusive FAERS or MAUDE FDA receipt lower bound, YYYY-MM-DD or YYYY-MM; a month starts on its first day.
 
       --received-to <received_to>
           Last date, YYYY-MM[-DD].
@@ -1162,9 +1171,11 @@ Use reactions for source count buckets across matching reports. Counts are not r
 Listed choices accept any letter case; replies use their listed spelling. Value form: string. Example: --aggregate reactions. Command sources: faers, maude, vaers; source restrictions in the field description apply.
 - `--drug`: FAERS drug names; OR.
 FAERS exact drug name; repeat --drug for OR. A standalone OR joining names inside one --drug value is refused. Other filters AND with the names. BioMCP caps the escaped source query, including filters, at FAERS_QUERY_MAX_BYTES (4096 bytes). Value form: repeatable values (repeat the flag). Example: --drug "synthetic\\B". Command sources: faers, maude, vaers; source restrictions in the field description apply.
+- `--expand-drug-names`: FAERS only: explicitly search bounded source-stated aliases; exact search remains the default. Value form: boolean. Example: --expand-drug-names. Command sources: faers, maude, vaers; source restrictions in the field description apply.
 - `--limit`: Source report headers, counted FAERS reaction terms or VAERS rows; default five. Value form: integer. Example: --limit 1. Command sources: faers, maude, vaers; source restrictions in the field description apply.
 - `--manufacturer`: MAUDE manufacturer.
 MAUDE manufacturer phrase on device.manufacturer_d_name. A report may list several devices; filters may match different devices. Value form: string. Example: --manufacturer 'Synthetic maker'. Command sources: faers, maude, vaers; source restrictions in the field description apply.
+- `--name-snapshot`: Retained FAERS name resolution; follow the returned command without changing filters. Value form: string. Example: --name-snapshot <name-snapshot> (syntax; replace the placeholder with your retained value). Command sources: faers, maude, vaers; source restrictions in the field description apply.
 - `--offset`: Source report row offset; reaction counts require zero. VAERS needs its snapshot. Value form: integer. Example: --offset 0. Command sources: faers, maude, vaers; source restrictions in the field description apply.
 - `--problem`: MAUDE product problem.
 MAUDE phrase on source product_problems. Value form: string. Example: --problem 'Synthetic problem'. Command sources: faers, maude, vaers; source restrictions in the field description apply.

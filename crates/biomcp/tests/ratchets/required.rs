@@ -126,6 +126,7 @@ pub(super) fn required_surface_has_asserted_calls() -> Check {
     counts.runner(synthetic_contracts::VALIDATOR_RESOLVER.1);
     counts.runner(synthetic_contracts::VAERS_TABLES.1);
     counts.runner(synthetic_contracts::FAERS_REACTION.1);
+    counts.runner(synthetic_contracts::FAERS_NAMES.1);
     counts.runner(synthetic_contracts::NORMALIZATION_PAGES.1);
     counts.runner(synthetic_contracts::CLINVAR_ASSERTION.1);
     counts.runner(synthetic_contracts::CLINVAR_PAGES.1);

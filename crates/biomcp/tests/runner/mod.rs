@@ -20,6 +20,7 @@ tool_only! { mod disease_mydisease; }
 tool_only! { mod disease_ols; }
 tool_only! { mod disease_seer; }
 mod execution;
+mod faers_names;
 mod faers_search;
 mod native_fields;
 #[path = "../support/pool_contracts.rs"]
@@ -343,6 +344,7 @@ pub(super) fn protocol_trials() -> Vec<Trial> {
 fn retained_source_trials() -> Vec<Trial> {
     let mut trials = snapshot_errors::trials();
     trials.extend(author_pools::trials());
+    trials.extend(faers_names::trials());
     trials.extend(protein_sections::trials());
     trials.push(protein_commands::refused_pool_trial());
     trials
