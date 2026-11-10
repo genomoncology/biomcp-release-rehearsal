@@ -1,0 +1,40 @@
+{
+  "feature": "trial-search",
+  "live_check": "synthetic native pagination and refusal controls; no live call",
+  "story": "Opaque source tokens advance past every received study, including refused records; admitted counts and native offsets stay distinct.",
+  "replay": "trial/native-consumption-all-refused",
+  "steps": [
+    {
+      "run": [
+        "search",
+        "trial",
+        "--sponsor",
+        "Native all-refused",
+        "--limit",
+        "2"
+      ],
+      "expect": {
+        "/status": "partial",
+        "/next/0/args": {
+          "includes": "2"
+        },
+        "/page/offset": 0,
+        "/page/returned": 0,
+        "/page/total": 4
+      }
+    },
+    {
+      "follow": "page",
+      "expect": {
+        "/page/offset": 2,
+        "/page/returned": 2,
+        "/page/total": 4,
+        "": {
+          "omits": [
+            "next"
+          ]
+        }
+      }
+    }
+  ]
+}

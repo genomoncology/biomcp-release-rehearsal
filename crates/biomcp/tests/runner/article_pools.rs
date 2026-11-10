@@ -362,15 +362,20 @@ fn incomplete_names(entity: &str, mode: &str) -> Result<(), String> {
     let replay = env.root().join("replay");
     copy_capture("search/drug-names", &replay, |source, record| {
         if source == "mychem" {
-            for exchange in record["exchanges"].as_array_mut().ok_or("exchanges")? {
-                let body = &mut exchange["body"]["value"];
+            for exchange in record
+                .get_mut("exchanges")
+                .and_then(Value::as_array_mut)
+                .ok_or("exchanges")?
+            {
+                let body = exchange.pointer_mut("/body/value").ok_or("body value")?;
                 if let Some(hits) = body.get_mut("hits").and_then(Value::as_array_mut) {
-                    if mode == "refused" {
+                    let total = if mode == "refused" {
                         hits.push(Value::Null);
-                        body["total"] = json!(hits.len());
+                        hits.len()
                     } else {
-                        body["total"] = json!(999);
-                    }
+                        999
+                    };
+                    *body.get_mut("total").ok_or("total")? = json!(total);
                 }
             }
         } else if source == "openfda-label" || source == "chembl" && mode != "fallback" {
@@ -378,7 +383,13 @@ fn incomplete_names(entity: &str, mode: &str) -> Result<(), String> {
         }
         Ok(())
     })?;
-    let command = ["search", entity, "Canonical therapy", "--limit", "1"];
+    let command = [
+        "search",
+        entity,
+        "Canonical therapy",
+        "--limit",
+        if entity == "trial" { "10" } else { "1" },
+    ];
     let first = invoke(&env, cached(&command, &cache, Some(&replay)), 0)?;
     if mode == "fallback" {
         if first.pointer("/page/total") != Some(&json!(3))
@@ -387,14 +398,22 @@ fn incomplete_names(entity: &str, mode: &str) -> Result<(), String> {
             return Err(format!("complete fallback did not expand names: {first}"));
         }
     } else {
-        let notice = first["sources"]
-            .as_array()
+        let notice = first
+            .get("sources")
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
-            .flat_map(|source| source["notices"].as_array().into_iter().flatten())
+            .flat_map(|source| {
+                source
+                    .get("notices")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+            })
             .find(|notice| {
-                notice["message"]
-                    .as_str()
+                notice
+                    .get("message")
+                    .and_then(Value::as_str)
                     .is_some_and(|m| m.contains("did not finish"))
             });
         if notice.and_then(|n| n.get("names")) != Some(&json!(["Canonical therapy"])) {

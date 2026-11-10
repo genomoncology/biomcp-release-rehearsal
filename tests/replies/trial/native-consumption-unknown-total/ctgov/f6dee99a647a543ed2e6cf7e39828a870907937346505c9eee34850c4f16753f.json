@@ -1,0 +1,33 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&filter.advanced=AREA%5BLeadSponsorName%5D%22Native%20unknown-total%22&pageSize=1",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 400,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "message": "Synthetic unavailable count"
+        }
+      }
+    },
+    {
+      "fetched": 1793814284,
+      "status": 400,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "message": "Synthetic unavailable count"
+        }
+      }
+    }
+  ]
+}

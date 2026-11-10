@@ -1,0 +1,52 @@
+{
+  "method": "GET",
+  "source": "ctgov",
+  "url": "https://clinicaltrials.gov/api/v2/studies?countTotal=true&fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CCondition%2CInterventionName%2CLastUpdatePostDate%2CHasResults&filter.advanced=AREA%5BLeadSponsorName%5D%22Native%20unknown-total%22&pageSize=2&pageToken=synthetic-next",
+  "exchanges": [
+    {
+      "fetched": 1793814284,
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "studies": [
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT09000003",
+                  "briefTitle": "Synthetic native consumption control"
+                },
+                "statusModule": {
+                  "overallStatus": "COMPLETED",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-09-28"
+                  }
+                }
+              },
+              "hasResults": true
+            },
+            {
+              "protocolSection": {
+                "identificationModule": {
+                  "nctId": "NCT09000004",
+                  "briefTitle": "Synthetic native consumption control"
+                },
+                "statusModule": {
+                  "overallStatus": "COMPLETED",
+                  "lastUpdatePostDateStruct": {
+                    "date": "2026-09-28"
+                  }
+                }
+              },
+              "hasResults": true
+            }
+          ],
+          "nextPageToken": "synthetic-next"
+        }
+      }
+    }
+  ]
+}

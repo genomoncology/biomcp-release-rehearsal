@@ -130,6 +130,11 @@ fn legacy_drug_pool(expanded: bool) -> Check {
     // over the request and current slot of a real expanded search.
     let current = pool_id(&command(&env, &args, &globals, 0)?)?;
     let db = rusqlite::Connection::open(env.root().join("case-cache/replay.sqlite"))?;
+    let current_key: Vec<u8> = db.query_row(
+        "SELECT request_key FROM pool_current WHERE pool=?1",
+        [&current],
+        |r| r.get(0),
+    )?;
     if db.execute(
         "UPDATE pool SET request_key=(SELECT request_key FROM pool WHERE id=?2) WHERE id=?1",
         rusqlite::params![id, current],
@@ -142,23 +147,7 @@ fn legacy_drug_pool(expanded: bool) -> Check {
         return Err("expected one isolated literal pool".into());
     }
     if expanded {
-        use sha2::{Digest, Sha256};
-        let query: biomcp_types::ArticleSearch =
-            serde_json::from_value(json!({"text":"Canonical therapy", "limit":1}))?;
-        let mut legacy = Sha256::new();
-        legacy.update(b"biomcp.article_page/1\0");
-        legacy.update(serde_json::to_vec(&query.identity())?);
-        legacy.update([0]);
-        legacy.update(b"[]");
-        let key: [u8; 32] = legacy.finalize().into();
-        db.execute(
-            "UPDATE pool SET outcomes=(SELECT outcomes FROM pool WHERE id=?2) WHERE id=?1",
-            rusqlite::params![id, current],
-        )?;
-        db.execute(
-            "UPDATE pool_current SET request_key=?1 WHERE pool=?2",
-            rusqlite::params![key.as_slice(), id],
-        )?;
+        seed_legacy_expansion(&db, &id, &current, &current_key)?;
     }
     drop(db);
     let expanded = command(&env, &args, &globals, 0)?;
@@ -188,4 +177,31 @@ fn pool_id(reply: &serde_json::Value) -> Result<String, Box<dyn std::error::Erro
         .and_then(serde_json::Value::as_str)
         .map(str::to_owned)
         .ok_or_else(|| format!("no stored pool: {reply}").into())
+}
+
+/// The pre-completeness current-key format, including its old expansion notice.
+fn seed_legacy_expansion(
+    db: &rusqlite::Connection,
+    id: &str,
+    current: &str,
+    current_key: &[u8],
+) -> Check {
+    use sha2::{Digest, Sha256};
+    let query: biomcp_types::ArticleSearch =
+        serde_json::from_value(json!({"text":"Canonical therapy", "limit":1}))?;
+    let mut legacy = Sha256::new();
+    legacy.update(b"biomcp.article_page/1\0");
+    legacy.update(serde_json::to_vec(&query.identity())?);
+    legacy.update([0]);
+    legacy.update(b"[]");
+    let key: [u8; 32] = legacy.finalize().into();
+    db.execute(
+        "UPDATE pool SET outcomes=(SELECT outcomes FROM pool WHERE id=?2) WHERE id=?1",
+        rusqlite::params![id, current],
+    )?;
+    db.execute(
+        "UPDATE pool_current SET request_key=?1 WHERE request_key=?2",
+        rusqlite::params![key.as_slice(), current_key],
+    )?;
+    Ok(())
 }

@@ -1,6 +1,7 @@
 # 0796 — Advance trial pages by native record count
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 5acd61b635a81d79fe7e68342208d2dd187ab84d
 
 Milestone: 5
 

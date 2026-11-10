@@ -40,6 +40,8 @@ pub const VERSION: Endpoint = SPEC.get("/version").fresh(Freshness::Days(1));
 pub struct SearchPage {
     /// Actual refused studies or native child records, independent of field problems.
     pub refusals: crate::Refusal,
+    /// Native studies consumed before refused identities are filtered.
+    pub received: u32,
     /// Source order, untouched.
     pub items: Vec<TrialHeader>,
     /// Rejected nonidentity fields from retained studies.
@@ -187,6 +189,7 @@ pub(super) fn search_with_gene(
         count_request = Some(count);
     }
     let (condition_word_mismatch, gene_contexts) = raw.search_contexts(conditions, gene);
+    let received = raw.studies.as_ref().map_or(0, |rows| rows.len() as u32);
     let mut rejected = Vec::new();
     let mut refusals = crate::Refusal::None;
     let mapped = raw
@@ -212,6 +215,7 @@ pub(super) fn search_with_gene(
         .unzip();
     rejected.extend(problems.into_iter().flatten());
     Ok(SearchPage {
+        received,
         refusals,
         problems: rejected,
         condition_word_mismatch,

@@ -209,7 +209,7 @@ fn apply_page(
         truncated: None,
     });
     // The registry sends a token on a full last page; only a known total can show that.
-    let read = query.offset().saturating_add(page.items.len() as u32);
+    let read = query.offset().saturating_add(page.received);
     let more = page.total.is_none_or(|total| u64::from(read) < total);
     if let Some(token) = page.next.filter(|_| more && !query.count_only()) {
         outcome.next.push(crate::next::Step::run(

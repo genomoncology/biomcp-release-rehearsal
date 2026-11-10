@@ -1,0 +1,31 @@
+{
+  "method": "GET",
+  "source": "chembl",
+  "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL900005.json",
+  "exchanges": [
+    {
+      "status": 200,
+      "content_type": "application/json",
+      "delay_ms": 0,
+      "retry_after_ms": null,
+      "body": {
+        "kind": "json",
+        "value": {
+          "molecule_chembl_id": "CHEMBL900005",
+          "pref_name": "Canonical therapy",
+          "molecule_type": "Small molecule",
+          "molecule_synonyms": [
+            {
+              "molecule_synonym": "EX-66",
+              "syn_type": "RESEARCH_CODE"
+            },
+            {
+              "molecule_synonym": "Example brand",
+              "syn_type": "TRADE_NAME"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
