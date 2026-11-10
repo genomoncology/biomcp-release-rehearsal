@@ -22,6 +22,8 @@ Article pools enforce the whole-answer stance, while the shared source-pool path
 - Make payload/metadata/current-mapping updates atomic. A new incomplete pool leaves an existing healthy current mapping intact. When an existing current pool becomes incomplete, remove only the mapping still naming that key and pool. A losing concurrent extension must not overwrite the retained winner's eligibility. Cover identical-payload early returns and `intern` reuse. Old partial current mappings must be refused or invalidated without deleting unrelated stored data or invalidating existing explicit pool IDs. Reading or extending an older explicit pool must not republish it over a newer healthy default.
 - Reconstruct a new query using normal transport-cache policy; this does not promise a new upstream request or bypass a still-valid raw response cache. Preserve existing statuses for explicit failed continuations.
 
+- Approved implementation plan: preserve snapshot identity/version and use a separate `biomcp.source_current/2` current-key namespace. Legacy defaults become unreachable while explicit IDs remain valid. Read the pointer, pool metadata and payload consistently in one database observation; recheck decoded eligibility for implicit reads. Eligibility updates also apply to identical-payload and intern reuse.
+
 ## Proof
 
 - Routine public query/installed cases: initial refused member, a failed later native page followed by a new query after recovery, stale observations, and explicit reads of the older pool. Assert current eligibility and retained diagnostics separately from network traffic. Failed uncached pages may prove a new request; refusal cases must isolate raw cache or inspect the public pool identity.

@@ -20,6 +20,8 @@ The resolver ignores MyChem refused candidates and discards the native total bef
 
 - Unresolved identity must remain a failed/incomplete resolver observation (`Resolved.failed`), including successful HTTP replies with capped candidates, so article current-pool admission cannot treat a notice alone as a whole answer. A complete unique fallback clears the lookup uncertainty. Reassess or invalidate legacy implicit expanded article pools that bypass the resolver through `article/drug_names.rs::reuse`; preserve explicitly addressed old pages and avoid a general cache purge.
 
+- Approved implementation plan: revise only the current-key hash, derived from the existing exclusion-bound current hash plus a drug-resolution revision, for non-exact searches with a drug-name input. Keep the identity hash and explicit pages unchanged.
+
 ## Proof
 
 - Routine installed replay cases for article and trial entry points: one good exact row plus a refused possibly matching row; a capped prefix with an unseen possible second structure; a complete fallback succeeding after the first source is incomplete; every source unresolved; and `--exact-term` making no resolver calls. Complete same-structure stereo/product rows still expand under the existing rule, and two known structures remain ambiguous. Assert sent search terms, notices and request bounds, not only result count. Repeat a no-pool article search after incomplete resolution and seed a legacy implicit expanded pool to prove both paths cannot bypass completeness checks.

@@ -18,6 +18,8 @@ The November 10 nightly lost the original replies and first-attempt details for 
 
 - PM decision, 2026-11-10: emit and flush each bounded structured attempt record in the existing log before retrying and before the final summary, using the CLI envelope's selected diagnostic fields and process result. Keep actual first/second outcomes, elapsed time and attempt number. Do not claim HTTP details absent from the CLI reply; HTTP status is generally absent today. Retain fixed TLS guidance when present. Select fixed diagnostic fields, not arbitrary notices or malformed stdout, and mark truncation while preserving valid JSON. Avoid full biomedical bodies, credentials, environment dumps, raw headers and a new reporting framework.
 
+- Approved implementation plan: each serialized attempt record has an 8 KiB UTF-8 ceiling; truncation retains valid JSON and an explicit marker.
+
 ## Proof
 
 - Existing Python harness with synthetic first-fail/second-success, different failures across both attempts, malformed JSON and subprocess timeout. Assert each original diagnostic survives, output bounds hold, key-isolated environment stays intact and final exit/summary semantics are unchanged. Include a synthetic body/credential sentinel proving omitted payload fields never enter the attempt records. No real provider calls are needed.
