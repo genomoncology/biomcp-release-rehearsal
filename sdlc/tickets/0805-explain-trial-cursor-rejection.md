@@ -10,7 +10,7 @@ When ClinicalTrials.gov rejects a paged request with HTTP 400, CLI and stdio MCP
 
 ## Why
 
-The correction supplied in chat on November 10 confirms fresh-token paging works but reports a misleading generic usage error for stale/fake tokens. Code inspection confirms the provider-400 conversion and recovery gap. The supplied report explicitly calls this nonblocking; preserve the current 1.0 candidate and implement after publication.
+The correction supplied in chat on November 10 confirms fresh-token paging works but reports a misleading generic usage error for stale/fake tokens. Code inspection confirms the provider-400 conversion and recovery gap. The supplied report calls this nonblocking. Ian subsequently asked developers to work on these bugs during the qualification wait, so prepare implementation and focused proof now; retain existing candidate evidence under its actual source and assess affected checks before selecting a changed release candidate.
 
 ## Proof
 
@@ -27,11 +27,11 @@ The correction supplied in chat on November 10 confirms fresh-token paging works
 ## Keeps
 
 - Existing caller isolation, filters, exclusions, budgets, cache admission and freshness policy. No automatic retry, silent fresh fetch, inferred cursor TTL, expiry classification, provider-body disclosure or arbitrary command rewriting. Use explicit actionable recovery through existing typed guidance/next-step structures.
-- Current release candidate remains unchanged. The broad trial grammar allegation was disproved by fresh native Mac/Linux CLI/MCP follows; this ticket addresses the confirmed narrower diagnostic path.
+- Preserve current qualification source identities. The broad trial grammar allegation was disproved by fresh native Mac/Linux CLI/MCP follows; this ticket addresses the confirmed narrower diagnostic path. The coordinator decides when accepted fixes enter an ending candidate and repeats only affected qualification.
 
 ## Defers
 
-- This milestone-6 follow-up does not hold 1.0 qualification or publication. Registry cursor lifetime research or cache policy changes need separate evidence and scope if later warranted.
+- Registry cursor lifetime research or cache policy changes need separate evidence and scope if later warranted. Implementation can proceed during qualification; publication remains separately approved.
 
 ## Changes
 
