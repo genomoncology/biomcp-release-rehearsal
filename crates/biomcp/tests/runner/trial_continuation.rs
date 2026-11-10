@@ -89,7 +89,7 @@ fn check(wrapped: bool, meta: bool) -> Result<(), String> {
         .join("config/biomcp/config.json")
         .to_string_lossy()
         .into_owned();
-    let args = [
+    let mut args = [
         "--config",
         &config,
         "--disable-sources",
@@ -111,6 +111,10 @@ fn check(wrapped: bool, meta: bool) -> Result<(), String> {
     ]
     .map(str::to_owned)
     .to_vec();
+    if meta {
+        // Stdio owns its default configuration; tool calls cannot select another config file.
+        args.drain(..2);
+    }
     let first = call(&env, &args, meta, false)?;
     let old = super::action(&first, "page")?;
     let cached = call(&env, &args, meta, false)?;
