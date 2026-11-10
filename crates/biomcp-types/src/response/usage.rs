@@ -32,6 +32,8 @@ pub enum UsageError {
     },
     /// A body position is invalid.
     TextPositionError,
+    /// ClinicalTrials.gov rejected a request carrying a registry continuation.
+    TrialContinuationRejected,
     /// A numeric body selector exceeds the available outline.
     ArticlePartRange {
         /// Checked article identity for outline discovery.

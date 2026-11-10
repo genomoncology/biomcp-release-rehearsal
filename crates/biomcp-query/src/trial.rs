@@ -1,6 +1,7 @@
 //! Trial discovery delegates filters, totals and ranking to the named registry.
 use biomcp_types::ReplyBody;
 mod condition;
+mod continuation;
 pub mod document;
 mod drug_names;
 mod gene_notice;
@@ -42,7 +43,8 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
     if typed_only {
         (result, name_notice) = ctgov::search_query(&leg, query, gene.as_deref(), conditions);
     }
-    let rejected = name_notice.is_none() && request_rejected(result.as_ref().err());
+    let rejected = request_rejected(result.as_ref().err());
+    let generic_rejected = name_notice.is_none() && rejected;
     let version = match &result {
         Ok(_) => ctgov::version(&leg),
         Err(error) => Err(*error),
@@ -81,7 +83,9 @@ pub(crate) fn search(cx: &Ctx<'_>, query: &TrialSearch) -> Outcome {
             body.source_updated = version.value.map(Into::into);
         }
     }
-    if rejected {
+    if rejected && query.next_page().is_some() {
+        continuation::rejected(query, &mut outcome);
+    } else if generic_rejected {
         outcome.body = ReplyData::Usage(biomcp_types::UsageError::TextPositionError);
     }
     outcome.local = error.and_then(status::local);

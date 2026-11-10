@@ -6,6 +6,14 @@ const OWNED: &str = "biomcp:ctgov-names:";
 const BROADER: &str = "biomcp:ctgov-names:v1:";
 
 impl TrialSearch {
+    /// Restart discovery with every filter retained and no registry cursor or position.
+    pub fn first_page(&self) -> Self {
+        let mut first = self.clone();
+        first.0.next_page = None;
+        first.0.offset = 0;
+        first
+    }
+
     /// A broader registry name search produced this continuation.
     pub fn broader_names(&self) -> bool {
         self.next_page()
