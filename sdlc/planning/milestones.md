@@ -46,11 +46,11 @@ Done when: the parity run shows every asserted fact that 0.9 gets right is also 
 
 ## 6. Post-1.0 correctness follow-ups
 
-Delivers: narrow-reader cache preservation and a truthful offline diagnostic for expired negative knowledge.
+Delivers: narrow-reader cache preservation, truthful offline diagnostics for expired negative knowledge, and actionable guidance when ClinicalTrials.gov rejects a continuation request.
 
-Serves: Ian's November 9 review, which explicitly allows these two minor fixes after release. They do not hold the 1.0 cut.
+Serves: the November 9 cache review and the corrected trial-cursor report supplied on November 10, which describes rejected-continuation guidance as nonblocking. These follow-ups do not hold the 1.0 cut.
 
-Done when: a narrow reader cannot delete a valid cached answer usable by a wider reader, and offline replies distinguish expired absence knowledge from no cached answer without treating stale absence as current fact. Break into implementation after 1.0 publication; the owning cache tests already expose both behaviors.
+Done when: a narrow reader cannot delete a valid cached answer usable by a wider reader; offline replies distinguish expired absence knowledge from no cached answer without treating stale absence as current fact; and a rejected trial continuation identifies the request and offers an explicit fresh first-page restart that preserves filters. The remaining continuation diagnostic is implemented after 1.0 publication without guessing a registry cursor lifetime.
 
 ## Later, unordered
 
