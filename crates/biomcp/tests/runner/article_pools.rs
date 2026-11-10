@@ -8,7 +8,7 @@ use serde_json::{Value, json};
 use std::path::Path;
 
 pub(super) fn trials() -> Vec<Trial> {
-    vec![
+    let mut trials = vec![
         super::transcript::trial("article-search/whole-pool-publication/search", || {
             partial(
                 "article/fold/failed-pubmed",
@@ -64,7 +64,16 @@ pub(super) fn trials() -> Vec<Trial> {
             "article-search/whole-pool-publication/withheld-names",
             || withheld_names().map_err(Into::into),
         ),
-    ]
+    ];
+    for entity in ["article", "trial"] {
+        for mode in ["capped", "refused", "fallback"] {
+            trials.push(super::transcript::trial(
+                format!("drug-name-search/incomplete/{entity}/{mode}"),
+                move || incomplete_names(entity, mode).map_err(Into::into),
+            ));
+        }
+    }
+    trials
 }
 
 fn partial(recording: &str, command: &[&str], damage: &str) -> Result<(), String> {
@@ -342,6 +351,63 @@ fn accept_exchanges(record: &mut Value) -> Result<(), String> {
         *exchange
             .get_mut("status")
             .ok_or("missing exchange status")? = json!(200);
+    }
+    Ok(())
+}
+
+/// Unseen or refused candidates cannot establish one structure, but a complete fallback can.
+fn incomplete_names(entity: &str, mode: &str) -> Result<(), String> {
+    let env = Environment::new().map_err(|e| e.to_string())?;
+    let cache = env.root().join("name-cache");
+    let replay = env.root().join("replay");
+    copy_capture("search/drug-names", &replay, |source, record| {
+        if source == "mychem" {
+            for exchange in record["exchanges"].as_array_mut().ok_or("exchanges")? {
+                let body = &mut exchange["body"]["value"];
+                if let Some(hits) = body.get_mut("hits").and_then(Value::as_array_mut) {
+                    if mode == "refused" {
+                        hits.push(Value::Null);
+                        body["total"] = json!(hits.len());
+                    } else {
+                        body["total"] = json!(999);
+                    }
+                }
+            }
+        } else if source == "openfda-label" || source == "chembl" && mode != "fallback" {
+            fail_exchanges(record)?;
+        }
+        Ok(())
+    })?;
+    let command = ["search", entity, "Canonical therapy", "--limit", "1"];
+    let first = invoke(&env, cached(&command, &cache, Some(&replay)), 0)?;
+    if mode == "fallback" {
+        if first.pointer("/page/total") != Some(&json!(3))
+            || !first.to_string().contains("Example brand")
+        {
+            return Err(format!("complete fallback did not expand names: {first}"));
+        }
+    } else {
+        let notice = first["sources"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .flat_map(|source| source["notices"].as_array().into_iter().flatten())
+            .find(|notice| {
+                notice["message"]
+                    .as_str()
+                    .is_some_and(|m| m.contains("did not finish"))
+            });
+        if notice.and_then(|n| n.get("names")) != Some(&json!(["Canonical therapy"])) {
+            return Err(format!(
+                "incomplete lookup expanded or hid uncertainty: {first}"
+            ));
+        }
+        if entity == "article" {
+            let next = invoke(&env, cached(&command, &cache, Some(&replay)), 0)?;
+            if next.pointer("/page/pool/id") == first.pointer("/page/pool/id") {
+                return Err("incomplete article pool became current".into());
+            }
+        }
     }
     Ok(())
 }

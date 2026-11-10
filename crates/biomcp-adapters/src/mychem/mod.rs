@@ -85,13 +85,22 @@ pub struct NameRecord {
     /// The synonyms the source types as official, which a name cap always keeps.
     pub official: Vec<String>,
 }
+/// A bounded native candidate window, before and after identity admission.
+#[derive(Debug)]
+pub struct NamePage {
+    /// Native matching count, including candidates outside this window.
+    pub total: u64,
+    /// Native rows consumed before refusal or exact-name filtering.
+    pub received: u32,
+    /// Admitted rows stating the requested name.
+    pub records: Vec<NameRecord>,
+}
 /// Read the first rows stating one name, across free text and the synonym fields.
-/// Exact names rank first, so further pages only add product rows and looser matches.
 pub fn name_records(
     leg: &Leg<'_>,
     query: &str,
     limit: u32,
-) -> Result<crate::Mapped<Vec<NameRecord>>, RequestError> {
+) -> Result<crate::Mapped<NamePage>, RequestError> {
     let phrase = format!("\"{}\"", query.replace('\\', "\\\\").replace('"', "\\\""));
     let scoped = crate::drug_sources::components::allowed_fields(leg, NAME_FIELDS);
     let q = std::iter::once(phrase.clone())
@@ -117,8 +126,19 @@ pub fn name_records(
                 .cache_if(&raw::Page::identities_admitted),
         )?
         .value;
-    names::name_records(reply, leg, query)
-        .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))
+    let total = reply.total;
+    let received = reply.hits.len() as u32;
+    let mapped = names::name_records(reply, leg, query)
+        .map_err(|_| biomcp_fetch::bad_reply(Source::Mychem, None))?;
+    Ok(crate::Mapped {
+        refusals: mapped.refusals,
+        value: NamePage {
+            total,
+            received,
+            records: mapped.value,
+        },
+        problems: mapped.problems,
+    })
 }
 fn search_fields(
     leg: &Leg<'_>,

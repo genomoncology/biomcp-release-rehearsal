@@ -6,7 +6,10 @@ type Check = Result<(), Box<dyn std::error::Error>>;
 pub(super) fn trials() -> Vec<libtest_mimic::Trial> {
     vec![
         super::transcript::trial("drug-name-search/legacy-literal-pool", || {
-            legacy_drug_pool().map_err(|e| e.to_string().into())
+            legacy_drug_pool(false).map_err(|e| e.to_string().into())
+        }),
+        super::transcript::trial("drug-name-search/legacy-expanded-pool", || {
+            legacy_drug_pool(true).map_err(|e| e.to_string().into())
         }),
         super::transcript::trial("cache-resilience/older-source-snapshot-rebuilds", || {
             older_version().map_err(|e| e.to_string().into())
@@ -110,7 +113,7 @@ fn older_version() -> Check {
     Ok(())
 }
 
-fn legacy_drug_pool() -> Check {
+fn legacy_drug_pool(expanded: bool) -> Check {
     let env = Environment::new()?;
     let replay = env.root().join("recordings");
     copy_capture("search/drug-names", &replay, |_, _| {})?;
@@ -137,6 +140,25 @@ fn legacy_drug_pool() -> Check {
         )? != 1
     {
         return Err("expected one isolated literal pool".into());
+    }
+    if expanded {
+        use sha2::{Digest, Sha256};
+        let query: biomcp_types::ArticleSearch =
+            serde_json::from_value(json!({"text":"Canonical therapy", "limit":1}))?;
+        let mut legacy = Sha256::new();
+        legacy.update(b"biomcp.article_page/1\0");
+        legacy.update(serde_json::to_vec(&query.identity())?);
+        legacy.update([0]);
+        legacy.update(b"[]");
+        let key: [u8; 32] = legacy.finalize().into();
+        db.execute(
+            "UPDATE pool SET outcomes=(SELECT outcomes FROM pool WHERE id=?2) WHERE id=?1",
+            rusqlite::params![id, current],
+        )?;
+        db.execute(
+            "UPDATE pool_current SET request_key=?1 WHERE pool=?2",
+            rusqlite::params![key.as_slice(), id],
+        )?;
     }
     drop(db);
     let expanded = command(&env, &args, &globals, 0)?;

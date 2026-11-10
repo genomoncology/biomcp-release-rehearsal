@@ -1,6 +1,7 @@
 # 0795 — Require complete evidence for drug name expansion
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: bf181e7fb76267c7d39bebeb77e5d421fcd51704
 
 Milestone: 5
 

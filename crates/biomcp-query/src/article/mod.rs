@@ -73,7 +73,18 @@ fn execute<'a>(
 ) -> Result<(), RequestError> {
     let mut store = Store::open(cx.fetch.cache_access()?, *deadline)?;
     let bytes = serde_json::to_vec(&query.identity()).map_err(|_| CacheError::Encoding)?;
-    let keys = pool::key(cx, b"biomcp.article_page/1\0", &bytes)?;
+    let mut keys = pool::key(cx, b"biomcp.article_page/1\0", &bytes)?;
+    if !query.exact_term() && query.drug_name_input().is_some() {
+        use sha2::{Digest, Sha256};
+        keys.current = Sha256::digest(
+            [
+                b"biomcp.drug_name_current/2\0".as_slice(),
+                keys.current.as_slice(),
+            ]
+            .concat(),
+        )
+        .into();
+    }
     let key = keys.identity;
     let explicit = query.pool().map(Text::as_str);
     let stored = if cx.fresh && explicit.is_none() {

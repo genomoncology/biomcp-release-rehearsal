@@ -158,20 +158,37 @@ fn mychem(cx: &Ctx<'_>, input: &Text) -> Found {
     };
     let carried = super::components(cx, &parent, false);
     let evidence: Vec<_> = std::iter::once(parent).chain(carried).collect();
+    if mapped.refusals == biomcp_adapters::Refusal::Refused
+        || u64::from(mapped.value.received) != mapped.value.total
+    {
+        return Found::Failed(evidence);
+    }
     let structures: std::collections::BTreeSet<_> = mapped
         .value
+        .records
         .iter()
         .filter_map(|row| row.structure.as_deref())
         .collect();
     if structures.len() > 1 {
         return Found::Ambiguous(evidence);
     }
-    let Some(record) = mapped.value.iter().find(|row| row.structure.is_some()) else {
+    let Some(record) = mapped
+        .value
+        .records
+        .iter()
+        .find(|row| row.structure.is_some())
+    else {
         return Found::Nothing;
     };
     let record = record.id.clone();
     // A product row with no structure of its own never describes this drug.
-    let drug_rows = || mapped.value.iter().filter(|row| row.structure.is_some());
+    let drug_rows = || {
+        mapped
+            .value
+            .records
+            .iter()
+            .filter(|row| row.structure.is_some())
+    };
     let names = drug_rows()
         .flat_map(|row| row.names.iter().cloned())
         .collect();
@@ -209,7 +226,7 @@ fn card(cx: &Ctx<'_>, source: DrugSource, input: &Text, out: &mut Outcome) -> Fo
         return failure(error, found.sources);
     }
     if found.dropped {
-        return Found::Nothing;
+        return Found::Failed(found.sources);
     }
     let ReplyData::DrugCard {
         body: Some(card), ..
