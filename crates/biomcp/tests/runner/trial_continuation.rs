@@ -39,14 +39,16 @@ fn setup(wrapped: bool) -> Result<(Environment, Stub), String> {
                 return Ok(json!({"totalCount":0,"studies":[]}).to_string());
             }
             let later = request.contains("pageToken=fresh-cursor");
-            let mut page = json!({"totalCount":2,"studies":[{"protocolSection":{
+            let mut page = json!({"totalCount":2,"nextPageToken":null,"studies":[{"protocolSection":{
                 "identificationModule":{"nctId":if later {"NCT00000002"} else {"NCT00000001"},
                     "briefTitle":"Synthetic registry study"},
                 "statusModule":{"overallStatus":"RECRUITING"}
             }}]});
             if !later {
                 first_pages += 1;
-                page["nextPageToken"] = json!(if first_pages == 1 {
+                *page
+                    .get_mut("nextPageToken")
+                    .ok_or("synthetic page token field")? = json!(if first_pages == 1 {
                     "old-cursor"
                 } else {
                     "fresh-cursor"
@@ -168,7 +170,11 @@ fn recover(
         || !restart.iter().any(|word| word == "--fresh")
         || !original
             .windows(2)
-            .filter(|words| matches!(words[0].as_str(), "--config" | "--disable-sources"))
+            .filter(|words| {
+                words
+                    .first()
+                    .is_some_and(|word| matches!(word.as_str(), "--config" | "--disable-sources"))
+            })
             .all(|words| restart.windows(2).any(|pair| pair == words))
     {
         return Err(format!(
