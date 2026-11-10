@@ -2,9 +2,8 @@
 
 Status: OPEN.
 
-Milestone: 6
+Milestone: 5
 
-Depends on: 0294
 
 ## Outcome
 
@@ -12,7 +11,9 @@ Offline replies distinguish a missing cached answer from a previously absent res
 
 ## Why
 
-Ian's November 9 review found that expired negative knowledge becomes a bare offline diagnostic and explicitly allowed this minor improvement after release.
+Expired negative knowledge becomes a bare offline diagnostic. Ian's November 10 direction prioritizes remaining issues before release timing; see `decisions/2026-11-10-prioritize-remaining-product-issues.md`.
+
+- PM decision, 2026-11-10: retain the existing Offline failure category and prefer a fixed historical-absence diagnostic over a new public error category. Carry the smallest internal distinction needed to preserve that knowledge; never return stale absence as current fact.
 
 ## Proof
 
@@ -28,8 +29,8 @@ Ian's November 9 review found that expired negative knowledge becomes a bare off
 
 ## Defers
 
-- Implement after 1.0 publication as Ian allowed. Choose the smallest compatible diagnostic shape during implementation; this ticket does not block the release.
+- Choose the smallest diagnostic shape that distinguishes expired knowledge without asserting current absence. No general cache redesign.
 
 ## Changes
 
-- Fetch negative-cache/offline diagnostic mapping and its existing owning tests.
+- Changes: `crates/biomcp-fetch/src/cache_request.rs`, `crates/biomcp-fetch/src/error.rs`, `crates/biomcp-fetch/tests/offline.rs`, `crates/biomcp-query/src/status.rs`.

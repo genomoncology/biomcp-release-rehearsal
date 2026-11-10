@@ -2,9 +2,8 @@
 
 Status: OPEN.
 
-Milestone: 6
+Milestone: 5
 
-Depends on: 0294
 
 ## Outcome
 
@@ -12,7 +11,7 @@ A reader with a smaller response limit skips a valid cached reply that exceeds i
 
 ## Why
 
-Ian's November 9 review found that a narrow reader unnecessarily evicts a reusable reply and explicitly allowed this minor fix after release.
+A narrow reader unnecessarily evicts a reusable reply. Ian's November 10 direction prioritizes remaining issues before release timing; see `decisions/2026-11-10-prioritize-remaining-product-issues.md`.
 
 ## Proof
 
@@ -28,8 +27,8 @@ Ian's November 9 review found that a narrow reader unnecessarily evicts a reusab
 
 ## Defers
 
-- Implement after 1.0 publication as Ian allowed. This ticket does not block the release.
+- Nothing; implement with the remaining cache correctness work before selecting the next final source.
 
 ## Changes
 
-- Fetch cache lookup and its owning two-reader storage test.
+- Changes: `crates/biomcp-fetch/src/cache.rs`, `crates/biomcp-fetch/tests/cache/storage.rs`.
