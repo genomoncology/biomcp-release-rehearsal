@@ -27,6 +27,7 @@ pub(super) struct Request<T> {
     pub(super) text: String,
     pub(super) body: Vec<u8>,
     observation: T,
+    peer: TcpStream,
     pub(super) reply: mpsc::Sender<Response>,
 }
 pub(super) struct Response {
@@ -58,6 +59,14 @@ impl<T> Request<T> {
     }
     pub(super) fn ok(self) {
         self.respond(200, "", r#"{"answer":true}"#);
+    }
+}
+// Contracts can inspect remaining peer bytes or EOF without adding helpers
+// that are unused in sibling targets sharing this server fixture.
+impl<T> Read for Request<T> {
+    fn read(&mut self, bytes: &mut [u8]) -> std::io::Result<usize> {
+        self.peer.set_read_timeout(Some(Duration::from_secs(30)))?;
+        self.peer.read(bytes)
     }
 }
 
@@ -121,6 +130,7 @@ impl<T: Default + Send + 'static> Server<T> {
                         text,
                         body,
                         observation: T::default(),
+                        peer: stream.try_clone().unwrap(),
                         reply,
                     })
                     .is_err()
