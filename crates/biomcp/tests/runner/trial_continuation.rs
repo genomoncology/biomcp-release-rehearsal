@@ -9,9 +9,11 @@ pub(super) fn trials() -> Vec<libtest_mimic::Trial> {
         .flat_map(|wrapped| [false, true].map(move |mcp| (wrapped, mcp)))
         .map(|(wrapped, mcp)| {
             super::transcript::trial(
-                format!("trial-search/rejected-continuation-{}-{}",
+                format!(
+                    "trial-search/rejected-continuation-{}-{}",
                     if wrapped { "broader" } else { "native" },
-                    if mcp { "mcp" } else { "cli" }),
+                    if mcp { "mcp" } else { "cli" }
+                ),
                 move || check(wrapped, mcp).map_err(Into::into),
             )
         })
@@ -44,18 +46,31 @@ fn setup(wrapped: bool) -> Result<(Environment, Stub), String> {
             }}]});
             if !later {
                 first_pages += 1;
-                page["nextPageToken"] = json!(if first_pages == 1 { "old-cursor" } else { "fresh-cursor" });
+                page["nextPageToken"] = json!(if first_pages == 1 {
+                    "old-cursor"
+                } else {
+                    "fresh-cursor"
+                });
             }
             Ok(page.to_string())
         },
-        |request| if request.contains("pageToken=old-cursor") { 400 } else { 200 },
+        |request| {
+            if request.contains("pageToken=old-cursor") {
+                400
+            } else {
+                200
+            }
+        },
     )?;
     let env = Environment::new().map_err(|e| e.to_string())?;
     let ca = env.root().join("registry-ca.pem");
     fs::write(&ca, &stub.certificate).map_err(|e| e.to_string())?;
     stub.retain(env.shared_root());
-    env.config(&json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca,
-        "disable_sources":["chembl","openfda-label"]})).map_err(|e| e.to_string())?;
+    env.config(
+        &json!({"proxy":format!("http://{}",stub.address),"ca_bundle":ca,
+        "disable_sources":["chembl","openfda-label"]}),
+    )
+    .map_err(|e| e.to_string())?;
     Ok((env, stub))
 }
 
@@ -69,59 +84,109 @@ fn call(env: &Environment, args: &[String], meta: bool, error: bool) -> Result<V
 
 fn check(wrapped: bool, meta: bool) -> Result<(), String> {
     let (env, stub) = setup(wrapped)?;
-    let config = env.root().join("config/biomcp/config.json").to_string_lossy().into_owned();
-    let args = ["--config", &config, "--disable-sources", "mychem", "search", "trial",
-        "--source", "ctgov", "--sponsor", "Synthetic Registry", "--status", "RECRUITING",
-        "--phase", "1", "--has-results", "--limit", "1", "--exact-term"]
-        .map(str::to_owned).to_vec();
+    let config = env
+        .root()
+        .join("config/biomcp/config.json")
+        .to_string_lossy()
+        .into_owned();
+    let args = [
+        "--config",
+        &config,
+        "--disable-sources",
+        "mychem",
+        "search",
+        "trial",
+        "--source",
+        "ctgov",
+        "--sponsor",
+        "Synthetic Registry",
+        "--status",
+        "RECRUITING",
+        "--phase",
+        "1",
+        "--has-results",
+        "--limit",
+        "1",
+        "--exact-term",
+    ]
+    .map(str::to_owned)
+    .to_vec();
     let first = call(&env, &args, meta, false)?;
     let old = super::action(&first, "page")?;
     let cached = call(&env, &args, meta, false)?;
     if super::action(&cached, "page")? != old {
-        return Err(format!("first-page cache was bypassed before explicit recovery: {cached}"));
+        return Err(format!(
+            "first-page cache was bypassed before explicit recovery: {cached}"
+        ));
     }
     let rejected = call(&env, &old, meta, true)?;
     if rejected.pointer("/error/option") != Some(&json!("--next-page"))
         || rejected.pointer("/error/source") != Some(&json!("ctgov"))
         || rejected.pointer("/error/code") != Some(&json!("usage.arguments"))
-        || rejected.pointer("/error/message").and_then(Value::as_str).is_none_or(|message| {
-            !message.starts_with("ClinicalTrials.gov rejected this continuation request")
-        })
+        || rejected
+            .pointer("/error/message")
+            .and_then(Value::as_str)
+            .is_none_or(|message| {
+                !message.starts_with("ClinicalTrials.gov rejected this continuation request")
+            })
         || rejected.to_string().contains("old-cursor")
         || rejected.to_string().contains("private registry refusal")
     {
-        return Err(format!("rejected continuation lost specific safe guidance: {rejected}"));
+        return Err(format!(
+            "rejected continuation lost specific safe guidance: {rejected}"
+        ));
     }
     recover(&env, &first, &rejected, &args, meta)?;
     let requests = stub.finish()?;
-    let rejected_count = requests.iter().filter(|(_, r)| r.contains("pageToken=old-cursor")).count();
+    let rejected_count = requests
+        .iter()
+        .filter(|(_, r)| r.contains("pageToken=old-cursor"))
+        .count();
     if rejected_count != 1 {
-        return Err(format!("continuation was retried automatically: {requests:?}"));
+        return Err(format!(
+            "continuation was retried automatically: {requests:?}"
+        ));
     }
     Ok(())
 }
 
-fn recover(env: &Environment, first: &Value, error: &Value, original: &[String], meta: bool) -> Result<(), String> {
+fn recover(
+    env: &Environment,
+    first: &Value,
+    error: &Value,
+    original: &[String],
+    meta: bool,
+) -> Result<(), String> {
     let restart = super::action(error, "configure")?;
-    if restart.iter().any(|word| matches!(word.as_str(), "--next-page" | "--offset"))
+    if restart
+        .iter()
+        .any(|word| matches!(word.as_str(), "--next-page" | "--offset"))
         || !restart.iter().any(|word| word == "--fresh")
-        || !original.windows(2).filter(|words| matches!(words[0].as_str(), "--config" | "--disable-sources"))
+        || !original
+            .windows(2)
+            .filter(|words| matches!(words[0].as_str(), "--config" | "--disable-sources"))
             .all(|words| restart.windows(2).any(|pair| pair == words))
     {
-        return Err(format!("restart changed globals or retained a cursor: {restart:?}"));
+        return Err(format!(
+            "restart changed globals or retained a cursor: {restart:?}"
+        ));
     }
     let restarted = call(env, &restart, meta, false)?;
     if restarted.get("query") != first.get("query")
         || restarted.pointer("/result/items/0/nct_id") != Some(&json!("NCT00000001"))
     {
-        return Err(format!("fresh restart changed filters or records: {restarted}"));
+        return Err(format!(
+            "fresh restart changed filters or records: {restarted}"
+        ));
     }
     let page = call(env, &super::action(&restarted, "page")?, meta, false)?;
     if page.pointer("/status") != Some(&json!("complete"))
         || page.pointer("/page/offset") != Some(&json!(1))
         || page.pointer("/result/items/0/nct_id") != Some(&json!("NCT00000002"))
     {
-        return Err(format!("new continuation did not follow after fresh recovery: {page}"));
+        return Err(format!(
+            "new continuation did not follow after fresh recovery: {page}"
+        ));
     }
     Ok(())
 }
