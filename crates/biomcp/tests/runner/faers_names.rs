@@ -3,6 +3,7 @@ use super::{configuration::invoke, launch::Environment, network_stub::Stub};
 use serde_json::{Value, json};
 use std::sync::mpsc;
 type Check = Result<(), String>;
+mod meddra;
 
 pub(super) fn trials() -> Vec<libtest_mimic::Trial> {
     [
@@ -211,6 +212,7 @@ fn uncertainty() -> Check {
 }
 
 fn controls() -> Check {
+    meddra::check()?;
     let (env, stub, _) = setup(
         0,
         json!({"disable_sources":["mychem","chembl","openfda-label"]}),

@@ -1,6 +1,7 @@
 # 0816 — Preserve FAERS expansion when unrelated MedDRA is excluded
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 05d08c0ebec64deb2579f93b31027b79ce7c9dff
 
 Milestone: 5
 

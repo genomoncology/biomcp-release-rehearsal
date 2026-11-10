@@ -20,7 +20,8 @@ pub(crate) fn search_command(cx: &Ctx<'_>, query: &AdverseEventSearch) -> Outcom
     let mut deadline = command.deadline();
     let out = if query.expand_drug_names()
         && !cx.fetch.disabled(Source::Faers)
-        && !cx.fetch.disabled(Source::Meddra)
+        && !(cx.fetch.disabled(Source::Meddra)
+            && (query.reaction().is_some() || query.aggregate().is_some()))
     {
         names::search(cx, query, &mut deadline)
     } else {
