@@ -1,6 +1,7 @@
 # 0802 — Spread the release mutation sample across changed code
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: ccb358d7f974246f909bd234b9e66cdada5611d6
 
 Milestone: 5
 

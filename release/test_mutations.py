@@ -124,6 +124,7 @@ class MutationCommands(unittest.TestCase):
         self.script = str(release / 'mutations.py')
         self.output = self.root / 'result'
         self.plan = self.output / 'plan.json'
+        (self.root / '.gitignore').write_text('native-inventory.json\ncargo-calls.jsonl\n')
         self.source('crates/biomcp-query/src/status.rs', 'fn status() {}\n')
         self.source('crates/biomcp-adapters/src/mapped.rs', 'fn mapped() {}\n')
         self.git('init', '--quiet')
@@ -136,7 +137,9 @@ class MutationCommands(unittest.TestCase):
         for file in ('crates/biomcp-query/src/status.rs', 'crates/biomcp-adapters/src/mapped.rs'):
             for line in range(12):
                 inventory.append(dict(name=f'{file}:{line + 1}:5: replace x -> bool with false',
-                                      file=file, package='biomcp-query', genre='FnValue'))
+                                      file=file, package='biomcp-query', genre='FnValue',
+                                      span=dict(start=dict(line=line + 1, column=5),
+                                                end=dict(line=line + 1, column=6))))
         (self.root / 'native-inventory.json').write_text(json.dumps(inventory))
 
     def source(self, name, value):
@@ -275,11 +278,95 @@ class MutationCommands(unittest.TestCase):
         self.assertEqual((run['build'], run['tests']), ('2', '2'))
         self.assertEqual(run['revision'], value['candidate'])
 
+    def varied_inventory(self):
+        first = 'crates/biomcp-adapters/src/aaa.rs'
+        second = 'crates/biomcp-adapters/src/bbb.rs'
+        empty = 'crates/biomcp-query/src/no_mutants.rs'
+        mapped = 'crates/biomcp-adapters/src/mapped.rs'
+        self.source(first, '\n'.join(f'fn row{line}() {{}}' for line in range(1, 101)) + '\n')
+        self.source(second, 'one\ntwo\nthree\nfour\n')
+        self.source(empty, 'old\n')
+        self.commit('baseline for several changed files')
+        self.previous = self.git('rev-parse', 'HEAD').stdout.strip()
+        self.source(first, (self.root / first).read_text().replace('row90()', 'changed90()'))
+        self.source(second, 'one\ntwo\nchanged\nfour\n')
+        self.source(empty, 'new\n')
+        self.source(mapped, 'fn mapped() { false; }\n')
+        self.commit('change several product files')
+        def mutant(file, line, end=None):
+            return dict(name=f'{file}:{line}:5: replace x -> bool with false', file=file,
+                        span=dict(start=dict(line=line, column=5),
+                                  end=dict(line=end or line, column=6)),
+                        function=dict(span=dict(start=dict(line=1), end=dict(line=100))))
+        rule = 'crates/biomcp-query/src/status.rs'
+        rows = [mutant(rule, line) for line in range(1, 13)]
+        rows += [mutant(first, line) for line in [*range(1, 51), 90]]
+        rows += [mutant(second, 1), mutant(second, 2, 4), mutant(second, 4)]
+        rows += [mutant(mapped, 1), mutant(mapped, 6)]
+        (self.root / 'native-inventory.json').write_text(json.dumps(rows))
+        return first, second, mapped, empty, rule
+
+    def test_selection_prioritizes_changed_spans_and_round_robins_changed_files(self):
+        first, second, mapped, empty, rule = self.varied_inventory()
+        value = self.prepare('--measure')
+        expected = [f'{file}:{line}:5: replace x -> bool with false'
+                    for file, line in [(first, 90), (second, 2), (mapped, 1)]]
+        self.assertEqual(value['selected'][:3], expected)
+        self.assertEqual(len(value['selected']), 20)
+        self.assertEqual(len(set(value['selected'])), 20)
+        summary = value['selection']
+        by_file = {row['file']: row for row in summary['files']}
+        self.assertEqual([by_file[file]['selected_overlapping'] for file in
+                          (first, second, mapped)], [1, 1, 1])
+        self.assertEqual(by_file[rule]['selected'], 0)
+        self.assertEqual(summary['no_eligible_changed_files'], [empty])
+        self.assertEqual(summary['unrepresented_changed_files'], [])
+        other = self.root / 'deterministic'
+        self.call('plan', '--previous', self.previous, '--output', other,
+                  '--started', value['started'], '--measure')
+        self.assertEqual(json.loads((other / 'plan.json').read_text())['selected'],
+                         value['selected'])
+        self.call('shard', '--plan', self.plan, '--index', 0)
+        self.call('collect', '--plan', self.plan)
+        report = self.report()
+        self.assertEqual(report['selection'], summary)
+        self.assertEqual(set(report['unrun']), set(value['inventory']) - set(value['selected']))
+
+    def test_short_selection_reports_unrepresented_files_without_widening_limit(self):
+        first, second, mapped, empty, _ = self.varied_inventory()
+        value = self.prepare('--cost-seconds', '2000', '--baseline-seconds', '1')
+        self.assertEqual(len(value['selected']), 2)
+        self.assertTrue(value['selected'][0].startswith(first + ':90:'))
+        self.assertTrue(value['selected'][1].startswith(second + ':2:'))
+        self.assertEqual(value['selection']['unrepresented_changed_files'], [mapped])
+        self.assertEqual(value['selection']['no_eligible_changed_files'], [empty])
+
+    def test_deletion_only_changes_do_not_prioritize_neighboring_or_function_lines(self):
+        path = 'crates/biomcp-adapters/src/deletion.rs'
+        self.source(path, 'one\nremove\nthree\n')
+        self.commit('deletion baseline')
+        self.previous = self.git('rev-parse', 'HEAD').stdout.strip()
+        self.source(path, 'one\nthree\n')
+        self.commit('delete a line')
+        rows = json.loads((self.root / 'native-inventory.json').read_text())
+        rows += [dict(name=f'{path}:1:5: replace x -> bool with false', file=path,
+                      span=dict(start=dict(line=1), end=dict(line=2)),
+                      function=dict(span=dict(start=dict(line=1), end=dict(line=3))))]
+        (self.root / 'native-inventory.json').write_text(json.dumps(rows))
+        value = self.prepare('--measure')
+        self.assertTrue(value['selected'][0].startswith(path + ':1:'))
+        self.assertIn('status.rs', value['selected'][1])
+        row = next(row for row in value['selection']['files'] if row['file'] == path)
+        self.assertEqual(row['changed_lines'], [])
+        self.assertEqual(row['overlapping'], 0)
+        self.assertEqual(row['selected_overlapping'], 0)
+
     def test_only_the_exact_equivalent_flags_mutation_is_excluded_from_inventory_and_shards(self):
         name = 'crates/biomcp-fetch/src/cache.rs:76:47: replace | with ^ in Cache::owned_connection'
         nearby = [name.replace(':76:', ':77:'), name.replace('with ^', 'with &')]
         inventory = json.loads((self.root / 'native-inventory.json').read_text())
-        inventory.extend(dict(name=value, file=inventory[0]['file']) for value in [name, *nearby])
+        inventory.extend(dict(name=value, file=inventory[0]['file'], span=inventory[0]['span'])
+                         for value in [name, *nearby])
         (self.root / 'native-inventory.json').write_text(json.dumps(inventory))
         value = self.prepare('--cost-seconds', '1', '--baseline-seconds', '1')
         self.assertNotIn(name, value['inventory'])

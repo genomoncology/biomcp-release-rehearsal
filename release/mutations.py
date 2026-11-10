@@ -1,5 +1,6 @@
 """Run bounded native mutation shards. Prints one summary; raw logs stay in output."""
 import argparse
+from collections import deque
 import fnmatch
 import json
 import math
@@ -129,6 +130,57 @@ def install(args):
     tool_version(args.started + CAP_SECONDS, args.output / 'version.log', env)
 
 
+def changed_line_ranges(previous, candidate, files):
+    ranges = {}
+    for path in files:
+        diff = git('diff', '--no-ext-diff', '--no-color', '--unified=0',
+                   previous, candidate, '--', path)
+        ranges[path] = []
+        for start, count in re.findall(r'^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@', diff, re.M):
+            start, count = int(start), int(count) if count else 1
+            if count:
+                ranges[path].append([start, start + count - 1])
+    return ranges
+
+
+def select_mutants(inventory, files, changed, ranges, limit):
+    overlapping = set()
+    grouped = {path: [] for path in files}
+    for row in inventory:
+        grouped[row['file']].append(row)
+        if row['file'] in ranges:
+            span = row['span']
+            start, end = span['start']['line'], span['end']['line']
+            if any(low <= end and start <= high for low, high in ranges[row['file']]):
+                overlapping.add(row['name'])
+    queues = [deque(sorted(grouped[path], key=lambda row: row['name'] not in overlapping))
+              for path in changed]
+    selected = []
+    while queues and len(selected) < limit:
+        for queue in queues:
+            if queue:
+                selected.append(queue.popleft()['name'])
+                if len(selected) == limit:
+                    break
+        queues = [queue for queue in queues if queue]
+    fallback = [row['name'] for row in inventory if row['file'] not in ranges]
+    selected.extend(fallback[:max(0, limit - len(selected))])
+    names = set(selected)
+    selected_overlapping = names & overlapping
+    counts = [dict(file=path, changed=path in ranges, changed_lines=ranges.get(path, []),
+                   eligible=len(grouped[path]),
+                   overlapping=sum(row['name'] in overlapping for row in grouped[path]),
+                   selected=sum(row['name'] in names for row in grouped[path]),
+                   selected_overlapping=sum(row['name'] in selected_overlapping
+                                            for row in grouped[path])) for path in files]
+    summary = dict(policy='changed-line-prioritized-file-round-robin', files=counts,
+                   no_eligible_changed_files=[path for path in changed if not grouped[path]],
+                   unrepresented_changed_files=[row['file'] for row in counts
+                                                if row['changed'] and row['eligible']
+                                                and not row['selected']])
+    return selected, summary
+
+
 def plan(args):
     if git('status', '--porcelain', '--untracked-files=no'):
         raise ValueError('Mutation plans require a clean tracked source tree')
@@ -140,6 +192,8 @@ def plan(args):
     product = [p for p in tracked if '/src/' in p and p.endswith('.rs')]
     changed = git('diff', '--name-only', previous, candidate, '--', 'crates').splitlines()
     files = [p for p in changed if p in product]
+    changed_files = files.copy()
+    ranges = changed_line_ranges(previous, candidate, changed_files)
     for pattern in RULE_FILES:
         files.extend(p for p in product if fnmatch.fnmatchcase(p, pattern) and p not in files)
     if not files:
@@ -158,14 +212,14 @@ def plan(args):
     limit = CALIBRATION_SIZE if args.measure else math.floor(remaining / args.cost_seconds)
     if args.measure and len(names) < CALIBRATION_SIZE:
         raise ValueError('Calibration scope contains fewer than the required mutants')
-    selected = names[:limit]
+    selected, selection = select_mutants(inventory, files, changed_files, ranges, limit)
     if not selected or args.shards > len(selected):
         raise ValueError('Scope has too few mutants for the requested shards')
     value = dict(candidate=candidate, previous=previous, files=files, inventory=names,
                  selected=selected, shards=args.shards, started=args.started,
                  deadline=args.started + CAP_SECONDS, tool=manifest()['cargo-mutants'],
                  calibration=args.measure, cost_seconds=args.cost_seconds,
-                 baseline_seconds=args.baseline_seconds)
+                 baseline_seconds=args.baseline_seconds, selection=selection)
     save(args.output / 'plan.json', value)
     print(json.dumps(dict(candidate=candidate, selected=len(selected), scope=len(names),
                           shards=args.shards, plan=str(args.output / 'plan.json'))))
@@ -225,6 +279,8 @@ def collect(args):
                   started=value['started'], deadline=value['deadline'],
                   caught=[], survivors=[], unviable=[], timeouts=[], errors=[], phases=[],
                   baseline_phases=[])
+    if 'selection' in value:
+        report['selection'] = value['selection']
     seen = set()
     elapsed = []
     interrupted = False
