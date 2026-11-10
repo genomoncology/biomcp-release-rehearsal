@@ -230,6 +230,13 @@ fn native(requests: &[(String, String)], expected: &str) -> Check {
             .1;
         if selector.starts_with("((") {
             union_pages += 1;
+            if !selector.contains("openfda.brand_name.exact:")
+                || !selector.contains("openfda.generic_name.exact:")
+            {
+                return Err(format!(
+                    "expanded label page did not use both exact name fields: {selector}"
+                ));
+            }
             if selector != expected {
                 return Err(format!(
                     "native alias union or literal indication changed: {selector}"

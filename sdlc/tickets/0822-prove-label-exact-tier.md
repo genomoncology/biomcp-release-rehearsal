@@ -1,6 +1,7 @@
 # 0822 — Prove exact native selectors on expanded label pages
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 3d341488395c7086aee50c6bc875e1955ae31ca8
 
 Milestone: 5
 
