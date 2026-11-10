@@ -100,6 +100,7 @@ mod phenotype;
 mod process;
 pub(super) mod proof;
 mod protein_budgets;
+mod protein_coordinates;
 mod protein_domains;
 mod protein_sections;
 mod protocol;

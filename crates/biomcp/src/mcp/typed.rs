@@ -88,6 +88,9 @@ pub(super) fn tool_result(
         if let Some(result) = reply.get_mut("result").and_then(Value::as_object_mut) {
             result.insert("content".into(), json!([{"type":"text","text":text}]));
         }
+        if let Some(result) = reply.get_mut("result") {
+            crate::view::protein::append_mcp(result, &value);
+        }
     }
     reply
 }

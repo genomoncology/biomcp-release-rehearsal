@@ -1,6 +1,7 @@
 # 0811 — Explain protein span coordinates in text output
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: 630a52fc9366446ba03d71eeb363fccc85bc7d16
 
 Milestone: 5
 

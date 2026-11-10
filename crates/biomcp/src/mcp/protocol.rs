@@ -138,17 +138,19 @@ pub(super) fn reply_note(form: ReplyForm) -> &'static str {
     }
 }
 fn content(value: Value, failed: bool, form: ReplyForm) -> Value {
-    match form {
+    let mut result = match form {
         ReplyForm::Both => json!({"content":[{"type":"text","text":value.to_string()}],
-            "structuredContent":value, "isError":failed}),
+            "structuredContent":value.clone(), "isError":failed}),
         ReplyForm::StructuredOnly => {
             json!({"content":[{"type":"text","text":reply_note(form)}],
-            "structuredContent":value, "isError":failed})
+            "structuredContent":value.clone(), "isError":failed})
         }
         ReplyForm::TextOnly => {
             json!({"content":[{"type":"text","text":value.to_string()}], "isError":failed})
         }
-    }
+    };
+    crate::view::protein::append_mcp(&mut result, &value);
+    result
 }
 pub(super) fn within_cap(value: &Value) -> bool {
     // Admit the JSON value once, independent of its configured wire representation.

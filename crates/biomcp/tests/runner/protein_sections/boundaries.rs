@@ -21,6 +21,11 @@ pub(super) fn features() -> Result<(), String> {
         0,
     )?;
     super::super::protein_budgets::check(&first, "section-boundary/first", "cli")?;
+    super::super::protein_coordinates::check(
+        &env,
+        &["protein", "features", "P00533", "--limit", "1"],
+        &first,
+    )?;
     coordinates(&env)?;
     retained(&env, &first)?;
     section_context(&env)?;

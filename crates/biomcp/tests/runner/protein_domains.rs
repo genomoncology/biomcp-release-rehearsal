@@ -44,6 +44,7 @@ fn domains() -> Result<(), String> {
     let value = call(&env, &["protein", "domains", "P04637"], 0)?;
     super::protein_budgets::check(&value, "synthetic-domains/default", "cli")?;
     retention::healthy(&env, &value)?;
+    super::protein_coordinates::check(&env, &["protein", "domains", "P04637"], &value)?;
     if value.pointer("/result/items/0/entry_type") != Some(&json!("family"))
         || value
             .pointer("/result/items/0/locations/0/fragments")

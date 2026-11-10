@@ -3,6 +3,7 @@ mod article;
 mod escape;
 mod help;
 mod hints;
+pub(crate) mod protein;
 use biomcp_types::{Help, ResponseBody};
 use escape::{escape, source_link};
 use serde_json::Value;
@@ -19,6 +20,10 @@ pub(crate) fn markdown(value: &Value) -> io::Result<Vec<u8>> {
         .unwrap_or(Value::Null);
     let hint = hints::find(identity);
     let mut out = String::new();
+    if let Some(note) = protein::note(value) {
+        out.push_str(&note);
+        out.push_str("\n\n");
+    }
     if value.get("status").and_then(Value::as_str) == Some("absent") {
         for source in value
             .get("sources")
