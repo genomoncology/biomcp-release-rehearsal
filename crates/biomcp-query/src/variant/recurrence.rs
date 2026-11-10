@@ -101,19 +101,6 @@ fn execute(
 }
 fn metadata(query: &VariantRecurrenceQuery, cohort: &cbioportal::Cohort, out: &mut Outcome) {
     out.problems.extend(cohort.problems.iter().cloned());
-    if let Some(error) = cohort.count_error {
-        if let Some(source) = out.sources.last_mut() {
-            source.set_status(biomcp_types::SourceStatus::Failed(
-                status::reason(error).or(source.reason),
-            ));
-        }
-        out.local = status::local(error);
-        out.problems.push(matching::problem(
-            Source::Cbioportal,
-            query.sample_set().as_str(),
-            "sample_set.metadata",
-        ));
-    }
     if cohort.selected_sample_count.is_none() {
         out.problems.push(matching::problem(
             Source::Cbioportal,

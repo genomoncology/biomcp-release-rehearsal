@@ -36,8 +36,6 @@ pub struct Cohort {
     pub study: RecurrenceStudy,
     /// Selected list size, without assuming gene assay eligibility.
     pub selected_sample_count: Option<u64>,
-    /// Failure to establish selected-list metadata; mutation observations remain usable.
-    pub count_error: Option<RequestError>,
 }
 /// Fetch and bind all cohort selectors before reading mutation rows.
 pub fn cohort(leg: &Leg<'_>, query: &VariantRecurrenceQuery) -> Result<Cohort, RequestError> {
@@ -87,13 +85,8 @@ pub fn cohort(leg: &Leg<'_>, query: &VariantRecurrenceQuery) -> Result<Cohort, R
         .field("description", study.description)
         .map(Into::into);
     let citation = problems.field("citation", study.citation).map(Into::into);
-    let (selected_sample_count, count_error) = match sample_count(leg, query) {
-        Ok(count) => {
-            problems.list.extend(count.problems);
-            (count.value, None)
-        }
-        Err(error) => (None, Some(error)),
-    };
+    let count = sample_count(leg, query)?;
+    problems.list.extend(count.problems);
     Ok(Cohort {
         problems: problems.list,
         study: RecurrenceStudy {
@@ -101,8 +94,7 @@ pub fn cohort(leg: &Leg<'_>, query: &VariantRecurrenceQuery) -> Result<Cohort, R
             description,
             citation,
         },
-        selected_sample_count,
-        count_error,
+        selected_sample_count: count.value,
     })
 }
 /// Checked mutation records with their native window and field diagnostics.

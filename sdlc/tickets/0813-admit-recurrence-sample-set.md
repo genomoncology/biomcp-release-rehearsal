@@ -1,6 +1,7 @@
 # 0813 — Admit recurrence sample sets before counting mutations
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c17004a7740ce61be8923e5f129e462276dea11f
 
 Milestone: 5
 
