@@ -6,7 +6,7 @@ Milestone: 5
 
 ## Outcome
 
-Run narrowly scoped GitHub Actions checks in the actual public BioMCP repository using its existing Homebrew secret and generated GitHub token. Establish what access those credentials have without publishing a release, image, formula or package, changing main, or exposing credentials. Retain actual outcomes and limits instead of asking Ian to attest to unknown token history.
+Exercise the existing Homebrew secret and generated GitHub token in the actual public BioMCP repository, and retain observed access results and limitations. This is external operator work: the one-off probe remains archived rather than being shipped as a production feature. Preserve failed cleanup reports alongside successful authentication/admission evidence.
 
 ## Why
 
@@ -14,25 +14,26 @@ Ian, November 10: "I haven't changed anything with the Homebrew tap token. I don
 
 ## Proof
 
-- Check the existing Homebrew token through authenticated repository access and a git push --dry-run proposing only a local empty descendant of tap main. Verify no remote update; never run formulas or push that local commit. Report authentication and push-negotiation results accurately, including any remaining branch-policy limitation.
-- Exercise GHCR push capability without publishing blobs/manifests/tags. A bounded empty-upload initiation followed immediately by cancellation is acceptable; send no payload bytes, validate cancellation location against the exact HTTPS registry/repository, attempt cleanup on every post-initiation path, and disclose any failed cleanup. Do not decode or log bearer credentials.
-- Test guard/failure/redaction/cancellation behavior using controlled mocks, run focused helper/workflow checks, and obtain independent security review before any live execution. No native product build or release pipeline run is necessary.
-- Record exact reviewed source/workflow hashes, actual run/ref/repository, safe status-only results and remote-state checks. Upload only explicitly named nonsecret reports, never credential files, environment dumps or the whole workspace.
+- Both actual runs, 42884420606 and 42885938241, accepted Homebrew authentication and git push --dry-run negotiation while all tap refs remained unchanged. This does not prove acceptance by server update hooks or a real formula publication.
+- Both GHCR checks returned token HTTP 200 and empty-upload HTTP 202, establishing upload admission. Both overall runs failed because the helper rejected the provider cancellation path; no DELETE was attempted. Two empty sessions have unconfirmed cleanup. No payload, blob, manifest or tag was sent. Do not report either overall run as passed.
+- Preserve the original reviewed source 3dff32e46 and corrected source 9d13b5ea5, mocked proofs, security reviews, and exact public-export hashes. The generic relative-base bug was fixed, but the second live safe diagnostics prove its provider path did not match the helper's assumed prefix; the actual raw URLs were never retained or exposed.
+- Receiver-verified live packets: Yellow data/biomcp-redux-evidence/0807/run-42884420606-65d5cfdb52f3 (manifest29e89ab196b3a9f3cd77b1a89c1f7c77043c311bd4040a3dbbb71a01d396b432) and run-42885938241-16fc4fe6b52a (manifest46d5740b620e0e4cda8ca6c83e1c6dc0b48c67713ed46f392b82e3a55a722838). Preserve safe reports, source/run identity and remote-state checks.
+- Archive both actual public probe commits and remove only the two owned temporary branches after verifying their unchanged heads and retained evidence. Preserve Actions runs/artifacts and public main.
 
 ## Starts from
 
-- Existing registered public .github/workflows/release.yml supports normal release/rehearsal, not credential-only checks. HOMEBREW_TAP_TOKEN exists at repository scope; do not retrieve/copy its value. The token can be exercised inside this repository's Actions. Rehearsal repository has no copy and must not receive one.
-- Build a tiny manual-only workflow/helper from reviewed private source, then prepare a temporary workflow-only branch parented ONLY by current public main. Use the registered workflow path for dispatch if a new workflow is not registered yet. Export only reviewed probe files; do not append private history, alter public default main/tags/release state or change account settings. Check inherited workflow triggers before any branch push.
+- The public probes were each one workflow-only child of public main561d3fe06d9dff5485f13a82a4108371f6fdfe88, using the registered release.yml path and existing repository secret without a deployment environment. Inherited workflows did not run on branch push.
+- First public source65d5cfdb52f3a146e3993973c1f32b9124643f8d; corrected public source16fc4fe6b52a9d1ce1086fad27586dbb64628a0f. Neither appended private history or changed public main, tags, packages or account settings.
 
 ## Keeps
 
 - Existing credentials stay in GitHub's normal credential channel; never inspect, print, persist in evidence or transfer their values. Disable tracing and arbitrary response-body logging, reject cross-host authentication redirects, and scope all operations to the two intended channel repositories.
-- Manual dispatch only, least job permissions, pinned existing actions, no publication commands or automatic retries. Existing tag/release approval and history-append procedure remain separate. Running candidate rehearsal stays unchanged and retains its own source identity.
+- Existing tag/release approval and history-append procedure remain separate. Running candidate rehearsal stays unchanged and retains its own source identity. Stop further live probes; the requested access facts are established and cancellation remains an explicit limitation.
 
 ## Defers
 
-- Actual publication and full channel installation remain in the approved release session. If a nonpublishing probe cannot establish a permission conclusively, state that limit; do not silently perform a real write to tap main or publish an image to obtain proof.
+- Actual publication and full channel installation remain in the approved release session. Shipping or reusing the archived helper requires the opaque-cancellation follow-up recorded in idea0810 before any new live session. This helper limitation does not establish a release-runtime or credential-permission defect.
 
 ## Changes
 
-- Minimal manual credential-check workflow/helper and focused tests, plus retained execution evidence. No product runtime/schema/dependency or existing release-workflow redesign.
+- Outcome record and external evidence references only. Keep prototype workflow/helper/tests in verified archive refs and bundles; do not land them into the product. No runtime/schema/dependency or existing release-workflow redesign.
