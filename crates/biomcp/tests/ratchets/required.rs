@@ -74,6 +74,7 @@ pub(super) fn required_surface_has_asserted_calls() -> Check {
     let (help, tools) = metadata()?;
     let mut counts = tally::Inventory::new(&help, &tools)?;
     counts.runner(housekeeping_contract::OFFLINE_PROVENANCE.1);
+    counts.runner(synthetic_contracts::LABEL_NAMES.1);
     counts.runner(synthetic_contracts::GWAS_POOL.1);
     counts.runner(synthetic_contracts::GWAS_ANCESTRY.1);
     counts.runner(synthetic_contracts::GWAS_ASSOCIATIONS.1);

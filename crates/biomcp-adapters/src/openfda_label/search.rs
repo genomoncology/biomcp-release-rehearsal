@@ -4,6 +4,8 @@
 use super::{Page, literal, page};
 use biodata::{DrugId, Text};
 use biomcp_fetch::{Leg, RequestError};
+mod expanded;
+pub use expanded::{NameTier, search_expanded};
 
 /// The native discovery result and the recovery step attempted.
 #[derive(Debug)]

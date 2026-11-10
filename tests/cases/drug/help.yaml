@@ -19,11 +19,13 @@
             "--source",
             "--limit",
             "--offset",
-            "--name-selector"
+            "--name-selector",
+            "--expand-drug-names",
+            "--name-snapshot"
           ]
         }
       },
-      "max_bytes": 7130
+      "max_bytes": 8392
     },
     {
       "run": [

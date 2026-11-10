@@ -72,6 +72,10 @@
       "description": "Native FDA classification; drug recalls only; help search drug\nNative FDA classification; drug recalls only.",
       "x-required-component": "fda-drug-recall"
     },
+    "expand_drug_names": {
+      "description": "Expand openFDA label aliases.\nUses bounded source-stated names. Literal search is the default.",
+      "type": "boolean"
+    },
     "firm": {
       "anyOf": [
         {
@@ -81,7 +85,7 @@
           "type": "null"
         }
       ],
-      "description": "Literal published recalling firm phrase; drug recalls only.",
+      "description": "Recall firm phrase.\nMatches the published firm literally.",
       "x-required-component": "fda-drug-recall"
     },
     "indication": {
@@ -123,8 +127,19 @@
     },
     "name_selector": {
       "$ref": "#/$defs/DrugNameSelector",
-      "description": "Explicit ChEMBL native name selector; omitted means preferred; help search drug\nExplicit ChEMBL native name selector; omitted means preferred name.",
+      "description": "ChEMBL name selector; help search drug\nChEMBL name selector.\nOmit to search the preferred name.",
       "x-required-component": "chembl"
+    },
+    "name_snapshot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Label alias page token.\nFollow the returned command with unchanged filters to retain aliases and matching tier."
     },
     "offset": {
       "default": 0,
@@ -142,7 +157,7 @@
           "type": "null"
         }
       ],
-      "description": "Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.",
+      "description": "WHO PQ start date, inclusive.\nAccepts YYYY, YYYY-MM or YYYY-MM-DD.",
       "x-required-component": "who-pq"
     },
     "prequalified_to": {
@@ -154,12 +169,12 @@
           "type": "null"
         }
       ],
-      "description": "Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.",
+      "description": "WHO PQ end date, inclusive.\nAccepts YYYY, YYYY-MM or YYYY-MM-DD.",
       "x-required-component": "who-pq"
     },
     "query": {
       "$ref": "#/$defs/Text",
-      "description": "Name phrase; optional with supported source filters.\nFDA drug recalls, WHO date ranges and label indication searches allow no name.\nDrugs@FDA searches brands and ingredients,\nexact names before word matches. openFDA labels search exact then word brand/generic names,\nthen label text (including indications) when no names match; source matches need not be exact names.\nHarmonized recall names match but never become display names.",
+      "description": "Drug name phrase.\nFDA drug recalls, WHO date ranges and label indication searches allow no name.\nDrugs@FDA searches brands and ingredients,\nexact names before word matches. openFDA labels search exact then word brand/generic names,\nthen label text (including indications) when no names match; source matches need not be exact names.\nHarmonized recall names match but never become display names.",
       "x-positional": 0
     },
     "reason": {
@@ -171,7 +186,7 @@
           "type": "null"
         }
       ],
-      "description": "Phrase in the published recall reason; drug recalls only.",
+      "description": "Recall reason phrase.",
       "x-required-component": "fda-drug-recall"
     },
     "source": {
@@ -188,7 +203,7 @@
           "type": "null"
         }
       ],
-      "description": "Literal native recall status; drug recalls only.",
+      "description": "Literal recall status.",
       "x-required-component": "fda-drug-recall"
     }
   },

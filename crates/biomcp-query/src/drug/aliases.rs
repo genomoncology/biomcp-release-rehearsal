@@ -8,6 +8,9 @@ use biomcp_types::{
 };
 
 pub(crate) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
+    if query.expand_drug_names() {
+        return super::search(cx, query);
+    }
     let deadline = cx.fetch.deadline(cx.budget);
     let mut out = search_spelling(cx, query);
     if query.offset() != 0 || !zero(&out, query.source()) {

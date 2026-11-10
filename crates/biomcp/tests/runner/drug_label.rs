@@ -5,11 +5,12 @@ use crate::runner::transcript::trial as transcript_trial;
 use libtest_mimic::Trial;
 use serde_json::{Value, json};
 type Check = Result<(), String>;
+mod names;
 mod published;
 
 pub(super) fn trials() -> Vec<Trial> {
     // The peer checks literal source label requests and counts reads after retaining all native heading pages.
-    vec![
+    let mut trials = vec![
         transcript_trial(crate::runner::required_contract::LABEL_HEADINGS.0, || {
             headings().map_err(Into::into)
         }),
@@ -19,7 +20,9 @@ pub(super) fn trials() -> Vec<Trial> {
         transcript_trial("drug-label/published-sections", || {
             published::sections().map_err(Into::into)
         }),
-    ]
+    ];
+    trials.extend(names::trials());
+    trials
 }
 fn bare_label() -> Check {
     let id = identity(4)?;

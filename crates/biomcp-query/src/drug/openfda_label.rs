@@ -2,12 +2,13 @@
 use crate::{Ctx, Outcome, status};
 use biomcp_adapters::{openfda_label as source, received_date};
 use biomcp_fetch::RequestError;
-use biomcp_types::Paged;
 use biomcp_types::ReplyBody;
 use biomcp_types::{
     DrugGet, DrugLabel, DrugPage, DrugSearch, DrugSection, DrugSource, PageInfo, Request, Section,
     Source, StepKind,
 };
+mod names;
+mod search_page;
 const SOURCE: Source = Source::OpenfdaLabel;
 pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     let mut out = super::empty(
@@ -18,27 +19,39 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
         .with_query(query.clone()),
     );
     let command = cx.fetch.command_deadline(cx.budget);
-    let deadline = command.deadline();
-    let leg = cx.fetch.leg(&source::SPEC, deadline).fresh(cx.fresh);
-    let discovery = match (query.indication(), query.query()) {
-        (Some(indication), name) => {
-            source::search_indication(&leg, indication, name, query.limit(), query.offset())
+    let mut deadline = command.deadline();
+    let mut expanded = if query.expand_drug_names()
+        && (query.name_snapshot().is_some() || !cx.fetch.disabled(SOURCE))
+    {
+        match names::prepare(cx, query, &mut deadline) {
+            Ok(Some(saved)) => Some(saved),
+            Ok(None) => {
+                names::missing(query, &mut out);
+                return out;
+            }
+            Err(error) => {
+                out.local = Some(error);
+                return out;
+            }
         }
-        (None, Some(name)) => source::search(&leg, name, query.limit(), query.offset()),
-        (None, None) => return super::unsupported(query.source(), out),
+    } else {
+        None
+    };
+    let leg = cx.fetch.leg(&source::SPEC, deadline).fresh(cx.fresh);
+    let discovery = if let Some(saved) = expanded.as_mut() {
+        names::search(&leg, query, saved)
+    } else {
+        match (query.indication(), query.query()) {
+            (Some(indication), name) => {
+                source::search_indication(&leg, indication, name, query.limit(), query.offset())
+            }
+            (None, Some(name)) => source::search(&leg, name, query.limit(), query.offset()),
+            (None, None) => return super::unsupported(query.source(), out),
+        }
     };
     let result = discovery.page.and_then(|page| {
         out.problems.extend(page.problems);
-        let items = page
-            .window
-            .rows
-            .iter()
-            .map(|r| {
-                let mut header = r.header()?;
-                header.matched_name = query.query().and_then(|name| r.name_match(name));
-                Ok(header)
-            })
-            .collect::<Result<Vec<_>, RequestError>>()?;
+        let items = search_page::headers(&page.window.rows, query)?;
         Ok(page.window.with_rows(items))
     });
     let error = result.as_ref().err().copied();
@@ -46,47 +59,21 @@ pub(super) fn search(cx: &Ctx<'_>, query: &DrugSearch) -> Outcome {
     let remaining = leg.remaining();
     out.sources
         .push(status::source(SOURCE, leg.finish(), error));
+    let sent = names::retain(
+        cx,
+        query,
+        expanded.as_ref(),
+        deadline,
+        result.is_ok(),
+        &mut out,
+    );
     disclosure(&mut out, discovery.free_text);
     if let Ok(window) = result {
         let total = window.total().unwrap_or(0);
-        let next_offset = window.next_offset();
-        let items = window.rows;
-        let returned = items.len() as u32;
-        crate::status::item(&mut out, returned != 0, false, false);
-        if let Some(source) = out.sources.first_mut() {
-            source.count = Some(total);
-            source.retrieved_count = Some(returned);
-        }
-        out.page = Some(page(query.offset(), returned, total));
-        for item in &items {
-            if let Some(get) = crate::next::checked(
-                DrugGet::new(item.id.clone(), DrugSource::OpenfdaLabel),
-                biomcp_types::Source::OpenfdaLabel,
-                &mut out.problems,
-            ) {
-                out.next.push(crate::next::Step::run(
-                    StepKind::Disambiguate,
-                    &[biomcp_types::Source::OpenfdaLabel],
-                    Request::GetDrug(get),
-                    cx.fresh,
-                ));
-            }
-        }
-        if let Some(offset) = next_offset {
-            out.next.push(crate::next::Step::run(
-                StepKind::Page,
-                &[biomcp_types::Source::OpenfdaLabel],
-                Request::SearchDrug(query.at_offset(offset)),
-                cx.fresh,
-            ));
-        }
-        out.body = (DrugPage {
-            items: items.into(),
-            total: Some(total),
-        })
-        .with_query(query.clone());
+        search_page::apply(cx, &sent, window, total, &mut out);
     }
     status::search(&mut out);
+    names::finish(query, expanded, &mut out);
     command.finish(remaining);
     out
 }

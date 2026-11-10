@@ -22,7 +22,7 @@ pub struct DrugSearch(SearchFields);
 #[serde(deny_unknown_fields)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 struct SearchFields {
-    /// Name phrase; optional with supported source filters.
+    /// Drug name phrase.
     /// FDA drug recalls, WHO date ranges and label indication searches allow no name.
     /// Drugs@FDA searches brands and ingredients,
     /// exact names before word matches. openFDA labels search exact then word brand/generic names,
@@ -36,6 +36,14 @@ struct SearchFields {
     )]
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     query: Option<Text>,
+    /// Expand openFDA label aliases.
+    /// Uses bounded source-stated names. Literal search is the default.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    expand_drug_names: bool,
+    /// Label alias page token.
+    /// Follow the returned command with unchanged filters to retain aliases and matching tier.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    name_snapshot: Option<Text>,
     /// Literal label indication; openFDA labels only.
     /// Search the native Indications and Usage field without disease synonym expansion.
     /// An optional name query further narrows the same source search.
@@ -47,7 +55,8 @@ struct SearchFields {
     #[cfg_attr(feature = "schema", schemars(with = "Text"))]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::OpenfdaLabel)))]
     indication: Option<Text>,
-    /// Literal published recalling firm phrase; drug recalls only.
+    /// Recall firm phrase.
+    /// Matches the published firm literally.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     firm: Option<Text>,
@@ -55,11 +64,11 @@ struct SearchFields {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     classification: Option<super::DrugRecallClassification>,
-    /// Literal native recall status; drug recalls only.
+    /// Literal recall status.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     status: Option<Text>,
-    /// Phrase in the published recall reason; drug recalls only.
+    /// Recall reason phrase.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     reason: Option<Text>,
@@ -72,11 +81,13 @@ struct SearchFields {
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::FdaDrugRecall)))]
     initiated_to: Option<biodata::PartialDate>,
 
-    /// Inclusive WHO prequalification lower bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+    /// WHO PQ start date, inclusive.
+    /// Accepts YYYY, YYYY-MM or YYYY-MM-DD.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::WhoPq)))]
     prequalified_from: Option<biodata::PartialDate>,
-    /// Inclusive WHO prequalification upper bound, YYYY, YYYY-MM or YYYY-MM-DD; WHO PQ only.
+    /// WHO PQ end date, inclusive.
+    /// Accepts YYYY, YYYY-MM or YYYY-MM-DD.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "schema", schemars(extend("x-required-component" = crate::Source::WhoPq)))]
     prequalified_to: Option<biodata::PartialDate>,
@@ -86,7 +97,8 @@ struct SearchFields {
     /// After an empty name lookup, existing sources may supply aliases.
     #[serde(default = "default_source")]
     source: DrugSource,
-    /// Explicit ChEMBL native name selector; omitted means preferred name.
+    /// ChEMBL name selector.
+    /// Omit to search the preferred name.
     #[serde(
         default,
         deserialize_with = "selected_name",
@@ -154,7 +166,9 @@ impl TryFrom<SearchFields> for DrugSearch {
             fields.initiated_from,
             fields.initiated_to,
         )?;
-        Ok(Self(fields))
+        let query = Self(fields);
+        validate_names(&query)?;
+        Ok(query)
     }
 }
 impl DrugSearch {
@@ -189,6 +203,8 @@ impl DrugSearch {
     pub fn named(query: Text, source: DrugSource, limit: u32) -> Result<Self, QueryInvalid> {
         SearchFields {
             query: Some(query),
+            expand_drug_names: false,
+            name_snapshot: None,
             indication: None,
             source,
             limit,
@@ -272,5 +288,82 @@ impl crate::Paged for DrugSearch {
     type Offset = u32;
     fn set_page_offset(&mut self, offset: Self::Offset) {
         self.0.offset = offset;
+    }
+    fn clear_page_context(&mut self) {
+        self.0.name_snapshot = None;
+    }
+}
+
+const LABEL_NAME_QUERY_MAX_BYTES: usize = 4096;
+
+fn validate_names(query: &DrugSearch) -> Result<(), QueryInvalid> {
+    let fields = &query.0;
+    if fields.expand_drug_names {
+        let Some(name) = query.query() else {
+            return Err(QueryInvalid::new(&["query", "expand_drug_names"]));
+        };
+        if query.source() != DrugSource::OpenfdaLabel
+            || name.as_str().parse::<biodata::DrugId>().is_ok_and(|id| {
+                DrugSource::Drugsfda.accepts(&id) || DrugSource::OpenfdaLabel.accepts(&id)
+            })
+        {
+            return Err(QueryInvalid::new(&["source", "query", "expand_drug_names"]));
+        }
+        query.label_name_selector(std::slice::from_ref(name), true)?;
+        if fields.offset != 0 && fields.name_snapshot.is_none() {
+            return Err(QueryInvalid::new(&["offset", "name_snapshot"]));
+        }
+    } else if fields.name_snapshot.is_some() {
+        return Err(QueryInvalid::new(&["expand_drug_names", "name_snapshot"]));
+    }
+    Ok(())
+}
+
+fn label_name_literal(value: &str) -> String {
+    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+impl DrugSearch {
+    /// Explicit label-name expansion, without changing the default lookup contract.
+    pub fn expand_drug_names(&self) -> bool {
+        self.0.expand_drug_names
+    }
+    /// Caller-authorized retained spellings and native matching tier.
+    pub fn name_snapshot(&self) -> Option<&Text> {
+        self.0.name_snapshot.as_ref()
+    }
+    /// Freeze the resolved names and matching tier in subsequent native pages.
+    pub fn with_name_snapshot(&self, snapshot: Text) -> Self {
+        let mut query = self.clone();
+        query.0.name_snapshot = Some(snapshot);
+        query
+    }
+    /// One escaped provider name union AND the unchanged literal indication phrase.
+    pub fn label_name_selector(&self, names: &[Text], exact: bool) -> Result<Text, QueryInvalid> {
+        let suffix = if exact { ".exact" } else { "" };
+        let names: Vec<_> = names
+            .iter()
+            .map(|name| {
+                let name = label_name_literal(name.as_str());
+                format!(
+                    "(openfda.brand_name{suffix}:{name} OR openfda.generic_name{suffix}:{name})"
+                )
+            })
+            .collect();
+        let mut selector = format!("({})", names.join(" OR "));
+        if let Some(indication) = self.indication() {
+            selector.push_str(&format!(
+                " AND indications_and_usage:{}",
+                label_name_literal(indication.as_str())
+            ));
+        }
+        if names.is_empty() || selector.len() > LABEL_NAME_QUERY_MAX_BYTES {
+            return Err(QueryInvalid::new(&[
+                "query",
+                "indication",
+                "expand_drug_names",
+            ]));
+        }
+        Text::new(&selector).map_err(|_| QueryInvalid::new(&["query", "indication"]))
     }
 }

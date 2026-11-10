@@ -1,6 +1,7 @@
 # 0815 — Add disclosed bounded label-name expansion
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: f57d53e7c81a8634515389ff4ca70ef163ee2d7a
 
 Milestone: 5
 
