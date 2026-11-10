@@ -1,6 +1,7 @@
 # 0793 — Preserve uncertainty in GWAS threshold totals
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: b0f66b1cb3324e3a70b9b72a1d4d2d766fff0a60
 
 Milestone: 5
 

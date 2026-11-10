@@ -20,6 +20,25 @@ struct Saved {
     done: bool,
     sources: Vec<SourceOutcome>,
 }
+impl Saved {
+    fn incomplete(&self) -> bool {
+        self.dropped
+            || self.problems.iter().any(|problem| {
+                matches!(
+                    problem.field.as_ref(),
+                    "pvalue_mantissa" | "pvalue_exponent"
+                )
+            })
+            || self.sources.iter().any(|source| {
+                matches!(
+                    source.state,
+                    biomcp_types::SourceState::Failed
+                        | biomcp_types::SourceState::Stale
+                        | biomcp_types::SourceState::Syncing
+                )
+            })
+    }
+}
 pub(super) fn search(cx: &Ctx<'_>, q: &GwasSearch) -> Outcome {
     let command = cx.fetch.command_deadline(cx.budget);
     let deadline = command.deadline();
@@ -153,6 +172,7 @@ fn append(q: &GwasSearch, saved: &mut Saved, page: gwas::Page) -> Result<(), Req
     saved.total = Some(page.total);
     for row in page.rows {
         let Some(exact) = row.value.exact_p_value.clone() else {
+            saved.dropped = true;
             let problem = biomcp_types::Problem {
                 source: Source::Gwas,
                 record: row.value.id.get().to_string().parse().ok(),
@@ -193,6 +213,7 @@ fn append(q: &GwasSearch, saved: &mut Saved, page: gwas::Page) -> Result<(), Req
     Ok(())
 }
 fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Option<Pool>, out: &mut Outcome) {
+    let incomplete = saved.incomplete();
     out.problems = saved.problems.clone();
     let items: Box<[_]> = saved
         .rows
@@ -218,7 +239,7 @@ fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Option<Pool>, out: &
         items,
         page: page.clone(),
         continuation,
-        qualifying_total: saved.done.then_some(saved.rows.len() as u64),
+        qualifying_total: (saved.done && !incomplete).then_some(saved.rows.len() as u64),
     };
     out.next = next::search(
         q,
@@ -229,6 +250,6 @@ fn render(cx: &Ctx<'_>, q: &GwasSearch, saved: Saved, pool: Option<Pool>, out: &
     );
     out.page = Some(page);
     out.body = body.with_query(biomcp_types::GwasPageQuery::Search(q.clone()));
-    out.dropped = saved.dropped;
+    out.dropped = incomplete;
     status::search(out);
 }
