@@ -80,7 +80,7 @@ pub(crate) fn serve(
     let fetch = crate::config::fetch(&globals, &settings)
         .map(|fetch| Arc::new(fetch.with_background_refresh()));
     if let Err(error) = &fetch
-        && error.is_pacing()
+        && error.blocks_server_startup()
     {
         return Err(StartError::Configuration(error.clone()));
     }

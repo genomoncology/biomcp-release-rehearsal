@@ -5,7 +5,9 @@ pub(crate) mod credentials;
 pub(crate) mod key_file;
 mod pacing;
 use crate::grammar::Globals;
-use biomcp_fetch::{Fetch, FetchConfig, Mode, ReplayCache, Secret, SecretName, Secrets};
+use biomcp_fetch::{
+    Fetch, FetchConfig, Mode, ReplayCache, Secret, SecretName, Secrets, TrialCursorKey,
+};
 use std::{ffi::OsString, fs, path::PathBuf, sync::Arc, time::Duration};
 #[cfg(test)]
 mod credential_reads_tests;
@@ -15,6 +17,7 @@ use file::ConfigFile;
 pub(crate) use file::{ConfigError, ReplyForm, ToolMode};
 
 pub(crate) const DEFAULT_HTTP_CAPACITY: usize = 8;
+const TRIAL_CURSOR_KEY_ENV: &str = "BIOMCP_TRIAL_CONTINUATION_KEY";
 
 /// A stdio server serves one agent, and agents fan out: the 2026-11-07 bench
 /// agent sent at least 24 calls at once. Source pacing already bounds upstream
@@ -178,8 +181,8 @@ pub(crate) enum StartupError {
     Local,
 }
 impl StartupError {
-    pub(crate) fn is_pacing(&self) -> bool {
-        matches!(self, Self::Configuration(error) if error.is_pacing())
+    pub(crate) fn blocks_server_startup(&self) -> bool {
+        matches!(self, Self::Configuration(error) if error.is_pacing() || error.0 == TRIAL_CURSOR_KEY_ENV)
     }
 }
 impl From<ConfigError> for StartupError {
@@ -193,9 +196,28 @@ impl From<biomcp_fetch::CacheError> for StartupError {
     }
 }
 pub(crate) fn fetch(globals: &Globals, settings: &Settings) -> Result<Fetch, StartupError> {
+    let cursor_key = if globals.hosted {
+        trial_cursor_key()?
+    } else {
+        None
+    };
     let home = variable("HOME")?;
     let file = configured(settings)?;
-    fetch_using(globals, home, file)
+    fetch_using(globals, home, file).map(|fetch| fetch.with_trial_cursor_key(cursor_key))
+}
+
+#[expect(
+    clippy::disallowed_methods,
+    reason = "Read the hosted process key only at the settings boundary"
+)]
+fn trial_cursor_key() -> Result<Option<TrialCursorKey>, ConfigError> {
+    match std::env::var(TRIAL_CURSOR_KEY_ENV) {
+        Ok(encoded) => TrialCursorKey::from_encoded(&encoded)
+            .map(Some)
+            .ok_or_else(|| ConfigError::field(TRIAL_CURSOR_KEY_ENV)),
+        Err(std::env::VarError::NotPresent) => Ok(None),
+        Err(std::env::VarError::NotUnicode(_)) => Err(ConfigError::field(TRIAL_CURSOR_KEY_ENV)),
+    }
 }
 pub(crate) fn ncbi_email(settings: &Settings) -> Result<Option<Secret>, ConfigError> {
     Ok(configured(settings)?

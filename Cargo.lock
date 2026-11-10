@@ -261,6 +261,7 @@ dependencies = [
  "idna_adapter",
  "prost",
  "quick-xml",
+ "ring",
  "rusqlite",
  "rustls",
  "rustls-platform-verifier",

@@ -1,6 +1,7 @@
 # 0821 — Preserve trial continuations across hosted tasks
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: bedfaf5351a3ae7d3eed68a10c374705c3c1b201
 
 Milestone: 5
 

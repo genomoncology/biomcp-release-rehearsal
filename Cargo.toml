@@ -61,6 +61,7 @@ libtest-mimic = "0.8.2"
 serde-saphyr = { version = "2.0.0", default-features = false, features = ["deserialize"] }
 
 rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+ring = "=0.17.14"
 rustls-platform-verifier = "0.7.1"
 
 ureq = { version = "3.5.0", default-features = false, features = ["rustls-no-provider", "platform-verifier", "gzip", "json"] }

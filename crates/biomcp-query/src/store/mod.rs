@@ -9,6 +9,8 @@ mod evidence;
 mod trial;
 pub(crate) use evidence::EvidenceState;
 mod ownership;
+pub(crate) use ownership::snapshot_scope;
+pub(crate) use trial::SNAPSHOT_VALIDITY_SECONDS;
 mod pool;
 use biomcp_fetch::{CacheAccess, CacheError, Deadline, SchemaOwner};
 pub(crate) use pool::{Pool, StoredItem};

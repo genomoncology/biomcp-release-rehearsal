@@ -1,7 +1,7 @@
 //! Stored source provenance admits caller-owned payloads before reads or updates.
 use super::{CacheError, Store};
 use biomcp_fetch::{CacheAccess, KeyUse};
-use biomcp_types::{KeyTier, Problem, SourceOutcome};
+use biomcp_types::{KeyTier, Problem, Source, SourceOutcome};
 use rusqlite::{Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -24,6 +24,18 @@ enum Ownership {
 }
 
 pub(super) struct Policy(CacheAccess);
+
+/// Compute a portable snapshot's scope using the same rules as stored metadata.
+pub(crate) fn snapshot_scope(
+    access: CacheAccess,
+    sources: &[Source],
+) -> Result<Option<[u8; 32]>, CacheError> {
+    match Policy(access).ownership(|source| sources.contains(&source)) {
+        Ownership::Public => Ok(None),
+        Ownership::Caller(identity) => Ok(Some(identity)),
+        Ownership::Missing => Err(CacheError::Internal),
+    }
+}
 
 impl Store<'_> {
     pub(super) fn policy(&self) -> Policy {
@@ -119,12 +131,12 @@ impl Policy {
         Ok(())
     }
 
-    fn ownership(&self, sources: &[SourceOutcome]) -> Ownership {
+    fn ownership(&self, has_source: impl Fn(Source) -> bool) -> Ownership {
         if !self.0.is_hosted() {
             return Ownership::Public;
         }
         let names: std::collections::BTreeSet<_> = biomcp_adapters::registry::requests()
-            .filter(|spec| sources.iter().any(|source| source.source == spec.source))
+            .filter(|spec| has_source(spec.source))
             .filter_map(|spec| match spec.key {
                 KeyUse::Optional(c) | KeyUse::Required(c) if c.tier == KeyTier::NoFallback => {
                     Some(c.secret)
@@ -154,7 +166,7 @@ impl Policy {
         problems: &[Problem],
         dropped: bool,
     ) -> Result<String, CacheError> {
-        let ownership = match self.ownership(sources) {
+        let ownership = match self.ownership(|source| sources.iter().any(|s| s.source == source)) {
             Ownership::Public if problems.is_empty() && !dropped => {
                 return serde_json::to_string(sources).map_err(|_| CacheError::Encoding);
             }
@@ -193,11 +205,12 @@ impl Policy {
         if !self.0.is_hosted() {
             return Ok(Some(metadata));
         }
-        let admitted = match self.ownership(&metadata.sources) {
-            Ownership::Public => metadata.ownership.is_none(),
-            Ownership::Caller(identity) => metadata.ownership == Some(identity),
-            Ownership::Missing => false,
-        };
+        let admitted =
+            match self.ownership(|source| metadata.sources.iter().any(|s| s.source == source)) {
+                Ownership::Public => metadata.ownership.is_none(),
+                Ownership::Caller(identity) => metadata.ownership == Some(identity),
+                Ownership::Missing => false,
+            };
         Ok(admitted.then_some(metadata))
     }
 
@@ -208,7 +221,7 @@ impl Policy {
         sources: &[SourceOutcome],
     ) -> Result<[u8; 32], CacheError> {
         let identity = Sha256::digest([key, payload.as_bytes()].concat()).into();
-        match self.ownership(sources) {
+        match self.ownership(|source| sources.iter().any(|s| s.source == source)) {
             Ownership::Public => Ok(identity),
             Ownership::Missing => Err(CacheError::Internal),
             Ownership::Caller(scope) => {

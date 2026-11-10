@@ -74,7 +74,7 @@ fn main() -> ExitCode {
         }
         let fetch = config::fetch(&globals, &settings);
         if let Err(error) = &fetch
-            && error.is_pacing()
+            && error.blocks_server_startup()
         {
             return match command::local::startup(
                 error.clone(),

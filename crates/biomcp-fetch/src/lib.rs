@@ -13,6 +13,8 @@ mod batch;
 mod bundle;
 mod cache;
 mod cache_access;
+mod trial_cursor;
+pub use trial_cursor::TrialCursorKey;
 mod cleanup;
 mod sqlite_diagnostic;
 mod store_size;
@@ -182,6 +184,7 @@ impl Default for FetchConfig {
 #[derive(Clone)]
 pub struct Fetch {
     secrets: std::sync::Arc<Secrets>,
+    trial_cursor_key: Option<std::sync::Arc<TrialCursorKey>>,
     hosted: bool,
     agents: std::sync::Arc<network::Agents>,
     tls: std::sync::Arc<rustls::ClientConfig>,
@@ -272,6 +275,7 @@ impl Fetch {
             matches!(config.mode, Mode::Replay { .. }).then(deadline::VirtualClock::default);
         Ok(Self {
             secrets: std::sync::Arc::new(std::mem::take(&mut config.secrets)),
+            trial_cursor_key: None,
             hosted: false,
             agents: std::sync::Arc::new(agents),
             grpc_worker,

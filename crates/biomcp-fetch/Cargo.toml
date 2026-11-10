@@ -23,6 +23,7 @@ serde.workspace = true
 serde_json = { workspace = true, features = ["raw_value"] }
 ureq.workspace = true
 rustls.workspace = true
+ring.workspace = true
 # Typed CA-as-leaf diagnostics reuse rustls' already locked verifier error.
 webpki = { package = "rustls-webpki", version = "=0.103.16", default-features = false, features = ["std"] }
 rustls-platform-verifier.workspace = true

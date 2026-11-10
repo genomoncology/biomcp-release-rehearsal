@@ -2201,6 +2201,14 @@
       "reason": "The optional disclosure or projection parses an already checked identifier or bounded text. Its absence does not remove the independently retained source record or its existing source problems."
     },
     {
+      "path": "crates/biomcp-query/src/trial/portable_continuation.rs",
+      "site": "restore: ? ) else { return Ok ( None ) ; } ; let Ok ( cursor ) = serde_json : : from_slice : : < Cursor > (",
+      "maximum": 1,
+      "class": "legitimate_absence",
+      "owner": "trial",
+      "reason": "An authenticated but undecodable cursor receives first-page restart guidance before any resolver or registry request."
+    },
+    {
       "path": "crates/biomcp-query/src/trial.rs",
       "site": "apply_page: value | biodata : : Text : : new ( value ) . ok ( )",
       "maximum": 1,

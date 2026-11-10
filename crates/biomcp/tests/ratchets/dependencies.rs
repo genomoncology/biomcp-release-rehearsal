@@ -15,6 +15,7 @@ const LAYERS: &[(&str, &[&str])] = &[
             "url",
             "idna_adapter",
             "rustls",
+            "ring", // Authenticated encryption for portable hosted trial continuations.
             "rustls-platform-verifier",
             "rustls-webpki",
             "tonic",
