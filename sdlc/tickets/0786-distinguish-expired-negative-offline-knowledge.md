@@ -1,6 +1,7 @@
 # 0786 — distinguish-expired-negative-offline-knowledge
 
-Status: OPEN.
+Status: COMPLETE.
+Landed: c70d0aafda4e37c7195b2018b13566ccc9ea98b2
 
 Milestone: 5
 

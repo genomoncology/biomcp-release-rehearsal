@@ -22,7 +22,9 @@ enum Checked<T> {
         Option<crate::ContentRange>,
         Option<crate::Pagination>,
     ),
-    Absent,
+    Absent {
+        fresh: bool,
+    },
 }
 
 impl Leg<'_> {
@@ -78,10 +80,10 @@ impl Leg<'_> {
                 Some(Checked::Positive(reply, false, fetched, range, pagination)) => {
                     stale = Some((reply, fetched, range, pagination))
                 }
-                Some(Checked::Absent) => {
+                Some(Checked::Absent { fresh: true }) => {
                     return Err(self.failure(Reason::NotFound, Some(404)).into());
                 }
-                None => {}
+                Some(Checked::Absent { fresh: false }) | None => {}
             }
         }
         match live() {
@@ -192,8 +194,22 @@ impl Leg<'_> {
                     }
                     return Ok((reply, fetched, range, pagination));
                 }
-                Some(Checked::Absent) => {
+                Some(Checked::Absent { fresh: true }) => {
                     return Err(self.failure(Reason::NotFound, Some(404)).into());
+                }
+                Some(Checked::Absent { fresh: false }) => {
+                    let notice = biomcp_types::SourceNotice::RequestGuidance {
+                        data_date: None,
+                        message: "A previously cached not-found result has expired; current absence is unknown.".into(),
+                        retry_after_seconds: None,
+                    };
+                    let mut report = self
+                        .report
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
+                    if !report.data_notices.contains(&notice) {
+                        report.data_notices.push(notice);
+                    }
                 }
                 None => {}
             }
@@ -244,7 +260,7 @@ impl Leg<'_> {
                     ),
                 );
             }
-            return Ok(fresh.then_some(Checked::Absent));
+            return Ok(Some(Checked::Absent { fresh }));
         }
         let reply = (entry.content_type.as_deref() == Some(codec.name())
             && codec.validate(&entry.body).is_ok())

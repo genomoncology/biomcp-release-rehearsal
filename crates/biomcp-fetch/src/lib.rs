@@ -455,7 +455,7 @@ impl Default for Mode {
 /// The retained stale state of a completed source leg.
 #[derive(Debug, Default)]
 pub struct LegReport {
-    /// Publisher dataset dates and their age assessments, never acquisition times.
+    /// Publisher dataset dates, age assessments and fixed cache-knowledge guidance.
     pub data_notices: Vec<biomcp_types::SourceNotice>,
     /// Body bytes read from HTTP in this leg, excluding cache and replay.
     pub(crate) downloaded_bytes: u64,
